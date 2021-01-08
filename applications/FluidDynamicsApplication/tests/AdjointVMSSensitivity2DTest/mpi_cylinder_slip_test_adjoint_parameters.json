@@ -215,7 +215,7 @@
                     "reference_file_name": "AdjointVMSSensitivity2DTest/mpi_cylinder_slip_test_adjoint_probe1_ref.dat",
                     "comparison_type": "dat_file",
                     "tolerance": 0.01,
-                    "remove_output_file": false
+                    "remove_output_file": true
                 }
             },
             {
@@ -228,7 +228,7 @@
                     "reference_file_name": "AdjointVMSSensitivity2DTest/mpi_cylinder_slip_test_adjoint_probe2_ref.dat",
                     "comparison_type": "dat_file",
                     "tolerance": 0.1,
-                    "remove_output_file": false
+                    "remove_output_file": true
                 }
             },
             {
@@ -241,7 +241,7 @@
                     "reference_file_name": "AdjointVMSSensitivity2DTest/mpi_cylinder_slip_test_adjoint_probe3_ref.dat",
                     "comparison_type": "dat_file",
                     "tolerance": 1e-7,
-                    "remove_output_file": false
+                    "remove_output_file": true
                 }
             }
         ]

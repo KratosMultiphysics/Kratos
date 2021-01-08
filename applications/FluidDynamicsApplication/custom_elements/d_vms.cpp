@@ -184,10 +184,6 @@ int DVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
-    // Output variables (for Calculate() functions)
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_PRESSURE);
-
     return out;
 }
 

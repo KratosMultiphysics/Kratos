@@ -34,7 +34,7 @@
         "relative_pressure_tolerance": 1e-3,
         "absolute_pressure_tolerance": 1e-5,
         "linear_solver_settings": {
-            "solver_type": "amgcl_ns",
+            "solver_type": "amgcl",
             "verbosity": 0,
             "coarse_enough": 500
         },

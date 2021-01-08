@@ -240,8 +240,7 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector<ConstitutiveLaw::Pointer> values( integration_points.size() );
-    for( unsigned int i=0; i<integration_points.size(); i++ )
-    {
+    for( unsigned int i=0; i<integration_points.size(); i++ ) {
         if(py::isinstance<ConstitutiveLaw::Pointer>(values_list[i]))
             values[i] = (values_list[i]).cast<ConstitutiveLaw::Pointer>();
         else
@@ -276,6 +275,13 @@ void EntityCalculateDampingMatrix(
     const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
+}
+
+void ElementCalculateLumpedMassVector(Element& dummy,
+                                      Vector& rMassVector,
+                                      const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateLumpedMassVector(rMassVector, rCurrentProcessInfo);
 }
 
 template<class TEntityType>
@@ -475,6 +481,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Calculate", &ElementCalculateInterface<array_1d<double,3> >)
     .def("Calculate", &ElementCalculateInterface<Vector >)
     .def("Calculate", &ElementCalculateInterface<Matrix >)
+    .def("CalculateLumpedMassVector", &ElementCalculateLumpedMassVector)
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Element>)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Element>)
     .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Element>)
