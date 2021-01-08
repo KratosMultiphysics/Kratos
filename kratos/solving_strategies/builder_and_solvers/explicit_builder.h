@@ -725,7 +725,7 @@ protected:
         mpLumpedMassVector = TSystemVectorPointerType(new TSystemVectorType(GetDofSet().size()));
         TDenseSpace::SetToZero(*mpLumpedMassVector);
 
-        // Loop the elements to get the lumped mass matrix
+        // Loop the elements to get the lumped mass vector
         LocalSystemVectorType elem_mass_vector;
         std::vector<std::size_t> elem_equation_id;
         const auto &r_elements_array = rModelPart.Elements();
