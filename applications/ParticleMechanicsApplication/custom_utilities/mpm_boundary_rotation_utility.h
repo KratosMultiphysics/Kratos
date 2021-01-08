@@ -466,6 +466,24 @@ protected:
 	///@name Protected Operations
 	///@{
 
+	/// Normalize a vector.
+	/**
+	 * @param rThis the vector
+	 * @return Original norm of the input vector
+	 */
+	double Normalize(array_1d<double,3>& rThis) const override
+	{
+		double norm = 0;
+		for(array_1d<double,3>::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+		norm += (*iComponent)*(*iComponent);
+		norm = std::sqrt(norm);
+		if (norm > std::numeric_limits<double>::epsilon()){
+			for(array_1d<double,3>::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+			*iComponent /= norm;
+		}
+		return norm;
+	}
+
 	///@}
 	///@name Protected  Access
 	///@{
