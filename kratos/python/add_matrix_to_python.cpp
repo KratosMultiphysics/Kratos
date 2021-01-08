@@ -41,6 +41,7 @@ namespace Python
         binder.def("Resize", [](TMatrixType& self, const typename TMatrixType::size_type new_size1, const typename TMatrixType::size_type new_size2)
                             {if(self.size1() != new_size1 || self.size2() != new_size2)
                                 self.resize(new_size1, new_size2, false);} );
+        binder.def("__len__", [](const TMatrixType& self){return self.size1() * self.size2();} );
         binder.def("__setitem__", [](TMatrixType& self, const std::pair<int,int> index, const  typename TMatrixType::value_type value)
                                     {
                                         const int index_i = index.first;
@@ -97,6 +98,7 @@ namespace Python
         matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
         matrix_binder.def("fill", [](DenseMatrix<double>& self, const typename DenseMatrix<double>::value_type value) { noalias(self) = DenseMatrix<double>(self.size1(),self.size2(),value); });
         matrix_binder.def("fill_identity", [](DenseMatrix<double>& self) { noalias(self) = IdentityMatrix(self.size1()); });
+        matrix_binder.def("transpose", [](DenseMatrix<double>& self) { return Matrix(trans(self)); });
       #endif // KRATOS_USE_AMATRIX
         matrix_binder.def(py::init<const DenseMatrix<double>& >());
         matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const Vector& v){ return Vector(prod(m1,v));}, py::is_operator());

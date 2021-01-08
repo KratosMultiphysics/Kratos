@@ -34,7 +34,7 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class EmpiricalSpringElement3D2N : public Element
+    class KRATOS_API(CABLE_NET_APPLICATION) EmpiricalSpringElement3D2N : public Element
     {
     protected:
         //const values
@@ -138,7 +138,9 @@ namespace Kratos
             MatrixType& rMassMatrix,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-        void CalculateLumpedMassVector(VectorType& rMassVector);
+        void CalculateLumpedMassVector(
+            VectorType &rLumpedMassVector,
+            const ProcessInfo &rCurrentProcessInfo) const override;
 
         void CalculateDampingMatrix(MatrixType& rDampingMatrix,
             const ProcessInfo& rCurrentProcessInfo) override;

@@ -141,6 +141,7 @@
                 "model_part_name"             : "Structure",
                 "assume_master_slave"         : { "0" : ["Parts_Parts_Auto1"]},
                 "contact_model_part"          : { "0" : ["CONTACT_Contact_Auto1"]},
+                "friction_coefficients"       : { "0" : 0.001},
                 "contact_type"                : "FrictionalPureSlip"
             }
         }],

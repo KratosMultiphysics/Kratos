@@ -674,7 +674,7 @@ public:
         if (rDN_DX.size1() != rDN_De.size1() || rDN_DX.size2() != rInvJ.size2())
             rDN_DX.resize(rDN_De.size1(), rInvJ.size2(), false);
     #endif // KRATOS_USE_AMATRIX
-        
+
         noalias(rDN_DX) = prod(rDN_De, rInvJ);
     }
 
@@ -698,7 +698,7 @@ public:
         if (rF.size1() != rJ.size1() || rF.size2() != rInvJ0.size2())
             rF.resize(rJ.size1(), rInvJ0.size2(), false);
     #endif // KRATOS_USE_AMATRIX
-        
+
         noalias(rF) = prod(rJ, rInvJ0);
     }
 
@@ -786,6 +786,68 @@ public:
             }
         }
     }
+
+    /**
+     * @brief Evaluates variable value at gauss point
+     *
+     * This method evaluates variable value at gauss point given by gauss point shape function values.
+     *
+     * @tparam TDataType                        Data type
+     * @param rOutput                           Output which holds evaluated value
+     * @param rGeometry                         Geometry from which gauss point values are interpolated
+     * @param rVariable                         Variable for value interpolation
+     * @param rGaussPointShapeFunctionValues    Shape function values evaluated at gauss point
+     * @param Step                              Step to be used in historical variable value interpolation
+     */
+    template <class TDataType>
+    static void KRATOS_API(KRATOS_CORE) EvaluateHistoricalVariableValueAtGaussPoint(
+        TDataType& rOutput,
+        const GeometryType& rGeometry,
+        const Variable<TDataType>& rVariable,
+        const Vector& rGaussPointShapeFunctionValues,
+        const int Step = 0);
+
+    /**
+     * @brief Evaluates gradient of scalar at gauss point
+     *
+     * This method evaluates gradient of a scalar variable for given shape function derivative values.
+     * For 2D, it returns 3rd component as zero.
+     *
+     * @param rOutput                                   Output 3d variable containing gradients at gauss point
+     * @param rGeometry                                 Geometry from which gauss point values are interpolated
+     * @param rVariable                                 Variable for value interpolation
+     * @param rGaussPointShapeFunctionDerivativeValues  Shape function derivatives evaluated at gauss point
+     * @param Step                                      Step to be used in historical variable value interpolation
+     */
+    static void KRATOS_API(KRATOS_CORE) EvaluateHistoricalVariableGradientAtGaussPoint(
+        array_1d<double, 3>& rOutput,
+        const GeometryType& rGeometry,
+        const Variable<double>& rVariable,
+        const Matrix& rGaussPointShapeFunctionDerivativeValues,
+        const int Step = 0);
+
+    /**
+     * @brief Evaluates gradient of a 3d vector at gauss point
+     *
+     * This method evaluates gradient of a vector variable for given shape function derivative values.
+     * \[
+     *      rOutput(i, j) = \frac{\partial u_i}{\partial x_j}
+     * \]
+     * Where $u_i$ is the component of 3D rVariable, and $x_j$ is the cartesian coordinate component.
+     * In 2D, it returns 3rd row and 3rd column with zeros.
+     *
+     * @param rOutput                                   Output matrix containing gradients at gauss point
+     * @param rGeometry                                 Geometry from which gauss point values are interpolated
+     * @param rVariable                                 Variable for value interpolation
+     * @param rGaussPointShapeFunctionDerivativeValues  Shape function derivatives evaluated at gauss point
+     * @param Step                                      Step to be used in historical variable value interpolation
+     */
+    static void KRATOS_API(KRATOS_CORE) EvaluateHistoricalVariableGradientAtGaussPoint(
+        BoundedMatrix<double, 3, 3>& rOutput,
+        const GeometryType& rGeometry,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const Matrix& rGaussPointShapeFunctionDerivativeValues,
+        const int Step = 0);
 };
 
 }  // namespace Kratos.

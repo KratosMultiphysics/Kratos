@@ -96,7 +96,282 @@ public:
 	///@name Operations
 	///@{
 
-	/// Rotate the local system contributions so that they are oriented with each node's normal.
+    /**
+     * @brief Calculates rotation operator for given point
+     *
+     * This metod calculates rotation matrix for a given point. Nodal NORMAL variable should be
+     * assigned properly since rotation is calculated based on it.
+     *
+     * @param rRotationMatrix   Output rotation matrix
+     * @param rThisPoint        Current node
+     */
+    virtual void CalculateRotationOperatorPure(
+        TLocalMatrixType& rRotationMatrix,
+        const GeometryType::PointType& rThisPoint) const
+    {
+        KRATOS_TRY
+
+        if (mDomainSize == 2) {
+            BoundedMatrix<double, 2, 2> local_matrix;
+            this->LocalRotationOperatorPure(local_matrix, rThisPoint);
+            if (rRotationMatrix.size1() != 2 || rRotationMatrix.size2() != 2) {
+                rRotationMatrix.resize(2, 2, false);
+            }
+            noalias(rRotationMatrix) = local_matrix;
+        } else if (mDomainSize == 3) {
+            BoundedMatrix<double, 3, 3> local_matrix;
+            this->LocalRotationOperatorPure(local_matrix, rThisPoint);
+            if (rRotationMatrix.size1() != 3 || rRotationMatrix.size2() != 3) {
+                rRotationMatrix.resize(3, 3, false);
+            }
+            noalias(rRotationMatrix) = local_matrix;
+        } else {
+            KRATOS_ERROR << "Unsupported domain size [ mDomainSize = " << mDomainSize
+                         << " ].\n";
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Calculates rotation nodal matrix shape sensitivities
+     *
+     * This method calculates shape sensitivities of rotation matrix for given node.
+     * Nodal NORMAL(historical data container) and NORMAL_SHAPE_SENSITIVITY(non-historical data contaienr) variables
+     * should be properly initialized.
+     *
+     * NORMAL_SHAPE_SENSITIVITY matrix should be properly sized and initialized with proper shape sensitivity values
+     * 		rows: number_of_nodes contributing to NORMAL * DOMAIN_SIZE, columns: DOMAIN_SIZE
+     *
+     * @param rRotationMatrixShapeDerivative    Output shape sensitivities matrix w.r.t. NodeIndex and DerivativeIndex
+     * @param DerivativeNodeIndex               NodeIndex for which shape sensitivity matrix is computed
+     * @param DerivativeDirectionIndex          Direction index of the node for which shape sensitivity matrix is computed
+     * @param rThisPoint                        Current node where rotation matrix shape sensitivities are required
+     */
+    virtual void CalculateRotationOperatorPureShapeSensitivities(
+        TLocalMatrixType& rRotationMatrixShapeDerivative,
+        const std::size_t DerivativeNodeIndex,
+        const std::size_t DerivativeDirectionIndex,
+        const GeometryType::PointType& rThisPoint) const
+    {
+		KRATOS_TRY
+
+        if (mDomainSize == 2) {
+            BoundedMatrix<double, 2, 2> local_matrix;
+            this->CalculateRotationOperatorPureShapeSensitivities(
+                local_matrix, DerivativeNodeIndex, DerivativeDirectionIndex, rThisPoint);
+            if (rRotationMatrixShapeDerivative.size1() != 2 ||
+                rRotationMatrixShapeDerivative.size2() != 2) {
+                rRotationMatrixShapeDerivative.resize(2, 2, false);
+            }
+            noalias(rRotationMatrixShapeDerivative) = local_matrix;
+        } else if (mDomainSize == 3) {
+            BoundedMatrix<double, 3, 3> local_matrix;
+            this->CalculateRotationOperatorPureShapeSensitivities(
+                local_matrix, DerivativeNodeIndex, DerivativeDirectionIndex, rThisPoint);
+            if (rRotationMatrixShapeDerivative.size1() != 3 ||
+                rRotationMatrixShapeDerivative.size2() != 3) {
+                rRotationMatrixShapeDerivative.resize(3, 3, false);
+            }
+            noalias(rRotationMatrixShapeDerivative) = local_matrix;
+        } else {
+            KRATOS_ERROR << "Unsupported domain size [ mDomainSize = " << mDomainSize
+                         << " ].\n";
+        }
+
+
+		KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Calculate 2d rotation nodal matrix shape sensitivities
+     *
+     * This method calculates shape sensitivities of 2D rotation matrix for given node.
+     * Nodal NORMAL(historical data container) and NORMAL_SHAPE_SENSITIVITY(non-historical data contaienr) variables
+     * should be properly initialized.
+     *
+     * NORMAL_SHAPE_SENSITIVITY matrix should be properly sized and initialized with proper shape sensitivity values
+     * 		rows: (number_of_neighbour_nodes + 1) * 2
+     * 		cols: 2
+     *
+     * @param rOutput                           Output shape sensitivities matrix w.r.t. NodeIndex and DerivativeIndex
+     * @param DerivativeNodeIndex               NodeIndex for which shape sensitivity matrix is computed
+     * @param DerivativeDirectionIndex          Direction index of the node for which shape sensitivity matrix is computed
+     * @param rThisPoint                        Current node where rotation matrix shape sensitivities are required
+     */
+    virtual void CalculateRotationOperatorPureShapeSensitivities(
+        BoundedMatrix<double, 2, 2>& rOutput,
+        const std::size_t DerivativeNodeIndex,
+        const std::size_t DerivativeDirectionIndex,
+        const GeometryType::PointType& rThisPoint) const
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(!rThisPoint.SolutionStepsDataHas(NORMAL))
+            << "NORMAL is not found in node at " << rThisPoint.Coordinates() << ".";
+        KRATOS_ERROR_IF(!rThisPoint.Has(NORMAL_SHAPE_DERIVATIVE))
+            << "NORMAL_SHAPE_DERIVATIVE is not found in node at "
+            << rThisPoint.Coordinates() << ".";
+
+        const array_1d<double, 3>& r_nodal_normal =
+            rThisPoint.FastGetSolutionStepValue(NORMAL);
+        const double nodal_normal_magnitude = norm_2(r_nodal_normal);
+
+        KRATOS_ERROR_IF(nodal_normal_magnitude == 0.0)
+            << "NORMAL at node " << rThisPoint.Coordinates()
+            << " is not properly initialized.";
+
+        const Matrix& r_sensitivity_values = rThisPoint.GetValue(NORMAL_SHAPE_DERIVATIVE);
+
+        KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size2() != 2)
+            << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
+            << rThisPoint.Coordinates() << " to calculate 2D rotation operator shape sensitivities. [ required number of columns = 2, available number of columns = "
+            << r_sensitivity_values.size2() << " ].";
+
+        const std::size_t require_rows = (DerivativeNodeIndex + 1) * 2;
+        KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size1() < require_rows)
+            << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
+            << rThisPoint.Coordinates() << " to calculate 2D rotation operator shape sensitivities. [ required number of rows >= "
+            << require_rows
+            << ", available number of rows = " << r_sensitivity_values.size1() << " ].";
+
+        const Vector& r_nodal_normal_derivatives =
+            row(r_sensitivity_values, DerivativeNodeIndex * 2 + DerivativeDirectionIndex);
+
+        rOutput(0, 0) = r_nodal_normal_derivatives[0] / nodal_normal_magnitude;
+        rOutput(0, 1) = r_nodal_normal_derivatives[1] / nodal_normal_magnitude;
+        rOutput(1, 0) = -r_nodal_normal_derivatives[1] / nodal_normal_magnitude;
+        rOutput(1, 1) = r_nodal_normal_derivatives[0] / nodal_normal_magnitude;
+
+        const double nodal_normal_magnitude_derivative =
+            (r_nodal_normal[0] * r_nodal_normal_derivatives[0] +
+             r_nodal_normal[1] * r_nodal_normal_derivatives[1]) /
+            nodal_normal_magnitude;
+
+        const double coeff = nodal_normal_magnitude_derivative /
+                             (std::pow(nodal_normal_magnitude, 2));
+
+        rOutput(0, 0) -= r_nodal_normal[0] * coeff;
+        rOutput(0, 1) -= r_nodal_normal[1] * coeff;
+        rOutput(1, 0) -= -r_nodal_normal[1] * coeff;
+        rOutput(1, 1) -= r_nodal_normal[0] * coeff;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Calculate 3d rotation nodal matrix shape sensitivities
+     *
+     * This method calculates shape sensitivities of 3D rotation matrix for given node.
+     * Nodal NORMAL(historical data container) and NORMAL_SHAPE_SENSITIVITY(non-historical data contaienr) variables
+     * should be properly initialized.
+     *
+     * NORMAL_SHAPE_SENSITIVITY matrix should be properly sized and initialized with proper shape sensitivity values
+     * 		rows: (number_of_neighbour_nodes + 1) * 3
+     * 		cols: 3
+     *
+     * @param rOutput                           Output shape sensitivities matrix w.r.t. NodeIndex and DerivativeIndex
+     * @param DerivativeNodeIndex               NodeIndex for which shape sensitivity matrix is computed
+     * @param DerivativeDirectionIndex          Direction index of the node for which shape sensitivity matrix is computed
+     * @param rThisPoint                        Current node where rotation matrix shape sensitivities are required
+     */
+    virtual void CalculateRotationOperatorPureShapeSensitivities(
+        BoundedMatrix<double, 3, 3>& rOutput,
+        const std::size_t DerivativeNodeIndex,
+        const std::size_t DerivativeDirectionIndex,
+        const GeometryType::PointType& rThisPoint) const
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(!rThisPoint.SolutionStepsDataHas(NORMAL))
+            << "NORMAL is not found in node at " << rThisPoint.Coordinates() << ".";
+        KRATOS_ERROR_IF(!rThisPoint.Has(NORMAL_SHAPE_DERIVATIVE))
+            << "NORMAL_SHAPE_DERIVATIVE is not found in node at "
+            << rThisPoint.Coordinates() << ".";
+
+        const array_1d<double, 3>& r_nodal_normal =
+            rThisPoint.FastGetSolutionStepValue(NORMAL);
+        const double nodal_normal_magnitude = norm_2(r_nodal_normal);
+
+        KRATOS_ERROR_IF(nodal_normal_magnitude == 0.0)
+            << "NORMAL at node " << rThisPoint.Coordinates()
+            << " is not properly initialized.";
+
+        const Matrix& r_sensitivity_values = rThisPoint.GetValue(NORMAL_SHAPE_DERIVATIVE);
+
+        KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size2() != 3)
+            << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
+            << rThisPoint.Coordinates() << " to calculate 3D rotation operator shape sensitivities. [ required number of columns = 3, available number of columns = "
+            << r_sensitivity_values.size2() << " ].";
+
+        const std::size_t require_rows = (DerivativeNodeIndex + 1) * 3;
+        KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size1() < require_rows)
+            << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
+            << rThisPoint.Coordinates() << " to calculate 3D rotation operator shape sensitivities. [ required number of rows >= "
+            << require_rows
+            << ", available number of rows = " << r_sensitivity_values.size1() << " ].";
+
+        const Vector& r_nodal_normal_derivative =
+            row(r_sensitivity_values, DerivativeNodeIndex * 3 + DerivativeDirectionIndex);
+
+        const double nodal_normal_magnitude_derivative = VectorNormDerivative(nodal_normal_magnitude, r_nodal_normal, r_nodal_normal_derivative);
+        const array_1d<double, 3>& unit_normal = r_nodal_normal / nodal_normal_magnitude;
+        const array_1d<double, 3>& unit_normal_derivative = UnitVectorDerivative(nodal_normal_magnitude, nodal_normal_magnitude_derivative, r_nodal_normal, r_nodal_normal_derivative);
+
+        rOutput(0, 0) = unit_normal_derivative[0];
+        rOutput(0, 1) = unit_normal_derivative[1];
+        rOutput(0, 2) = unit_normal_derivative[2];
+
+        array_1d<double, 3> rT1(3, 0.0);
+        rT1[0] = 1.0;
+        double dot = unit_normal[0];
+        double dot_derivative = unit_normal_derivative[0];
+
+        if (std::abs(dot) > 0.99) {
+            rT1[0] = 0.0;
+            rT1[1] = 1.0;
+            dot = unit_normal[1];
+            dot_derivative = unit_normal_derivative[1];
+        }
+
+        // calculate rT1
+        noalias(rT1) -=  unit_normal * dot;
+        const double rT1_norm = norm_2(rT1);
+        const array_1d<double, 3>& unit_rT1 = rT1 / rT1_norm;
+
+        // calculate rT1 derivative
+        const array_1d<double, 3>& rT1_derivative = (unit_normal_derivative * dot + unit_normal * dot_derivative) * -1.0;
+
+        // calculate rT1 norm derivative
+        const double rT1_norm_derivative = VectorNormDerivative(rT1_norm, rT1, rT1_derivative);
+
+        const array_1d<double, 3>& unit_rT1_derivative =
+            UnitVectorDerivative(rT1_norm, rT1_norm_derivative, rT1, rT1_derivative);
+
+        rOutput(1, 0) = unit_rT1_derivative[0];
+        rOutput(1, 1) = unit_rT1_derivative[1];
+        rOutput(1, 2) = unit_rT1_derivative[2];
+
+        rOutput(2, 0) = unit_normal_derivative[1] * unit_rT1[2]
+                        + unit_normal[1] * unit_rT1_derivative[2]
+                        - unit_normal_derivative[2] * unit_rT1[1]
+                        - unit_normal[2] * unit_rT1_derivative[1];
+
+
+        rOutput(2, 1) = unit_normal_derivative[2] * unit_rT1[0]
+                        + unit_normal[2] * unit_rT1_derivative[0]
+                        - unit_normal_derivative[0] * unit_rT1[2]
+                        - unit_normal[0] * unit_rT1_derivative[2];
+
+        rOutput(2, 2) = unit_normal_derivative[0] * unit_rT1[1]
+                        + unit_normal[0] * unit_rT1_derivative[1]
+                        - unit_normal_derivative[1] * unit_rT1[0]
+                        - unit_normal[1] * unit_rT1_derivative[0];
+
+        KRATOS_CATCH("");
+    }
+
+    /// Rotate the local system contributions so that they are oriented with each node's normal.
 	/**
 	 @param rLocalMatrix Local system matrix
 	 @param rLocalVector Local RHS vector
@@ -639,8 +914,9 @@ protected:
 	}
 
 
-	void LocalRotationOperatorPure(BoundedMatrix<double,3,3>& rRot,
-			GeometryType::PointType& rThisPoint) const
+    void LocalRotationOperatorPure(
+        BoundedMatrix<double,3,3>& rRot,
+        const GeometryType::PointType& rThisPoint) const
 	{
 
 		// Get the normal evaluated at the node
@@ -686,8 +962,9 @@ protected:
 		rRot(2,2) = rRot(0,0)*rT1[1] - rRot(0,1)*rT1[0];
 	}
 
-	void LocalRotationOperatorPure(BoundedMatrix<double,2,2>& rRot,
-			GeometryType::PointType& rThisPoint) const
+    void LocalRotationOperatorPure(
+        BoundedMatrix<double,2,2>& rRot,
+        const GeometryType::PointType& rThisPoint) const
 	{
 		// Get the normal evaluated at the node
 		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
@@ -857,7 +1134,25 @@ private:
 		return dot;
 	}
 
-	/// Transform a local contribution from cartesian coordinates to rotated ones
+    inline double VectorNormDerivative(
+        const double ValueNorm,
+        const array_1d<double, 3>& rValue,
+        const array_1d<double, 3>& rValueDerivative) const
+    {
+        return inner_prod(rValue, rValueDerivative) / ValueNorm;
+    }
+
+    inline array_1d<double, 3> UnitVectorDerivative(
+        const double VectorNorm,
+        const double VectorNormDerivative,
+        const array_1d<double, 3>& rVector,
+        const array_1d<double, 3>& rVectorDerivative) const
+    {
+        return (rVectorDerivative * VectorNorm - rVector * VectorNormDerivative) /
+                std::pow(VectorNorm, 2);
+    }
+
+    /// Transform a local contribution from cartesian coordinates to rotated ones
 //     void ApplyRotation(TLocalMatrixType& rMatrix,
 //                        const TLocalMatrixType& rRotation) const
 //     {

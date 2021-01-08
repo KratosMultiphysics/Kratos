@@ -26,6 +26,7 @@
 #include "spaces/ublas_space.h"
 
 // builder_and_solvers
+#include "solving_strategies/builder_and_solvers/explicit_builder.h"
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_periodic.h"
 
 //strategies
@@ -33,12 +34,10 @@
 #include "custom_strategies/strategies/fractional_step_strategy.h"
 
 //schemes
-#include "custom_strategies/schemes/gear_scheme.h"
+#include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
-
-// convergence criteria
-#include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
+#include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta_4.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -67,6 +66,14 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         typename ResidualBasedBlockBuilderAndSolverPeriodic<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
         ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(m, "ResidualBasedBlockBuilderAndSolverPeriodic")
     .def(py::init<LinearSolverType::Pointer, const Variable<int> &>());
+
+    py::class_<
+        CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>,
+        typename CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>::Pointer,
+        ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4")
+    .def(py::init<ModelPart&, bool, int>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
 
     py::class_<
         FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>,
@@ -106,20 +113,13 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     ;
 
     py::class_<
-        GearScheme<SparseSpaceType, LocalSpaceType>,
-        typename GearScheme<SparseSpaceType, LocalSpaceType>::Pointer,
-        BaseSchemeType>(m, "GearScheme")
+        BDF2TurbulentScheme<SparseSpaceType, LocalSpaceType>,
+        typename BDF2TurbulentScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        BaseSchemeType>(m, "BDF2TurbulentScheme")
     .def(py::init<>())                 // default constructor
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;
 
-    // Convergence criteria
-    py::class_<
-        VelPrCriteria<SparseSpaceType, LocalSpaceType>,
-        typename VelPrCriteria<SparseSpaceType, LocalSpaceType>::Pointer,
-        ConvergenceCriteria<SparseSpaceType, LocalSpaceType>>(m, "VelPrCriteria")
-    .def(py::init<double, double, double, double>())
-    .def("SetEchoLevel", &VelPrCriteria<SparseSpaceType, LocalSpaceType>::SetEchoLevel);
 }
 
 } // namespace Python.

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -21,18 +19,18 @@ class HarmonicAnalysisSolver(MechanicalSolver):
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super(HarmonicAnalysisSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[HarmonicAnalysisSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"   : "dynamic",
             "harmonic_analysis_settings" : {
                 "use_effective_material_damping" : false
             }
         }""")
-        this_defaults.AddMissingParameters(super(HarmonicAnalysisSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Private functions ####

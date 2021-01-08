@@ -110,6 +110,14 @@ void BuildMatrix(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo
 }
 
 template<>
+void InitializeSystemVector<SparseSpaceType, DenseSpaceType>(
+    Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpVector,
+    const std::size_t VectorSize)
+{
+    KRATOS_ERROR << "this function was not yet implemented in Trilinos!" << std::endl;
+}
+
+template<>
 void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
     Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMappingMatrix,
     Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpInterfaceVectorOrigin,
@@ -121,8 +129,7 @@ void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(SparseSpaceType::IsDistributed())
-        << "Using a non-distributed Space!" << std::endl;
+    static_assert(SparseSpaceType::IsDistributed(), "Using a non-distributed Space!");
 
     // ***** Creating vectors with information abt which IDs are local *****
     const auto& r_local_mesh_origin = rModelPartOrigin.GetCommunicator().LocalMesh();

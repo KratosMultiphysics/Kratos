@@ -52,7 +52,6 @@ namespace Kratos
     {
         KRATOS_TRY;
         const double delta = this->GetPerturbationSize();
-        ProcessInfo process_info = rCurrentProcessInfo;
 
         Vector RHS;
         Vector RHS_perturbed;
@@ -60,7 +59,7 @@ namespace Kratos
         auto pPrimalElement = this->pGetPrimalElement();
         const auto& r_geometry = this->GetGeometry();
 
-        pPrimalElement->CalculateRightHandSide(RHS, process_info);
+        pPrimalElement->CalculateRightHandSide(RHS, rCurrentProcessInfo);
 
         if (rOutput.size1() != NumNodes)
             rOutput.resize(Dim*NumNodes, RHS.size(), false);
@@ -72,7 +71,7 @@ namespace Kratos
                     pPrimalElement->GetGeometry()[i_node].Coordinates()[i_dim] += delta;
 
                     // compute LHS after perturbation
-                    pPrimalElement->CalculateRightHandSide(RHS_perturbed, process_info);
+                    pPrimalElement->CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
 
                     //compute derivative of RHS w.r.t. design variable with finite differences
                     for(unsigned int i = 0; i < RHS.size(); ++i)
@@ -116,12 +115,11 @@ namespace Kratos
         if (is_embedded && this->Is(ACTIVE)){
 
             const double delta = this->GetPerturbationSize();
-            ProcessInfo process_info = rCurrentProcessInfo;
             const auto& r_geometry = this->GetGeometry();
             Vector RHS;
             Vector RHS_perturbed;
 
-            pPrimalElement->CalculateRightHandSide(RHS, process_info);
+            pPrimalElement->CalculateRightHandSide(RHS, rCurrentProcessInfo);
 
             for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
                 // Apply F.D in all cut nodes that are not trailing edge nodes.
@@ -129,7 +127,7 @@ namespace Kratos
                     // Perturbate distance
                     pPrimalElement->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i_node]+delta;
                     // Compute perturbated RHS
-                    pPrimalElement->CalculateRightHandSide(RHS_perturbed, process_info);
+                    pPrimalElement->CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
                     // Recover distance value
                     pPrimalElement->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i_node];
 

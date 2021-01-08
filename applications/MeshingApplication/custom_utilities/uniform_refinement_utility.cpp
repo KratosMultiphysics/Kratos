@@ -828,22 +828,22 @@ PointerVector<NodeType> UniformRefinementUtility::GetSubTriangleNodes(
     {
         // First sub triangle
         sub_triangle_nodes(0) = rGeom.pGetPoint(0);
-        sub_triangle_nodes(1) = rMiddleNodes[0];
-        sub_triangle_nodes(2) = rMiddleNodes[2];
+        sub_triangle_nodes(1) = rMiddleNodes[2];
+        sub_triangle_nodes(2) = rMiddleNodes[1];
     }
     else if (Position == 1)
     {
         // Second sub triangle
         sub_triangle_nodes(0) = rGeom.pGetPoint(1);
-        sub_triangle_nodes(1) = rMiddleNodes[1];
-        sub_triangle_nodes(2) = rMiddleNodes[0];
+        sub_triangle_nodes(1) = rMiddleNodes[0];
+        sub_triangle_nodes(2) = rMiddleNodes[2];
     }
     else if (Position == 2)
     {
         // Third sub triangle
         sub_triangle_nodes(0) = rGeom.pGetPoint(2);
-        sub_triangle_nodes(1) = rMiddleNodes[2];
-        sub_triangle_nodes(2) = rMiddleNodes[1];
+        sub_triangle_nodes(1) = rMiddleNodes[1];
+        sub_triangle_nodes(2) = rMiddleNodes[0];
     }
     else if (Position == 3)
     {

@@ -7,51 +7,47 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication )
+
+## RANSApplication Core instances sources
+set(KRATOS_RANS_APPLICATION_CORE_INSTANCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/rans_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/rans_application_variables.cpp
+)
+
+## RANSApplication Core Utilities sources
+file(GLOB_RECURSE KRATOS_RANS_APPLICATION_CORE_UTILITIES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+)
 
 ## RANSApplication Core sources
 file(GLOB_RECURSE KRATOS_RANS_APPLICATION_CORE
-    ${CMAKE_CURRENT_SOURCE_DIR}/rans_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/rans_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
 file(GLOB_RECURSE KRATOS_RANS_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
+## RANSApplication testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-  set( KRATOS_RANS_APPLICATION_TESTING
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_k_epsilon_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_epsilon_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_epsilon_adjoint_wall_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_epsilon_vms_monolithic_adjoint_wall_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_k_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_k_epsilon_vms_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_monolithic_k_epsilon_vms_adjoint_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_monolithic_k_epsilon_vms_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_rans_evm_k_epsilon_conditions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_rans_evm_k_epsilon_elements.cpp
-  )
+file(GLOB_RECURSE KRATOS_RANS_APPLICATION_TESTING_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp
+)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-add_library(KratosRANSCore SHARED ${KRATOS_RANS_APPLICATION_CORE} ${KRATOS_RANS_APPLICATION_TESTING})
+add_library(KratosRANSCore SHARED ${KRATOS_RANS_APPLICATION_CORE_INSTANCES} ${KRATOS_RANS_APPLICATION_CORE_UTILITIES} ${KRATOS_RANS_APPLICATION_CORE} ${KRATOS_RANS_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosRANSCore PUBLIC KratosCore KratosFluidDynamicsCore)
 set_target_properties(KratosRANSCore PROPERTIES COMPILE_DEFINITIONS "RANS_APPLICATION=EXPORT,API")
 
 pybind11_add_module(KratosRANSApplication MODULE THIN_LTO ${KRATOS_RANS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosRANSApplication PRIVATE KratosRANSCore)
 set_target_properties(KratosRANSApplication PROPERTIES PREFIX "")
-
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosRANSCore)
-    cotire(KratosRANSApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -62,6 +58,12 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosRANSApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+# Cotire
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosRANSCore)
+    cotire(KratosRANSApplication)
+endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/RANSApplication.py KratosMultiphysics/RANSApplication/__init__.py )

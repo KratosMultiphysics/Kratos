@@ -34,7 +34,7 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class SlidingCableElement3D : public Element
+    class KRATOS_API(CABLE_NET_APPLICATION) SlidingCableElement3D : public Element
     {
     protected:
 
@@ -145,7 +145,9 @@ namespace Kratos
             return prestress;
         };
 
-        void CalculateLumpedMassVector(VectorType &rMassVector);
+        void CalculateLumpedMassVector(
+            VectorType &rLumpedMassVector,
+            const ProcessInfo &rCurrentProcessInfo) const override;
 
         void CalculateMassMatrix(
             MatrixType& rMassMatrix,

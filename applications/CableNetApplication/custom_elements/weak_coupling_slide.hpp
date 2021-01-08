@@ -33,7 +33,7 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class WeakSlidingElement3D3N : public Element
+    class KRATOS_API(CABLE_NET_APPLICATION) WeakSlidingElement3D3N : public Element
     {
     protected:
         //const values

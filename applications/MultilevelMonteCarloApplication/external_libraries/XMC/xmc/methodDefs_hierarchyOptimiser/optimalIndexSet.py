@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def zeroDimensionSamplesOnly(inputDict):
     return [[]]
 

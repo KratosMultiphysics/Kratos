@@ -107,6 +107,10 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
     IndexType check_counter = 0;
 
     if (mTimeCounter > mFrequency) {
+        // Reset error message
+        mErrorMessage = "";
+
+        // Reset time counter
         mTimeCounter = 0.0;
 
         // Check node values
@@ -272,18 +276,23 @@ void FromJSONCheckResultProcess::FailMessage(
     const int GPIndex
     )
 {
+    std::stringstream ss;
     if (ComponentIndex > -1) {
         if (GPIndex > -1) {
-            KRATOS_WARNING("FromJSONCheckResultProcess") << "Error checking for variable " << rVariableName << " Component " << ComponentIndex << " in GP " << GPIndex << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
+            ss << "Error checking for variable " << rVariableName << " Component " << ComponentIndex << " in GP " << GPIndex << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
         } else {
-            KRATOS_WARNING("FromJSONCheckResultProcess") << "Error checking for variable " << rVariableName << " Component " << ComponentIndex << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
+            ss << "Error checking for variable " << rVariableName << " Component " << ComponentIndex << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
         }
     } else {
         if (GPIndex > -1) {
-            KRATOS_WARNING("FromJSONCheckResultProcess") << "Error checking for variable " << rVariableName << " in GP " << GPIndex << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
+            ss << "Error checking for variable " << rVariableName << " in GP " << GPIndex << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
         } else {
-            KRATOS_WARNING("FromJSONCheckResultProcess") << "Error checking for variable " << rVariableName << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
+            ss << "Error checking for variable " << rVariableName << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
         }
+    }
+    #pragma omp critical
+    {
+        mErrorMessage += ss.str();
     }
 }
 
@@ -789,7 +798,7 @@ const ResultDatabase& FromJSONCheckResultProcess::GetNodeDatabase()
         const auto& r_flag_name = mThisParameters["check_for_flag"].GetString();
         const Flags* p_flag = (r_flag_name != "") ? KratosComponents<Flags>::Has(r_flag_name) ? &KratosComponents<Flags>::Get(r_flag_name) : nullptr : nullptr;
 
-        // Array nodes 
+        // Array nodes
         const auto& r_nodes_array = GetNodes(p_flag);
 
         // If not empty arry we throw an error if not possible to initialize database
@@ -811,7 +820,7 @@ const ResultDatabase& FromJSONCheckResultProcess::GetGPDatabase()
         const auto& r_flag_name = mThisParameters["check_for_flag"].GetString();
         const Flags* p_flag = (r_flag_name != "") ? KratosComponents<Flags>::Has(r_flag_name) ? &KratosComponents<Flags>::Get(r_flag_name) : nullptr : nullptr;
 
-        // Array elements 
+        // Array elements
         const auto& r_elements_array = GetElements(p_flag);
 
         // If not empty arry we throw an error if not possible to initialize database

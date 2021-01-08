@@ -20,6 +20,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/FEMDEM_coupling_utilities.h"
 #include "custom_utilities/aitken_relaxation_femdem_utility.hpp"
+#include "custom_utilities/renumbering_model_parts_utility.h"
 
 namespace Kratos
 {
@@ -27,7 +28,7 @@ namespace Python
 {
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-	namespace py = pybind11;
+    namespace py = pybind11;
 
     py::class_<FEMDEMCouplingUtilities>(m,"FEMDEMCouplingUtilities")
         .def(py::init<>())
@@ -37,6 +38,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("AddExplicitImpulses",&FEMDEMCouplingUtilities::AddExplicitImpulses)
         .def("ComputeAndTranferAveragedContactTotalForces",&FEMDEMCouplingUtilities::ComputeAndTranferAveragedContactTotalForces)
         .def("ResetContactImpulses",&FEMDEMCouplingUtilities::ResetContactImpulses)
+        .def("RemoveDuplicates",&FEMDEMCouplingUtilities::RemoveDuplicates)
+        .def("IdentifyFreeParticles",&FEMDEMCouplingUtilities::IdentifyFreeParticles)
+        .def("GetNumberOfNodes",&FEMDEMCouplingUtilities::GetNumberOfNodes)
+        .def("IsGenerateDEMRequired",&FEMDEMCouplingUtilities::IsGenerateDEMRequired)
         ;
 
     py::class_<AitkenRelaxationFEMDEMUtility>(m, "AitkenRelaxationFEMDEMUtility")
@@ -56,6 +61,18 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeInterfaceResidualVector", &AitkenRelaxationFEMDEMUtility::ComputeInterfaceResidualVector)
         .def("UpdateInterfaceValues", &AitkenRelaxationFEMDEMUtility::UpdateInterfaceValues)
         .def("ResetPFEMkinematicValues", &AitkenRelaxationFEMDEMUtility::ResetPFEMkinematicValues)
+        ;
+
+    py::class_<RenumberingNodesUtility>(m,"RenumberingNodesUtility")
+        .def(py::init<ModelPart &>())
+        .def(py::init<ModelPart &,ModelPart &>())
+        .def(py::init<ModelPart &,ModelPart &,ModelPart &>())
+        .def(py::init<ModelPart &,ModelPart &,ModelPart &,ModelPart &>())
+        .def(py::init<ModelPart &,ModelPart &,ModelPart &,ModelPart &,ModelPart &>())
+        .def("Renumber",&RenumberingNodesUtility::Renumber)
+        .def("RenumberElements",&RenumberingNodesUtility::RenumberElements)
+        .def("UndoRenumber",&RenumberingNodesUtility::UndoRenumber)
+        .def("UndoRenumberElements",&RenumberingNodesUtility::UndoRenumberElements)
         ;
 }
 

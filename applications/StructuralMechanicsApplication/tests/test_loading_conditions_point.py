@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -6,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
 class TestLoadingConditionsPoint(KratosUnittest.TestCase):
-            
+
     def _execute_point_load_condition_test(self, current_model, Dimension):
         mp = current_model.CreateModelPart("solid_part")
         mp.SetBufferSize(2)
@@ -128,7 +127,7 @@ class TestLoadingConditionsPoint(KratosUnittest.TestCase):
     def test_PointMomentCondition3D1N(self):
         current_model = KratosMultiphysics.Model()
         self._execute_point_moment_condition_test(current_model)
-    
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

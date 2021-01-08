@@ -1,6 +1,3 @@
-"""This module contains the available structural response functions and their base class"""
-from __future__ import print_function, absolute_import, division
-
 # importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics import Parameters, Logger

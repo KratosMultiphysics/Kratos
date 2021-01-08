@@ -19,6 +19,7 @@
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/normal_calculation_utils.h"
 #include "includes/gid_io.h"
 
 /* Custom utilities */
@@ -47,9 +48,11 @@ const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchProcess(
     ModelPart& rMainModelPart,
-    Parameters ThisParameters
+    Parameters ThisParameters,
+    Properties::Pointer pPairedProperties
     ):mrMainModelPart(rMainModelPart),
-      mThisParameters(ThisParameters)
+      mThisParameters(ThisParameters),
+      mpPairedProperties(pPairedProperties)
 {
     KRATOS_TRY
 
@@ -485,7 +488,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
     ModelPart& r_sub_contact_model_part = this->IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(r_sub_contact_model_part);
+    NormalCalculationUtils().CalculateUnitNormals<Condition>(r_sub_contact_model_part, true);
 
     // We get the computing model part
     IndexType condition_id = GetMaximumConditionsIds();
@@ -654,7 +657,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
                         const bool frictional_problem = mrMainModelPart.Is(SLIP);
 
                         // Slave geometry and data
-                        Properties::Pointer p_prop = it_cond->pGetProperties();
+                        Properties::Pointer p_prop = mpPairedProperties == nullptr ? it_cond->pGetProperties() : mpPairedProperties;
                         const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
 
                         for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
@@ -766,7 +769,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
                     const bool frictional_problem = mrMainModelPart.Is(SLIP);
 
                     // Slave geometry and data
-                    Properties::Pointer p_prop = it_cond->pGetProperties();
+                    Properties::Pointer p_prop = mpPairedProperties == nullptr ? it_cond->pGetProperties() : mpPairedProperties;
                     const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
 
                     for (auto p_leaf : leaves) {
@@ -1403,7 +1406,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
     }
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(r_sub_contact_model_part);
+    NormalCalculationUtils().CalculateUnitNormals<Condition>(r_sub_contact_model_part, true);
 
     // Iterate in the conditions and create the new ones
     CreateAuxiliarConditions(r_sub_contact_model_part, rComputingModelPart, rConditionId);
@@ -1628,8 +1631,9 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateAu
             IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
             for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                 if (it_pair->second == 0) { // If different than 0 it is an existing condition
+                    Properties::Pointer p_prop = mpPairedProperties == nullptr ? it_cond->pGetProperties() : mpPairedProperties;
                     Condition::Pointer p_cond_master = mrMainModelPart.pGetCondition(it_pair->first); // MASTER
-                    AddPairing(rComputingModelPart, rConditionId, (*it_cond.base()), it_cond->GetValue(NORMAL), p_cond_master, p_cond_master->GetValue(NORMAL), p_indexes_pairs, it_cond->pGetProperties());
+                    AddPairing(rComputingModelPart, rConditionId, (*it_cond.base()), it_cond->GetValue(NORMAL), p_cond_master, p_cond_master->GetValue(NORMAL), p_indexes_pairs, p_prop);
                 }
             }
         }

@@ -87,6 +87,7 @@
                 "model_part_name"             : "Structure",
                 "assume_master_slave"         : { "0" : ["Parts_Parts_Auto2"]},
                 "contact_model_part"          : { "0" : ["Contact_Part"]},
+                "friction_coefficients"       : { "0" : 1.0e-2},
                 "contact_type"                : "Frictional"
             }
         }

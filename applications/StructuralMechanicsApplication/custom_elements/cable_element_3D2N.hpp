@@ -77,11 +77,11 @@ public:
     ) const override;
 
     BoundedMatrix<double,msLocalSize,msLocalSize>
-    CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo) override;
+    CreateElementStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function updates the internal normal force w.r.t. the current deformations

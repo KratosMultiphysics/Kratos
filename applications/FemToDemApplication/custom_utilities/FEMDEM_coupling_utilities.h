@@ -19,7 +19,6 @@
 
 // Project includes
 #include "fem_to_dem_application_variables.h"
-#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -92,8 +91,18 @@ class FEMDEMCouplingUtilities
 
     void ComputeAndTranferAveragedContactTotalForces(ModelPart &rStructureModelPart, const double FEMtimeStep);
 
+    bool IsGenerateDEMRequired(ModelPart &rModelPart);
+
     void ResetContactImpulses(ModelPart &rStructureModelPart);
-    
+
+    void RemoveDuplicates(
+    ModelPart& rModelPart);
+
+    void IdentifyFreeParticles(
+        ModelPart& rFEMModelPart,
+        ModelPart& rDEMModelPart);
+
+    int GetNumberOfNodes(ModelPart &rModelPart);
 
 
 }; // class FEMDEMCouplingUtilities

@@ -90,15 +90,10 @@ class CheckScalarOnNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
             self.value = settings["value"].GetDouble()
         else:
             self.function_string = settings["value"].GetString()
-            if (sys.version_info > (3, 0)):
-                self.aux_function = aux_object_cpp_callback(compile(self.function_string, '', 'eval', optimize=2))
-            else:
-                self.aux_function = aux_object_cpp_callback(compile(self.function_string, '', 'eval'))
+            self.aux_function = aux_object_cpp_callback(compile(self.function_string, '', 'eval', optimize=2))
 
-            if(self.function_string.find("x") == -1 and
-               self.function_string.find("y") == -1 and
-               self.function_string.find("z") == -1): #depends on time alone!
-                    self.is_time_function = True
+            if(self.function_string.find("x") == -1 and self.function_string.find("y") == -1 and self.function_string.find("z") == -1): #depends on time alone!
+                self.is_time_function = True
 
         # Error tolerance
         self.tol = settings["tolerance_rank"].GetInt()

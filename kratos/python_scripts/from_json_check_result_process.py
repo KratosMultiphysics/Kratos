@@ -52,7 +52,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         self -- It signifies an instance of a class.
         """
         self.process.ExecuteFinalizeSolutionStep()
-        self.assertTrue(self.process.IsCorrectResult(), "Results do not coincide with the JSON reference")
+        self.assertTrue(self.process.IsCorrectResult(), "Results do not coincide with the JSON reference\n" + self.process.GetErrorMessage())
 
 class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
     """This class is used in order to check results using a json file

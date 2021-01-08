@@ -44,7 +44,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class KratosStatisticsApplication : public KratosApplication
+class KRATOS_API(STATISTICS_APPLICATION) KratosStatisticsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions

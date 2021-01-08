@@ -44,7 +44,7 @@ class ParticleFromJsonCheckResultProcess(LegacyFromJsonCheckResultProcess, Krato
                         value = mp.CalculateOnIntegrationPoints(variable,self.model_part.ProcessInfo)[0]
 
                         # Scalar variable
-                        if (variable_type == "Double" or variable_type == "Component"):
+                        if (variable_type == "Double" or variable_type == "Integer" or variable_type == "Component"):
                             values_json = self.data["PARTICLE_" + str(mp.Id)][variable_name]
                             value_json = self.__linear_interpolation(time, input_time_list, values_json)
                             isclosethis = t_isclose(value, value_json, rel_tol=reltol, abs_tol=tol)

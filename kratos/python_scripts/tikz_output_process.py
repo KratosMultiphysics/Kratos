@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as kratos_utils
+from  KratosMultiphysics.deprecation_management import DeprecationManager
 
 import os
 
@@ -37,7 +38,7 @@ class TikZOutputProcess(KratosMultiphysics.Process):
         {
             "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "output_control_type"                : "step",
-            "output_frequency"                   : 1.0,
+            "output_interval"                    : 1.0,
             "folder_name"                        : "tikZ_Output",
             "save_output_files_in_folder"        : true,
             "cmyk_colors_fill"                   : [0, 1.0, 1.0, 1.0],
@@ -63,6 +64,9 @@ class TikZOutputProcess(KratosMultiphysics.Process):
         if self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] != 2:
             raise Exception("Expected 2 dimensional problem")
 
+        # Warning: we may be changing the parameters object here:
+        self.TranslateLegacyVariablesAccordingToCurrentStandard(settings)
+
         if self.settings["save_output_files_in_folder"].GetBool():
             if self.model_part.GetCommunicator().MyPID() == 0:
                 folder_name = self.settings["folder_name"].GetString()
@@ -72,10 +76,21 @@ class TikZOutputProcess(KratosMultiphysics.Process):
                     os.mkdir(folder_name)
             self.model_part.GetCommunicator().Barrier()
 
-        self.output_frequency = self.settings["output_frequency"].GetDouble()
+        self.output_interval = self.settings["output_interval"].GetDouble()
         self.output_control = self.settings["output_control_type"].GetString()
         self.next_output = 0.0
         self.step_count = 0
+
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
+
+        old_name = 'output_frequency'
+        new_name = 'output_interval'
+
+        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
     def ExecuteInitialize(self):
         """ This method is executed in order to initialize the process
@@ -169,13 +184,13 @@ class TikZOutputProcess(KratosMultiphysics.Process):
 
         # Schedule next output
         time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-        if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
+        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
             if self.output_control == "time":
                 while GetPrettyTime(self.next_output) <= time:
-                    self.next_output += self.output_frequency
+                    self.next_output += self.output_interval
             else:
                 while self.next_output <= self.step_count:
-                    self.next_output += self.output_frequency
+                    self.next_output += self.output_interval
 
     def IsOutputStep(self):
         """ This method determines if corresponds to output

@@ -153,7 +153,7 @@ public:
      * @brief Copy constructor.
      * @param rOtherVariable The old variable to be copied
      */
-    Variable(const VariableType& rOtherVariable) :
+    explicit Variable(const VariableType& rOtherVariable) :
         VariableData(rOtherVariable),
         mZero(rOtherVariable.mZero),
         mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
@@ -168,15 +168,9 @@ public:
     ///@{
 
     /**
-     * @brief Assignment operator.
-     * @param rOtherVariable The old variable to be assigned
+     * @brief Assignment operator, deleted to avoid misuse which can lead to memory problems
      */
-    VariableType& operator=(const VariableType& rOtherVariable)
-    {
-        VariableData::operator=(rOtherVariable);
-        mZero = rOtherVariable.mZero;
-        return *this;
-    }
+    VariableType& operator=(const VariableType& rOtherVariable) = delete;
 
     ///@}
     ///@name Operations
@@ -551,9 +545,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
 
 #endif // KRATOS_VARIABLE_H_INCLUDED  defined
-
-

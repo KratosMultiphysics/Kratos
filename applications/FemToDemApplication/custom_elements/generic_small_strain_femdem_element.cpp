@@ -17,7 +17,6 @@
 // Project includes
 #include "custom_elements/generic_small_strain_femdem_element.hpp"
 #include "fem_to_dem_application_variables.h"
-#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -29,14 +28,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry)
 {
-    // DO NOT ADD DOFS HERE!!!
-    if (this->mThresholds.size() != NumberOfEdges)
-        this->mThresholds.resize(NumberOfEdges);
-    noalias(this->mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
-
-    if (this->mDamages.size() != NumberOfEdges)
-        this->mDamages.resize(NumberOfEdges);
-    noalias(this->mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
+    GenericSmallStrainFemDemElement<TDim,TyieldSurf>::BaseType(NewId, pGeometry);
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -46,14 +38,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry, pProperties)
 {
-    // DO NOT ADD DOFS HERE!!!
-    if (this->mThresholds.size() != NumberOfEdges)
-        this->mThresholds.resize(NumberOfEdges);
-    noalias(this->mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
-
-    if (this->mDamages.size() != NumberOfEdges)
-        this->mDamages.resize(NumberOfEdges);
-    noalias(this->mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
+    GenericSmallStrainFemDemElement<TDim,TyieldSurf>::BaseType(NewId, pGeometry, pProperties);
 }
 
 /***********************************************************************************/
@@ -62,7 +47,7 @@ GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemEleme
 template<unsigned int TDim, unsigned int TyieldSurf>
 Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_intrusive<GenericSmallStrainFemDemElement>( NewId, this->GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<GenericSmallStrainFemDemElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //************************************************************************************
@@ -71,7 +56,7 @@ Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Create(IndexT
 template<unsigned int TDim, unsigned int TyieldSurf>
 Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Create( IndexType NewId,  GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_intrusive<GenericSmallStrainFemDemElement>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<GenericSmallStrainFemDemElement>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
@@ -113,7 +98,7 @@ Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Clone(
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIteration(
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY
@@ -296,7 +281,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -371,13 +356,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
         }
         // Calculate the elemental Damage...
         this->mDamage = this->CalculateElementalDamage(this->mDamages);
-
-        if (this->mDamage >= 0.98) {
-            this->Set(ACTIVE, false);
-            this->mDamage = 0.98;
-            // We set a "flag" to generate the DEM 
-            rCurrentProcessInfo[GENERATE_DEM] = true;
-        }
+        this->CheckIfEraseElement(rCurrentProcessInfo, r_properties);
     }
     KRATOS_CATCH( "" )
 }
@@ -684,7 +663,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();

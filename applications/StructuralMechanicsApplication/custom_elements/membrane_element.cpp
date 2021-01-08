@@ -154,7 +154,7 @@ void MembraneElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 void MembraneElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 
 {
     TotalStiffnessMatrix(rLeftHandSideMatrix,GetGeometry().GetDefaultIntegrationMethod());
@@ -165,7 +165,7 @@ void MembraneElement::CalculateLeftHandSide(
 
 void MembraneElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 
 {
     const SizeType number_of_nodes = GetGeometry().size();
@@ -186,7 +186,7 @@ void MembraneElement::CalculateRightHandSide(
 void MembraneElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 
 {
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
@@ -718,7 +718,8 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
     const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
     const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
 
-    if (rVariable==PK2_STRESS_VECTOR || rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
+
+    if (rVariable==PK2_STRESS_VECTOR || rVariable==PRINCIPAL_PK2_STRESS_VECTOR || rVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
         Vector stress = ZeroVector(3);
         array_1d<Vector,2> current_covariant_base_vectors;
         array_1d<Vector,2> reference_covariant_base_vectors;
@@ -732,6 +733,11 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
         Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
 
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+
+            if (rOutput[point_number].size() != 3) {
+                rOutput[point_number].resize(3);
+            }
+
             // getting information for integration
             const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
@@ -748,17 +754,34 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
             InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
 
-            Matrix material_tangent_modulus = ZeroMatrix(dimension);
-            MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-                transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
 
-            if (rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
-                Vector principal_stresses = ZeroVector(2);
-                PrincipalVector(principal_stresses,stress);
-                rOutput[point_number] = principal_stresses;
-            }  else {
-                rOutput[point_number] = stress;
+            if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
+                    Vector strain_vector = ZeroVector(3);
+                    StrainGreenLagrange(strain_vector,covariant_metric_reference,
+                    covariant_metric_current,inplane_transformation_matrix_material);
+                    strain_vector[2] /= 2.0;
+                    noalias(rOutput[point_number]) = strain_vector;
             }
+            else {
+                Matrix material_tangent_modulus = ZeroMatrix(dimension);
+                MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
+                    transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
+
+                if (rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
+                    Vector principal_stresses = ZeroVector(2);
+
+                    if (rOutput[point_number].size() != 2) {
+                        rOutput[point_number].resize(2);
+                    }
+
+
+                    PrincipalVector(principal_stresses,stress);
+                    noalias(rOutput[point_number]) = principal_stresses;
+                }  else {
+                    noalias(rOutput[point_number]) = stress;
+                }
+            }
+
         }
 
     }  else if (rVariable==CAUCHY_STRESS_VECTOR || rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
@@ -779,6 +802,12 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
         double det_deformation_gradient = 0.0;
 
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+
+
+            if (rOutput[point_number].size() != 3) {
+                rOutput[point_number].resize(3);
+            }
+
             // getting information for integration
             const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
@@ -811,6 +840,11 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
             if (rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
                 Vector principal_stresses = ZeroVector(2);
+
+                if (rOutput[point_number].size() != 2) {
+                    rOutput[point_number].resize(2);
+                }
+
                 PrincipalVector(principal_stresses,stress);
                 rOutput[point_number] = principal_stresses;
             }  else {
@@ -970,7 +1004,8 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
     }
 }
 
-void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     auto& r_geom = GetGeometry();
@@ -1004,7 +1039,9 @@ void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
     KRATOS_CATCH("")
 }
 
-void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
+void MembraneElement::CalculateLumpedMassVector(
+    VectorType& rLumpedMassVector,
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     auto& r_geom = GetGeometry();
@@ -1012,8 +1049,8 @@ void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
     const SizeType number_of_nodes = r_geom.size();
     const SizeType local_size = dimension*number_of_nodes;
 
-    if (rMassVector.size() != local_size) {
-        rMassVector.resize(local_size, false);
+    if (rLumpedMassVector.size() != local_size) {
+        rLumpedMassVector.resize(local_size, false);
     }
 
     const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
@@ -1027,7 +1064,7 @@ void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
         for (SizeType j = 0; j < 3; ++j)
         {
             const SizeType index = i * 3 + j;
-            rMassVector[index] = temp;
+            rLumpedMassVector[index] = temp;
         }
     }
     KRATOS_CATCH("")
@@ -1048,7 +1085,7 @@ void MembraneElement::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         VectorType element_mass_vector(local_size);
-        CalculateLumpedMassVector(element_mass_vector);
+        CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
 
         for (SizeType i = 0; i < number_of_nodes; ++i) {
             double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
@@ -1063,7 +1100,7 @@ void MembraneElement::AddExplicitContribution(
 }
 
 void MembraneElement::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,
@@ -1107,7 +1144,7 @@ void MembraneElement::AddExplicitContribution(
 
         // Getting the vector mass
         VectorType mass_vector(local_size);
-        CalculateLumpedMassVector(mass_vector);
+        CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
 
         for (SizeType i = 0; i < number_of_nodes; ++i) {
             double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
@@ -1170,14 +1207,6 @@ int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo[DOMAIN_SIZE]==3) << "DOMAIN_SIZE in element " << Id() << " is not 3" << std::endl;
     KRATOS_ERROR_IF_NOT(dimension==3) << "dimension in element " << Id() << " is not 3" << std::endl;
-
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
 
     if (GetProperties().Has(THICKNESS) == false ||
             GetProperties()[THICKNESS] <= numerical_limit) {

@@ -23,8 +23,9 @@ namespace Kratos
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SimpleContactSearchProcess(
     ModelPart & rMainModelPart,
-    Parameters ThisParameters
-    ) : BaseType(rMainModelPart, ThisParameters)
+    Parameters ThisParameters,
+    Properties::Pointer pPairedProperties
+    ) : BaseType(rMainModelPart, ThisParameters, pPairedProperties)
 {
 }
 

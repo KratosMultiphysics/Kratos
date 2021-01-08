@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 
 import KratosMultiphysics
@@ -11,7 +10,6 @@ import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as
 import math
 import os
 import KratosMultiphysics.MeshingApplication as MeshingApplication
-import KratosMultiphysics.SolidMechanicsApplication as Solid
 import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 
 def Wait():
@@ -33,4 +31,5 @@ class MainCoupledFemDemSubstepping_for_PFEM_coupling_Solution(MainCouplingFemDem
             self.RemeshingProcessMMG = MMG.MmgProcess(Model, self.mmg_parameters)
         self.InitializePlotsFiles()
         self.echo_level = 0
+        self.is_slave = False
         self.domain_size = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]

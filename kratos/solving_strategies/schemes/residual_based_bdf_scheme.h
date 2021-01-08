@@ -295,6 +295,24 @@ public:
     ///@name Input and output
     ///@{
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"               : "base_bdf_scheme",
+            "integration_order"  : 2
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = ImplicitBaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -440,16 +458,17 @@ protected:
         )
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const auto& r_const_obj_ref = rObject;
 
         // Adding inertia contribution
         if (rM.size1() != 0) {
-            rObject.GetSecondDerivativesVector(mVector.dot2un0[this_thread], 0);
+            r_const_obj_ref.GetSecondDerivativesVector(mVector.dot2un0[this_thread], 0);
             noalias(rRHS_Contribution) -= prod(rM, mVector.dot2un0[this_thread]);
         }
 
         // Adding damping contribution
         if (rD.size1() != 0) {
-            rObject.GetFirstDerivativesVector(mVector.dotun0[this_thread], 0);
+            r_const_obj_ref.GetFirstDerivativesVector(mVector.dotun0[this_thread], 0);
             noalias(rRHS_Contribution) -= prod(rD, mVector.dotun0[this_thread]);
         }
     }

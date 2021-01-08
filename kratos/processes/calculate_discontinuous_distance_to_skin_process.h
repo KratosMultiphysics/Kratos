@@ -111,7 +111,7 @@ public:
      * @brief Calls the FindIntersectedObjects Clear() method
      * This method calls the FindIntersectedObjects Clear() to empty the intersecting objects geometries array
      */
-    virtual void Clear();
+    void Clear() override;
 
     /**
      * @brief Executes the CalculateDiscontinuousDistanceToSkinProcess
@@ -306,10 +306,6 @@ private:
 	{
 		const auto &r_int_obj_vect= this->GetIntersections();
 		const int n_elems = mrVolumePart.NumberOfElements();
-
-		// Check requested variables
-		KRATOS_ERROR_IF(rEmbeddedVariable.Key() == 0)
-			<< rEmbeddedVariable << " key is 0. Check that the variable is correctly registered." << std::endl;
 
 		KRATOS_ERROR_IF((mrSkinPart.NodesBegin())->SolutionStepsDataHas(rVariable) == false)
 			<< "Skin model part solution step data missing variable: " << rVariable << std::endl;

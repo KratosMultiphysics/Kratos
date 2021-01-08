@@ -78,12 +78,16 @@ void SPRErrorProcess<TDim>::CalculateSuperconvergentStresses()
     FindNodalNeighbours(mThisModelPart);
 
     // Iteration over all nodes -- construction of patches
-    NodesArrayType& nodes_array = mThisModelPart.Nodes();
-    const int num_nodes = static_cast<int>(nodes_array.size());
+    NodesArrayType& r_nodes_array = mThisModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    const int num_nodes = static_cast<int>(r_nodes_array.size());
+
+    // Some initializations
+    VariableUtils().SetNonHistoricalVariableToZero(RECOVERED_STRESS, r_nodes_array);
 
     #pragma omp parallel for
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
-        auto it_node = nodes_array.begin() + i_node;
+        auto it_node = it_node_begin + i_node;
 
         KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(NEIGHBOUR_ELEMENTS)) << "SPRErrorProcess:: Search didn't work with elements" << std::endl;
         const SizeType neighbour_size = it_node->GetValue(NEIGHBOUR_ELEMENTS).size();
@@ -97,18 +101,20 @@ void SPRErrorProcess<TDim>::CalculateSuperconvergentStresses()
             KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 2) << "Recovered sigma: " << sigma_recovered << std::endl;
         } else {
             KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(NEIGHBOUR_NODES)) << "SPRErrorProcess:: Search didn't work with nodes" << std::endl;
-            auto& neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
-            for(auto it_neighbour_nodes = neigh_nodes.begin(); it_neighbour_nodes != neigh_nodes.end(); it_neighbour_nodes++) {
+            auto& r_neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
+            for(auto it_neighbour_nodes = r_neigh_nodes.begin(); it_neighbour_nodes != r_neigh_nodes.end(); it_neighbour_nodes++) {
 
                 Vector sigma_recovered_i = ZeroVector(SigmaSize);
 
                 IndexType count_i = 0;
                 for(int i_node_loop = 0; i_node_loop < num_nodes; ++i_node_loop) { // FIXME: Avoid this double loop, extreamily expensive
-                    auto it_node_loop = nodes_array.begin() + i_node_loop;
-                    const SizeType size_elem_neigh = it_node_loop->GetValue(NEIGHBOUR_ELEMENTS).size();
-                    if (it_node_loop->Id() == it_neighbour_nodes->Id() && size_elem_neigh > TDim){
-                        CalculatePatch(it_node, it_node_loop, neighbour_size, sigma_recovered_i);
-                        ++count_i;
+                    auto it_node_loop = it_node_begin + i_node_loop;
+                    if (it_node_loop->Id() == it_neighbour_nodes->Id()) {
+                        const SizeType size_elem_neigh = it_node_loop->GetValue(NEIGHBOUR_ELEMENTS).size();
+                        if(size_elem_neigh > TDim) {
+                            CalculatePatch(it_node, it_node_loop, neighbour_size, sigma_recovered_i);
+                            ++count_i;
+                        }
                     }
                 }
 
@@ -211,18 +217,21 @@ void SPRErrorProcess<TDim>::CalculatePatch(
     BoundedMatrix<double, TDim + 1, TDim + 1> A = ZeroMatrix(TDim + 1,TDim + 1);
     BoundedMatrix<double, TDim + 1, SigmaSize> b = ZeroMatrix(TDim + 1,SigmaSize);
     BoundedMatrix<double, 1, TDim + 1> p_k;
+    BoundedMatrix<double, 1, SigmaSize> sigma;
+
+    // Getting the process info
+    const auto& r_process_info = mThisModelPart.GetProcessInfo();
 
     auto& neigh_elements = itPatchNode->GetValue(NEIGHBOUR_ELEMENTS);
     for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
 
-        it_elem->CalculateOnIntegrationPoints(*mpStressVariable,stress_vector,mThisModelPart.GetProcessInfo());
-        it_elem->CalculateOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector,mThisModelPart.GetProcessInfo());
+        it_elem->CalculateOnIntegrationPoints(*mpStressVariable,stress_vector,r_process_info);
+        it_elem->CalculateOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector,r_process_info);
 
         KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 3)
         << "\tStress: " << stress_vector[0] << std::endl
         << "\tx: " << coordinates_vector[0][0] << "\ty: " << coordinates_vector[0][1] << "\tz_coordinate: " << coordinates_vector[0][2] << std::endl;
 
-        BoundedMatrix<double, 1, SigmaSize> sigma;
         for(IndexType j = 0; j < SigmaSize; ++j)
             sigma(0,j) = stress_vector[0][j];
         p_k(0,0) = 1.0;

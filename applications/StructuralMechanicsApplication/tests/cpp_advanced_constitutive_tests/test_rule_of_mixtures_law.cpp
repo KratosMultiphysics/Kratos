@@ -35,7 +35,7 @@ typedef Node<3> NodeType;
 //     GidIO<> gid_io("TEST_RULE_MIXTURES", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
 //     const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
 //     const double label = static_cast<double>(nl_iter);
-//
+
 //     gid_io.InitializeMesh(label);
 //     gid_io.WriteMesh(ThisModelPart.GetMesh());
 //     gid_io.FinalizeMesh();
@@ -55,7 +55,7 @@ Parameters GetTwoLayersParameters()
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "RuleOfMixturesLaw",
+                "name" : "ParallelRuleOfMixturesLaw3D",
                 "combination_factors"      : [0.4, 0.6 ]
             },
             "Variables"        : {
@@ -104,7 +104,7 @@ Parameters GetThreeLayersParameters()
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "RuleOfMixturesLaw",
+                "name" : "ParallelRuleOfMixturesLaw3D",
                 "combination_factors"      : [0.4, 0.3, 0.3 ]
             },
             "Variables"        : {
@@ -277,9 +277,6 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, Krat
         }
     }
 
-//     // DEBUG
-//     GiDIODebugRuleMixtures(model_part);
-
     /// Tolerance
     const double tolerance = 1.0e-6;
 
@@ -317,9 +314,6 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, Kr
             node.Coordinates() += delta;
         }
     }
-
-//     // DEBUG
-//     GiDIODebugRuleMixtures(model_part);
 
     /// Tolerance
     const double tolerance = 1.0e-6;
@@ -359,9 +353,6 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, Kra
         }
     }
 
-//     // DEBUG
-//     GiDIODebugRuleMixtures(model_part);
-
     /// Tolerance
     const double tolerance = 1.0e-6;
 
@@ -399,9 +390,6 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronThreeLayers, K
             node.Coordinates() += delta;
         }
     }
-
-//     // DEBUG
-//     GiDIODebugRuleMixtures(model_part);
 
     /// Tolerance
     const double tolerance = 1.0e-6;

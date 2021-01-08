@@ -17,20 +17,17 @@
 #include <vector>
 #include <iostream>
 
-
 // External includes
-
+#include <boost/iterator/indirect_iterator.hpp>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/global_pointer.h"
 #include "includes/serializer.h"
-#include <boost/iterator/indirect_iterator.hpp>
-
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -52,11 +49,16 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * @class GlobalPointersVector
+ * @ingroup KratosCore
+ * @brief This class is a vector which stores global pointers
+ * @details Uses boost::indirect_iterator
+ * @tparam TDataType The type of data stored
+ * @author Riccardo Rossi
+ */
 template< class TDataType >
-class GlobalPointersVector 
+class GlobalPointersVector
 {
 public:
     ///@name Type Definitions
@@ -74,7 +76,7 @@ public:
     typedef TDataType& reference;
     typedef const TDataType& const_reference;
     typedef TContainerType ContainerType;
-    
+
 
     typedef boost::indirect_iterator<typename TContainerType::iterator>                iterator;
     typedef boost::indirect_iterator<typename TContainerType::const_iterator>          const_iterator;
@@ -95,9 +97,9 @@ public:
     /// Default constructor.
     GlobalPointersVector() : mData() {}
 
-    GlobalPointersVector(const std::initializer_list<GlobalPointer<TDataType>>& l) 
+    GlobalPointersVector(const std::initializer_list<GlobalPointer<TDataType>>& l)
         : mData(l)
-    {} 
+    {}
 
     /// Destructor.
     virtual ~GlobalPointersVector() {}
@@ -456,7 +458,7 @@ private:
     void save(Serializer& rSerializer) const
     {
         rSerializer.save("Size", this->size());
-        
+
         for(std::size_t i=0; i<this->size(); i++) {
             rSerializer.save("Data", mData[i]);
         }
@@ -467,7 +469,7 @@ private:
         std::size_t size;
 
         rSerializer.load("Size", size);
-            
+
         for(std::size_t i = 0; i < size; i++) {
             GlobalPointer<TDataType> p(nullptr);
             rSerializer.load("Data", p);
@@ -535,6 +537,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GLOBAL_POINTER_VECTOR_H_INCLUDED  defined 
-
-
+#endif // KRATOS_GLOBAL_POINTER_VECTOR_H_INCLUDED  defined

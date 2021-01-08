@@ -216,6 +216,8 @@ public:
 
     void SetNumberOfColors(SizeType NewNumberOfColors);
 
+    void AddColors(SizeType NumberOfAddedColors);
+
     NeighbourIndicesContainerType& NeighbourIndices();
 
     NeighbourIndicesContainerType const& NeighbourIndices() const;

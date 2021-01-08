@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import sys
 import time as timer
 import os
@@ -15,7 +13,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as Structural
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 from KratosMultiphysics.DemStructuresCouplingApplication import dem_structures_coupling_gid_output
 
-class Algorithm(object):
+class Algorithm():
 
     def __init__(self):
         self.model = Kratos.Model()
@@ -54,9 +52,6 @@ class Algorithm(object):
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.SHEAR_STRESS)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.NON_DIMENSIONAL_VOLUME_WEAR)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.IMPACT_WEAR)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.TARGET_STRESS)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.REACTION_STRESS)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.LOADING_VELOCITY)
 
     def Run(self):
         self.Initialize()
@@ -88,7 +83,7 @@ class Algorithm(object):
                             mixed_mp
                             )
 
-        structures_nodal_results = ["VOLUME_ACCELERATION","DEM_SURFACE_LOAD","REACTION","TARGET_STRESS","REACTION_STRESS","LOADING_VELOCITY"]
+        structures_nodal_results = ["VOLUME_ACCELERATION","DEM_SURFACE_LOAD","REACTION"]
         dem_nodal_results = ["IS_STICKY", "DEM_STRESS_TENSOR"]
         clusters_nodal_results = []
         rigid_faces_nodal_results = []
@@ -137,7 +132,8 @@ class Algorithm(object):
                 max_prop_id = prop.Id
         props = Kratos.Properties(max_prop_id + 1)
         # NOTE: this should be more general
-        props[Dem.FRICTION] = 0.2
+        props[Dem.STATIC_FRICTION] = 0.2
+        props[Dem.DYNAMIC_FRICTION] = 0.2
         props[Dem.WALL_COHESION] = 0.0
         props[Dem.COMPUTE_WEAR] = False
         props[Dem.SEVERITY_OF_WEAR] = 0.001

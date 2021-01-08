@@ -92,7 +92,6 @@ public:
 
     typedef Variable<array_1d<double,3>> ArrayVarType;
     typedef Variable<double> DoubleVarType;
-    typedef Variable<double> VarComponentType;
 
     typedef array_1d<double, 3> Double3DArray;
 
@@ -429,9 +428,9 @@ public:
         const TObjectType& rDampingVariable,
         const ArrayVarType& rResidualVariable,
         const TObjectType& rIntertiaVariable,
-        const VarComponentType& rFixVariable1,
-        const VarComponentType& rFixVariable2,
-        const VarComponentType& rFixVariable3,
+        const DoubleVarType& rFixVariable1,
+        const DoubleVarType& rFixVariable2,
+        const DoubleVarType& rFixVariable3,
         const SizeType DomainSize = 3
         )
     {

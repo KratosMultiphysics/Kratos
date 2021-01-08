@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo 
+//  Main authors:    Alejandro Cornejo
 //  Collaborator:    Lucia Barbu
 //
 
@@ -94,7 +94,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
     // this strain in the real anisotropic space
     const Vector real_strain_vector         = rValues.GetStrainVector();
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    
+
     // We create the rValues for the isotropic CL
     const auto it_cl_begin     = r_material_properties.GetSubProperties().begin();
     const auto& r_props_iso_cl = *(it_cl_begin);
@@ -119,7 +119,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
             noalias(rotation_matrix)           = IdentityMatrix(Dimension, Dimension);
             noalias(voigt_rotation_matrix)     = IdentityMatrix(VoigtSize, VoigtSize);
         }
-        
+
         // We compute the mappers As and Ae
         BoundedMatrixVoigtType stress_mapper, strain_mapper;
         BoundedMatrixVoigtType stress_mapper_inv; // The inverse of As
@@ -130,7 +130,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         mpIsotropicCL->CalculateValue(rValues, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix); // takes the props of the iso cl
         this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
         this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
-                                                     isotropic_elastic_matrix, stress_mapper, 
+                                                     isotropic_elastic_matrix, stress_mapper,
                                                      strain_mapper);
         Vector &r_iso_strain_vector = rValues.GetStrainVector();
 
@@ -275,7 +275,7 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
         noalias(rotation_matrix)       = IdentityMatrix(Dimension, Dimension);
         noalias(voigt_rotation_matrix) = IdentityMatrix(VoigtSize, VoigtSize);
     }
-    
+
     // We compute the mappers As and Ae
     BoundedMatrixVoigtType stress_mapper, strain_mapper;
     BoundedMatrixVoigtType stress_mapper_inv; // The inverse of As
@@ -286,7 +286,7 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     mpIsotropicCL->CalculateValue(rValues, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix); // takes the props of the iso cl
     this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
     this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
-                                                 isotropic_elastic_matrix, stress_mapper, 
+                                                 isotropic_elastic_matrix, stress_mapper,
                                                  strain_mapper);
     Vector &r_iso_strain_vector = rValues.GetStrainVector();
     // Now we rotate the strain Eglob-> Eloc
@@ -452,13 +452,13 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
         return rValue;
-        
+
     } else if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         if (mpIsotropicCL->Has(PLASTIC_STRAIN_VECTOR)) {
 
             const Vector &r_plastic_strain = mpIsotropicCL->CalculateValue(rParameterValues, rThisVariable, rValue);
             const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
-        
+
             // We create the rParameterValues for the isotropic CL
             const auto it_cl_begin                    = r_material_properties.GetSubProperties().begin();
             const auto& r_props_iso_cl                = *(it_cl_begin);
@@ -496,7 +496,7 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             mpIsotropicCL->CalculateValue(values_iso_cl, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix);
             this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
             this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
-                                                         isotropic_elastic_matrix, stress_mapper, 
+                                                         isotropic_elastic_matrix, stress_mapper,
                                                          strain_mapper);
             BoundedMatrixVoigtType invAe;
             double aux_det;
@@ -582,10 +582,9 @@ void GenericAnisotropic3DLaw::InitializeMaterial(
 
     // Let's check variables
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO not defined in properties" << std::endl;
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS) && !rMaterialProperties.Has(YOUNG_MODULUS_X)) <<  "The orthotropic elastic constants have not been defined..." << std::endl;
 
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS)) << "The ORTHOTROPIC_ELASTIC_CONSTANTS are not defined" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS].size() != 6) << "The dimension of the ORTHOTROPIC_ELASTIC_CONSTANTS is incorrect" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS].size() == 6) << "The dimension of the ORTHOTROPIC_ELASTIC_CONSTANTS is incorrect" << std::endl;
 }
 
 /***********************************************************************************/
@@ -620,7 +619,8 @@ void GenericAnisotropic3DLaw::CalculateCauchyGreenStrain(
     // Compute total deformation gradient
     const BoundedMatrixType& F = rValues.GetDeformationGradientF();
 
-    BoundedMatrixType E_tensor = prod(trans(F), F);
+    BoundedMatrixType E_tensor = ZeroMatrix(F.size1());
+    E_tensor = prod(trans(F), F);
     for(unsigned int i = 0; i < Dimension; ++i)
         E_tensor(i, i) -= 1.0;
     E_tensor *= 0.5;

@@ -22,6 +22,7 @@
 // Processes
 #include "custom_processes/apply_kinematic_constraints_process.hpp"
 #include "custom_processes/control_module_2d_process.hpp"
+#include "custom_processes/automatic_dt_process.hpp"
 
 namespace Kratos
 {
@@ -41,6 +42,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ControlModule2DProcess, ControlModule2DProcess::Pointer, Process>
     (m, "ControlModule2DProcess")
+    .def( py::init< ModelPart&, Parameters>());
+
+    py::class_<AutomaticDTProcess, AutomaticDTProcess::Pointer, Process>
+    (m, "AutomaticDTProcess")
     .def( py::init< ModelPart&, Parameters>());
 
 }

@@ -32,9 +32,6 @@ namespace Kratos
     /// The size type definition
     typedef std::size_t SizeType;
 
-    /// Component variable type
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > >  ComponentType;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -150,7 +147,7 @@ public:
         );
 
     /**
-     * @brief This is the default constructor (double)
+     * @brief This is the default constructor
      * @param rThisModelPart The model part to be computed
      * @param rVariable The variable to compute
      * @param ThisParameters The input parameters
@@ -158,18 +155,6 @@ public:
     ComputeHessianSolMetricProcess(
         ModelPart& rThisModelPart,
         Variable<double>& rVariable,
-        Parameters ThisParameters = Parameters(R"({})")
-        );
-
-    /**
-     * @brief This is the default constructor (component)
-     * @param rThisModelPart The model part to be computed
-     * @param rVariable The variable to compute
-     * @param ThisParameters The input parameters
-     */
-    ComputeHessianSolMetricProcess(
-        ModelPart& rThisModelPart,
-        ComponentType& rVariable,
         Parameters ThisParameters = Parameters(R"({})")
         );
 

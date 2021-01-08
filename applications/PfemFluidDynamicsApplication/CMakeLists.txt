@@ -5,14 +5,14 @@ message("**** configuring KratosPfemFluidDynamicsApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication )
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication)
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle/)
+  set(TRIANGLE_INSTALL_DIR ${KRATOS_SOURCE_DIR}/external_libraries/triangle/)
   include_directories( ${TRIANGLE_INSTALL_DIR} )
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
@@ -43,6 +43,8 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/fluid_constitutive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/frictional_viscoplastic_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/frictional_viscoplastic_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_temperature_dependent_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_temperature_dependent_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_2D_law.cpp

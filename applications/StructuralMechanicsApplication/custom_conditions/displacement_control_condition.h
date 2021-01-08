@@ -18,7 +18,6 @@
 
 // Project includes
 #include "includes/condition.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -64,8 +63,6 @@ public:
     typedef BaseType::PropertiesType PropertiesType;
     typedef BaseType::GeometryType   GeometryType;
     typedef BaseType::NodesArrayType NodesArrayType;
-
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> Array1DComponentType;
 
     /// The machine precision
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -182,7 +179,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -192,7 +189,7 @@ public:
       */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -202,7 +199,7 @@ public:
       */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -212,7 +209,7 @@ public:
       */
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**

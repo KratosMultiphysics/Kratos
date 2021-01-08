@@ -82,7 +82,7 @@ void GenerateInitialSkinDEMProcess::Execute()
             if (mrDEMModelPart.Elements().size() == 0)
                 this->CreateDEMParticle(id + max_id_FEM_nodes, r_coordinates, p_DEM_properties, 0.8*radius, it_node);
             else
-                this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, 1.0*radius, it_node);
+                this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, 0.8*radius, it_node);
             num_DEM++;
         }
     }
