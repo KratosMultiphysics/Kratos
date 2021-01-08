@@ -23,9 +23,11 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "spaces/ublas_space.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "includes/kratos_parameters.h"
+#include "factories/factory.h"
 
 namespace Kratos
 {
@@ -860,11 +862,46 @@ protected:
 
 
     ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    static std::vector<Internals::RegisteredPrototypeBase<ClassType>> msPrototypes;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
 }; /* Class ExplicitBuilder */
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 } /* namespace Kratos.*/
