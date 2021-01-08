@@ -553,7 +553,7 @@ public:
     /**
      * @return The initial state of strains/stresses/F
      */
-    InitialState* GetpInitialState()
+    InitialState* pGetpInitialState()
     {
         return mpInitialState;
     }
