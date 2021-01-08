@@ -154,9 +154,9 @@ public:
     /**
      * @brief Adds the initial stress vector if it is defined in the InitialState
      */
-    static const void AddInitialStressVectorContribution(Vector& rStressVector, Parameters& rParameterValues) 
+    const void AddInitialStressVectorContribution(Vector& rStressVector, Parameters& rParameterValues) 
     {
-        const auto p_initial_state = this->pGetpInitialState();
+        const auto p_initial_state = pGetpInitialState();
         if (p_initial_state) {
             noalias(rStressVector) += p_initial_state->GetInitialStressVector();
         }
@@ -165,9 +165,9 @@ public:
     /**
      * @brief Adds the initial strain vector if it is defined in the InitialState
      */
-    static const void AddInitialStrainVectorContribution(Vector& rStrainVector, Parameters& rParameterValues)
+    const void AddInitialStrainVectorContribution(Vector& rStrainVector, Parameters& rParameterValues)
     {
-        const auto p_initial_state = this->pGetpInitialState();
+        const auto p_initial_state = pGetpInitialState();
         if (p_initial_state) {
             noalias(rStrainVector) += p_initial_state->GetInitialStrainVector();
         }
