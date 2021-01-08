@@ -209,7 +209,7 @@ namespace Kratos {
                 KRATOS_CHECK_VECTOR_RELATIVE_NEAR(v2,v1,1e-3),
                 "Check failed because vector v2 with values\n[1, nan]\n"
                 "Is not near vector v1 with values\n[1, 2]"
-                "\nMismatch found in component 1:\nnan not near 2 within tolerance 0.001."
+                "\nMismatch found in component 1:\nnan not near 2 within relative tolerance 0.001."
             );
 
             Matrix m1 = IdentityMatrix(2);
@@ -217,19 +217,27 @@ namespace Kratos {
             m2(0,1) = a;
             KRATOS_CHECK_EXCEPTION_IS_THROWN(
                 KRATOS_CHECK_MATRIX_NEAR(m1,m2,1e-3),
-                "Check failed due to NaN-Value"
+                "Check failed because matrix m1 with values\n[2,2]((1,0),(0,1))\n"
+                "Is not near matrix m2 with values\n[2,2]((1,nan),(0,1))"
+                "\nMismatch found in component (0,1): \n0 not near nan within tolerance 0.001.\n"
             );
             KRATOS_CHECK_EXCEPTION_IS_THROWN(
                 KRATOS_CHECK_MATRIX_NEAR(m2,m1,1e-3),
-                "Check failed due to NaN-Value"
+                "Check failed because matrix m2 with values\n[2,2]((1,nan),(0,1))\n"
+                "Is not near matrix m1 with values\n[2,2]((1,0),(0,1))\n"
+                "Mismatch found in component (0,1): \nnan not near 0 within tolerance 0.001.\n"
             );
             KRATOS_CHECK_EXCEPTION_IS_THROWN(
                 KRATOS_CHECK_MATRIX_RELATIVE_NEAR(m1,m2,1e-3),
-                "Check failed due to NaN-Value"
+                "Check failed because matrix m1 with values\n[2,2]((1,0),(0,1))\n"
+                "Is not near matrix m2 with values\n[2,2]((1,nan),(0,1))\n"
+                "Mismatch found in component (0,1): \n0 not near nan within tolerance 0.001."
             );
             KRATOS_CHECK_EXCEPTION_IS_THROWN(
                 KRATOS_CHECK_MATRIX_RELATIVE_NEAR(m2,m1,1e-3),
-                "Check failed due to NaN-Value"
+                "Check failed because matrix m2 with values\n[2,2]((1,nan),(0,1))\n"
+                "Is not near matrix m1 with values\n[2,2]((1,0),(0,1))\n"
+                "Mismatch found in component (0,1): \nnan not near 0 within tolerance 0.001."
             );
 		}
     }
