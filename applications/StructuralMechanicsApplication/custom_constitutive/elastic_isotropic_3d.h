@@ -19,7 +19,6 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
-#include "includes/mat_variables.h"
 
 namespace Kratos
 {
