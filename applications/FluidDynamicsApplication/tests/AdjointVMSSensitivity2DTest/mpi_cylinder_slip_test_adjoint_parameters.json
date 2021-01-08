@@ -16,7 +16,8 @@
         "response_function_settings": {
             "response_type": "norm_square",
             "custom_settings": {
-                "norm_model_part_name": "NoSlip2D_Cylinder"
+                "norm_model_part_name": "NoSlip2D_Cylinder",
+                "entities" : ["conditions"]
             }
         },
         "sensitivity_settings": {
