@@ -799,24 +799,6 @@ int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
     int ierr = Element::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
-    KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(VISCOSITY);
-    KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(FRACT_VEL);
-    KRATOS_CHECK_VARIABLE_KEY(PRESSURE_OLD_IT);
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
-    KRATOS_CHECK_VARIABLE_KEY(CONV_PROJ);
-    KRATOS_CHECK_VARIABLE_KEY(PRESS_PROJ);
-    KRATOS_CHECK_VARIABLE_KEY(DIVPROJ);
-    KRATOS_CHECK_VARIABLE_KEY(BDF_COEFFICIENTS);
-    KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU);
-    KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY);
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {

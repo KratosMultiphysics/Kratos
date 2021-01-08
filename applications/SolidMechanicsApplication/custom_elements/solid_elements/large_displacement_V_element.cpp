@@ -191,7 +191,7 @@ void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocal
 //************************************************************************************
 //************************************************************************************
 
-LargeDisplacementVElement::SizeType LargeDisplacementVElement::GetDofsSize()
+LargeDisplacementVElement::SizeType LargeDisplacementVElement::GetDofsSize() const
 {
   KRATOS_TRY
 
