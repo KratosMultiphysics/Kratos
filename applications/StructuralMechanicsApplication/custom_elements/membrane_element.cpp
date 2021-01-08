@@ -1039,7 +1039,9 @@ void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix,
     KRATOS_CATCH("")
 }
 
-void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
+void MembraneElement::CalculateLumpedMassVector(
+    VectorType& rLumpedMassVector,
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     auto& r_geom = GetGeometry();
@@ -1047,8 +1049,8 @@ void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
     const SizeType number_of_nodes = r_geom.size();
     const SizeType local_size = dimension*number_of_nodes;
 
-    if (rMassVector.size() != local_size) {
-        rMassVector.resize(local_size, false);
+    if (rLumpedMassVector.size() != local_size) {
+        rLumpedMassVector.resize(local_size, false);
     }
 
     const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
@@ -1062,7 +1064,7 @@ void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
         for (SizeType j = 0; j < 3; ++j)
         {
             const SizeType index = i * 3 + j;
-            rMassVector[index] = temp;
+            rLumpedMassVector[index] = temp;
         }
     }
     KRATOS_CATCH("")
@@ -1083,7 +1085,7 @@ void MembraneElement::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         VectorType element_mass_vector(local_size);
-        CalculateLumpedMassVector(element_mass_vector);
+        CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
 
         for (SizeType i = 0; i < number_of_nodes; ++i) {
             double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
@@ -1142,7 +1144,7 @@ void MembraneElement::AddExplicitContribution(
 
         // Getting the vector mass
         VectorType mass_vector(local_size);
-        CalculateLumpedMassVector(mass_vector);
+        CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
 
         for (SizeType i = 0; i < number_of_nodes; ++i) {
             double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
