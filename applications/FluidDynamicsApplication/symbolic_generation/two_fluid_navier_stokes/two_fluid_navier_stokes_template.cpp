@@ -11,6 +11,9 @@
 //  Co-authors:      Ruben Zorrilla
 //
 
+#pragma GCC optimize("Ofast")
+#pragma GCC target "avx"
+
 #include "two_fluid_navier_stokes.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
@@ -134,7 +137,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
                 }
             } else {
-                MatrixType Vtot = ZeroMatrix(NumNodes * (Dim + 1), NumNodes);
+                MatrixType Vtot = ZeroMatrix(NumNodes * (Dim + 1), NumNodes); //TODO: use Bounded!
                 MatrixType Htot = ZeroMatrix(NumNodes, NumNodes * (Dim + 1));
                 MatrixType Kee_tot = ZeroMatrix(NumNodes, NumNodes);
                 VectorType rhs_ee_tot = ZeroVector(NumNodes);
@@ -333,7 +336,12 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
+    //const auto vconv = rData.Velocity - rData.MeshVelocity;
+    const double vconv_0_0 = rData.Velocity(0,0) - rData.MeshVelocity(0,0); const double vconv_0_1 = rData.Velocity(0,1) - rData.MeshVelocity(0,1); const double vconv_0_2 = rData.Velocity(0,2) - rData.MeshVelocity(0,2);
+    const double vconv_1_0 = rData.Velocity(1,0) - rData.MeshVelocity(1,0); const double vconv_1_1 = rData.Velocity(1,1) - rData.MeshVelocity(1,1); const double vconv_1_2 = rData.Velocity(1,2) - rData.MeshVelocity(1,2);
+    const double vconv_2_0 = rData.Velocity(2,0) - rData.MeshVelocity(2,0); const double vconv_2_1 = rData.Velocity(2,1) - rData.MeshVelocity(2,1); const double vconv_2_2 = rData.Velocity(2,2) - rData.MeshVelocity(2,2);
+    const double vconv_3_0 = rData.Velocity(3,0) - rData.MeshVelocity(3,0); const double vconv_3_1 = rData.Velocity(3,1) - rData.MeshVelocity(3,1); const double vconv_3_2 = rData.Velocity(3,2) - rData.MeshVelocity(3,2);
+
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -342,16 +350,27 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
 
+    const double DN_0_0 = DN(0,0); const double DN_0_1 = DN(0,1); 
+    const double DN_1_0 = DN(1,0); const double DN_1_1 = DN(1,1); 
+    const double DN_2_0 = DN(2,0); const double DN_2_1 = DN(2,1); 
+
+    const double N_0 = N[0];
+    const double N_1 = N[1];
+    const double N_2 = N[2];
+
+    const double C_0_0 = C(0,0); const double C_0_1 = C(0,1); const double C_0_2 = C(0,2);
+    const double C_1_0 = C(1,0); const double C_1_1 = C(1,1); const double C_1_2 = C(1,2);
+    const double C_2_0 = C(2,0); const double C_2_1 = C(2,1); const double C_2_2 = C(2,2);
+
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
-    auto &lhs = rData.lhs;
+    const auto Weight = rData.Weight;
+    auto& lhs = rLHS;
 
     //substitute_lhs_2D
 
-    // Add intermediate results to local system
-    noalias(rLHS) += lhs * rData.Weight;
 }
 
 template <>
@@ -371,7 +390,11 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
+    //const auto vconv = rData.Velocity - rData.MeshVelocity;
+    const double vconv_0_0 = rData.Velocity(0,0) - rData.MeshVelocity(0,0); const double vconv_0_1 = rData.Velocity(0,1) - rData.MeshVelocity(0,1); const double vconv_0_2 = rData.Velocity(0,2) - rData.MeshVelocity(0,2);
+    const double vconv_1_0 = rData.Velocity(1,0) - rData.MeshVelocity(1,0); const double vconv_1_1 = rData.Velocity(1,1) - rData.MeshVelocity(1,1); const double vconv_1_2 = rData.Velocity(1,2) - rData.MeshVelocity(1,2);
+    const double vconv_2_0 = rData.Velocity(2,0) - rData.MeshVelocity(2,0); const double vconv_2_1 = rData.Velocity(2,1) - rData.MeshVelocity(2,1); const double vconv_2_2 = rData.Velocity(2,2) - rData.MeshVelocity(2,2);
+    const double vconv_3_0 = rData.Velocity(3,0) - rData.MeshVelocity(3,0); const double vconv_3_1 = rData.Velocity(3,1) - rData.MeshVelocity(3,1); const double vconv_3_2 = rData.Velocity(3,2) - rData.MeshVelocity(3,2);
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -380,16 +403,32 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
 
+    const double DN_0_0 = DN(0,0); const double DN_0_1 = DN(0,1); const double DN_0_2 = DN(0,2);
+    const double DN_1_0 = DN(1,0); const double DN_1_1 = DN(1,1); const double DN_1_2 = DN(1,2);
+    const double DN_2_0 = DN(2,0); const double DN_2_1 = DN(2,1); const double DN_2_2 = DN(2,2);
+    const double DN_3_0 = DN(3,0); const double DN_3_1 = DN(3,1); const double DN_3_2 = DN(3,2);
+
+    const double N_0 = N[0];
+    const double N_1 = N[1];
+    const double N_2 = N[2];
+    const double N_3 = N[3];
+
+    const double C_0_0 = C(0,0); const double C_0_1 = C(0,1); const double C_0_2 = C(0,2); const double C_0_3 = C(0,3); const double C_0_4 = C(0,4); const double C_0_5 = C(0,5);
+    const double C_1_0 = C(1,0); const double C_1_1 = C(1,1); const double C_1_2 = C(1,2); const double C_1_3 = C(1,3); const double C_1_4 = C(1,4); const double C_1_5 = C(1,5);
+    const double C_2_0 = C(2,0); const double C_2_1 = C(2,1); const double C_2_2 = C(2,2); const double C_2_3 = C(2,3); const double C_2_4 = C(2,4); const double C_2_5 = C(2,5);
+    const double C_3_0 = C(3,0); const double C_3_1 = C(3,1); const double C_3_2 = C(3,2); const double C_3_3 = C(3,3); const double C_3_4 = C(3,4); const double C_3_5 = C(3,5);
+    const double C_4_0 = C(4,0); const double C_4_1 = C(4,1); const double C_4_2 = C(4,2); const double C_4_3 = C(4,3); const double C_4_4 = C(4,4); const double C_4_5 = C(4,5);
+    const double C_5_0 = C(5,0); const double C_5_1 = C(5,1); const double C_5_2 = C(5,2); const double C_5_3 = C(5,3); const double C_5_4 = C(5,4); const double C_5_5 = C(5,5);
+
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
-    auto &lhs = rData.lhs;
+    const double Weight = rData.Weight;
+    auto &lhs = rLHS;
 
     //substitute_lhs_3D
 
-    // Add intermediate results to local system
-    noalias(rLHS) += lhs * rData.Weight;
 }
 
 template <>
@@ -424,16 +463,19 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
 
+    
+
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
-    auto &rhs = rData.rhs;
+    const double Weight = rData.Weight;
+    auto &rhs = rRHS;
 
     //substitute_rhs_2D
 
-    noalias(rRHS) += rData.Weight * rhs;
 }
+    
 
 template <>
 void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSContribution(
@@ -471,11 +513,11 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
-    auto &rhs = rData.rhs;
+    const double Weight = rData.Weight;
+    auto &rhs = rRHS;
 
     //substitute_rhs_3D
 
-    noalias(rRHS) += rData.Weight * rhs;
 }
 
 template <>
@@ -620,7 +662,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
     // functions. On the contrary, for the positive distance region, the enrichment functions
     // corresponding to the positive distance nodes are null meanwhile the negative distance
     // nodes are equal to the standard. This yields a discontinuous enrichment space.
-    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
+    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes); 
     Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
 
     for (unsigned int i = 0; i < NumNodes; ++i){
@@ -646,19 +688,19 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
         GeometryData::GI_GAUSS_2);
 
     // Compute the enrichment shape function values using the enrichment interpolation matrices
-    rEnrichedShapeFunctionsPos = prod(rShapeFunctionsPos, enr_pos_interp);
+    rEnrichedShapeFunctionsPos = prod(rShapeFunctionsPos, enr_pos_interp); //TODO noalias
     rEnrichedShapeFunctionsNeg = prod(rShapeFunctionsNeg, enr_neg_interp);
 
     // Compute the enrichment shape function gradient values using the enrichment interpolation matrices
-    rEnrichedShapeDerivativesPos = rShapeDerivativesPos;
+    rEnrichedShapeDerivativesPos = rShapeDerivativesPos; //TODO noalias
     rEnrichedShapeDerivativesNeg = rShapeDerivativesNeg;
 
     for (unsigned int i = 0; i < rShapeDerivativesPos.size(); ++i){
-        rEnrichedShapeDerivativesPos[i] = prod(enr_pos_interp, rShapeDerivativesPos[i]);
+        rEnrichedShapeDerivativesPos[i] = prod(enr_pos_interp, rShapeDerivativesPos[i]); //TODO noalias
     }
 
     for (unsigned int i = 0; i < rShapeDerivativesNeg.size(); ++i){
-        rEnrichedShapeDerivativesNeg[i] = prod(enr_neg_interp, rShapeDerivativesNeg[i]);
+        rEnrichedShapeDerivativesNeg[i] = prod(enr_neg_interp, rShapeDerivativesNeg[i]); //TODO noalias
     }
 
     rData.NumberOfDivisions = (pModifiedShapeFunctions->pGetSplittingUtil())->mDivisionsNumber;
@@ -675,7 +717,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
     std::vector<Vector>& rInterfaceNormalsNeg,
     ModifiedShapeFunctions::Pointer pModifiedShapeFunctions)
 {
-    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
+    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes); //TODO here use bounded matrix
     Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
 
     for (unsigned int i = 0; i < NumNodes; ++i){
@@ -704,7 +746,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
     }
 
     // Compute the enrichment shape function values at the interface gauss points using the enrichment interpolation matrices
-    rEnrInterfaceShapeFunctionPos = prod(rInterfaceShapeFunctionNeg, enr_pos_interp);
+    rEnrInterfaceShapeFunctionPos = prod(rInterfaceShapeFunctionNeg, enr_pos_interp); //TODO noalias
     rEnrInterfaceShapeFunctionNeg = prod(rInterfaceShapeFunctionNeg, enr_neg_interp);
 }
 
@@ -777,11 +819,11 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     MatrixType& rKeeTot,
     VectorType& rRHSeeTot)
 {
-    MatrixType kee = ZeroMatrix(NumNodes, NumNodes);
-    VectorType rhs_enr = ZeroVector(NumNodes);
+    MatrixType kee = ZeroMatrix(NumNodes, NumNodes); //TODO: use bounded matrix
+    VectorType rhs_enr = ZeroVector(NumNodes); //TODO use array
 
-    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
-    Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
+    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes); //TODO use bounded
+    Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes); //TODO use bounded
 
     double positive_density = 0.0;
     double negative_density = 0.0;
@@ -887,7 +929,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
         }
     }
 
-    noalias(rKeeTot) += kee;
+    noalias(rKeeTot) += kee; //TODO see if we can get rid of this kee and write directly onto rKeeTot
     noalias(rRHSeeTot) += rhs_enr;
 }
 
@@ -949,10 +991,10 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichmentWithContinuity(
 
         // Enrichment condensation (add to LHS and RHS the enrichment contributions)
         double det;
-        MatrixType inverse_diag(NumNodes, NumNodes);
+        MatrixType inverse_diag(NumNodes, NumNodes); //TODO use bounded
         MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
 
-        const Matrix tmp = prod(inverse_diag, rHtot);
+        const Matrix tmp = prod(inverse_diag, rHtot); //TODO use bounded
         noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
 
         const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
@@ -971,13 +1013,13 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
 {
     // Enrichment condensation (add to LHS and RHS the enrichment contributions)
     double det;
-    MatrixType inverse_diag(NumNodes, NumNodes);
+    MatrixType inverse_diag(NumNodes, NumNodes); //TODO use bounded
     MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
 
-    const Matrix tmp = prod(inverse_diag, rHtot);
+    const Matrix tmp = prod(inverse_diag, rHtot); //TODO use bounded
     noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
 
-    const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
+    const Vector tmp2 = prod(inverse_diag, rRHSeeTot); //TODO use array
     noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
 }
 
