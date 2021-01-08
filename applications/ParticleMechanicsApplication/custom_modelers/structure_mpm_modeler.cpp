@@ -59,23 +59,27 @@ namespace Kratos
             : p_model_fem->GetModelPart(origin_interface_sub_model_part_name);
         std::vector<GeometryPointerType> interface_geoms;
         std::vector<GeometryPointerType> segmented_fem_quad_points;
+        std::vector<GeometryPointerType> quads_structure;
+
+        const IndexType gauss_order = mParameters["gauss_integration_order"].GetInt();
+        GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod(gauss_order - 1);
+
         const IndexType dim = 2;
         if (dim == 2)
         {
             CreateInterfaceLineCouplingConditions(r_fem_interface, interface_geoms,
-                background_grid_model_part, segmented_fem_quad_points, is_create_segmented_fem_quads);
+                background_grid_model_part);
         }
         else
         {
             KRATOS_ERROR << "Not implemented yet" << std::endl;
         }
-        const IndexType gauss_order = mParameters["gauss_integration_order"].GetInt();
-        GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod(gauss_order-1);
 
-        std::vector<GeometryPointerType> quads_structure;
+
         if (is_create_segmented_fem_quads)
         {
-            //quads_structure =
+            CreateExactlySegmentedStructureQuadraturePointGeometries(r_fem_interface,
+                interface_geoms, background_grid_model_part, quads_structure);
         }
         else
         {
@@ -260,9 +264,7 @@ namespace Kratos
 	void StructureMpmModeler::CreateInterfaceLineCouplingConditions(
         ModelPart& rInterfaceModelPart,
         std::vector<GeometryPointerType>& rGeometries,
-        ModelPart& rBackgroundGrid,
-        std::vector<GeometryPointerType>& rFEMQuadPoints,
-        const bool IsCreateSegmentedFEMQuads)
+        ModelPart& rBackgroundGrid)
 	{
         rInterfaceModelPart.CreateSubModelPart("coupling_conditions");
         ModelPart& coupling_geometries_model_part = rInterfaceModelPart.GetSubModelPart("coupling_conditions");
@@ -271,7 +273,6 @@ namespace Kratos
         IndexType interface_node_id;
         IndexType trial_interface_node_id;
         IndexType trial_geom_node_id;
-        std::vector<GeometryPointerType> fem_interface_lines;
 
         for (size_t node_index = 0; node_index < rInterfaceModelPart.NumberOfNodes() - 1; ++node_index)
         {
@@ -311,18 +312,31 @@ namespace Kratos
                                 rInterfaceModelPart.pGetNode(interface_node_id), rInterfaceModelPart.pGetNode(trial_interface_node_id));
                             coupling_geometries_model_part.AddGeometry(p_line);
                             rGeometries.push_back(p_line);
-                            fem_interface_lines.push_back(p_line);
                         }
                     }
                 }
             }
         }
 
+
+	}
+
+    void StructureMpmModeler::CreateExactlySegmentedStructureQuadraturePointGeometries(
+        ModelPart& rInterfaceModelPart,
+        std::vector<GeometryPointerType>& rFEMInterfaceGeometries,
+        ModelPart& rBackgroundGrid,
+        std::vector<GeometryPointerType>& rSegmentedQuadraturePoints)
+    {
+
+        double interface_length_physical = 0;
+        double interface_length_boost_intersections = 0;
+        double interface_length_quad_points = 0;
+
         // Get bounding box of FEM interface and make reduced set of grid boost geoms
         BoundingBox<Node<3>> fem_interface_bounding_box = BoundingBox<Node<3>>(rInterfaceModelPart.NodesBegin(), rInterfaceModelPart.NodesEnd());
-        array_1d<double,3>& max_coord = fem_interface_bounding_box.GetMaxPoint().Coordinates();
-        array_1d<double,3>& min_coord = fem_interface_bounding_box.GetMinPoint().Coordinates();
-        double safety_buffer = 1e-6*norm_2(max_coord - min_coord);
+        array_1d<double, 3>& max_coord = fem_interface_bounding_box.GetMaxPoint().Coordinates();
+        array_1d<double, 3>& min_coord = fem_interface_bounding_box.GetMinPoint().Coordinates();
+        double safety_buffer = 1.0 * norm_2(max_coord - min_coord);
         for (size_t i = 0; i < 3; i++) {
             max_coord[i] += safety_buffer;
             min_coord[i] -= safety_buffer;
@@ -333,50 +347,96 @@ namespace Kratos
         typedef boost::geometry::model::multi_linestring<BoostLinestring> BoostMultiLinestring;
         typedef boost::geometry::model::polygon<BoostPoint> BoostPolygon;
 
-        std::vector< GeometryType*> interface_grid_geoms;
-        std::vector< BoostPolygon> boost_interface_grid_geoms;
-        for (auto& r_element: rBackgroundGrid.Elements())
+        // Make boost linestring of total fem interface
+        BoostLinestring fem_interface_line;
+        for (size_t i = 0; i < rFEMInterfaceGeometries.size(); ++i)
         {
-            auto& r_geom = r_element.GetGeometry();
-            for (auto& r_node:r_geom.Points())
+            auto& r_line = *(rFEMInterfaceGeometries[i].get());
+            for (size_t j = 0; j < r_line.PointsNumber(); j++) fem_interface_line.push_back(BoostPoint(r_line.GetPoint(j).X(), r_line.GetPoint(j).Y()));
+        }
+        interface_length_physical = boost::geometry::length(fem_interface_line);
+
+        // Make boost polygon representation of background grid around FEM interface
+        std::vector< BoostPolygon> boost_interface_grid_geoms;
+        block_for_each(rBackgroundGrid.Elements(), [&](ModelPart::ElementType& r_element)
             {
-                array_1d<double, 3>& node_pos = r_node.Coordinates();
-                if (node_pos[0] >= min_coord[0] && node_pos[1] >= min_coord[1]) {
-                    if (node_pos[0] <= max_coord[0] && node_pos[1] <= max_coord[1]) {
-                        interface_grid_geoms.push_back(&r_geom);
-                        // make boost polygon
-                        BoostPolygon boost_poly;
-                        std::vector< BoostPoint> boost_polygon_points (r_geom.PointsNumber() + 1);
-                        for (size_t i = 0; i < r_geom.PointsNumber(); ++i) boost_polygon_points[i] = BoostPoint(r_geom.GetPoint(i).X(), r_geom.GetPoint(i).Y());
-                        boost_polygon_points[r_geom.PointsNumber()] = boost_polygon_points[0];
-                        boost_poly.outer().assign(boost_polygon_points.begin(), boost_polygon_points.end());
-                        boost_interface_grid_geoms.push_back(boost_poly);
-                        break;
+                auto& r_geom = r_element.GetGeometry();
+                for (auto& r_node : r_geom.Points())
+                {
+                    array_1d<double, 3>& node_pos = r_node.Coordinates();
+                    if (node_pos[0] >= min_coord[0] && node_pos[1] >= min_coord[1]) {
+                        if (node_pos[0] <= max_coord[0] && node_pos[1] <= max_coord[1]) {
+                            // make boost polygon
+                            BoostPolygon boost_poly;
+                            std::vector< BoostPoint> boost_polygon_points(r_geom.PointsNumber() + 1);
+                            for (size_t i = 0; i < r_geom.PointsNumber(); ++i) boost_polygon_points[i] = BoostPoint(r_geom.GetPoint(i).X(), r_geom.GetPoint(i).Y());
+                            boost_polygon_points[r_geom.PointsNumber()] = boost_polygon_points[0];
+                            boost_poly.outer().assign(boost_polygon_points.begin(), boost_polygon_points.end());
+                            if (boost::geometry::covered_by(fem_interface_line, boost_poly) || boost::geometry::crosses(fem_interface_line, boost_poly))
+                            {
+                                #pragma omp critical
+                                boost_interface_grid_geoms.push_back(boost_poly);
+
+                                break;
+                            }
+
+                        }
                     }
                 }
             }
-        }
+        );
+
 
         // Now we loop over all fem interface lines and split them over the mpm grid
-        rInterfaceModelPart.CreateSubModelPart("coupling_fem_interface_gauss_points");
-        ModelPart& fem_interface_gauss_model_part = rInterfaceModelPart.GetSubModelPart("coupling_fem_interface_gauss_points");
-        for (size_t i = 0; i < fem_interface_lines.size(); ++i)
-        {
-            BoostLinestring boost_line;
-            std::vector< BoostLinestring> boost_individual_intersected_interface_lines;
-            auto& r_line = *(fem_interface_lines[i].get());
-            for (size_t j = 0; j < r_line.PointsNumber(); j++) boost_line.push_back(BoostPoint(r_line.GetPoint(j).X(), r_line.GetPoint(j).Y()));
-
-            for (size_t boost_grid_index = 0; boost_grid_index < boost_interface_grid_geoms.size(); ++boost_grid_index)
+        IndexPartition<>(rFEMInterfaceGeometries.size()).for_each([&](SizeType i)
             {
-                std::vector<BoostLinestring> intersection_container;
-                std::vector<BoostPoint> intersection_points;
-                BoostMultiLinestring intersection_multi_line;
-                if (boost::geometry::intersection(boost_line, boost_interface_grid_geoms[boost_grid_index], intersection_points)) {
-                    if (intersection_points.size() > 1)
+                BoostLinestring boost_line;
+                std::vector< BoostLinestring> boost_individual_intersected_interface_lines;
+                auto& r_line = *(rFEMInterfaceGeometries[i].get());
+
+                for (size_t j = 0; j < r_line.PointsNumber(); j++) boost_line.push_back(BoostPoint(r_line.GetPoint(j).X(), r_line.GetPoint(j).Y()));
+
+                for (size_t boost_grid_index = 0; boost_grid_index < boost_interface_grid_geoms.size(); ++boost_grid_index)
+                {
+                    bool add_geom = false;
+                    std::vector<BoostPoint> intersection_points;
+                    BoostLinestring intersection;
+                    boost::geometry::intersection(boost_line, boost_interface_grid_geoms[boost_grid_index], intersection_points);
+                    if (intersection_points.size() > 0)
                     {
-                        KRATOS_ERROR_IF(intersection_points.size() != 2) << "Straight line in 2d geom should only have two intersection points\n";
-                        BoostLinestring intersection (intersection_points.begin(), intersection_points.end());
+                        if (intersection_points.size() == 1)
+                        {
+                            // A line end might be within the polygon
+                            for (size_t k = 0; k < 2; k++) {
+                                if (boost::geometry::covered_by(boost_line[k], boost_interface_grid_geoms[boost_grid_index]))
+                                {
+                                    add_geom = true;
+                                    intersection.push_back(intersection_points[0]);
+                                    intersection.push_back(boost_line[k]);
+                                    break;
+                                }
+                            }
+                        }
+                        else if (intersection_points.size() == 2)
+                        {
+                            // A line at least spans the polygon
+                            add_geom = true;
+                            intersection = BoostLinestring(intersection_points.begin(), intersection_points.end());
+                        }
+                    }
+                    else
+                    {
+                        // A line might be wholly inside the polygon
+                        if (boost::geometry::covered_by(boost_line, boost_interface_grid_geoms[boost_grid_index]))
+                        {
+                            add_geom = true;
+                            intersection = boost_line;
+                        }
+                    }
+
+
+                    if (add_geom)
+                    {
                         bool is_duplicate = false;
                         for (auto& check_line : boost_individual_intersected_interface_lines) {
                             if (boost::geometry::equals(intersection, check_line)) {
@@ -387,49 +447,81 @@ namespace Kratos
                         if (!is_duplicate)
                         {
                             boost_individual_intersected_interface_lines.push_back(intersection);
+                            #pragma omp critical
+                            interface_length_boost_intersections += boost::geometry::length(intersection);
                         }
                     }
 
                 }
-            }
-            int test = 1;
-            KRATOS_ERROR_IF(boost_individual_intersected_interface_lines.size() == 0) << "No intersected grid geoms found!\n";
+                KRATOS_ERROR_IF(boost_individual_intersected_interface_lines.size() == 0) << "No intersected grid geoms found!\n";
 
-            // Create quadrature points
+                // Create quadrature points
+                CoordinatesArrayType local_parameter_1 = ZeroVector(3);
+                CoordinatesArrayType local_parameter_2 = ZeroVector(3);
 
-            CoordinatesArrayType local_parameter_1 = ZeroVector(3);
-            CoordinatesArrayType local_parameter_2 = ZeroVector(3);
-
-            for (size_t j = 0; j < boost_individual_intersected_interface_lines.size(); ++j)
-            {
-                BoostLinestring& r_intersected_line = boost_individual_intersected_interface_lines[j];
-                CoordinatesArrayType intersection_low = ZeroVector(3);
-                intersection_low[0] += r_intersected_line[0].get<0>();
-                intersection_low[1] += r_intersected_line[0].get<1>();
-
-                CoordinatesArrayType intersection_high = ZeroVector(3);
-                intersection_high[0] += r_intersected_line[1].get<0>();
-                intersection_high[1] += r_intersected_line[1].get<1>();
-                r_line.PointLocalCoordinates(local_parameter_1, intersection_low);
-                r_line.PointLocalCoordinates(local_parameter_2, intersection_high);
-
-                const SizeType IntegrationPointsPerSpan = 2; // TODO this should depend on the basis order
-                IntegrationPointsArrayType integration_points(IntegrationPointsPerSpan);
-                typename IntegrationPointsArrayType::iterator integration_point_iterator = integration_points.begin();
-
-                IntegrationPointUtilities::IntegrationPoints1D(
-                    integration_point_iterator, IntegrationPointsPerSpan,
-                    local_parameter_1[0], local_parameter_2[0]);
-                GeometriesArrayType quadrature_point_geometries_fem(IntegrationPointsPerSpan);
-                CreateQuadraturePointsUtility<Node<3>>::Create(r_line, quadrature_point_geometries_fem, integration_points,1);
-                for (size_t k = 0; k < quadrature_point_geometries_fem.size(); ++k)
+                for (size_t j = 0; j < boost_individual_intersected_interface_lines.size(); ++j)
                 {
-                    //rFEMQuadPoints.push_back(&quadrature_point_geometries_fem[k]);
+                    BoostLinestring& r_intersected_line = boost_individual_intersected_interface_lines[j];
+                    CoordinatesArrayType intersection_low = ZeroVector(3);
+                    intersection_low[0] += r_intersected_line[0].get<0>();
+                    intersection_low[1] += r_intersected_line[0].get<1>();
+
+                    CoordinatesArrayType intersection_high = ZeroVector(3);
+                    intersection_high[0] += r_intersected_line[1].get<0>();
+                    intersection_high[1] += r_intersected_line[1].get<1>();
+                    r_line.PointLocalCoordinates(local_parameter_1, intersection_low);
+                    r_line.PointLocalCoordinates(local_parameter_2, intersection_high);
+
+                    const SizeType IntegrationPointsPerSpan = 2; // TODO this should depend on the basis order
+                    IntegrationPointsArrayType integration_points(IntegrationPointsPerSpan);
+                    typename IntegrationPointsArrayType::iterator integration_point_iterator = integration_points.begin();
+
+                    IntegrationPointUtilities::IntegrationPoints1D(
+                        integration_point_iterator, IntegrationPointsPerSpan,
+                        local_parameter_1[0], local_parameter_2[0]);
+
+                    GeometriesArrayType quadrature_point_geometries_fem(IntegrationPointsPerSpan);
+
+                    // CreateQuadraturePointsUtility::Create re-written below to give geometry pointer type
+                    auto default_method = r_line.GetDefaultIntegrationMethod();
+                    const size_t NumberOfShapeFunctionDerivatives = 1;
+                    Vector N;
+                    Matrix DN_De;
+                    for (IndexType k = 0; k < integration_points.size(); ++k)
+                    {
+                        r_line.ShapeFunctionsValues(N, integration_points[k]);
+
+                        Matrix N_matrix = ZeroMatrix(1, N.size());
+                        if (NumberOfShapeFunctionDerivatives >= 0) {
+                            for (IndexType m = 0; m < N.size(); ++m) N_matrix(0, m) = N[m];
+                        }
+
+                        /// Get Shape Function Derivatives DN_De, ...
+                        if (NumberOfShapeFunctionDerivatives > 0) {
+                            r_line.ShapeFunctionsLocalGradients(DN_De, integration_points[k]);
+                        }
+
+                        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                            default_method, integration_points[k],
+                            N_matrix, DN_De);
+
+                        GeometryPointerType quad_geom = CreateQuadraturePointsUtility<Node<3>>::CreateQuadraturePoint(
+                            r_line.WorkingSpaceDimension(), r_line.LocalSpaceDimension(),
+                            data_container, r_line);
+
+                        #pragma omp critical
+                        {
+                            rSegmentedQuadraturePoints.push_back(quad_geom);
+                            interface_length_quad_points += quad_geom->IntegrationPoints()[0].Weight() * quad_geom->DeterminantOfJacobian(0);
+                        }
+                    }
                 }
             }
-            test = 1;
-        }
+        );
 
-        int test = 1;
-	}
+
+        KRATOS_CHECK_NEAR(interface_length_physical, interface_length_boost_intersections, 1e-9);
+        KRATOS_CHECK_NEAR(interface_length_physical, interface_length_quad_points, 1e-9);
+    }
+
 }

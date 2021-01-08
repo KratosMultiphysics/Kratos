@@ -141,6 +141,12 @@ public:
         }
     }
 
+    void CreateExactlySegmentedStructureQuadraturePointGeometries(
+        ModelPart& rInterfaceModelPart,
+        std::vector<GeometryPointerType>& rFEMInterfaceGeometries,
+        ModelPart& rBackgroundGrid,
+        std::vector<GeometryPointerType>& rSegmentedQuadraturePoints);
+
     template<SizeType TDimension, class TQuadraturePointGeometriesList>
     void CreateMpmQuadraturePointGeometries(
         const TQuadraturePointGeometriesList& rInputQuadraturePointGeometries,
@@ -156,6 +162,9 @@ public:
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
         typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
+        double fem_quadrature_points_edge_length = 0;
+        double mpm_quadrature_points_edge_length = 0;
+
         const double tolerance = mParameters["minimum_shape_function_value"].GetDouble();
         for (size_t i = 0; i < rInputQuadraturePointGeometries.size(); ++i)
         {
@@ -169,7 +178,7 @@ public:
 
             if (is_found) {
                 double integration_weight = rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight();
-                integration_weight *= rInputQuadraturePointGeometries[i]->DeterminantOfJacobian(0);
+                //integration_weight *= rInputQuadraturePointGeometries[i]->DeterminantOfJacobian(0);
 
                 array_1d<double, 3> local_coordinates;
                 auto& r_geometry = p_elem->GetGeometry();
@@ -213,7 +222,7 @@ public:
                 Matrix jacci_the_wacci;
                 r_geometry.Jacobian(jacci_the_wacci, local_coordinates);
                 double J2 = norm_2(column(jacci_the_wacci, 0) * local_tangent[0] + column(jacci_the_wacci, 1) * local_tangent[1]);
-                integration_weight /= J2;
+                //integration_weight /= J2;
 
                 IntegrationPoint<3> int_p(local_coordinates, integration_weight);
 
@@ -226,6 +235,7 @@ public:
                 rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(data_container,
                     points, local_tangent[0], local_tangent[1], p_elem->pGetGeometry().get());
 
+                /*
                 #ifdef KRATOS_DEBUG
                 std::vector<array_1d<double, 3>> space_derivatives_check(0.0);
                 rOuputQuadraturePointGeometries[i]->GlobalSpaceDerivatives(space_derivatives_check, 0, 1);
@@ -244,18 +254,40 @@ public:
                     KRATOS_WATCH(space_derivatives);
 
                     Vector det_jacobian;
-                    rOuputQuadraturePointGeometries[i]->Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);
+                    if (&(rOuputQuadraturePointGeometries[i]->GetGeometryParent(0)) == nullptr)
+                    {
+                        rOuputQuadraturePointGeometries[i]->DeterminantOfJacobian(det_jacobian);
+                    }
+                    else
+                    {
+                        rOuputQuadraturePointGeometries[i]->Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);
+                    }
                     KRATOS_WATCH(det_jacobian);
+                    KRATOS_WATCH(rOuputQuadraturePointGeometries[i]->GetGeometryParent(0));
+                        rOuputQuadraturePointGeometries[i]->DeterminantOfJacobian(det_jacobian);
+                    KRATOS_WATCH(det_jacobian);
+
+
                     int terwadf = 1;
 
                 }
-                KRATOS_ERROR_IF(norm_2(tangent_check - space_derivatives) > tolerance)
-                    << "CreateMpmQuadraturePointGeometries | Line and quadrature point tangents not equal."
-                    << "\nFEM boundary line tangent = " << space_derivatives
-                    << "\nMPM quad point on curve tangent = " << tangent_check << "\n";
+                //KRATOS_ERROR_IF(norm_2(tangent_check - space_derivatives) > tolerance)
+                //    << "CreateMpmQuadraturePointGeometries | Line and quadrature point tangents not equal."
+                //    << "\nFEM boundary line tangent = " << space_derivatives
+                //    << "\nMPM quad point on curve tangent = " << tangent_check << "\n";
                 #endif
+                */
+
+                fem_quadrature_points_edge_length += rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight() *
+                    rInputQuadraturePointGeometries[i]->DeterminantOfJacobian(0);
+                Vector det_jacobian;
+                if (&(rOuputQuadraturePointGeometries[i]->GetGeometryParent(0)) == nullptr) rOuputQuadraturePointGeometries[i]->DeterminantOfJacobian(det_jacobian);
+                else  rOuputQuadraturePointGeometries[i]->Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);
+                mpm_quadrature_points_edge_length += rOuputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight() * det_jacobian[0];
             }
         }
+
+        KRATOS_CHECK_NEAR(fem_quadrature_points_edge_length, mpm_quadrature_points_edge_length, 1e-9);
     }
 
     template<SizeType TDimension,
@@ -501,9 +533,7 @@ private:
 
     void CreateInterfaceLineCouplingConditions(ModelPart& rInterfaceModelPart,
         std::vector<GeometryPointerType>& rGeometries,
-        ModelPart& rBackgroundGrid,
-        std::vector<GeometryPointerType>& rFEMQuadPoints,
-        const bool IsCreateSegmentedFEMQuads = false);
+        ModelPart& rBackgroundGrid);
 
     void CheckParameters();
 
