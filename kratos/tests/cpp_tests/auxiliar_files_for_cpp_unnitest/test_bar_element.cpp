@@ -341,8 +341,8 @@ namespace Kratos
     //************************************************************************************//
 
     void TestBarElement::CalculateLumpedMassVector(
-    VectorType& rLumpedMassVector,
-    const ProcessInfo& rCurrentProcessInfo) const
+        VectorType& rLumpedMassVector,
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
 
