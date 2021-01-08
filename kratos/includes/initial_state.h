@@ -191,21 +191,24 @@ class KRATOS_API(KRATOS_CORE) InitialState
         /**
          * @brief This method returns the initial strain vector if was set before
          */
-        const Vector& GetInitialStrainVector() {
+        const Vector& GetInitialStrainVector() const
+        {
             return mInitialStrainVector;
         }
 
         /**
          * @brief This method returns the initial stress vector if was set before
          */
-        const Vector& GetInitialStressVector() {
+        const Vector& GetInitialStressVector() const
+        {
             return mInitialStressVector;
         }
 
         /**
          * @brief This method returns the initial stress vector if was set before
          */
-        const Matrix& GetInitialDeformationGradientMatrix() {
+        const Matrix& GetInitialDeformationGradientMatrix() const
+        {
             return mInitialDeformationGradientMatrix;
         }
 
