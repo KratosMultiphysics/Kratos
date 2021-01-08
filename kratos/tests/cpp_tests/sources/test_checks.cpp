@@ -161,6 +161,10 @@ namespace Kratos {
                 "Check failed because 1.0 = 1 is not near to a = nan within the tolerance 1e-07"
             );
             KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_NEAR(a, 1.0, 1e-7),
+                "Check failed because a = nan is not near to 1.0 = 1 within the tolerance 1e-07"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
                 KRATOS_CHECK_LESS_EQUAL(a,1.0),
                 "Check failed because a is greater than 1.0"
             );
