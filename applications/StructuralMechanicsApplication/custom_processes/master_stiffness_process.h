@@ -21,6 +21,7 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_filesystem.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -106,8 +107,8 @@ public:
         NodesArrayType &r_nodes   = mrThisModelPart.Nodes();
 
         for(NodeType& node : r_nodes){
-            double mini=std::min({node.X(),node.Y(),node.Z()});
-            double maxi=std::max({node.X(),node.Y(),node.Z()});
+            double mini = std::min({node.X(),node.Y(),node.Z()});
+            double maxi = std::max({node.X(),node.Y(),node.Z()});
             if(mini < minimum){
                 minimum = mini;
             }
@@ -131,57 +132,113 @@ public:
 
         this->DoF = current_step-(2*this->dim*this->n);//Local surface DoF
 
-        /*//Order the vector of strings to make the current slave surface be the first of the list.
         if(this->DoF==0){
-            std::reverse(std::begin(this->slave_surface_name),std::begin(this->slave_surface_name)+this->n+1);
+            //Creating Master- Slave constraint for each interface (displacements)
+            int k=0;
+            if(this->n==0){
+                this->nodes_per_master_part = Vector(this->number_master_nodes+1,0);//Contains the sum of the master nodes so later we can access when recreating the master-slave constraints
+                this->Id_master = Vector(this->number_master_nodes);//Contains the the Id of the master nodes
+            }
+            int counter=0;
+            for(int j=0;j<this->number_master_nodes;j++){//Creating the master nodes as fictitious nodes to create the master-slave constraints with the slaves surfaces.
+                ModelPart &current_master_slave_part=mrThisModelPart.GetSubModelPart(this->slave_surface_name[j]);
+                if(this->n==0){
+                    current_master_slave_part.CreateNewNode(mrThisModelPart.NumberOfNodes()+1,this->master_coor(j,0), this->master_coor(j,1), this->master_coor(j,2));
+                    VariableUtils().AddDofWithReaction(DISPLACEMENT_X,REACTION_X, current_master_slave_part);
+                    VariableUtils().AddDofWithReaction(DISPLACEMENT_Y,REACTION_Y, current_master_slave_part);
+                    VariableUtils().AddDofWithReaction(DISPLACEMENT_Z,REACTION_Z, current_master_slave_part);
+                    int current_number_of_nodes = current_master_slave_part.NumberOfNodes()-1;
+                    this->nodes_per_master_part(j+1)  =  this->dim*(counter+current_number_of_nodes);
+                    this->Id_master(j) = mrThisModelPart.NumberOfNodes();
+                    counter += current_number_of_nodes;
+                }
+                NodeType& master_node = current_master_slave_part.GetNode(int(this->Id_master(j)));
+                NodesArrayType &slave_nodes = current_master_slave_part.Nodes();
+                for(NodeType& slave_node : slave_nodes){
+                    if(slave_node.Id()==master_node.Id()){
+                        continue;
+                    }
+                    current_master_slave_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", k, master_node, DISPLACEMENT_X, slave_node, DISPLACEMENT_X, 1.0, 0);
+                    k+=1;
+                    current_master_slave_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", k, master_node, DISPLACEMENT_Y, slave_node, DISPLACEMENT_Y, 1.0, 0);
+                    k+=1;
+                    current_master_slave_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", k, master_node, DISPLACEMENT_Z, slave_node, DISPLACEMENT_Z, 1.0, 0);
+                    k+=1;
+                }
+            }
+            VariableUtils().SetFlag(TO_ERASE,false, mrThisModelPart.MasterSlaveConstraints());
         }
-        */
+        if(this->DoF>2){
+            ModelPart &current_master_slave_part = mrThisModelPart.GetSubModelPart(this->slave_surface_name[this->n]);
+            VariableUtils().SetFlag(TO_ERASE, true, current_master_slave_part.MasterSlaveConstraints());
+            mrThisModelPart.RemoveMasterSlaveConstraints(TO_ERASE);
+            int k=this->nodes_per_master_part(this->n);
+            Kratos::Vector v = Vector(3);
+            Kratos::Matrix R = this->QuaternionRotationMatrix();
+            NodeType &master_node = current_master_slave_part.GetNode(this->Id_master(this->n));
+            NodesArrayType &slave_nodes = current_master_slave_part.Nodes();
+            for(NodeType& slave_node : slave_nodes){//Loop on interface nodes to each constraint
+                Kratos::Vector disp = Vector(this->dim,0);
+                if(slave_node.Id()==master_node.Id()){ 
+                    continue;   
+                }
+                v(0) = slave_node.X0() - this->master_coor(this->n,0);
+                v(1) = slave_node.Y0() - this->master_coor(this->n,1);
+                v(2) = slave_node.Z0() - this->master_coor(this->n,2);
+                disp = prod(R,v)-v;
+                current_master_slave_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", k, master_node, DISPLACEMENT_X, slave_node, DISPLACEMENT_X, disp(0), 0);
+                k+=1;
+                current_master_slave_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", k, master_node, DISPLACEMENT_Y, slave_node, DISPLACEMENT_Y, disp(1), 0);
+                k+=1;
+                current_master_slave_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", k, master_node, DISPLACEMENT_Z, slave_node, DISPLACEMENT_Z, disp(2), 0);
+                k+=1;
+            }
+        }
         //Assign the current submodel slave part.
         ModelPart &slave_submodel_part = mrThisModelPart.GetSubModelPart(this->slave_surface_name[this->n]);
-        NodesArrayType &slave_nodes   = slave_submodel_part.Nodes();
+        NodeType& master_node = slave_submodel_part.GetNode(this->Id_master(this->n));
+        
         //Setting the infinitesimal displacement/rotation boundary condition for current slave surface.
         if(this->DoF<3){//Displacement DoF(0-2)
-            for(NodeType& node : slave_nodes){//Slave surface
-                Kratos::Vector disp = Vector(this->dim,0);
-                disp(this->DoF) = this->value;
-                node.FastGetSolutionStepValue(DISPLACEMENT) = disp;
-                node.Fix(DISPLACEMENT_X);
-                node.Fix(DISPLACEMENT_Y);
-                node.Fix(DISPLACEMENT_Z);
-            }
-        } else {//Rotation DoF(3-5)
-            Kratos::Matrix R = this->ComputeRotationMatrix();
-            Kratos::Vector v = Vector(this->dim);
-            for(NodeType& node : slave_nodes){//Slave surface
-                Kratos::Vector disp = Vector(3,0);
-                v(0) = node.X0() - this->master_coor(this->n,0);
-                v(1) = node.Y0() - this->master_coor(this->n,1);
-                v(2) = node.Z0() - this->master_coor(this->n,2);
-                disp = prod(R,v)-v; 
-                node.FastGetSolutionStepValue(DISPLACEMENT) = disp;
-                node.Fix(DISPLACEMENT_X);
-                node.Fix(DISPLACEMENT_Y);
-                node.Fix(DISPLACEMENT_Z);
-            }
+            Kratos::Vector disp = Vector(3,0);
+            disp(this->DoF) = this->value;
+            master_node.FastGetSolutionStepValue(DISPLACEMENT) = disp;
+            master_node.Fix(DISPLACEMENT_X);
+            master_node.Fix(DISPLACEMENT_Y);
+            master_node.Fix(DISPLACEMENT_Z);
+        } else{
+            Kratos::Vector disp = Vector(3,1);
+            master_node.FastGetSolutionStepValue(DISPLACEMENT) = disp;
+            master_node.Fix(DISPLACEMENT_X);
+            master_node.Fix(DISPLACEMENT_Y);
+            master_node.Fix(DISPLACEMENT_Z);
         }
 
         //All other surfaces are fixed.
         for(int i=0;i<this->number_master_nodes;i++){
             if (i!=this->n){
                 ModelPart &fixed_submodel_part = mrThisModelPart.GetSubModelPart(this->slave_surface_name[i]);
-                NodesArrayType &fixed_nodes   = fixed_submodel_part.Nodes();
-                //Setting the infinitesimal fixed boundary condition.
-                for(NodeType& node : fixed_nodes){//Fixed surface
-                    Kratos::Vector disp = Vector(this->dim,0);
-                    node.FastGetSolutionStepValue(DISPLACEMENT) = disp;
-                    node.Fix(DISPLACEMENT_X);
-                    node.Fix(DISPLACEMENT_Y);
-                    node.Fix(DISPLACEMENT_Z);
-                }
+                NodeType& master_node = fixed_submodel_part.GetNode(this->Id_master(i));
+                Kratos::Vector disp = Vector(this->dim,0);
+                master_node.FastGetSolutionStepValue(DISPLACEMENT) = disp;
+                master_node.Fix(DISPLACEMENT_X);
+                master_node.Fix(DISPLACEMENT_Y);
+                master_node.Fix(DISPLACEMENT_Z);
             }
         }
         
         KRATOS_CATCH("");
+    }
+
+    //This function computes the rotation matrix for the current DoF by using quaternions.
+    Kratos::Matrix QuaternionRotationMatrix(){
+        Kratos::Vector u = Vector(3,0);
+        u(this->DoF-3) = 1;
+        Quaternion<double> q = Quaternion<double>::FromAxisAngle(u(0),u(1),u(2), this->inf_rot);
+        q.normalize(); //Checks if the normalization of a Quaternion (make it a unit quaternion) is being calculated correctly.
+        Kratos::Matrix rotation_matrix = Matrix(3,3);
+        q.ToRotationMatrix(rotation_matrix);
+        return rotation_matrix;
     }
 
     //This function computes the rotation matrix for the current DoF.
@@ -224,13 +281,16 @@ public:
             NodesArrayType &surface_nodes   = surface_model_part.Nodes();
 
             for(NodeType& node : surface_nodes){
-                Kratos::Vector undeformed_coordinates = Vector(this->dim);
+                if(counter==surface_num_nodes){
+                    continue;
+                }
+                Kratos::Vector undeformed_coordinates = Vector(this->dim);//-----May be declared outside the loop
                 undeformed_coordinates(0) = node.X0();
                 undeformed_coordinates(1) = node.Y0();
                 undeformed_coordinates(2) = node.Z0();
                 for(int i=0;i<this->dim;i++){
                     surface_undeformed_coordinates(counter,i) = undeformed_coordinates(i); //Matrix of undeformed coordinates
-                    surface_reaction(counter,i) = node.FastGetSolutionStepValue(REACTION)[i]; //Matirx of reactions
+                    surface_reaction(counter,i) = node.FastGetSolutionStepValue(REACTION)[i]; //Matrix of reactions
 
                 }
                 counter += 1;
@@ -274,12 +334,16 @@ public:
         }
         
 
-        if(this->DoF==5 && this->n==this->number_master_nodes-1){
-            std::cout<<"Master Stiffness: "<<std::endl;
-            std::cout<<this->master_stiffness<<std::endl;
-            this->json_parameters.AddEmptyValue("Stiffness Matrix");
-            this->json_parameters["Stiffness Matrix"].SetMatrix(this->master_stiffness);
-            this->CreateJSONfile();
+        if(this->DoF==5){
+            VariableUtils().SetFlag(TO_ERASE, true, mrThisModelPart.MasterSlaveConstraints());
+            mrThisModelPart.RemoveMasterSlaveConstraints(TO_ERASE);
+            if(this->n==this->number_master_nodes-1){
+                std::cout<<"Master Stiffness: "<<std::endl;
+                std::cout<<this->master_stiffness<<std::endl;
+                this->json_parameters.AddEmptyValue("Stiffness Matrix");
+                this->json_parameters["Stiffness Matrix"].SetMatrix(this->master_stiffness);
+                this->CreateJSONfile(); 
+            }
         }
 
         KRATOS_CATCH("");
@@ -336,6 +400,7 @@ protected:
     int number_master_nodes,dim,n,DoF;
     std::vector<std::string> slave_surface_name;
     Kratos::Matrix master_coor,master_stiffness;
+    Kratos::Vector nodes_per_master_part,Id_master;
     
 ///-----------------------------------------------------------------------------------------------------
 
