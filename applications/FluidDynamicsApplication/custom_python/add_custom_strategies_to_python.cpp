@@ -39,6 +39,8 @@
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta_4.h"
 
+// adjoint schemes
+#include "custom_strategies/schemes/simple_steady_adjoint_scheme.h"
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -120,6 +122,17 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;
 
+    using  SimpleSteadyAdjointScheme2DType = SimpleSteadyAdjointScheme<2, SparseSpaceType, LocalSpaceType>;
+    py::class_<SimpleSteadyAdjointScheme2DType, typename SimpleSteadyAdjointScheme2DType::Pointer, BaseSchemeType>
+        (m, "SimpleSteadyAdjointScheme2D")
+        .def(py::init<AdjointResponseFunction::Pointer>())
+        ;
+
+    using  SimpleSteadyAdjointScheme3DType = SimpleSteadyAdjointScheme<3, SparseSpaceType, LocalSpaceType>;
+    py::class_<SimpleSteadyAdjointScheme3DType, typename SimpleSteadyAdjointScheme3DType::Pointer, BaseSchemeType>
+        (m, "SimpleSteadyAdjointScheme3D")
+        .def(py::init<AdjointResponseFunction::Pointer>())
+        ;
 }
 
 } // namespace Python.
