@@ -143,7 +143,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         mapper_type = self.mapper_parameters["mapper_type"].GetString()
         if self.mapper_parameters.Has("use_initial_configuration") == False:
             self.mapper_parameters.AddBool('use_initial_configuration', True)
-        print(self.mapper_parameters)
 
         # get mapper origin and destination modelparts
         origin_modelpart_name = self.mapper_parameters["modeler_parameters"]["origin_interface_sub_model_part_name"].GetString()
