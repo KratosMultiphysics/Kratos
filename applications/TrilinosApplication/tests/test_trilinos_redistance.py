@@ -33,7 +33,8 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
             "echo_level" : 0,
             "model_import_settings" : {
                 "input_type" : "mdpa",
-                "input_filename" : \"""" + GetFilePath("coarse_sphere") + """\"
+                "input_filename" : \"""" + GetFilePath("coarse_sphere") + """\",
+                "partition_in_memory" : true
             }
         } """
 
@@ -154,18 +155,6 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         # Check the obtained values
         for node in self.model_part.Nodes:
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), self._ExpectedLinearDistance(node.X, x_zero_dist), 10)
-
-class TestTrilinosRedistanceInMemory(TestTrilinosRedistance):
-
-    def setUp(self):
-        self.parameters = """{
-            "echo_level" : 0,
-            "model_import_settings" : {
-                "input_type" : "mdpa",
-                "input_filename" : \"""" + GetFilePath("coarse_sphere") + """\",
-                "partition_in_memory" : true
-            }
-        } """
 
 if __name__ == '__main__':
     KratosUnittest.main()
