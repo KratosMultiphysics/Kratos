@@ -573,7 +573,9 @@ void SlidingCableElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix
   KRATOS_CATCH("")
 }
 
-void SlidingCableElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
+void SlidingCableElement3D::CalculateLumpedMassVector(
+  VectorType &rLumpedMassVector,
+  const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -587,8 +589,9 @@ void SlidingCableElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
     const SizeType local_size = dimension*points_number;
 
     // Clear matrix
-    if (rMassVector.size() != local_size)
-        rMassVector.resize( local_size );
+    if (rLumpedMassVector.size() != local_size) {
+      rLumpedMassVector.resize(local_size);
+    }
 
     const double A = this->GetProperties()[CROSS_AREA];
     const double L = this->GetRefLength();
@@ -610,8 +613,8 @@ void SlidingCableElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
         for (int j = 0; j < dimension; ++j) {
             int index = i * dimension + j;
 
-            rMassVector[index] = nodal_mass;
-            //rMassVector[index] = total_mass;
+            rLumpedMassVector[index] = nodal_mass;
+            //rLumpedMassVector[index] = total_mass;
         }
     }
 
@@ -629,7 +632,7 @@ void SlidingCableElement3D::CalculateMassMatrix(
 
     // Compute lumped mass matrix
     VectorType temp_vector(local_size);
-    CalculateLumpedMassVector(temp_vector);
+    CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
 
     // Clear matrix
     if (rMassMatrix.size1() != local_size || rMassMatrix.size2() != local_size)
@@ -695,7 +698,7 @@ void SlidingCableElement3D::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         VectorType element_mass_vector(local_size);
-        this->CalculateLumpedMassVector(element_mass_vector);
+        this->CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
 
         for (int i = 0; i < points_number; ++i) {
             double &r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
@@ -742,7 +745,7 @@ void SlidingCableElement3D::AddExplicitContribution(
 
         // Getting the vector mass
         VectorType mass_vector(local_size);
-        CalculateLumpedMassVector(mass_vector);
+        CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
 
         for (int i = 0; i < points_number; ++i) {
             double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
