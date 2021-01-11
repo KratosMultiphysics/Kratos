@@ -102,14 +102,6 @@ int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
-    // Extra variables
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
-
-    // Output variables (for Calculate() functions)
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_PRESSURE);
-
     const auto &r_geom = this->GetGeometry();
     for (unsigned int i = 0; i < NumNodes; ++i)
     {

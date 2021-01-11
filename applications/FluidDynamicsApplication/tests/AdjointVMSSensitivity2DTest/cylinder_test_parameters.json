@@ -66,8 +66,7 @@
         "absolute_pressure_tolerance"  : 1e-5,
         "linear_solver_settings"       : {
             "solver_type"         : "amgcl_ns",
-            "verbosity"           : 0,
-            "coarse_enough"       : 500
+            "verbosity"           : 0
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Wall","NoSlip2D_Cylinder"],

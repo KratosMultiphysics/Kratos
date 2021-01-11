@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -139,7 +139,7 @@ class comm_pattern {
                     }
                 }
 
-                MPI_Alltoall(&rcounts[0], 1, MPI_INT, &scounts[0], 1, MPI_INT, comm);
+                MPI_Alltoall(rcounts.data(), 1, MPI_INT, scounts.data(), 1, MPI_INT, comm);
 
                 for(ptrdiff_t d = 0; d < comm.size; ++d) {
                     if (scounts[d]) {
@@ -174,14 +174,33 @@ class comm_pattern {
                         datatype<ptrdiff_t>(), recv.nbr[i], tag_exc_cols, comm, &recv.req[i]);
 
             AMGCL_TIC("MPI Wait");
-            MPI_Waitall(recv.req.size(), &recv.req[0], MPI_STATUSES_IGNORE);
-            MPI_Waitall(send.req.size(), &send.req[0], MPI_STATUSES_IGNORE);
+            MPI_Waitall(recv.req.size(), recv.req.data(), MPI_STATUSES_IGNORE);
+            MPI_Waitall(send.req.size(), send.req.data(), MPI_STATUSES_IGNORE);
             AMGCL_TOC("MPI Wait");
 
             // Shift columns to send to local numbering:
             for(ptrdiff_t &c : send.col) c -= loc_beg;
 
             AMGCL_TOC("communication pattern");
+        }
+
+        template <class OtherBackend>
+        comm_pattern(const comm_pattern<OtherBackend> &C) :
+            comm(C.comm),
+            idx(C.idx),
+            loc_beg(C.loc_beg),
+            loc_cols(C.loc_cols)
+        {
+            send.nbr = C.send.nbr;
+            send.ptr = C.send.ptr;
+            send.col = C.send.col;
+            send.val.resize(C.send.val.size());
+            send.req.resize(C.send.req.size());
+
+            recv.nbr = C.recv.nbr;
+            recv.ptr = C.recv.ptr;
+            recv.val.resize(C.recv.val.size());
+            recv.req.resize(C.recv.req.size());
         }
 
         void move_to_backend(const backend_params &bprm = backend_params()) {
@@ -240,8 +259,8 @@ class comm_pattern {
 
         void finish_exchange() const {
             AMGCL_TIC("MPI Wait");
-            MPI_Waitall(recv.req.size(), &recv.req[0], MPI_STATUSES_IGNORE);
-            MPI_Waitall(send.req.size(), &send.req[0], MPI_STATUSES_IGNORE);
+            MPI_Waitall(recv.req.size(), recv.req.data(), MPI_STATUSES_IGNORE);
+            MPI_Waitall(send.req.size(), send.req.data(), MPI_STATUSES_IGNORE);
             AMGCL_TOC("MPI Wait");
 
             if (!recv.val.empty())
@@ -259,8 +278,8 @@ class comm_pattern {
                         datatype<T>(), send.nbr[i], tag_exc_vals, comm, &send.req[i]);
 
             AMGCL_TIC("MPI Wait");
-            MPI_Waitall(recv.req.size(), &recv.req[0], MPI_STATUSES_IGNORE);
-            MPI_Waitall(send.req.size(), &send.req[0], MPI_STATUSES_IGNORE);
+            MPI_Waitall(recv.req.size(), recv.req.data(), MPI_STATUSES_IGNORE);
+            MPI_Waitall(send.req.size(), send.req.data(), MPI_STATUSES_IGNORE);
             AMGCL_TOC("MPI Wait");
         }
 
@@ -284,6 +303,9 @@ class comm_pattern {
         std::unordered_map<ptrdiff_t, std::tuple<int, int> > idx;
         std::shared_ptr<Gather> gather;
         ptrdiff_t loc_beg, loc_cols;
+
+        template <class B>
+        friend class comm_pattern;
 };
 
 template <class Backend>
@@ -320,6 +342,24 @@ class distributed_matrix {
             n_glob_rows     = comm.reduce(MPI_SUM, n_loc_rows);
             n_glob_cols     = comm.reduce(MPI_SUM, n_loc_cols);
             n_glob_nonzeros = comm.reduce(MPI_SUM, n_loc_nonzeros);
+        }
+
+        // Copy the distributed_matrix from another backend
+        template <class OtherBackend>
+        distributed_matrix(const distributed_matrix<OtherBackend> &A)
+            : a_loc(std::make_shared<build_matrix>(*A.local())),
+              a_rem(std::make_shared<build_matrix>(*A.remote()))
+        {
+            C = std::make_shared<CommPattern>(A.cpat());
+
+            this->a_rem->ncols = C->recv.count();
+
+            n_loc_rows      = A.loc_rows();
+            n_loc_cols      = A.loc_cols();
+            n_loc_nonzeros  = A.loc_nonzeros();
+            n_glob_rows     = A.glob_rows();
+            n_glob_cols     = A.glob_cols();
+            n_glob_nonzeros = A.glob_nonzeros();
         }
 
         template <class Matrix>
@@ -533,9 +573,9 @@ transpose(const distributed_matrix<Backend> &A) {
     std::shared_ptr<build_matrix> t_ptr;
     {
         std::vector<ptrdiff_t> tmp_col(A_rem.col, A_rem.col + A_rem.nnz);
-        C.renumber(tmp_col.size(), &tmp_col[0]);
+        C.renumber(tmp_col.size(), tmp_col.data());
 
-        ptrdiff_t *a_rem_col = &tmp_col[0];
+        ptrdiff_t *a_rem_col = tmp_col.data();
         std::swap(a_rem_col, A_rem.col);
 
         t_ptr = backend::transpose(A_rem);
@@ -576,7 +616,7 @@ transpose(const distributed_matrix<Backend> &A) {
     }
 
     AMGCL_TIC("MPI Wait");
-    MPI_Waitall(recv_cnt_req.size(), &recv_cnt_req[0], MPI_STATUSES_IGNORE);
+    MPI_Waitall(recv_cnt_req.size(), recv_cnt_req.data(), MPI_STATUSES_IGNORE);
     AMGCL_TOC("MPI Wait");
     std::partial_sum(rem_ptr.begin(), rem_ptr.end(), rem_ptr.begin());
 
@@ -627,8 +667,8 @@ transpose(const distributed_matrix<Backend> &A) {
     // 4. Finish rem_col and rem_val exchange, and
     //    finish contruction of our remote part.
     AMGCL_TIC("MPI Wait");
-    MPI_Waitall(recv_col_req.size(), &recv_col_req[0], MPI_STATUSES_IGNORE);
-    MPI_Waitall(recv_val_req.size(), &recv_val_req[0], MPI_STATUSES_IGNORE);
+    MPI_Waitall(recv_col_req.size(), recv_col_req.data(), MPI_STATUSES_IGNORE);
+    MPI_Waitall(recv_val_req.size(), recv_val_req.data(), MPI_STATUSES_IGNORE);
     AMGCL_TOC("MPI Wait");
 
     for(size_t i = 0; i < C.send.count(); ++i) {
@@ -647,9 +687,9 @@ transpose(const distributed_matrix<Backend> &A) {
     T_rem.ptr[0] = 0;
 
     AMGCL_TIC("MPI Wait");
-    MPI_Waitall(send_cnt_req.size(), &send_cnt_req[0], MPI_STATUSES_IGNORE);
-    MPI_Waitall(send_col_req.size(), &send_col_req[0], MPI_STATUSES_IGNORE);
-    MPI_Waitall(send_val_req.size(), &send_val_req[0], MPI_STATUSES_IGNORE);
+    MPI_Waitall(send_cnt_req.size(), send_cnt_req.data(), MPI_STATUSES_IGNORE);
+    MPI_Waitall(send_col_req.size(), send_col_req.data(), MPI_STATUSES_IGNORE);
+    MPI_Waitall(send_val_req.size(), send_val_req.data(), MPI_STATUSES_IGNORE);
     AMGCL_TOC("MPI Wait");
 
     AMGCL_TOC("MPI Transpose");
@@ -761,7 +801,7 @@ remote_rows(
     }
 
     AMGCL_TIC("MPI Wait");
-    MPI_Waitall(recv_ptr_req.size(), &recv_ptr_req[0], MPI_STATUSES_IGNORE);
+    MPI_Waitall(recv_ptr_req.size(), recv_ptr_req.data(), MPI_STATUSES_IGNORE);
     AMGCL_TOC("MPI Wait");
 
     B_nbr->set_nonzeros(B_nbr->scan_row_sizes(), need_values);
@@ -782,13 +822,13 @@ remote_rows(
     }
 
     AMGCL_TIC("MPI Wait");
-    MPI_Waitall(send_ptr_req.size(), &send_ptr_req[0], MPI_STATUSES_IGNORE);
-    MPI_Waitall(send_col_req.size(), &send_col_req[0], MPI_STATUSES_IGNORE);
-    MPI_Waitall(recv_col_req.size(), &recv_col_req[0], MPI_STATUSES_IGNORE);
+    MPI_Waitall(send_ptr_req.size(), send_ptr_req.data(), MPI_STATUSES_IGNORE);
+    MPI_Waitall(send_col_req.size(), send_col_req.data(), MPI_STATUSES_IGNORE);
+    MPI_Waitall(recv_col_req.size(), recv_col_req.data(), MPI_STATUSES_IGNORE);
 
     if (need_values) {
-        MPI_Waitall(send_val_req.size(), &send_val_req[0], MPI_STATUSES_IGNORE);
-        MPI_Waitall(recv_val_req.size(), &recv_val_req[0], MPI_STATUSES_IGNORE);
+        MPI_Waitall(send_val_req.size(), send_val_req.data(), MPI_STATUSES_IGNORE);
+        MPI_Waitall(recv_val_req.size(), recv_val_req.data(), MPI_STATUSES_IGNORE);
     }
     AMGCL_TOC("MPI Wait");
 
@@ -1181,7 +1221,7 @@ spectral_radius(const mpi::distributed_matrix<Backend> &A, int power_iters = 0)
 
         for(size_t i = 0, m = C.send.count(); i < m; ++i)
             b0_send[i] = b0[C.send.col[i]];
-        C.exchange(&b0_send[0], &b0_recv[0]);
+        C.exchange(b0_send.data(), b0_recv.data());
 
         for(int iter = 0; iter < power_iters;) {
             // b1 = (D * A) * b0
@@ -1240,7 +1280,7 @@ spectral_radius(const mpi::distributed_matrix<Backend> &A, int power_iters = 0)
 
                 for(size_t i = 0, m = C.send.count(); i < m; ++i)
                     b0_send[i] = b0[C.send.col[i]];
-                C.exchange(&b0_send[0], &b0_recv[0]);
+                C.exchange(b0_send.data(), b0_recv.data());
             }
         }
     }
