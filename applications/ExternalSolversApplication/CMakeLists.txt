@@ -2,6 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** Configuring KratosExternalSolversApplication ****")
 
+message("    !!! DEPRECATION WARNING !!!")
+message("    The ExternalSolversApplication is deprecated in favor of the LinearSolversApplication")
+message("    It is no longer updated/maintained and will be removed in the future")
+
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.3 )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
