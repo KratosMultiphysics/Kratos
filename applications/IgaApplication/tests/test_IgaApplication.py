@@ -12,6 +12,8 @@ from iga_test_factory import ScordelisRoofShell3pTest as ScordelisRoofShell3pTes
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
+# Nurbs Geometry tests
+from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -29,7 +31,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         SinglePatchTest,
         ScordelisRoofShell3pTest,
-        TTestModelers
+        TTestModelers,
+        TTestNurbsVolumeElements
         ]))
 
     nightSuite = suites['nightly']
