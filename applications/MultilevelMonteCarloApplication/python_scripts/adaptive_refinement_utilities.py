@@ -8,6 +8,8 @@ from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable, Is
 if KratosMultiphysics.IsDistributedRun():
     if not IsMPIAvailable():
         raise Exception("[MultilevelMonteCarloApplication]: KratosMultiphysics MPI core is not available, but it is required since runnning with MPI.")
+    else:
+        import KratosMultiphysics.mpi
 if CheckIfApplicationsAvailable("MeshingApplication"):
     import KratosMultiphysics.MeshingApplication
 if CheckIfApplicationsAvailable("ExaquteSandboxApplication"):
@@ -103,6 +105,7 @@ class AdaptiveRefinement(object):
 
             # create the remeshing process and execute it
             if KratosMultiphysics.IsDistributedRun(): # MPI
+                KratosMultiphysics.mpi.ParallelFillCommunicator(model_coarse.GetModelPart(model_part_name)).Execute()
                 if domain_size == 3:
                     if(hasattr(KratosMultiphysics.MeshingApplication,"ParMmgProcess3D")):
                         pmmg_process = KratosMultiphysics.MeshingApplication.ParMmgProcess3D(model_coarse.GetModelPart(model_part_name),remesh_param)
