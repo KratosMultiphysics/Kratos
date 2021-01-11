@@ -36,6 +36,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcessFlags
+{
+public:
+    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES); /// Local flag to switch on/off the elemental edge distances storage
+    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_EXTRA_EDGE_DISTANCES); /// Local flag to switch on/off the extrapolated elemental edge distances storage
+};
+
 /// This only calculates the distance. Calculating the inside outside should be done by a derived class of this.
 /** This process takes a volume model part (with tetrahedra mesh) and a skin model part (with triangle mesh) and
      and calcualtes the distance to the skin for all the elements and nodes of the volume model part.
@@ -50,12 +57,6 @@ public:
 
     /// Pointer definition of CalculateDiscontinuousDistanceToSkinProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateDiscontinuousDistanceToSkinProcess);
-
-    /// Local flag to switch on/off the elemental edge distances storage
-    KRATOS_DEFINE_LOCAL_APPLICATION_FLAG(KRATOS_CORE, CALCULATE_ELEMENTAL_EDGE_DISTANCES);
-
-    /// Local flag to switch on/off the calculation and storage of the extrapolated edge distances
-    KRATOS_DEFINE_LOCAL_APPLICATION_FLAG(KRATOS_CORE, CALCULATE_EXTRA_EDGE_DISTANCES);
 
     ///@}
     ///@name Life Cycle
@@ -209,8 +210,8 @@ private:
     ModelPart& mrSkinPart;
     ModelPart& mrVolumePart;
 
-    Flags mOptionEdge = CALCULATE_ELEMENTAL_EDGE_DISTANCES.AsFalse();
-    Flags mOptionExtraEdge = CALCULATE_EXTRA_EDGE_DISTANCES.AsFalse();
+    Flags mOptionEdge;
+    Flags mOptionExtraEdge;
 
     ///@}
     ///@name Private Operations
@@ -527,12 +528,6 @@ private:
     ///@}
 
 }; // Class CalculateDiscontinuousDistanceToSkinProcess
-
-// Local flag creation without using the KRATOS_CREATE_LOCAL_FLAG macro since this has a template parameter.
-template<std::size_t TDim>
-const Kratos::Flags CalculateDiscontinuousDistanceToSkinProcess<TDim>::CALCULATE_ELEMENTAL_EDGE_DISTANCES(Kratos::Flags::Create(0));
-template<std::size_t TDim>
-const Kratos::Flags CalculateDiscontinuousDistanceToSkinProcess<TDim>::CALCULATE_EXTRA_EDGE_DISTANCES(Kratos::Flags::Create(0));
 
 ///@}
 ///@name Input and output
