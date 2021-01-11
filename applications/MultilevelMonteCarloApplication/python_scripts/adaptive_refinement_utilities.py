@@ -92,7 +92,7 @@ class AdaptiveRefinement(object):
                 local_gradient = KratosMultiphysics.MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.TEMPERATURE,metric_param)
                 local_gradient.Execute()
 
-            elif (problem_type == "monolithic"):
+            elif (problem_type in ["monolithic", "FractionalStep"]):
                 if CheckIfApplicationsAvailable("ExaquteSandboxApplication"):
                     local_gradient = KratosMultiphysics.MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.ExaquteSandboxApplication.AVERAGED_VELOCITY_X,metric_param)
                     local_gradient.Execute()
