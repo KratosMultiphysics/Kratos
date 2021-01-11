@@ -41,6 +41,7 @@
 
 // adjoint schemes
 #include "custom_strategies/schemes/simple_steady_adjoint_scheme.h"
+#include "custom_strategies/schemes/velocity_bossak_adjoint_scheme.h"
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -133,6 +134,19 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         (m, "SimpleSteadyAdjointScheme3D")
         .def(py::init<AdjointResponseFunction::Pointer>())
         ;
+
+    using  VelocityBossakAdjointScheme2DType = VelocityBossakAdjointScheme<2, SparseSpaceType, LocalSpaceType>;
+    py::class_<VelocityBossakAdjointScheme2DType, typename VelocityBossakAdjointScheme2DType::Pointer, BaseSchemeType>
+        (m, "VelocityBossakAdjointScheme2D")
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer>())
+        ;
+
+    using  VelocityBossakAdjointScheme3DType = VelocityBossakAdjointScheme<3, SparseSpaceType, LocalSpaceType>;
+    py::class_<VelocityBossakAdjointScheme3DType, typename VelocityBossakAdjointScheme3DType::Pointer, BaseSchemeType>
+        (m, "VelocityBossakAdjointScheme3D")
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer>())
+        ;
+
 }
 
 } // namespace Python.
