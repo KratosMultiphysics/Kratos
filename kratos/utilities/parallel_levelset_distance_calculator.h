@@ -28,7 +28,6 @@
 #include "includes/define.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/parallel_utilities.h"
-#include "includes/deprecated_variables.h"
 
 
 namespace Kratos
@@ -252,7 +251,7 @@ public:
                 r_dist = MaxDistance;
             }
 
-            // if (rNode.GetValue(IS_FLUID) == 1.0) {
+            // if (rNode.Is(FLUID)) {
             //     r_dist = -std::abs(r_dist);
             // } else {
             //     r_dist = std::abs(r_dist);
@@ -708,9 +707,9 @@ private:
             rNode.SetValue(rDistanceVar, r_dist); //here we copy the distance function to the fixed database
 
             if(r_dist < 0.0) {
-                rNode.SetValue(IS_FLUID, 1.0);
+                rNode.Set(FLUID, true);
             } else {
-                rNode.SetValue(IS_FLUID, 0.0);
+                rNode.Set(FLUID, false);
             }
 
             r_dist = MaxDistance;
@@ -894,7 +893,7 @@ private:
             //finalize the computation of the distance
             block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
                 const double area = rNode.FastGetSolutionStepValue(rAreaVar);
-                if (area > 1e-20 && rNode.IsNot(VISITED)) { //this implies that node was computed at the current level and not before 
+                if (area > 1e-20 && rNode.IsNot(VISITED)) { //this implies that node was computed at the current level and not before
                     double& r_distance = rNode.FastGetSolutionStepValue(rDistanceVar);
                     r_distance /= area;
                     rNode.Set(VISITED, true);
@@ -923,7 +922,7 @@ private:
                 r_dist = MaxDistance;
             }
 
-            if(rNode.GetValue(IS_FLUID) == 1.0) {
+            if(rNode.Is(FLUID)) {
                 r_dist = -std::abs(r_dist);
             } else {
                 r_dist = std::abs(r_dist);
