@@ -126,6 +126,7 @@ class EmbeddedFormulation(object):
             "is_slip": true,
             "slip_length": 1.0e8,
             "penalty_coefficient": 10.0,
+            "edge_gradient_penalty_constant": 0.0,
             "dynamic_tau": 1.0,
             "level_set_type": "discontinuous"
         }""")
@@ -141,6 +142,7 @@ class EmbeddedFormulation(object):
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KratosCFD.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosCFD.EDGE_GRADIENT_PENALTY_CONSTANT] = formulation_settings["edge_gradient_penalty_constant"].GetDouble()
         if formulation_settings["is_slip"].GetBool():
             self.process_info_data[KratosCFD.SLIP_LENGTH] = formulation_settings["slip_length"].GetDouble()
         else:
@@ -314,7 +316,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self.level_set_type = self.embedded_formulation.level_set_type
         self.element_integrates_in_time = self.embedded_formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.embedded_formulation.element_has_nodal_properties
-        self.historical_nodal_properties_variables_list = self.embedded_formulation.historical_nodal_properties_variables_list 
+        self.historical_nodal_properties_variables_list = self.embedded_formulation.historical_nodal_properties_variables_list
         self.non_historical_nodal_properties_variables_list = self.embedded_formulation.non_historical_nodal_properties_variables_list
 
         ## Set the distance reading filename

@@ -870,7 +870,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddIncisedEdgeGradientPena
     const auto edges_local_ids = EmbeddedFluidElementDiscontinuousInternals::GetEdgesLocalIds(r_geom.GetGeometryType());
 
     // Calculate penalty constant
-    double max_lhs = 0.0;
+    /*double max_lhs = 0.0;
     for (std::size_t i = 0; i < LocalSize; ++i) {
         for (std::size_t j = 0; j < LocalSize; ++j) {
             const double aux = std::abs(rLHS(i,j));
@@ -880,9 +880,9 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddIncisedEdgeGradientPena
         }
     }
     const double max_lhs_order = floor(log10(max_lhs));
-    const double constraint_penalty = 1.0e4;
     // const double constraint_penalty = std::pow(10, max_lhs_order);
-    // const double constraint_penalty = std::pow(10, max_lhs_order + 4);
+    // const double constraint_penalty = std::pow(10, max_lhs_order + 4);*/
+    const double constraint_penalty = rData.EdgeGradientPenaltyConstant;
 
     // Set the constraint matrix
     Matrix A = ZeroMatrix(BlockSize * rData.NumIntersectedEdges, LocalSize);
@@ -918,8 +918,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddIncisedElementGradientP
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData, values);
 
-    // Get auxiliary data
-    const double k = 1.0e4;
+    // Get auxiliary data and user-defined penalty constant
+    const double k = rData.EdgeGradientPenaltyConstant;
     const double dt = rData.DeltaTime;
     const double h = rData.ElementSize;
     const double eff_mu = rData.EffectiveViscosity;
@@ -1006,7 +1006,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddIncisedElementProjected
     const auto edges_local_ids = EmbeddedFluidElementDiscontinuousInternals::GetEdgesLocalIds(r_geom.GetGeometryType());
 
     // Get auxiliary data
-    const double k = 1.0e4;
+    const double k = rData.EdgeGradientPenaltyConstant;
     const double dt = rData.DeltaTime;
     const double h = rData.ElementSize;
     const double eff_mu = rData.EffectiveViscosity;

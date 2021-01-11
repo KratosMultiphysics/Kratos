@@ -47,6 +47,7 @@ constexpr static unsigned int NumEdges = (TFluidData::NumNodes == 3) ? 3 : 6;
 
 double SlipLength;
 double PenaltyCoefficient;
+double EdgeGradientPenaltyConstant;
 
 Vector ElementalEdgeDistances;
 NodalScalarData ElementalDistances;
@@ -104,12 +105,14 @@ void Initialize(
  * @brief Fills the boundary condition data fields
  * This method needs to be called in cut elements. It fills the data structure fields related to the boundary
  * condition imposition (slip length and penalty coefficient) by retrieving their value from the ProcessInfo.
+ * It also retrieves the edge gradient penalty constant for the velocity and pressure gradient penalization of incised elements.
  * @param rProcessInfo
  */
 void InitializeBoundaryConditionData(const ProcessInfo& rProcessInfo)
 {
     this->FillFromProcessInfo(SlipLength, SLIP_LENGTH, rProcessInfo);
     this->FillFromProcessInfo(PenaltyCoefficient, PENALTY_COEFFICIENT, rProcessInfo);
+    this->FillFromProcessInfo(EdgeGradientPenaltyConstant, EDGE_GRADIENT_PENALTY_CONSTANT, rProcessInfo);
 }
 
 /**
