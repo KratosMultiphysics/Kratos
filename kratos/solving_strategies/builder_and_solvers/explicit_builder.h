@@ -26,6 +26,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -742,8 +743,7 @@ protected:
 
             // Update value of lumped mass vector
             for (IndexType i = 0; i < elem_equation_id.size(); ++i) {
-#pragma omp atomic
-                (*mpLumpedMassVector)[elem_equation_id[i]] += elem_mass_vector(i);
+                AtomicAdd((*mpLumpedMassVector)[elem_equation_id[i]], elem_mass_vector(i));
             }
         }
 
