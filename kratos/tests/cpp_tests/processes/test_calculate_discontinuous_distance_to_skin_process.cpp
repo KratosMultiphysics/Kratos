@@ -155,7 +155,7 @@ namespace Testing {
 
         // Compute the discontinuous distance function (including edge distances)
         Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_EXTRA_EDGE_DISTANCES;
+        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES;
         CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
         disc_dist_proc.Execute();
 
@@ -176,8 +176,8 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_dist_elem_2_edge, expected_values_elem_2_edge, 1.0e-6);
 
         //Check extra edge distances - elem_1 has 4 cut edges; elem_2 has only 3 cut edges, but is still completely intersected
-        const auto &r_dist_elem_1_edge_extra = (volume_part.ElementsBegin() + 7)->GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
-        const auto &r_dist_elem_2_edge_extra = (volume_part.ElementsEnd() - 2)->GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
+        const auto &r_dist_elem_1_edge_extra = (volume_part.ElementsBegin() + 7)->GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
+        const auto &r_dist_elem_2_edge_extra = (volume_part.ElementsEnd() - 2)->GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
         const std::vector<double> expected_values_elem_1_edge_extra = {-1.0,-1.0,-1.0,-1.0,-1.0,-1.0};
         const std::vector<double> expected_values_elem_2_edge_extra = {-1.0,-1.0,-1.0,-1.0,-1.0,-1.0};
         KRATOS_CHECK_VECTOR_NEAR(r_dist_elem_1_edge_extra, expected_values_elem_1_edge_extra, 1.0e-10);
@@ -853,7 +853,7 @@ namespace Testing {
 
         // Compute the discontinuous distance function (including edge distances)
         Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_EXTRA_EDGE_DISTANCES;
+        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES;
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
         disc_dist_proc.Execute();
 
@@ -894,9 +894,9 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_4, expected_values_elem_4, 1.0e-6);
 
         //Check extra edge distances - elem_2 is not cut at all, elem_3 is incised, elem_4 is intersected
-        const auto &r_edge_dist_elem_2_extra = volume_part.GetElement(2).GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
-        const auto &r_edge_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
-        const auto &r_edge_dist_elem_4_extra = volume_part.GetElement(4).GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
+        const auto &r_edge_dist_elem_2_extra = volume_part.GetElement(2).GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
+        const auto &r_edge_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
+        const auto &r_edge_dist_elem_4_extra = volume_part.GetElement(4).GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
         const std::vector<double> expected_values_elem_2_extra = {-1.0,-1.0,-1.0};
         const std::vector<double> expected_values_elem_3_extra = {-1.0,0.5,-1.0};
         const std::vector<double> expected_values_elem_4_extra = {-1.0,-1.0,-1.0};
@@ -940,7 +940,7 @@ namespace Testing {
 
         // Compute the discontinuous distance function (including edge distances)
         Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_EXTRA_EDGE_DISTANCES;
+        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES;
         CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
         disc_dist_proc.Execute();
 
@@ -965,7 +965,7 @@ namespace Testing {
                         bool is_incised = false;
                         for (std::size_t i = 0; i < n_edges; i++) {
                             double tolerance = std::numeric_limits<double>::epsilon();
-                            const auto &r_edge_dist_extra = (volume_part.ElementsBegin() + i_elem)->GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
+                            const auto &r_edge_dist_extra = (volume_part.ElementsBegin() + i_elem)->GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
                             if ( std::abs(r_edge_dist_extra[i] - (-1.0)) > tolerance ) {
                                 is_incised = true;
                             }
@@ -1002,10 +1002,10 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_6, expected_values_elem_6, 1.0e-6);
 
         //Check extra edge distances - elem_2 and elem_3 both have three cut edges, but only elem_2 is completely intersected
-        const auto &r_edge_dist_elem_1_extra = volume_part.GetElement(1).GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
-        const auto &r_edge_dist_elem_2_extra = volume_part.GetElement(2).GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
-        const auto &r_edge_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
-        const auto &r_edge_dist_elem_6_extra = volume_part.GetElement(6).GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
+        const auto &r_edge_dist_elem_1_extra = volume_part.GetElement(1).GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
+        const auto &r_edge_dist_elem_2_extra = volume_part.GetElement(2).GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
+        const auto &r_edge_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
+        const auto &r_edge_dist_elem_6_extra = volume_part.GetElement(6).GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
         const std::vector<double> expected_values_elem_1_extra = {-1.0,-1.0,-1.0,-1.0,-1.0,-1.0};
         const std::vector<double> expected_values_elem_2_extra = {-1.0,-1.0,-1.0,-1.0,-1.0,-1.0};
         const std::vector<double> expected_values_elem_3_extra = {-1,-1,-1,-1,-1,0.566667};
@@ -1047,7 +1047,7 @@ namespace Testing {
 
         // Compute the discontinuous distance function (including edge distances)
         Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_EXTRA_EDGE_DISTANCES;
+        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES;
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
         disc_dist_proc.Execute();
 
@@ -1092,7 +1092,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_8, expected_values_elem_8, 1.0e-6);
 
         //Check extra edge distances - elem_3 is incised
-        const auto &r_edge_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
+        const auto &r_edge_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
         const std::vector<double> expected_values_elem_3_extra = {-1.0,0.4,-1.0};
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_3_extra, expected_values_elem_3_extra, 1.0e-6);
     }
@@ -1191,7 +1191,7 @@ namespace Testing {
 
         // Compute the discontinuous distance function (including edge distances)
         Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_EXTRA_EDGE_DISTANCES;
+        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES;
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
         disc_dist_proc.Execute();
 
@@ -1240,8 +1240,8 @@ namespace Testing {
         //Check extra edge distances - elem_3 is incised, elem_4 is detected as incised
         // --> (TODO) solution: detect as intersected in ComputeEdgeIntersection in CalculateDiscontinuousDistanceToSkinProcess?!
         //      (e.g. distance modification to southeast)
-        const auto &r_edge_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
-        const auto &r_edge_dist_elem_4_extra = volume_part.GetElement(4).GetValue(ELEMENTAL_EXTRA_EDGE_DISTANCES);
+        const auto &r_edge_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
+        const auto &r_edge_dist_elem_4_extra = volume_part.GetElement(4).GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
         const std::vector<double> expected_values_elem_3_extra = {-1.0,0.25,-1.0};
         const std::vector<double> expected_values_elem_4_extra = {0.0,-1.0,-1.0};
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_3_extra, expected_values_elem_3_extra, 1.0e-6);

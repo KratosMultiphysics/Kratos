@@ -40,7 +40,7 @@ class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcessFlags
 {
 public:
     KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES); /// Local flag to switch on/off the elemental edge distances storage
-    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_EXTRA_EDGE_DISTANCES); /// Local flag to switch on/off the extrapolated elemental edge distances storage
+    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES); /// Local flag to switch on/off the extrapolated elemental edge distances storage
 };
 
 /// This only calculates the distance. Calculating the inside outside should be done by a derived class of this.
@@ -502,11 +502,11 @@ private:
         const array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector);
 
     /**
-     * @brief Set the ELEMENTAL_EXTRA_EDGE_DISTANCES values
-     * This method saves the provided extrapolated cut edges ratios in the ELEMENTAL_EXTRA_EDGE_DISTANCES variable
+     * @brief Set the ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES values
+     * This method saves the provided extrapolated cut edges ratios in the ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES variable
      * For uncut edges and cut edges of intersected elements, a value (-1) is set.
      * For cut edges of incised elements, the relative distance (wrt the edge length) from the 0 node of the edge to the intersection point of the extrapolated geometry is saved
-     * @param rElement The element to set the ELEMENTAL_EXTRA_EDGE_DISTANCES
+     * @param rElement The element to set the ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES
      * @param rCutEdgesRatioVector Array containing the cut edges ratio values of the extrapolated geometry
      */
     void SetElementalExtrapolatedEdgeDistancesValues(
