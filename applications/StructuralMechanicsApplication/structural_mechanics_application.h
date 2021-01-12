@@ -35,6 +35,7 @@
 #include "custom_elements/cr_beam_element_linear_3D2N.hpp"
 #include "custom_elements/cr_beam_element_2D2N.hpp"
 #include "custom_elements/cr_beam_element_linear_2D2N.hpp"
+#include "custom_elements/beam_element_3D2N.hpp"
 
 /* Adding the adjoint elements */
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
@@ -342,6 +343,7 @@ private:
     const CrBeamElementLinear3D2N mCrLinearBeamElement3D2N;
     const CrBeamElement2D2N mCrBeamElement2D2N;
     const CrBeamElementLinear2D2N mCrLinearBeamElement2D2N;
+    const BeamElement3D2N mBeamElement3D2N;
 
 
     // Adding the shells elements
