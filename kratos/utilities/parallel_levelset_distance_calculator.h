@@ -175,7 +175,7 @@ public:
             double& r_area = rNode.FastGetSolutionStepValue(rAreaVar);
             double& r_distance = rNode.FastGetSolutionStepValue(rDistanceVar);
             rNode.GetValue(rDistanceVar) = r_distance;
-            if (rNode.Is(VISITED)) {
+            if (rNode.IsNot(VISITED)) {
                 r_area = 0.0;
                 r_distance = 0.0;
             } else {
