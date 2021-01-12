@@ -102,13 +102,11 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMHomogenizationMapper_TDim_TypeOfParti
 //--------------------------------------
 //  Key for homogenization_type
 //--------------------------------------
-//        Averaged variables
+//   Averaged variables
 //--------------------------------------
-//  Fluid Fraction    DEM-to-fluid   
-//--------------------------------------
-// 0:   Linear         Constant
-// 1:   Linear         Linear
-// 2:   Linear         Filtered
+// 0:   Constant
+// 1:   Linear
+// 2:   Filtered
 //--------------------------------------
 
 BinBasedDEMHomogenizationMapper(Parameters& rParameters)
@@ -119,12 +117,12 @@ BinBasedDEMHomogenizationMapper(Parameters& rParameters)
 {
     Parameters default_parameters( R"(
         {
-            "homogenization_type": 1,
+            "homogenization_type": "constant"
         }  )" );
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
-    mHomogenizationType = rParameters["homogenization_type"].GetInt();
-    mTimeAveragingType = rParameters["forward_coupling"]["time_averaging_type"].GetInt();
+    mHomogenizationType = mHomogenizationTypeStringToEnumMap[rParameters["homogenization_type"].GetString()];
+    //mTimeAveragingType = rParameters["forward_coupling"]["time_averaging_type"].GetInt();
 
     mGravity = ZeroVector(3);
     mVariables = VariablesContainer();
@@ -143,8 +141,8 @@ virtual ~BinBasedDEMHomogenizationMapper() {}
 
 template<class TDataType>
 void AddHomogenizationCouplingVariable(Variable<TDataType> const& r_variable){
-    std::string variable_list_identifier = "Fluid";
-    std::string coupling_variable_description = "DEM-interpolated fluid phase variable";
+    std::string variable_list_identifier = "Homogenization";
+    std::string coupling_variable_description = "DEM-interpolated homogenization variable";
     AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
 }
 
@@ -175,13 +173,9 @@ void AddCouplingVariable(Variable<TDataType> const& r_variable, std::string vari
     }
 }
 
-void InterpolateVelocityOnAuxVelocity(ModelPart& r_homogenization_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_homogenization, const double alpha);
-void UpdateOldVelocity(ModelPart& r_dem_model_part);
-void UpdateOldAdditionalForce(ModelPart& r_dem_model_part);
 void InterpolateFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_homogenization_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_homogenization); // this is a bin of objects which contains the FLUID model part
-void VariingRadiusHomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_homogenization_model_part, const double& search_radius, const double& shape_factor, bool must_search = true);
-void HomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_homogenization_model_part, const double& search_radius, const double& shape_factor, bool must_search = true);
-void ComputePostProcessResults(ModelPart& r_dem_model_part, ModelPart& r_homogenization_model_part, ModelPart& rfem_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_homogenization, const ProcessInfo& r_current_process_info);
+//void VariingRadiusHomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_homogenization_model_part, const double& search_radius, const double& shape_factor, bool must_search = true);
+//void HomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_homogenization_model_part, const double& search_radius, const double& shape_factor, bool must_search = true);
 
 ///@}
 ///@name Access
@@ -286,10 +280,19 @@ class VariablesContainer
 	}
 };
 
+enum HomogenizationType {constant, linear, filtered};
+inline static std::map<std::string, HomogenizationType> CreateMap(){
+  static std::map<std::string, HomogenizationType> m;
+  m["constant"] = constant;
+  m["linear"] = linear;
+  m["filtered"] = filtered;
+  return m;
+}
 bool mMustCalculateMaxNodalArea;
 double mLastCouplingFromDEMTime;
 double mMaxNodalAreaInv;
-int mHomogenizationType;
+static std::map<std::string, HomogenizationType> mHomogenizationTypeStringToEnumMap;
+HomogenizationType mHomogenizationType;
 int mTimeAveragingType;
 int mNumberOfDEMSamplesSoFarInTheCurrentStep;
 array_1d<double, 3> mGravity;
@@ -313,46 +316,21 @@ void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const Variable<array
 void CopyValues(ModelPart& r_model_part, VariableData const& r_origin_variable);
 void CopyValues(ModelPart& r_model_part, const Variable<double>& r_origin_variable, const Variable<double>& r_destination_variable = TIME_AVERAGED_DOUBLE);
 void CopyValues(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& r_origin_variable, const Variable<array_1d<double, 3> >& r_destination_variable = TIME_AVERAGED_ARRAY_3);
-void ComputeHomogenizedFluidFraction(ModelPart& r_homogenization_model_part, ModelPart& r_dem_model_part);
 void InterpolateHomogenizationPart(ModelPart& r_dem_model_part, ModelPart& r_homogenization_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_homogenization); // this is a bin of objects which contains the FLUID model part
 void InterpolateOtherHomogenizationVariables(ModelPart& r_dem_model_part, ModelPart& r_homogenization_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_homogenization); // this is a bin of objects which contains the FLUID model part
-void SearchParticleNodalNeighbours(ModelPart& r_homogenization_model_part, ModelPart& r_dem_model_part, const double& search_radius);
-void SearchParticleNodalNeighboursFixedRadius(ModelPart& r_homogenization_model_part, ModelPart& r_dem_model_part, const double& search_radius);
-void RecalculateDistances(ModelPart& r_dem_model_part);
-array_1d<double, 3> CalculateAcceleration(const Geometry<Node<3> >& geom, const Vector& N);
-double CalculateNormOfSymmetricGradient(const Geometry<Node<3> >& geom, const int index);
-array_1d<double, 3> CalculateVorticity(const Geometry<Node<3> >& geom, const int index);
-void Project(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const VariableData *r_destination_variable, double alpha);
 void CalculateNodalHomogenizationPartWithLinearWeighing(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
 void Distribute(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node,const VariableData *r_destination_variable);
 void DistributeDimensionalContributionToHomogenizationPart(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
-void ComputeHomogenizedNodalVariable(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const VariableData *r_destination_variable);
 void CalculatePorosityProjected(ModelPart& r_homogenization_model_part);
-void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_origin_variable, const Variable<array_1d<double, 3> >& r_destination_variable, double alpha);
-void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<double>& r_origin_variable, const Variable<double>& r_destination_variable, double alpha);
-void CalculateVelocityProjectedRate(Node<3>::Pointer p_node);
-void InterpolateAcceleration(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable);
 void TransferWithConstantWeighing(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable, const Variable<array_1d<double, 3> >& r_origin_variable);
 void TransferWithLinearWeighing(Element::Pointer p_elem, const array_1d<double,TDim + 1>& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable, const Variable<array_1d<double, 3> >& r_origin_variable);
 void CalculateNodalHomogenizationPartWithConstantWeighing(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
-void CalculateNodalFluidFractionWithLinearWeighing(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
-void CalculateNodalFluidFractionByLumpedL2Projection(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node);
-void TransferByAveraging(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const Variable<array_1d<double, 3> >& r_destination_variable, const Variable<array_1d<double, 3> >& r_origin_variable);
-void CalculateNodalFluidFractionByAveraging(ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights);
-void CalculateNodalSolidFractionByAveraging(const Node<3>::Pointer p_node, const ResultNodesContainerType& neighbours, const DistanceType& weights, const double averaging_volume_inv);
-void MultiplyNodalVariableBy(ModelPart& r_model_part, const Variable<double>& r_variable, const double& factor);
-void MultiplyNodalVariableBy(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& r_variable, const double& factor);
-void ResetDEMVariables(ModelPart& r_dem_model_part);
 void ResetHomogenizationVariables(ModelPart& r_homogenization_model_part);
-void ResetFLuidVelocityRate(const NodeIteratorType& node_it);
 void SetToZero(ModelPart& r_model_part, const VariableData& r_variable);
-void CalculateHomogenizationNodesMaxNodalArea(ModelPart& r_homogenization_model_part);
 inline void ClearVariable(const NodeIteratorType& node_it, const VariableData& var);
 inline unsigned int GetNearestNode(const Vector& N);
 double inline GetAlpha(const VariableData& r_variable);
-const Variable<array_1d<double,3>>& GetBodyForcePerUnitMassVariable() const;
-bool CheckVariablesTypesCoincide(const VariableData& var_1, const VariableData& var_2) const;
-//***************************************************************************************************************
+  //***************************************************************************************************************
 //***************************************************************************************************************
 
 

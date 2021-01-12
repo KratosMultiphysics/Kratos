@@ -4,6 +4,7 @@ import os
 import sys
 import math
 import KratosMultiphysics.DEMApplication.meshing_utilities as meshing_utilities
+import KratosMultiphysics.DEMApplication.homogenization_projector as homogenization_projector
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -332,7 +333,19 @@ class DEMAnalysisStage(AnalysisStage):
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
     
     def HomogenizationUtilitiesInitialize(self, max_node_id=1, max_elem_id=1, max_cond_id=1):
-        
+
+        #TODO:Try to remove self.
+        self.projected_homogenization_vars = []
+        self.projected_homogenization_vars += [POROSITY_PROJECTED]
+        self.projected_homogenization_vars += [VELOCITY_PROJECTED]
+        self.projected_homogenization_vars += [DISPLACEMENT_PROJECTED]
+        self.projected_homogenization_vars += [TIME_AVERAGED_ARRAY_3]
+        self.projected_homogenization_vars += [NODAL_AREA]
+        self.time_filtered_vars = []
+
+        for var in self.projected_homogenization_vars:
+            self.homogenization_model_part.AddNodalSolutionStepVariable(var)
+
         bounding_box = self.procedures.SetBoundingBox(self.spheres_model_part, self.cluster_model_part, self.rigid_face_model_part, self.dem_inlet_model_part, self.creator_destructor)
 
         lower_corner_coordinates = [0] * self.DEM_parameters["Dimension"].GetInt()
@@ -370,9 +383,20 @@ class DEMAnalysisStage(AnalysisStage):
         max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.homogenization_model_part)
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.homogenization_model_part)
         max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.homogenization_model_part)
+        
+        self.projection_module = homogenization_projector.ProjectionModule(
+            self.homogenization_model_part,
+            self.spheres_model_part,
+            self.DEM_parameters,
+            self.projected_homogenization_vars,
+            self.time_filtered_vars,
+            self.DEM_parameters["Dimension"].GetInt()
+        )
+
+        self.projection_module.UpdateDatabase(element_size)
+
         return max_node_Id, max_elem_Id, max_cond_Id
 
-        #crear objecte HomogenizationUtilities, per poder cridar una funció de projecció més endavant self.homogenization_utilities
 
     def SetSearchStrategy(self):
         self._GetSolver().search_strategy = self.parallelutils.GetSearchStrategy(self._GetSolver(), self.spheres_model_part)
@@ -489,9 +513,10 @@ class DEMAnalysisStage(AnalysisStage):
         ReadModelPart(self.dem_inlet_model_part, self.GetDEMInletInputFileTag(), max_node_id, max_elem_id, max_cond_id)
 
     def ReadModelParts(self, max_node_id=0, max_elem_id=0, max_cond_id=0):
-
-        max_node_id, max_elem_id, max_cond_id = self.HomogenizationUtilitiesInitialize(max_node_id, max_elem_id, max_cond_id)
-
+        
+        if self.DEM_parameters["homogenization_utility_settings"]["active"].GetBool():
+            max_node_id, max_elem_id, max_cond_id = self.HomogenizationUtilitiesInitialize(max_node_id, max_elem_id, max_cond_id)
+        
         model_part_import_settings = self.DEM_parameters["solver_settings"]["model_import_settings"]
         input_type = model_part_import_settings["input_type"].GetString()
 
@@ -584,6 +609,11 @@ class DEMAnalysisStage(AnalysisStage):
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
+        
+        #Projecting Homogenization variables
+        if self.DEM_parameters["homogenization_utility_settings"]["active"].GetBool():
+            #TODO:Decide if this should be in the python strategy
+            self.projection_module.ProjectFromParticles()
 
     def OutputSolutionStep(self):
         #### PRINTING GRAPHS ####

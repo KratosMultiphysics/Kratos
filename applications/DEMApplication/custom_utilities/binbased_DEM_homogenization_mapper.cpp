@@ -4,6 +4,8 @@
 
 namespace Kratos
 {
+template <std::size_t TDim, typename ParticleType>
+std::map<std::string, typename BinBasedDEMHomogenizationMapper<TDim, ParticleType>::HomogenizationType> BinBasedDEMHomogenizationMapper<TDim, ParticleType>::mHomogenizationTypeStringToEnumMap = CreateMap();
 
 template <std::size_t TDim, typename ParticleType>
 void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::InterpolateFromDEMMesh(
@@ -55,19 +57,16 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::ResetHomogenizationVar
             if (mVariables.Is(PHASE_FRACTION, "Homogenization")){
                 ClearVariable(node_it, PHASE_FRACTION);
             }
-            if (mVariables.Is(TIME_AVERAGED_VELOCITY_PROJECTED, "Homogenization")){
-                array_1d<double, 3>& particle_velocity = node_it->FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY_PROJECTED);
+            if (mVariables.Is(TIME_AVERAGED_ARRAY_3, "Homogenization")){
+                array_1d<double, 3>& particle_velocity = node_it->FastGetSolutionStepValue(TIME_AVERAGED_ARRAY_3);
                 particle_velocity = ZeroVector(3);
             }
         }
 
-        array_1d<double, 3>& body_force            = node_it->FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
-        body_force = gravity;
-
         if (mTimeAveragingType == 1 && mNumberOfDEMSamplesSoFarInTheCurrentStep == 0){ // There are 0 DEM accumulated samples when we move into a new time step
             
-            if (mVariables.Is(TIME_AVERAGED_VELOCITY_PROJECTED, "Homogenization")){
-                array_1d<double, 3>& particle_velocity = node_it->FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY_PROJECTED);
+            if (mVariables.Is(TIME_AVERAGED_ARRAY_3, "Homogenization")){
+                array_1d<double, 3>& particle_velocity = node_it->FastGetSolutionStepValue(TIME_AVERAGED_ARRAY_3);
                 particle_velocity = ZeroVector(3);
             }
 
@@ -101,9 +100,10 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::InterpolateHomogenizat
         }
         ParticleType& particle = dynamic_cast<ParticleType&> (*i_particle);
         Element::Pointer p_element;
+        const auto& particle_coordinates=particle.GetGeometry()[0].Coordinates();
 
         // looking for the homogenization element in which the DEM node falls
-        const bool element_located = bin_of_objects_homogenization.FindPointOnMesh(particle.GetGeometry()[0].Coordinates(),
+        const bool element_located = bin_of_objects_homogenization.FindPointOnMesh(particle_coordinates,
                                                                           shape_function_values_at_point,
                                                                           p_element,
                                                                           results.begin(),
@@ -178,11 +178,11 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::DistributeDimensionalC
     const Vector& N,
     ParticleType& particle)
 {
-    if (mHomogenizationType == 0 || mHomogenizationType == 1){
+    if (mHomogenizationType == constant){
         CalculateNodalHomogenizationPartWithConstantWeighing(p_elem, N, particle);
     }
 
-    else if (mHomogenizationType == 2){
+    else{
         CalculateNodalHomogenizationPartWithLinearWeighing(p_elem, N, particle);
     }
 }
@@ -199,8 +199,7 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::CalculatePorosityProje
         for (NodesArrayType::iterator i_node = this->GetNodePartitionBegin(r_homogenization_model_part, k); i_node != this->GetNodePartitionEnd(r_homogenization_model_part, k); ++i_node){
             double& porosity_projected = i_node->FastGetSolutionStepValue(POROSITY_PROJECTED);
 
-            if (mHomogenizationType != 4){
-                double nodalHomogenizationVolume = i_node->FastGetSolutionStepValue(NODAL_AREA);
+            double nodalHomogenizationVolume = i_node->FastGetSolutionStepValue(NODAL_AREA);
                 if (nodalHomogenizationVolume < 1.0e-15){
                     porosity_projected = 1.0;
                 }
@@ -208,10 +207,7 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::CalculatePorosityProje
                 else {
                     porosity_projected = 1.0 - porosity_projected / nodalHomogenizationVolume;
                 }
-            }
-            else {
-                porosity_projected = 1.0 - porosity_projected;
-            }
+            
         }
     }
 }
@@ -228,7 +224,7 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::ApplyExponentialTimeFi
     }
 
     else if (mVariables.Is(r_current_variable, "Vector")){
-        ApplyExponentialTimeFiltering(r_model_part, static_cast<const Variable<array_1d<double, 3> >& >(r_current_variable), TIME_AVERAGED_VELOCITY_PROJECTED);
+        ApplyExponentialTimeFiltering(r_model_part, static_cast<const Variable<array_1d<double, 3> >& >(r_current_variable), TIME_AVERAGED_ARRAY_3);
     }
 
     else {
@@ -278,47 +274,17 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::Distribute(
     Node<3>::Pointer p_node,
     const VariableData *r_destination_variable)
 {
-    if (mHomogenizationType == 0){
+    if (mHomogenizationType == constant){
 
-        if (*r_destination_variable == GetBodyForcePerUnitMassVariable()){
-            TransferWithConstantWeighing(p_elem, N, p_node, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE);
-        }
-
-        else if (*r_destination_variable == PARTICLE_VEL_FILTERED){
-            TransferWithConstantWeighing(p_elem, N, p_node, TIME_AVERAGED_VELOCITY_PROJECTED, VELOCITY);
+        if (*r_destination_variable == PARTICLE_VEL_FILTERED){
+            TransferWithConstantWeighing(p_elem, N, p_node, TIME_AVERAGED_ARRAY_3, VELOCITY);
         }
     }
 
-    else if (mHomogenizationType == 1){
+    else{
 
-        if (*r_destination_variable == GetBodyForcePerUnitMassVariable()){
-            TransferWithLinearWeighing(p_elem, N, p_node, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE);
-        }
-
-        else if (*r_destination_variable == PARTICLE_VEL_FILTERED){
-            TransferWithLinearWeighing(p_elem, N, p_node, TIME_AVERAGED_VELOCITY_PROJECTED, VELOCITY);
-        }
-    }
-
-    else if (mHomogenizationType == 2){
-
-        if (*r_destination_variable == GetBodyForcePerUnitMassVariable()){
-            TransferWithLinearWeighing(p_elem, N, p_node, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE);
-        }
-
-        else if (*r_destination_variable == PARTICLE_VEL_FILTERED){
-            TransferWithLinearWeighing(p_elem, N, p_node, TIME_AVERAGED_VELOCITY_PROJECTED, VELOCITY);
-        }
-    }
-
-    else if (mHomogenizationType == - 1){
-
-        if (*r_destination_variable == GetBodyForcePerUnitMassVariable()){
-            TransferWithLinearWeighing(p_elem, N, p_node, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE);
-        }
-
-        else if (*r_destination_variable == PARTICLE_VEL_FILTERED){
-            TransferWithLinearWeighing(p_elem, N, p_node, TIME_AVERAGED_VELOCITY_PROJECTED, VELOCITY);
+        if (*r_destination_variable == PARTICLE_VEL_FILTERED){
+            TransferWithLinearWeighing(p_elem, N, p_node, TIME_AVERAGED_ARRAY_3, VELOCITY);
         }
     }
 }
@@ -477,4 +443,73 @@ double  BinBasedDEMHomogenizationMapper<TDim, ParticleType>::GetAlpha(const Vari
         return mAlphas[r_variable];
     }
 }
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::CopyValues(
+        ModelPart& r_model_part,
+        VariableData const& r_origin_variable)
+{
+    if (mVariables.Is(r_origin_variable, "Scalar")){
+        CopyValues(r_model_part, static_cast<const Variable<double>& >(r_origin_variable), TIME_AVERAGED_DOUBLE);
+    }
+
+    else if (mVariables.Is(r_origin_variable, "Vector")){
+        CopyValues(r_model_part, static_cast<const Variable<array_1d<double, 3> >& >(r_origin_variable), TIME_AVERAGED_ARRAY_3);
+    }
+
+	else {
+        KRATOS_ERROR << "Variable " << r_origin_variable.Name() << "'s type is currently not available for copying. Please implement." << std::endl;
+    }
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::CopyValues(
+        ModelPart& r_model_part,
+        const Variable<double>& r_origin_variable,
+        const Variable<double>& r_destination_variable)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_node = r_model_part.NodesBegin() + i;
+        const double& origin_value = i_node->FastGetSolutionStepValue(r_origin_variable);
+        double& destination_value = i_node->FastGetSolutionStepValue(r_destination_variable);
+        destination_value = origin_value;
+    }
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::CopyValues(
+        ModelPart& r_model_part,
+        const Variable<array_1d<double, 3> >& r_origin_variable,
+        const Variable<array_1d<double, 3> >& r_destination_variable)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_node = r_model_part.NodesBegin() + i;
+        const array_1d<double, 3>& origin_value = i_node->FastGetSolutionStepValue(r_origin_variable);
+        array_1d<double, 3>& destination_value = i_node->FastGetSolutionStepValue(r_destination_variable);
+        noalias(destination_value) = origin_value;
+    }
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename ParticleType>
+void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::SetToZero(ModelPart& r_model_part, const VariableData& r_variable)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        NodeIteratorType node_it = r_model_part.NodesBegin() + i;
+        r_variable.AssignZero(node_it->SolutionStepData().Data(r_variable));
+    }
+}
+
+// Explicit instantiations
+template class BinBasedDEMHomogenizationMapper<2, SphericParticle>;
+//template class BinBasedDEMHomogenizationMapper<2, NanoParticle>;
+template class BinBasedDEMHomogenizationMapper<3, SphericParticle>;
+//template class BinBasedDEMHomogenizationMapper<3, NanoParticle>;
+
 }//namespace Kratos
