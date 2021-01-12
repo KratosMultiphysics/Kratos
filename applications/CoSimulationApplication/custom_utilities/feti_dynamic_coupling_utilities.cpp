@@ -996,7 +996,7 @@ namespace Kratos
 
         auto start = std::chrono::system_clock::now();
 
-        KRATOS_ERROR_IF(radTotalDef >= radNoDef) << "Total deformation radius must be smaller than zero deformation radius\n";
+        KRATOS_ERROR_IF(radTotalDef > radNoDef) << "Total deformation radius must be smaller than zero deformation radius\n";
 
         // Determine interface centroid, average displacement and rotation
         if (!mOldSlopeComputed && rotateGrid) {
@@ -1063,8 +1063,8 @@ namespace Kratos
                             if (distance < radNoDef)
                             {
                                 array_1d<double, 3> r_disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
-                                if (norm_2(r_disp) < interface_disp_norm) r_disp = interface_average_displacement;
                                 double rotation_angle = theta;
+                                if (rNode.IsNot(ACTIVE)) r_disp = interface_average_displacement;
 
                                 if (distance > radTotalDef)
                                 {
@@ -1073,7 +1073,7 @@ namespace Kratos
                                     rotation_angle *= deformation_fraction;
                                 }
 
-                                if (rotateGrid) RotateNodeAboutPoint(rNode, interface_centroid, rotation_angle);
+                                if (rotateGrid  && rNode.IsNot(ACTIVE)) RotateNodeAboutPoint(rNode, interface_centroid, rotation_angle);
 
                                 r_coords += r_disp;
                                 rNode.X0() += r_disp[0];
