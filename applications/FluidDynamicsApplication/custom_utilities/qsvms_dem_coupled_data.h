@@ -89,14 +89,11 @@ void FillFromHistoricalNodalData(
     const Variable<Matrix>& rVariable,
     const Geometry<Node<3>>& rGeometry)
 {
+    rData.resize(TNumNodes);
     for (size_t i = 0; i < TNumNodes; i++) {
         const Matrix& r_nodal_values =
             rGeometry[i].FastGetSolutionStepValue(rVariable);
-        for (size_t j = 0; j < TDim; j++) {
-            for (size_t k =0; k < TDim; k++){
-                rData[i](j, k) = r_nodal_values(j, k);
-            }
-        }
+        rData[i] = r_nodal_values;
     }
 }
 

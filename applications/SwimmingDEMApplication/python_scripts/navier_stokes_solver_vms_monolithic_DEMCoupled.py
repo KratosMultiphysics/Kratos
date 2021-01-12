@@ -175,3 +175,18 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
         self.historical_nodal_properties_variables_list = self.formulation.historical_nodal_properties_variables_list
         self.non_historical_nodal_properties_variables_list = self.formulation.non_historical_nodal_properties_variables_list
+
+    def _SetNodalProperties(self):
+        super(NavierStokesSolverMonolithicDEM, self)._SetNodalProperties()
+        set_permeability = KratosMultiphysics.PERMEABILITY in self.historical_nodal_properties_variables_list
+        for el in self.main_model_part.Elements:
+            # Get PERMEABILITY from properties
+            if set_permeability:
+                k = el.Properties.GetValue(KratosMultiphysics.PERMEABILITY)
+                break
+            else:
+                raise Exception("No fluid elements found in the main model part.")
+
+        # Transfer the obtained properties to the nodes
+        if set_permeability:
+            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.PERMEABILITY, k, self.main_model_part.Nodes)
