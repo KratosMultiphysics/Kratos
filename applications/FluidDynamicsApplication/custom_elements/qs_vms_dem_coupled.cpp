@@ -142,7 +142,48 @@ void QSVMSDEMCoupled<TElementData>::CalculateRightHandSide(
 
         // Calculate this element RHS contribution
         QSVMS<TElementData>::CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
-        //this->AddMassRHS(rRightHandSideVector, data);
+}
+
+template <class TElementData>
+Matrix QSVMSDEMCoupled<TElementData>::GetAtCoordinate(
+    const typename TElementData::NodalTensorData& rValues,
+    const typename TElementData::ShapeFunctionsType& rN) const
+{
+    Matrix result = ZeroMatrix(3);
+
+    for (size_t i = 0; i < NumNodes; i++) {
+        for (size_t j = 0; j < Dim; j++) {
+            for (size_t k = 0; k < Dim; k++) {
+                result(j, k) += rN[i] * rValues[i](j, k);
+            }
+        }
+    }
+
+    return result;
+}
+
+template <class TElementData>
+double QSVMSDEMCoupled<TElementData>::GetAtCoordinate(
+    const typename TElementData::NodalScalarData& rValues,
+    const typename TElementData::ShapeFunctionsType& rN) const
+{
+    return QSVMS<TElementData>::GetAtCoordinate(rValues, rN);
+}
+
+template <class TElementData>
+array_1d<double, 3> QSVMSDEMCoupled<TElementData>::GetAtCoordinate(
+    const typename TElementData::NodalVectorData& rValues,
+    const typename TElementData::ShapeFunctionsType& rN) const
+{
+    return QSVMS<TElementData>::GetAtCoordinate(rValues, rN);
+}
+
+template <class TElementData>
+double QSVMSDEMCoupled<TElementData>::GetAtCoordinate(
+    const double Value,
+    const typename TElementData::ShapeFunctionsType& rN) const
+{
+    return QSVMS<TElementData>::GetAtCoordinate(Value, rN);
 }
 
 template<class TElementData>
@@ -241,13 +282,15 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     // Multiplying some quantities by density to have correct units
     AGradN *= density; // Convective term is always multiplied by density
 
+    double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
     const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
+    Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
     // Temporary containers
-    double V, AA, P, GAlphaA, AG, U, QAlpha, DAlphaD, DU;
+    double V, AA, P, GAlphaA, AG, U, QAlpha, DAlphaD, DU, RSigma, ASigma, RRSigma, RSigmaA, RU;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -277,16 +320,27 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                 U = fluid_fraction_gradient[d] * rData.N[j] * rData.N[i];
                 QAlpha = fluid_fraction * rData.DN_DX(j,d) * rData.N[i];
 
-                LHS(row+d,col+Dim) += rData.Weight * (AG - P);
-                LHS(row+Dim,col+d) += rData.Weight * (GAlphaA + U + QAlpha);
-
                 G += tau_one * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,d);
 
+                double GAlphaR = 0.0;
+                double RSigmaG = 0.0;
                 for (unsigned int e = 0; e < Dim; e++){ // Stabilization: Div(v) * tau_two * Div(u)
+                    RSigma = rData.N[i] * (viscosity / permeability(d,e)) * rData.N[j];
+                    ASigma = tau_one * AGradN[i] * (viscosity / permeability(d,e)) * rData.N[j];
+                    RRSigma = tau_one * (viscosity / permeability(d,e)) * rData.N[i] * (viscosity / permeability(d,e)) * rData.N[j];
+                    RSigmaA = tau_one * (viscosity / permeability(d,e)) * rData.N[i] * AGradN[j];
+                    RU = tau_one * (viscosity / permeability(d,e)) * rData.N[i] * AGradN[j];
                     DAlphaD = tau_two * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,e);
                     DU = tau_two * rData.DN_DX(i,d) * fluid_fraction_gradient[e] * rData.N[j];
-                    LHS(row+d,col+e) += rData.Weight * (DAlphaD + DU);
+                    GAlphaR += tau_one * fluid_fraction * rData.DN_DX(i,d) * (viscosity / permeability(d,e)) * rData.N[j];
+                    RSigmaG += tau_one * (viscosity / permeability(d,e)) * rData.N[i] * rData.DN_DX(j,d);
+
+                    LHS(row+d,col+e) += rData.Weight * (DAlphaD + DU + RSigma + ASigma + RRSigma + RSigmaA + RU);
                 }
+
+                LHS(row+Dim,col+d) += rData.Weight * (GAlphaA + U + QAlpha + GAlphaR);
+                LHS(row+d,col+Dim) += rData.Weight * (AG - P + RSigmaG);
+
             }
         // Write q-p term
         LHS(row+Dim,col+Dim) += rData.Weight * G;
