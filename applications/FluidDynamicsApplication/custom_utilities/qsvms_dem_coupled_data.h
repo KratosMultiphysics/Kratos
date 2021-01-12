@@ -44,6 +44,7 @@ public:
 
 using NodalScalarData = typename FluidElementData<TDim,TNumNodes, false>::NodalScalarData;
 using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalVectorData;
+using NodalTensorData = std::vector< Matrix >;
 
 ///@}
 ///@name Public Members
@@ -56,6 +57,8 @@ NodalScalarData MassSource;
 NodalVectorData FluidFractionGradient;
 NodalVectorData Acceleration;
 NodalVectorData BodyForce;
+
+NodalTensorData Permeability;
 
 double ElementSize;
 
@@ -73,6 +76,7 @@ void Initialize(
     this->FillFromHistoricalNodalData(FluidFraction, FLUID_FRACTION, r_geometry);
     this->FillFromHistoricalNodalData(FluidFractionRate, FLUID_FRACTION_RATE, r_geometry);
     this->FillFromHistoricalNodalData(FluidFractionGradient, FLUID_FRACTION_GRADIENT, r_geometry);
+    this->FillFromHistoricalNodalData(Permeability, PERMEABILITY, r_geometry);
     this->FillFromHistoricalNodalData(MassSource, MASS_SOURCE, r_geometry);
     this->FillFromHistoricalNodalData(Acceleration, ACCELERATION, r_geometry);
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
@@ -80,8 +84,38 @@ void Initialize(
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
 }
 
-///@}
+void FillFromHistoricalNodalData(
+    NodalTensorData& rData,
+    const Variable<Matrix>& rVariable,
+    const Geometry<Node<3>>& rGeometry)
+{
+    for (size_t i = 0; i < TNumNodes; i++) {
+        const Matrix& r_nodal_values =
+            rGeometry[i].FastGetSolutionStepValue(rVariable);
+        for (size_t j = 0; j < TDim; j++) {
+            for (size_t k =0; k < TDim; k++){
+                rData[i](j, k) = r_nodal_values(j, k);
+            }
+        }
+    }
+}
 
+void FillFromHistoricalNodalData(
+    NodalVectorData& rData,
+    const Variable<array_1d<double, 3>>& rVariable,
+    const Geometry<Node<3>>& rGeometry)
+{
+    QSVMSData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(rData, rVariable, rGeometry);
+}
+
+void FillFromHistoricalNodalData(
+    NodalScalarData& rData,
+    const Variable<double>& rVariable,
+    const Geometry<Node<3>>& rGeometry)
+{
+    QSVMSData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(rData, rVariable, rGeometry);
+}
+///@}
 };
 
 ///@}
