@@ -71,7 +71,11 @@ namespace Kratos
             {
                 "name_auxiliar_model_part"              : "Skin"
             })" );
-            SkinDetectionProcess(mrOutputModelPart, skin_parameters).Execute();
+            if (mrGeometry.LocalSpaceDimension() == 2) {
+                SkinDetectionProcess<2>(mrOutputModelPart, skin_parameters).Execute();
+            } else {
+                SkinDetectionProcess<3>(mrOutputModelPart, skin_parameters).Execute();
+            }
         }
 
     }
