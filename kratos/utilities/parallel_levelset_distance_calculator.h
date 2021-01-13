@@ -706,11 +706,7 @@ private:
             double& r_dist = rNode.FastGetSolutionStepValue(rDistanceVar);
             rNode.SetValue(rDistanceVar, r_dist); //here we copy the distance function to the fixed database
 
-            if(r_dist < 0.0) {
-                rNode.Set(FLUID, true);
-            } else {
-                rNode.Set(FLUID, false);
-            }
+            rNode.Set(FLUID, r_dist < 0.0);
 
             r_dist = MaxDistance;
 
