@@ -88,6 +88,7 @@ public:
 		{
 			double delta = responseSettings["step_size"].GetDouble();
 			mDelta = delta;
+			mAdaptiveDelta = responseSettings.Has("adaptive_step_size") ? responseSettings["adaptive_step_size"].GetBool() : false;
 		}
 		else
 			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
@@ -260,6 +261,12 @@ protected:
 			// Get adjoint variables (Corresponds to 1/2*u)
 			lambda = 0.5*u;
 
+
+			double delta = mDelta;
+			if (mAdaptiveDelta){
+				delta *= elem_i.GetGeometry().DomainSize();
+			}
+
 			// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
 			elem_i.CalculateRightHandSide(RHS, CurrentProcessInfo);
 			for (auto& node_i : elem_i.GetGeometry())
@@ -268,15 +275,15 @@ protected:
 				Vector derived_RHS = Vector(0);
 
 				// x-direction
-				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_X, node_i, delta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[0] = inner_prod(lambda, derived_RHS);
 
                 // y-direction
-				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Y, node_i, delta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[1] = inner_prod(lambda, derived_RHS);
 
                 // z-direction
-				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Z, node_i, delta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[2] = inner_prod(lambda, derived_RHS);
 
 				// Assemble sensitivity to node
@@ -435,6 +442,7 @@ private:
 
 	ModelPart &mrModelPart;
 	double mDelta;
+	bool mAdaptiveDelta = false;
 
 	///@}
 ///@name Private Operators
