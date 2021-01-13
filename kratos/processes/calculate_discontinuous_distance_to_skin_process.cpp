@@ -638,7 +638,7 @@ namespace Kratos
 					return;
 				}
 				ComputeExtrapolatedGeomIntersections(rElement, rNumCutEdges, rCutEdgesRatioVector, rExtraGeomNormal, rCutExtraEdgesRatioVector);
-			} else {
+			} else if (rNumCutEdges == 1 || rNumCutEdges == 2) {
 				ComputeExtrapolatedGeomIntersections(rElement, rNumCutEdges, rCutEdgesRatioVector, rExtraGeomNormal, rCutExtraEdgesRatioVector);
 			}
 		}
