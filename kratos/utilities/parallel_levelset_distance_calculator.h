@@ -167,7 +167,7 @@ public:
         const int node_size = rModelPart.Nodes().size();
         KRATOS_ERROR_IF(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar))) << "Distance variable is not in the model part" << std::endl;
         KRATOS_ERROR_IF(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar))) << "Area Variable is not in the model part" << std::endl;
-        if(is_distributed == true)
+        if(is_distributed)
             KRATOS_ERROR_IF(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX))) << "PARTITION_INDEX variable is not in the model part" << std::endl;
 
         // set to zero the distance
