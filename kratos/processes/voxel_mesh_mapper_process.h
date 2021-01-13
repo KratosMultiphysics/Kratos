@@ -136,7 +136,7 @@ namespace Kratos
         
         void ReadInputFile(std::string InputFileName);
         void CenterToNodalCoordinates(std::vector<double>& rCoordinates);
-        void MapResults();
+        void MapResults(ModelPart const& TheModelPart, Parameters parameters);
 
       ///@}
       ///@name Private  Access

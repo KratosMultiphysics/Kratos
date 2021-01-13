@@ -100,7 +100,30 @@ namespace Kratos
 
         mColors.WriteParaViewVTR("input_mesh_colors.vtr");
 
-        MapResults();
+		Timer::Start("Mapping The Results");
+		for(auto parameters : mColoringParameters){
+
+			mHasColor=true;
+
+
+			Parameters default_parameters(R"(
+				{
+					"model_part_name": "PLEASE SPECIFY IT",
+					"inside_color": -1,
+					"outside_color": 1,
+					"interface_color": 0,
+					"apply_outside_color": true,
+					"coloring_entities" : "nodes"
+				}  )");
+
+			parameters.ValidateAndAssignDefaults(default_parameters);
+			
+			std::string model_part_name = parameters["model_part_name"].GetString();
+			ModelPart& skin_part = (model_part_name == mrSkinPart.Name()) ? mrSkinPart : mrSkinPart.GetSubModelPart(model_part_name);
+
+			MapResults(skin_part, parameters);
+		}
+		Timer::Stop("Mapping The Results");        
 	}
 
 	std::string VoxelMeshMapperProcess::Info() const {
@@ -195,18 +218,65 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void VoxelMeshMapperProcess::MapResults(){
-//        block_for_each(mrVolumePart.Nodes(), [&](Node<3>& rNode)
-        for(auto& rNode : mrVolumePart.Nodes())
+    void VoxelMeshMapperProcess::MapResults(ModelPart const& TheModelPart, Parameters parameters){
+
+        double inside_color = parameters["inside_color"].GetDouble();
+        std::size_t offset=1;
+
+        const auto& coordinates_x =  mInputMesh.GetElementCenterCoordinates(0);
+        const auto& coordinates_y =  mInputMesh.GetElementCenterCoordinates(1);
+        const auto& coordinates_z =  mInputMesh.GetElementCenterCoordinates(2);
+
+        const std::size_t n_x =  coordinates_x.size();
+        const std::size_t n_y =  coordinates_y.size();
+        const std::size_t n_z =  coordinates_z.size();
+
+//        block_for_each(TheModelPart.Nodes(), [&](Node<3>& rNode)
+        for(auto& rNode : TheModelPart.Nodes())
         {
-            std::size_t i = mInputMesh.CalculateCellPosition(rNode.X(), 0);
-            std::size_t j = mInputMesh.CalculateCellPosition(rNode.Y(), 1);
-            std::size_t k = mInputMesh.CalculateCellPosition(rNode.Z(), 2);
+            std::size_t i_position = mInputMesh.CalculateCellPosition(rNode.X(), 0);
+            std::size_t j_position = mInputMesh.CalculateCellPosition(rNode.Y(), 1);
+            std::size_t k_position = mInputMesh.CalculateCellPosition(rNode.Z(), 2);
 
-            double color = mInputMesh.GetElementalColor(i,j,k);
-            KRATOS_WATCH(color);
+            double cell_color = mColors.GetElementalColor(i_position,j_position,k_position);
 
-            rNode.GetSolutionStepValue(TEMPERATURE) = mInputMesh.GetElementalColor(i,j,k);
+            if(cell_color == inside_color){
+                rNode.GetSolutionStepValue(TEMPERATURE) = mInputMesh.GetElementalColor(i_position,j_position,k_position);
+            }
+            else{
+                double min_distance = std::numeric_limits<double>::max();
+
+
+                std::size_t min_i = (i_position >= offset) ? i_position - offset : 0;
+                std::size_t min_j = (j_position >= offset) ? j_position - offset : 0;
+                std::size_t min_k = (k_position >= offset) ? k_position - offset : 0;
+                std::size_t max_i = (i_position < n_x - offset) ? i_position + offset : n_x;
+                std::size_t max_j = (j_position < n_y - offset) ? j_position + offset : n_y;
+                std::size_t max_k = (k_position < n_z - offset) ? k_position + offset : n_z;
+                std::size_t nearest_i = i_position;
+                std::size_t nearest_j = j_position;
+                std::size_t nearest_k = k_position;
+
+
+                Point point_1(coordinates_x[i_position], coordinates_y[j_position], coordinates_z[k_position]);
+
+                for(std::size_t i = min_i ; i < max_i ; i++){
+                    for(std::size_t j = min_j ; j < max_j ; j++){
+                        for(std::size_t k = min_k ; k < max_k ; k++){
+                            if(mColors.GetElementalColor(i,j,k) == inside_color){
+                                Point point_2(coordinates_x[i], coordinates_y[j], coordinates_z[k]);
+                                double distance = norm_2(point_2 - point_1);
+                                if(distance < min_distance){
+                                    nearest_i = i;
+                                    nearest_j = j;
+                                    nearest_k = k;
+                                }
+                            }
+                        }
+                    }
+                }
+                rNode.GetSolutionStepValue(TEMPERATURE) = mInputMesh.GetElementalColor(nearest_i,nearest_j,nearest_k);
+            }
         }
         //);
 
