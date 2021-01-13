@@ -340,7 +340,7 @@ SolvingStrategyType::Pointer AdjointTestSolver::CreateAdjointSolvingStrategy(
         Kratos::make_shared<ResidualBasedAdjointStaticScheme<SparseSpaceType, LocalSpaceType>>(
             pResponseFunction);
     return Kratos::make_shared<ResidualBasedLinearStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>>(
-        *mpAdjointModelPart, p_adjoint_scheme);
+        *mpAdjointModelPart, p_adjoint_scheme, p_linear_solver);
 }
 
 } // namespace test_solid_static_sensitivity_cpp
