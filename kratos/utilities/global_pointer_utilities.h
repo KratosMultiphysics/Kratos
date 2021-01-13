@@ -180,7 +180,7 @@ public:
         if(current_rank == master_rank)
         {
             std::sort(all_remote_ids.begin(), all_remote_ids.end());
-            std::unique(all_remote_ids.begin(), all_remote_ids.end());
+            static_cast<void>(std::unique(all_remote_ids.begin(), all_remote_ids.end()));
         }
 
         //communicate the size of all remote_ids and resize the vector accordingly
