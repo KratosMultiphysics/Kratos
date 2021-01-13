@@ -299,7 +299,7 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
                     LHS(row+d,col+e) += rData.Weight * (DAlphaD + DU + RSigma + VSigma + ASigma + RRSigma + RSigmaA);
                 }
 
-                LHS(row+Dim,col+d) += rData.Weight * (GAlphaA + U + QAlpha + GAlphaR);
+                LHS(col+Dim,row+d) += rData.Weight * (GAlphaA + U + QAlpha + GAlphaR);
                 LHS(row+d,col+Dim) += rData.Weight * (AG - VP - P + RSigmaG);
 
             }
