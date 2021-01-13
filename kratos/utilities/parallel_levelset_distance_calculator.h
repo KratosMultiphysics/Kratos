@@ -163,10 +163,10 @@ public:
         //check that variables needed are in the model part
         const bool is_distributed = rModelPart.IsDistributed();
         const int node_size = rModelPart.Nodes().size();
-        KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepsVariable(rDistanceVar)) << "Distance variable is not in the model part" << std::endl;
-        KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepsVariable(rAreaVar)) << "Area Variable is not in the model part" << std::endl;
+        KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rDistanceVar)) << "Distance variable is not in the model part" << std::endl;
+        KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rAreaVar)) << "Area Variable is not in the model part" << std::endl;
         if(is_distributed)
-            KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepsVariable(PARTITION_INDEX)) << "PARTITION_INDEX variable is not in the model part" << std::endl;
+            KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(PARTITION_INDEX)) << "PARTITION_INDEX variable is not in the model part" << std::endl;
 
         // set to zero the distance
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
