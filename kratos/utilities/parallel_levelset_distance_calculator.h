@@ -159,11 +159,9 @@ public:
         const double MaxDistance)
     {
         KRATOS_TRY
-        bool is_distributed = false;
-        if(rModelPart.GetCommunicator().TotalProcesses() > 1)
-            is_distributed = true;
 
         //check that variables needed are in the model part
+        const bool is_distributed = rModelPart.IsDistributed();
         const int node_size = rModelPart.Nodes().size();
         KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepsVariable(rDistanceVar)) << "Distance variable is not in the model part" << std::endl;
         KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepsVariable(rAreaVar)) << "Area Variable is not in the model part" << std::endl;
@@ -677,16 +675,11 @@ private:
     {
         KRATOS_TRY
 
-        bool is_distributed = false;
-        if(rModelPart.GetCommunicator().TotalProcesses() > 1) {
-            is_distributed = true;
-        }
-
         //check that variables needed are in the model part
         const int node_size = rModelPart.Nodes().size();
         KRATOS_ERROR_IF(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar))) << "Distance variable is not in the model part." << std::endl;
         KRATOS_ERROR_IF(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar))) << "Area variable is not in the model part." << std::endl;
-        if (is_distributed == true) {
+        if (rModelPart.IsDistributed()) {
             KRATOS_ERROR_IF(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX))) << "Area variable is not in the model part." << std::endl;
         }
 
@@ -859,12 +852,8 @@ private:
                 }
             });
 
-			bool is_distributed = false;
-			if(rModelPart.GetCommunicator().TotalProcesses() > 1)
-				is_distributed = true;
-
 		    //mpi sync variables
-            if(is_distributed)
+            if(rModelPart.IsDistributed())
             {
                 block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
                     if (rNode.Is(VISITED)) {
