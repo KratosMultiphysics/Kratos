@@ -127,10 +127,7 @@ namespace Kratos {
                 } //elements for
 
                 for (int i = 0; i < 3; ++i) {
-
-                    if (high_point[i] < low_point[i]) {
-                        KRATOS_THROW_ERROR(std::logic_error, "Check the limits of the Velocity Trap Box. Maximum coordinates smaller than minimum coordinates.", "");
-                    }
+                    KRATOS_ERROR_IF(high_point[i] < low_point[i]) << "Check the limits of the Velocity Trap Box. Maximum coordinates smaller than minimum coordinates." << std::endl;
                 }
 
             } //parallel for
@@ -407,13 +404,11 @@ namespace Kratos {
                 }
             }
 
-            if (total_elastic_force != 0.0)
-            {
+            if (total_elastic_force != 0.0) {
                 adimensional_value =  total_force/total_elastic_force;
             }
-            else
-            {
-                KRATOS_THROW_ERROR(std::runtime_error,"There are no elastic forces= ", total_elastic_force)
+            else {
+                KRATOS_ERROR << "There are no elastic forces= " << total_elastic_force << std::endl;
             }
 
             return adimensional_value;

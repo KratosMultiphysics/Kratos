@@ -10,6 +10,7 @@ import run_cpp_unit_tests
 # Import the tests or test_classes to create the suits
 import test_nearest_neighbor_mapper
 import test_nearest_element_mapper
+import test_coupling_geometry_mapper
 
 from test_patch_test_mappers import TestPatchTestMappers
 
@@ -32,6 +33,11 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPatchTestMappers]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coupling_geometry_mapper.TestCouplingGeometryMapper]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coupling_geometry_mapper.TestDualMortarCouplingGeometryMapper]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coupling_geometry_mapper.TestSlaveOriginCouplingGeometryMapper]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coupling_geometry_mapper.TestComputeMappingMatrixCouplingGeometryMapper]))
+
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:

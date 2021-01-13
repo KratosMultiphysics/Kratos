@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os
 import subprocess
 import sys
@@ -9,6 +8,7 @@ import threading
 from glob import glob
 import shutil
 import KratosMultiphysics.kratos_utilities as kratos_utils
+from KratosMultiphysics.testing.utilities import GetPython3Command
 
 
 kratos_benchmarking_path = os.path.join('..','..','..','benchmarking')
@@ -69,7 +69,7 @@ def GetFilePath(fileName):
 
 def run(benchmark, file_for_output):
     path_to_callable_script = os.path.join(path, "DEM_benchmarks_analysis.py")
-    py_cmd = "python3" if shutil.which("python3") is not None else "python"
+    py_cmd = GetPython3Command()
     subprocess.check_call([py_cmd, path_to_callable_script, str(benchmark)], stdout=file_for_output, stderr=file_for_output)
 
 def worker(queue):

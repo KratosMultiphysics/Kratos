@@ -16,7 +16,6 @@
 // Project includes
 #include "custom_elements/generic_total_lagrangian_mixtures_femdem_element.hpp"
 #include "fem_to_dem_application_variables.h"
-#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -559,7 +558,7 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateAll(
             int_to_reference_weight *= this->GetProperties()[THICKNESS];
 
         Vector r_strain_vector;
-        double damage_element;
+        double damage_element = 0.0;
         bool is_damaging = false;
         const Vector &r_integrated_stress_vector = this->IntegrateSmoothedConstitutiveLaw(
                                                         yield_surface, cl_values, this_constitutive_variables,

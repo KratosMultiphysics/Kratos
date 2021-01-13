@@ -1,9 +1,11 @@
 # XMC imports
 from xmc.tools import dynamicImport
+from xmc.methodDefs_randomGeneratorWrapper import generator
 
 # TODO RandomGeneratorWrapper must have a 'seed' attribute for reproducibility. Its generator method must support it.
 
-class RandomGeneratorWrapper():
+
+class RandomGeneratorWrapper:
     """
     This is a class is responsible for the generation of random inputs: scalars,
     fields, whatever. It is very similar to SolverWrapper: it handles calls to
@@ -13,8 +15,8 @@ class RandomGeneratorWrapper():
     """
 
     def __init__(self, **keywordArgs):
-        self.parameters = keywordArgs.get('parameters')
-        self._generator = dynamicImport(keywordArgs.get('generator'))
+        self.parameters = keywordArgs.get("parameters")
+        self._generator = dynamicImport(keywordArgs.get("generator"))
 
     def realisation(self):
         return self._generator(*self.parameters)

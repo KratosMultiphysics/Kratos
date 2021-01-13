@@ -11,10 +11,14 @@ class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
     def __init__(self,settings):
         self.element_name = None
-        self.condition_name = "MonolithicWallCondition"
         self.element_integrates_in_time = False
         self.element_has_nodal_properties = False
+        self.historical_nodal_properties_variables_list = []
+        self.non_historical_nodal_properties_variables_list = []
         self.process_data = {}
+
+        #TODO: Keep this until the MonolithicWallCondition is removed to ensure backwards compatibility in solvers with no defined condition_name
+        self.condition_name = "MonolithicWallCondition"
 
         if settings.Has("element_type"):
             formulation = settings["element_type"].GetString()
@@ -27,7 +31,11 @@ class StabilizedFormulation(object):
             elif formulation == "fic":
                 self._SetUpFIC(settings)
             elif formulation == "symbolic":
-                self._SetUpSymbolic(settings)
+                warn_msg  = 'Provided \'element_name\' is \'symbolic\'. This is has been renamed to \'weakly_compressible\'. Use this instead.'
+                KratosMultiphysics.Logger.PrintWarning('\n\x1b[1;31mDEPRECATION-WARNING\x1b[0m', warn_msg)
+                self._SetUpWeaklyCompressible(settings)
+            elif formulation == "weakly_compressible":
+                self._SetUpWeaklyCompressible(settings)
         else:
             print(settings)
             raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
@@ -58,11 +66,13 @@ class StabilizedFormulation(object):
         else:
             self.non_newtonian_option = False
             self.element_name = 'VMS'
+        self.condition_name = "MonolithicWallCondition"
 
         settings.ValidateAndAssignDefaults(default_settings)
 
         # set the nodal material properties flag
         self.element_has_nodal_properties = True
+        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY]
 
         # validate the non-newtonian parameters if necessary
         if self.non_newtonian_option:
@@ -91,6 +101,7 @@ class StabilizedFormulation(object):
         else:
             self.element_name = "TimeIntegratedQSVMS"
             self.element_integrates_in_time = True
+        self.condition_name = "NavierStokesWallCondition"
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -99,15 +110,17 @@ class StabilizedFormulation(object):
     def _SetUpDVMS(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "dvms",
+            "dynamic_tau": 0.0,
             "use_orthogonal_subscales": false
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "DVMS"
+        self.condition_name = "NavierStokesWallCondition"
 
+        self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
-
 
     def _SetUpFIC(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -123,24 +136,35 @@ class StabilizedFormulation(object):
             KratosMultiphysics.Logger.PrintWarning("NavierStokesSolverVMSMonolithic","FIC with dynamic beta not yet implemented, using provided beta as a constant value")
         else:
             self.element_name = "FIC"
+        self.condition_name = "NavierStokesWallCondition"
 
         self.process_data[KratosCFD.FIC_BETA] = settings["beta"].GetDouble()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = 0
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
 
-    def _SetUpSymbolic(self,settings):
+    def _SetUpWeaklyCompressible(self,settings):
+        #TODO: Remove this after deprecation period is over
+        if (settings["element_type"].GetString() == "symbolic"):
+            settings["element_type"].SetString("weakly_compressible")
+
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "symbolic",
+            "element_type": "weakly_compressible",
             "dynamic_tau": 1.0,
             "sound_velocity": 1.0e+12
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "SymbolicNavierStokes"
+        self.element_name = "WeaklyCompressibleNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
         self.element_integrates_in_time = True
 
+        # set the nodal material properties flag
+        self.element_has_nodal_properties = True
+        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY]
+        self.non_historical_nodal_properties_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
+
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
+        #TODO: Remove SOUND_VELOCITY from ProcessInfo. Should be obtained from the properties.
         self.process_data[KratosMultiphysics.SOUND_VELOCITY] = settings["sound_velocity"].GetDouble()
 
 def CreateSolver(model, custom_settings):
@@ -281,8 +305,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         # Adding variables required for the nodal material properties
         if self.element_has_nodal_properties:
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+            for variable in self.historical_nodal_properties_variables_list:
+                self.main_model_part.AddNodalSolutionStepVariable(variable)
 
         # Adding variables required for the periodic conditions
         if self.settings["consider_periodic_conditions"].GetBool() == True:
@@ -316,6 +340,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self.condition_name = self.formulation.condition_name
         self.element_integrates_in_time = self.formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
+        self.historical_nodal_properties_variables_list = self.formulation.historical_nodal_properties_variables_list 
+        self.non_historical_nodal_properties_variables_list = self.formulation.non_historical_nodal_properties_variables_list
 
     def _SetTimeSchemeBufferSize(self):
         scheme_type = self.settings["time_scheme"].GetString()
@@ -339,18 +365,40 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self.settings["formulation"]["dynamic_tau"].SetDouble(0.0)
 
     def _SetNodalProperties(self):
+        set_density = KratosMultiphysics.DENSITY in self.historical_nodal_properties_variables_list
+        set_viscosity = KratosMultiphysics.VISCOSITY in self.historical_nodal_properties_variables_list
+        set_sound_velocity = KratosMultiphysics.SOUND_VELOCITY in self.non_historical_nodal_properties_variables_list
+
         # Get density and dynamic viscostity from the properties of the first element
         for el in self.main_model_part.Elements:
-            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-            if rho <= 0.0:
-                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
-            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-            if dyn_viscosity <= 0.0:
-                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
-            kin_viscosity = dyn_viscosity / rho
+            # Get DENSITY from properties
+            if set_density:
+                rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+                if rho <= 0.0:
+                    raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
+            # Get DYNAMIC_VISCOSITY from properties and calculate the kinematic one (VISCOSITY)
+            if set_viscosity:
+                dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+                if dyn_viscosity <= 0.0:
+                    raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
+                kin_viscosity = dyn_viscosity / rho
+            # Get SOUND_VELOCITY
+            if set_sound_velocity:
+                if el.Properties.Has(KratosMultiphysics.SOUND_VELOCITY):
+                    sound_velocity = el.Properties.GetValue(KratosMultiphysics.SOUND_VELOCITY)
+                else:
+                    sound_velocity = 1.0e+12 # Default sound velocity value
+                    KratosMultiphysics.Logger.PrintWarning('No \'SOUND_VELOCITY\' value found in Properties {0}. Setting default value {1}'.format(el.Properties.Id, sound_velocity))
+                if sound_velocity <= 0.0:
+                    raise Exception("SOUND_VELOCITY set to {0} in Properties {1}, positive number expected.".format(sound_velocity, el.Properties.Id))
             break
         else:
             raise Exception("No fluid elements found in the main model part.")
+
         # Transfer the obtained properties to the nodes
-        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+        if set_density:
+            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+        if set_viscosity:
+            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+        if set_sound_velocity:
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.SOUND_VELOCITY, sound_velocity, self.main_model_part.Nodes)

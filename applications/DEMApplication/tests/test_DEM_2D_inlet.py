@@ -25,15 +25,15 @@ class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeSolutionStep(self):
-        super(DEM2D_InletTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         tolerance = 1.001
         for node in self.spheres_model_part.Nodes:
             node_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
             node_force = node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_Y)
             if node.Id == 6:
                 if self.time >= 1.15:
-                    print(node_vel)
-                    print(node_force)
+                    Logger.PrintInfo(node_vel)
+                    Logger.PrintInfo(node_force)
                     self.assertAlmostEqual(node_vel, 0.380489240, delta=tolerance)
                     self.assertAlmostEqual(node_force, -120983.1002, delta=tolerance)
 

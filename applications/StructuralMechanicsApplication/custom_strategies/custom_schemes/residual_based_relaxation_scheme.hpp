@@ -607,6 +607,7 @@ protected:
         if (M.size1() != 0)
         {
             int k = OpenMPUtils::ThisThread();
+            const auto& r_const_elem_ref = rCurrentElement;
             /*              rCurrentElement-
             >GetSecondDerivativesVector(RelaxationAuxiliaries::macc,0);
                             (RelaxationAuxiliaries::macc) *= (1.00-mAlphaBossak);
@@ -623,7 +624,7 @@ protected:
                         //damping contribution
                         if (D.size1() != 0)
                         {*/
-            rCurrentElement.GetFirstDerivativesVector(mvel[k], 0);
+            r_const_elem_ref.GetFirstDerivativesVector(mvel[k], 0);
             noalias(RHS_Contribution) -= mdamping_factor * prod(M, mvel[k]);
         }
 
@@ -657,7 +658,8 @@ protected:
             MAtrix * mdamping_factor
                         if (D.size1() != 0)
                         {*/
-            rCurrentCondition.GetFirstDerivativesVector(mvel[k], 0);
+            const auto& r_const_cond_ref = rCurrentCondition;
+            r_const_cond_ref.GetFirstDerivativesVector(mvel[k], 0);
             noalias(RHS_Contribution) -= mdamping_factor * prod(M, mvel[k]);
         }
 
@@ -734,5 +736,4 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME  defined */
-
 

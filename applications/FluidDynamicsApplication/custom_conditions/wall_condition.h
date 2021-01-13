@@ -236,7 +236,7 @@ namespace Kratos
 
 
         void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                           ProcessInfo& rCurrentProcessInfo) override
+                                           const ProcessInfo& rCurrentProcessInfo) override
         {
             VectorType RHS;
             this->CalculateLocalSystem(rLeftHandSideMatrix,RHS,rCurrentProcessInfo);
@@ -252,7 +252,7 @@ namespace Kratos
           */
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo) override
+                                          const ProcessInfo& rCurrentProcessInfo) override
         {
             const ProcessInfo& r_process_info = rCurrentProcessInfo;
             unsigned int step = r_process_info[FRACTIONAL_STEP];
@@ -313,7 +313,7 @@ namespace Kratos
 
 
         /// Check that all data required by this condition is available and reasonable
-        int Check(const ProcessInfo& rCurrentProcessInfo) override
+        int Check(const ProcessInfo& rCurrentProcessInfo) const override
         {
             KRATOS_TRY;
 
@@ -325,18 +325,7 @@ namespace Kratos
             }
             else
             {
-                // Check that all required variables have been registered
-                if(VELOCITY.Key() == 0)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-                if(MESH_VELOCITY.Key() == 0)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
-                if(NORMAL.Key() == 0)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","")
-                if(Y_WALL.Key() == 0)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","")
-
                 // Checks on nodes
-
                 // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
                 for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
                 {
@@ -366,7 +355,7 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info object (unused)
          */
         void EquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo& rCurrentProcessInfo) const override;
 
 
         /// Returns a list of the element's Dofs
@@ -375,7 +364,7 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info instance
          */
         void GetDofList(DofsVectorType& ConditionDofList,
-                                ProcessInfo& CurrentProcessInfo) override;
+                                const ProcessInfo& CurrentProcessInfo) const override;
 
 
         /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) for each node
@@ -384,7 +373,7 @@ namespace Kratos
          * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
          */
         void GetValuesVector(Vector& Values,
-                                     int Step = 0) override
+                                     int Step = 0) const override
         {
             const SizeType LocalSize = TDim * TNumNodes;
             unsigned int LocalIndex = 0;
@@ -394,7 +383,7 @@ namespace Kratos
 
             for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
             {
-                array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
+                const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
                 for (unsigned int d = 0; d < TDim; ++d)
                     Values[LocalIndex++] = rVelocity[d];
             }

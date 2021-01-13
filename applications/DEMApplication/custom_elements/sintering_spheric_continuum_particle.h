@@ -62,10 +62,10 @@ namespace Kratos {
         };
 
         void Initialize(const ProcessInfo& r_process_info) override;
-        void InitializeSolutionStep(ProcessInfo& r_process_info) override;
-        void UpdateContinuumNeighboursVector(ProcessInfo& r_process_info) override;
-        void SetInitialSinteringSphereContacts(ProcessInfo& r_process_info);
-        void InitializeForceComputation(ProcessInfo& r_process_info) override;
+        void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
+        void UpdateContinuumNeighboursVector(const ProcessInfo& r_process_info) override;
+        void SetInitialSinteringSphereContacts(const ProcessInfo& r_process_info);
+        void InitializeForceComputation(const ProcessInfo& r_process_info) override;
         void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) override;
         //double GetInitialDelta(int index)  override;
         void ComputeContactArea(const double rmin, double indentation, double& calculation_area) override;

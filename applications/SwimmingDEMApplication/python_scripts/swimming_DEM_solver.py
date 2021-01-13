@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 from KratosMultiphysics import Logger, Parameters
 from KratosMultiphysics.python_solver import PythonSolver
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
@@ -42,6 +40,9 @@ class SwimmingDEMSolver(PythonSolver):
 
         "ElementType" : "SwimmingDEMElement",
         "body_force_per_unit_mass_variable_name" : "BODY_FORCE",
+        "error_projection_parameters"   :{
+            "u_characteristic"  : 1.0
+        },
         "do_print_results_option" : true,
         "output_interval" : 0.5,
 
@@ -191,7 +192,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.ConstructDerivativeRecoverer()
         self.ConstructHistoryForceUtility()
         # Call the base Python solver constructor
-        super(SwimmingDEMSolver, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def ConstructStationarityTool(self):
         self.stationarity = False
@@ -347,12 +348,7 @@ class SwimmingDEMSolver(PythonSolver):
         else:
             Say("Skipping solving system for the fluid phase...\n")
 
-        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
-            self.project_parameters,
-            self.fluid_solver.main_model_part,
-            SDP.FunctionsCalculator(self.fluid_domain_dimension))
-
-        self.derivative_recovery_counter.Activate(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
+        self.derivative_recovery_counter.SetActivation(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
 
         if self.derivative_recovery_counter.Tick():
             self.recovery.Recover()

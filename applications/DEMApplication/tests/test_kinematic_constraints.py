@@ -23,7 +23,7 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeSolutionStep(self):
-        super(KinematicConstraintsTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
             velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
