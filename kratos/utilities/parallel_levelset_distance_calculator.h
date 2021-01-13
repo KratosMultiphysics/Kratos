@@ -209,7 +209,7 @@ public:
             });
 
             //mpi sync variables
-            if(is_distributed == true)
+            if(is_distributed)
             {
                 block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
                     if (rNode.Is(VISITED)) {
