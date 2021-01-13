@@ -168,7 +168,7 @@ public:
         KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepsVariable(rDistanceVar)) << "Distance variable is not in the model part" << std::endl;
         KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepsVariable(rAreaVar)) << "Area Variable is not in the model part" << std::endl;
         if(is_distributed)
-            KRATOS_ERROR_IF(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX))) << "PARTITION_INDEX variable is not in the model part" << std::endl;
+            KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepsVariable(PARTITION_INDEX)) << "PARTITION_INDEX variable is not in the model part" << std::endl;
 
         // set to zero the distance
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
