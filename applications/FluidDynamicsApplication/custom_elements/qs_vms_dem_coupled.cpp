@@ -202,7 +202,7 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
 
         this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
 
-        double K; // Temporary results
+        double K, RSigmaU; // Temporary results
         const double weight = rData.Weight * tau_one * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
 
@@ -212,6 +212,8 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
         AGradN *= density;
 
         const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
+        double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
+        Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
 
         // Note: Dof order is (vx,vy,[vz,]p) for each node
         for (unsigned int i = 0; i < NumNodes; ++i)
@@ -227,6 +229,10 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
                 {
                     rMassMatrix(row+d, col+d) += K;
                     rMassMatrix(row+Dim,col+d) += weight * (fluid_fraction * rData.DN_DX(i,d) * rData.N[j]);
+                    for (unsigned int e = 0; e < Dim; ++e){
+                        RSigmaU = (viscosity / permeability(d,e)) * rData.N[i] * AGradN[j];
+                        rMassMatrix(row+d, col+e) += weight * RSigmaU;
+                    }
                 }
             }
         }
@@ -290,7 +296,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
     // Temporary containers
-    double V, AA, P, GAlphaA, AG, U, QAlpha, DAlphaD, DU, RSigma, ASigma, RRSigma, RSigmaA, RU;
+    double V, AA, P, GAlphaA, AG, U, QAlpha, DAlphaD, DU, RSigma, ASigma, RRSigma, RSigmaA;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -329,13 +335,12 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                     ASigma = tau_one * AGradN[i] * (viscosity / permeability(d,e)) * rData.N[j];
                     RRSigma = tau_one * (viscosity / permeability(d,e)) * rData.N[i] * (viscosity / permeability(d,e)) * rData.N[j];
                     RSigmaA = tau_one * (viscosity / permeability(d,e)) * rData.N[i] * AGradN[j];
-                    RU = tau_one * (viscosity / permeability(d,e)) * rData.N[i] * AGradN[j];
                     DAlphaD = tau_two * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,e);
                     DU = tau_two * rData.DN_DX(i,d) * fluid_fraction_gradient[e] * rData.N[j];
                     GAlphaR += tau_one * fluid_fraction * rData.DN_DX(i,d) * (viscosity / permeability(d,e)) * rData.N[j];
                     RSigmaG += tau_one * (viscosity / permeability(d,e)) * rData.N[i] * rData.DN_DX(j,d);
 
-                    LHS(row+d,col+e) += rData.Weight * (DAlphaD + DU + RSigma + ASigma + RRSigma + RSigmaA + RU);
+                    LHS(row+d,col+e) += rData.Weight * (DAlphaD + DU + RSigma + ASigma + RRSigma + RSigmaA);
                 }
 
                 LHS(row+Dim,col+d) += rData.Weight * (GAlphaA + U + QAlpha + GAlphaR);
