@@ -186,6 +186,60 @@ double QSVMSDEMCoupled<TElementData>::GetAtCoordinate(
     return QSVMS<TElementData>::GetAtCoordinate(Value, rN);
 }
 
+template< class TElementData >
+void QSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
+    const TElementData& rData,
+    const array_1d<double,3> &rConvectionVelocity,
+    array_1d<double,3>& rResidual) const
+{
+    const GeometryType rGeom = this->GetGeometry();
+
+    Vector convection; // u * grad(N)
+    this->ConvectionOperator(convection,rConvectionVelocity,rData.DN_DX);
+
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
+    Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
+    const auto& r_body_forces = rData.BodyForce;
+    const auto& r_velocities = rData.Velocity;
+    const auto& r_pressures = rData.Pressure;
+
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        const array_1d<double,3>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
+        for (unsigned int d = 0; d < Dim; d++) {
+            Vector sigma = ZeroVector(Dim);
+            for (unsigned int e = 0; e < Dim; e++){
+                sigma[d] += (viscosity/permeability(d,e)) * rData.N[i] * r_velocities(i,e);
+            }
+            rResidual[d] += density * ( rData.N[i]*(r_body_forces(i,d) - r_acceleration[d]) - convection[i]*r_velocities(i,d)) - rData.DN_DX(i,d)*r_pressures[i] - sigma[d];
+        }
+    }
+}
+
+template< class TElementData >
+void QSVMSDEMCoupled<TElementData>::MomentumProjTerm(
+    const TElementData& rData,
+    const array_1d<double,3>& rConvectionVelocity,
+    array_1d<double,3> &rMomentumRHS) const
+{
+    Vector AGradN;
+    this->ConvectionOperator(AGradN,rConvectionVelocity,rData.DN_DX);
+
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
+    Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
+
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        for (unsigned int d = 0; d < Dim; d++) {
+            Vector sigma = ZeroVector(Dim);
+            for (unsigned int e = 0; e < Dim; e++){
+                sigma[d] += (viscosity/permeability(d,e)) * rData.N[i] * rData.Velocity(i,e);
+            }
+            rMomentumRHS[d] += density * ( rData.N[i]*(rData.BodyForce(i,d) /*- rAcc[d]*/) - AGradN[i]*rData.Velocity(i,d)) - rData.DN_DX(i,d)*rData.Pressure[i] - sigma[d];
+        }
+    }
+}
+
 template<class TElementData>
 void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
     TElementData& rData,
