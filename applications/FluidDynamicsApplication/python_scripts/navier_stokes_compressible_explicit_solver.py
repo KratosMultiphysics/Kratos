@@ -81,7 +81,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
 
         # Required variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MASS_SOURCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MASS_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 

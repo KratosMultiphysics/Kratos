@@ -125,6 +125,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, GRADIENT_PENALTY_COEFFICIENT )
 
     KRATOS_DEFINE_VARIABLE( double, TIME_INTEGRATION_THETA )
+    KRATOS_DEFINE_VARIABLE( double, MASS_SOURCE )
 
     //sheme info :: pass to elements
     KRATOS_DEFINE_VARIABLE( double, NEWMARK_BETA )
