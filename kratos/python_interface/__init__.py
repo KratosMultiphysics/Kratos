@@ -59,15 +59,18 @@ def __ModuleInitDetail():
                 ]
                 Logger.PrintWarning("KRATOS INITIALIZATION WARNING:", "".join(msg))
 
-    # Detect the files in library folder
-    kre = re.compile('Kratos\.([^\d]+)(\d+).+')
-    kratos_version_info = [(kre.match(f))[2] for f in os.listdir(KratosPaths.kratos_libs) if kre.match(f)][0]
+    # Try to detect kratos library version
+    try:
+        kre = re.compile('Kratos\.([^\d]+)(\d+).+')
+        kratos_version_info = [(kre.match(f))[2] for f in os.listdir(KratosPaths.kratos_libs) if kre.match(f)][0]
 
-    if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.minor != int(kratos_version_info[1]):
-        raise Exception("Kratos is running with python {}.{} but was compiled with python {}.{}. Please ensure the versions match.".format(
-            sys.version_info.major, sys.version_info.minor, 
-            kratos_version_info[0], kratos_version_info[1]
-        ))
+        if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.minor != int(kratos_version_info[1]):
+            print("Warning: Kratos is running with python {}.{} but was compiled with python {}.{}. Please ensure the versions match.".format(
+                sys.version_info.major, sys.version_info.minor, 
+                kratos_version_info[0], kratos_version_info[1]
+            ))
+    except:
+        print("Warning: Could not determine python version used to build kratos.")
 
     return kratos_globals.KratosGlobalsImpl(Kernel(using_mpi), KratosPaths.kratos_applications)
 
