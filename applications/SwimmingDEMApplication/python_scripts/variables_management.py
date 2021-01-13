@@ -346,6 +346,7 @@ class VariablesManager:
         self.coupling_fluid_vars += [SDEM.ERROR_X]
         self.coupling_fluid_vars += [SDEM.ERROR_Y]
         self.coupling_fluid_vars += [SDEM.ERROR_Z]
+        self.coupling_fluid_vars += [SDEM.ERROR_P]
         self.coupling_fluid_vars += [SDEM.SCALAR_ERROR]
         self.coupling_fluid_vars += [SDEM.EXACT_PRESSURE]
 

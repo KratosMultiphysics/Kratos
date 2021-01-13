@@ -160,7 +160,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     }
 
     model_part.GetProcessInfo().SetValue(SLIP_LENGTH, 0.0);
-    model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 10.0);
+    model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 0.1);
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         i->Set(SLIP, false);
         i->CalculateLocalSystem(LHS, RHS, r_process_info);
@@ -182,7 +182,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
 
     // Test slip cut element
     model_part.GetProcessInfo().SetValue(SLIP_LENGTH, 1.0e+08);
-    model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 10.0);
+    model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 0.1);
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); ++i) {
         i->Set(SLIP, true);
         i->CalculateLocalSystem(LHS, RHS, r_process_info);
