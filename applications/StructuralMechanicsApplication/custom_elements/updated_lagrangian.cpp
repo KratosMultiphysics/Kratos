@@ -70,23 +70,26 @@ void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseSolidElement::Initialize(rCurrentProcessInfo);
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    const SizeType integration_points_number = integration_points.size();
+        const SizeType integration_points_number = integration_points.size();
 
-    if ( mDetF0.size() !=  integration_points_number)
-        mDetF0.resize( integration_points_number );
-    if ( mF0.size() !=  integration_points_number)
-        mF0.resize( integration_points_number );
+        if ( mDetF0.size() !=  integration_points_number)
+            mDetF0.resize( integration_points_number );
+        if ( mF0.size() !=  integration_points_number)
+            mF0.resize( integration_points_number );
 
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
-    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
-        mDetF0[point_number] = 1.0;
-        mF0[point_number] = IdentityMatrix(dimension);
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            mDetF0[point_number] = 1.0;
+            mF0[point_number] = IdentityMatrix(dimension);
+        }
+
+        mF0Computed = false;
     }
-
-    mF0Computed = false;
 }
 
 /***********************************************************************************/
