@@ -16,6 +16,7 @@ def GetFilePath(fileName):
 
 class TestTrilinosRedistance(KratosUnittest.TestCase):
 
+    @classmethod
     def _ExpectedDistance(self,x,y,z):
         d = x
         if( d > 0.2):
@@ -25,6 +26,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         return x
         #return -(math.sqrt(x**2+y**2+z**2) - 0.4)
 
+    @classmethod
     def _ExpectedLinearDistance(self,x,x_0):
         return x - x_0
 
