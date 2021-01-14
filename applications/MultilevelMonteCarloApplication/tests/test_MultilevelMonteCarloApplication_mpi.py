@@ -1,10 +1,7 @@
 # Import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.MultilevelMonteCarloApplication
-try:
-    import KratosMultiphysics.mpi as KratosMPI
-except ImportError:
-    raise Exception("KratosMPI could not be imported!")
+if not KratosMultiphysics.IsDistributedRun():
+    raise Exception("This test script can only be executed in MPI!")
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
