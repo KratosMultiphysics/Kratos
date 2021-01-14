@@ -25,7 +25,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         self.__CheckSolversCompatibility()
         self.__AddNodalSolutionStepVariables()
         self.is_initial_step = True
-        self.is_fem_accceleration_set = False
 
     def Initialize(self):
         super().Initialize()
@@ -70,15 +69,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
     def InitializeSolutionStep(self):
         for solver_name, solver in self.solver_wrappers.items():
             if self.SolverSolvesAtThisTime(solver_name):
-                if not self.is_fem_accceleration_set:
-                    print('===================================\n        APPLYING CUSTOM ACCELERATION           \n================================\n')
-                    self.is_fem_accceleration_set = True
-                    solver_type = str(solver._ClassName())
-                    if solver_type == "StructuralMechanicsWrapper":
-                        structure = solver.model.GetModelPart("Structure")
-                        for node in structure.Nodes:
-                            node.SetSolutionStepValue(KM.ACCELERATION_Y,0,-5.0)
-                            node.SetSolutionStepValue(KM.ACCELERATION_Y,1,-5.0)
                 solver.InitializeSolutionStep()
 
         if not self.is_initial_step:
