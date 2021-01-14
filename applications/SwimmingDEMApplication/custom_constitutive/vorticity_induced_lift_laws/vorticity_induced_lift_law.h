@@ -59,8 +59,6 @@ namespace Kratos {
 
     }; //class VorticityInducedLiftLaw
 
-KRATOS_DEFINE_APPLICATION_VARIABLE(SWIMMING_DEM_APPLICATION, VorticityInducedLiftLaw::Pointer, SDEM_VORTICITY_INDUCED_LIFT_LAW_POINTER)
-
 } // Namespace Kratos
 
 #endif /* SDEM_VORTICITY_INDUCED_LIFT_LAW_H_INCLUDED  defined */

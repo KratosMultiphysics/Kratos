@@ -63,8 +63,6 @@ namespace Kratos {
 
     }; //class HistoryForceLaw
 
-KRATOS_DEFINE_APPLICATION_VARIABLE(SWIMMING_DEM_APPLICATION, HistoryForceLaw::Pointer, SDEM_HISTORY_FORCE_LAW_POINTER)
-
 } // Namespace Kratos
 
 #endif /* SDEM_HISTORY_FORCE_LAW_H_INCLUDED  defined */

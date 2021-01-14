@@ -143,9 +143,6 @@ private:
 
 }; // Class HydrodynamicInteractionLaw : public MainCL
 
-KRATOS_DEFINE_APPLICATION_VARIABLE(SWIMMING_DEM_APPLICATION, HydrodynamicInteractionLaw::Pointer, SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
-
-
 } // Namespace Kratos
 
 #endif // KRATOS_SDEM_HYDRODYNAMIC_INTERACTION_LAW_H

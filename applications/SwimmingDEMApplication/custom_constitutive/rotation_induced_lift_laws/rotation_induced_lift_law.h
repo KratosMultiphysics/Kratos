@@ -66,8 +66,6 @@ namespace Kratos {
 
     }; //class RotationInducedLiftLaw
 
-KRATOS_DEFINE_APPLICATION_VARIABLE(SWIMMING_DEM_APPLICATION, RotationInducedLiftLaw::Pointer, SDEM_ROTATION_INDUCED_LIFT_LAW_POINTER)
-
 } // Namespace Kratos
 
 #endif /* SDEM_ROTATION_INDUCED_LIFT_LAW_H_INCLUDED  defined */

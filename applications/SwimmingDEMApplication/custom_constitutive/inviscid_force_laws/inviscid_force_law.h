@@ -68,8 +68,6 @@ namespace Kratos {
 
     }; //class InviscidForceLaw
 
-KRATOS_DEFINE_APPLICATION_VARIABLE(SWIMMING_DEM_APPLICATION, InviscidForceLaw::Pointer, SDEM_INVISCID_FORCE_LAW_POINTER)
-
 } // Namespace Kratos
 
 #endif /* SDEM_INVISCID_FORCE_LAW_H_INCLUDED  defined */

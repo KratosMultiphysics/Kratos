@@ -56,8 +56,6 @@ namespace Kratos {
 
     }; //class DragLaw
 
-KRATOS_DEFINE_APPLICATION_VARIABLE(SWIMMING_DEM_APPLICATION, DragLaw::Pointer, SDEM_DRAG_LAW_POINTER)
-
 } // Namespace Kratos
 
 #endif /* SDEM_DRAG_LAW_H_INCLUDED  defined */
