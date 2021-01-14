@@ -296,14 +296,13 @@ public:
             // Nodal gradient SavedAsHistoricalVariable
             mProjectedGradientProcess.Execute();
 
-
             // ****************************************************************************************
             // ****************************************************************************************
             // Calculating nodal limiter using \beta_ij = 1 (works fine on symmetric structural meshes)
             // D. Kuzmin et al. / Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41
             const double epsilon = 1.0e-15;
-            const double power_elem = 5;
-            const double power_bfecc = 5;
+            const double power_elem = 4;
+            const double power_bfecc = 4;
 
             #pragma omp parallel for
             for (unsigned int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
@@ -427,13 +426,27 @@ public:
                     const array_1d<double,3>& v = mVelocity[i_node];
                     const array_1d<double,3>& v_old = mVelocityOld[i_node];
 
-                    it_node->FastGetSolutionStepValue(mrConvectVar) = -(Nold * v_old + Nnew * v);
-                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = -(Nold_before * v_old + Nnew_before * v);
+                    it_node->FastGetSolutionStepValue(mrConvectVar) = -0.5*(Nold * v_old + Nnew * v);
+                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = -0.5*(Nold_before * v_old + Nnew_before * v);
                     PhiNplusOne[i_node] = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                    /* it_node->FastGetSolutionStepValue(mrLevelSetVar) = 0.25*(
+                        it_node->FastGetSolutionStepValue(mrLevelSetVar) + 3.0*it_node->GetValue(mrLevelSetVar)); */
+                    it_node->FastGetSolutionStepValue(mrLevelSetVar) = 0.5*(
+                        it_node->FastGetSolutionStepValue(mrLevelSetVar) + it_node->GetValue(mrLevelSetVar));
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
                 }
 
                 mProjectedGradientProcess.Execute();
+
+                /* #pragma omp parallel for
+                for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+
+                    it_node->FastGetSolutionStepValue(mrLevelSetVar) = 0.5*(
+                        it_node->GetValue(mrLevelSetVar) + PhiNplusOne[i_node] );
+                    it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                } */
+
                 rCurrentProcessInfo.SetValue(TIME_INTEGRATION_THETA, 0.5);
                 mpSolvingStrategy->Solve(); // backward convetion to obtain phi_n*
 
@@ -449,13 +462,13 @@ public:
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar); */
 
                     mError[i_node] =
-                        0.5*(it_node->GetValue(mrLevelSetVar) - it_node->FastGetSolutionStepValue(mrLevelSetVar));
+                        /* 0.5* */(it_node->GetValue(mrLevelSetVar) - it_node->FastGetSolutionStepValue(mrLevelSetVar));
                 }
 
                 /* mProjectedGradientProcess.Execute();
-                mpSolvingStrategy->Solve(); */ // backward convetion to obtain phi_n+1**
+                mpSolvingStrategy->Solve(); */ // forward convetion to obtain phi_n+1**
 
-                // Updating \phi^n based on the calculated error
+                // Updating \phi^n based on the calculated error (without limiter to calculate it correctly)
                 #pragma omp parallel for
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
                     auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
@@ -472,7 +485,7 @@ public:
                         + it_node->GetValue(LIMITER_COEFFICIENT)*error_corrected; */
 
                     const double phi_n_star = it_node->GetValue(mrLevelSetVar)
-                        + /* it_node->GetValue(LIMITER_COEFFICIENT) */mLimiter[i_node]*mError[i_node];
+                        + /* it_node->GetValue(LIMITER_COEFFICIENT) */ mLimiter[i_node]*mError[i_node];
 
                     it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
@@ -480,7 +493,6 @@ public:
                     /* it_node->FastGetSolutionStepValue(mrLevelSetVar) = it_node->FastGetSolutionStepValue(mrLevelSetVar, 1)
                         + it_node->GetValue(LIMITER_COEFFICIENT)*mError[i_node]; */
                 }
-
 
                 // Nodal gradient SavedAsNonHistoricalVariable
                 //mProjectedGradientProcessAux.Execute();
@@ -584,7 +596,98 @@ public:
                     }
                 } */
 
-                mProjectedGradientProcess.Execute();
+                // ****************************************************************************************
+                // ****************************************************************************************
+                // Calculating nodal limiter using \beta_ij = 1 (works fine on symmetric structural meshes)
+                // D. Kuzmin et al. / Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41
+                /* const double power_bfecc = 10;
+
+                #pragma omp parallel for
+                for (unsigned int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+                    const auto X_i = it_node->Coordinates();
+                    const auto grad_i = it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT);
+
+                    double S_plus = 0.0;
+                    double S_minus = 0.0;
+
+                    for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
+                        j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+
+                        if (it_node->Id() == j_node->Id())
+                            continue;
+
+                        const auto X_j = j_node->Coordinates();
+
+                        S_plus += std::max(0.0, inner_prod(grad_i, X_i-X_j));
+                        S_minus += std::min(0.0, inner_prod(grad_i, X_i-X_j));
+                    }
+
+                    mSigmaPlus[i_node] = std::min(1.0, (std::abs(S_minus)+epsilon)/(S_plus+epsilon));
+                    mSigmaMinus[i_node] = std::min(1.0, (S_plus+epsilon)/(std::abs(S_minus)+epsilon));
+                }
+
+                //Calculating beta_ij in a way that the linearity is preserved on non-symmetrical meshes
+                #pragma omp parallel for
+                for (unsigned int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+                    const double distance_i = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                    const auto X_i = it_node->Coordinates();
+                    const auto grad_i = it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT);
+
+                    double numerator = 0.0;
+                    double denominator = 0.0;
+
+                    for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
+                        j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+
+                        if (it_node->Id() == j_node->Id())
+                            continue;
+
+                        const double distance_j = j_node->FastGetSolutionStepValue(mrLevelSetVar);
+                        const auto X_j = j_node->Coordinates();
+
+                        double beta_ij = 1.0;
+                        if (inner_prod(grad_i, X_i-X_j) > 0)
+                            beta_ij = mSigmaPlus[i_node];
+                        else if (inner_prod(grad_i, X_i-X_j) < 0)
+                            beta_ij = mSigmaMinus[i_node];
+
+                        numerator += beta_ij*(distance_i - distance_j);
+                        denominator += beta_ij*std::abs(distance_i - distance_j);
+                    }
+
+                    const double fraction = (std::abs(numerator) + epsilon) / (denominator + epsilon);
+                    mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
+                    const double limiter_i = 1.0 - std::pow(fraction, power_elem);
+                    it_node->SetValue(LIMITER_COEFFICIENT, limiter_i);
+                }
+
+                #pragma omp parallel for
+                for(int i_elem=0; i_elem<static_cast<int>(mpDistanceModelPart->NumberOfElements()); ++i_elem) {
+                    auto it_elem = mpDistanceModelPart->ElementsBegin() + i_elem;
+                    auto& r_geometry = it_elem->GetGeometry();
+
+                    double elemental_limiter = 1.0;
+
+                    for(unsigned int i_node=0; i_node< TDim+1; ++i_node) {
+                        elemental_limiter = std::min(r_geometry[i_node].GetValue(LIMITER_COEFFICIENT), elemental_limiter);
+                        it_elem->SetValue(LIMITER_COEFFICIENT, elemental_limiter);
+                    }
+                }
+
+                // Updating \phi^n based on the calculated error (with the limiter)
+                #pragma omp parallel for
+                for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+
+                    const double phi_n_star = it_node->GetValue(mrLevelSetVar) + mLimiter[i_node]*mError[i_node];
+
+                    it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
+                    it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
+                } */
+
+                //mProjectedGradientProcess.Execute();
                 rCurrentProcessInfo.SetValue(TIME_INTEGRATION_THETA, 0.5);
                 mpSolvingStrategy->Solve(); // forward convection to obtain the corrected phi_n+1
             }

@@ -31,6 +31,7 @@
 #include "utilities/timer.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/openmp_utils.h"
+#include "processes/compute_nodal_gradient_process.h"
 
 namespace Kratos
 {
@@ -86,8 +87,18 @@ public:
         // ****************************************************************************************
         // Calculating nodal limiter using \beta_ij = 1 (works fine on symmetric structural meshes)
         // D. Kuzmin et al. / Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41
+        auto ProjectedGradientProcess =
+            ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>(
+            rModelPart,
+            rVar,
+            DISTANCE_GRADIENT,      // Should be set as an input
+            NODAL_AREA,             // Should be set as an input
+            false);
+
+        ProjectedGradientProcess.Execute();
+
         const double epsilon = 1.0e-15;
-        const double power = 5;
+        const double power = 4;
 
         #pragma omp parallel for
         for (unsigned int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node){
@@ -194,6 +205,13 @@ public:
             }
         }
 
+        for (int i = 0; i < nparticles; i++)
+        {
+            ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
+            iparticle->FastGetSolutionStepValue(rVar) = 0.5*(
+                iparticle->FastGetSolutionStepValue(rVar) + iparticle->FastGetSolutionStepValue(rVar, 1) );
+        }
+
         //now obtain the value AT TIME STEP N by taking it from N+1
         #pragma omp parallel for firstprivate(results,N,N_valid)
         for (int i = 0; i < nparticles; i++)
@@ -208,7 +226,7 @@ public:
             array_1d<double,3> fwdPos = iparticle->Coordinates();
             const array_1d<double,3>& vel = iparticle->FastGetSolutionStepValue(conv_var,1);
             bool has_valid_elem_pointer = false;
-            bool is_found = ConvectBySubstepping(dt,fwdPos,vel, N, N_valid, pelement, pelement_valid, result_begin, max_results, 1.0, substeps, conv_var,has_valid_elem_pointer);
+            bool is_found = ConvectBySubstepping(dt,fwdPos,0.5*vel, N, N_valid, pelement, pelement_valid, result_begin, max_results, 1.0, substeps, conv_var,has_valid_elem_pointer);
 
             if(is_found) {
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
@@ -219,7 +237,7 @@ public:
                 }
 
                 //store correction
-                const double compensated_error = iparticle->GetValue(LIMITER_COEFFICIENT)*0.5*(
+                const double compensated_error = /* 0.5* */iparticle->GetValue(LIMITER_COEFFICIENT)*(
                     phi_old - iparticle->FastGetSolutionStepValue(rVar,1));
 
                 iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) - compensated_error; //1.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5*phi_old;
@@ -406,8 +424,6 @@ protected:
 
 private:
     typename BinBasedFastPointLocator<TDim>::Pointer mpSearchStructure;
-
-
 
 };
 
