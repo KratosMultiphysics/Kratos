@@ -7,57 +7,39 @@ try:
 except:
     pass
 
-# Import XMC, distributed environment
-from xmc.distributedEnvironmentFramework import *
+# Import Kratos, XMC, distributed environment
+import KratosMultiphysics
 from xmc.classDefs_solverWrapper.methodDefs_KratosSolverWrapper.solve import ExecuteInstanceDeterministicAdaptiveRefinementAux_Functionality,ExecuteInstanceReadingFromFileAux_Functionality,ExecuteInstanceStochasticAdaptiveRefinementAux_Functionality
+from xmc.distributedEnvironmentFramework import *
 
 try:
     computing_procs_mlmc_execute_0 = int(os.environ["computing_procs_mlmc_execute_0"])
 except:
     computing_procs_mlmc_execute_0 = 1
-
-
-####################################################################################################
-########################################## SERIALIZATION ###########################################
-####################################################################################################
-
-@constraint(computing_units="${computing_units_mlmc_execute_0}")
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0)
-@ExaquteTask(returns=computing_procs_mlmc_execute_0)
-def SerializeMPIModel(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis):
-
-    import KratosMultiphysics
-    import KratosMultiphysics.mpi as KratosMPI
-
-    serialized_parameters = pickle.loads(pickled_parameters)
-    del pickled_parameters
-    deserialized_parameters = KratosMultiphysics.Parameters()
-    serialized_parameters.Load("ParametersSerialization", deserialized_parameters)
-
-    # prepare the model to serialize
-    model = KratosMultiphysics.Model()
-    fake_sample = fake_sample_to_serialize
-    deserialized_parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("mdpa")
-
-    simulation = analysis(model,deserialized_parameters,fake_sample)
-    simulation.Initialize()
-    # reset general flags
-    simulation.model.GetModelPart(main_model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,True)
-
-    # serialize model
-    serialized_model = KratosMultiphysics.MpiSerializer()
-    serialized_model.Save("ModelSerialization",simulation.model)
-    # self.serialized_model.append(serialized_model)
-
-    # pickle dataserialized_data
-    pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
-
-    return pickled_model
+try:
+    computing_procs_mlmc_execute_1 = int(os.environ["computing_procs_mlmc_execute_1"])
+except:
+    computing_procs_mlmc_execute_1 = 1
+try:
+    computing_procs_mlmc_execute_2 = int(os.environ["computing_procs_mlmc_execute_2"])
+except:
+    computing_procs_mlmc_execute_2 = 1
 
 
 ####################################################################################################
 ############################################ WRAPPERS ##############################################
 ####################################################################################################
+
+def SerializeMPIModel_Wrapper(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis, current_index):
+    if current_index == 0:
+        pickled_model = SerializeMPIModelAuxLev0_Task(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis)
+    elif current_index == 1:
+        pickled_model = SerializeMPIModelAuxLev1_Task(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis)
+    elif current_index == 2:
+        pickled_model = SerializeMPIModelAuxLev2_Task(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis)
+    else:
+        raise Exception("Level not supported")
+    return pickled_model
 
 def executeInstanceStochasticAdaptiveRefinementAllAtOnce_Wrapper(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,mapping_flag,adaptive_refinement_jump_to_finest_level,print_to_file,current_contribution):
     if (current_index == 0):
@@ -68,7 +50,12 @@ def executeInstanceStochasticAdaptiveRefinementAllAtOnce_Wrapper(current_index,p
         qoi_and_time_list = ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev2_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,mapping_flag,adaptive_refinement_jump_to_finest_level,print_to_file,"filename_level_"+str(current_index)+"_contribution_"+str(current_contribution)+"_random_variable_"+str(random_variable[0])+".dat")
     else:
         raise Exception("Level not supported")
-    qoi, time_for_qoi = UnfoldFutureQT(qoi_and_time_list)
+    if KratosMultiphysics.IsDistributedRun():
+        # running with mpirun the whole xmc algorithm
+        qoi, time_for_qoi = UnfoldQT(qoi_and_time_list)
+    else:
+        # running with distributed environment framework, only Kratos tasks are run with mpi
+        qoi, time_for_qoi = UnfoldFutureQT(qoi_and_time_list)
     return qoi, time_for_qoi
 
 def executeInstanceStochasticAdaptiveRefinementMultipleTasks_Wrapper(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,mapping_flag,print_to_file,current_contribution,pickled_mapping_reference_model=None):
@@ -78,7 +65,12 @@ def executeInstanceStochasticAdaptiveRefinementMultipleTasks_Wrapper(current_ind
         qoi_and_time_list = ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev1_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,"filename_level_"+str(current_index)+"_contribution_"+str(current_contribution)+"_random_variable_"+str(random_variable[0])+".dat")
     else:
         raise Exception("Level not supported")
-    qoi, pickled_current_model, time_for_qoi = UnfoldFutureQMT(qoi_pickled_current_model_time_for_qoi_list)
+    if KratosMultiphysics.IsDistributedRun():
+        # running with mpirun the whole xmc algorithm
+        qoi, pickled_current_model, time_for_qoi = UnfoldQMT(qoi_pickled_current_model_time_for_qoi_list)
+    else:
+        # running with distributed environment framework, only Kratos tasks are run with mpi
+        qoi, pickled_current_model, time_for_qoi = UnfoldFutureQMT(qoi_pickled_current_model_time_for_qoi_list)
     return qoi, pickled_current_model, time_for_qoi
 
 def executeInstanceDeterministicAdaptiveRefinement_Wrapper(current_index,pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,current_contribution):
@@ -88,7 +80,12 @@ def executeInstanceDeterministicAdaptiveRefinement_Wrapper(current_index,pickled
         qoi_and_time_list = executeInstanceDeterministicAdaptiveRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,"filename_level_"+str(current_index)+"_contribution_"+str(current_contribution)+"_random_variable_"+str(random_variable[0])+".dat")
     else:
         raise Exception("Level not supported")
-    qoi, time_for_qoi = UnfoldFutureQT(qoi_and_time_list)
+    if KratosMultiphysics.IsDistributedRun():
+        # running with mpirun the whole xmc algorithm
+        qoi, time_for_qoi = UnfoldQT(qoi_and_time_list)
+    else:
+        # running with distributed environment framework, only Kratos tasks are run with mpi
+        qoi, time_for_qoi = UnfoldFutureQT(qoi_and_time_list)
     return qoi, time_for_qoi
 
 def executeInstanceReadingFromFile_Wrapper(current_index,pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,current_contribution):
@@ -96,15 +93,35 @@ def executeInstanceReadingFromFile_Wrapper(current_index,pickled_model,pickled_p
         qoi_and_time_list = executeInstanceReadingFromFileAuxLev0_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,"filename_level_"+str(current_index)+"_contribution_"+str(current_contribution)+"_random_variable_"+str(random_variable[0])+".dat")
     elif (current_index == 1):
         qoi_and_time_list = executeInstanceReadingFromFileAuxLev1_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,"filename_level_"+str(current_index)+"_contribution_"+str(current_contribution)+"_random_variable_"+str(random_variable[0])+".dat")
+    elif (current_index == 2):
+        qoi_and_time_list = executeInstanceReadingFromFileAuxLev2_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,"filename_level_"+str(current_index)+"_contribution_"+str(current_contribution)+"_random_variable_"+str(random_variable[0])+".dat")
     else:
         raise Exception("Level not supported")
-    qoi, time_for_qoi = UnfoldFutureQT(qoi_and_time_list)
+    if KratosMultiphysics.IsDistributedRun():
+        # running with mpirun the whole xmc algorithm
+        qoi, time_for_qoi = UnfoldQT(qoi_and_time_list)
+    else:
+        # running with distributed environment framework, only Kratos tasks are run with mpi
+        qoi, time_for_qoi = UnfoldFutureQT(qoi_and_time_list)
     return qoi, time_for_qoi
 
 
 ####################################################################################################
 ############################################## TASKS ###############################################
 ####################################################################################################
+
+def UnfoldQT(qoi_and_time_list):
+    communicator = KratosMultiphysics.DataCommunicator.GetDefault()
+    qoi = qoi_and_time_list[0]
+    time_for_qoi = communicator.SumAll(qoi_and_time_list[-1])
+    return qoi, time_for_qoi
+
+def UnfoldQMT(qoi_pickled_current_model_time_for_qoi_list):
+    communicator = KratosMultiphysics.DataCommunicator.GetDefault()
+    qoi = qoi_pickled_current_model_time_for_qoi_list[0]
+    pickled_current_model = qoi_pickled_current_model_time_for_qoi_list[1]
+    time_for_qoi = communicator.SumAll(qoi_pickled_current_model_time_for_qoi_list[-1])
+    return qoi, pickled_current_model, time_for_qoi
 
 @ExaquteTask(qoi_and_time_list={Type: COLLECTION_IN, Depth: 2}, returns=2)
 def UnfoldFutureQT(qoi_and_time_list):
@@ -122,6 +139,95 @@ def UnfoldFutureQMT(qoi_pickled_current_model_time_for_qoi_list):
     for qoi_pickled_current_model_time_for_qoi  in qoi_pickled_current_model_time_for_qoi_list:
         time_for_qoi += qoi_pickled_current_model_time_for_qoi[-1] # sum all times
     return qoi, pickled_current_model, time_for_qoi
+
+########################################## Serialization ##########################################
+
+@constraint(computing_units="${computing_units_mlmc_execute_0}")
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0)
+@ExaquteTask(returns=computing_procs_mlmc_execute_0)
+def SerializeMPIModelAuxLev0_Task(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis):
+    import KratosMultiphysics
+    import KratosMultiphysics.mpi as KratosMPI
+
+    serialized_parameters = pickle.loads(pickled_parameters)
+    del pickled_parameters
+    deserialized_parameters = KratosMultiphysics.Parameters()
+    serialized_parameters.Load("ParametersSerialization", deserialized_parameters)
+    # prepare the model to serialize
+    model = KratosMultiphysics.Model()
+    fake_sample = fake_sample_to_serialize
+    deserialized_parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("mdpa")
+    # initialize analysis stage
+    simulation = analysis(model,deserialized_parameters,fake_sample)
+    simulation.Initialize()
+    # reset general flags
+    simulation.model.GetModelPart(main_model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,True)
+    # serialize model
+    serialized_model = KratosMultiphysics.MpiSerializer()
+    serialized_model.Save("ModelSerialization",simulation.model)
+    # self.serialized_model.append(serialized_model)
+    # pickle dataserialized_data
+    pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+
+    return pickled_model
+
+@constraint(computing_units="${computing_units_mlmc_execute_1}")
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_1)
+@ExaquteTask(returns=computing_procs_mlmc_execute_1)
+def SerializeMPIModelAuxLev1_Task(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis):
+    import KratosMultiphysics
+    import KratosMultiphysics.mpi as KratosMPI
+
+    serialized_parameters = pickle.loads(pickled_parameters)
+    del pickled_parameters
+    deserialized_parameters = KratosMultiphysics.Parameters()
+    serialized_parameters.Load("ParametersSerialization", deserialized_parameters)
+    # prepare the model to serialize
+    model = KratosMultiphysics.Model()
+    fake_sample = fake_sample_to_serialize
+    deserialized_parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("mdpa")
+    # initialize analysis stage
+    simulation = analysis(model,deserialized_parameters,fake_sample)
+    simulation.Initialize()
+    # reset general flags
+    simulation.model.GetModelPart(main_model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,True)
+    # serialize model
+    serialized_model = KratosMultiphysics.MpiSerializer()
+    serialized_model.Save("ModelSerialization",simulation.model)
+    # self.serialized_model.append(serialized_model)
+    # pickle dataserialized_data
+    pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+
+    return pickled_model
+
+@constraint(computing_units="${computing_units_mlmc_execute_2}")
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_2)
+@ExaquteTask(returns=computing_procs_mlmc_execute_2)
+def SerializeMPIModelAuxLev2_Task(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis):
+    import KratosMultiphysics
+    import KratosMultiphysics.mpi as KratosMPI
+
+    serialized_parameters = pickle.loads(pickled_parameters)
+    del pickled_parameters
+    deserialized_parameters = KratosMultiphysics.Parameters()
+    serialized_parameters.Load("ParametersSerialization", deserialized_parameters)
+    # prepare the model to serialize
+    model = KratosMultiphysics.Model()
+    fake_sample = fake_sample_to_serialize
+    deserialized_parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("mdpa")
+    # initialize analysis stage
+    simulation = analysis(model,deserialized_parameters,fake_sample)
+    simulation.Initialize()
+    # reset general flags
+    simulation.model.GetModelPart(main_model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,True)
+    # serialize model
+    serialized_model = KratosMultiphysics.MpiSerializer()
+    serialized_model.Save("ModelSerialization",simulation.model)
+    # self.serialized_model.append(serialized_model)
+    # pickle dataserialized_data
+    pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+
+    return pickled_model
 
 ############################### StochasticAdaptiveRefinementAllAtOnce ##############################
 
@@ -197,10 +303,10 @@ def executeInstanceDeterministicAdaptiveRefinementAuxLev0_Task(pickled_model,pic
 
 ########################################## ReadingFromFile #########################################
 
-# @ExaquteTask(filename=FILE_OUT,pickled_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
+# @ExaquteTask(filename=FILE_OUT, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
 @constraint(computing_units="${computing_units_mlmc_execute_0}")
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, pickled_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1})
-@ExaquteTask(pickled_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, pickled_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1})
+@ExaquteTask(pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
 def executeInstanceReadingFromFileAuxLev0_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     # Import Kratos
     import KratosMultiphysics
@@ -209,6 +315,46 @@ def executeInstanceReadingFromFileAuxLev0_Task(pickled_model,pickled_project_par
 
     try:
         open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        open_mp_threads = 1
+
+    qoi,time_for_qoi = \
+        ExecuteInstanceReadingFromFileAux_Functionality(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename,open_mp_threads)
+    return qoi,time_for_qoi
+
+# @ExaquteTask(filename=FILE_OUT, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_1)
+@constraint(computing_units="${computing_units_mlmc_execute_1}")
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_1, pickled_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1})
+@ExaquteTask(pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_1)
+def executeInstanceReadingFromFileAuxLev1_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
+    # Import Kratos
+    import KratosMultiphysics
+    import KratosMultiphysics.mpi as KratosMPI
+    from KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities import AdaptiveRefinement
+
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        open_mp_threads = 1
+
+    qoi,time_for_qoi = \
+        ExecuteInstanceReadingFromFileAux_Functionality(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename,open_mp_threads)
+    return qoi,time_for_qoi
+
+# @ExaquteTask(filename=FILE_OUT, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_2)
+@constraint(computing_units="${computing_units_mlmc_execute_2}")
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_2, pickled_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1})
+@ExaquteTask(pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_2)
+def executeInstanceReadingFromFileAuxLev2_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
+    # Import Kratos
+    import KratosMultiphysics
+    import KratosMultiphysics.mpi as KratosMPI
+    from KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities import AdaptiveRefinement
+
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1

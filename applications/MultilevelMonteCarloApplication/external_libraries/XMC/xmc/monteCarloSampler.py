@@ -385,6 +385,13 @@ class MonteCarloSampler:
         self.batchIndices[batch][index].sampler.solvers[solver].serialized_model = (
             self.indices[index].sampler.solvers[0].serialized_model
         )
+        # mapping reference model: model of level 0,
+        # used for mapping finer levels quantities onto level 0 model
+        # it is required if "mappingOutputQuantities" flag is true,
+        # however, for sake of simplicity, we copy it always
+        self.batchIndices[batch][index].sampler.solvers[solver].pickled_mapping_reference_model = (
+            self.indices[index].sampler.solvers[0].pickled_mapping_reference_model
+        )
         # project parameters
         self.batchIndices[batch][index].sampler.solvers[solver].pickled_project_parameters = (
             self.indices[index].sampler.solvers[0].pickled_project_parameters

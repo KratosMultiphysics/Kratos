@@ -1,6 +1,7 @@
 # Import Python libraries
 import math
 import pickle
+import warnings
 
 # Import Kratos
 import KratosMultiphysics
@@ -30,17 +31,14 @@ class KratosSolverWrapper(sw.SolverWrapper):
     - is_mpi: boolean stating if problem is run in MPI or in serial.
     - mapping_output_quantities: boolean. If true, the analysis stage is prepared to map the variables of interest to a reference Kratos Model. By default, such Kratos Model is the coarsest index. Set by mappingOutputQuantities key.
     - number_contributions_per_instance: integer. Defines the number of realization per each solve call. Useful if one wants to exploit ensemble average, together with hierarchical Monte Carlo methods. Set by numberContributionsPerInstance key.
-    - number_moment_estimator: integer. Defines the number of MomentEstimator Quantities of Interest the user wants to return. Set by numberMomentEstimator key.
-    - number_combined_moment_estimator: integer. Defines the number of CombinedMomentEstimator Quantities of Interest the user wants to return. Set by numberCombinedMomentEstimator key.
-    - number_multi_moment_estimator: integer. Defines the number of MultiMomentEstimator Quantities of Interest the user wants to return. Set by numberMultiMomentEstimator key.
-    - number_multi_combined_moment_estimator: integer. Defines the number of MultiCombinedMomentEstimator Quantities of Interest the user wants to return. Set by numberMultiCombinedQoi key.
     - outputBatchSize: integer. Defines the size of each sub-list of the Quantities of Interest list which is returned by the solve method. It is alternative to outputDimension, defined below. Set by OutputBatchSize.
     - outputDimension: integer or list of integers. If integer, equals to len(sample), where sample is the first output argument of self.solve(). If list of integers, then it means that samples are split in future lists, and outputDimension is [len(subSample) for subSample in sample]. Set by OutputDimension key.
     - print_to_file: boolean. If true, prepares the distributed environment programing model PyCOMPSs to write a file inside the solve task. Set by printToFile key.
     - project_parameters_path: string or list of strings. Defines the path to Kratos Project Parameters. Set by projectParametersPath key.
+    - qoi_estimator: list of strings. Each string is the moment estimator name to which each quantity of interest is associated.
     - refinement_parameters_path: string. Define the path to the Kratos Adaptive Refinement Project Parameters. Set by refinementParametersPath key.
     - refinement_strategy: string. Options are: "reading_from_file", "deterministic_adaptive_refinement", "stochastic_adaptive_refinement". It defines the refinement strategy for multilevel algorithms. Set by refinementStrategy key.
-    - size_multi_x_moment_estimator: integer or list of integers. Defines the size of each vector quantity if interest. If integer, vector quantities of interest have the same size. If list, the list has the same length of numberMultiMomentEstimator+numberMultiCombinedMomentEstimator. It is required to set a priori this value only because of returnZeroQoiAndTime_Task, which needs to know how many 0s to return. Set by sizeMultiXMomentEstimator.
+    - size_multi_x_moment_estimator: integer. Defines the size of each vector quantity if interest. If integer, vector quantities of interest have the same size. It is required to set a priori this value only because of returnZeroQoiAndTime_Task, which needs to know how many 0s to return. Set by sizeMultiXMomentEstimator. Obs: in future, also a list will be supported. If list, the list has the same length of numberMultiMomentEstimator+numberMultiCombinedMomentEstimator.
 
     Methods:
     - serialize: method serializing Kratos Model and Kratos Parameters.
@@ -48,32 +46,27 @@ class KratosSolverWrapper(sw.SolverWrapper):
     Other methods are called from the two methods defined above.
     """
 
-    # TODO: solverWrapperIndex will be removed from here and will have an indicator about the level we are at and not which algorithm we are using
     # TODO: are both outputBatchSize and outputBatchSize needed? Probably not.
-    # TODO: integrate MultiXMomentEstimators with ensemble average.
     def __init__(self,**keywordArgs):
         super().__init__(**keywordArgs)
         self.analysis = SimulationScenario
         self.adaptive_refinement_jump_to_finest_level = keywordArgs.get("adaptiveRefinementJumpToFinestLevel",False)
         self.asynchronous = keywordArgs.get("asynchronous",False)
-        self.different_tasks = not keywordArgs.get('taskAllAtOnce',False)
-        self.fake_sample_to_serialize =  keywordArgs.get('fakeRandomVariable')
+        self.different_tasks = not keywordArgs.get("taskAllAtOnce",False)
+        self.fake_sample_to_serialize =  keywordArgs.get("fakeRandomVariable")
         self.mapping_output_quantities = keywordArgs.get("mappingOutputQuantities",False)
         self.is_mpi = keywordArgs.get("isMpi", False)
         self.number_contributions_per_instance = keywordArgs.get("numberContributionsPerInstance",1)
-        self.number_moment_estimator = keywordArgs.get("numberMomentEstimator",0)
-        self.number_combined_moment_estimator = keywordArgs.get("numberCombinedMomentEstimator",0)
-        self.number_multi_moment_estimator = keywordArgs.get("numberMultiMomentEstimator",0)
-        self.number_multi_combined_moment_estimator = keywordArgs.get("numberMultiCombinedMomentEstimator",0)
-        self.outputBatchSize = keywordArgs.get('outputBatchSize',1)
+        self.outputBatchSize = keywordArgs.get("outputBatchSize",1)
         self.print_to_file = keywordArgs.get("printToFile",False)
-        self.project_parameters_path = keywordArgs.get('projectParametersPath')
-        self.refinement_parameters_path = keywordArgs.get('refinementParametersPath')
-        self.refinement_strategy = keywordArgs.get('refinementStrategy')
-        self.size_multi_x_moment_estimator = keywordArgs.get('sizeMultiXMomentEstimator',-1) # remove after returnZeroQoiAndTime_Task is removed
+        self.project_parameters_path = keywordArgs.get("projectParametersPath")
+        self.qoi_estimator = keywordArgs.get("qoiEstimator")
+        self.refinement_parameters_path = keywordArgs.get("refinementParametersPath")
+        self.refinement_strategy = keywordArgs.get("refinementStrategy")
+        self.size_multi_x_moment_estimator = keywordArgs.get("sizeMultiXMomentEstimator",-1) # remove after returnZeroQoiAndTime_Task is removed
 
         # Set outputDimension
-        self.outputDimension = keywordArgs.get('outputDimension',None)
+        self.outputDimension = keywordArgs.get("outputDimension",None)
         # If not given, compute from self.outputBatchSize for backward compatibility
         if self.outputDimension is None:
             outputNb = self._numberOfOutputs()
@@ -149,9 +142,9 @@ class KratosSolverWrapper(sw.SolverWrapper):
             if self.number_contributions_per_instance > 1:
                 unm = mdu.UnfolderManager(self._numberOfOutputs(),self.outputBatchSize)
                 if (self._numberOfOutputs() == self.outputBatchSize):
-                    qoi_list = [unm.PostprocessContributionsPerInstance(aux_qoi_array,self.number_moment_estimator,self.number_combined_moment_estimator)]
+                    qoi_list = [unm.PostprocessContributionsPerInstance(aux_qoi_array,self.qoi_estimator)]
                 elif (self._numberOfOutputs() > self.outputBatchSize):
-                    qoi_list = unm.PostprocessContributionsPerInstance(aux_qoi_array,self.number_moment_estimator,self.number_combined_moment_estimator)
+                    qoi_list = unm.PostprocessContributionsPerInstance(aux_qoi_array,self.qoi_estimator)
                 else:
                     raise Exception("_numberOfOutputs() returns a value smaller than self.outputBatchSize. Set outputBatchSize smaller or equal to the number of scalar outputs.")
                 delete_object(unm)
@@ -174,7 +167,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
             del(aux_qoi_array)
 
         else:
-            qoi,time_for_qoi = mds.returnZeroQoiAndTime_Task(self.number_moment_estimator + self.number_combined_moment_estimator, self.number_multi_moment_estimator + self.number_multi_combined_moment_estimator, self.size_multi_x_moment_estimator)
+            qoi,time_for_qoi = mds.returnZeroQoiAndTime_Task(self.qoi_estimator, self.size_multi_x_moment_estimator)
             # unfold qoi into its components of fixed size
             unm = mdu.UnfolderManager(self._numberOfOutputs(), self.outputBatchSize)
             if (self._numberOfOutputs() == self.outputBatchSize):
@@ -302,7 +295,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
         # local variables
         current_index = self.solverWrapperIndex[0]
         pickled_model = self.pickled_model[current_index]
-        pickled_mapping_reference_model = self.pickled_model[0]
+        pickled_mapping_reference_model = self.pickled_mapping_reference_model[current_index]
         pickled_project_parameters = self.pickled_project_parameters[current_index]
         mapping_flag = self.mapping_output_quantities
         print_to_file = self.print_to_file
@@ -330,6 +323,8 @@ class KratosSolverWrapper(sw.SolverWrapper):
         iii) from pickle string to MpiSerializer Kratos object,
         iv)  from MpiSerializer Kratos object to Model/Parameters Kratos object.
         Depending on the refinement strategy, three different methods may be called and are defined next.
+        We remark that creating the class member pickled_mapping_reference_model is required by MPI runs,
+        since we need such coarse model to be serialized with the same number of processors of the MPI task.
 
         Inputs:
         - self: an instance of the class.
@@ -339,6 +334,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
         self.serialized_project_parameters = []
         self.pickled_model = []
         self.pickled_project_parameters = []
+        self.pickled_mapping_reference_model = []
 
         if (self.refinement_strategy == "stochastic_adaptive_refinement"):
             self.SerializeModelParametersStochasticAdaptiveRefinement()
@@ -354,6 +350,13 @@ class KratosSolverWrapper(sw.SolverWrapper):
 
 
     def SerializeSerialModel(self, parameters):
+        """
+        Method serializing and pickling the Kratos Model and the Kratos Parameters of the problem. It builds self.pickled_model and self.pickled_project_parameters. It is called if we are not runnnig in MPI.
+
+        Inputs:
+        - self: an instance of the class.
+        - parameters: KratosMultiphysics.ProjectParameters object. It contains the settings of the simulation.
+        """
         # prepare the model to serialize
         model = KratosMultiphysics.Model()
         fake_sample = self.fake_sample_to_serialize
@@ -378,7 +381,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
         - self: an instance of the class.
         """
 
-        with open(self.project_parameters_path,'r') as parameter_file:
+        with open(self.project_parameters_path,"r") as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         # create wrapper instance to modify current project parameters
         self.wrapper = ParametersWrapper(parameters)
@@ -396,8 +399,8 @@ class KratosSolverWrapper(sw.SolverWrapper):
                 raise(Exception("XMC is set in MPI but Kratos is not!"))
             # self.serialized_model cannot be retrieved in MPI so only pickled model is returned
             # returns: [[model1_1,model_1_2, model_1_3, model_1_4], [model2_1,model_2_2, model_2_3, model_2_4]]
-            pickled_model = mpi_mds.SerializeMPIModel( \
-                pickled_project_parameters, self.wrapper.GetModelPartName(), self.fake_sample_to_serialize, self.analysis)
+            pickled_model = mpi_mds.SerializeMPIModel_Wrapper( \
+                pickled_project_parameters, self.wrapper.GetModelPartName(), self.fake_sample_to_serialize, self.analysis, current_index=0)
         else:
             if parameters["problem_data"]["parallel_type"].GetString()=="MPI":
                 raise(Exception("Kratos is set in MPI but XMC is not!"))
@@ -450,8 +453,9 @@ class KratosSolverWrapper(sw.SolverWrapper):
         - self: an instance of the class.
         """
 
+        current_index = 0
         for parameters_path in self.project_parameters_path:
-            with open(parameters_path,'r') as parameter_file:
+            with open(parameters_path,"r") as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
             # create wrapper instance to modify current project parameters
             self.wrapper = ParametersWrapper(parameters)
@@ -463,21 +467,28 @@ class KratosSolverWrapper(sw.SolverWrapper):
             # reset to read the model part
             parameters = self.wrapper.SetModelImportSettingsInputType("mdpa")
             pickled_project_parameters = pickle.dumps(serialized_project_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+            self.pickled_project_parameters.append(pickled_project_parameters)
 
             if self.is_mpi:
                 if not parameters["problem_data"]["parallel_type"].GetString()=="MPI":
                     raise(Exception("XMC is set in MPI but Kratos is not!"))
                 # self.serialized_model cannot be retrieved in MPI so only pickled model is returned
                 # returns: [[model1_1,model_1_2, model_1_3, model_1_4], [model2_1,model_2_2, model_2_3, model_2_4]]
-                pickled_model = mpi_mds.SerializeMPIModel( \
-                    pickled_project_parameters, self.wrapper.GetModelPartName(), self.fake_sample_to_serialize, self.analysis)
+                pickled_model = mpi_mds.SerializeMPIModel_Wrapper( \
+                    pickled_project_parameters, self.wrapper.GetModelPartName(), self.fake_sample_to_serialize, self.analysis, current_index)
+                pickled_mapping_reference_model = mpi_mds.SerializeMPIModel_Wrapper( \
+                    self.pickled_project_parameters[0], self.wrapper.GetModelPartName(), self.fake_sample_to_serialize, self.analysis, current_index)
+                current_index += 1
             else:
                 if parameters["problem_data"]["parallel_type"].GetString()=="MPI":
                     raise(Exception("Kratos is set in MPI but XMC is not!"))
                 pickled_model = self.SerializeSerialModel(parameters)
 
             self.pickled_model.append(pickled_model)
-            self.pickled_project_parameters.append(pickled_project_parameters)
+            if self.is_mpi:
+                self.pickled_mapping_reference_model.append(pickled_mapping_reference_model)
+            else:
+                self.pickled_mapping_reference_model.append(self.pickled_model[0])
 
 
     def SerializeRefinementParameters(self):
@@ -518,10 +529,36 @@ class KratosSolverWrapper(sw.SolverWrapper):
         - self: an instance of the class.
         """
 
-        with open(self.refinement_parameters_path,'r') as parameter_file:
+        with open(self.refinement_parameters_path,"r") as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        self.custom_metric_refinement_parameters = parameters["hessian_metric"]
-        self.custom_remesh_refinement_parameters = parameters["refinement_mmg"]
+        if parameters.Has("metric"):
+            self.custom_metric_refinement_parameters = parameters["metric"]
+        elif parameters.Has("hessian_metric"):
+            self.custom_metric_refinement_parameters = parameters["hessian_metric"]
+            warnings.warn(
+                (
+                    "The metric settings are passed through the \"hessian_metric\" key."
+                    " This is deprecated and will be removed soon."
+                    " Instead, you should pass the metric settings using the \"hessian_metric\" key."
+                ),
+                FutureWarning,
+            )
+        else:
+            raise Exception("Refinement parameters, set by refinement_parameters_path, does not contain the required key \"metric\".")
+        if parameters.Has("remeshing"):
+            self.custom_remesh_refinement_parameters = parameters["remeshing"]
+        elif parameters.Has("refinement_mmg"):
+            self.custom_remesh_refinement_parameters = parameters["refinement_mmg"]
+            warnings.warn(
+                (
+                    "The remeshing settings are passed through the \"refinement_mmg\" key."
+                    " This is deprecated and will be removed soon."
+                    " Instead, you should pass the metric settings using the \"remeshing\" key."
+                ),
+                FutureWarning,
+            )
+        else:
+            raise Exception("Refinement parameters, set by refinement_parameters_path, does not contain the required key \"remeshing\".")
 
     def ComputeMeshParameters(self):
         """
@@ -561,4 +598,4 @@ class KratosSolverWrapper(sw.SolverWrapper):
         Inputs:
         - self: an instance of the class.
         """
-        return self.number_moment_estimator + self.number_combined_moment_estimator + self.number_multi_moment_estimator + self.number_multi_combined_moment_estimator
+        return len(self.qoi_estimator)
