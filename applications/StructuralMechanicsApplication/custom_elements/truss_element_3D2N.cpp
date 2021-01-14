@@ -89,10 +89,14 @@ void TrussElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
 void TrussElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
-        mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-    } else {
-        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
+
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
+            mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        } else {
+            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
+        }
     }
 
     KRATOS_CATCH("")
@@ -139,7 +143,7 @@ void TrussElement3D2N::CalculateMassMatrix(
 
     // Compute lumped mass matrix
     VectorType temp_vector(msLocalSize);
-    CalculateLumpedMassVector(temp_vector);
+    CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
 
     // Clear matrix
     if (rMassMatrix.size1() != msLocalSize || rMassMatrix.size2() != msLocalSize) {
@@ -639,7 +643,7 @@ void TrussElement3D2N::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         VectorType element_mass_vector(msLocalSize);
-        CalculateLumpedMassVector(element_mass_vector);
+        CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
 
         for (SizeType i = 0; i < msNumberOfNodes; ++i) {
             double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
@@ -684,7 +688,7 @@ void TrussElement3D2N::AddExplicitContribution(
 
         // Getting the vector mass
         VectorType mass_vector(msLocalSize);
-        CalculateLumpedMassVector(mass_vector);
+        CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
 
         for (int i = 0; i < msNumberOfNodes; ++i) {
             double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
@@ -920,13 +924,15 @@ bool TrussElement3D2N::HasSelfWeight() const
     }
 }
 
-void TrussElement3D2N::CalculateLumpedMassVector(VectorType& rMassVector)
+void TrussElement3D2N::CalculateLumpedMassVector(
+    VectorType& rLumpedMassVector,
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     // Clear matrix
-    if (rMassVector.size() != msLocalSize) {
-        rMassVector.resize(msLocalSize, false);
+    if (rLumpedMassVector.size() != msLocalSize) {
+        rLumpedMassVector.resize(msLocalSize, false);
     }
 
     const double A = GetProperties()[CROSS_AREA];
@@ -939,7 +945,7 @@ void TrussElement3D2N::CalculateLumpedMassVector(VectorType& rMassVector)
         for (int j = 0; j < msDimension; ++j) {
             int index = i * msDimension + j;
 
-            rMassVector[index] = total_mass * 0.50;
+            rLumpedMassVector[index] = total_mass * 0.50;
         }
     }
 

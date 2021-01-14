@@ -26,6 +26,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -725,7 +726,7 @@ protected:
         mpLumpedMassVector = TSystemVectorPointerType(new TSystemVectorType(GetDofSet().size()));
         TDenseSpace::SetToZero(*mpLumpedMassVector);
 
-        // Loop the elements to get the lumped mass matrix
+        // Loop the elements to get the lumped mass vector
         LocalSystemVectorType elem_mass_vector;
         std::vector<std::size_t> elem_equation_id;
         const auto &r_elements_array = rModelPart.Elements();
@@ -735,15 +736,14 @@ protected:
 #pragma omp for private(elem_mass_vector) schedule(guided, 512) nowait
         for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
             const auto it_elem = r_elements_array.begin() + i_elem;
-            auto& r_geom = it_elem->GetGeometry();
 
             // Calculate the elemental lumped mass vector
             it_elem->CalculateLumpedMassVector(elem_mass_vector, r_process_info);
             it_elem->EquationIdVector(elem_equation_id, r_process_info);
 
             // Update value of lumped mass vector
-            for (IndexType i = 0; i < r_geom.size(); ++i) {
-                (*mpLumpedMassVector)[elem_equation_id[i]] += elem_mass_vector(i);
+            for (IndexType i = 0; i < elem_equation_id.size(); ++i) {
+                AtomicAdd((*mpLumpedMassVector)[elem_equation_id[i]], elem_mass_vector(i));
             }
         }
 

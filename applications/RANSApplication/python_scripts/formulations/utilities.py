@@ -9,6 +9,7 @@ from KratosMultiphysics import VariableUtils
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
+from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
     from KratosMultiphysics.TrilinosApplication import TrilinosBlockBuilderAndSolverPeriodic
@@ -209,6 +210,16 @@ def InitializePeriodicConditions(
             periodic_condition = model_part.CreateNewCondition(
                 periodic_condition_name, index, node_id_list, properties)
             periodic_condition.Set(Kratos.PERIODIC)
+
+def InitializeWallLawProperties(model):
+    for model_part_name in model.GetModelPartNames():
+        for properties in model[model_part_name].Properties:
+            # logarithmic wall law
+            if (properties.Has(KratosRANS.WALL_VON_KARMAN) and properties.Has(KratosRANS.WALL_SMOOTHNESS_BETA)):
+                von_karman = properties.GetValue(KratosRANS.WALL_VON_KARMAN)
+                beta = properties.GetValue(KratosRANS.WALL_SMOOTHNESS_BETA)
+                y_plus_limit = RansCalculationUtilities.CalculateLogarithmicYPlusLimit(von_karman, beta)
+                properties.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, y_plus_limit)
 
 
 def GetBoundaryFlags(boundary_flags_parameters):

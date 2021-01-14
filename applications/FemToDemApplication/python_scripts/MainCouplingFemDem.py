@@ -481,6 +481,8 @@ class MainCoupledFemDem_Solution:
                 self.ExpandWetNodes()
                 KratosFemDem.UpdatePressureVolumeProcess(self.FEM_Solution.main_model_part).Execute()
                 self.ExpandWetNodes()
+            
+            self.UpdateDEMVariables()
 
             dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
             dem_generator_process.Execute()
