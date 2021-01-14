@@ -2,7 +2,6 @@
 // Date: February 2019
 
 #include "buoyancy_law.h"
-#include "swimming_dem_application_variables.h"
 
 namespace Kratos {
 

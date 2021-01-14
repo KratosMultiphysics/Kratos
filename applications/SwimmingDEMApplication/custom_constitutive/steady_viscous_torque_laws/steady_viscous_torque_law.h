@@ -66,6 +66,8 @@ namespace Kratos {
 
     }; //class SteadyViscousTorqueLaw
 
+KRATOS_DEFINE_APPLICATION_VARIABLE(SWIMMING_DEM_APPLICATION, SteadyViscousTorqueLaw::Pointer, SDEM_STEADY_VISCOUS_TORQUE_LAW_POINTER)
+
 } // Namespace Kratos
 
 #endif /* SDEM_STEADY_VISCOUS_TORQUE_LAW_H_INCLUDED  defined */

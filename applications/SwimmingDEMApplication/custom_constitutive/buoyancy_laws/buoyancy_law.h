@@ -56,6 +56,8 @@ namespace Kratos {
 
     }; //class BuoyancyLaw
 
+KRATOS_DEFINE_APPLICATION_VARIABLE(SWIMMING_DEM_APPLICATION, BuoyancyLaw::Pointer, SDEM_BUOYANCY_LAW_POINTER)
+
 } // Namespace Kratos
 
 #endif /* SDEM_BUOYANCY_FORCE_FORCE_LAW_H_INCLUDED  defined */
