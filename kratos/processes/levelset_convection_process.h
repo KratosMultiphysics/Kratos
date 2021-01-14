@@ -302,7 +302,7 @@ public:
             // D. Kuzmin et al. / Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41
             const double epsilon = 1.0e-15;
             const double power_elem = 4;
-            const double power_bfecc = 4;
+            const double power_bfecc = 2.0;
 
             #pragma omp parallel for
             for (unsigned int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){

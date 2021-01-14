@@ -98,7 +98,7 @@ public:
         ProjectedGradientProcess.Execute();
 
         const double epsilon = 1.0e-15;
-        const double power = 4;
+        const double power = 2.0;
 
         #pragma omp parallel for
         for (unsigned int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node){
