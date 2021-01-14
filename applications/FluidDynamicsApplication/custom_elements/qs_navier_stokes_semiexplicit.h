@@ -218,10 +218,15 @@ public:
         VectorType& rLumpedMassVector,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
-    // void Calculate(
-    //     const Variable<double>& rVariable,
-    //     double& Output,
-    //     const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+     * @param rVariable Use VELOCITY
+     * @param Output (unused)
+     * @param rCurrentProcessInfo Process info instance (unused)
+     */
+    void Calculate(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 > & rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     // void CalculateOrthogonalSubgridScaleSystem(
     //     VectorType& rRightHandSideVector,
@@ -296,7 +301,8 @@ protected:
         const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * @brief Internal CalculateRightHandSide() method for end-of-step equation
+     * @brief Such method is currently not implemented, but defined for future purposes.
+     * This method is an internal CalculateRightHandSide() method for end-of-step equation.
      * This auxiliary RHS calculated method is created to bypass the element API
      * @param rLeftHandSideBoundedMatrix Reference to the auxiliary LHS matrix
      * @param rRightHandSideBoundedVector Reference to the auxiliary RHS vector

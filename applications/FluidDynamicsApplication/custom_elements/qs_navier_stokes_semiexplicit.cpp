@@ -632,428 +632,15 @@ const double crLeftHandSideMatrix5 =             4*(DN_DX_2_0*DN_DX_3_0 + DN_DX_
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void QSNavierStokesSemiExplicit<2,3>::CalculateLocalEndOfStepSystem(
+template<unsigned int TDim, unsigned int TNumNodes>
+void QSNavierStokesSemiExplicit<TDim,TNumNodes>::CalculateLocalEndOfStepSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    constexpr unsigned int n_nodes = 3;
-
-    // Struct to pass around the data
-    ElementDataStruct data;
-    this->FillElementData(data, rCurrentProcessInfo);
-
-    // Substitute the formulation symbols by the data structure values
-    const auto &dt = data.dt;
-    const auto &f = data.forcing;
-    const auto &fracv = data.fractional_velocity;
-    const auto &fracvconv = data.fractional_convective_velocity;
-
-    const auto &gamma = data.gamma;
-    const auto &h = data.h;
-    const auto &nu = data.nu;
-    const auto &p = data.pressure;
-    const auto &pn = data.pressure_old;
-    const auto &rho = data.rho;
-    const auto &v = data.velocity;
-    const auto &vn = data.velocity_old;
-    const auto &vconv = data.velocity_convective;
-
-    // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-
-    // Hardcoded shape functions gradients for linear triangular element
-    // This is explicitly done to minimize the matrix acceses
-    // The notation DN_i_j means shape function for node i in dimension j
-    const double &DN_DX_0_0 = data.DN_DX(0, 0);
-    const double &DN_DX_0_1 = data.DN_DX(0, 1);
-    const double &DN_DX_1_0 = data.DN_DX(1, 0);
-    const double &DN_DX_1_1 = data.DN_DX(1, 1);
-    const double &DN_DX_2_0 = data.DN_DX(2, 0);
-    const double &DN_DX_2_1 = data.DN_DX(2, 1);
-
-    const double crRightHandSideVector0 =             0.166666666666667*p[0];
-const double crRightHandSideVector1 =             0.166666666666667*p[1];
-const double crRightHandSideVector2 =             0.166666666666667*pn[0];
-const double crRightHandSideVector3 =             0.166666666666667*pn[1];
-const double crRightHandSideVector4 =             crRightHandSideVector0 + crRightHandSideVector1 - gamma*(crRightHandSideVector2 + crRightHandSideVector3 + 0.666666666666667*pn[2]) + 0.666666666666667*p[2];
-const double crRightHandSideVector5 =             0.166666666666667*p[2];
-const double crRightHandSideVector6 =             0.166666666666667*pn[2];
-const double crRightHandSideVector7 =             crRightHandSideVector0 + crRightHandSideVector5 - gamma*(crRightHandSideVector2 + crRightHandSideVector6 + 0.666666666666667*pn[1]) + 0.666666666666667*p[1];
-const double crRightHandSideVector8 =             crRightHandSideVector1 + crRightHandSideVector5 - gamma*(crRightHandSideVector3 + crRightHandSideVector6 + 0.666666666666667*pn[0]) + 0.666666666666667*p[0];
-const double crRightHandSideVector9 =             1.0/dt;
-const double crRightHandSideVector10 =             0.166666666666667*fracv(1,0);
-const double crRightHandSideVector11 =             -0.166666666666667*v(1,0);
-const double crRightHandSideVector12 =             0.166666666666667*fracv(0,0);
-const double crRightHandSideVector13 =             -0.166666666666667*v(0,0);
-const double crRightHandSideVector14 =             crRightHandSideVector9*rho*(crRightHandSideVector10 + crRightHandSideVector11 + crRightHandSideVector12 + crRightHandSideVector13 + 0.666666666666667*fracv(2,0) - 0.666666666666667*v(2,0));
-const double crRightHandSideVector15 =             0.166666666666667*crRightHandSideVector14;
-const double crRightHandSideVector16 =             0.166666666666667*fracv(2,0) - 0.166666666666667*v(2,0);
-const double crRightHandSideVector17 =             crRightHandSideVector9*rho*(crRightHandSideVector12 + crRightHandSideVector13 + crRightHandSideVector16 + 0.666666666666667*fracv(1,0) - 0.666666666666667*v(1,0));
-const double crRightHandSideVector18 =             0.166666666666667*crRightHandSideVector17;
-const double crRightHandSideVector19 =             crRightHandSideVector9*rho*(crRightHandSideVector10 + crRightHandSideVector11 + crRightHandSideVector16 + 0.666666666666667*fracv(0,0) - 0.666666666666667*v(0,0));
-const double crRightHandSideVector20 =             0.166666666666667*fracv(1,1);
-const double crRightHandSideVector21 =             -0.166666666666667*v(1,1);
-const double crRightHandSideVector22 =             0.166666666666667*fracv(0,1);
-const double crRightHandSideVector23 =             -0.166666666666667*v(0,1);
-const double crRightHandSideVector24 =             crRightHandSideVector9*rho*(crRightHandSideVector20 + crRightHandSideVector21 + crRightHandSideVector22 + crRightHandSideVector23 + 0.666666666666667*fracv(2,1) - 0.666666666666667*v(2,1));
-const double crRightHandSideVector25 =             0.166666666666667*crRightHandSideVector24;
-const double crRightHandSideVector26 =             0.166666666666667*fracv(2,1) - 0.166666666666667*v(2,1);
-const double crRightHandSideVector27 =             crRightHandSideVector9*rho*(crRightHandSideVector22 + crRightHandSideVector23 + crRightHandSideVector26 + 0.666666666666667*fracv(1,1) - 0.666666666666667*v(1,1));
-const double crRightHandSideVector28 =             0.166666666666667*crRightHandSideVector27;
-const double crRightHandSideVector29 =             crRightHandSideVector9*rho*(crRightHandSideVector20 + crRightHandSideVector21 + crRightHandSideVector26 + 0.666666666666667*fracv(0,1) - 0.666666666666667*v(0,1));
-const double crRightHandSideVector30 =             0.166666666666667*crRightHandSideVector19;
-const double crRightHandSideVector31 =             0.166666666666667*crRightHandSideVector29;
-            rRightHandSideVector[0]=DN_DX_0_0*crRightHandSideVector4 + DN_DX_0_0*crRightHandSideVector7 + DN_DX_0_0*crRightHandSideVector8 + crRightHandSideVector15 + crRightHandSideVector18 + 0.666666666666667*crRightHandSideVector19;
-            rRightHandSideVector[1]=DN_DX_0_1*crRightHandSideVector4 + DN_DX_0_1*crRightHandSideVector7 + DN_DX_0_1*crRightHandSideVector8 + crRightHandSideVector25 + crRightHandSideVector28 + 0.666666666666667*crRightHandSideVector29;
-            rRightHandSideVector[2]=DN_DX_1_0*crRightHandSideVector4 + DN_DX_1_0*crRightHandSideVector7 + DN_DX_1_0*crRightHandSideVector8 + crRightHandSideVector15 + 0.666666666666667*crRightHandSideVector17 + crRightHandSideVector30;
-            rRightHandSideVector[3]=DN_DX_1_1*crRightHandSideVector4 + DN_DX_1_1*crRightHandSideVector7 + DN_DX_1_1*crRightHandSideVector8 + crRightHandSideVector25 + 0.666666666666667*crRightHandSideVector27 + crRightHandSideVector31;
-            rRightHandSideVector[4]=DN_DX_2_0*crRightHandSideVector4 + DN_DX_2_0*crRightHandSideVector7 + DN_DX_2_0*crRightHandSideVector8 + 0.666666666666667*crRightHandSideVector14 + crRightHandSideVector18 + crRightHandSideVector30;
-            rRightHandSideVector[5]=DN_DX_2_1*crRightHandSideVector4 + DN_DX_2_1*crRightHandSideVector7 + DN_DX_2_1*crRightHandSideVector8 + 0.666666666666667*crRightHandSideVector24 + crRightHandSideVector28 + crRightHandSideVector31;
-
-    const double crLeftHandSideMatrix0 =             rho/dt;
-const double crLeftHandSideMatrix1 =             0.5*crLeftHandSideMatrix0;
-const double crLeftHandSideMatrix2 =             0.25*crLeftHandSideMatrix0;
-            rLeftHandSideMatrix(0,0)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(0,1)=0;
-            rLeftHandSideMatrix(0,2)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(0,3)=0;
-            rLeftHandSideMatrix(0,4)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(0,5)=0;
-            rLeftHandSideMatrix(1,0)=0;
-            rLeftHandSideMatrix(1,1)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(1,2)=0;
-            rLeftHandSideMatrix(1,3)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(1,4)=0;
-            rLeftHandSideMatrix(1,5)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(2,0)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(2,1)=0;
-            rLeftHandSideMatrix(2,2)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(2,3)=0;
-            rLeftHandSideMatrix(2,4)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(2,5)=0;
-            rLeftHandSideMatrix(3,0)=0;
-            rLeftHandSideMatrix(3,1)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(3,2)=0;
-            rLeftHandSideMatrix(3,3)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(3,4)=0;
-            rLeftHandSideMatrix(3,5)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(4,0)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(4,1)=0;
-            rLeftHandSideMatrix(4,2)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(4,3)=0;
-            rLeftHandSideMatrix(4,4)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(4,5)=0;
-            rLeftHandSideMatrix(5,0)=0;
-            rLeftHandSideMatrix(5,1)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(5,2)=0;
-            rLeftHandSideMatrix(5,3)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(5,4)=0;
-            rLeftHandSideMatrix(5,5)=crLeftHandSideMatrix1;
-
-
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-    rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);
-    rLeftHandSideMatrix *= data.volume / static_cast<double>(n_nodes);
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-
-template<>
-void QSNavierStokesSemiExplicit<3,4>::CalculateLocalEndOfStepSystem(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    constexpr unsigned int n_nodes = 4;
-
-    // Struct to pass around the data
-    ElementDataStruct data;
-    this->FillElementData(data, rCurrentProcessInfo);
-
-    // Substitute the formulation symbols by the data structure values
-    const auto &dt = data.dt;
-    const auto &f = data.forcing;
-    const auto &fracv = data.fractional_velocity;
-    const auto &fracvconv = data.fractional_convective_velocity;
-
-    const auto &gamma = data.gamma;
-    const auto &h = data.h;
-    const auto &nu = data.nu;
-    const auto &p = data.pressure;
-    const auto &pn = data.pressure_old;
-    const auto &rho = data.rho;
-    const auto &v = data.velocity;
-    const auto &vn = data.velocity_old;
-    const auto &vconv = data.velocity_convective;
-
-    // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-
-    // Hardcoded shape functions gradients for linear triangular element
-    // This is explicitly done to minimize the matrix acceses
-    // The notation DN_i_j means shape function for node i in dimension j
-    const double &DN_DX_0_0 = data.DN_DX(0, 0);
-    const double &DN_DX_0_1 = data.DN_DX(0, 1);
-    const double &DN_DX_0_2 = data.DN_DX(0, 2);
-    const double &DN_DX_1_0 = data.DN_DX(1, 0);
-    const double &DN_DX_1_1 = data.DN_DX(1, 1);
-    const double &DN_DX_1_2 = data.DN_DX(1, 2);
-    const double &DN_DX_2_0 = data.DN_DX(2, 0);
-    const double &DN_DX_2_1 = data.DN_DX(2, 1);
-    const double &DN_DX_2_2 = data.DN_DX(2, 2);
-    const double &DN_DX_3_0 = data.DN_DX(3, 0);
-    const double &DN_DX_3_1 = data.DN_DX(3, 1);
-    const double &DN_DX_3_2 = data.DN_DX(3, 2);
-
-    const double crRightHandSideVector0 =             1.0/dt;
-const double crRightHandSideVector1 =             0.1381966*fracv(2,0);
-const double crRightHandSideVector2 =             -0.1381966*v(2,0);
-const double crRightHandSideVector3 =             0.1381966*fracv(0,0);
-const double crRightHandSideVector4 =             0.1381966*fracv(1,0);
-const double crRightHandSideVector5 =             -0.1381966*v(0,0);
-const double crRightHandSideVector6 =             -0.1381966*v(1,0);
-const double crRightHandSideVector7 =             crRightHandSideVector0*rho*(crRightHandSideVector1 + crRightHandSideVector2 + crRightHandSideVector3 + crRightHandSideVector4 + crRightHandSideVector5 + crRightHandSideVector6 + 0.5854102*fracv(3,0) - 0.5854102*v(3,0));
-const double crRightHandSideVector8 =             0.1381966*crRightHandSideVector7;
-const double crRightHandSideVector9 =             0.1381966*fracv(3,0);
-const double crRightHandSideVector10 =             -0.1381966*v(3,0);
-const double crRightHandSideVector11 =             crRightHandSideVector0*rho*(crRightHandSideVector10 + crRightHandSideVector3 + crRightHandSideVector4 + crRightHandSideVector5 + crRightHandSideVector6 + crRightHandSideVector9 + 0.5854102*fracv(2,0) - 0.5854102*v(2,0));
-const double crRightHandSideVector12 =             0.1381966*crRightHandSideVector11;
-const double crRightHandSideVector13 =             crRightHandSideVector12 + crRightHandSideVector8;
-const double crRightHandSideVector14 =             0.1381966*p[0];
-const double crRightHandSideVector15 =             0.1381966*p[1];
-const double crRightHandSideVector16 =             crRightHandSideVector14 + crRightHandSideVector15;
-const double crRightHandSideVector17 =             0.1381966*p[2];
-const double crRightHandSideVector18 =             0.1381966*pn[0];
-const double crRightHandSideVector19 =             0.1381966*pn[1];
-const double crRightHandSideVector20 =             crRightHandSideVector18 + crRightHandSideVector19;
-const double crRightHandSideVector21 =             0.1381966*pn[2];
-const double crRightHandSideVector22 =             crRightHandSideVector16 + crRightHandSideVector17 - gamma*(crRightHandSideVector20 + crRightHandSideVector21 + 0.5854102*pn[3]) + 0.5854102*p[3];
-const double crRightHandSideVector23 =             0.1381966*p[3];
-const double crRightHandSideVector24 =             0.1381966*pn[3];
-const double crRightHandSideVector25 =             crRightHandSideVector16 + crRightHandSideVector23 - gamma*(crRightHandSideVector20 + crRightHandSideVector24 + 0.5854102*pn[2]) + 0.5854102*p[2];
-const double crRightHandSideVector26 =             crRightHandSideVector17 + crRightHandSideVector23;
-const double crRightHandSideVector27 =             crRightHandSideVector21 + crRightHandSideVector24;
-const double crRightHandSideVector28 =             crRightHandSideVector14 + crRightHandSideVector26 - gamma*(crRightHandSideVector18 + crRightHandSideVector27 + 0.5854102*pn[1]) + 0.5854102*p[1];
-const double crRightHandSideVector29 =             crRightHandSideVector15 + crRightHandSideVector26 - gamma*(crRightHandSideVector19 + crRightHandSideVector27 + 0.5854102*pn[0]) + 0.5854102*p[0];
-const double crRightHandSideVector30 =             crRightHandSideVector1 + crRightHandSideVector10 + crRightHandSideVector2 + crRightHandSideVector9;
-const double crRightHandSideVector31 =             crRightHandSideVector0*rho*(crRightHandSideVector3 + crRightHandSideVector30 + crRightHandSideVector5 + 0.5854102*fracv(1,0) - 0.5854102*v(1,0));
-const double crRightHandSideVector32 =             0.1381966*crRightHandSideVector31;
-const double crRightHandSideVector33 =             crRightHandSideVector0*rho*(crRightHandSideVector30 + crRightHandSideVector4 + crRightHandSideVector6 + 0.5854102*fracv(0,0) - 0.5854102*v(0,0));
-const double crRightHandSideVector34 =             0.1381966*fracv(2,1);
-const double crRightHandSideVector35 =             -0.1381966*v(2,1);
-const double crRightHandSideVector36 =             0.1381966*fracv(0,1);
-const double crRightHandSideVector37 =             0.1381966*fracv(1,1);
-const double crRightHandSideVector38 =             -0.1381966*v(0,1);
-const double crRightHandSideVector39 =             -0.1381966*v(1,1);
-const double crRightHandSideVector40 =             crRightHandSideVector0*rho*(crRightHandSideVector34 + crRightHandSideVector35 + crRightHandSideVector36 + crRightHandSideVector37 + crRightHandSideVector38 + crRightHandSideVector39 + 0.5854102*fracv(3,1) - 0.5854102*v(3,1));
-const double crRightHandSideVector41 =             0.1381966*crRightHandSideVector40;
-const double crRightHandSideVector42 =             0.1381966*fracv(3,1);
-const double crRightHandSideVector43 =             -0.1381966*v(3,1);
-const double crRightHandSideVector44 =             crRightHandSideVector0*rho*(crRightHandSideVector36 + crRightHandSideVector37 + crRightHandSideVector38 + crRightHandSideVector39 + crRightHandSideVector42 + crRightHandSideVector43 + 0.5854102*fracv(2,1) - 0.5854102*v(2,1));
-const double crRightHandSideVector45 =             0.1381966*crRightHandSideVector44;
-const double crRightHandSideVector46 =             crRightHandSideVector41 + crRightHandSideVector45;
-const double crRightHandSideVector47 =             crRightHandSideVector34 + crRightHandSideVector35 + crRightHandSideVector42 + crRightHandSideVector43;
-const double crRightHandSideVector48 =             crRightHandSideVector0*rho*(crRightHandSideVector36 + crRightHandSideVector38 + crRightHandSideVector47 + 0.5854102*fracv(1,1) - 0.5854102*v(1,1));
-const double crRightHandSideVector49 =             0.1381966*crRightHandSideVector48;
-const double crRightHandSideVector50 =             crRightHandSideVector0*rho*(crRightHandSideVector37 + crRightHandSideVector39 + crRightHandSideVector47 + 0.5854102*fracv(0,1) - 0.5854102*v(0,1));
-const double crRightHandSideVector51 =             0.1381966*fracv(2,2);
-const double crRightHandSideVector52 =             -0.1381966*v(2,2);
-const double crRightHandSideVector53 =             0.1381966*fracv(0,2);
-const double crRightHandSideVector54 =             0.1381966*fracv(1,2);
-const double crRightHandSideVector55 =             -0.1381966*v(0,2);
-const double crRightHandSideVector56 =             -0.1381966*v(1,2);
-const double crRightHandSideVector57 =             crRightHandSideVector0*rho*(crRightHandSideVector51 + crRightHandSideVector52 + crRightHandSideVector53 + crRightHandSideVector54 + crRightHandSideVector55 + crRightHandSideVector56 + 0.5854102*fracv(3,2) - 0.5854102*v(3,2));
-const double crRightHandSideVector58 =             0.1381966*crRightHandSideVector57;
-const double crRightHandSideVector59 =             0.1381966*fracv(3,2);
-const double crRightHandSideVector60 =             -0.1381966*v(3,2);
-const double crRightHandSideVector61 =             crRightHandSideVector0*rho*(crRightHandSideVector53 + crRightHandSideVector54 + crRightHandSideVector55 + crRightHandSideVector56 + crRightHandSideVector59 + crRightHandSideVector60 + 0.5854102*fracv(2,2) - 0.5854102*v(2,2));
-const double crRightHandSideVector62 =             0.1381966*crRightHandSideVector61;
-const double crRightHandSideVector63 =             crRightHandSideVector58 + crRightHandSideVector62;
-const double crRightHandSideVector64 =             crRightHandSideVector51 + crRightHandSideVector52 + crRightHandSideVector59 + crRightHandSideVector60;
-const double crRightHandSideVector65 =             crRightHandSideVector0*rho*(crRightHandSideVector53 + crRightHandSideVector55 + crRightHandSideVector64 + 0.5854102*fracv(1,2) - 0.5854102*v(1,2));
-const double crRightHandSideVector66 =             0.1381966*crRightHandSideVector65;
-const double crRightHandSideVector67 =             crRightHandSideVector0*rho*(crRightHandSideVector54 + crRightHandSideVector56 + crRightHandSideVector64 + 0.5854102*fracv(0,2) - 0.5854102*v(0,2));
-const double crRightHandSideVector68 =             0.1381966*crRightHandSideVector33;
-const double crRightHandSideVector69 =             0.1381966*crRightHandSideVector50;
-const double crRightHandSideVector70 =             0.1381966*crRightHandSideVector67;
-const double crRightHandSideVector71 =             crRightHandSideVector32 + crRightHandSideVector68;
-const double crRightHandSideVector72 =             crRightHandSideVector49 + crRightHandSideVector69;
-const double crRightHandSideVector73 =             crRightHandSideVector66 + crRightHandSideVector70;
-            rRightHandSideVector[0]=DN_DX_0_0*crRightHandSideVector22 + DN_DX_0_0*crRightHandSideVector25 + DN_DX_0_0*crRightHandSideVector28 + DN_DX_0_0*crRightHandSideVector29 + crRightHandSideVector13 + crRightHandSideVector32 + 0.5854102*crRightHandSideVector33;
-            rRightHandSideVector[1]=DN_DX_0_1*crRightHandSideVector22 + DN_DX_0_1*crRightHandSideVector25 + DN_DX_0_1*crRightHandSideVector28 + DN_DX_0_1*crRightHandSideVector29 + crRightHandSideVector46 + crRightHandSideVector49 + 0.5854102*crRightHandSideVector50;
-            rRightHandSideVector[2]=DN_DX_0_2*crRightHandSideVector22 + DN_DX_0_2*crRightHandSideVector25 + DN_DX_0_2*crRightHandSideVector28 + DN_DX_0_2*crRightHandSideVector29 + crRightHandSideVector63 + crRightHandSideVector66 + 0.5854102*crRightHandSideVector67;
-            rRightHandSideVector[3]=DN_DX_1_0*crRightHandSideVector22 + DN_DX_1_0*crRightHandSideVector25 + DN_DX_1_0*crRightHandSideVector28 + DN_DX_1_0*crRightHandSideVector29 + crRightHandSideVector13 + 0.5854102*crRightHandSideVector31 + crRightHandSideVector68;
-            rRightHandSideVector[4]=DN_DX_1_1*crRightHandSideVector22 + DN_DX_1_1*crRightHandSideVector25 + DN_DX_1_1*crRightHandSideVector28 + DN_DX_1_1*crRightHandSideVector29 + crRightHandSideVector46 + 0.5854102*crRightHandSideVector48 + crRightHandSideVector69;
-            rRightHandSideVector[5]=DN_DX_1_2*crRightHandSideVector22 + DN_DX_1_2*crRightHandSideVector25 + DN_DX_1_2*crRightHandSideVector28 + DN_DX_1_2*crRightHandSideVector29 + crRightHandSideVector63 + 0.5854102*crRightHandSideVector65 + crRightHandSideVector70;
-            rRightHandSideVector[6]=DN_DX_2_0*crRightHandSideVector22 + DN_DX_2_0*crRightHandSideVector25 + DN_DX_2_0*crRightHandSideVector28 + DN_DX_2_0*crRightHandSideVector29 + 0.5854102*crRightHandSideVector11 + crRightHandSideVector71 + crRightHandSideVector8;
-            rRightHandSideVector[7]=DN_DX_2_1*crRightHandSideVector22 + DN_DX_2_1*crRightHandSideVector25 + DN_DX_2_1*crRightHandSideVector28 + DN_DX_2_1*crRightHandSideVector29 + crRightHandSideVector41 + 0.5854102*crRightHandSideVector44 + crRightHandSideVector72;
-            rRightHandSideVector[8]=DN_DX_2_2*crRightHandSideVector22 + DN_DX_2_2*crRightHandSideVector25 + DN_DX_2_2*crRightHandSideVector28 + DN_DX_2_2*crRightHandSideVector29 + crRightHandSideVector58 + 0.5854102*crRightHandSideVector61 + crRightHandSideVector73;
-            rRightHandSideVector[9]=DN_DX_3_0*crRightHandSideVector22 + DN_DX_3_0*crRightHandSideVector25 + DN_DX_3_0*crRightHandSideVector28 + DN_DX_3_0*crRightHandSideVector29 + crRightHandSideVector12 + 0.5854102*crRightHandSideVector7 + crRightHandSideVector71;
-            rRightHandSideVector[10]=DN_DX_3_1*crRightHandSideVector22 + DN_DX_3_1*crRightHandSideVector25 + DN_DX_3_1*crRightHandSideVector28 + DN_DX_3_1*crRightHandSideVector29 + 0.5854102*crRightHandSideVector40 + crRightHandSideVector45 + crRightHandSideVector72;
-            rRightHandSideVector[11]=DN_DX_3_2*crRightHandSideVector22 + DN_DX_3_2*crRightHandSideVector25 + DN_DX_3_2*crRightHandSideVector28 + DN_DX_3_2*crRightHandSideVector29 + 0.5854102*crRightHandSideVector57 + crRightHandSideVector62 + crRightHandSideVector73;
-
-    const double crLeftHandSideMatrix0 =             rho/dt;
-const double crLeftHandSideMatrix1 =             0.40000000301872*crLeftHandSideMatrix0;
-const double crLeftHandSideMatrix2 =             0.19999999899376*crLeftHandSideMatrix0;
-            rLeftHandSideMatrix(0,0)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(0,1)=0;
-            rLeftHandSideMatrix(0,2)=0;
-            rLeftHandSideMatrix(0,3)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(0,4)=0;
-            rLeftHandSideMatrix(0,5)=0;
-            rLeftHandSideMatrix(0,6)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(0,7)=0;
-            rLeftHandSideMatrix(0,8)=0;
-            rLeftHandSideMatrix(0,9)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(0,10)=0;
-            rLeftHandSideMatrix(0,11)=0;
-            rLeftHandSideMatrix(1,0)=0;
-            rLeftHandSideMatrix(1,1)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(1,2)=0;
-            rLeftHandSideMatrix(1,3)=0;
-            rLeftHandSideMatrix(1,4)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(1,5)=0;
-            rLeftHandSideMatrix(1,6)=0;
-            rLeftHandSideMatrix(1,7)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(1,8)=0;
-            rLeftHandSideMatrix(1,9)=0;
-            rLeftHandSideMatrix(1,10)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(1,11)=0;
-            rLeftHandSideMatrix(2,0)=0;
-            rLeftHandSideMatrix(2,1)=0;
-            rLeftHandSideMatrix(2,2)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(2,3)=0;
-            rLeftHandSideMatrix(2,4)=0;
-            rLeftHandSideMatrix(2,5)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(2,6)=0;
-            rLeftHandSideMatrix(2,7)=0;
-            rLeftHandSideMatrix(2,8)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(2,9)=0;
-            rLeftHandSideMatrix(2,10)=0;
-            rLeftHandSideMatrix(2,11)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(3,0)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(3,1)=0;
-            rLeftHandSideMatrix(3,2)=0;
-            rLeftHandSideMatrix(3,3)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(3,4)=0;
-            rLeftHandSideMatrix(3,5)=0;
-            rLeftHandSideMatrix(3,6)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(3,7)=0;
-            rLeftHandSideMatrix(3,8)=0;
-            rLeftHandSideMatrix(3,9)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(3,10)=0;
-            rLeftHandSideMatrix(3,11)=0;
-            rLeftHandSideMatrix(4,0)=0;
-            rLeftHandSideMatrix(4,1)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(4,2)=0;
-            rLeftHandSideMatrix(4,3)=0;
-            rLeftHandSideMatrix(4,4)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(4,5)=0;
-            rLeftHandSideMatrix(4,6)=0;
-            rLeftHandSideMatrix(4,7)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(4,8)=0;
-            rLeftHandSideMatrix(4,9)=0;
-            rLeftHandSideMatrix(4,10)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(4,11)=0;
-            rLeftHandSideMatrix(5,0)=0;
-            rLeftHandSideMatrix(5,1)=0;
-            rLeftHandSideMatrix(5,2)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(5,3)=0;
-            rLeftHandSideMatrix(5,4)=0;
-            rLeftHandSideMatrix(5,5)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(5,6)=0;
-            rLeftHandSideMatrix(5,7)=0;
-            rLeftHandSideMatrix(5,8)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(5,9)=0;
-            rLeftHandSideMatrix(5,10)=0;
-            rLeftHandSideMatrix(5,11)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(6,0)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(6,1)=0;
-            rLeftHandSideMatrix(6,2)=0;
-            rLeftHandSideMatrix(6,3)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(6,4)=0;
-            rLeftHandSideMatrix(6,5)=0;
-            rLeftHandSideMatrix(6,6)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(6,7)=0;
-            rLeftHandSideMatrix(6,8)=0;
-            rLeftHandSideMatrix(6,9)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(6,10)=0;
-            rLeftHandSideMatrix(6,11)=0;
-            rLeftHandSideMatrix(7,0)=0;
-            rLeftHandSideMatrix(7,1)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(7,2)=0;
-            rLeftHandSideMatrix(7,3)=0;
-            rLeftHandSideMatrix(7,4)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(7,5)=0;
-            rLeftHandSideMatrix(7,6)=0;
-            rLeftHandSideMatrix(7,7)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(7,8)=0;
-            rLeftHandSideMatrix(7,9)=0;
-            rLeftHandSideMatrix(7,10)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(7,11)=0;
-            rLeftHandSideMatrix(8,0)=0;
-            rLeftHandSideMatrix(8,1)=0;
-            rLeftHandSideMatrix(8,2)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(8,3)=0;
-            rLeftHandSideMatrix(8,4)=0;
-            rLeftHandSideMatrix(8,5)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(8,6)=0;
-            rLeftHandSideMatrix(8,7)=0;
-            rLeftHandSideMatrix(8,8)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(8,9)=0;
-            rLeftHandSideMatrix(8,10)=0;
-            rLeftHandSideMatrix(8,11)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(9,0)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(9,1)=0;
-            rLeftHandSideMatrix(9,2)=0;
-            rLeftHandSideMatrix(9,3)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(9,4)=0;
-            rLeftHandSideMatrix(9,5)=0;
-            rLeftHandSideMatrix(9,6)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(9,7)=0;
-            rLeftHandSideMatrix(9,8)=0;
-            rLeftHandSideMatrix(9,9)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(9,10)=0;
-            rLeftHandSideMatrix(9,11)=0;
-            rLeftHandSideMatrix(10,0)=0;
-            rLeftHandSideMatrix(10,1)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(10,2)=0;
-            rLeftHandSideMatrix(10,3)=0;
-            rLeftHandSideMatrix(10,4)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(10,5)=0;
-            rLeftHandSideMatrix(10,6)=0;
-            rLeftHandSideMatrix(10,7)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(10,8)=0;
-            rLeftHandSideMatrix(10,9)=0;
-            rLeftHandSideMatrix(10,10)=crLeftHandSideMatrix1;
-            rLeftHandSideMatrix(10,11)=0;
-            rLeftHandSideMatrix(11,0)=0;
-            rLeftHandSideMatrix(11,1)=0;
-            rLeftHandSideMatrix(11,2)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(11,3)=0;
-            rLeftHandSideMatrix(11,4)=0;
-            rLeftHandSideMatrix(11,5)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(11,6)=0;
-            rLeftHandSideMatrix(11,7)=0;
-            rLeftHandSideMatrix(11,8)=crLeftHandSideMatrix2;
-            rLeftHandSideMatrix(11,9)=0;
-            rLeftHandSideMatrix(11,10)=0;
-            rLeftHandSideMatrix(11,11)=crLeftHandSideMatrix1;
-
-
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-    rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);
-    rLeftHandSideMatrix *= data.volume / static_cast<double>(n_nodes);
+    KRATOS_ERROR << "Calling the CalculateLocalEndOfStepSystem() method for the semiexplicit Navier-Stokes element. You should call the Calculate method instead.";
 
     KRATOS_CATCH("");
 }
@@ -1245,6 +832,193 @@ void QSNavierStokesSemiExplicit<3,4>::CalculateLumpedMassVector(
     }
     for (IndexType i = 0; i < local_size; ++i) {
         rLumpedMassVector(i) = one_fourth_volume;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesSemiExplicit<2,3>::Calculate(
+    const Variable<array_1d<double,3> > &rVariable,
+    array_1d<double,3> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if (rVariable == VELOCITY)
+    {
+        constexpr unsigned int nodes_per_dimension = 6;
+
+        // Check sizes and initialize
+        VectorType rRightHandSideVector;
+        if( rRightHandSideVector.size() != nodes_per_dimension )
+            rRightHandSideVector.resize(nodes_per_dimension);
+        rRightHandSideVector = ZeroVector(nodes_per_dimension);
+
+        // Struct to pass around the data
+        ElementDataStruct data;
+        this->FillElementData(data, rCurrentProcessInfo);
+
+        // Substitute the formulation symbols by the data structure values
+        const auto &dt = data.dt;
+        const auto &f = data.forcing;
+        const auto &fracv = data.fractional_velocity;
+        const auto &fracvconv = data.fractional_convective_velocity;
+
+        const auto &gamma = data.gamma;
+        const auto &h = data.h;
+        const auto &nu = data.nu;
+        const auto &p = data.pressure;
+        const auto &pn = data.pressure_old;
+        const auto &rho = data.rho;
+        const auto &v = data.velocity;
+        const auto &vn = data.velocity_old;
+        const auto &vconv = data.velocity_convective;
+
+        // Stabilization parameters
+        const double stab_c1 = 4.0;
+        const double stab_c2 = 2.0;
+
+        // Hardcoded shape functions gradients for linear triangular element
+        // This is explicitly done to minimize the matrix acceses
+        // The notation DN_i_j means shape function for node i in dimension j
+        const double &DN_DX_0_0 = data.DN_DX(0, 0);
+        const double &DN_DX_0_1 = data.DN_DX(0, 1);
+        const double &DN_DX_1_0 = data.DN_DX(1, 0);
+        const double &DN_DX_1_1 = data.DN_DX(1, 1);
+        const double &DN_DX_2_0 = data.DN_DX(2, 0);
+        const double &DN_DX_2_1 = data.DN_DX(2, 1);
+
+        const double crRightHandSideVector0 =             0.166666666666667*pn[0];
+const double crRightHandSideVector1 =             0.166666666666667*pn[1];
+const double crRightHandSideVector2 =             0.166666666666667*pn[2];
+const double crRightHandSideVector3 =             dt*(-gamma*(crRightHandSideVector0 + crRightHandSideVector1 + 0.666666666666667*pn[2]) - gamma*(crRightHandSideVector0 + crRightHandSideVector2 + 0.666666666666667*pn[1]) - gamma*(crRightHandSideVector1 + crRightHandSideVector2 + 0.666666666666667*pn[0]) + 1.0*p[0] + 1.0*p[1] + 1.0*p[2])/rho;
+            rRightHandSideVector[0]=DN_DX_0_0*crRightHandSideVector3;
+            rRightHandSideVector[1]=DN_DX_0_1*crRightHandSideVector3;
+            rRightHandSideVector[2]=DN_DX_1_0*crRightHandSideVector3;
+            rRightHandSideVector[3]=DN_DX_1_1*crRightHandSideVector3;
+            rRightHandSideVector[4]=DN_DX_2_0*crRightHandSideVector3;
+            rRightHandSideVector[5]=DN_DX_2_1*crRightHandSideVector3;
+
+
+        SizeType Index = 0;
+        GeometryType& rGeom = this->GetGeometry();
+
+        for (SizeType i = 0; i < 3; ++i) // loop over nodes
+        {
+            rGeom[i].SetLock(); // So it is safe to write in the node in OpenMP
+            array_1d<double,3>& rTemp = rGeom[i].FastGetSolutionStepValue(FRACT_VEL);
+            for (SizeType d = 0; d < 2; ++d) // loop over dimensions
+            {
+                rTemp[d] += rRightHandSideVector[Index++];
+            }
+            rGeom[i].UnSetLock(); // Free the node for other threads
+        }
+
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesSemiExplicit<3,4>::Calculate(
+    const Variable<array_1d<double,3> > &rVariable,
+    array_1d<double,3> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if (rVariable == VELOCITY)
+    {
+
+        constexpr unsigned int nodes_per_dimension = 12;
+
+        // Check sizes and initialize
+        VectorType rRightHandSideVector;
+        if( rRightHandSideVector.size() != nodes_per_dimension )
+            rRightHandSideVector.resize(nodes_per_dimension);
+        rRightHandSideVector = ZeroVector(nodes_per_dimension);
+
+        // Struct to pass around the data
+        ElementDataStruct data;
+        this->FillElementData(data, rCurrentProcessInfo);
+
+        // Substitute the formulation symbols by the data structure values
+        const auto &dt = data.dt;
+        const auto &f = data.forcing;
+        const auto &fracv = data.fractional_velocity;
+        const auto &fracvconv = data.fractional_convective_velocity;
+
+        const auto &gamma = data.gamma;
+        const auto &h = data.h;
+        const auto &nu = data.nu;
+        const auto &p = data.pressure;
+        const auto &pn = data.pressure_old;
+        const auto &rho = data.rho;
+        const auto &v = data.velocity;
+        const auto &vn = data.velocity_old;
+        const auto &vconv = data.velocity_convective;
+
+        // Stabilization parameters
+        const double stab_c1 = 4.0;
+        const double stab_c2 = 2.0;
+
+        // Hardcoded shape functions gradients for linear triangular element
+        // This is explicitly done to minimize the matrix acceses
+        // The notation DN_i_j means shape function for node i in dimension j
+        const double &DN_DX_0_0 = data.DN_DX(0, 0);
+        const double &DN_DX_0_1 = data.DN_DX(0, 1);
+        const double &DN_DX_0_2 = data.DN_DX(0, 2);
+        const double &DN_DX_1_0 = data.DN_DX(1, 0);
+        const double &DN_DX_1_1 = data.DN_DX(1, 1);
+        const double &DN_DX_1_2 = data.DN_DX(1, 2);
+        const double &DN_DX_2_0 = data.DN_DX(2, 0);
+        const double &DN_DX_2_1 = data.DN_DX(2, 1);
+        const double &DN_DX_2_2 = data.DN_DX(2, 2);
+        const double &DN_DX_3_0 = data.DN_DX(3, 0);
+        const double &DN_DX_3_1 = data.DN_DX(3, 1);
+        const double &DN_DX_3_2 = data.DN_DX(3, 2);
+
+        const double crRightHandSideVector0 =             0.1381966*pn[0];
+const double crRightHandSideVector1 =             0.1381966*pn[1];
+const double crRightHandSideVector2 =             crRightHandSideVector0 + crRightHandSideVector1;
+const double crRightHandSideVector3 =             0.1381966*pn[2];
+const double crRightHandSideVector4 =             0.1381966*pn[3];
+const double crRightHandSideVector5 =             crRightHandSideVector3 + crRightHandSideVector4;
+const double crRightHandSideVector6 =             dt*(-gamma*(crRightHandSideVector0 + crRightHandSideVector5 + 0.5854102*pn[1]) - gamma*(crRightHandSideVector1 + crRightHandSideVector5 + 0.5854102*pn[0]) - gamma*(crRightHandSideVector2 + crRightHandSideVector3 + 0.5854102*pn[3]) - gamma*(crRightHandSideVector2 + crRightHandSideVector4 + 0.5854102*pn[2]) + 1.0*p[0] + 1.0*p[1] + 1.0*p[2] + 1.0*p[3])/rho;
+            rRightHandSideVector[0]=DN_DX_0_0*crRightHandSideVector6;
+            rRightHandSideVector[1]=DN_DX_0_1*crRightHandSideVector6;
+            rRightHandSideVector[2]=DN_DX_0_2*crRightHandSideVector6;
+            rRightHandSideVector[3]=DN_DX_1_0*crRightHandSideVector6;
+            rRightHandSideVector[4]=DN_DX_1_1*crRightHandSideVector6;
+            rRightHandSideVector[5]=DN_DX_1_2*crRightHandSideVector6;
+            rRightHandSideVector[6]=DN_DX_2_0*crRightHandSideVector6;
+            rRightHandSideVector[7]=DN_DX_2_1*crRightHandSideVector6;
+            rRightHandSideVector[8]=DN_DX_2_2*crRightHandSideVector6;
+            rRightHandSideVector[9]=DN_DX_3_0*crRightHandSideVector6;
+            rRightHandSideVector[10]=DN_DX_3_1*crRightHandSideVector6;
+            rRightHandSideVector[11]=DN_DX_3_2*crRightHandSideVector6;
+
+
+        SizeType Index = 0;
+        GeometryType& rGeom = this->GetGeometry();
+
+        for (SizeType i = 0; i < 4; ++i) // loopover nodes
+        {
+            rGeom[i].SetLock(); // So it is safe to write in the node in OpenMP
+            array_1d<double,3>& rTemp = rGeom[i].FastGetSolutionStepValue(FRACT_VEL);
+            for (SizeType d = 0; d < 3; ++d) // loop over dimensions
+            {
+                rTemp[d] += rRightHandSideVector[Index++];
+            }
+            rGeom[i].UnSetLock(); // Free the node for other threads
+        }
+
     }
 
     KRATOS_CATCH("");

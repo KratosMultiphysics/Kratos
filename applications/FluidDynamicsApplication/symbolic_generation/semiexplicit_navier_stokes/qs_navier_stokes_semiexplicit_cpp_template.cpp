@@ -393,118 +393,15 @@ void QSNavierStokesSemiExplicit<3,4>::CalculateLocalPressureSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void QSNavierStokesSemiExplicit<2,3>::CalculateLocalEndOfStepSystem(
+template<unsigned int TDim, unsigned int TNumNodes>
+void QSNavierStokesSemiExplicit<TDim,TNumNodes>::CalculateLocalEndOfStepSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    constexpr unsigned int n_nodes = 3;
-
-    // Struct to pass around the data
-    ElementDataStruct data;
-    this->FillElementData(data, rCurrentProcessInfo);
-
-    // Substitute the formulation symbols by the data structure values
-    const auto &dt = data.dt;
-    const auto &f = data.forcing;
-    const auto &fracv = data.fractional_velocity;
-    const auto &fracvconv = data.fractional_convective_velocity;
-
-    const auto &gamma = data.gamma;
-    const auto &h = data.h;
-    const auto &nu = data.nu;
-    const auto &p = data.pressure;
-    const auto &pn = data.pressure_old;
-    const auto &rho = data.rho;
-    const auto &v = data.velocity;
-    const auto &vn = data.velocity_old;
-    const auto &vconv = data.velocity_convective;
-
-    // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-
-    // Hardcoded shape functions gradients for linear triangular element
-    // This is explicitly done to minimize the matrix acceses
-    // The notation DN_i_j means shape function for node i in dimension j
-    const double &DN_DX_0_0 = data.DN_DX(0, 0);
-    const double &DN_DX_0_1 = data.DN_DX(0, 1);
-    const double &DN_DX_1_0 = data.DN_DX(1, 0);
-    const double &DN_DX_1_1 = data.DN_DX(1, 1);
-    const double &DN_DX_2_0 = data.DN_DX(2, 0);
-    const double &DN_DX_2_1 = data.DN_DX(2, 1);
-
-    //substitute_rhs_endofstep_2D
-    //substitute_lhs_endofstep_2D
-
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-    rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);
-    rLeftHandSideMatrix *= data.volume / static_cast<double>(n_nodes);
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-
-template<>
-void QSNavierStokesSemiExplicit<3,4>::CalculateLocalEndOfStepSystem(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    constexpr unsigned int n_nodes = 4;
-
-    // Struct to pass around the data
-    ElementDataStruct data;
-    this->FillElementData(data, rCurrentProcessInfo);
-
-    // Substitute the formulation symbols by the data structure values
-    const auto &dt = data.dt;
-    const auto &f = data.forcing;
-    const auto &fracv = data.fractional_velocity;
-    const auto &fracvconv = data.fractional_convective_velocity;
-
-    const auto &gamma = data.gamma;
-    const auto &h = data.h;
-    const auto &nu = data.nu;
-    const auto &p = data.pressure;
-    const auto &pn = data.pressure_old;
-    const auto &rho = data.rho;
-    const auto &v = data.velocity;
-    const auto &vn = data.velocity_old;
-    const auto &vconv = data.velocity_convective;
-
-    // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-
-    // Hardcoded shape functions gradients for linear triangular element
-    // This is explicitly done to minimize the matrix acceses
-    // The notation DN_i_j means shape function for node i in dimension j
-    const double &DN_DX_0_0 = data.DN_DX(0, 0);
-    const double &DN_DX_0_1 = data.DN_DX(0, 1);
-    const double &DN_DX_0_2 = data.DN_DX(0, 2);
-    const double &DN_DX_1_0 = data.DN_DX(1, 0);
-    const double &DN_DX_1_1 = data.DN_DX(1, 1);
-    const double &DN_DX_1_2 = data.DN_DX(1, 2);
-    const double &DN_DX_2_0 = data.DN_DX(2, 0);
-    const double &DN_DX_2_1 = data.DN_DX(2, 1);
-    const double &DN_DX_2_2 = data.DN_DX(2, 2);
-    const double &DN_DX_3_0 = data.DN_DX(3, 0);
-    const double &DN_DX_3_1 = data.DN_DX(3, 1);
-    const double &DN_DX_3_2 = data.DN_DX(3, 2);
-
-    //substitute_rhs_endofstep_3D
-    //substitute_lhs_endofstep_3D
-
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-    rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);
-    rLeftHandSideMatrix *= data.volume / static_cast<double>(n_nodes);
+    KRATOS_ERROR << "Calling the CalculateLocalEndOfStepSystem() method for the semiexplicit Navier-Stokes element. You should call the Calculate method instead.";
 
     KRATOS_CATCH("");
 }
@@ -696,6 +593,164 @@ void QSNavierStokesSemiExplicit<3,4>::CalculateLumpedMassVector(
     }
     for (IndexType i = 0; i < local_size; ++i) {
         rLumpedMassVector(i) = one_fourth_volume;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesSemiExplicit<2,3>::Calculate(
+    const Variable<array_1d<double,3> > &rVariable,
+    array_1d<double,3> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if (rVariable == VELOCITY)
+    {
+        constexpr unsigned int nodes_per_dimension = 6;
+
+        // Check sizes and initialize
+        VectorType rRightHandSideVector;
+        if( rRightHandSideVector.size() != nodes_per_dimension )
+            rRightHandSideVector.resize(nodes_per_dimension);
+        rRightHandSideVector = ZeroVector(nodes_per_dimension);
+
+        // Struct to pass around the data
+        ElementDataStruct data;
+        this->FillElementData(data, rCurrentProcessInfo);
+
+        // Substitute the formulation symbols by the data structure values
+        const auto &dt = data.dt;
+        const auto &f = data.forcing;
+        const auto &fracv = data.fractional_velocity;
+        const auto &fracvconv = data.fractional_convective_velocity;
+
+        const auto &gamma = data.gamma;
+        const auto &h = data.h;
+        const auto &nu = data.nu;
+        const auto &p = data.pressure;
+        const auto &pn = data.pressure_old;
+        const auto &rho = data.rho;
+        const auto &v = data.velocity;
+        const auto &vn = data.velocity_old;
+        const auto &vconv = data.velocity_convective;
+
+        // Stabilization parameters
+        const double stab_c1 = 4.0;
+        const double stab_c2 = 2.0;
+
+        // Hardcoded shape functions gradients for linear triangular element
+        // This is explicitly done to minimize the matrix acceses
+        // The notation DN_i_j means shape function for node i in dimension j
+        const double &DN_DX_0_0 = data.DN_DX(0, 0);
+        const double &DN_DX_0_1 = data.DN_DX(0, 1);
+        const double &DN_DX_1_0 = data.DN_DX(1, 0);
+        const double &DN_DX_1_1 = data.DN_DX(1, 1);
+        const double &DN_DX_2_0 = data.DN_DX(2, 0);
+        const double &DN_DX_2_1 = data.DN_DX(2, 1);
+
+        //substitute_rhs_endofstep_2D
+
+        SizeType Index = 0;
+        GeometryType& rGeom = this->GetGeometry();
+
+        for (SizeType i = 0; i < 3; ++i) // loop over nodes
+        {
+            rGeom[i].SetLock(); // So it is safe to write in the node in OpenMP
+            array_1d<double,3>& rTemp = rGeom[i].FastGetSolutionStepValue(FRACT_VEL);
+            for (SizeType d = 0; d < 2; ++d) // loop over dimensions
+            {
+                rTemp[d] += rRightHandSideVector[Index++];
+            }
+            rGeom[i].UnSetLock(); // Free the node for other threads
+        }
+
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+
+template<>
+void QSNavierStokesSemiExplicit<3,4>::Calculate(
+    const Variable<array_1d<double,3> > &rVariable,
+    array_1d<double,3> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if (rVariable == VELOCITY)
+    {
+
+        constexpr unsigned int nodes_per_dimension = 12;
+
+        // Check sizes and initialize
+        VectorType rRightHandSideVector;
+        if( rRightHandSideVector.size() != nodes_per_dimension )
+            rRightHandSideVector.resize(nodes_per_dimension);
+        rRightHandSideVector = ZeroVector(nodes_per_dimension);
+
+        // Struct to pass around the data
+        ElementDataStruct data;
+        this->FillElementData(data, rCurrentProcessInfo);
+
+        // Substitute the formulation symbols by the data structure values
+        const auto &dt = data.dt;
+        const auto &f = data.forcing;
+        const auto &fracv = data.fractional_velocity;
+        const auto &fracvconv = data.fractional_convective_velocity;
+
+        const auto &gamma = data.gamma;
+        const auto &h = data.h;
+        const auto &nu = data.nu;
+        const auto &p = data.pressure;
+        const auto &pn = data.pressure_old;
+        const auto &rho = data.rho;
+        const auto &v = data.velocity;
+        const auto &vn = data.velocity_old;
+        const auto &vconv = data.velocity_convective;
+
+        // Stabilization parameters
+        const double stab_c1 = 4.0;
+        const double stab_c2 = 2.0;
+
+        // Hardcoded shape functions gradients for linear triangular element
+        // This is explicitly done to minimize the matrix acceses
+        // The notation DN_i_j means shape function for node i in dimension j
+        const double &DN_DX_0_0 = data.DN_DX(0, 0);
+        const double &DN_DX_0_1 = data.DN_DX(0, 1);
+        const double &DN_DX_0_2 = data.DN_DX(0, 2);
+        const double &DN_DX_1_0 = data.DN_DX(1, 0);
+        const double &DN_DX_1_1 = data.DN_DX(1, 1);
+        const double &DN_DX_1_2 = data.DN_DX(1, 2);
+        const double &DN_DX_2_0 = data.DN_DX(2, 0);
+        const double &DN_DX_2_1 = data.DN_DX(2, 1);
+        const double &DN_DX_2_2 = data.DN_DX(2, 2);
+        const double &DN_DX_3_0 = data.DN_DX(3, 0);
+        const double &DN_DX_3_1 = data.DN_DX(3, 1);
+        const double &DN_DX_3_2 = data.DN_DX(3, 2);
+
+        //substitute_rhs_endofstep_3D
+
+        SizeType Index = 0;
+        GeometryType& rGeom = this->GetGeometry();
+
+        for (SizeType i = 0; i < 4; ++i) // loopover nodes
+        {
+            rGeom[i].SetLock(); // So it is safe to write in the node in OpenMP
+            array_1d<double,3>& rTemp = rGeom[i].FastGetSolutionStepValue(FRACT_VEL);
+            for (SizeType d = 0; d < 3; ++d) // loop over dimensions
+            {
+                rTemp[d] += rRightHandSideVector[Index++];
+            }
+            rGeom[i].UnSetLock(); // Free the node for other threads
+        }
+
     }
 
     KRATOS_CATCH("");

@@ -493,6 +493,7 @@ protected:
         // this->ComputeSplitOssProjections(rModelPart);
 
         // 2. Compute pressure (store pressure variation in PRESSURE_OLD_IT)
+        // This will be used in the end-of-step velocity update (at the moment it is unused)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,3);
 
 #pragma omp parallel for

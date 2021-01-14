@@ -205,7 +205,8 @@ for dim in dim_vector:
         res_mass_galerkin = -rho/dt*(q_gauss*div_fracv) - (grad_p.transpose()*grad_q) + gamma*(grad_pn.transpose()*grad_q)
 
         # Update end-of-step functional
-        res_endofstep_galerkin = -rho/dt*(v_gauss-fracv_gauss).transpose()*w_gauss + (p_gauss-gamma*pn_gauss)*div_w
+        # res_endofstep_galerkin = -rho/dt*(v_gauss-fracv_gauss).transpose()*w_gauss + (p_gauss-gamma*pn_gauss)*div_w
+        res_endofstep_galerkin = dt/rho*(p_gauss-gamma*pn_gauss)*div_w
 
         # Add the stabilization terms to the original residual terms
         if stabilization:
@@ -254,8 +255,6 @@ for dim in dim_vector:
 
     rhs_endofstep = Compute_RHS(res_endofstep_tot.copy(), testfunc_endofstep, do_simplifications)
     rhs_endofstep_out = OutputVector_CollectingFactors(rhs_endofstep, "rRightHandSideVector", mode)
-    lhs_endofstep = Compute_LHS(rhs_endofstep, testfunc_endofstep, dofs_endofstep, do_simplifications)
-    lhs_endofstep_out = OutputMatrix_CollectingFactors(lhs_endofstep, "rLeftHandSideMatrix", mode)
 
     # Replace the computed RHS and LHS in the template outstring
     if(dim == 2):
@@ -263,13 +262,11 @@ for dim in dim_vector:
         outstring = outstring.replace("//substitute_rhs_mass_2D", rhs_mass_out)
         outstring = outstring.replace("//substitute_lhs_mass_2D", lhs_mass_out)
         outstring = outstring.replace("//substitute_rhs_endofstep_2D", rhs_endofstep_out)
-        outstring = outstring.replace("//substitute_lhs_endofstep_2D", lhs_endofstep_out)
     elif(dim == 3):
         outstring = outstring.replace("//substitute_rhs_momentum_3D", rhs_momentum_out)
         outstring = outstring.replace("//substitute_rhs_mass_3D", rhs_mass_out)
         outstring = outstring.replace("//substitute_lhs_mass_3D", lhs_mass_out)
         outstring = outstring.replace("//substitute_rhs_endofstep_3D", rhs_endofstep_out)
-        outstring = outstring.replace("//substitute_lhs_endofstep_3D", lhs_endofstep_out)
 
     # Substitute the shape function gradients container accesses
     for i_node in range(n_nodes):
