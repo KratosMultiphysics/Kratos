@@ -222,7 +222,7 @@ protected:
     void MomentumProjTerm(
         const TElementData& rData,
         const array_1d<double,3>& rConvectionVelocity,
-        array_1d<double,3> &rMomentumRHS) const override;
+        array_1d<double,3> &rMomentumRHS);
 
     void AddVelocitySystem(
         TElementData& rData,
@@ -238,8 +238,8 @@ protected:
     void CalculateStabilizationParameters(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
-        double &TauOne,
-        double &TauTwo) const;
+        Matrix &TauOne,
+        double &TauTwo);
 
     virtual void MassProjTerm(
         const TElementData& rData,
@@ -260,6 +260,10 @@ protected:
     virtual double GetAtCoordinate(
         const double Value,
         const typename TElementData::ShapeFunctionsType& rN) const override;
+
+    void InverseMatrix(
+        Matrix& r_matrix,
+        Matrix& r_inv_matrix);
 
     ///@}
     ///@name Protected  Access
