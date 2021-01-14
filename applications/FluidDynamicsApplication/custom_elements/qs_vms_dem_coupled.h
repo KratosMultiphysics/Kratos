@@ -263,6 +263,12 @@ protected:
         TElementData& rData,
         MatrixType &rMassMatrix);
 
+    void CalculateTau(
+        const TElementData& rData,
+        const array_1d<double,3> &Velocity,
+        Matrix &TauOne,
+        double &TauTwo);
+
     void AddVelocitySystem(
         TElementData& rData,
         MatrixType &rLocalLHS,
@@ -291,6 +297,10 @@ protected:
     virtual double GetAtCoordinate(
         const double Value,
         const typename TElementData::ShapeFunctionsType& rN) const override;
+
+    void InverseMatrix(
+        Matrix& r_matrix,
+        Matrix& r_inv_matrix);
 
     ///@}
     ///@name Protected  Access

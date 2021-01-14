@@ -246,50 +246,56 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
     MatrixType& rMassMatrix)
 {
 
-        const double density = this->GetAtCoordinate(rData.Density, rData.N);
+    const double density = this->GetAtCoordinate(rData.Density, rData.N);
 
-        double tau_one;
-        double tau_two;
-        const array_1d<double, 3> convective_velocity=
-            this->GetAtCoordinate(rData.Velocity, rData.N) -
-            this->GetAtCoordinate(rData.MeshVelocity, rData.N);
+    Matrix tau_one = ZeroMatrix(Dim, Dim);
+    double tau_two;
+    const array_1d<double, 3> convective_velocity=
+        this->GetAtCoordinate(rData.Velocity, rData.N) -
+        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
 
-        this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
+    this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
 
-        double K, RSigmaU; // Temporary results
-        const double weight = rData.Weight * tau_one * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
+    const double weight = rData.Weight * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
 
-        Vector AGradN;
-        this->ConvectionOperator(AGradN, convective_velocity, rData.DN_DX); // Get a * grad(Ni)
+    Vector AGradN;
+    this->ConvectionOperator(AGradN, convective_velocity, rData.DN_DX); // Get a * grad(Ni)
 
-        AGradN *= density;
+    AGradN *= density;
 
-        const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-        double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
-        Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
+    const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
+    double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
+    Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
+    Matrix inv_permeability = ZeroMatrix(Dim, Dim);
 
-        // Note: Dof order is (vx,vy,[vz,]p) for each node
-        for (unsigned int i = 0; i < NumNodes; ++i)
+    this->InverseMatrix(permeability, inv_permeability);
+
+    Matrix sigma = viscosity * inv_permeability;
+
+    // Note: Dof order is (vx,vy,[vz,]p) for each node
+    for (unsigned int i = 0; i < NumNodes; ++i)
+    {
+        unsigned int row = i*BlockSize;
+        // Loop over columns
+        for (unsigned int j = 0; j < NumNodes; ++j)
         {
-            unsigned int row = i*BlockSize;
-            // Loop over columns
-            for (unsigned int j = 0; j < NumNodes; ++j)
-            {
-                unsigned int col = j*BlockSize;
-                K = weight * AGradN[i] * rData.N[j];
+            unsigned int col = j*BlockSize;
 
-                for (unsigned int d = 0; d < Dim; ++d) // iterate over dimensions for velocity Dofs in this node combination
-                {
-                    rMassMatrix(row+d, col+d) += K;
-                    rMassMatrix(row+Dim,col+d) += weight * (fluid_fraction * rData.DN_DX(i,d) * rData.N[j]);
-                    for (unsigned int e = 0; e < Dim; ++e){
-                        RSigmaU = (viscosity / permeability(d,e)) * rData.N[i] * AGradN[j];
-                        rMassMatrix(row+d, col+e) += weight * RSigmaU;
-                    }
+            for (unsigned int d = 0; d < Dim; ++d) // iterate over dimensions for velocity Dofs in this node combination
+            {
+                double K = 0.0;
+                double RSigmaU;
+                for (unsigned int e = 0; e < Dim; ++e){
+                    RSigmaU = tau_one(d,e) * sigma(d,e) * rData.N[i] * AGradN[j];
+                    K = weight * tau_one(d,e) * AGradN[i] * rData.N[j];
+                    rMassMatrix(row+d, col+e) += weight * RSigmaU;
+                    rMassMatrix(row+Dim,col+d) += weight * tau_one(d,e) * (fluid_fraction * rData.DN_DX(i,d) * rData.N[j]);
                 }
+                rMassMatrix(row+d, col+d) += K;
             }
         }
+    }
 }
 
 template<class TElementData>
@@ -328,7 +334,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const array_1d<double,3> momentum_projection = this->GetAtCoordinate(rData.MomentumProjection, rData.N);
     double mass_projection = this->GetAtCoordinate(rData.MassProjection, rData.N);
 
-    double tau_one;
+    Matrix tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
     const array_1d<double, 3> convective_velocity =
         this->GetAtCoordinate(rData.Velocity, rData.N) -
@@ -348,9 +354,14 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
     Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
+    Matrix inv_permeability = ZeroMatrix(Dim, Dim);
+
+    this->InverseMatrix(permeability, inv_permeability);
+
+    Matrix sigma = viscosity * inv_permeability;
 
     // Temporary containers
-    double V, AA, P, GAlphaA, AG, U, QAlpha, DAlphaD, DU, RSigma, ASigma, RRSigma, RSigmaA;
+    double V, P, U, QAlpha, DAlphaD, DU, RSigma, ASigma, RRSigma, RSigmaA;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -365,38 +376,40 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
             // Some terms are the same for all velocity components, calculate them once for each i,j
             V = rData.Weight * rData.N[i] * AGradN[j];
-            AA = rData.Weight * tau_one * AGradN[j] * AGradN[i]; // Stabilization: u*grad(v) * tau_one * u*grad(u)
 
             // q-p stabilization block (initialize result)
             double G = 0;
             for (unsigned int d = 0; d < Dim; d++)
             {
-                LHS(row+d,col+d) += V + AA;
+
 
                 // Stabilization: (a * Grad(v)) * tau_one * Grad(p)
                 P = rData.DN_DX(i,d) * rData.N[j]; // Div(v) * p
-                GAlphaA = tau_one * AGradN[j] * (fluid_fraction * rData.DN_DX(i,d));
-                AG = tau_one * AGradN[i] * rData.DN_DX(j,d);
                 U = fluid_fraction_gradient[d] * rData.N[j] * rData.N[i];
                 QAlpha = fluid_fraction * rData.DN_DX(j,d) * rData.N[i];
 
-                G += tau_one * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,d);
-
                 double GAlphaR = 0.0;
                 double RSigmaG = 0.0;
+                double GAlphaA = 0.0;
+                double AG = 0.0;
+                double AA = 0.0;
                 for (unsigned int e = 0; e < Dim; e++){ // Stabilization: Div(v) * tau_two * Div(u)
-                    RSigma = rData.N[i] * (viscosity / permeability(d,e)) * rData.N[j];
-                    ASigma = tau_one * AGradN[i] * (viscosity / permeability(d,e)) * rData.N[j];
-                    RRSigma = tau_one * (viscosity / permeability(d,e)) * rData.N[i] * (viscosity / permeability(d,e)) * rData.N[j];
-                    RSigmaA = tau_one * (viscosity / permeability(d,e)) * rData.N[i] * AGradN[j];
+                    RSigma = rData.N[i] * sigma(d,e) * rData.N[j];
+                    ASigma = tau_one(d,e) * AGradN[i] * sigma(d,e) * rData.N[j];
+                    RRSigma = tau_one(d,e) * sigma(d,e) * rData.N[i] * sigma(d,e) * rData.N[j];
+                    RSigmaA = tau_one(d,e) * sigma(d,e) * rData.N[i] * AGradN[j];
                     DAlphaD = tau_two * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,e);
                     DU = tau_two * rData.DN_DX(i,d) * fluid_fraction_gradient[e] * rData.N[j];
-                    GAlphaR += tau_one * fluid_fraction * rData.DN_DX(i,d) * (viscosity / permeability(d,e)) * rData.N[j];
-                    RSigmaG += tau_one * (viscosity / permeability(d,e)) * rData.N[i] * rData.DN_DX(j,d);
-
+                    GAlphaR += tau_one(d,e) * fluid_fraction * rData.DN_DX(i,d) * sigma(d,e) * rData.N[j];
+                    RSigmaG += tau_one(d,e) * sigma(d,e) * rData.N[i] * rData.DN_DX(j,d);
+                    GAlphaA += tau_one(d,e) * AGradN[j] * (fluid_fraction * rData.DN_DX(i,d));
+                    AG += tau_one(d,e) * AGradN[i] * rData.DN_DX(j,d);
+                    G += tau_one(d,e) * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,d);
+                    AA = rData.Weight * tau_one(d,e) * AGradN[j] * AGradN[i]; // Stabilization: u*grad(v) * tau_one * u*grad(u)
                     LHS(row+d,col+e) += rData.Weight * (DAlphaD + DU + RSigma + ASigma + RRSigma + RSigmaA);
                 }
 
+                LHS(row+d,col+d) += V + AA;
                 LHS(row+Dim,col+d) += rData.Weight * (GAlphaA + U + QAlpha + GAlphaR);
                 LHS(row+d,col+Dim) += rData.Weight * (AG - P + RSigmaG);
 
@@ -411,9 +424,11 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
         for (unsigned int d = 0; d < Dim; ++d)
         {
             rLocalRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
-            rLocalRHS[row+d] += rData.Weight * tau_one * AGradN[i] * (body_force[d] - momentum_projection[d]); // A_F: ( a * Grad(v) ) * tau_one * (Density * BodyForce)
+            for (unsigned int e = 0; e < Dim; ++e){
+                rLocalRHS[row+d] += rData.Weight * tau_one(d,e) * AGradN[i] * (body_force[d] - momentum_projection[d]); // A_F: ( a * Grad(v) ) * tau_one * (Density * BodyForce)
+                QAlphaFplusGAlphaF += tau_one(d,e) * (body_force[d] - momentum_projection[d]) * fluid_fraction * rData.DN_DX(i,d);
+            }
             rLocalRHS[row+d] -= rData.Weight * tau_two * rData.DN_DX(i,d) * (mass_projection + mass_source - fluid_fraction_rate);
-            QAlphaFplusGAlphaF += tau_one * (body_force[d] - momentum_projection[d]) * fluid_fraction * rData.DN_DX(i,d);
         }
         rLocalRHS[row+Dim] += rData.Weight * (QAlphaFplusGAlphaF + rData.N[i] * (mass_source - fluid_fraction_rate));
     }
@@ -454,7 +469,72 @@ void QSVMSDEMCoupled<TElementData>::MassProjTerm(
         rMassRHS += mass_source - fluid_fraction_rate;
 }
 
+template< class TElementData >
+void QSVMSDEMCoupled<TElementData>::CalculateTau(
+    const TElementData& rData,
+    const array_1d<double,3> &Velocity,
+    Matrix &TauOne,
+    double &TauTwo)
+{
+    constexpr double c1 = 8.0;
+    constexpr double c2 = 2.0;
 
+    const double h = rData.ElementSize;
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
+    Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
+    Matrix inv_permeability = ZeroMatrix(Dim, Dim);
+    Matrix inv_tau = ZeroMatrix(Dim, Dim);
+    Matrix I = IdentityMatrix(Dim, Dim);
+
+    this->InverseMatrix(permeability, inv_permeability);
+
+    double velocity_norm = Velocity[0]*Velocity[0];
+    for (unsigned int d = 1; d < Dim; d++)
+        velocity_norm += Velocity[d]*Velocity[d];
+    velocity_norm = std::sqrt(velocity_norm);
+
+    inv_tau = (c1 * viscosity / (h*h) + density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / h )) * I + viscosity * inv_permeability;
+
+    this->InverseMatrix(inv_tau, TauOne);
+
+    TauTwo = viscosity + c2 * density * velocity_norm * h / c1;
+}
+
+template< class TElementData >
+void QSVMSDEMCoupled<TElementData>::InverseMatrix(
+    Matrix& r_matrix,
+    Matrix& r_inv_matrix)
+{
+    Matrix adj_matrix = ZeroMatrix(Dim, Dim);
+    double det_matrix;
+    if (Dim == 2){
+        det_matrix = r_matrix(0,0) * r_matrix(1,1) - r_matrix(0,1) * r_matrix(1,0);
+        adj_matrix(0,0) += r_matrix(1,1);
+        adj_matrix(0,1) -= r_matrix(0,1);
+        adj_matrix(1,0) -= r_matrix(1,0);
+        adj_matrix(1,1) += r_matrix(0,0);
+    }
+    else if (Dim == 3){
+        det_matrix = r_matrix(0,0) * r_matrix(1,1) * r_matrix(2,2) + r_matrix(0,1) * r_matrix(1,2) * r_matrix(2,1) + r_matrix(1,0) * r_matrix(2,1) * r_matrix(1,2) -
+                     r_matrix(1,2) * r_matrix(2,2) * r_matrix(2,1) - r_matrix(0,1) * r_matrix(1,0) * r_matrix(2,2) - r_matrix(0,0) * r_matrix(1,2) * r_matrix(2,1);
+        adj_matrix(0,0) += r_matrix(1,1) * r_matrix(2,2) - r_matrix(1,2) * r_matrix(2,1);
+        adj_matrix(0,1) -= r_matrix(1,0) * r_matrix(2,2) - r_matrix(1,2) * r_matrix(2,0);
+        adj_matrix(0,2) += r_matrix(1,0) * r_matrix(2,1) - r_matrix(1,1) * r_matrix(2,0);
+        adj_matrix(1,0) -= r_matrix(0,1) * r_matrix(2,2) - r_matrix(0,2) * r_matrix(2,1);
+        adj_matrix(1,1) += r_matrix(0,0) * r_matrix(2,2) - r_matrix(0,2) * r_matrix(2,0);
+        adj_matrix(1,2) -= r_matrix(0,0) * r_matrix(2,1) - r_matrix(0,1) * r_matrix(2,0);
+        adj_matrix(2,0) += r_matrix(0,1) * r_matrix(1,2) - r_matrix(0,2) * r_matrix(1,1);
+        adj_matrix(2,1) -= r_matrix(0,0) * r_matrix(1,2) - r_matrix(0,2) * r_matrix(1,0);
+        adj_matrix(2,2) += r_matrix(0,0) * r_matrix(1,1) - r_matrix(0,1) * r_matrix(1,0);
+    }
+
+    for (unsigned int d = 0; d < Dim; ++d){
+        for (unsigned int e = 0; e < Dim; ++e){
+            r_inv_matrix(d,e) = adj_matrix(d,e) / det_matrix;
+        }
+    }
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
