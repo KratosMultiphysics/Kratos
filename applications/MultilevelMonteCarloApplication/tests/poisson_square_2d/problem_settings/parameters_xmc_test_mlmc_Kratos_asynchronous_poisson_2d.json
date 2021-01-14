@@ -7,13 +7,6 @@
         "tolerancesForHierarchy": [0],
         "positionMaxNumberIterationsCriterion": 2
     },
-    "costEstimatorInputDictionary": {
-        "indexSetDimension": 0,
-        "order": 1,
-        "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder2Dimension0",
-        "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper",
-"centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"
-    },
     "hierarchyOptimiserInputDictionary": {
         "defaultHierarchy": [[[0],5],[[1],5],[[2],5]],
         "indexSpace": [10],
@@ -22,12 +15,17 @@
         "toleranceSplittingBounds": [0.5,0.5]
     },
     "monteCarloIndexInputDictionary": {
-        "combinedEstimator": ["xmc.momentEstimator.CombinedMomentEstimator"],
         "costEstimator": "xmc.momentEstimator.MomentEstimator",
+        "costEstimatorInputDictionary": {
+            "indexSetDimension": 0, "order": 1, "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder2Dimension0", "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper", "centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"
+        },
         "indexValue": null,
         "qoiEstimator": ["xmc.momentEstimator.MomentEstimator"],
+        "qoiEstimatorInputDictionary": [
+            {"indexSetDimension": 1, "order": 1, "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder2Dimension1", "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper", "centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"}
+        ],
         "sampler": "xmc.sampleGenerator.SampleGenerator",
-        "eventGroupSize": 2
+        "eventGroupSize": 5
     },
     "monteCarloSamplerInputDictionary": {
         "assemblersForError": [[1,2]],
@@ -37,21 +35,7 @@
         "indexConstructor": "xmc.monteCarloIndex.MonteCarloIndex",
         "indices": [],
         "qoiPredictor": [],
-        "initialNumberBatches": 1
-    },
-    "qoiEstimatorInputDictionary": {
-        "indexSetDimension": 1,
-        "order": 1,
-        "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder2Dimension1",
-        "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper",
-"centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"
-    },
-    "combinedEstimatorInputDictionary": {
-        "indexSetDimension": 1,
-        "order": 1,
-        "updatedPowerSums":"xmc.methodDefs_momentEstimator.updateCombinedPowerSums.updatePowerSumsOrder2Dimension1",
-        "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper",
-"centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"
+        "initialNumberBatches": 2
     },
     "randomGeneratorInputDictionary": {
         "parameters": [2, 6],
@@ -63,24 +47,20 @@
         "solverWrapperIndices": null
     },
     "solverWrapperInputDictionary": {
-        "adaptiveRefinementJumpToFinestLevel": true,
-        "asynchronous": false,
+        "adaptiveRefinementJumpToFinestLevel": false,
+        "asynchronous": true,
         "fakeRandomVariable": [0.25],
         "index": [],
         "mappingOutputQuantities": false,
-        "numberContributionsPerInstance": 2,
-        "numberMomentEstimator": 2,
-        "numberCombinedMomentEstimator": 2,
-        "numberMultiMomentEstimator": 0,
-        "numberMultiCombinedMomentEstimator": 0,
+        "numberContributionsPerInstance": 1,
         "parameters": null,
         "printToFile": false,
-        "problemId": "poisson_2d",
+        "problemId": "poisson_square_2d",
         "projectParametersPath": "poisson_square_2d/problem_settings/parameters_finer.json",
         "refinementParametersPath": "poisson_square_2d/problem_settings/parameters_refinement.json",
         "refinementStrategy": "stochastic_adaptive_refinement",
-        "outputBatchSize" : 4,
-        "taskAllAtOnce": false
+        "outputBatchSize" : 1,
+        "taskAllAtOnce": true
     },
     "monoCriteriaInpuctDictionary" :{
         "statisticalError": {

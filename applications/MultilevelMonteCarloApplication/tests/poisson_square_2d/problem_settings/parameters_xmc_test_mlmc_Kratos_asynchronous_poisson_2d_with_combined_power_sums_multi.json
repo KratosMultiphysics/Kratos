@@ -7,13 +7,6 @@
         "tolerancesForHierarchy": [0],
         "positionMaxNumberIterationsCriterion": 2
     },
-    "costEstimatorInputDictionary": {
-        "indexSetDimension": 0,
-        "order": 1,
-        "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper",
-        "centralErrorMomentComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper",
-        "updatedPowerSums": "xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder2Dimension0"
-    },
     "hierarchyOptimiserInputDictionary": {
         "defaultHierarchy": [[[0],5],[[1],5],[[2],5]],
         "indexSpace": [10],
@@ -23,6 +16,9 @@
     },
     "monteCarloIndexInputDictionary": {
         "costEstimator": "xmc.momentEstimator.MomentEstimator",
+        "costEstimatorInputDictionary": {
+            "indexSetDimension": 0, "order": 1, "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder2Dimension0", "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper", "centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"
+        },
         "indexValue": null,
         "qoiEstimator": ["xmc.momentEstimator.MomentEstimator",
                          "xmc.momentEstimator.MomentEstimator",
@@ -65,13 +61,9 @@
         "index": [],
         "mappingOutputQuantities": false,
         "numberContributionsPerInstance": 1,
-        "numberMomentEstimator": 2,
-        "numberCombinedMomentEstimator": 2,
-        "numberMultiMomentEstimator": 1,
-        "numberMultiCombinedMomentEstimator": 1,
         "parameters": null,
         "printToFile": false,
-        "problemId": "poisson_2d",
+        "problemId": "poisson_square_2d",
         "projectParametersPath": "poisson_square_2d/problem_settings/parameters_finer.json",
         "refinementParametersPath": "poisson_square_2d/problem_settings/parameters_refinement.json",
         "refinementStrategy": "stochastic_adaptive_refinement",
