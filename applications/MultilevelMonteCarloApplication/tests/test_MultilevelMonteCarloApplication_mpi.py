@@ -40,9 +40,6 @@ def AssembleTestSuites():
     allMPISuite = suites['mpi_all']
     allMPISuite.addTests(nightlyMPISuite) # already contains the smallMPISuite
 
-    # can be removed after the cmd-line of the testing accepts "--using-mpi"
-    allSuite = suites['all']
-    allSuite.addTests(allMPISuite)
 
     return suites
 
