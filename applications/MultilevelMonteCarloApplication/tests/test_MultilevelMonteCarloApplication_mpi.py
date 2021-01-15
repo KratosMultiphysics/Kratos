@@ -7,7 +7,7 @@ if not KratosMultiphysics.IsDistributedRun():
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import test classes to create the suits
-from test_xmcAlgorithm_mpi import TestXMCAlgorithmMPI
+from mpi_test_xmcAlgorithm import TestXMCAlgorithmMPI
 
 def AssembleTestSuites():
     """
@@ -26,17 +26,22 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     # Create a test suit with the selected tests
-    smallMPISuite = suites['mpi_small']
+    smallSuite = suites['mpi_small']
 
-    # Create a test suit with the selected tests plus all small  mpi tests
-    nightlyMPISuite = suites['mpi_nightly']
-    nightlyMPISuite.addTests(smallMPISuite)
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXMCAlgorithmMPI]))
+    # Create a test suit with the selected tests plus all small mpi tests
+    nightlySuite = suites['mpi_nightly']
+    nightlySuite.addTests(smallSuite)
+    nightlySuite.addTest(TestXMCAlgorithmMPI('test_mc_Kratos_fastfornightly'))
+
+    # For very long tests that should not be in nightly and you can use to validate
+    validationSuite = suites['mpi_validation']
+    validationSuite.addTest(TestXMCAlgorithmMPI('test_mc_Kratos'))
+    validationSuite.addTest(TestXMCAlgorithmMPI('test_mlmc_Kratos'))
 
     # Create a test suit that contains all the tests
-    allMPISuite = suites['mpi_all']
-    allMPISuite.addTests(nightlyMPISuite) # already contains the smallMPISuite
-
+    allSuite = suites['mpi_all']
+    allSuite.addTests(nightlySuite) # already contains the smallSuite
+    allSuite.addTests(validationSuite)
 
     return suites
 

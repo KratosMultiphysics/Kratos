@@ -32,6 +32,126 @@ def isKratosFound():
 
 
 class TestXMCAlgorithmMPI(unittest.TestCase):
+    def test_mc_Kratos_fastfornightly(self):
+        if not isKratosFound():
+            self.skipTest("Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details.")
+
+        # read parameters
+        parametersList = [
+            "rectangle_wind_mpi/problem_settings/parameters_xmc_asynchronous_mc_SARTAAO.json"
+        ]
+
+        for parametersPath in parametersList:
+            with open(parametersPath, "r") as parameter_file:
+                parameters = json.load(parameter_file)
+            # add path of the problem folder to python path
+            problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
+            sys.path.append(
+                os.path.join(problem_id)
+            )
+            # SolverWrapper
+            parameters["solverWrapperInputDictionary"]["qoiEstimator"] = parameters["monteCarloIndexInputDictionary"]["qoiEstimator"]
+            # SampleGenerator
+            samplerInputDictionary = parameters["samplerInputDictionary"]
+            samplerInputDictionary["randomGeneratorInputDictionary"] = parameters[
+                "randomGeneratorInputDictionary"
+            ]
+            samplerInputDictionary["solverWrapperInputDictionary"] = parameters[
+                "solverWrapperInputDictionary"
+            ]
+            # MonteCarloIndex
+            monteCarloIndexInputDictionary = parameters["monteCarloIndexInputDictionary"]
+            monteCarloIndexInputDictionary["samplerInputDictionary"] = samplerInputDictionary
+            # MonoCriterion
+            criteriaArray = []
+            criteriaInputs = []
+            for monoCriterion in parameters["monoCriteriaInputDictionary"]:
+                criteriaArray.append(
+                    xmc.monoCriterion.MonoCriterion(
+                        parameters["monoCriteriaInputDictionary"][monoCriterion]["criteria"],
+                        parameters["monoCriteriaInputDictionary"][monoCriterion]["tolerance"],
+                    )
+                )
+                criteriaInputs.append(
+                    [parameters["monoCriteriaInputDictionary"][monoCriterion]["input"]]
+                )
+            # MultiCriterion
+            multiCriterionInputDictionary = parameters["multiCriterionInputDictionary"]
+            multiCriterionInputDictionary["criteria"] = criteriaArray
+            multiCriterionInputDictionary["inputsForCriterion"] = criteriaInputs
+            criterion = xmc.multiCriterion.MultiCriterion(**multiCriterionInputDictionary)
+            # ErrorEstimator
+            statErrorEstimator = xmc.errorEstimator.ErrorEstimator(
+                **parameters["errorEstimatorInputDictionary"]
+            )
+            # HierarchyOptimiser
+            hierarchyCostOptimiser = xmc.hierarchyOptimiser.HierarchyOptimiser(
+                **parameters["hierarchyOptimiserInputDictionary"]
+            )
+            # EstimationAssembler
+            if (
+                "expectationAssembler"
+                in parameters["estimationAssemblerInputDictionary"].keys()
+            ):
+                expectationAssembler = xmc.estimationAssembler.EstimationAssembler(
+                    **parameters["estimationAssemblerInputDictionary"]["expectationAssembler"]
+                )
+            if "varianceAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
+                varianceAssembler = xmc.estimationAssembler.EstimationAssembler(
+                    **parameters["estimationAssemblerInputDictionary"]["varianceAssembler"]
+                )
+            # MonteCarloSampler
+            monteCarloSamplerInputDictionary = parameters["monteCarloSamplerInputDictionary"]
+            monteCarloSamplerInputDictionary[
+                "indexConstructorDictionary"
+            ] = monteCarloIndexInputDictionary
+            monteCarloSamplerInputDictionary["assemblers"] = [
+                expectationAssembler,
+                varianceAssembler,
+            ]
+            monteCarloSamplerInputDictionary["errorEstimators"] = [statErrorEstimator]
+            mcSampler = xmc.monteCarloSampler.MonteCarloSampler(
+                **monteCarloSamplerInputDictionary
+            )
+            # XMCAlgorithm
+            XMCAlgorithmInputDictionary = parameters["XMCAlgorithmInputDictionary"]
+            XMCAlgorithmInputDictionary["monteCarloSampler"] = mcSampler
+            XMCAlgorithmInputDictionary["hierarchyOptimiser"] = hierarchyCostOptimiser
+            XMCAlgorithmInputDictionary["stoppingCriterion"] = criterion
+            algo = xmc.XMCAlgorithm(**XMCAlgorithmInputDictionary)
+
+            if parameters["solverWrapperInputDictionary"]["asynchronous"] is True:
+                algo.runAsynchronousXMC()
+            else:
+                algo.runXMC()
+
+            # test
+            # such results are not accurate, since we run the problem for few decimals
+            # and coarse meshes instead of hundreds of seconds and finer meshes
+            # check quantity of interest used to check convergence
+            estimations = get_value_from_remote(algo.estimation())
+            estimated_mean = 143
+            self.assertAlmostEqual(estimations[0], estimated_mean, delta=10.0)
+            self.assertEqual(algo.hierarchy()[0][1], 10)
+            # check moment estimator
+            sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[0]._sampleCounter
+            S1 = get_value_from_remote(algo.monteCarloSampler.indices[0].qoiEstimator[0].powerSums[0][0])
+            h1 = get_value_from_remote(ccm.computeCentralMomentsOrderOneDimensionZero(S1,sample_counter))
+            self.assertAlmostEqual(h1, 143, delta=10.0)
+            self.assertEqual(sample_counter, 10)
+            # check multi moment estimator
+            sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[1]._sampleCounter
+            self.assertEqual(sample_counter, 10)
+            # check combined moment estimator
+            sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[2]._sampleCounter
+            S1 = get_value_from_remote(algo.monteCarloSampler.indices[0].qoiEstimator[2].powerSums[0][0])
+            h1 = get_value_from_remote(ccm.computeCentralMomentsOrderOneDimensionZero(S1,sample_counter))
+            self.assertAlmostEqual(h1, 143, delta=10.0)
+            self.assertEqual(sample_counter, 60)
+            # check multi combined moment estimator
+            sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[3]._sampleCounter
+            self.assertEqual(sample_counter, 60)
+
     def test_mc_Kratos(self):
         if not isKratosFound():
             self.skipTest("Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details.")
