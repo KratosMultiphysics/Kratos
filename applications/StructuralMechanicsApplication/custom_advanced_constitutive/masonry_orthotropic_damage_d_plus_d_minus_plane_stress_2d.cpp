@@ -311,64 +311,34 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
-            if (!rMaterialProperties.Has(YOUNG_MODULUS))
-                KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YOUNG_MODULUS", "");
-
-        if (!rMaterialProperties.Has(POISSON_RATIO))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: POISSON_RATIO", "");
-
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_11))
-        ////    KRATOS_THROW_ERROR(std::logic_error, "Missing variable: TRANSFORMATION_MATRIX_COMP_11", "");
-
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_12))
-        ////    KRATOS_THROW_ERROR(std::logic_error, "Missing variable: TRANSFORMATION_MATRIX_COMP_12", "");
-
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_13))
-        ////    KRATOS_THROW_ERROR(std::logic_error, "Missing variable: TRANSFORMATION_MATRIX_COMP_13", "");
-
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_21))
-        ////    KRATOS_THROW_ERROR(std::logic_error, "Missing variable: TRANSFORMATION_MATRIX_COMP_21", "");
-
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_22))
-        ////    KRATOS_THROW_ERROR(std::logic_error, "Missing variable: TRANSFORMATION_MATRIX_COMP_22", "");
-
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_23))
-        ////    KRATOS_THROW_ERROR(std::logic_error, "Missing variable: TRANSFORMATION_MATRIX_COMP_23", "");
-
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_31))
-        ////    KRATOS_THROW_ERROR(std::logic_error, "Missing variable: TRANSFORMATION_MATRIX_COMP_31", "");
-
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_32))
-        ////    KRATOS_THROW_ERROR(std::logic_error, "Missing variable: TRANSFORMATION_MATRIX_COMP_32", "");
-
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_33))
-        ////    KRATOS_THROW_ERROR(std::logic_error, "Missing variable: TRANSFORMATION_MATRIX_COMP_33", "");
-
+        // ELASTIC PARAMETERS
+        if (!rMaterialProperties.Has(YOUNG_MODULUS_1))
+            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YOUNG_MODULUS_1", "");
+        if (!rMaterialProperties.Has(YOUNG_MODULUS_2))
+            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YOUNG_MODULUS_2", "");
+        if (!rMaterialProperties.Has(POISSON_RATIO_12))
+            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: POISSON_RATIO_12", "");
+        if (!rMaterialProperties.Has(POISSON_RATIO_12))
+            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: POISSON_RATIO_21", "");
+        if (!rMaterialProperties.Has(SHEAR_MODULUS))
+            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: SHEAR_MODULUS", "");
+        // TENSION
         if (!rMaterialProperties.Has(YIELD_STRESS_TENSION))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_TENSION", "");
-
-        ////if (!rMaterialProperties.Has(SPECIFIC_FRACTURE_ENERGY_TENSION))
-        ////    KRATOS_THROW_ERROR(std::logic_error, "Missing variable: SPECIFIC_FRACTURE_ENERGY_TENSION", "");
-
         if( !rMaterialProperties.Has(FRACTURE_ENERGY_TENSION) )
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_TENSION", "");
-
+        // COMPRESSION
         if (!rMaterialProperties.Has(DAMAGE_ONSET_STRESS_COMPRESSION))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: DAMAGE_ONSET_STRESS_COMPRESSION", "");
-
         if (!rMaterialProperties.Has(YIELD_STRESS_COMPRESSION))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_COMPRESSION", "");
-
-        if (!rMaterialProperties.Has(RESIDUAL_STRESS_COMPRESSION))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: RESIDUAL_STRESS_COMPRESSION", "");
-
         if (!rMaterialProperties.Has(YIELD_STRAIN_COMPRESSION))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRAIN_COMPRESSION", "");
-
-        //if( !rMaterialProperties.Has(FRACTURE_ENERGY_COMPRESSION) )
-        //    KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_COMPRESSION", "");
-
+        if (!rMaterialProperties.Has(RESIDUAL_STRESS_COMPRESSION))
+            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: RESIDUAL_STRESS_COMPRESSION", "");
+        if( !rMaterialProperties.Has(FRACTURE_ENERGY_COMPRESSION) )
+            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_COMPRESSION", "");
+        // BIAXIAL
         if (!rMaterialProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BIAXIAL_COMPRESSION_MULTIPLIER", "");
 
