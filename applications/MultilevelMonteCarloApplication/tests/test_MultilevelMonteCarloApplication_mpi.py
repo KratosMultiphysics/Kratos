@@ -1,5 +1,6 @@
 # Import Kratos
 import KratosMultiphysics
+import KratosMultiphysics.MultilevelMonteCarloApplication
 if not KratosMultiphysics.IsDistributedRun():
     raise Exception("This test script can only be executed in MPI!")
 
