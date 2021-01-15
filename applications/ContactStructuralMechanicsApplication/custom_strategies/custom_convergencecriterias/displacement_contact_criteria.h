@@ -326,7 +326,7 @@ public:
             r_table.AddColumn("EXP. RAT", 10);
             r_table.AddColumn("ABS", 10);
             r_table.AddColumn("EXP. ABS", 10);
-            if (mOptions.IsNot(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+            if (mOptions.Is(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
                 r_table.AddColumn("RT RATIO", 10);
                 r_table.AddColumn("EXP. RAT", 10);
                 r_table.AddColumn("ABS", 10);
