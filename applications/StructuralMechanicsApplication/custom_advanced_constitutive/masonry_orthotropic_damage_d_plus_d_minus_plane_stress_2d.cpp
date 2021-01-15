@@ -35,12 +35,14 @@ namespace Kratos
     bool MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::Has(
         const Variable<double>& rThisVariable)
     {
+        // TENSION
         if (rThisVariable == DAMAGE_TENSION)
             return true;
         if (rThisVariable == UNIAXIAL_STRESS_TENSION)
             return true;
         if (rThisVariable == THRESHOLD_TENSION)
             return true;
+        // COMPRESSION
         if (rThisVariable == DAMAGE_COMPRESSION)
             return true;
         if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION)
@@ -56,16 +58,18 @@ namespace Kratos
         double& rValue)
     {
         rValue = 0.0;
+        // TENSION
         if (rThisVariable == DAMAGE_TENSION)
             rValue = DamageParameterTension;
-        else if (rThisVariable == DAMAGE_COMPRESSION)
-            rValue = DamageParameterCompression;
         else if (rThisVariable == UNIAXIAL_STRESS_TENSION)
             rValue = UniaxialStressTension;
-        else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION)
-            rValue = UniaxialStressCompression;
         else if (rThisVariable == THRESHOLD_TENSION)
             rValue = mThresholdTension;
+        // COMPRESSION
+        else if (rThisVariable == DAMAGE_COMPRESSION)
+            rValue = DamageParameterCompression;
+        else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION)
+            rValue = UniaxialStressCompression;
         else if (rThisVariable == THRESHOLD_COMPRESSION)
             rValue = mThresholdCompression;
         return rValue;
@@ -77,16 +81,18 @@ namespace Kratos
         const double& rValue,
         const ProcessInfo& rCurrentProcessInfo)
     {
+        // TENSION
         if (rVariable == DAMAGE_TENSION)
             DamageParameterTension = rValue;
-        else if (rVariable == DAMAGE_COMPRESSION)
-            DamageParameterCompression = rValue;
         else if (rVariable == UNIAXIAL_STRESS_TENSION)
             UniaxialStressTension = rValue;
-        else if (rVariable == UNIAXIAL_STRESS_COMPRESSION)
-            UniaxialStressCompression = rValue;
         else if (rVariable == THRESHOLD_TENSION)
             mThresholdTension = rValue;
+        // COMPRESSION
+        else if (rVariable == DAMAGE_COMPRESSION)
+            DamageParameterCompression = rValue;
+        else if (rVariable == UNIAXIAL_STRESS_COMPRESSION)
+            UniaxialStressCompression = rValue;
         else if (rVariable == THRESHOLD_COMPRESSION)
             mThresholdCompression = rValue;
     }
@@ -142,6 +148,7 @@ namespace Kratos
         if (!InitializeDamageLaw) {
             mThresholdTension = rProperties[YIELD_STRESS_TENSION];
             mCurrentThresholdTension = mThresholdTension;
+
             mThresholdCompression = rProperties[DAMAGE_ONSET_STRESS_COMPRESSION];
             mCurrentThresholdCompression = mThresholdCompression;
 
