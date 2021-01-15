@@ -119,6 +119,7 @@
 #include "custom_advanced_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
 #include "custom_advanced_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "custom_advanced_constitutive/d_plus_d_minus_damage_masonry_3d.h"
+#include "custom_advanced_constitutive/masonry_orthotropic_damage_d_plus_d_minus_plane_stress_2d.h"
 #include "custom_advanced_constitutive/small_strain_isotropic_plasticity_factory.h"
 #include "custom_advanced_constitutive/small_strain_kinematic_plasticity_factory.h"
 #include "custom_advanced_constitutive/generic_small_strain_isotropic_plasticity.h"
@@ -904,6 +905,7 @@ private:
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageTrescaMohrCoulomb2D;
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageDruckerPragerMohrCoulomb2D;
     const DamageDPlusDMinusMasonry2DLaw mDamageDPlusDMinusPlaneStressMasonry2DLaw;
+    const MasonryOrthotropicDamageDPlusDMinusPlaneStress2D mMasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw;
     const DamageDPlusDMinusMasonry3DLaw mDamageDPlusDMinusMasonry3DLaw;
 
     // Orthotropic Damage
