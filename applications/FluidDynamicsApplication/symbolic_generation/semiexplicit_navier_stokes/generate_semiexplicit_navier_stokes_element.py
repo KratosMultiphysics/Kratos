@@ -170,17 +170,19 @@ for dim in dim_vector:
         if convective_term:
             if (linearisation == "Picard"):
                 fracvconv = DefineMatrix('fracvconv',n_nodes,dim) # Convective fractional velocity defined a symbol
+                vconv = DefineMatrix('vconv',n_nodes,dim) # Convective velocity defined a symbol
             elif (linearisation == "FullNR"):
                 vmesh = DefineMatrix('vmesh',n_nodes,dim) # Mesh velocity
                 fracvconv = v - vmesh                         # Convective velocity defined as a velocity dependent variable
             else:
                 raise Exception("Wrong linearisation \'" + linearisation + "\' selected. Available options are \'Picard\' and \'FullNR\'.")
             fracvconv_gauss = fracvconv.transpose()*N
+            vconv_gauss = vconv.transpose()*N
         if convective_term:
             div_fracvconv = div(DN,fracvconv)
             div_fracvconv = ones(1,1)*sum([DN[i]*fracvconv[i] for i in range (0,len(DN))])
-        if convective_term:
-            convective_term_gauss = (fracvconv_gauss.transpose()*grad_fracv)
+            div_vconv = div(DN,vconv)
+            div_vconv = ones(1,1)*sum([DN[i]*vconv[i] for i in range (0,len(DN))])
 
         # Compute the stabilization parameters
         if convective_term:
@@ -197,12 +199,16 @@ for dim in dim_vector:
         # Update functionals
 
         # Update momentum functional
-        res_momentum_galerkin = w_gauss.transpose()*f_gauss - nu*grad_sym_w.transpose()*grad_sym_fracv + gamma*div_w*pn_gauss
+        # res_momentum_galerkin = w_gauss.transpose()*f_gauss - nu*grad_sym_w.transpose()*grad_sym_fracv + gamma*div_w*pn_gauss
+        res_momentum_galerkin = w_gauss.transpose()*f_gauss - nu*grad_sym_w.transpose()*grad_sym_v + gamma*div_w*pn_gauss
         if convective_term:
-            res_momentum_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
+            # res_momentum_galerkin -= rho*w_gauss.transpose()*(fracvconv_gauss.transpose()*grad_fracv).transpose()
+            res_momentum_galerkin -= rho*w_gauss.transpose()*(vconv_gauss.transpose()*grad_v).transpose()
+        res_momentum_galerkin = res_momentum_galerkin/rho
 
         # Update mass functional
-        res_mass_galerkin = -rho/dt*(q_gauss*div_fracv) - (grad_p.transpose()*grad_q) + gamma*(grad_pn.transpose()*grad_q)
+        # res_mass_galerkin = -rho/dt*(q_gauss*div_fracv) - (grad_p.transpose()*grad_q) + gamma*(grad_pn.transpose()*grad_q)
+        res_mass_galerkin = -rho/dt*(q_gauss*div_v) - (grad_p.transpose()*grad_q) + gamma*(grad_pn.transpose()*grad_q) # probably - (grad_p.transpose()*grad_q) term should not be written, since we are computing p
 
         # Update end-of-step functional
         # res_endofstep_galerkin = -rho/dt*(v_gauss-fracv_gauss).transpose()*w_gauss + (p_gauss-gamma*pn_gauss)*div_w
@@ -235,7 +241,8 @@ for dim in dim_vector:
 
         # Velocity and fractional velocity DOFs and test functions
         for k in range(0,dim):
-            dofs_momentum[i*(dim)+k] = fracv[i,k]
+            # dofs_momentum[i*(dim)+k] = fracv[i,k]
+            dofs_momentum[i*(dim)+k] = v[i,k]
             testfunc_momentum[i*(dim)+k] = w[i,k]
             dofs_endofstep[i*(dim)+k] = v[i,k]
             testfunc_endofstep[i*(dim)+k] = w[i,k]
