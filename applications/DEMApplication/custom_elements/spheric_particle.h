@@ -140,8 +140,8 @@ virtual void FinalCalculateRightHandSide(const ProcessInfo& r_process_info, doub
 virtual void InitializeForceComputation(const ProcessInfo& r_process_info);
 virtual void FinalizeForceComputation(ParticleDataBuffer & data_buffer){}
 virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info) override;
-virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) override;
-virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) override;
+virtual void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& r_process_info) override;
+virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& r_process_info) override;
 virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info ) override;
 virtual void ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_neighbours_ids, std::vector<array_1d<double, 3> >& temp_neighbour_elastic_contact_forces);
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();

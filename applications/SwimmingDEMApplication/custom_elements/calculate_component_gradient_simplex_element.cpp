@@ -7,7 +7,7 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeComponentGradientSimplex<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                  const ProcessInfo& rCurrentProcessInfo)
 {
     const int current_component = rCurrentProcessInfo[CURRENT_COMPONENT];
     if (current_component == 0){
@@ -73,7 +73,7 @@ void ComputeComponentGradientSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeComponentGradientSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int ComputeComponentGradientSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

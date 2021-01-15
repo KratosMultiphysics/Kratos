@@ -1,6 +1,6 @@
 //
 //  Main author:    Guillermo Casas
-//                    
+//
 //
 
 #if !defined(KRATOS_RESIDUALBASED_DERIVATIVE_RECOVERY_STRATEGY )
@@ -125,7 +125,6 @@ public:
         bool MoveMeshFlag = false
     ): ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part,
                                                                              pScheme,
-                                                                             pNewLinearSolver,
                                                                              pNewBuilderAndSolver,
                                                                              CalculateReactionFlag,
                                                                              ReformDofSetAtEachStep,

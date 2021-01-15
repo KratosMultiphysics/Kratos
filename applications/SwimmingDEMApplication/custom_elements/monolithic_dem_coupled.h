@@ -268,7 +268,7 @@ public:
      */
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
             const unsigned int LocalSize = (TDim + 1) * TNumNodes;
@@ -334,7 +334,7 @@ public:
      * expected to contain values for OSS_SWITCH, DYNAMIC_TAU and DELTA_TIME
      */
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                        const ProcessInfo& rCurrentProcessInfo) override
     {
         // Calculate this element's geometric parameters
         double Area;
@@ -465,7 +465,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
 //        rMassMatrix.resize(0,0,false);
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
@@ -540,7 +540,7 @@ public:
         }
     }
 //G
-    virtual void CalculateLaplacianMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateLaplacianMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
         const unsigned int LocalSize = TDim * TNumNodes;
 
@@ -660,7 +660,7 @@ public:
         noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
     }
 
-    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
+    virtual void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override
     {
 //             if(this->GetValue(TRACK_SUBSCALES) == 1)
 //             {
@@ -1152,7 +1152,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
