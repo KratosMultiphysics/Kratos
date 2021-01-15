@@ -271,7 +271,7 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec --oversubscribe  -np 2 python3 applications/MultilevelMonteCarloApplication/tests/test_MultilevelMonteCarloApplication_mpi.py -l nightly --using-mpi
+        mpiexec -np 2 python3 applications/MultilevelMonteCarloApplication/tests/test_MultilevelMonteCarloApplication_mpi.py -l nightly --using-mpi
 
     - name: Running MPI Python MultilevelMonteCarloApplication (3 Cores)
       timeout-minutes : 10
