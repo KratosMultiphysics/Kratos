@@ -256,10 +256,10 @@ void MonolithicDEMCoupled<3>::GetSecondDerivativesVector(Vector& Values, int Ste
 }
 
 /**
- * @see MonolithicDEMCoupled::GetValueOnIntegrationPoints
+ * @see MonolithicDEMCoupled::CalculateOnIntegrationPoints
  */
 template <>
-void MonolithicDEMCoupled<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+void MonolithicDEMCoupled<2>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -343,10 +343,10 @@ void MonolithicDEMCoupled<2>::GetValueOnIntegrationPoints( const Variable<array_
 }
 
 /**
- * @see MonolithicDEMCoupled::GetValueOnIntegrationPoints
+ * @see MonolithicDEMCoupled::CalculateOnIntegrationPoints
  */
 template <>
-void MonolithicDEMCoupled<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+void MonolithicDEMCoupled<3>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
 {

@@ -935,18 +935,6 @@ void ShellRigid::NicePrint(const Matrix& A)
     }
 }
 
-
-//************************************************************************************
-//************************************************************************************
-void ShellRigid::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-
-
 //************************************************************************************
 //************************************************************************************
 void ShellRigid::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo)

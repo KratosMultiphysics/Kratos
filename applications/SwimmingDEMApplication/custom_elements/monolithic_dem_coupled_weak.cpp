@@ -185,10 +185,10 @@ void MonolithicDEMCoupledWeak<3>::GetSecondDerivativesVector(Vector& Values, int
 }
 
 /**
- * @see MonolithicDEMCoupledWeak::GetValueOnIntegrationPoints
+ * @see MonolithicDEMCoupledWeak::CalculateOnIntegrationPoints
  */
 template <>
-void MonolithicDEMCoupledWeak<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+void MonolithicDEMCoupledWeak<2>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -272,10 +272,10 @@ void MonolithicDEMCoupledWeak<2>::GetValueOnIntegrationPoints( const Variable<ar
 }
 
 /**
- * @see MonolithicDEMCoupledWeak::GetValueOnIntegrationPoints
+ * @see MonolithicDEMCoupledWeak::CalculateOnIntegrationPoints
  */
 template <>
-void MonolithicDEMCoupledWeak<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+void MonolithicDEMCoupledWeak<3>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
 {
