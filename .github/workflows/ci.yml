@@ -50,13 +50,13 @@ jobs:
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/lib/ccache/gcc
           export CXX=/usr/lib/ccache/g++
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_4d272bb -DINCLUDE_PMMG=ON"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_4d272bb -DINCLUDE_PMMG=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable -Werror=misleading-indentation -Werror=return-type -Werror=sign-compare -Werror=unused-but-set-variable -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Werror=comment -Werror=parentheses"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
           export CXX=clang++-9
-          export KRATOS_CMAKE_CXX_FLAGS="-Werror=delete-non-abstract-non-virtual-dtor -Werror=extra-tokens -Werror=defaulted-function-deleted -Werror=potentially-evaluated-expression -Werror=instantiation-after-specialization -Werror=undefined-var-template -Werror=unused-lambda-capture -Werror=unused-const-variable -Werror=parentheses -Werror=pessimizing-move -Werror=c++17-extensions -Werror=logical-op-parentheses"
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_4_1/"
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror=delete-non-abstract-non-virtual-dtor -Werror=extra-tokens -Werror=defaulted-function-deleted -Werror=potentially-evaluated-expression -Werror=instantiation-after-specialization -Werror=undefined-var-template -Werror=unused-lambda-capture -Werror=unused-const-variable -Werror=parentheses -Werror=pessimizing-move -Werror=c++17-extensions -Werror=logical-op-parentheses -Werror=range-loop-construct"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_4_1/"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
@@ -264,30 +264,6 @@ jobs:
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe  -np 4 python3 applications/MeshingApplication/tests/test_MeshingApplication_mpi.py --using-mpi
-
-    - name: Running MPI Python MultilevelMonteCarloApplication (2 Cores)
-      timeout-minutes : 10
-      run: |
-        . /opt/intel/mkl/bin/mklvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec -np 2 python3 applications/MultilevelMonteCarloApplication/tests/test_MultilevelMonteCarloApplication_mpi.py -l nightly --using-mpi
-
-    - name: Running MPI Python MultilevelMonteCarloApplication (3 Cores)
-      timeout-minutes : 10
-      run: |
-        . /opt/intel/mkl/bin/mklvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec --oversubscribe  -np 3 python3 applications/MultilevelMonteCarloApplication/tests/test_MultilevelMonteCarloApplication_mpi.py -l nightly --using-mpi
-
-    - name: Running MPI Python MultilevelMonteCarloApplication (4 Cores)
-      timeout-minutes : 10
-      run: |
-        . /opt/intel/mkl/bin/mklvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec --oversubscribe  -np 4 python3 applications/MultilevelMonteCarloApplication/tests/test_MultilevelMonteCarloApplication_mpi.py -l nightly --using-mpi
 
   windows:
     runs-on: windows-latest
