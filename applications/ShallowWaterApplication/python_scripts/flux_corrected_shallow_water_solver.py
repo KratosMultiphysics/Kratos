@@ -17,10 +17,3 @@ class FluxCorrectedShallowWaterSolver(StabilizedShallowWaterSolver):
     def _CreateScheme(self):
         time_scheme = SW.FluxCorrectedShallowWaterScheme(self.settings["time_integration_order"].GetInt())
         return time_scheme
-
-    def _CreateConvergenceCriterion(self):
-        convergence_criterion = KM.ResidualCriteria(
-            self.settings["relative_tolerance"].GetDouble(),
-            self.settings["absolute_tolerance"].GetDouble())
-        convergence_criterion.SetEchoLevel(self.echo_level)
-        return convergence_criterion
