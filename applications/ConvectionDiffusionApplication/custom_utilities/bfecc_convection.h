@@ -205,6 +205,7 @@ public:
             }
         }
 
+        // New BFECC Algorithm
         for (int i = 0; i < nparticles; i++)
         {
             ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;

@@ -442,8 +442,10 @@ public:
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
                     auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
-                    it_node->FastGetSolutionStepValue(mrLevelSetVar) = 0.5*(
-                        it_node->GetValue(mrLevelSetVar) + PhiNplusOne[i_node] );
+                    //it_node->FastGetSolutionStepValue(mrLevelSetVar) = 0.5*(
+                    //    it_node->GetValue(mrLevelSetVar) + PhiNplusOne[i_node] );
+
+                    //it_node->FastGetSolutionStepValue(mrLevelSetVar) = PhiNplusOne[i_node];
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
                 } */
 
