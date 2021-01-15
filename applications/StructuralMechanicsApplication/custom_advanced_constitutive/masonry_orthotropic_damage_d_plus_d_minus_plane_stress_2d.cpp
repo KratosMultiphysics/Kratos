@@ -60,14 +60,14 @@ namespace Kratos
         rValue = 0.0;
         // TENSION
         if (rThisVariable == DAMAGE_TENSION)
-            rValue = DamageParameterTension;
+            rValue = mDamageTension;
         else if (rThisVariable == UNIAXIAL_STRESS_TENSION)
             rValue = UniaxialStressTension;
         else if (rThisVariable == THRESHOLD_TENSION)
             rValue = mThresholdTension;
         // COMPRESSION
         else if (rThisVariable == DAMAGE_COMPRESSION)
-            rValue = DamageParameterCompression;
+            rValue = mDamageCompression;
         else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION)
             rValue = UniaxialStressCompression;
         else if (rThisVariable == THRESHOLD_COMPRESSION)
@@ -83,14 +83,14 @@ namespace Kratos
     {
         // TENSION
         if (rVariable == DAMAGE_TENSION)
-            DamageParameterTension = rValue;
+            mDamageTension = rValue;
         else if (rVariable == UNIAXIAL_STRESS_TENSION)
             UniaxialStressTension = rValue;
         else if (rVariable == THRESHOLD_TENSION)
             mThresholdTension = rValue;
         // COMPRESSION
         else if (rVariable == DAMAGE_COMPRESSION)
-            DamageParameterCompression = rValue;
+            mDamageCompression = rValue;
         else if (rVariable == UNIAXIAL_STRESS_COMPRESSION)
             UniaxialStressCompression = rValue;
         else if (rVariable == THRESHOLD_COMPRESSION)
@@ -152,8 +152,8 @@ namespace Kratos
             mThresholdCompression = rProperties[DAMAGE_ONSET_STRESS_COMPRESSION];
             mCurrentThresholdCompression = mThresholdCompression;
 
-            DamageParameterTension = 0.0;
-            DamageParameterCompression = 0.0;
+            mDamageTension = 0.0;
+            mDamageCompression = 0.0;
             UniaxialStressTension = 0.0;
             UniaxialStressCompression = 0.0;
 
@@ -264,34 +264,6 @@ namespace Kratos
         // Back rotation of final Predictive Stress
         noalias(PredictiveStressVector) = prod(data.TransformationMatrixTranspose, PredictiveStressVector);
     }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::FinalizeMaterialResponsePK1(
-        Parameters& rValues)
-    {
-        FinalizeMaterialResponseCauchy(rValues);
-    }
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::FinalizeMaterialResponsePK2(
-        Parameters& rValues)
-    {
-        FinalizeMaterialResponseCauchy(rValues);
-    }
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::FinalizeMaterialResponseKirchhoff(
-        Parameters& rValues)
-    {
-        FinalizeMaterialResponseCauchy(rValues);
-    }
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::FinalizeMaterialResponseCauchy(
-        Parameters& rValues)
-    {
-    }
     /***********************************************************************************/
     /***********************************************************************************/
     void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::ResetMaterial(
@@ -301,10 +273,13 @@ namespace Kratos
     {
         mThresholdTension = 0.0;
         mCurrentThresholdTension = 0.0;
+
         mThresholdCompression = 0.0;
         mCurrentThresholdCompression = 0.0;
-        DamageParameterTension = 0.0;
-        DamageParameterCompression = 0.0;
+
+        mDamageTension = 0.0;
+        mDamageCompression = 0.0;
+
         mInitialCharacteristicLength = 0.0;
         InitializeDamageLaw = false;
 
@@ -983,25 +958,25 @@ namespace Kratos
             TemporaryImplicitThresholdTCompression = implicit_threshold_compression;
 
             // new damage variables (explicit)
-            this->CalculateDamageTension(data, mThresholdTension, DamageParameterTension);
-            this->CalculateDamageCompression(data, mThresholdCompression, DamageParameterCompression);
+            this->CalculateDamageTension(data, mThresholdTension, mDamageTension);
+            this->CalculateDamageCompression(data, mThresholdCompression, mDamageCompression);
         }
         else { // IMPLICIT Integration
             if (UniaxialStressTension > mThresholdTension)
                 mThresholdTension = UniaxialStressTension;
-            this->CalculateDamageTension(data, mThresholdTension, DamageParameterTension);
+            this->CalculateDamageTension(data, mThresholdTension, mDamageTension);
 
             if (UniaxialStressCompression > mThresholdCompression)
                 mThresholdCompression = UniaxialStressCompression;
-            this->CalculateDamageCompression(data, mThresholdCompression, DamageParameterCompression);
+            this->CalculateDamageCompression(data, mThresholdCompression, mDamageCompression);
 
             mCurrentThresholdTension = mThresholdTension;
             mCurrentThresholdCompression = mThresholdCompression;
         }
 
         // calculation of isotropic stress tensor
-        noalias(PredictiveStressVector) = (1.0 - DamageParameterTension) * data.EffectiveTensionStressVector;
-        noalias(PredictiveStressVector) += (1.0 - DamageParameterCompression) * data.EffectiveCompressionStressVector;
+        noalias(PredictiveStressVector) = (1.0 - mDamageTension) * data.EffectiveTensionStressVector;
+        noalias(PredictiveStressVector) += (1.0 - mDamageCompression) * data.EffectiveCompressionStressVector;
     }
     /***********************************************************************************/
     /***********************************************************************************/
@@ -1034,8 +1009,8 @@ namespace Kratos
         // save internal variables
         double save_threshold_tension = mThresholdTension;
         double save_threshold_compression = mThresholdCompression;
-        double save_damage_tension = DamageParameterTension;
-        double save_damage_compression = DamageParameterCompression;
+        double save_damage_tension = mDamageTension;
+        double save_damage_compression = mDamageCompression;
         double save_uniaxial_stress_tension = UniaxialStressTension;
         double save_uniaxial_stress_compression = UniaxialStressCompression;
 
@@ -1067,8 +1042,8 @@ namespace Kratos
         // restore internal variables
         mThresholdTension = save_threshold_tension;
         mThresholdCompression = save_threshold_compression;
-        DamageParameterTension = save_damage_tension;
-        DamageParameterCompression = save_damage_compression;
+        mDamageTension = save_damage_tension;
+        mDamageCompression = save_damage_compression;
         UniaxialStressTension = save_uniaxial_stress_tension;
         UniaxialStressCompression = save_uniaxial_stress_compression;
     }
@@ -1083,8 +1058,8 @@ namespace Kratos
             constitutive_matrix.resize(VoigtSize, VoigtSize);
 
         Matrix DamageMatrix(IdentityMatrix(3, 3));
-        noalias(DamageMatrix) -= DamageParameterTension * data.ProjectionTensorTension;
-        noalias(DamageMatrix) -= DamageParameterCompression * data.ProjectionTensorCompression;
+        noalias(DamageMatrix) -= mDamageTension * data.ProjectionTensorTension;
+        noalias(DamageMatrix) -= mDamageCompression * data.ProjectionTensorCompression;
 
         noalias(constitutive_matrix) = prod(DamageMatrix, data.ElasticityMatrix);
     }

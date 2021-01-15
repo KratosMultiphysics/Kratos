@@ -216,36 +216,6 @@ namespace Kratos
         void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters & rValues) override;
 
         /**
-        * Computes the material response in terms of Cauchy stresses and constitutive tensor
-        * @see Parameters
-        */
-        void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) override;
-
-        /**
-        * Updates the material response in terms of 1st Piola-Kirchhoff stresses
-        * @see Parameters
-        */
-        void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters & rValues) override;
-
-        /**
-        * Updates the material response in terms of 2nd Piola-Kirchhoff stresses
-        * @see Parameters
-        */
-        void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters & rValues) override;
-
-        /**
-        * Updates the material response in terms of Kirchhoff stresses
-        * @see Parameters
-        */
-        void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters & rValues) override;
-
-        /**
-        * Updates the material response in terms of Cauchy stresses
-        * @see Parameters
-        */
-        void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) override;
-
-        /**
         * This can be used in order to reset all internal variables of the
         * constitutive law (e.g. if a model should be reset to its reference state)
         * @param rMaterialProperties the Properties instance of the current element
@@ -309,7 +279,8 @@ namespace Kratos
         double mThresholdTension = 0.0;            double mThresholdCompression = 0.0;            // at time step n + 1:
 
         // Damage Parameters & Uniaxial Stresses
-        double DamageParameterTension = 0.0;      double DamageParameterCompression = 0.0;
+        double mDamageTension = 0.0;
+        double mDamageCompression = 0.0;
         double UniaxialStressTension = 0.0;       double UniaxialStressCompression = 0.0;
 
         // Misc
