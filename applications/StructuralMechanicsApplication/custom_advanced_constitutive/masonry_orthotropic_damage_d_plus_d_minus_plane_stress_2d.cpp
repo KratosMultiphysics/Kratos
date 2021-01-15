@@ -96,25 +96,21 @@ namespace Kratos
     bool MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::ValidateInput(
         const Properties& rMaterialProperties)
     {
-        if (!rMaterialProperties.Has(YOUNG_MODULUS))                           return false;
-        if (!rMaterialProperties.Has(POISSON_RATIO))                           return false;
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_11))        return false;
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_12))        return false;
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_13))        return false;
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_21))        return false;
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_22))        return false;
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_23))        return false;
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_31))        return false;
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_32))        return false;
-        ////if (!rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_33))        return false;
+        // ELASTIC PARAMETERS
+        if (!rMaterialProperties.Has(YOUNG_MODULUS_1))                        return false;
+        if (!rMaterialProperties.Has(YOUNG_MODULUS_2))                        return false;
+        if (!rMaterialProperties.Has(POISSON_RATIO_12))                       return false;
+        if (!rMaterialProperties.Has(POISSON_RATIO_21))                       return false;
+        // TENSION PARAMETERS
         if (!rMaterialProperties.Has(YIELD_STRESS_TENSION))                   return false;
-        ////if (!rMaterialProperties.Has(SPECIFIC_FRACTURE_ENERGY_TENSION))     return false;
         if( !rMaterialProperties.Has(FRACTURE_ENERGY_TENSION) )               return false;
+        // COMPRESSION PARAMETERS
         if (!rMaterialProperties.Has(DAMAGE_ONSET_STRESS_COMPRESSION))        return false;
         if (!rMaterialProperties.Has(YIELD_STRESS_COMPRESSION))               return false;
-        if (!rMaterialProperties.Has(RESIDUAL_STRESS_COMPRESSION))            return false;
         if (!rMaterialProperties.Has(YIELD_STRAIN_COMPRESSION))               return false;
-        //if( !rMaterialProperties.Has(FRACTURE_ENERGY_COMPRESSION) )           return false;
+        if (!rMaterialProperties.Has(RESIDUAL_STRESS_COMPRESSION))            return false;
+        if( !rMaterialProperties.Has(FRACTURE_ENERGY_COMPRESSION) )           return false;
+        // BIAXIAL PARAMETERS
         if (!rMaterialProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER))         return false;
         return true;
     }
@@ -435,17 +431,13 @@ namespace Kratos
         const ProcessInfo& pinfo,
         CalculationData& data)
     {
-        // elasticity
-        data.YoungModulus = rProperties[YOUNG_MODULUS];
-        data.PoissonRatio = rProperties[POISSON_RATIO];
-
         this->CalculateOrthotropicElasticityMatrix(
             data.ElasticityMatrix,
-            rProperties[YOUNG_MODULUS],
-            rProperties[YOUNG_MODULUS],
-            rProperties[POISSON_RATIO],
-            rProperties[POISSON_RATIO],
-            rProperties[YOUNG_MODULUS]);
+            rProperties[YOUNG_MODULUS_1],
+            rProperties[YOUNG_MODULUS_2],
+            rProperties[POISSON_RATIO_12],
+            rProperties[POISSON_RATIO_21],
+            rProperties[SHEAR_MODULUS]);
 
         // transformation
         ////data.TransformationMatrixComp11 = rProperties[TRANSFORMATION_MATRIX_COMP_11];
