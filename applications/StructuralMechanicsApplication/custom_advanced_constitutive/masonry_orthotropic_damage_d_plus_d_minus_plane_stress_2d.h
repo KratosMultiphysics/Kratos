@@ -25,15 +25,15 @@
 namespace Kratos
 {
     /**
-    * @class MasonryOrthotropicDamageDPlusDMinusPlaneStress2D
+    * @class MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw
     * @ingroup StructuralMechanicsApplication
     */
-    class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MasonryOrthotropicDamageDPlusDMinusPlaneStress2D
+    class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw
         : public ConstitutiveLaw
     {
     public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(MasonryOrthotropicDamageDPlusDMinusPlaneStress2D);
+        KRATOS_CLASS_POINTER_DEFINITION(MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw);
 
         ///@name Type Definitions
         ///@{
@@ -50,17 +50,17 @@ namespace Kratos
         ///@}
 
         /// Default Constructor.
-        MasonryOrthotropicDamageDPlusDMinusPlaneStress2D()
+        MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw()
         {}
 
         /// Destructor.
-        ~MasonryOrthotropicDamageDPlusDMinusPlaneStress2D() override
+        ~MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw() override
         {}
 
         /// Clone
         ConstitutiveLaw::Pointer Clone() const override
         {
-            return ConstitutiveLaw::Pointer(new MasonryOrthotropicDamageDPlusDMinusPlaneStress2D());
+            return ConstitutiveLaw::Pointer(new MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw());
         }
 
         /// @brief returns the working space dimension of the current constitutive law
@@ -78,14 +78,12 @@ namespace Kratos
         struct CalculationData {
 
             // Elastic Properties
-            double YoungModulus;                                double PoissonRatio;
+            double E;
             Matrix ElasticityMatrix;
 
             // Isotropic Mapping Properties
-            double TransformationMatrixComp11;                    double TransformationMatrixComp12;        double TransformationMatrixComp13;
-            double TransformationMatrixComp21;                    double TransformationMatrixComp22;        double TransformationMatrixComp23;
-            double TransformationMatrixComp31;                    double TransformationMatrixComp32;        double TransformationMatrixComp33;
-            Matrix TransformationMatrix;                        Matrix TransformationMatrixTranspose;
+            Matrix TransformationMatrix;
+            Matrix TransformationMatrixTranspose;
 
             // Tension Damage Properties
             double YieldStressTension;
@@ -110,6 +108,7 @@ namespace Kratos
 
         };
 
+        /// Has variable <double>
         bool Has(const Variable<double> & rThisVariable) override;
 
         bool Has(const Variable<Vector>& rThisVariable) override { return false; };
@@ -179,8 +178,8 @@ namespace Kratos
         * @param rShapeFunctionsValues the shape functions values in the current integration point
         */
         void InitializeMaterial(
-            const Properties & rMaterialProperties,
-            const GeometryType & rElementGeometry,
+            const Properties & rProperties,
+            const GeometryType & rGeometry,
             const Vector & rShapeFunctionsValues) override;
 
         /**
@@ -192,28 +191,22 @@ namespace Kratos
         * @param the current ProcessInfo instance
         */
         void FinalizeSolutionStep(
-            const Properties & rMaterialProperties,
-            const GeometryType & rElementGeometry,
+            const Properties & rProperties,
+            const GeometryType & rGeometry,
             const Vector & rShapeFunctionsValues,
             const ProcessInfo & rCurrentProcessInfo) override;
 
-        /**
-        * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
-        * @see Parameters
-        */
+        /// Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
         void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters & rValues) override;
 
-        /**
-        * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
-        * @see Parameters
-        */
+        /// material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
         void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters & rValues) override;
 
-        /**
-        * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
-        * @see Parameters
-        */
+        /// material response in terms of Kirchhoff stresses and constitutive tensor
         void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters & rValues) override;
+
+        /// material response in terms of Cauchy stresses and constitutive tensor
+        void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) override;
 
         /**
         * This can be used in order to reset all internal variables of the
@@ -552,7 +545,7 @@ namespace Kratos
 
         ///@}
 
-    }; // Class MasonryOrthotropicDamageDPlusDMinusPlaneStress2D 
+    }; // Class MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw 
 
 } // namespace Kratos
 #endif // KRATOS_MASONRY_ORTHOTROPIC_DAMAGE_D_PLUS_D_MINUS_PLANE_STRESS_2D_H_INCLUDED  defined 

@@ -32,7 +32,7 @@
 namespace Kratos
 {
     /// Has variable <double>
-    bool MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::Has(
+    bool MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::Has(
         const Variable<double>& rThisVariable)
     {
         // TENSION
@@ -53,7 +53,7 @@ namespace Kratos
     }
 
     /// GetValue variable <double>
-    double& MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::GetValue(
+    double& MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::GetValue(
         const Variable<double>& rThisVariable,
         double& rValue)
     {
@@ -76,7 +76,7 @@ namespace Kratos
     }
 
     /// SetValue variable <double>
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::SetValue(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::SetValue(
         const Variable<double>& rVariable,
         const double& rValue,
         const ProcessInfo& rCurrentProcessInfo)
@@ -99,7 +99,7 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    bool MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::ValidateInput(
+    bool MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ValidateInput(
         const Properties& rMaterialProperties)
     {
         // ELASTIC PARAMETERS
@@ -122,25 +122,25 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::StrainMeasure MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::GetStrainMeasure()
+    MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::StrainMeasure MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::GetStrainMeasure()
     {
         return ConstitutiveLaw::StrainMeasure_Infinitesimal;
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::StressMeasure MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::GetStressMeasure()
+    MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::StressMeasure MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::GetStressMeasure()
     {
         return ConstitutiveLaw::StressMeasure_Cauchy;
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    bool MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::IsIncremental()
+    bool MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::IsIncremental()
     {
         return false;
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::InitializeMaterial(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::InitializeMaterial(
         const Properties& rProperties,
         const GeometryType& rGeometry,
         const Vector& rShapeFunctionsValues)
@@ -179,7 +179,7 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::FinalizeSolutionStep(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::FinalizeSolutionStep(
         const Properties& rProperties,
         const GeometryType& rGeometry,
         const Vector& rShapeFunctionsValues,
@@ -208,28 +208,28 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CalculateMaterialResponsePK1(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateMaterialResponsePK1(
         Parameters& rValues)
     {
         CalculateMaterialResponseCauchy(rValues);
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CalculateMaterialResponsePK2(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateMaterialResponsePK2(
         Parameters& rValues)
     {
         CalculateMaterialResponseCauchy(rValues);
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CalculateMaterialResponseKirchhoff(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateMaterialResponseKirchhoff(
         Parameters& rValues)
     {
         CalculateMaterialResponseCauchy(rValues);
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CalculateMaterialResponseCauchy(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateMaterialResponseCauchy(
         Parameters& rParameters)
     {
         const ProcessInfo& r_process_info = rParameters.GetProcessInfo();
@@ -266,7 +266,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::ResetMaterial(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ResetMaterial(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues)
@@ -286,7 +286,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::GetLawFeatures(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::GetLawFeatures(
         Features& rFeatures)
     {
         //Set the type of law
@@ -305,7 +305,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    int MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::Check(
+    int MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::Check(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo)
@@ -348,7 +348,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CalculateMaterialResponse(const Vector& StrainVector,
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateMaterialResponse(const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
         Matrix& AlgorithmicTangent,
@@ -377,12 +377,14 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::InitializeCalculationData(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::InitializeCalculationData(
         const Properties& rProperties,
         const GeometryType& rGeometry,
         const ProcessInfo& pinfo,
         CalculationData& data)
     {
+        double E = rProperties[YOUNG_MODULUS_1];
+
         this->CalculateOrthotropicElasticityMatrix(
             data.ElasticityMatrix,
             rProperties[YOUNG_MODULUS_1],
@@ -392,33 +394,24 @@ namespace Kratos
             rProperties[SHEAR_MODULUS]);
 
         // transformation
-        ////data.TransformationMatrixComp11 = rProperties[TRANSFORMATION_MATRIX_COMP_11];
-        ////data.TransformationMatrixComp12 = rProperties[TRANSFORMATION_MATRIX_COMP_12];
-        ////data.TransformationMatrixComp13 = rProperties[TRANSFORMATION_MATRIX_COMP_13];
-        ////data.TransformationMatrixComp21 = rProperties[TRANSFORMATION_MATRIX_COMP_21];
-        ////data.TransformationMatrixComp22 = rProperties[TRANSFORMATION_MATRIX_COMP_22];
-        ////data.TransformationMatrixComp23 = rProperties[TRANSFORMATION_MATRIX_COMP_23];
-        ////data.TransformationMatrixComp31 = rProperties[TRANSFORMATION_MATRIX_COMP_31];
-        ////data.TransformationMatrixComp32 = rProperties[TRANSFORMATION_MATRIX_COMP_32];
-        ////data.TransformationMatrixComp33 = rProperties[TRANSFORMATION_MATRIX_COMP_33];
-
         this->AssambleTransformationMatrix(data);
 
         // Tension Damage Properties
         data.YieldStressTension = rProperties[YIELD_STRESS_TENSION];
-        ////data.SpecificFractureEnergyTension = rProperties[SPECIFIC_FRACTURE_ENERGY_TENSION];
         data.FractureEnergyTension = rProperties[FRACTURE_ENERGY_TENSION];
 
         // Compression Damage Properties
         data.DamageOnsetStressCompression = rProperties[DAMAGE_ONSET_STRESS_COMPRESSION];
         data.YieldStressCompression = rProperties[YIELD_STRESS_COMPRESSION];
-        data.ResidualStressCompression = rProperties[RESIDUAL_STRESS_COMPRESSION];
         data.YieldStrainCompression = rProperties[YIELD_STRAIN_COMPRESSION];
+        data.ResidualStressCompression = rProperties[RESIDUAL_STRESS_COMPRESSION];
         data.FractureEnergyCompression      = rProperties[FRACTURE_ENERGY_COMPRESSION];
 
         data.BezierControllerC1 = rProperties.Has(BEZIER_CONTROLLER_C1) ? rProperties[BEZIER_CONTROLLER_C1] : 0.65;
         data.BezierControllerC2 = rProperties.Has(BEZIER_CONTROLLER_C2) ? rProperties[BEZIER_CONTROLLER_C2] : 0.50;
         data.BezierControllerC3 = rProperties.Has(BEZIER_CONTROLLER_C3) ? rProperties[BEZIER_CONTROLLER_C3] : 1.50;
+
+        // Biaxial
         data.BiaxialCompressionMultiplier = rProperties[BIAXIAL_COMPRESSION_MULTIPLIER];
         data.ShearCompressionReductor = rProperties.Has(SHEAR_COMPRESSION_REDUCTOR) ? rProperties[SHEAR_COMPRESSION_REDUCTOR] : 0.5;
         data.ShearCompressionReductor = std::min(std::max(data.ShearCompressionReductor, 0.0), 1.0);
@@ -440,7 +433,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CalculateOrthotropicElasticityMatrix(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateOrthotropicElasticityMatrix(
         Matrix& rC,
         double E_1,
         double E_2,
@@ -460,7 +453,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::AssambleTransformationMatrix(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::AssambleTransformationMatrix(
         CalculationData& data)
     {
         if (data.TransformationMatrix.size1() != 3 || data.TransformationMatrix.size2() != 3)
@@ -480,7 +473,7 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
 
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::TensionCompressionSplit(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::TensionCompressionSplit(
         CalculationData& data)
     {
         const array_1d<double, 3>& effective_stress_vector = data.EffectiveStressVector;
@@ -496,7 +489,7 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::ConstructProjectionTensors(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ConstructProjectionTensors(
         CalculationData& data)
     {
         Matrix& projection_tensor_tension = data.ProjectionTensorTension;
@@ -596,7 +589,9 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CalculateEquivalentStressTension(CalculationData& data, double& UniaxialStressTension)
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateEquivalentStressTension(
+        CalculationData& data,
+        double& UniaxialStressTension)
     {
         UniaxialStressTension = 0.0;
         if (data.PrincipalStressVector(0) > 0.0) {
@@ -626,7 +621,9 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CalculateEquivalentStressCompression(CalculationData& data, double& UniaxialStressCompression)
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateEquivalentStressCompression(
+        CalculationData& data,
+        double& UniaxialStressCompression)
     {
         UniaxialStressCompression = 0.0;
         if (data.PrincipalStressVector(1) < 0.0) {
@@ -649,17 +646,17 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CalculateDamageTension(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateDamageTension(
         CalculationData& data,
         double internal_variable,
-        double& rDamage)
+        double& rDamageTension)
     {
         if (internal_variable <= data.YieldStressTension) {
-            rDamage = 0.0;
+            rDamageTension = 0.0;
         }
         else {
             const double characteristic_length = data.CharacteristicLength;
-            const double young_modulus = data.YoungModulus;
+            const double young_modulus = data.E;
             const double yield_tension = data.YieldStressTension;
             const double initial_internal_variable = yield_tension;
             const double material_length = 2.0 * young_modulus * data.FractureEnergyTension /
@@ -676,29 +673,29 @@ namespace Kratos
             const double damage_parameter = 2.0 * characteristic_length /
                 (material_length - characteristic_length);
 
-            rDamage = 1.0 - initial_internal_variable / internal_variable *
+            rDamageTension = 1.0 - initial_internal_variable / internal_variable *
                 std::exp(damage_parameter *
                 (1.0 - internal_variable / initial_internal_variable));
 
             const double internal_variable_min = 1.0e-2 * yield_tension;
-            if ((1.0 - rDamage) * internal_variable < internal_variable_min) {
-                rDamage = 1.0 - internal_variable_min / internal_variable;
+            if ((1.0 - rDamageTension) * internal_variable < internal_variable_min) {
+                rDamageTension = 1.0 - internal_variable_min / internal_variable;
             }
         }
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CalculateDamageCompression(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateDamageCompression(
         CalculationData& data,
         double internal_variable,
-        double& rDamage)
+        double& rDamageCompression)
     {
         if (internal_variable <= data.DamageOnsetStressCompression) {
-            rDamage = 0.0;
+            rDamageCompression = 0.0;
         }
         else {
             // extract material parameters
-            const double young_modulus = data.YoungModulus;
+            const double young_modulus = data.E;
             const double s_0 = data.DamageOnsetStressCompression;
             const double s_p = data.YieldStressCompression;
             const double s_r = data.ResidualStressCompression;
@@ -755,12 +752,12 @@ namespace Kratos
             else {
                 damage_variable = s_r;
             }
-            rDamage = 1.0 - damage_variable / internal_variable;
+            rDamageCompression = 1.0 - damage_variable / internal_variable;
         }
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::ComputeBezierEnergy(double& rBezierEnergy, double& rBezierEnergy1,
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ComputeBezierEnergy(double& rBezierEnergy, double& rBezierEnergy1,
         double s_p, double s_k, double s_r,
         double e_p, double e_j, double e_k, double e_r, double e_u)
     {
@@ -771,7 +768,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    double MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::EvaluateBezierArea(
+    double MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::EvaluateBezierArea(
         double x1, double x2, double x3, double y1, double y2, double y3)
     {
         double bezier_area = x2 * y1 / 3.0 +
@@ -784,7 +781,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::ApplyBezierStretcherToStrains(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ApplyBezierStretcherToStrains(
         double stretcher, double e_p, double& e_j, double& e_k, double& e_r, double& e_u)
     {
         e_j += (e_j - e_p) * stretcher;
@@ -794,7 +791,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::EvaluateBezierCurve(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::EvaluateBezierCurve(
         double& rDamageParameter, double xi,
         double x1, double x2, double x3,
         double y1, double y2, double y3)
@@ -819,7 +816,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::ComputeCharacteristicLength(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ComputeCharacteristicLength(
         const GeometryType& rGeometry,
         double& rCharacteristicLength)
     {
@@ -873,7 +870,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CalculateMaterialResponseInternal(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateMaterialResponseInternal(
         const Vector StrainVectorIso,
         Vector& PredictiveStressVector,
         CalculationData& data,
@@ -950,7 +947,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CheckDamageLoadingUnloading(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CheckDamageLoadingUnloading(
         bool& is_damaging_tension,
         bool& is_damaging_compression)
     {
@@ -964,7 +961,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CalculateTangentTensor(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateTangentTensor(
         Parameters& rValues,
         Vector StrainVector,
         Vector PredictiveStressVector,
@@ -1019,7 +1016,7 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2D::CalculateSecantTensor(
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateSecantTensor(
         Parameters& rParameters,
         CalculationData& data)
     {
