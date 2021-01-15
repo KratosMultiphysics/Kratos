@@ -49,6 +49,7 @@
 #include "utilities/properties_utilities.h"
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/file_name_data_collector.h"
+#include "utilities/sensitivity_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -486,8 +487,13 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities)
         .def("FinalizeSolutionStep", &SensitivityBuilder::FinalizeSolutionStep)
         .def("Finalize", &SensitivityBuilder::Finalize)
-        .def("AssignConditionDerivativesToNodes", &SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
-        .def("AssignElementDerivativesToNodes", &SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
+        ;
+
+    //Sensitivity utilities
+    py::class_<SensitivityUtilities>(m,"SensitivityUtilities")
+        .def(py::init<>())
+        .def_static("AssignConditionDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
+        .def_static("AssignElementDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
         ;
 
     //OpenMP utilities
