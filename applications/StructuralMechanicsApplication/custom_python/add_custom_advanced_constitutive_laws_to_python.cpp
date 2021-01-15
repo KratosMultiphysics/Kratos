@@ -55,7 +55,7 @@
 #include "custom_advanced_constitutive/plasticity_isotropic_kinematic_j2.h"
 #include "custom_advanced_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "custom_advanced_constitutive/d_plus_d_minus_damage_masonry_3d.h"
-#include "custom_advanced_constitutive/d_plus_d_minus_orthotropic_plane_stress_damage_masonry_2d.h"
+#include "custom_advanced_constitutive/masonry_orthotropic_damage_d_plus_d_minus_plane_stress_2d.h"
 #include "custom_advanced_constitutive/generic_small_strain_plastic_damage_model.h"
 #include "custom_advanced_constitutive/generic_small_strain_orthotropic_damage.h"
 #include "custom_advanced_constitutive/serial_parallel_rule_of_mixtures_law.h"
@@ -1664,8 +1664,8 @@ void  AddCustomAdvancedConstitutiveLawsToPython(pybind11::module& m)
     py::class_< DamageDPlusDMinusMasonry3DLaw, typename DamageDPlusDMinusMasonry3DLaw::Pointer, ConstitutiveLaw >
         (m, "DamageDPlusDMinusMasonry3DLaw").def(py::init<>());
 
-    py::class_< DPlusDMinusDamageOrthotropicMasonry2DLaw, typename DPlusDMinusDamageOrthotropicMasonry2DLaw::Pointer, ConstitutiveLaw >
-        (m, "DPlusDMinusDamageOrthotropicMasonry2DLaw").def(py::init<>());
+    py::class_< MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw, typename MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::Pointer, ConstitutiveLaw >
+        (m, "MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw").def(py::init<>());
 
     py::class_<GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,

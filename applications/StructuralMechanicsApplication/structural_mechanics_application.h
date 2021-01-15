@@ -905,7 +905,7 @@ private:
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageTrescaMohrCoulomb2D;
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageDruckerPragerMohrCoulomb2D;
     const DamageDPlusDMinusMasonry2DLaw mDamageDPlusDMinusPlaneStressMasonry2DLaw;
-    const MasonryOrthotropicDamageDPlusDMinusPlaneStress2D mMasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw;
+    const MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw mMasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw;
     const DamageDPlusDMinusMasonry3DLaw mDamageDPlusDMinusMasonry3DLaw;
 
     // Orthotropic Damage
