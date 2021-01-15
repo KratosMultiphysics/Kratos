@@ -45,6 +45,15 @@ namespace Kratos
         ReadEndTag();        
     }
  
+    void XmlIO::ReadBlock(std::string const& BlockName, BlockActionFunctionType ActionFunction){
+        ReadStartTag();
+        auto& current_block_name = GetCurrentBlockInfo().Name();
+        KRATOS_ERROR_IF(current_block_name != BlockName) << "Expected \"" << BlockName << "\" block but found \"" << current_block_name << "\"" << std::endl;
+        ActionFunction(*this);
+
+        ReadEndTag();
+    }
+
     /// Turn back information as a string.
     std::string XmlIO::Info() const
     {

@@ -134,6 +134,20 @@ public:
     }
 
     void Read();
+    
+    void ReadBlock(std::string const& BlockName, BlockActionFunctionType ActionFunction);
+
+    template<typename TDataType>
+    void ReadBlockContent(std::vector<TDataType>& Results){
+        for(auto& i_result : Results){
+            *mpInputStream >> i_result;
+        }
+    }
+
+    template<typename TDataType>
+    void ReadBlockContent(TDataType& Results){
+        *mpInputStream >> Results;
+    }
 
     ///@}
     ///@name Access
