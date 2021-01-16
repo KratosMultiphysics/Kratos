@@ -1,6 +1,6 @@
 # Import base sympy_fe_utilities
 import KratosMultiphysics
-import KratosMultiphysics.sympy_fe_utilities
+import KratosMultiphysics.sympy_fe_utilities as sympy_fe_utilities
 
 # Import sympy
 import sympy
