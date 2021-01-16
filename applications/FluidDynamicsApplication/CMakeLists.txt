@@ -30,11 +30,6 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms_dem_coupled.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/d_vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/symbolic_stokes.cpp
-<<<<<<< HEAD
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/symbolic_navier_stokes.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/new_symbolic_navier_stokes.cpp
-=======
->>>>>>> origin/master
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_fluid_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_fluid_element_discontinuous.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fic.cpp
