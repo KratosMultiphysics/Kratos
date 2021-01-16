@@ -7,9 +7,9 @@
                 "name" : "Newtonian3DLaw"
             },
             "Variables"        : {
-                "DENSITY": 1.0E+03,
-                "VISCOSITY": 1.0E-06,
-                "DYNAMIC_VISCOSITY": 1.0E-03,
+                "DENSITY" : 1.0e+03,
+                "VISCOSITY" : 1.0e-06,
+                "DYNAMIC_VISCOSITY" : 1.0e-03,
                 "SOUND_VELOCITY" : 1.0e+12
             },
             "Tables"           : {}

@@ -27,14 +27,16 @@ class EmbeddedFormulation(object):
             if element_type == "embedded_navier_stokes":
                 self._SetUpClassicEmbeddedNavierStokes(formulation_settings)
             elif element_type == "embedded_symbolic_navier_stokes":
-                warn_msg  = 'Provided \'element_name\' is \'symbolic\'. This is has been renamed to \'weakly_compressible\'. Use this instead.'
+                warn_msg  = 'Provided \'element_name\' is \'embedded_symbolic_navier_stokes\'. This has been renamed to \'embedded_weakly_compressible_navier_stokes\'. Use this instead.'
+                KratosMultiphysics.Logger.PrintWarning(warn_msg)
                 self._SetUpEmbeddedWeaklyCompressibleNavierStokes(formulation_settings)
             elif element_type == "embedded_weakly_compressible_navier_stokes":
                 self._SetUpEmbeddedWeaklyCompressibleNavierStokes(formulation_settings)
             elif element_type == "embedded_ausas_navier_stokes":
                 self._SetUpClassicEmbeddedAusasNavierStokes(formulation_settings)
             elif element_type == "embedded_symbolic_navier_stokes_discontinuous":
-                warn_msg  = 'Provided \'element_name\' is \'symbolic\'. This is has been renamed to \'weakly_compressible\'. Use this instead.'
+                warn_msg  = 'Provided \'element_name\' is \'embedded_symbolic_navier_stokes_discontinuous\'. This has been renamed to \'embedded_weakly_compressible_navier_stokes_discontinuous\'. Use this instead.'
+                KratosMultiphysics.Logger.PrintWarning(warn_msg)
                 self._SetUpEmbeddedWeaklyCompressibleNavierStokesDiscontinuous(formulation_settings)
             elif element_type == "embedded_weakly_compressible_navier_stokes_discontinuous":
                 self._SetUpEmbeddedWeaklyCompressibleNavierStokesDiscontinuous(formulation_settings)
@@ -123,7 +125,7 @@ class EmbeddedFormulation(object):
             "element_type": "embedded_weakly_compressible_navier_stokes_discontinuous",
             "is_slip": true,
             "slip_length": 1.0e8,
-            "penalty_coefficient": 10.0,
+            "penalty_coefficient": 0.1,
             "dynamic_tau": 1.0,
             "level_set_type": "discontinuous"
         }""")
@@ -312,7 +314,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self.level_set_type = self.embedded_formulation.level_set_type
         self.element_integrates_in_time = self.embedded_formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.embedded_formulation.element_has_nodal_properties
-        self.historical_nodal_properties_variables_list = self.embedded_formulation.historical_nodal_properties_variables_list 
+        self.historical_nodal_properties_variables_list = self.embedded_formulation.historical_nodal_properties_variables_list
         self.non_historical_nodal_properties_variables_list = self.embedded_formulation.non_historical_nodal_properties_variables_list
 
         ## Set the distance reading filename
