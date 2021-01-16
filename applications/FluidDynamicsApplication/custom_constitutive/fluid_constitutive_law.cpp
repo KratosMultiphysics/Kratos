@@ -161,6 +161,48 @@ void FluidConstitutiveLaw::NewtonianConstitutiveMatrix3D(
     rC(5,5) = EffectiveViscosity;
 }
 
+void FluidConstitutiveLaw::NewtonianConstitutiveMatrix2D(
+    double DynamicViscosity, double BulkViscosity, Matrix& rC) {
+
+    constexpr double two_thirds = 2./3.;
+    constexpr double four_thirds = 4./3.;
+
+    rC(0,0) = DynamicViscosity * four_thirds + BulkViscosity;
+    rC(0,1) = -DynamicViscosity * two_thirds + BulkViscosity;
+    rC(0,2) = 0.0;
+    rC(1,0) = -DynamicViscosity * two_thirds + BulkViscosity;
+    rC(1,1) = DynamicViscosity * four_thirds + BulkViscosity;
+    rC(1,2) = 0.0;
+    rC(2,0) = 0.0;
+    rC(2,1) = 0.0;
+    rC(2,2) = DynamicViscosity;
+}
+
+void FluidConstitutiveLaw::NewtonianConstitutiveMatrix3D(
+    double BulkViscosity, double DynamicViscosity, Matrix& rC) {
+
+    rC.clear();
+    
+    constexpr double two_thirds = 2./3.;
+    constexpr double four_thirds = 4./3.;
+
+    rC(0,0) = DynamicViscosity * four_thirds +  BulkViscosity;
+    rC(0,1) = -DynamicViscosity * two_thirds +  BulkViscosity;
+    rC(0,2) = -DynamicViscosity * two_thirds +  BulkViscosity;
+
+    rC(1,0) = -DynamicViscosity * two_thirds + BulkViscosity;
+    rC(1,1) = DynamicViscosity * four_thirds + BulkViscosity;
+    rC(1,2) = -DynamicViscosity * two_thirds + BulkViscosity;
+
+    rC(2,0) = -DynamicViscosity * two_thirds + BulkViscosity;
+    rC(2,1) = -DynamicViscosity * two_thirds + BulkViscosity;
+    rC(2,2) = DynamicViscosity* four_thirds   + BulkViscosity;
+
+    rC(3,3) = DynamicViscosity;
+    rC(4,4) = DynamicViscosity;
+    rC(5,5) = DynamicViscosity;
+}
+
 // Protected access ///////////////////////////////////////////////////////////
 
 double FluidConstitutiveLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {

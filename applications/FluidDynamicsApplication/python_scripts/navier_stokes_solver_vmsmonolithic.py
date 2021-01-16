@@ -31,17 +31,11 @@ class StabilizedFormulation(object):
             elif formulation == "fic":
                 self._SetUpFIC(settings)
             elif formulation == "symbolic":
-<<<<<<< HEAD
-                self._SetUpSymbolic(settings)
-            elif formulation == "new_symbolic":
-                self._SetUpNewSymbolic(settings)
-=======
                 warn_msg  = 'Provided \'element_name\' is \'symbolic\'. This is has been renamed to \'weakly_compressible\'. Use this instead.'
                 KratosMultiphysics.Logger.PrintWarning('\n\x1b[1;31mDEPRECATION-WARNING\x1b[0m', warn_msg)
                 self._SetUpWeaklyCompressible(settings)
             elif formulation == "weakly_compressible":
                 self._SetUpWeaklyCompressible(settings)
->>>>>>> origin/master
         else:
             print(settings)
             raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
@@ -171,23 +165,6 @@ class StabilizedFormulation(object):
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         #TODO: Remove SOUND_VELOCITY from ProcessInfo. Should be obtained from the properties.
-        self.process_data[KratosMultiphysics.SOUND_VELOCITY] = settings["sound_velocity"].GetDouble()
-
-    def _SetUpNewSymbolic(self,settings):
-        KratosMultiphysics.Logger.PrintWarning("Executing new element")
-        default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "new_symbolic",
-            "dynamic_tau": 1.0,
-            "sound_velocity": 1e12
-        }""")
-        settings.ValidateAndAssignDefaults(default_settings)
-
-        self.element_name = "NewSymbolicNavierStokes"
-        self.condition_name = "NavierStokesWallCondition"
-        self.element_integrates_in_time = True
-        self.element_has_nodal_properties = True
-        
-        self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         self.process_data[KratosMultiphysics.SOUND_VELOCITY] = settings["sound_velocity"].GetDouble()
 
 def CreateSolver(model, custom_settings):
@@ -328,15 +305,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         # Adding variables required for the nodal material properties
         if self.element_has_nodal_properties:
-<<<<<<< HEAD
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)
-=======
             for variable in self.historical_nodal_properties_variables_list:
                 self.main_model_part.AddNodalSolutionStepVariable(variable)
 
->>>>>>> origin/master
         # Adding variables required for the periodic conditions
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
@@ -344,6 +315,19 @@ class NavierStokesSolverMonolithic(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def Initialize(self):
+    	# My shock process
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" : "FluidModelPart",
+            "calculate_nodal_area_at_each_step" : false,
+            "shock_sensor" : true,
+            "shear_sensor" : true,
+            "thermal_sensor" : false,
+            "thermally_coupled_formulation" : false
+        }""")
+
+        self.shock_process = KratosCFD.ShockCapturingProcess(self.model, settings)
+        self.shock_process.Check()
+        self.shock_process.ExecuteInitialize()
         # If the solver requires an instance of the stabilized formulation class, set the process info variables
         if hasattr(self, 'formulation'):
             self.formulation.SetProcessInfo(self.GetComputingModelPart())
@@ -362,6 +346,10 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
             # Perform the solver InitializeSolutionStep
             self._GetSolutionStrategy().InitializeSolutionStep()
+            
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+        self.shock_process.ExecuteFinalizeSolutionStep()
 
     def _SetFormulation(self):
         self.formulation = StabilizedFormulation(self.settings["formulation"])
@@ -400,16 +388,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         # Get density and dynamic viscostity from the properties of the first element
         for el in self.main_model_part.Elements:
-<<<<<<< HEAD
-            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-            if rho <= 0.0:
-                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
-            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-            if dyn_viscosity <= 0.0:
-                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
-            kin_viscosity = dyn_viscosity / rho
-            c = el.Properties.GetValue(KratosMultiphysics.SOUND_VELOCITY)
-=======
             # Get DENSITY from properties
             if set_density:
                 rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
@@ -430,20 +408,14 @@ class NavierStokesSolverMonolithic(FluidSolver):
                     KratosMultiphysics.Logger.PrintWarning('No \'SOUND_VELOCITY\' value found in Properties {0}. Setting default value {1}'.format(el.Properties.Id, sound_velocity))
                 if sound_velocity <= 0.0:
                     raise Exception("SOUND_VELOCITY set to {0} in Properties {1}, positive number expected.".format(sound_velocity, el.Properties.Id))
->>>>>>> origin/master
             break
         else:
             raise Exception("No fluid elements found in the main model part.")
 
         # Transfer the obtained properties to the nodes
-<<<<<<< HEAD
-        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.SOUND_VELOCITY, c, self.main_model_part.Nodes)
-=======
         if set_density:
             KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
         if set_viscosity:
             KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
         if set_sound_velocity:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.SOUND_VELOCITY, sound_velocity, self.main_model_part.Nodes)
->>>>>>> origin/master

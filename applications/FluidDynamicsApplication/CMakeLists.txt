@@ -73,9 +73,11 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/euler_2d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/euler_3d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_2d_law.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_3d_law.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_compressible_2d_law.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_compressible_3d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_temperature_dependent_2d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_temperature_dependent_3d_law.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_3d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_two_fluid_2d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_two_fluid_3d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/herschel_bulkley_3d_law.cpp
@@ -89,6 +91,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_smoothing_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/calulate_levelset_consistent_nodal_gradient_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/tait_equation_process.cpp
 )
 
 ## define python interface sources

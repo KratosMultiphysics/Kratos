@@ -20,11 +20,6 @@
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
-<<<<<<< HEAD
-#include "custom_utilities/symbolic_navier_stokes_data.h"
-#include "custom_utilities/new_symbolic_navier_stokes_data.h"
-=======
->>>>>>> origin/master
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 #include "utilities/element_size_calculator.h"
@@ -890,9 +885,6 @@ template class FluidElement< SymbolicStokesData<3,8> >;
 
 template class FluidElement< WeaklyCompressibleNavierStokesData<2,3> >;
 template class FluidElement< WeaklyCompressibleNavierStokesData<3,4> >;
-
-template class FluidElement< NewSymbolicNavierStokesData<2,3> >;
-template class FluidElement< NewSymbolicNavierStokesData<3,4> >;
 
 template class FluidElement< QSVMSData<2,3> >;
 template class FluidElement< QSVMSData<3,4> >;
