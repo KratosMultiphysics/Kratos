@@ -491,7 +491,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     //Sensitivity utilities
     py::class_<SensitivityUtilities>(m,"SensitivityUtilities")
-        .def(py::init<>())
         .def_static("AssignConditionDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
         .def_static("AssignElementDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
         ;
