@@ -220,7 +220,7 @@ public:
         const Variable<array_1d<double, 3>>& rVariable,
         array_1d<double, 3>& rOutput) const override
     {
-        if (rVariable == CHARACTERISTIC_LENGTH)
+        if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
         {
             rOutput = this->IntegrationPoints()[0];
             mpGeometryParent->Calculate(rVariable, rOutput);
