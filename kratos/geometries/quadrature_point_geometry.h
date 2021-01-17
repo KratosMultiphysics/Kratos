@@ -222,7 +222,7 @@ public:
     {
         if (rVariable == CHARACTERISTIC_LENGTH)
         {
-            mpNurbsSurface->Calculate(rVariable, this->IntegrationPoints()[0]);
+            mpGeometryParent.Calculate(rVariable, this->IntegrationPoints()[0]);
         }
     }
 
