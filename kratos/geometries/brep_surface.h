@@ -314,6 +314,21 @@ public:
     }
 
     ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == CHARACTERISTIC_LENGTH)
+        {
+            mpNurbsSurface->Calculate(rVariable, rOutput);
+        }
+    }
+
+    ///@}
     ///@name Mathematical Informations
     ///@{
 
