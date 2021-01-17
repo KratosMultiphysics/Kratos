@@ -447,6 +447,14 @@ namespace Testing {
 
         auto element = Element(0, quadrature_points(2));
 
+        // Check element sizes / knot span size
+        array_1d<double, 3> characteristic_length;
+        quadrature_points(2)->Calculate(CHARACTERISTIC_LENGTH, characteristic_length);
+        KRATOS_CHECK_NEAR(
+            characteristic_length[0], 10, TOLERANCE);
+        KRATOS_CHECK_NEAR(
+            characteristic_length[1], 5, TOLERANCE);
+
         // Check shape functions
         KRATOS_CHECK_MATRIX_NEAR(
             element.pGetGeometry()->ShapeFunctionsValues(),

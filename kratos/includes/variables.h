@@ -126,6 +126,9 @@ namespace Kratos
 
     KRATOS_DEFINE_VARIABLE( double, TIME_INTEGRATION_THETA )
 
+    // for geometrical application
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CHARACTERISTIC_LENGTH )
+
     //sheme info :: pass to elements
     KRATOS_DEFINE_VARIABLE( double, NEWMARK_BETA )
     KRATOS_DEFINE_VARIABLE( double, NEWMARK_GAMMA )
