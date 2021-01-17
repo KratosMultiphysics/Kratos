@@ -440,7 +440,7 @@ public:
 
     void CalculateEstimatedKnotLengthness(
         CoordinatesArrayType& rKnotLengthness,
-        const CoordinatesArrayType& rLocalCoordinates)
+        const CoordinatesArrayType& rLocalCoordinates) const
     {
         const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), KnotsU(), rLocalCoordinates[0]);
         const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), KnotsV(), rLocalCoordinates[1]);
