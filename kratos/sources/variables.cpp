@@ -116,6 +116,9 @@ KRATOS_CREATE_VARIABLE(double, GRADIENT_PENALTY_COEFFICIENT)
 
 KRATOS_CREATE_VARIABLE(double, TIME_INTEGRATION_THETA)
 
+// for geometrical application
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CHARACTERISTIC_LENGTH)
+
 //sheme info :: pass to elements
 KRATOS_CREATE_VARIABLE(double, NEWMARK_BETA)
 KRATOS_CREATE_VARIABLE(double, NEWMARK_GAMMA)
@@ -641,6 +644,12 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTOR_LAGRANGE_MULTIPLIER)
 
     //--------------- GENERAL VARIABLES FOR MULTIPLE APPLICATIONS -------------------//
+
+    //--------------- Geometrical Application -------------------//
+
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CHARACTERISTIC_LENGTH)
+
+    //--------------- Geometrical Application -------------------//
 
     //--------------- STRUCTURAL Application -------------------//
 
