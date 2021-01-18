@@ -112,7 +112,7 @@ namespace Kratos
       PointNeumann3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
       /// Destructor.
-      virtual ~PointNeumann3D();
+      ~PointNeumann3D() override;
       
 
       ///@}

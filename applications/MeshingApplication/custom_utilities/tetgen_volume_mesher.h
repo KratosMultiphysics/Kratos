@@ -81,8 +81,7 @@ public:
     /// Destructor.
 
     virtual ~TetgenVolumeMesher()
-    {
-    }
+    = default;
 
     /**
      * This function is designed to add volumes, to carve out cavities inside a domain.
@@ -156,7 +155,7 @@ public:
             f->numberofpolygons = 1;
             f->polygonlist = new tetgenio::polygon[f->numberofpolygons];
             f->numberofholes = 0;
-            f->holelist = NULL;
+            f->holelist = nullptr;
             tetgenio::polygon* p = &f->polygonlist[0];
             p->numberofvertices = 3;
             p->vertexlist = new int[p->numberofvertices];
@@ -183,7 +182,7 @@ public:
 //                        //perform meshing with tetgen
 //            tetrahedralize(tetgen_options, &in, &out);
 
-        char *tmp=new char[settings.size()+1];
+        auto tmp=new char[settings.size()+1];
         tmp[settings.size()]=0;
         memcpy(tmp,settings.c_str(),settings.size());
 

@@ -17,18 +17,18 @@
 
 // Project includes
 #include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
-#include "includes/ublas_interface.h"
 
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
-/** 
+/**
   *
 
  */
 
 
-class NonLinearHenckyElasticPlastic3DLaw: public HyperElasticPlastic3DLaw
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) NonLinearHenckyElasticPlastic3DLaw: public HyperElasticPlastic3DLaw
 {
 
 public:
@@ -60,7 +60,7 @@ public:
     NonLinearHenckyElasticPlastic3DLaw();
 
 
-    NonLinearHenckyElasticPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    NonLinearHenckyElasticPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -78,7 +78,7 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Destructor.
@@ -96,7 +96,7 @@ public:
     /**
      * Dimension of the law:
      */
-    SizeType WorkingSpaceDimension()
+    SizeType WorkingSpaceDimension() override
     {
         return 3;
     };
@@ -104,25 +104,25 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize()
+    SizeType GetStrainSize() override
     {
         return 6;
     };
 
-    virtual void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
 
-    virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
 
-    virtual Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
 
 
-    virtual void SetValue( const Variable<Vector>& rThisVariable,
+    void SetValue( const Variable<Vector>& rThisVariable,
                    const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
 
-    virtual void SetValue( const Variable<double>& rThisVariable,
+    void SetValue( const Variable<double>& rThisVariable,
                    const double& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
 
 /*    bool Has( const Variable<double>& rThisVariable );
     bool Has( const Variable<Vector>& rThisVariable );
@@ -147,19 +147,10 @@ public:
      */
     void InitializeMaterial( const Properties& rProps,
                              const GeometryType& rGeom,
-                             const Vector& rShapeFunctionsValues );
+                             const Vector& rShapeFunctionsValues ) override;
 
+    int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
-/*    void InitializeSolutionStep( const Properties& props,
-                                 const GeometryType& geom, //this is just to give the array of nodes
-                                 const Vector& ShapeFunctionsValues ,
-                                 const ProcessInfo& CurrentProcessInfo);
-
-    void FinalizeSolutionStep( const Properties& props,
-                               const GeometryType& geom, //this is just to give the array of nodes
-                               const Vector& ShapeFunctionsValues ,
-                               const ProcessInfo& CurrentProcessInfo);
-*/
    /**
      * Computes the material response:
      * PK1 stresses and algorithmic ConstitutiveMatrix
@@ -184,7 +175,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues);
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
 
 
     /**
@@ -246,15 +237,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    //String Info() const override;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    //void PrintInfo(std::ostream& rOStream) const override;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    //void PrintData(std::ostream& rOStream) const override;
 
 protected:
 
@@ -263,15 +254,15 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-  
+
 //    Matrix mElasticLeftCauchyGreen;
-    
+
 //    FlowRulePointer mpFlowRule;
 
 //    YieldCriterionPointer mpYieldCriterion;
-	
+
 //    HardeningLawPointer   mpHardeningLaw;
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -287,6 +278,8 @@ protected:
     virtual void CalculateElastoPlasticTangentMatrix( const FlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticMatrix, const MaterialResponseVariables& rElasticVariables);
 
     virtual void CalculateOnlyDeviatoricPart( Matrix& rIncrementalDeformationGradient );
+
+    virtual Matrix CalculateExtraMatrix( const Matrix& rStressMatrix);
 
     /**
      * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 1 in the diagonal
@@ -309,13 +302,13 @@ protected:
      */
 //    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
 //                                         Vector& rStrainVector );
-    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS 
+    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
         in a pullback fashion
     */
-    
 
 
-    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS 
+
+    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
         in the actual configuration
     */
 
@@ -418,7 +411,7 @@ protected:
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
 /*    virtual void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						     FlowRule::RadialReturnVariables & rReturnMappingVariables,		     
+						     FlowRule::RadialReturnVariables & rReturnMappingVariables,
 						     Matrix& rConstitutiveMatrix);
 */
 
@@ -443,7 +436,7 @@ protected:
 /*    double& PlasticConstitutiveComponent( double & rCabcd,
             const MaterialResponseVariables& rElasticVariables,
             const Matrix & rIsoStressMatrix,
-            const FlowRule::PlasticFactors & rScalingFactors,			 
+            const FlowRule::PlasticFactors & rScalingFactors,
             const unsigned int& a, const unsigned int& b,
             const unsigned int& c, const unsigned int& d);
 */
@@ -543,12 +536,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticPlastic3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticPlastic3DLaw )
     }
@@ -561,4 +554,3 @@ private:
 } //namespace Kratos
 
 #endif  //KRATOS_HENCKY_PLASTIC_3D_LAW_H_INCLUDED
-

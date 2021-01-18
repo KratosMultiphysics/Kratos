@@ -1,36 +1,26 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 
 
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/ublas_interface.h"
 #include "includes/table.h"
+#include "add_table_to_python.h"
 
 
 namespace Kratos
@@ -39,7 +29,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+namespace py = pybind11;
 
 typedef Table<double,double> DoubleTableType;
 
@@ -49,16 +39,19 @@ double TableGetNearestValue(DoubleTableType& ThisTable, double X)
 }
 
 
-void  AddTableToPython()
+void  AddTableToPython(pybind11::module& m)
 {
-    class_<DoubleTableType, DoubleTableType::Pointer>("PiecewiseLinearTable")
-    .def(init<Matrix const&>())
-//    .def(init<Variable<double> const&, Variable<double> const&>())
+    namespace py = pybind11;
+
+    py::class_<DoubleTableType, DoubleTableType::Pointer>(m,"PiecewiseLinearTable")
+    .def(py::init<>())
+    .def(py::init<Matrix const&>())
     .def("GetValue", &DoubleTableType::GetValue)
-	.def("GetDerivative",&DoubleTableType::GetDerivative)
+    .def("GetDerivative",&DoubleTableType::GetDerivative)
     .def("GetNearestValue", TableGetNearestValue)
     .def("AddRow", &DoubleTableType::PushBack)
-    .def(self_ns::str(self))
+    .def("Clear", &DoubleTableType::Clear)
+    .def("__str__", PrintObject<DoubleTableType>)
     ;
 }
 

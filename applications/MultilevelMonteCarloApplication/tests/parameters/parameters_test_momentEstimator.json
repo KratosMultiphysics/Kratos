@@ -1,0 +1,9 @@
+{
+    "momentEstimatorInpuctDict": {
+        "indexSetDimension": 0,
+        "order": 5,
+        "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder10Dimension0",
+        "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper",
+        "centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"
+    }
+}

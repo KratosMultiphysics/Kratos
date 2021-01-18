@@ -47,7 +47,7 @@ namespace Kratos
 	{
 		auto const& r_neighbours = rNode.GetValue(NEIGHBOUR_ELEMENTS);
 		const std::size_t size = r_neighbours.size();
-		rOptimumPoints.resize(size, ZeroVector(3));
+		rOptimumPoints.resize(size, Point{ZeroVector(3)});
 		rWeights.resize(size);
 		double min_quality = std::numeric_limits<double>::max();
 		std::size_t min_i = 0;
@@ -64,24 +64,22 @@ namespace Kratos
 		rWeights[min_i] = 1.00;
 	}
 
-	void TetrahedraMeshWorstElementSmoothingProcess::CalculateElementOptimumPosition(NodeType& rNode, Geometry<Node<3> > const& rTetrahedra, Point<3>& rOptimumPoint) {
+	void TetrahedraMeshWorstElementSmoothingProcess::CalculateElementOptimumPosition(NodeType& rNode, Geometry<Node<3> > const& rTetrahedra, Point& rOptimumPoint) {
 		std::size_t i = 0;
 
 		for (; i < 4; i++)
 			if (rNode.Id() == rTetrahedra[i].Id())
 				break;
-		constexpr int tetrahedra_connectivity[4][3] = { {3,2,1},{2,3,0},{0,3,1},{0,1,2} };
-		Triangle3D3<Point<3> > face(rTetrahedra(tetrahedra_connectivity[i][0]), rTetrahedra(tetrahedra_connectivity[i][1]), rTetrahedra(tetrahedra_connectivity[i][2]));
-		Point<3> center = face.Center();
-		Point<3> v1 = face[0] - face[1];
-		Point<3> v2 = face[0] - face[2];
-		Point<3> normal;
-		MathUtils<double>::CrossProduct(normal, v1, v2);
-		double norm = norm_2(normal);
-		if(norm > std::numeric_limits<double>::epsilon())
-		normal /= norm;
-		constexpr double height_coeficient = 0.81649658092772603273242802490196; // sqrt(6.00)/3.00
-		rOptimumPoint = center + normal * face.AverageEdgeLength() * height_coeficient;
+		const int tetrahedra_connectivity[4][3] = { {3,2,1},{2,3,0},{0,3,1},{0,1,2} };
+		Triangle3D3<Point > face(
+			std::make_shared<Point>(rTetrahedra(tetrahedra_connectivity[i][0])->Coordinates()), 
+			std::make_shared<Point>(rTetrahedra(tetrahedra_connectivity[i][1])->Coordinates()), 
+			std::make_shared<Point>(rTetrahedra(tetrahedra_connectivity[i][2])->Coordinates())
+			);
+		Point center(0.5,0.5,0.5);
+		auto normal = Point{face.UnitNormal(center)};
+		const double height_coeficient = 0.81649658092772603273242802490196; // sqrt(6.00)/3.00
+		rOptimumPoint = Point{center + normal * face.AverageEdgeLength() * height_coeficient};
 	}
 
 }  // namespace Kratos.

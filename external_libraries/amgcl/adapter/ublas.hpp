@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2014, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,7 +33,6 @@ THE SOFTWARE.
 \ingroup adapters
 */
 
-#include <boost/range/iterator_range.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <amgcl/backend/builtin.hpp>
@@ -45,26 +44,26 @@ namespace backend {
 // Make builtin backend recognize ublas vectors as its own:
 template <typename T>
 struct is_builtin_vector< boost::numeric::ublas::vector<T> >
-    : boost::true_type {};
+    : std::true_type {};
 
 /// Adapts Boost.uBlas matrix.
 template <typename T>
-boost::tuple<
+std::tuple<
     size_t,
-    boost::iterator_range<const size_t*>,
-    boost::iterator_range<const size_t*>,
-    boost::iterator_range<const T*>
+    iterator_range<const size_t*>,
+    iterator_range<const size_t*>,
+    iterator_range<const T*>
     >
 map(const boost::numeric::ublas::compressed_matrix<T, boost::numeric::ublas::row_major> &A) {
-    return boost::make_tuple(
+    return std::make_tuple(
             A.size1(),
-            boost::make_iterator_range(
+            make_iterator_range(
                 A.index1_data().begin(), A.index1_data().end()
                 ),
-            boost::make_iterator_range(
+            make_iterator_range(
                 A.index2_data().begin(), A.index2_data().end()
                 ),
-            boost::make_iterator_range(
+            make_iterator_range(
                 A.value_data().begin(), A.value_data().end()
                 )
             );

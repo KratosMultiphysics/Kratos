@@ -2,33 +2,27 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//  Collaborator:    Vicente Mataix Ferrandiz
+//
 //
 
 #if !defined(KRATOS_FIND_NODAL_H_PROCESS_INCLUDED )
 #define  KRATOS_FIND_NODAL_H_PROCESS_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <limits>
-// External includes
 
+// External includes
 
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-
 
 namespace Kratos
 {
@@ -39,7 +33,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name  Enum's
@@ -53,16 +46,43 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-	Calculate the NODAL_H for all the nodes by means of the element sides minimum length
-*/
+/**
+ * @brief This struct is used in order to identify when using the hitorical and non historical variables
+ */
+struct FindNodalHSettings
+{
+    // Defining clearer options
+    constexpr static bool SaveAsHistoricalVariable = true;
+    constexpr static bool SaveAsNonHistoricalVariable = false;
+};
 
-class FindNodalHProcess : public Process
+/**
+ * @class FindNodalHProcess
+ * @ingroup KratosCore
+ * @brief Computes NODAL_H
+ * @details Calculate the NODAL_H for all the nodes by means of the element sides minimum length
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ */
+template<bool THistorical = true>
+class KRATOS_API(KRATOS_CORE) FindNodalHProcess
+    : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    /// Index type definition
+    typedef std::size_t IndexType;
+
+    /// Size type definition
+    typedef std::size_t SizeType;
+
+    /// The definition of the node
+    typedef Node<3> NodeType;
+
+    /// The definition of the node iterator
+    typedef ModelPart::NodeIterator NodeIterator;
 
     /// Pointer definition of FindNodalHProcess
     KRATOS_CLASS_POINTER_DEFINITION(FindNodalHProcess);
@@ -72,15 +92,13 @@ public:
     ///@{
 
     /// Default constructor.
-    FindNodalHProcess(ModelPart& model_part) : mr_model_part(model_part)
+    explicit FindNodalHProcess(ModelPart& rModelPart)
+        : mrModelPart(rModelPart)
     {
     }
 
     /// Destructor.
-    virtual ~FindNodalHProcess()
-    {
-    }
-
+    ~FindNodalHProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -91,53 +109,11 @@ public:
         Execute();
     }
 
-
     ///@}
     ///@name Operations
     ///@{
 
-    virtual void Execute() override
-    {
-        KRATOS_TRY
-        
-        // Check if variables are available 
-        if( mr_model_part.NodesBegin()->SolutionStepsDataHas( NODAL_H ) == false )        
-            KRATOS_ERROR << "Variable NODAL_H not in the model part!";
-        
-        const int NNodes = static_cast<int>(mr_model_part.Nodes().size());
-        
-        #pragma omp parallel for 
-        for(int i=0; i<NNodes; i++)
-        {
-            auto itNode = mr_model_part.NodesBegin() + i;
-            itNode->GetSolutionStepValue(NODAL_H, 0) = std::numeric_limits<double>::max();
-        }
-        
-        for(unsigned int i=0; i<mr_model_part.Elements().size(); i++)
-        {
-            auto itElement = mr_model_part.ElementsBegin() + i;
-            auto& geom = itElement->GetGeometry();
-            
-            for(unsigned int k=0; k<geom.size()-1; k++)
-            {
-                double& h1 = geom[k].FastGetSolutionStepValue(NODAL_H);
-                for(unsigned int l=k+1; l<geom.size(); l++)
-                {
-                    double hedge = norm_2(geom[l].Coordinates() - geom[k].Coordinates());
-                    double& h2 = geom[l].FastGetSolutionStepValue(NODAL_H);
-                    
-                    // Get minimum between the existent value and the considered edge length 
-                    geom[k].FastGetSolutionStepValue(NODAL_H) = std::min(h1, hedge);
-                    geom[l].FastGetSolutionStepValue(NODAL_H) = std::min(h2, hedge);
-                }
-            }
-        }
-        
-        mr_model_part.GetCommunicator().SynchronizeCurrentDataToMin(NODAL_H);
-
-        KRATOS_CATCH("")
-    }
-
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -154,22 +130,21 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "FindNodalHProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "FindNodalHProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
-
 
     ///@}
     ///@name Friends
@@ -177,44 +152,6 @@ public:
 
 
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -223,9 +160,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mr_model_part;
-    double m_min_h;
 
+    ModelPart& mrModelPart;  /// The model part were to compute the NODAL_H
 
     ///@}
     ///@name Private Operators
@@ -235,6 +171,35 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method gets the current value of the NODAL_H
+     * @param rNode The node iterator to be get
+     * @return The current value of NODAL_H
+     */
+    double& GetHValue(NodeType& rNode);
+
+    /**
+     * @brief This method sets the current value of the NODAL_H to the given one
+     * @param rNode The node iterator to be get
+     * @param Value The current value of NODAL_H
+     */
+    void SetHValue(
+        NodeType& rNode,
+        const double Value
+        );
+
+    /**
+     * @brief This method sets the current value of the NODAL_H to the maximum
+     * @param itNode The node iterator to be set
+     */
+    void SetInitialValue(NodeIterator itNode);
+
+    /**
+     * @brief NODAL_H synchornization
+     * In parallel runs, this method does the synchronization to the minimum
+     * NODAL_H value between processes.
+     */
+    void SynchronizeValues();
 
     ///@}
     ///@name Private  Access
@@ -256,13 +221,10 @@ private:
     /// Copy constructor.
     //FindNodalHProcess(FindNodalHProcess const& rOther);
 
-
     ///@}
-
 }; // Class FindNodalHProcess
 
 ///@}
-
 ///@name Type Definitions
 ///@{
 
@@ -273,12 +235,14 @@ private:
 
 
 /// input stream function
+template<bool THistorical>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  FindNodalHProcess& rThis);
+                                  FindNodalHProcess<THistorical>& rThis);
 
 /// output stream function
+template<bool THistorical>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const FindNodalHProcess& rThis)
+                                  const FindNodalHProcess<THistorical>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -291,6 +255,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FIND_NODAL_H_PROCESS_INCLUDED  defined 
-
-
+#endif // KRATOS_FIND_NODAL_H_PROCESS_INCLUDED  defined

@@ -1,0 +1,64 @@
+GiD Post Results File 1.0
+GaussPoints "tri1_element_gp" ElemType Triangle
+Number Of Gauss Points: 1
+Natural Coordinates: Internal
+End GaussPoints
+GaussPoints "lin1_element_gp" ElemType Linear
+Number Of Gauss Points: 1
+  Nodes not included
+Natural Coordinates: Internal
+End GaussPoints
+Result "DISPLACEMENT" "Kratos" 0 Vector OnNodes
+Values
+1 0.1 0 0
+2 0.2 0 0
+3 0 0 0
+972 0 0 0
+973 0 0.000973 0
+974 0 0.000974 0
+End Values
+Result "VISCOSITY" "Kratos" 0 Scalar OnNodes
+Values
+1 0.01
+2 0.01
+3 0
+972 0
+973 0.01
+974 0.01
+End Values
+Result "TEMPERATURE" "Kratos" 0 Scalar OnNodes
+Values
+1 100
+2 200
+3 0
+972 0
+973 300
+974 400
+End Values
+Result "INERTIA" "Kratos" 0 Matrix OnNodes
+Values
+1 1 1 0
+2 1 1 0
+3 0 0 0
+972 0 0 0
+973 1 1 0
+974 1 1 0
+End Values
+Result "ELEMENTAL_DISTANCES" "Kratos" 0 Matrix OnNodes
+Values
+1 1 1 0
+2 1 1 0
+3 0 0 0
+972 0 0 0
+973 1 1 0
+974 1 1 0
+End Values
+Result "ISOLATED" "Kratos" 0 Scalar OnNodes
+Values
+1 1
+2 1
+3 0
+972 0
+973 1
+974 1
+End Values

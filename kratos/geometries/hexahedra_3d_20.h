@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -28,9 +28,25 @@
 namespace Kratos
 {
 /**
- * A twenty node hexahedra geometry with serendipity shape functions
+ * @class Hexahedra3D20
+ * @ingroup KratosCore
+ * @brief A twenty node hexahedra geometry with serendipity shape functions
+ * @details The node ordering corresponds with:
+ *      3----10----2
+ *      |\         |\
+ *      | 15       | 14
+ *     11  \       9  \
+ *      |   7----18+---6
+ *      |   |      |   |
+ *      0---+-8----1   |
+ *       \  19      \  17
+ *       12 |        13|
+ *         \|         \|
+ *          4----16----5
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Hexahedra3D20 : public Geometry<TPointType>
 {
 public:
@@ -279,15 +295,15 @@ public:
     /**
      * Destructor. Does nothing!!!
      */
-    virtual ~Hexahedra3D20() {}
+    ~Hexahedra3D20() override {}
 
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() override
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Hexahedra;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType() override
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Hexahedra3D20;
     }
@@ -342,39 +358,22 @@ public:
     }
 
 
-        virtual Geometry< Point<3> >::Pointer Clone() const override
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    //     Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-            NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
-        }
-
-
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Hexahedra3D20< Point<3> >( NewPoints ) );
-
-        return p_clone;
-    }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //         NewPoints.push_back(Kratos::make_shared< Point<3> >((*this)[i]));
+    //     }
 
 
-    /**
-     */
-    //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	    if(rResult.size() != 20)
-            rResult.resize( 20, false );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Hexahedra3D20< Point<3> >( NewPoints ) );
 
-        for ( int i = 0; i < 8; i++ ) rResult[i] = -1.00 / 8.00;
-
-        for ( int i = 8; i < 20; i++ ) rResult[i] = 1.00 / 6.00;
-
-        return rResult;
-    }
-
+    //     return p_clone;
+    // }
 
     /**
      * Informations
@@ -395,7 +394,7 @@ public:
      *
      * :TODO: might need to be changed to be useful!
      */
-    virtual double Length() const override
+    double Length() const override
     {
         return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
     }
@@ -413,15 +412,15 @@ public:
      *
      * :TODO: might need to be changed to be useful!
      */
-    virtual double Area() const override
+    double Area() const override
     {
-         return Volume(); 
-         
+         return Volume();
+
     }
 
 
 
-    virtual double Volume() const override //Not a closed formula for a hexahedra
+    double Volume() const override //Not a closed formula for a hexahedra
     {
 
         Vector temp;
@@ -454,23 +453,37 @@ public:
      *
      * :TODO: might need to be changed to be useful!
      */
-    virtual double DomainSize() const override
+    double DomainSize() const override
     {
-        return Volume(); 
+        return Volume();
     }
-   
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
+     * local point for the given global point
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
+    bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( fabs( rResult[0] ) <= (1.0 + Tolerance) )
-            if ( fabs( rResult[1] ) <= (1.0 + Tolerance) )
-                if ( fabs( rResult[2] ) <= (1.0 + Tolerance) )
+        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) )
+        {
+            if ( std::abs( rResult[1] ) <= (1.0 + Tolerance) )
+            {
+                if ( std::abs( rResult[2] ) <= (1.0 + Tolerance) )
+                {
                     return true;
+                }
+            }
+        }
 
         return false;
     }
@@ -480,31 +493,35 @@ public:
      * Jacobian
      */
 
+    ///@}
+    ///@name Edge
+    ///@{
 
-    /** This method gives you number of all edges of this
-    geometry.
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
-    // will be used by refinement algorithm, thus uncommented. janosch.
-    virtual SizeType EdgesNumber() const override
+    SizeType EdgesNumber() const override
     {
         return 12;
     }
 
-    virtual SizeType FacesNumber() const override
-    {
-        return 6;
-    }
-
-    /** This method gives you all edges of this geometry.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
      */
-    virtual GeometriesArrayType Edges( void ) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -564,7 +581,31 @@ public:
         return edges;
     }
 
-    virtual GeometriesArrayType Faces( void ) override
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 6;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -640,7 +681,7 @@ public:
      * @return the value of the shape function at the given point
      * TODO: implemented but not yet tested
      */
-    virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
         switch ( ShapeFunctionIndex )
@@ -652,7 +693,7 @@ public:
         case 1 :
             return -(( 1.0 + rPoint[0] )
                      *( 1.0 + rPoint[1] )*( 2.0
-                                            - rPoint[0] - rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;	
+                                            - rPoint[0] - rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;
         case 2 :
             return -(( 1.0 + rPoint[0] )
                      *( 1.0 + rPoint[1] )*( 1.0 - rPoint[2] )*( 2.0
@@ -660,7 +701,7 @@ public:
         case 3:
             return -(( 1.0 + rPoint[0] )
                      *( 1.0 - rPoint[1] )*( 1.0 - rPoint[2] )*( 2.0
-                             - rPoint[0] + rPoint[1] + rPoint[2] ) ) / 8.0;    
+                             - rPoint[0] + rPoint[1] + rPoint[2] ) ) / 8.0;
         case 4 :
             return -(( 1.0 - rPoint[0] )
                      *( 1.0 - rPoint[1] )*( 2.0
@@ -668,7 +709,7 @@ public:
         case 5 :
             return -(( 1.0 - rPoint[0] )
                      *( 1.0 + rPoint[1] )*( 2.0
-                                            + rPoint[0] - rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;    
+                                            + rPoint[0] - rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;
         case 6 :
             return -(( 1.0 - rPoint[0] )*( 1.0
                                            + rPoint[1] )*( 1.0 - rPoint[2] )*( 2.0
@@ -697,7 +738,7 @@ public:
                       *rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 + rPoint[2] ) ) / 4.0 ;
         case 14 :
             return (( 1.0 -rPoint[0]
-                      *rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0 ;    
+                      *rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0 ;
         case 15 :
             return (( 1.0 -rPoint[0]*rPoint[0] )
                     *( 1.0 - rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0;
@@ -709,11 +750,11 @@ public:
                     *( 1.0 - rPoint[2]*rPoint[2] ) ) / 4.0 ;
         case 18 :
             return (( 1.0 -rPoint[0] )
-                    *( 1.0 - rPoint[1]*rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0 ;      
+                    *( 1.0 - rPoint[1]*rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0 ;
         case 19 :
             return (( 1.0 -rPoint[0] )
                     *( 1.0 - rPoint[1] )*( 1.0 - rPoint[2]*rPoint[2] ) ) / 4.0 ;
-         
+
         default:
             KRATOS_ERROR << "Wrong index of shape function!" << *this  << std::endl;
         }
@@ -732,26 +773,26 @@ public:
     @see ShapeFunctionsLocalGradients
     @see ShapeFunctionLocalGradient
     */
-    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
+    Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
       if(rResult.size() != 20) rResult.resize(20,false);
         rResult[0] = -(( 1.0 + rCoordinates[0] )*( 1.0 - rCoordinates[1] )*( 2.0
                                             - rCoordinates[0] + rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;
         rResult[1] = -(( 1.0 + rCoordinates[0] )
                      *( 1.0 + rCoordinates[1] )*( 2.0
-                                            - rCoordinates[0] - rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;  
+                                            - rCoordinates[0] - rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;
         rResult[2] = -(( 1.0 + rCoordinates[0] )
                      *( 1.0 + rCoordinates[1] )*( 1.0 - rCoordinates[2] )*( 2.0
                              - rCoordinates[0] - rCoordinates[1] + rCoordinates[2] ) ) / 8.0;
         rResult[3] = -(( 1.0 + rCoordinates[0] )
                      *( 1.0 - rCoordinates[1] )*( 1.0 - rCoordinates[2] )*( 2.0
-                             - rCoordinates[0] + rCoordinates[1] + rCoordinates[2] ) ) / 8.0;    
+                             - rCoordinates[0] + rCoordinates[1] + rCoordinates[2] ) ) / 8.0;
         rResult[4] = -(( 1.0 - rCoordinates[0] )
                      *( 1.0 - rCoordinates[1] )*( 2.0
                                             + rCoordinates[0] + rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;
         rResult[5] = -(( 1.0 - rCoordinates[0] )
                      *( 1.0 + rCoordinates[1] )*( 2.0
-                                            + rCoordinates[0] - rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;    
+                                            + rCoordinates[0] - rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;
         rResult[6] = -(( 1.0 - rCoordinates[0] )*( 1.0
                                            + rCoordinates[1] )*( 1.0 - rCoordinates[2] )*( 2.0
                                                    + rCoordinates[0] - rCoordinates[1] + rCoordinates[2] ) ) / 8.0;
@@ -771,7 +812,7 @@ public:
         rResult[13] = (( 1.0 -rCoordinates[0]
                       *rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ) / 4.0 ;
         rResult[14] = (( 1.0 -rCoordinates[0]
-                      *rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0 ;    
+                      *rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0 ;
         rResult[15] = (( 1.0 -rCoordinates[0]*rCoordinates[0] )
                     *( 1.0 - rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0;
         rResult[16] = (( 1.0 -rCoordinates[0] )
@@ -779,9 +820,9 @@ public:
         rResult[17] = (( 1.0 -rCoordinates[0] )*( 1.0 + rCoordinates[1] )
                     *( 1.0 - rCoordinates[2]*rCoordinates[2] ) ) / 4.0 ;
         rResult[18] = (( 1.0 -rCoordinates[0] )
-                    *( 1.0 - rCoordinates[1]*rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0 ;      
+                    *( 1.0 - rCoordinates[1]*rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0 ;
         rResult[19] = (( 1.0 -rCoordinates[0] )
-                    *( 1.0 - rCoordinates[1] )*( 1.0 - rCoordinates[2]*rCoordinates[2] ) ) / 4.0 ;      
+                    *( 1.0 - rCoordinates[1] )*( 1.0 - rCoordinates[2]*rCoordinates[2] ) ) / 4.0 ;
         return rResult;
     }
 
@@ -795,7 +836,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "3 dimensional hexahedra with 20 nodes and quadratic shape functions in 3D space";
     }
@@ -807,7 +848,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    virtual void PrintInfo( std::ostream& rOStream ) const override
+    void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "3 dimensional hexahedra with 20 nodes and quadratic shape functions in 3D space";
     }
@@ -821,7 +862,7 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    virtual void PrintData( std::ostream& rOStream ) const override
+    void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
@@ -841,7 +882,7 @@ public:
      * @return the gradients of all shape functions
      * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
-    virtual Matrix& ShapeFunctionsLocalGradients( Matrix& result,
+    Matrix& ShapeFunctionsLocalGradients( Matrix& result,
             const CoordinatesArrayType& rPoint ) const override
     {
         //setting up result matrix
@@ -1012,7 +1053,7 @@ private:
 
     static const GeometryData msGeometryData;
 
-
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -1020,13 +1061,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const override
+    void save( Serializer& rSerializer ) const override
     {
 
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    virtual void load( Serializer& rSerializer ) override
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
@@ -1053,9 +1094,9 @@ private:
     static Matrix CalculateShapeFunctionsIntegrationPointsValues(
         typename BaseType::IntegrationMethod ThisMethod )
     {
-        IntegrationPointsContainerType all_integration_points =
+        const IntegrationPointsContainerType  all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
+        const IntegrationPointsArrayType integration_points =
             all_integration_points[ThisMethod];
         //number of integration points
         const int integration_points_number = integration_points.size();
@@ -1067,89 +1108,89 @@ private:
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            row( shape_function_values, pnt )( 0 ) =
+            shape_function_values(pnt, 0 ) =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() ) * ( 2.0
                           - integration_points[pnt].X() + integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 1 ) =
+            shape_function_values(pnt, 1 ) =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 2.0
                           - integration_points[pnt].X() - integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 2 ) =
+            shape_function_values(pnt, 2 ) =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0
                           - integration_points[pnt].X() - integration_points[pnt].Y()
                           + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 3 ) =
+            shape_function_values(pnt, 3 ) =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() )
                   * ( 2.0 - integration_points[pnt].X()
                       + integration_points[pnt].Y() + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 4 ) =
+            shape_function_values(pnt, 4 ) =
                 -(( 1.0 - integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() ) * ( 2.0
                           + integration_points[pnt].X() + integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 5 ) =
+            shape_function_values(pnt, 5 ) =
                 -(( 1.0 - integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 2.0
                           + integration_points[pnt].X() - integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 6 ) =
+            shape_function_values(pnt, 6 ) =
                 -(( 1.0 - integration_points[pnt].X() ) * ( 1.0
                         + integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0
                                 + integration_points[pnt].X() - integration_points[pnt].Y()
                                 + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 7 ) =
+            shape_function_values(pnt, 7 ) =
                 -(( 1.0 - integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
                   * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0 + integration_points[pnt].X()
                           + integration_points[pnt].Y() + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 8 ) =
+            shape_function_values(pnt, 8 ) =
                 (( 1.0 + integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 9 ) =
+            shape_function_values(pnt, 9 ) =
                 (( 1.0 + integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 10 ) =
+            shape_function_values(pnt, 10 ) =
                 (( 1.0 + integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 11 ) =
+            shape_function_values(pnt, 11 ) =
                 (( 1.0 + integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 12 ) =
+            shape_function_values(pnt, 12 ) =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 13 ) =
+            shape_function_values(pnt, 13 ) =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 14 ) =
+            shape_function_values(pnt, 14 ) =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 15 ) =
+            shape_function_values(pnt, 15 ) =
                 (( 1.0 - integration_points[pnt].X() * integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0;
-            row( shape_function_values, pnt )( 16 ) =
+            shape_function_values(pnt, 16 ) =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 17 ) =
+            shape_function_values(pnt, 17 ) =
                 (( 1.0 - integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
-                 * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;            
-            row( shape_function_values, pnt )( 18 ) =
+                 * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
+            shape_function_values(pnt, 18 ) =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 19 ) =
+            shape_function_values(pnt, 19 ) =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0
-                         - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;            
+                         - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
         }
 
         return shape_function_values;
@@ -1172,9 +1213,9 @@ private:
     CalculateShapeFunctionsIntegrationPointsLocalGradients(
         typename BaseType::IntegrationMethod ThisMethod )
     {
-        IntegrationPointsContainerType all_integration_points =
+        const IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
+        const IntegrationPointsArrayType integration_points =
             all_integration_points[ThisMethod];
         //number of integration points
         const int integration_points_number = integration_points.size();
@@ -1428,7 +1469,7 @@ private:
             result( 19, 2 ) = -(( -1.0 + integration_points[pnt].X() )
                                 * ( -1.0 + integration_points[pnt].Y() )
                                 * integration_points[pnt].Z() ) / 2.0;
-            
+
             d_shape_f_values[pnt] = result;
         }
 
@@ -1545,12 +1586,17 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Hexahedra3D20<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_3,
+    &msGeometryDimension,
+    GeometryData::GI_GAUSS_3,
     Hexahedra3D20<TPointType>::AllIntegrationPoints(),
     Hexahedra3D20<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
 
+template<class TPointType> const
+GeometryDimension Hexahedra3D20<TPointType>::msGeometryDimension(
+    3, 3, 3);
+
 }// namespace Kratos.
 
-#endif // KRATOS_HEXAHEDRA_3D_20_H_INCLUDED  defined 
+#endif // KRATOS_HEXAHEDRA_3D_20_H_INCLUDED  defined

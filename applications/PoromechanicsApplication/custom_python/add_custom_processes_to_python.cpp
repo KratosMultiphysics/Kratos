@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosPoromechanicsApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:           February 2016 $
@@ -6,14 +6,11 @@
 //
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
-#include "spaces/ublas_space.h"
 #include "includes/kratos_parameters.h"
 
 #include "custom_processes/apply_component_table_process.hpp"
@@ -25,28 +22,29 @@
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
 
-using namespace boost::python;
-
-void  AddCustomProcessesToPython() 
+void  AddCustomProcessesToPython(pybind11::module& m)
 {
-    class_< ApplyComponentTableProcess, bases< Process >, boost::noncopyable > ( "ApplyComponentTableProcess",
-        init < ModelPart&, Parameters>());
-        
-    class_< ApplyDoubleTableProcess, bases< Process >, boost::noncopyable > ( "ApplyDoubleTableProcess",
-        init < ModelPart&, Parameters>());
+    namespace py = pybind11;
 
-    class_< ApplyConstantHydrostaticPressureProcess, bases< Process >, boost::noncopyable > ( "ApplyConstantHydrostaticPressureProcess",
-        init < ModelPart&, Parameters>());
-
-    class_< ApplyHydrostaticPressureTableProcess, bases< Process >, boost::noncopyable > ( "ApplyHydrostaticPressureTableProcess",
-        init < ModelPart&, Parameters>());
-
-    class_< PeriodicInterfaceProcess, bases< Process >, boost::noncopyable > ( "PeriodicInterfaceProcess",
-        init < ModelPart&, Parameters>());
+    py::class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process>
+    (m, "ApplyComponentTableProcess")
+    .def( py::init< ModelPart&, Parameters>());
+    py::class_<ApplyDoubleTableProcess, ApplyDoubleTableProcess::Pointer, Process>
+    (m, "ApplyDoubleTableProcess")
+    .def( py::init< ModelPart&, Parameters>());
+    py::class_<ApplyConstantHydrostaticPressureProcess, ApplyConstantHydrostaticPressureProcess::Pointer, Process>
+    (m, "ApplyConstantHydrostaticPressureProcess")
+    .def( py::init< ModelPart&, Parameters>());
+    py::class_<ApplyHydrostaticPressureTableProcess, ApplyHydrostaticPressureTableProcess::Pointer, Process>
+    (m, "ApplyHydrostaticPressureTableProcess")
+    .def( py::init< ModelPart&, Parameters>());
+    py::class_<PeriodicInterfaceProcess, PeriodicInterfaceProcess::Pointer, Process>
+    (m, "PeriodicInterfaceProcess")
+    .def( py::init< ModelPart&, Parameters>());
 }
 
 }  // namespace Python.

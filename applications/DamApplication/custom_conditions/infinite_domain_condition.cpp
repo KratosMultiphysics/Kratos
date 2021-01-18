@@ -91,7 +91,7 @@ void InfiniteDomainCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHa
 		noalias( rRightHandSideVector ) = ZeroVector( element_size );
 		
 
-		boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> DampingMatrix;
+		BoundedMatrix<double,TNumNodes,TNumNodes> DampingMatrix;
 		
 		 //Defining the shape functions, the jacobian and the shape functions local gradients Containers
 		array_1d<double,TNumNodes> Np;

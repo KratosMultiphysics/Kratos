@@ -1,49 +1,16 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:32 $
-//   Revision:            $Revision: 1.3 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//                    
 //
-
 
 #if !defined(KRATOS_POINTER_VECTOR_MAP_H_INCLUDED )
 #define  KRATOS_POINTER_VECTOR_MAP_H_INCLUDED
@@ -98,7 +65,7 @@ namespace Kratos
 template<class TKeyType,class TDataType,
 
          class TCompareType = std::less<TKeyType>,
-         class TPointerType = boost::shared_ptr<TDataType>,
+         class TPointerType = Kratos::shared_ptr<TDataType>,
          class TContainerType = std::vector<std::pair<TKeyType, TPointerType> > >
 class PointerVectorMap
 {
@@ -139,9 +106,9 @@ public:
     /// Default constructor.
     PointerVectorMap() : mData(), mSortedPartSize(size_type()), mMaxBufferSize(100) {}
 
- PointerVectorMap(const PointerVectorMap& rOther) :  mData(rOther.mData), mSortedPartSize(rOther.mSortedPartSize), mMaxBufferSize(rOther.mMaxBufferSize) {}
+    PointerVectorMap(const PointerVectorMap& rOther) :  mData(rOther.mData), mSortedPartSize(rOther.mSortedPartSize), mMaxBufferSize(rOther.mMaxBufferSize) {}
 
-    PointerVectorMap(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(100)
+    explicit PointerVectorMap(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(100)
     {
         Sort();
         std::unique(mData.begin(), mData.end(), EqualKeyTo());
@@ -440,7 +407,7 @@ public:
     {
         pair_const_iterator sorted_part_end(mData.begin() + mSortedPartSize);
 
-        pair_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
+        pair_const_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
         if (i == sorted_part_end || (Key != i->first))
             if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
                 return mData.end();
@@ -451,6 +418,46 @@ public:
     size_type count(const key_type& Key)
     {
         return find(Key) == mData.end() ? 0 : 1;
+    }
+
+
+    TDataType& at(const key_type& Key)
+    {
+        pair_iterator sorted_part_end;
+
+        if(mData.size() - mSortedPartSize >= mMaxBufferSize)
+        {
+            Sort();
+            sorted_part_end = mData.end();
+        }
+        else
+            sorted_part_end	= mData.begin() + mSortedPartSize;
+
+        pair_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
+        if (i == sorted_part_end){
+            if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
+            {
+                KRATOS_ERROR << Key << " not found in this map" << std::endl;
+            }
+        }
+
+        return *(i->second);
+    }
+
+    TDataType& at(const key_type& Key) const
+    {
+        pair_iterator sorted_part_end;
+        sorted_part_end	= mData.begin() + mSortedPartSize;
+
+        pair_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
+        if (i == sorted_part_end){
+            if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
+            {
+                KRATOS_ERROR << Key << " not found in this map" << std::endl;
+            }
+        }
+
+        return *(i->second);
     }
 
 
@@ -601,12 +608,12 @@ private:
     {
         key_type mKey;
     public:
-        EqualKeyTo(key_type k) : mKey(k) {}
-        bool operator()(value_type& a, value_type& b) const
+        explicit EqualKeyTo(key_type k) : mKey(k) {}
+        bool operator()(value_type const& a, value_type const& b) const
         {
             return a.first == b.first;
         }
-        bool operator()(value_type& a) const
+        bool operator()(value_type const& a) const
         {
             return a.first == mKey;
         }
@@ -635,6 +642,44 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        size_type local_size = mData.size();
+
+        rSerializer.save("size", local_size);
+
+        for(size_type i = 0 ; i < local_size ; i++){
+            rSerializer.save("Key", mData[i].first);
+            rSerializer.save("Data", mData[i].second);
+        }
+
+        rSerializer.save("Sorted Part Size",mSortedPartSize);
+        rSerializer.save("Max Buffer Size",mMaxBufferSize);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        size_type local_size;
+
+        rSerializer.load("size", local_size);
+
+        mData.resize(local_size);
+
+        for(size_type i = 0 ; i < local_size ; i++){
+            rSerializer.load("Key", mData[i].first);
+            rSerializer.load("Data", mData[i].second);
+        }
+
+        rSerializer.load("Sorted Part Size",mSortedPartSize);
+        rSerializer.load("Max Buffer Size",mMaxBufferSize);
+    }
 
 
 

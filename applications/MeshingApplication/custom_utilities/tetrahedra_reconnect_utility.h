@@ -104,7 +104,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~TetrahedraReconnectUtility() {}
+    virtual ~TetrahedraReconnectUtility() = default;
 
 
     ///@}
@@ -134,7 +134,7 @@ public:
             fPos.x = it->X();
             fPos.y = it->Y();
             fPos.z = it->Z();
-            TVertex *v = new TVertex(fPos);
+            auto v = new TVertex(fPos);
             v->setID( it->Id() );
             v->blockID = true;
             m->vertexes->Add(v);
@@ -150,31 +150,31 @@ public:
                 continue;
             }
             TVertex *v0 = m->findVertexById(geom[0].Id());
-            if (  v0 == NULL )
+            if (  v0 == nullptr )
             {
                 std::cout << "Invalid element reference" <<  el_it->Id();
                 continue;
             }
             TVertex *v1 = m->findVertexById(geom[1].Id());
-            if (  v1 == NULL )
+            if (  v1 == nullptr )
             {
                 std::cout << "Invalid element reference" <<  el_it->Id();
                 continue;
             }
             TVertex *v2 = m->findVertexById(geom[2].Id());
-            if (  v2 == NULL )
+            if (  v2 == nullptr )
             {
                 std::cout << "Invalid element reference" <<  el_it->Id();
                 continue;
             }
             TVertex *v3 = m->findVertexById(geom[3].Id());
-            if (  v3 == NULL )
+            if (  v3 == nullptr )
             {
                 std::cout << "Invalid element reference" <<  el_it->Id();
                 continue;
             }
 
-            TTetra *t = new TTetra(NULL, v0,v1,v2,v3);
+            auto t = new TTetra(nullptr, v0,v1,v2,v3);
             m->elements->Add(t);
         }
 
@@ -219,7 +219,7 @@ public:
         for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.Nodes().begin() ; i_node != mrModelPart.Nodes().end() ; i_node++)
         {
             TVertex* v = m->findVertexById(i_node->Id());
-            if (v == NULL)
+            if (v == nullptr)
             {
                 if (!shownMessage)
                     std::cout << "Error at id "<<i_node->Id() << "\n";
@@ -244,7 +244,8 @@ public:
             Node<3>::Pointer v1 = mrModelPart.pGetNode(t->vertexes[1]->getID());
             Node<3>::Pointer v2 = mrModelPart.pGetNode(t->vertexes[2]->getID());
             Node<3>::Pointer v3 = mrModelPart.pGetNode(t->vertexes[3]->getID());
-            if ((v0 == NULL) || (v1==NULL) || (v2 == NULL) || (v3 == NULL))
+            if ((v0.get() == nullptr) || (v1.get()==nullptr) || (v2.get() == nullptr) || (v3.get() == nullptr))
+            
             {
                 if (!messageShown)
                     std::cout << "Invalid vertex access " << t->getID() <<"\n";
@@ -276,7 +277,7 @@ public:
 
     bool EvaluateQuality()
     {
-        TetQuality *qt = new TetQuality(m) ;
+        auto qt = new TetQuality(m) ;
         qt->refresh();
         qt->print();
         int numNegElements = qt->nonPositive;
@@ -313,7 +314,7 @@ public:
 
             int id = it->Id();
             TVertex *v = m->findVertexById(id);
-            if (v == NULL)
+            if (v == nullptr)
                 v->fPos = fPos;
         }
     }
@@ -340,7 +341,7 @@ public:
 
     bool isaValidMesh()
     {
-        TetQuality *qt = new TetQuality(m) ;
+        auto qt = new TetQuality(m) ;
         qt->refresh();
         int numNegElements = qt->nonPositive;
         delete qt;
@@ -392,7 +393,7 @@ public:
                 }
 
                 //do interpolation
-                BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
+                auto result_begin = results.begin();
                 Element::Pointer pelement;
 
                 bool is_found = element_finder.FindPointOnMesh(pnode->Coordinates(), N, pelement, result_begin, max_results);
@@ -513,7 +514,7 @@ public:
             EvaluateQuality();
             setVertexExpectedSize(r_model_part , m);
             std::cout <<"...Start Optimization..." <<"\n";
-            TVMWLoader* ml2 = new TVMWLoader();
+            auto  ml2 = new TVMWLoader();
             std::string s("");
             s = "../out_MeshFromKratos" + intToString(simIter)+".vwm";
 
@@ -672,12 +673,12 @@ public:
     /// Destroy the structure
     void FinalizeOptimization(bool removeFreeVertexes )
     {
-        if (m == NULL ) return ;
+        if (m == nullptr ) return ;
         if (debugMode)  std::cout <<"...Output to Kratos Format" <<"\n";
         // Get back in Kratos
         innerConvertToKratos(refMP , m , removeFreeVertexes);
         delete m;
-        m = NULL;
+        m = nullptr;
         std::cout <<"...Trying to release memory\n";
         clearPool();
         std::cout <<"...Release memory OK\n";

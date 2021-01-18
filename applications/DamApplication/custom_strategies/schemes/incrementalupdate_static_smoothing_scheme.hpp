@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosDamApplication   $
 //   Last Modified by:    $Author:Lorenzo Gracia $
 //   Date:                $Date:    October 2016 $
@@ -33,27 +33,27 @@ public:
     ///Constructor
     IncrementalUpdateStaticSmoothingScheme()
         : ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>() {}
-    
+
     //------------------------------------------------------------------------------------
-    
+
     ///Destructor
     virtual ~IncrementalUpdateStaticSmoothingScheme() {}
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
-        
+
         unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-        
+
         // Clear nodal variables
         #pragma omp parallel
-        {        
+        {
             ModelPart::NodeIterator NodesBegin;
             ModelPart::NodeIterator NodesEnd;
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
@@ -71,10 +71,10 @@ public:
         }
 
         BaseType::FinalizeSolutionStep(rModelPart,A,Dx,b);
-        
+
         // Compute smoothed nodal variables
         #pragma omp parallel
-        {        
+        {
             ModelPart::NodeIterator NodesBegin;
             ModelPart::NodeIterator NodesEnd;
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
@@ -103,7 +103,7 @@ public:
                 }
             }
         }
-                
+
         KRATOS_CATCH("")
     }
 

@@ -18,15 +18,15 @@
 // Project includes
 
 #include "includes/model_part.h"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 
 
 namespace Kratos
@@ -57,7 +57,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONTACT_MECHANICS_APPLICATION) ClearPointContactConditionsProcess
+  class ClearPointContactConditionsProcess
     : public Process
   {
   public:
@@ -75,7 +75,7 @@ namespace Kratos
     ClearPointContactConditionsProcess(ModelPart& rModelPart,
 				       int EchoLevel = 0)
       : mrModelPart(rModelPart)
-    { 
+    {
       mEchoLevel = EchoLevel;
     }
 
@@ -99,19 +99,19 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
       KRATOS_TRY
 
       this->ClearPointContactConditions();
 
-      KRATOS_CATCH(" ")   
+      KRATOS_CATCH(" ")
     };
 
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
       KRATOS_TRY
 
@@ -123,7 +123,7 @@ namespace Kratos
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
+    void ExecuteFinalize() override
     {
       KRATOS_TRY
 
@@ -132,7 +132,7 @@ namespace Kratos
 
       // Clear Contact Normals
       this->ClearPointContactNormals();
-      
+
       KRATOS_CATCH(" ")
     }
 
@@ -151,19 +151,19 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "ClearPointContactConditionsProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "ClearPointContactConditionsProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -240,7 +240,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-     
+
       ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
       // create contact condition for rigid and deformable bodies
@@ -252,11 +252,11 @@ namespace Kratos
 	  }
 
 	}
-                
+
       KRATOS_CATCH( "" )
-	
+
     }
-    
+
     //**************************************************************************
     //**************************************************************************
 
@@ -264,7 +264,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-     
+
       ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
       // create contact condition for rigid and deformable bodies
@@ -276,11 +276,11 @@ namespace Kratos
 	  }
 
 	}
-                
+
       KRATOS_CATCH( "" )
-	
+
     }
-    
+
     //**************************************************************************
     //**************************************************************************
 
@@ -297,14 +297,14 @@ namespace Kratos
 	  if(i_mp->Is(SOLID) && i_mp->Is(ACTIVE))
 	    ModelPartName = i_mp->Name();
 	}
-      
+
       ClearPointContactConditions(mrModelPart.GetSubModelPart(ModelPartName));
 
       //Clear contact conditions from the main domain
       ClearPointContactConditions(mrModelPart);
 
       KRATOS_CATCH( "" )
-	
+
     }
 
     //**************************************************************************
@@ -318,7 +318,7 @@ namespace Kratos
       //*******************************************************************
       //clearing contact conditions
       //
-	
+
       if( mEchoLevel > 1 ){
 	std::cout<<" ["<<rModelPart.Name()<<" :: CONDITIONS [OLD:"<<rModelPart.NumberOfConditions();
       }
@@ -331,9 +331,9 @@ namespace Kratos
 	    PreservedConditions.push_back(*(ic.base()));
 	  }
 	}
-      
+
       rModelPart.Conditions().swap(PreservedConditions);
-	      
+
       //rModelPart.Conditions().Sort();
       //rModelPart.Conditions().Unique();
 
@@ -342,9 +342,9 @@ namespace Kratos
       }
 
       KRATOS_CATCH( "" )
-	
+
     }
- 
+
 
     ///@}
     ///@name Private  Access
@@ -401,4 +401,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // CONTACT_CLEAR_POINT_CONTACT_CONDITIONS_PROCESS_H_INCLUDED  defined 
+#endif // CONTACT_CLEAR_POINT_CONTACT_CONDITIONS_PROCESS_H_INCLUDED  defined

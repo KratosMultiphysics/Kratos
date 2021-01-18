@@ -11,8 +11,8 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_KRATOS_APPLICATION_H_INCLUDED )
-#define  KRATOS_KRATOS_APPLICATION_H_INCLUDED
+#if !defined(KRATOS_KRATOS_APPLICATION_H_INCLUDED)
+#define KRATOS_KRATOS_APPLICATION_H_INCLUDED
 
 // System includes
 #include <string>
@@ -22,228 +22,259 @@
 #include "includes/define.h"
 #include "includes/kratos_components.h"
 #include "includes/element.h"
+#include "elements/mesh_element.h"
+#include "elements/distance_calculation_element_simplex.h"
+#include "elements/levelset_convection_element_simplex.h"
 #include "includes/condition.h"
+#include "conditions/mesh_condition.h"
 #include "includes/periodic_condition.h"
 #include "utilities/quaternion.h"
+#include "includes/master_slave_constraint.h"
+#include "constraints/linear_master_slave_constraint.h"
+#include "includes/geometrical_object.h"
 
-namespace Kratos
-{
+/* Geometries definition */
+#include "geometries/register_kratos_components_for_geometry.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
+#include "geometries/line_3d_2.h"
+#include "geometries/line_3d_3.h"
+#include "geometries/point.h"
+#include "geometries/point_2d.h"
+#include "geometries/point_3d.h"
+#include "geometries/sphere_3d_1.h"
+#include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_2d_6.h"
+#include "geometries/triangle_3d_3.h"
+#include "geometries/triangle_3d_6.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_2d_8.h"
+#include "geometries/quadrilateral_2d_9.h"
+#include "geometries/quadrilateral_3d_4.h"
+#include "geometries/quadrilateral_3d_8.h"
+#include "geometries/quadrilateral_3d_9.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/tetrahedra_3d_10.h"
+#include "geometries/prism_3d_6.h"
+#include "geometries/prism_3d_15.h"
+#include "geometries/hexahedra_3d_8.h"
+#include "geometries/hexahedra_3d_20.h"
+#include "geometries/hexahedra_3d_27.h"
+
+// Modelers
+#include "modeler/modeler.h"
+#include "modeler/cad_io_modeler.h"
+
+namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// This class defines the interface with kernel for all applications in Kratos.
-/** The application class defines the interface necessary for providing the information
-    needed by Kernel in order to configure the whole sistem correctly.
-
-*/
-
-class KRATOS_API(KRATOS_CORE) KratosApplication
-{
-public:
+/**
+ * @class KratosApplication
+ * @brief This class defines the interface with kernel for all applications in Kratos.
+ * @details The application class defines the interface necessary for providing the information needed by Kernel in order to configure the whole sistem correctly.
+ * @ingroup KratosCore
+ * @author Pooyan Dadvand
+ * @author Riccardo Rossi
+ */
+class KRATOS_API(KRATOS_CORE) KratosApplication {
+   public:
     ///@name Type Definitions
     ///@{
 
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+
     /// Pointer definition of KratosApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosApplication);
-
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    KratosApplication();
+    explicit KratosApplication(const std::string ApplicationName);
 
+    KratosApplication() = delete;
 
     /// Copy constructor.
-    KratosApplication(KratosApplication const& rOther) :
-        mpVariableData(rOther.mpVariableData),
-        mpIntVariables(rOther.mpIntVariables),
-        mpUnsignedIntVariables(rOther.mpUnsignedIntVariables),
-        mpDoubleVariables(rOther.mpDoubleVariables),
-        mpArray1DVariables(rOther.mpArray1DVariables),
-        mpVectorVariables(rOther.mpVectorVariables),
-        mpMatrixVariables(rOther.mpMatrixVariables),
-        mpArray1DVariableComponents(rOther.mpArray1DVariableComponents),
-        mpElements(rOther.mpElements),
-        mpConditions(rOther.mpConditions) {}
-
-
+    KratosApplication(KratosApplication const& rOther)
+        : mpVariableData(rOther.mpVariableData),
+          mpIntVariables(rOther.mpIntVariables),
+          mpUnsignedIntVariables(rOther.mpUnsignedIntVariables),
+          mpDoubleVariables(rOther.mpDoubleVariables),
+          mpArray1DVariables(rOther.mpArray1DVariables),
+          mpArray1D4Variables(rOther.mpArray1D4Variables),
+          mpArray1D6Variables(rOther.mpArray1D6Variables),
+          mpArray1D9Variables(rOther.mpArray1D9Variables),
+          mpVectorVariables(rOther.mpVectorVariables),
+          mpMatrixVariables(rOther.mpMatrixVariables),
+          mpGeometries(rOther.mpGeometries),
+          mpElements(rOther.mpElements),
+          mpConditions(rOther.mpConditions),
+          mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints),
+          mpModelers(rOther.mpModelers) {}
 
     /// Destructor.
     virtual ~KratosApplication() {}
-
-
 
     ///@}
     ///@name Operations
     ///@{
 
     virtual void Register()
-
     {
-
-        RegisterVariables();
-
+        RegisterKratosCore();
     }
 
+    void RegisterKratosCore();
 
-    void RegisterVariables();
-    
     ///////////////////////////////////////////////////////////////////
-    void RegisterDeprecatedVariables(); //TODO: remove, this variables should not be there
-    void RegisterC2CVariables(); //TODO: move to application
-    void RegisterCFDVariables(); //TODO: move to application
-    void RegisterALEVariables(); //TODO: move to application
-    void RegisterDEMVariables(); //TODO: move to application
-    void RegisterLegacyStructuralAppVariables(); //TODO: move to application
+    void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
+    void RegisterDeprecatedVariables();           //TODO: remove, this variables should not be there
+    void RegisterCFDVariables();                  //TODO: move to application
+    void RegisterALEVariables();                  //TODO: move to application
+    void RegisterMappingVariables();              //TODO: move to application
+    void RegisterDEMVariables();                  //TODO: move to application
+    void RegisterFSIVariables();                  //TODO: move to application
+    void RegisterMATVariables();                  //TODO: move to application
+    void RegisterGlobalPointerVariables();
+
+    const std::string& Name() const { return mApplicationName; }
 
     ///@}
     ///@name Access
     ///@{
 
-
-
-//	template<class TComponentType>
-//		typename KratosComponents<TComponentType>::ComponentsContainerType& GetComponents(TComponentType const& rComponentType)
-//	{
-//		return KratosComponents<TComponentType>::GetComponents();
-//	}
-
-
-
-
-
-
-
     // I have to see why the above version is not working for multi thread ...
     // Anyway its working with these functions.Pooyan.
-    KratosComponents<Variable<int> >::ComponentsContainerType& GetComponents(Variable<int> const& rComponentType)
-    {
+    KratosComponents<Variable<int> >::ComponentsContainerType& GetComponents(
+        Variable<int> const& rComponentType) {
         return *mpIntVariables;
     }
 
-    KratosComponents<Variable<unsigned int> >::ComponentsContainerType& GetComponents(Variable<unsigned int> const& rComponentType)
-    {
+    KratosComponents<Variable<unsigned int> >::ComponentsContainerType&
+    GetComponents(Variable<unsigned int> const& rComponentType) {
         return *mpUnsignedIntVariables;
     }
 
-    KratosComponents<Variable<double> >::ComponentsContainerType& GetComponents(Variable<double> const& rComponentType)
-    {
+    KratosComponents<Variable<double> >::ComponentsContainerType& GetComponents(
+        Variable<double> const& rComponentType) {
         return *mpDoubleVariables;
     }
 
-    KratosComponents<Variable<array_1d<double, 3> > >::ComponentsContainerType& GetComponents(Variable<array_1d<double, 3> >  const& rComponentType)
-    {
+    KratosComponents<Variable<array_1d<double, 3> > >::ComponentsContainerType&
+    GetComponents(Variable<array_1d<double, 3> > const& rComponentType) {
         return *mpArray1DVariables;
     }
-    
-    KratosComponents<Variable<Quaternion<double> > >::ComponentsContainerType& GetComponents(Variable<Quaternion<double> >  const& rComponentType)
-    {
+
+    KratosComponents<Variable<array_1d<double, 4> > >::ComponentsContainerType&
+    GetComponents(Variable<array_1d<double, 4> > const& rComponentType) {
+        return *mpArray1D4Variables;
+    }
+
+    KratosComponents<Variable<array_1d<double, 6> > >::ComponentsContainerType&
+    GetComponents(Variable<array_1d<double, 6> > const& rComponentType) {
+        return *mpArray1D6Variables;
+    }
+
+    KratosComponents<Variable<array_1d<double, 9> > >::ComponentsContainerType&
+    GetComponents(Variable<array_1d<double, 9> > const& rComponentType) {
+        return *mpArray1D9Variables;
+    }
+
+    KratosComponents<Variable<Quaternion<double> > >::ComponentsContainerType&
+    GetComponents(Variable<Quaternion<double> > const& rComponentType) {
         return *mpQuaternionVariables;
     }
 
-    KratosComponents<Variable<Vector> >::ComponentsContainerType& GetComponents(Variable<Vector> const& rComponentType)
-    {
+    KratosComponents<Variable<Vector> >::ComponentsContainerType& GetComponents(
+        Variable<Vector> const& rComponentType) {
         return *mpVectorVariables;
     }
 
-    KratosComponents<Variable<Matrix> >::ComponentsContainerType& GetComponents(Variable<Matrix>  const& rComponentType)
-    {
+    KratosComponents<Variable<Matrix> >::ComponentsContainerType& GetComponents(
+        Variable<Matrix> const& rComponentType) {
         return *mpMatrixVariables;
     }
 
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::ComponentsContainerType& GetComponents(VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > const& rComponentType)
-    {
-        return *mpArray1DVariableComponents;
-    }
-
-    KratosComponents<VariableData>::ComponentsContainerType& GetVariables()
-    {
+    KratosComponents<VariableData>::ComponentsContainerType& GetVariables() {
         return *mpVariableData;
-
     }
 
-    KratosComponents<Element>::ComponentsContainerType& GetElements()
-    {
+    KratosComponents<Geometry<Node<3>>>::ComponentsContainerType& GetGeometries() {
+        return *mpGeometries;
+    }
+
+    KratosComponents<Element>::ComponentsContainerType& GetElements() {
         return *mpElements;
     }
 
-    KratosComponents<Condition>::ComponentsContainerType& GetConditions()
-    {
+    KratosComponents<Condition>::ComponentsContainerType& GetConditions() {
         return *mpConditions;
     }
 
-    void SetComponents(KratosComponents<VariableData>::ComponentsContainerType const& VariableDataComponents)
-
-    {
-        for(KratosComponents<VariableData>::ComponentsContainerType::iterator i = mpVariableData->begin() ;
-
-                i != mpVariableData->end() ; i++)
-
-        {
-            std::string const& variable_name = i->second->Name();
-            KratosComponents<VariableData>::ComponentsContainerType::const_iterator i_variable = VariableDataComponents.find(variable_name);
-
-            if(i_variable == VariableDataComponents.end())
-
-                KRATOS_THROW_ERROR(std::logic_error, "This variable is not registered in Kernel : ",   *(i_variable->second));
-
-            unsigned int variable_key = i_variable->second->Key();
-
-            if(variable_key == 0)
-
-                KRATOS_THROW_ERROR(std::logic_error, "This variable is not initialized in Kernel : ",   *(i_variable->second));
-
-
-
-            //			KRATOS_WATCH(i_variable->second.get());
-
-            //			KRATOS_WATCH(i->second.get().Key());
-
-            //			KRATOS_WATCH(variable_key);
-
-            i->second->SetKey(variable_key);
-
-        }
-
-        //			KRATOS_WATCH("!!!!!!!!!!!!!!!!!!!!! END SETTING COMPONENETS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-
+    KratosComponents<MasterSlaveConstraint>::ComponentsContainerType& GetMasterSlaveConstraints() {
+        return *mpMasterSlaveConstraints;
     }
 
+    KratosComponents<Modeler>::ComponentsContainerType& GetModelers() {
+        return *mpModelers;
+    }
 
+    void SetComponents(
+        KratosComponents<VariableData>::ComponentsContainerType const&
+            VariableDataComponents)
 
+    {
+        for (auto it = mpVariableData->begin(); it != mpVariableData->end(); it++) {
+            std::string const& r_variable_name = it->second->Name();
+            auto it_variable = VariableDataComponents.find(r_variable_name);
+            KRATOS_ERROR_IF(it_variable == VariableDataComponents.end()) << "This variable is not registered in Kernel : " << *(it_variable->second) << std::endl;
+        }
+    }
 
-    void SetComponents(KratosComponents<Element>::ComponentsContainerType const& ElementComponents)
+    void SetComponents(KratosComponents<Geometry<Node<3>>>::ComponentsContainerType const& GeometryComponents)
+    {
+        mpGeometries->insert(GeometryComponents.begin(), GeometryComponents.end());
+    }
+
+    void SetComponents(KratosComponents<Element>::ComponentsContainerType const&
+            ElementComponents)
 
     {
         // It's better to make a loop over new components and add them if they are NOT already exist in application. Or make an ERROR for incompatibility between applications.
-
         mpElements->insert(ElementComponents.begin(), ElementComponents.end());
-
     }
 
-
-
-    void SetComponents(KratosComponents<Condition>::ComponentsContainerType const& ConditionComponents)
+    void SetComponents(KratosComponents<MasterSlaveConstraint>::ComponentsContainerType const&
+            MasterSlaveConstraintComponents)
 
     {
-
-        mpConditions->insert(ConditionComponents.begin(), ConditionComponents.end());
-
+        mpMasterSlaveConstraints->insert(MasterSlaveConstraintComponents.begin(), MasterSlaveConstraintComponents.end());
     }
 
-
-    Serializer::RegisteredObjectsContainerType& GetRegisteredObjects()
+    void SetComponents(KratosComponents<Modeler>::ComponentsContainerType const& ModelerComponents)
     {
+        mpModelers->insert(ModelerComponents.begin(), ModelerComponents.end());
+    }
+
+    void SetComponents(
+        KratosComponents<Condition>::ComponentsContainerType const&
+            ConditionComponents)
+
+    {
+        mpConditions->insert(
+            ConditionComponents.begin(), ConditionComponents.end());
+    }
+
+    Serializer::RegisteredObjectsContainerType& GetRegisteredObjects() {
         return *mpRegisteredObjects;
     }
 
-    Serializer::RegisteredObjectsNameContainerType& GetRegisteredObjectsName()
-    {
+    Serializer::RegisteredObjectsNameContainerType& GetRegisteredObjectsName() {
         return *mpRegisteredObjectsName;
     }
-
 
     ///@}
 
@@ -251,53 +282,42 @@ public:
 
     ///@{
 
-
-
-
-
     ///@}
 
     ///@name Input and output
 
     ///@{
 
-
-
     /// Turn back information as a string.
 
     virtual std::string Info() const
 
     {
-
         return "KratosApplication";
-
     }
-
-
 
     /// Print information about this object.
 
     virtual void PrintInfo(std::ostream& rOStream) const
 
     {
-
         rOStream << Info();
-
     }
-
-
 
     /// Print object's data.
 
     virtual void PrintData(std::ostream& rOStream) const
 
     {
-
         rOStream << "Variables:" << std::endl;
 
         KratosComponents<VariableData>().PrintData(rOStream);
 
         rOStream << std::endl;
+
+        rOStream << "Geometries:" << std::endl;
+
+        KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
 
         rOStream << "Elements:" << std::endl;
 
@@ -309,92 +329,142 @@ public:
 
         KratosComponents<Condition>().PrintData(rOStream);
 
+        rOStream << std::endl;
+
+        rOStream << "MasterSlaveConstraints:" << std::endl;
+
+        KratosComponents<MasterSlaveConstraint>().PrintData(rOStream);
+
+        rOStream << std::endl;
+
+        rOStream << "Modelers:" << std::endl;
+
+        KratosComponents<Modeler>().PrintData(rOStream);
     }
 
-
-
-
-
     ///@}
-
     ///@name Friends
-
     ///@{
 
-
-
-
-
     ///@}
-
-
-
-protected:
-
+   protected:
     ///@name Protected static Member Variables
-
     ///@{
-
-
 
     ///@}
-
     ///@name Protected member Variables
-
     ///@{
 
-    //general conditions must be defined
+    std::string mApplicationName;
 
-    //point conditions
-    const Condition  mPointCondition2D1N;
-    const Condition  mPointCondition3D1N;
-    //line conditions
-    const Condition  mLineCondition2D2N;
-    const Condition  mLineCondition2D3N;
-    const Condition  mLineCondition3D2N;
-    const Condition  mLineCondition3D3N;
-    //surface conditions
-    const Condition  mSurfaceCondition3D3N;
-    const Condition  mSurfaceCondition3D6N;
-    const Condition  mSurfaceCondition3D4N;
-    const Condition  mSurfaceCondition3D8N;
-    const Condition  mSurfaceCondition3D9N;
+    // General geometries must be defined
+    //Points:
+    const Point mPointPrototype;
+    const Point2D<NodeType> mPoint2DPrototype = Point2D<NodeType>(GeometryType::PointsArrayType(1));
+    const Point3D<NodeType> mPoint3DPrototype = Point3D<NodeType>(GeometryType::PointsArrayType(1));
+    //Sphere
+    const Sphere3D1<NodeType> mSphere3D1Prototype = Sphere3D1<NodeType>(GeometryType::PointsArrayType(1));
+    //Lines:
+    const Line2D2<NodeType> mLine2D2Prototype = Line2D2<NodeType>(GeometryType::PointsArrayType(2));
+    const Line2D3<NodeType> mLine2D3Prototype = Line2D3<NodeType>(GeometryType::PointsArrayType(3));
+    const Line3D2<NodeType> mLine3D2Prototype = Line3D2<NodeType>(GeometryType::PointsArrayType(2));
+    const Line3D3<NodeType> mLine3D3Prototype = Line3D3<NodeType>(GeometryType::PointsArrayType(3));
+    //Triangles:
+    const Triangle2D3<NodeType> mTriangle2D3Prototype = Triangle2D3<NodeType>(GeometryType::PointsArrayType(3));
+    const Triangle2D6<NodeType> mTriangle2D6Prototype = Triangle2D6<NodeType>(GeometryType::PointsArrayType(6));
+    const Triangle3D3<NodeType> mTriangle3D3Prototype = Triangle3D3<NodeType>(GeometryType::PointsArrayType(3));
+    const Triangle3D6<NodeType> mTriangle3D6Prototype = Triangle3D6<NodeType>( GeometryType::PointsArrayType(6));
+    //Quadrilaterals:
+    const Quadrilateral2D4<NodeType> mQuadrilateral2D4Prototype = Quadrilateral2D4<NodeType>( GeometryType::PointsArrayType(4));
+    const Quadrilateral2D8<NodeType> mQuadrilateral2D8Prototype = Quadrilateral2D8<NodeType>( GeometryType::PointsArrayType(8));
+    const Quadrilateral2D9<NodeType> mQuadrilateral2D9Prototype = Quadrilateral2D9<NodeType>( GeometryType::PointsArrayType(9));
+    const Quadrilateral3D4<NodeType> mQuadrilateral3D4Prototype = Quadrilateral3D4<NodeType>( GeometryType::PointsArrayType(4));
+    const Quadrilateral3D8<NodeType> mQuadrilateral3D8Prototype = Quadrilateral3D8<NodeType>( GeometryType::PointsArrayType(8));
+    const Quadrilateral3D9<NodeType> mQuadrilateral3D9Prototype = Quadrilateral3D9<NodeType>( GeometryType::PointsArrayType(9));
+    //Tetrahedra:
+    const Tetrahedra3D4<NodeType> mTetrahedra3D4Prototype = Tetrahedra3D4<NodeType>( GeometryType::PointsArrayType(4));
+    const Tetrahedra3D10<NodeType> mTetrahedra3D10Prototype = Tetrahedra3D10<NodeType>( GeometryType::PointsArrayType(10));
+    //Prisms:
+    const Prism3D6<NodeType> mPrism3D6Prototype = Prism3D6<NodeType>( GeometryType::PointsArrayType(6));
+    const Prism3D15<NodeType> mPrism3D15Prototype = Prism3D15<NodeType>( GeometryType::PointsArrayType(15));
+    //Hexahedra:
+    const Hexahedra3D8<NodeType> mHexahedra3D8Prototype = Hexahedra3D8<NodeType>( GeometryType::PointsArrayType(8));
+    const Hexahedra3D20<NodeType> mHexahedra3D20Prototype = Hexahedra3D20<NodeType>( GeometryType::PointsArrayType(20));
+    const Hexahedra3D27<NodeType> mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
+    //QuadraturePointGeometries:
+    const QuadraturePointGeometry<Node<3>,1> mQuadraturePointGeometryPoint1D = QuadraturePointGeometry<Node<3>,1>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+    const QuadraturePointGeometry<Node<3>,2,1> mQuadraturePointGeometryPoint2D = QuadraturePointGeometry<Node<3>,2,1>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+    const QuadraturePointGeometry<Node<3>,3,1> mQuadraturePointGeometryPoint3D = QuadraturePointGeometry<Node<3>,3,1>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+    const QuadraturePointGeometry<Node<3>,2> mQuadraturePointGeometrySurface2D = QuadraturePointGeometry<Node<3>,2>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+    const QuadraturePointGeometry<Node<3>,3,2> mQuadraturePointGeometrySurface3D = QuadraturePointGeometry<Node<3>,3,2>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+    const QuadraturePointGeometry<Node<3>,3> mQuadraturePointGeometryVolume3D = QuadraturePointGeometry<Node<3>,3>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
 
-    //deprecated conditions start
-    const Condition  mCondition;
-    const Condition  mCondition2D;
-    const Condition  mCondition2D2N;
-    const Condition  mCondition2D3N;
-    const Condition  mCondition3D;
-    const Condition  mCondition3D2N;
-    const Condition  mCondition3D3N;
-    const Condition  mCondition3D6N;
-    const Condition  mCondition3D4N;
-    const Condition  mCondition3D8N;
-    const Condition  mCondition3D9N;
-    //deprecated conditions end
+    // General conditions must be defined
 
-    // Periodic Condition 
+    // Point conditions
+    const MeshCondition mPointCondition2D1N;
+    const MeshCondition mPointCondition3D1N;
+    // Line conditions
+    const MeshCondition mLineCondition2D2N;
+    const MeshCondition mLineCondition2D3N;
+    const MeshCondition mLineCondition3D2N;
+    const MeshCondition mLineCondition3D3N;
+    // Surface conditions
+    const MeshCondition mSurfaceCondition3D3N;
+    const MeshCondition mSurfaceCondition3D6N;
+    const MeshCondition mSurfaceCondition3D4N;
+    const MeshCondition mSurfaceCondition3D8N;
+    const MeshCondition mSurfaceCondition3D9N;
+
+    // Master-Slave base constraint
+    const MasterSlaveConstraint mMasterSlaveConstraint;
+    const LinearMasterSlaveConstraint mLinearMasterSlaveConstraint;
+
+    // Periodic Condition
     const PeriodicCondition mPeriodicCondition;
     const PeriodicCondition mPeriodicConditionEdge;
     const PeriodicCondition mPeriodicConditionCorner;
 
+    // General elements must be defined
+    const MeshElement mElement2D1N;
+    const MeshElement mElement2D2N;
+    const MeshElement mElement2D3N;
+    const MeshElement mElement2D6N;
+    const MeshElement mElement2D4N;
+    const MeshElement mElement2D8N;
+    const MeshElement mElement2D9N;
 
-    //general elements must be defined
-    const Element  mElement;
-    const Element  mElement2D2N;
-    const Element  mElement2D3N;	
-    const Element  mElement2D4N;	
+    const MeshElement mElement3D1N;
+    const MeshElement mElement3D2N;
+    const MeshElement mElement3D3N;
+    const MeshElement mElement3D4N;
+    const MeshElement mElement3D6N;
+    const MeshElement mElement3D8N;
+    const MeshElement mElement3D10N;
+    const MeshElement mElement3D15N;
+    const MeshElement mElement3D20N;
+    const MeshElement mElement3D27N;
 
-    const Element  mElement3D2N;	
-    const Element  mElement3D3N;	
-    const Element  mElement3D4N;
-    const Element  mElement3D6N;	
-    const Element  mElement3D8N;
-    const Element  mElement3D10N;
+    const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D3N;
+    const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D4N;
 
+    const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D3N;
+    const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D4N;
 
+    // Modeler
+    const Modeler mModeler;
+    const CadIoModeler mCadIoModeler;
 
+    // Base constitutive law definition
+    const ConstitutiveLaw mConstitutiveLaw;
+
+    // KratosComponents definition
     KratosComponents<VariableData>::ComponentsContainerType* mpVariableData;
 
     KratosComponents<Variable<int> >::ComponentsContainerType* mpIntVariables;
@@ -404,26 +474,33 @@ protected:
     KratosComponents<Variable<double> >::ComponentsContainerType* mpDoubleVariables;
 
     KratosComponents<Variable<array_1d<double, 3> > >::ComponentsContainerType* mpArray1DVariables;
-    
+
+    KratosComponents<Variable<array_1d<double, 4> > >::ComponentsContainerType* mpArray1D4Variables;
+
+    KratosComponents<Variable<array_1d<double, 6> > >::ComponentsContainerType* mpArray1D6Variables;
+
+    KratosComponents<Variable<array_1d<double, 9> > >::ComponentsContainerType* mpArray1D9Variables;
+
     KratosComponents<Variable<Quaternion<double> > >::ComponentsContainerType* mpQuaternionVariables;
 
     KratosComponents<Variable<Vector> >::ComponentsContainerType* mpVectorVariables;
 
     KratosComponents<Variable<Matrix> >::ComponentsContainerType* mpMatrixVariables;
 
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::ComponentsContainerType* mpArray1DVariableComponents;
+    KratosComponents<Geometry<Node<3>>>::ComponentsContainerType* mpGeometries;
 
     KratosComponents<Element>::ComponentsContainerType* mpElements;
 
     KratosComponents<Condition>::ComponentsContainerType* mpConditions;
 
+    KratosComponents<MasterSlaveConstraint>::ComponentsContainerType* mpMasterSlaveConstraints;
+
+    KratosComponents<Modeler>::ComponentsContainerType* mpModelers;
+
+    // Serialization
     Serializer::RegisteredObjectsContainerType* mpRegisteredObjects;
 
     Serializer::RegisteredObjectsNameContainerType* mpRegisteredObjectsName;
-
-
-
-
 
     ///@}
 
@@ -431,19 +508,11 @@ protected:
 
     ///@{
 
-
-
-
-
     ///@}
 
     ///@name Protected Operations
 
     ///@{
-
-
-
-
 
     ///@}
 
@@ -451,19 +520,11 @@ protected:
 
     ///@{
 
-
-
-
-
     ///@}
 
     ///@name Protected Inquiry
 
     ///@{
-
-
-
-
 
     ///@}
 
@@ -471,23 +532,12 @@ protected:
 
     ///@{
 
-
-
-
-
     ///@}
 
-
-
-private:
-
+   private:
     ///@name Static Member Variables
 
     ///@{
-
-
-
-
 
     ///@}
 
@@ -495,17 +545,11 @@ private:
 
     ///@{
 
-
-
     ///@}
 
     ///@name Private Operators
 
     ///@{
-
-
-
-
 
     ///@}
 
@@ -513,19 +557,11 @@ private:
 
     ///@{
 
-
-
-
-
     ///@}
 
     ///@name Private  Access
 
     ///@{
-
-
-
-
 
     ///@}
 
@@ -533,45 +569,25 @@ private:
 
     ///@{
 
-
-
-
-
     ///@}
 
     ///@name Un accessible methods
 
     ///@{
 
-
-
     /// Assignment operator.
 
     KratosApplication& operator=(KratosApplication const& rOther);
 
-
-
-
-
     ///@}
 
-
-
-}; // Class KratosApplication
-
-
+};  // Class KratosApplication
 
 ///@}
-
-
 
 ///@name Type Definitions
 
 ///@{
-
-
-
-
 
 ///@}
 
@@ -579,51 +595,30 @@ private:
 
 ///@{
 
-
-
-
-
 /// input stream function
 
-inline std::istream& operator >> (std::istream& rIStream,
+inline std::istream& operator>>(std::istream& rIStream,
 
-                                  KratosApplication& rThis);
-
-
+    KratosApplication& rThis);
 
 /// output stream function
 
-inline std::ostream& operator << (std::ostream& rOStream,
+inline std::ostream& operator<<(std::ostream& rOStream,
 
-                                  const KratosApplication& rThis)
+    const KratosApplication& rThis)
 
 {
-
     rThis.PrintInfo(rOStream);
 
     rOStream << std::endl;
 
     rThis.PrintData(rOStream);
 
-
-
     return rOStream;
-
 }
 
 ///@}
 
-
-
-
-
 }  // namespace Kratos.
 
-
-
-#endif // KRATOS_KRATOS_APPLICATION_H_INCLUDED  defined 
-
-
-
-
-
+#endif  // KRATOS_KRATOS_APPLICATION_H_INCLUDED  defined

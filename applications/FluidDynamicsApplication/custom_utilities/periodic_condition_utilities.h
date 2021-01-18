@@ -207,7 +207,7 @@ public:
 
         // Initialize Search Strategy
         SizeType BucketSize = 20;
-        mpSearchStrategy = boost::shared_ptr<tree>(new tree(mCandidateNodes.begin(),mCandidateNodes.end(),BucketSize));
+        mpSearchStrategy = Kratos::shared_ptr<tree>(new tree(mCandidateNodes.begin(),mCandidateNodes.end(),BucketSize));
 
 //            std::cout << *mpSearchStrategy << std::endl;
 
@@ -321,12 +321,6 @@ public:
 
     void AddPeriodicVariable(Properties& rProperties,
                              Variable<double>& rVariable)
-    {
-        rProperties.GetValue(PERIODIC_VARIABLES).Add(rVariable);
-    }
-
-    void AddPeriodicVariable(Properties &rProperties,
-                             VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > >&rVariable)
     {
         rProperties.GetValue(PERIODIC_VARIABLES).Add(rVariable);
     }

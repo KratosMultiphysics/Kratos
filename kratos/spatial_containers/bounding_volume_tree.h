@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: hbui $
-//   Date:                $Date: 1 Oct 2015 $
-//   Revision:            $Revision: 1.0 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    hbui
 //
 
 
@@ -222,10 +226,10 @@ public:
     {
         // resize as needed
         if(rM.size1() != 2 * NumberOfDirections() || rM.size2() != 3)
-            rM.resize(2 * NumberOfDirections(), 3);
+            rM.resize(2 * NumberOfDirections(), 3, false);
 
         if(rB.size() != 2 * NumberOfDirections())
-            rB.resize(2 * NumberOfDirections());
+            rB.resize(2 * NumberOfDirections(), false);
 
         for(std::size_t i = 0; i < NumberOfDirections(); ++i)
         {
@@ -273,12 +277,12 @@ public:
     typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_6DOP);
     _6DOP() : kDOP() {this->Initialize();}
-    virtual ~_6DOP() {}
-    virtual std::size_t NumberOfDirections() const override {return 3;}
+    ~_6DOP() override {}
+    std::size_t NumberOfDirections() const override {return 3;}
 
 private:
     static ArrayType msDirection[];
-    virtual Array2DType Direction() const override;
+    Array2DType Direction() const override;
 };
 
 class _8DOP : public kDOP
@@ -288,11 +292,11 @@ public:
     typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_8DOP);
     _8DOP() : kDOP() {this->Initialize();}
-    virtual ~_8DOP() {}
-    virtual std::size_t NumberOfDirections() const override {return 4;}
+    ~_8DOP() override {}
+    std::size_t NumberOfDirections() const override {return 4;}
 private:
     static ArrayType msDirection[];
-    virtual Array2DType Direction() const override;
+    Array2DType Direction() const override;
 };
 
 class _12DOP : public kDOP
@@ -302,11 +306,11 @@ public:
     typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_12DOP);
     _12DOP() : kDOP() {this->Initialize();}
-    virtual ~_12DOP() {}
-    virtual std::size_t NumberOfDirections() const override {return 6;}
+    ~_12DOP() override {}
+    std::size_t NumberOfDirections() const override {return 6;}
 private:
     static ArrayType msDirection[];
-    virtual Array2DType Direction() const override;
+    Array2DType Direction() const override;
 };
 
 class _14DOP : public kDOP
@@ -316,11 +320,11 @@ public:
     typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_14DOP);
     _14DOP() : kDOP() {this->Initialize();}
-    virtual ~_14DOP() {}
-    virtual std::size_t NumberOfDirections() const override {return 7;}
+    ~_14DOP() override {}
+    std::size_t NumberOfDirections() const override {return 7;}
 private:
     static ArrayType msDirection[];
-    virtual Array2DType Direction() const override;
+    Array2DType Direction() const override;
 };
 
 class _18DOP : public kDOP
@@ -330,11 +334,11 @@ public:
     typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_18DOP);
     _18DOP() : kDOP() {this->Initialize();}
-    virtual ~_18DOP() {}
-    virtual std::size_t NumberOfDirections() const override {return 9;}
+    ~_18DOP() override {}
+    std::size_t NumberOfDirections() const override {return 9;}
 private:
     static ArrayType msDirection[];
-    virtual Array2DType Direction() const override;
+    Array2DType Direction() const override;
 };
 
 class _20DOP : public kDOP
@@ -344,11 +348,11 @@ public:
     typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_20DOP);
     _20DOP() : kDOP() {this->Initialize();}
-    virtual ~_20DOP() {}
-    virtual std::size_t NumberOfDirections() const override {return 10;}
+    ~_20DOP() override {}
+    std::size_t NumberOfDirections() const override {return 10;}
 private:
     static ArrayType msDirection[];
-    virtual Array2DType Direction() const override;
+    Array2DType Direction() const override;
 };
 
 class _26DOP : public kDOP
@@ -358,11 +362,11 @@ public:
     typedef kDOP::Array2DType Array2DType;
     KRATOS_CLASS_POINTER_DEFINITION(_26DOP);
     _26DOP() : kDOP() {this->Initialize();}
-    virtual ~_26DOP() {}
-    virtual std::size_t NumberOfDirections() const override {return 13;}
+    ~_26DOP() override {}
+    std::size_t NumberOfDirections() const override {return 13;}
 private:
     static ArrayType msDirection[];
-    virtual Array2DType Direction() const override;
+    Array2DType Direction() const override;
 };
 
 
@@ -421,7 +425,7 @@ public:
     SimpleBoundingVolumePartitioner() {}
     ~SimpleBoundingVolumePartitioner() {}
 
-    virtual void Partition(ConditionsContainerType& rAllConditions,
+    void Partition(ConditionsContainerType& rAllConditions,
                            const kDOP& rBoundingVolume,
                            ConditionsContainerType& rOutputSet1,
                            ConditionsContainerType& rOutputSet2) override;
@@ -435,7 +439,7 @@ public:
     LineRegressionVolumePartitioner() {}
     ~LineRegressionVolumePartitioner() {}
 
-    virtual void Partition(ConditionsContainerType& rAllConditions,
+    void Partition(ConditionsContainerType& rAllConditions,
                            const kDOP& rBoundingVolume,
                            ConditionsContainerType& rOutputSet1,
                            ConditionsContainerType& rOutputSet2) override;

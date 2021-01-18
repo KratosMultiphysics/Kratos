@@ -1,8 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 from KratosMultiphysics import *
-CheckForPreviousImport()
-
 
 class GiDOutput(object):
     _post_mode = {"Binary": GiDPostMode.GiD_PostBinary,
@@ -75,6 +73,10 @@ class GiDOutput(object):
                  write_conditions=True
                  ):
 
+        depr_msg  = '"kratos/python_scripts/gid_output.py" is deprecated and will be removed\n'
+        depr_msg += 'Please use "kratos/python_scripts/gid_output_process.py" instead!'
+        Logger.PrintWarning('DEPRECATION-WARNING', depr_msg)
+
         self.filename = file_name
         self.volume_output = vol_output
         self.post_mode = post_mode
@@ -118,6 +120,7 @@ class GiDOutput(object):
             self.cut_model_part = ModelPart("CutPart")
             self.cut_app = CuttingUtility()
             self.cut_app.FindSmallestEdge(model_part)
+            self.cut_app.AddVariablesToCutModelPart(model_part,self.cut_model_part)
 
         for cut_data in cut_list:
             self.cut_number += 1

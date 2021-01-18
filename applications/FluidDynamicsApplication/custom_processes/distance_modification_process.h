@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -23,9 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/cfd_variables.h"
-#include "processes/find_nodal_h_process.h"
-#include "utilities/openmp_utils.h"
+#include "includes/kratos_parameters.h"
 
 // Application includes
 
@@ -56,37 +54,55 @@ namespace Kratos
 
 /// Utility to modify the distances of an embedded object in order to avoid bad intersections
 /// Besides, it also deactivate the full negative distance elements
-class DistanceModificationProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) DistanceModificationProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
+    typedef Variable<double> ComponentType;
 
     /// Pointer definition of DistanceModificationProcess
     KRATOS_CLASS_POINTER_DEFINITION(DistanceModificationProcess);
-
-    typedef Node<3>                     NodeType;
-    typedef Geometry<NodeType>      GeometryType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    DistanceModificationProcess(ModelPart& rModelPart, const bool& rCheckAtEachStep, const bool& rRecoverOriginalDistance)
-    {
-        mFactorCoeff = 2.0;
-        mrModelPart = rModelPart;
-        mrCheckAtEachStep = rCheckAtEachStep;
-        mrRecoverOriginalDistance = rRecoverOriginalDistance;
-    }
+    DistanceModificationProcess(
+        ModelPart& rModelPart,
+        const double FactorCoeff, //TODO: Remove it (here for legacy reasons)
+        const double DistanceThreshold,
+        const bool CheckAtEachStep,
+        const bool NegElemDeactivation,
+        const bool RecoverOriginalDistance);
+
+    /// Constructor with Kratos parameters.
+    DistanceModificationProcess(
+        ModelPart& rModelPart,
+        Parameters& rParameters);
+
+    /// Constructor with Kratos model
+    DistanceModificationProcess(
+        Model& rModel,
+        Parameters& rParameters);
 
     /// Destructor.
-    virtual ~DistanceModificationProcess(){}
+    ~DistanceModificationProcess() override {}
 
     ///@}
     ///@name Operators
     ///@{
+
+    void Execute() override;
+
+    void ExecuteInitialize() override;
+
+    void ExecuteBeforeSolutionLoop() override;
+
+    void ExecuteInitializeSolutionStep() override;
+
+    void ExecuteFinalizeSolutionStep() override;
 
     ///@}
     ///@name Operations
@@ -95,57 +111,6 @@ public:
     ///@}
     ///@name Access
     ///@{
-
-    void ExecuteInitialize() override
-    {
-        KRATOS_TRY;
-
-        // Obtain NODAL_H values
-        FindNodalHProcess NodalHCalculator(mrModelPart);
-        NodalHCalculator.Execute();
-
-        KRATOS_CATCH("");
-    }
-
-
-    void ExecuteBeforeSolutionLoop() override
-    {
-        KRATOS_TRY;
-
-        unsigned int counter = 1;
-        unsigned int bad_cuts = 1;
-        double factor = 0.01;
-
-        // Modify the nodal distance values until there is no bad intersections
-        while (bad_cuts > 0)
-        {
-            this->ModifyDistance(factor, bad_cuts);
-            factor /= mFactorCoeff;
-            counter++;
-        }
-
-        this->DeactivateFullNegativeElements();
-
-        KRATOS_CATCH("");
-    }
-
-
-    void ExecuteInitializeSolutionStep() override
-    {
-        if(mrCheckAtEachStep == true)
-        {
-            ExecuteBeforeSolutionLoop();
-        }
-    }
-
-
-    void ExecuteFinalizeSolutionStep() override
-    {
-        if(mrRecoverOriginalDistance == true)
-        {
-            RecoverOriginalDistance();
-        }
-    }
 
     ///@}
     ///@name Inquiry
@@ -156,7 +121,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "DistanceModificationProcess" ;
@@ -164,224 +129,15 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "DistanceModificationProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "DistanceModificationProcess";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
     ///@name Friends
     ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ModelPart                                               mrModelPart;
-    double                                                 mFactorCoeff;
-    bool                                              mrCheckAtEachStep;
-    bool                                      mrRecoverOriginalDistance;
-    std::vector<std::vector<unsigned int>>        mModifiedDistancesIDs;
-    std::vector<std::vector<double>>           mModifiedDistancesValues;
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    void ModifyDistance(const double& factor,
-                        unsigned int& bad_cuts)
-    {
-        ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
-        ModelPart::ElementsContainerType& rElements = mrModelPart.Elements();
-
-        // Simple check
-        if( mrModelPart.NodesBegin()->SolutionStepsDataHas( DISTANCE ) == false )
-            KRATOS_ERROR << "Nodes do not have DISTANCE variable!";
-        if( mrModelPart.NodesBegin()->SolutionStepsDataHas( NODAL_H ) == false )
-            KRATOS_ERROR << "Nodes do not have NODAL_H variable!";
-
-        // Distance modification
-        if (mrRecoverOriginalDistance == false) // Case in where the original distance does not need to be preserved (e.g. CFD)
-        {
-            #pragma omp parallel for
-            for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
-            {
-                ModelPart::NodesContainerType::iterator itNode = rNodes.begin() + k;
-                const double h = itNode->FastGetSolutionStepValue(NODAL_H);
-                const double tol_d = factor*h;
-                double& d = itNode->FastGetSolutionStepValue(DISTANCE);
-
-                // Modify the distance to avoid almost empty fluid elements
-                if((d >= 0.0) && (d < tol_d))
-                    d = -0.001*tol_d;
-            }
-        }
-        else // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
-        {
-            const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-            std::vector<std::vector<unsigned int>> AuxModifiedDistancesIDs(NumThreads);
-            std::vector<std::vector<double>> AuxModifiedDistancesValues(NumThreads);
-
-            #pragma omp parallel shared(AuxModifiedDistancesIDs, AuxModifiedDistancesValues)
-            {
-                const int ThreadId = OpenMPUtils::ThisThread();             // Get the thread id
-                std::vector<unsigned int>   LocalModifiedDistancesIDs;      // Local modified distances nodes id vector
-                std::vector<double>      LocalModifiedDistancesValues;      // Local modified distances original values vector
-
-                #pragma omp for
-                for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
-                {
-                    ModelPart::NodesContainerType::iterator itNode = rNodes.begin() + k;
-                    const double h = itNode->FastGetSolutionStepValue(NODAL_H);
-                    const double tol_d = factor*h;
-                    double& d = itNode->FastGetSolutionStepValue(DISTANCE);
-
-                    if((d >= 0.0) && (d < tol_d))
-                    {
-                        // Store the original distance to be recovered at the end of the step
-                        LocalModifiedDistancesIDs.push_back(d);
-                        LocalModifiedDistancesValues.push_back(itNode->Id());
-
-                        // Modify the distance to avoid almost empty fluid elements
-                        d = -0.001*tol_d;
-                    }
-                }
-
-                AuxModifiedDistancesIDs[ThreadId] = LocalModifiedDistancesIDs;
-                AuxModifiedDistancesValues[ThreadId] = LocalModifiedDistancesValues;
-            }
-
-            mModifiedDistancesIDs = AuxModifiedDistancesIDs;
-            mModifiedDistancesValues = AuxModifiedDistancesValues;
-        }
-
-        // Syncronize data between partitions (the modified distance has always a lower value)
-        mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
-
-        // Check if there still exist bad cuts
-        unsigned int num_bad_cuts = 0;
-        /* Note: I'm defining a temporary variable because 'num_bad_cuts'
-        *  instead of writing directly into input argument 'bad_cuts'
-        *  because using a reference variable in a reduction pragma does
-        *  not compile in MSVC 2015 nor in clang-3.8 (Is it even allowed by omp?)
-        */
-        #pragma omp parallel for reduction(+ : num_bad_cuts)
-        for (int k = 0; k < static_cast<int>(rElements.size()); ++k)
-        {
-            unsigned int npos = 0;
-            unsigned int nneg = 0;
-
-            ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
-            GeometryType& rGeometry = itElement->GetGeometry();
-
-            for (unsigned int iNode=0; iNode<rGeometry.size(); iNode++)
-            {
-                const double d = rGeometry[iNode].FastGetSolutionStepValue(DISTANCE);
-                (d > 0.0) ? npos++ : nneg++;
-            }
-
-            if((nneg > 0) && (npos > 0)) // The element is cut
-            {
-                for(unsigned int iNode=0; iNode<rGeometry.size(); iNode++)
-                {
-                    const Node<3> &rConstNode = rGeometry[iNode];
-                    const double h = rConstNode.GetValue(NODAL_H);
-                    const double tol_d = (factor*mFactorCoeff)*h;
-                    const double d = rConstNode.FastGetSolutionStepValue(DISTANCE);
-
-                    if((d >= 0.0) && (d < tol_d))
-                    {
-                        num_bad_cuts++;
-                        break;
-                    }
-                }
-            }
-        }
-
-        bad_cuts = num_bad_cuts;
-    }
-
-
-    void RecoverOriginalDistance()
-    {
-        #pragma omp parallel
-        {
-            const int ThreadId = OpenMPUtils::ThisThread();
-            const std::vector<unsigned int> LocalModifiedDistancesIDs = mModifiedDistancesIDs[ThreadId];
-            const std::vector<double> LocalModifiedDistancesValues = mModifiedDistancesValues[ThreadId];
-
-            for(unsigned int i=0; i<LocalModifiedDistancesIDs.size(); ++i)
-            {
-                const unsigned int nodeId = LocalModifiedDistancesIDs[i];
-                mrModelPart.GetNode(nodeId).FastGetSolutionStepValue(DISTANCE) = LocalModifiedDistancesValues[i];
-            }
-        }
-
-        // Syncronize data between partitions (the modified distance has always a lower value)
-        mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
-
-        // Empty the modified distance vectors
-        mModifiedDistancesIDs.resize(0);
-        mModifiedDistancesValues.resize(0);
-        mModifiedDistancesIDs.shrink_to_fit();
-        mModifiedDistancesValues.shrink_to_fit();
-
-    }
-
-
-    void DeactivateFullNegativeElements()
-    {
-        ModelPart::ElementsContainerType& rElements = mrModelPart.Elements();
-
-        // Deactivate those elements whose fixed nodes and negative distance nodes summation is equal (or larger) to their number of nodes
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(rElements.size()); ++k)
-        {
-            unsigned int fixed = 0;
-            unsigned int inside = 0;
-            ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
-            GeometryType& rGeometry = itElement->GetGeometry();
-
-            // Check the distance function sign at the element nodes
-            for (unsigned int itNode=0; itNode<rGeometry.size(); itNode++)
-            {
-                if (rGeometry[itNode].GetSolutionStepValue(DISTANCE)<0.0)
-                    inside++;
-                if (rGeometry[itNode].IsFixed(VELOCITY_X) && rGeometry[itNode].IsFixed(VELOCITY_Y) && rGeometry[itNode].IsFixed(VELOCITY_Z))
-                    fixed++;
-            }
-
-            (inside+fixed >= rGeometry.size()) ? itElement->Set(ACTIVE, false) : itElement->Set(ACTIVE, true);
-        }
-    }
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
 
     ///@}
 
@@ -389,21 +145,86 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
 
+    ModelPart&                                       mrModelPart;
+    double                                    mDistanceThreshold;
+    bool                                             mIsModified;
+    bool                                     mContinuousDistance;
+    bool                                        mCheckAtEachStep;
+    bool                                    mNegElemDeactivation;
+    bool                               mAvoidAlmostEmptyElements;
+    bool                                mRecoverOriginalDistance;
+    std::vector<unsigned int>              mModifiedDistancesIDs;
+    std::vector<double>                 mModifiedDistancesValues;
+    std::vector<Vector>        mModifiedElementalDistancesValues;
+    std::vector<const Variable<double>*>    mDoubleVariablesList;
+    std::vector<const ComponentType*>    mComponentVariablesList;
 
     ///@}
-    ///@name Private Operators
+    ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
     ///@{
 
+    void CheckDefaultsAndProcessSettings(Parameters &rParameters);
+
+    /**
+     * @brief Initialize the EMBEDDED_IS_ACTIVE variable
+     * This method initializes the non historical variable EMBEDDED_IS_ACTIVE.
+     * It needs to be called in the constructor to do a threadsafe initialization
+     * of such nodal variable before any other operation is done.
+     */
+    void InitializeEmbeddedIsActive();
+
+    void ModifyDistance();
+
+    void ModifyDiscontinuousDistance();
+
+    void RecoverDeactivationPreviousState();
+
+    void RecoverOriginalDistance();
+
+    void RecoverOriginalDiscontinuousDistance();
+
+    void DeactivateFullNegativeElements();
+
+    template<class TDistancesVectorType>
+    void SetElementToSplitFlag(
+        Element &rElem,
+        const TDistancesVectorType& rDistancesVector)
+    {
+        unsigned int n_pos = 0;
+        unsigned int n_neg = 0;
+        for (double i_dist : rDistancesVector) {
+            if (i_dist < 0.0) {
+                n_neg++;
+            } else {
+                n_pos++;
+            }
+        }
+        if (n_neg != 0 && n_pos != 0) {
+            rElem.Set(TO_SPLIT, true);
+        } else {
+            rElem.Set(TO_SPLIT, false);
+        }
+    }
+
+    void SetContinuousDistanceToSplitFlag();
+
+    void SetDiscontinuousDistanceToSplitFlag();
+
+    /**
+     * @brief Reads the variables list specified in the Parameters to be fixed in the elements
+     * that are fully negative, storing them in mDoubleVariablesList and mComponentVariablesList.
+     * It also checks that the variables and the DOFs are defined in the rmModelPart.
+     * @param rVariableStringArray Array containing the variables to be fixed in the full negative elements
+    */
+    void CheckAndStoreVariablesList(const std::vector<std::string>& rVariableStringArray);
 
     ///@}
     ///@name Private  Access
@@ -420,14 +241,13 @@ private:
     ///@{
 
     /// Default constructor.
-    DistanceModificationProcess(){}
+    DistanceModificationProcess() = delete;
 
     /// Assignment operator.
-    DistanceModificationProcess& operator=(DistanceModificationProcess const& rOther){return *this;}
+    DistanceModificationProcess& operator=(DistanceModificationProcess const& rOther) = delete;
 
     /// Copy constructor.
-    DistanceModificationProcess(DistanceModificationProcess const& rOther){}
-
+    DistanceModificationProcess(DistanceModificationProcess const& rOther) = delete;
 
     ///@}
 

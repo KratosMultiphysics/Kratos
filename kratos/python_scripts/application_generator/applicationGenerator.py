@@ -1,6 +1,9 @@
+from __future__ import print_function, absolute_import, division
+
 import os
 import sys
 import shutil
+import difflib
 
 from classes.elementCreator import ElementCreator
 from classes.conditionCreator import ConditionCreator
@@ -21,6 +24,34 @@ class ApplicationGenerator(TemplateRule):
     def __init__(self, name):
 
         super(ApplicationGenerator, self).__init__()
+
+        appStrPos = name.lower().find('application')
+        maxi = 5
+        while appStrPos != -1 and maxi > 0:
+            oldname = name
+            name = name[0:appStrPos] + name[appStrPos+len('application'):len(name)]
+
+            msg = Formatc([
+                {'color': bcolors.WARNING, 'msg': '[WARNING]'},
+                {'color': bcolors.CYAN, 'msg': ' {}'.format(oldname)},
+                {'color': None, 'msg': ' already contains the substring "'},
+                {'color': bcolors.CYAN, 'msg': '{}'.format('Application')},
+                {'color': None, 'msg': '". Removing... : '+name},
+            ], sys.stderr)
+
+            print(msg, file=sys.stderr)
+            appStrPos = name.lower().find('application')
+            maxi = maxi -1
+
+        if difflib.SequenceMatcher(None, name.lower(), 'application').ratio() > 0.65:
+            msg = Formatc([
+                {'color': bcolors.WARNING, 'msg': '[WARNING]'},
+                {'color': None, 'msg': ' Your application name contains something wrong after automatic fix, please select another name.'},
+            ], sys.stderr)
+
+            print(msg, file=sys.stderr)
+            exit()
+
 
         self._appDir = GetApplicationsDirectory()
 
@@ -154,6 +185,9 @@ class ApplicationGenerator(TemplateRule):
             if '.svn' in subfolder:
                 subfolder.remove('.svn')
 
+            if '.git' in subfolder:
+                subfolder.remove('.git')
+
             for f in files:
                 src = os.path.join(root, f)
                 fileName = src.split(".")
@@ -179,10 +213,6 @@ class ApplicationGenerator(TemplateRule):
         self._generateVariablesFrom(
             entityType='Variables',
             fromContainer=self._variables)
-
-        # add it to kratos
-        self._addApplicationToCMake()
-        self._addApplicationToAppList()
 
     # Interal goes here
     def _applyTemplateRulesToFile(self, src, dst, rules):
@@ -314,192 +344,3 @@ class ApplicationGenerator(TemplateRule):
                 container.append(entity)
             else:
                 raise TypeError(msg.format(entity))
-
-    def _addApplicationToCMake(self):
-        # Locate the CMake file
-        srcFile = self._appDir + "CMakeLists.txt"
-        dstFile = self._appDir + "CMakeLists.txt.tmp"
-
-        msgCount = 0
-
-        # We can check it this way, as is not that large
-        with open(srcFile, 'r') as src:
-            if self._nameCamel in src.read():
-                msg = Formatc([
-                    {'color': bcolors.WARNING, 'msg': '[WARNING]'},
-                    {'color': bcolors.CYAN, 'msg': ' {}'.format(self._nameCamel+'Application')},
-                    {'color': None, 'msg': ' already has an entry in "'},
-                    {'color': bcolors.CYAN, 'msg': '{}'.format('CMakeLists.txt')},
-                    {'color': None, 'msg': '". Skipping step.'},
-                ], sys.stderr)
-
-                print(msg, file=sys.stderr)
-
-                return
-
-        with open(srcFile, 'r') as src, open(dstFile, 'w+') as dst:
-            for l in src:
-                # Skip the first message
-                if 'message( " ")' in l and msgCount == 0:
-                    msgCount += 1
-
-                # Add the applciation to the list message
-                elif 'message( " ")' in l and msgCount == 1:
-                    newLine = ''
-
-                    newLine += 'message("' + self._nameUpper + '_APPLICATION'
-                    newLine += ('.' * (24 - len(self._nameUpper)))
-                    newLine += ' ${' + self._nameUpper + '_APPLICATION}")\n'
-
-                    dst.write(newLine)
-
-                # TODO: Probably is not a good idea to use the end comment as a
-                # token for adding this, but we cannot use the end of the file
-                # until that same comment is removed
-
-                # Write the add subdirectory clause
-                if '# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)' in l:
-                    dst.write('if(${' + self._nameUpper + '_APPLICATION} MATCHES ON)\n')
-                    dst.write('  add_subdirectory(' + self._nameCamel+'Application)\n')
-                    dst.write('endif(${' + self._nameUpper + '_APPLICATION} MATCHES ON)\n')
-                    dst.write('\n')
-
-                # Write the old line
-                dst.write(l)
-
-        # Replace the old file with the new one
-        os.remove(srcFile)
-        os.rename(dstFile, srcFile)
-
-    def _addApplicationToAppList(self):
-
-        # Locate the applications lists
-        srcFile = self._appDir + "applications_interface.py"
-        dstFile = self._appDir + "applications_interface.py.tmp"
-
-        # For this file is just easier to reconstruct the whole thing
-        fileStruct = {
-            'header': [],
-            'importFalseBlock': [],
-            'printMsgBlock': [],
-            'appDirBlock': [],
-            'importValueBlock': [],
-            'prepareBlock': [],
-            'initializeBlock': [],
-            'footer': [],
-        }
-
-        currentBlock = 'header'
-
-        # We can check it this way, as is not that large
-        with open(srcFile, 'r') as src:
-            if self._nameCamel in src.read():
-                msg = Formatc([
-                    {'color': bcolors.WARNING, 'msg': '[WARNING]'},
-                    {'color': bcolors.CYAN, 'msg': ' {}'.format(self._nameCamel+'Application')},
-                    {'color': None, 'msg': ' already has an entry in "'},
-                    {'color': bcolors.CYAN, 'msg': '{}'.format('applications_interface.py')},
-                    {'color': None, 'msg': '". Skipping step.'},
-                ], sys.stderr)
-
-                print(msg, file=sys.stderr)
-
-                return
-
-        # First read the file and parse all the info
-        with open(srcFile, 'r') as src:
-            for l in src:
-                # Select the block
-                if 'Import_' in l and 'Application = False' in l:
-                    currentBlock = 'importFalseBlock'
-                if 'print("Applications Available:")' in l and currentBlock == 'importFalseBlock':
-                    currentBlock = 'printMsgBlock'
-                if 'application_directory = os.path.dirname' in l and currentBlock == 'printMsgBlock':
-                    currentBlock = 'appDirBlock'
-                if 'def ImportApplications' in l and currentBlock == 'appDirBlock':
-                    currentBlock = 'importValueBlock'
-                if 'if(Import_SolidMechanicsApplication):' in l and currentBlock == 'importValueBlock':
-                    currentBlock = 'prepareBlock'
-                if '# dynamic renumbering of variables' in l:
-                    currentBlock = 'initializeBlock'
-                if '# def ImportApplications(kernel  ):' in l:
-                    currentBlock = 'footer'
-
-                # Append the result if its not null
-                if l is not '\n' or currentBlock == 'prepareBlock':
-                    fileStruct[currentBlock].append(l)
-
-        # Prepare some blocks
-        prepareBlockContent = [
-            ptab + 'if(Import_{CAMEL}Application):\n',
-            ptab * 2 + 'print("importing Kratos{CAMEL}Application ...")\n',
-            ptab * 2 + 'sys.path.append(applications_path + \'/{CAMEL}/python_scripts\')\n',
-            ptab * 2 + 'sys.path.append(applications_path + \'/{CAMEL}/Linux\')\n',
-            ptab * 2 + 'from Kratos{CAMEL}Application import *\n',
-            ptab * 2 + '{LOWER}_application = Kratos{CAMEL}Application()\n',
-            ptab * 2 + 'kernel.AddApplication({LOWER}_application)\n',
-            ptab * 2 + 'print("Kratos{CAMEL}Application Succesfully imported")\n',
-            '\n'
-        ]
-
-        prepareBlockContent = [
-            s.format(
-                CAMEL=self._nameCamel,
-                LOWER=self._nameLower
-            ) for s in prepareBlockContent]
-
-        # Add our application to the requeired blocks
-        fileStruct['importFalseBlock'].append(
-            'Import_' + self._nameCamel + 'Application = False\n'
-        )
-
-        fileStruct['printMsgBlock'].append(
-            'print("Import_' + self._nameCamel + 'Application: False")\n'
-        )
-
-        fileStruct['importValueBlock'].append(
-            ptab + 'print("Import_{CAMEL}Application: " + str(Import_{CAMEL}Application))\n'.format(
-                CAMEL=self._nameCamel))
-
-        # This line deletes the last \n
-        fileStruct['prepareBlock'] = fileStruct['prepareBlock'][:-1]
-        fileStruct['prepareBlock'].append(
-            prepareBlockContent
-        )
-
-        fileStruct['initializeBlock'].append([
-            ptab + 'if(Import_' + self._nameCamel + 'Application):\n',
-            ptab * 2 + 'kernel.InitializeApplication(' + self._nameLower + '_application)\n'
-        ])
-
-        # Write the whole thing down
-        with open(dstFile, 'w+') as dst:
-            for l in fileStruct['header']:
-                dst.write(l)
-            dst.write('\n')
-            for l in fileStruct['importFalseBlock']:
-                dst.write(l)
-            dst.write('\n')
-            for l in fileStruct['printMsgBlock']:
-                dst.write(l)
-            dst.write('\n')
-            for l in fileStruct['appDirBlock']:
-                dst.write(l)
-            dst.write('\n')
-            for l in fileStruct['importValueBlock']:
-                dst.write(l)
-            dst.write('\n')
-            for b in fileStruct['prepareBlock']:
-                for l in b:
-                    dst.write(l)
-            dst.write('\n')
-            for b in fileStruct['initializeBlock']:
-                for l in b:
-                    dst.write(l)
-            dst.write('\n')
-            for l in fileStruct['footer']:
-                dst.write(l)
-
-        # Replace the old file with the new one
-        os.remove(srcFile)
-        os.rename(dstFile, srcFile)

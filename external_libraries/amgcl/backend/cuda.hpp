@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,10 +31,9 @@ THE SOFTWARE.
  * \brief  CUDA backend.
  */
 
-#include <boost/static_assert.hpp>
-#include <boost/type_traits.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <type_traits>
+#include <memory>
+
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/solver/skyline_lu.hpp>
 #include <amgcl/util.hpp>
@@ -42,6 +41,8 @@ THE SOFTWARE.
 #include <thrust/device_vector.h>
 #include <thrust/fill.h>
 #include <thrust/copy.h>
+#include <thrust/gather.h>
+#include <thrust/scatter.h>
 #include <thrust/for_each.h>
 #include <thrust/inner_product.h>
 #include <cusparse_v2.h>
@@ -71,6 +72,13 @@ struct cuda_skyline_lu : solver::skyline_lu<T> {
         static_cast<const Base*>(this)->operator()(_rhs, _x);
         thrust::copy(_x.begin(), _x.end(), x.begin());
     }
+
+    size_t bytes() const {
+        return
+            backend::bytes(*static_cast<const Base*>(this)) +
+            backend::bytes(_rhs) +
+            backend::bytes(_x);
+    }
 };
 
 }
@@ -86,6 +94,14 @@ inline void cuda_check(cusparseStatus_t rc, const char *file, int line) {
     }
 }
 
+inline void cuda_check(cudaError_t rc, const char *file, int line) {
+    if (rc != cudaSuccess) {
+        std::ostringstream msg;
+        msg << "CUDA error " << rc << " at \"" << file << ":" << line;
+        precondition(false, msg.str());
+    }
+}
+
 #define AMGCL_CALL_CUDA(rc)                                                    \
     amgcl::backend::detail::cuda_check(rc, __FILE__, __LINE__)
 
@@ -94,9 +110,11 @@ struct cuda_deleter {
         AMGCL_CALL_CUDA( cusparseDestroyMatDescr(handle) );
     }
 
+#if CUDART_VERSION < 11000
     void operator()(cusparseHybMat_t handle) {
         AMGCL_CALL_CUDA( cusparseDestroyHybMat(handle) );
     }
+#endif
 
     void operator()(csrilu02Info_t handle) {
         AMGCL_CALL_CUDA( cusparseDestroyCsrilu02Info(handle) );
@@ -105,18 +123,133 @@ struct cuda_deleter {
     void operator()(csrsv2Info_t handle) {
         AMGCL_CALL_CUDA( cusparseDestroyCsrsv2Info(handle) );
     }
+
+    void operator()(cudaEvent_t handle) {
+        AMGCL_CALL_CUDA( cudaEventDestroy(handle) );
+    }
 };
 
 
 } // namespace detail
 
-/// CUSPARSE matrix in Hyb format.
+#if CUDART_VERSION >= 11000
+/// CUSPARSE matrix in CSR format.
 template <typename real>
-class cuda_hyb_matrix {
+class cuda_matrix {
     public:
         typedef real value_type;
 
-        cuda_hyb_matrix(
+        cuda_matrix(
+                size_t n, size_t m,
+                const ptrdiff_t *ptr,
+                const ptrdiff_t *col,
+                const real      *val,
+                cusparseHandle_t handle
+                )
+            : nrows(n), ncols(m), nnz(ptr[n]), handle(handle),
+              ptr(ptr, ptr + n + 1), col(col, col + nnz), val(val, val + nnz),
+              desc(create_description(), backend::detail::cuda_deleter())
+        {
+        }
+
+        void spmv(
+                real alpha, thrust::device_vector<real> const &x,
+                real beta,  thrust::device_vector<real>       &y
+            ) const
+        {
+            size_t buf_size;
+            AMGCL_CALL_CUDA(
+                    cusparseCsrmvEx_bufferSize(
+                        handle,
+                        CUSPARSE_ALG_MERGE_PATH,
+                        CUSPARSE_OPERATION_NON_TRANSPOSE,
+                        nrows,
+                        ncols,
+                        nnz,
+                        &alpha, datatype(),
+                        desc.get(),
+                        thrust::raw_pointer_cast(&val[0]), datatype(),
+                        thrust::raw_pointer_cast(&ptr[0]),
+                        thrust::raw_pointer_cast(&col[0]),
+                        thrust::raw_pointer_cast(&x[0]), datatype(),
+                        &beta, datatype(),
+                        thrust::raw_pointer_cast(&y[0]), datatype(),
+                        datatype(),
+                        &buf_size)
+                    );
+
+            if (buf.size() < buf_size)
+                buf.resize(buf_size);
+
+            AMGCL_CALL_CUDA(
+                    cusparseCsrmvEx(
+                        handle,
+                        CUSPARSE_ALG_MERGE_PATH,
+                        CUSPARSE_OPERATION_NON_TRANSPOSE,
+                        nrows,
+                        ncols,
+                        nnz,
+                        &alpha, datatype(),
+                        desc.get(),
+                        thrust::raw_pointer_cast(&val[0]), datatype(),
+                        thrust::raw_pointer_cast(&ptr[0]),
+                        thrust::raw_pointer_cast(&col[0]),
+                        thrust::raw_pointer_cast(&x[0]), datatype(),
+                        &beta, datatype(),
+                        thrust::raw_pointer_cast(&y[0]), datatype(),
+                        datatype(),
+                        thrust::raw_pointer_cast(&buf[0])
+                        )
+                    );
+        }
+
+        size_t rows()     const { return nrows; }
+        size_t cols()     const { return ncols; }
+        size_t nonzeros() const { return nnz;   }
+        size_t bytes()    const {
+            return
+                sizeof(int)  * (nrows + 1) +
+                sizeof(int)  * nnz +
+                sizeof(real) * nnz;
+        }
+    private:
+        size_t nrows, ncols, nnz;
+
+        cusparseHandle_t handle;
+
+        std::shared_ptr<std::remove_pointer<cusparseMatDescr_t>::type> desc;
+
+        thrust::device_vector<int>  ptr;
+        thrust::device_vector<int>  col;
+        thrust::device_vector<real> val;
+
+        mutable thrust::device_vector<char> buf;
+
+        static cusparseMatDescr_t create_description() {
+            cusparseMatDescr_t desc;
+            AMGCL_CALL_CUDA( cusparseCreateMatDescr(&desc) );
+            AMGCL_CALL_CUDA( cusparseSetMatType(desc, CUSPARSE_MATRIX_TYPE_GENERAL) );
+            AMGCL_CALL_CUDA( cusparseSetMatIndexBase(desc, CUSPARSE_INDEX_BASE_ZERO) );
+            return desc;
+        }
+
+        static cudaDataType datatype() {
+            if (sizeof(real) == sizeof(float))
+                return CUDA_R_32F;
+            else
+                return CUDA_R_64F;
+        }
+};
+
+#else  // CUDART_VERSION >= 11000
+
+/// CUSPARSE matrix in Hyb format.
+template <typename real>
+class cuda_matrix {
+    public:
+        typedef real value_type;
+
+        cuda_matrix(
                 size_t n, size_t m,
                 const ptrdiff_t *ptr,
                 const ptrdiff_t *col,
@@ -132,8 +265,16 @@ class cuda_hyb_matrix {
 
         void spmv(
                 real alpha, thrust::device_vector<real> const &x,
+                real beta,  thrust::device_vector<real>       &y
+            ) const
+        {
+            spmv(alpha, x, beta, y, std::integral_constant<bool, sizeof(real) == sizeof(double)>());
+        }
+
+        void spmv(
+                real alpha, thrust::device_vector<real> const &x,
                 real beta,  thrust::device_vector<real>       &y,
-                boost::false_type
+                std::false_type
             ) const
         {
             AMGCL_CALL_CUDA(
@@ -148,7 +289,7 @@ class cuda_hyb_matrix {
         void spmv(
                 real alpha, thrust::device_vector<real> const &x,
                 real beta,  thrust::device_vector<real>       &y,
-                boost::true_type
+                std::true_type
             ) const
         {
             AMGCL_CALL_CUDA(
@@ -163,13 +304,19 @@ class cuda_hyb_matrix {
         size_t rows()     const { return nrows; }
         size_t cols()     const { return ncols; }
         size_t nonzeros() const { return nnz;   }
+        size_t bytes()    const {
+            return
+                sizeof(int)  * (nrows + 1) +
+                sizeof(int)  * nnz +
+                sizeof(real) * nnz;
+        }
     private:
         size_t nrows, ncols, nnz;
 
         cusparseHandle_t handle;
 
-        boost::shared_ptr<boost::remove_pointer<cusparseMatDescr_t>::type> desc;
-        boost::shared_ptr<boost::remove_pointer<cusparseHybMat_t>::type>   mat;
+        std::shared_ptr<std::remove_pointer<cusparseMatDescr_t>::type> desc;
+        std::shared_ptr<std::remove_pointer<cusparseHybMat_t>::type>   mat;
 
         static cusparseMatDescr_t create_description() {
             cusparseMatDescr_t desc;
@@ -222,6 +369,8 @@ class cuda_hyb_matrix {
         }
 };
 
+#endif // CUDART_VERSION >= 11000
+
 /// CUDA backend.
 /**
  * Uses CUSPARSE for matrix operations and Thrust for vector operations.
@@ -231,21 +380,19 @@ class cuda_hyb_matrix {
  */
 template <typename real, class DirectSolver = solver::cuda_skyline_lu<real> >
 struct cuda {
-        BOOST_STATIC_ASSERT_MSG(
-                (
-                 boost::is_same<real, float>::value ||
-                 boost::is_same<real, double>::value
-                ),
+        static_assert(
+                std::is_same<real, float>::value ||
+                std::is_same<real, double>::value,
                 "Unsupported value type for cuda backend"
                 );
 
     typedef real value_type;
-    typedef cuda_hyb_matrix<real>       matrix;
+    typedef cuda_matrix<real>       matrix;
     typedef thrust::device_vector<real> vector;
     typedef thrust::device_vector<real> matrix_diagonal;
     typedef DirectSolver                direct_solver;
 
-    struct provides_row_iterator : boost::false_type {};
+    struct provides_row_iterator : std::false_type {};
 
     /// Backend parameters.
     struct params {
@@ -254,113 +401,131 @@ struct cuda {
 
         params(cusparseHandle_t handle = 0) : cusparse_handle(handle) {}
 
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, cusparse_handle)
         {
-            AMGCL_PARAMS_CHECK(p, (cusparse_handle));
+            check_params(p, {"cusparse_handle"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, cusparse_handle);
         }
+#endif
     };
 
     static std::string name() { return "cuda"; }
 
     /// Copy matrix from builtin backend.
-    static boost::shared_ptr<matrix>
-    copy_matrix(boost::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
+    static std::shared_ptr<matrix>
+    copy_matrix(std::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
     {
-        return boost::make_shared<matrix>(rows(*A), cols(*A),
+        return std::make_shared<matrix>(rows(*A), cols(*A),
                 A->ptr, A->col, A->val, prm.cusparse_handle
                 );
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     copy_vector(typename builtin<real>::vector const &x, const params&)
     {
-        return boost::make_shared<vector>(x.data(), x.data() + x.size());
+        return std::make_shared<vector>(x.data(), x.data() + x.size());
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
-    copy_vector(boost::shared_ptr< typename builtin<real>::vector > x, const params &prm)
+    static std::shared_ptr<vector>
+    copy_vector(std::shared_ptr< typename builtin<real>::vector > x, const params &prm)
     {
         return copy_vector(*x, prm);
     }
 
     /// Create vector of the specified size.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     create_vector(size_t size, const params&)
     {
-        return boost::make_shared<vector>(size);
+        return std::make_shared<vector>(size);
     }
 
     /// Create direct solver for coarse level
-    static boost::shared_ptr<direct_solver>
-    create_solver(boost::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
+    static std::shared_ptr<direct_solver>
+    create_solver(std::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
     {
-        return boost::make_shared<direct_solver>(A, prm);
+        return std::make_shared<direct_solver>(A, prm);
     }
+
+    struct gather {
+        thrust::device_vector<ptrdiff_t>  I;
+        mutable thrust::device_vector<value_type> T;
+
+        gather(size_t src_size, const std::vector<ptrdiff_t> &I, const params&)
+            : I(I), T(I.size())
+        { }
+
+        void operator()(const vector &src, vector &dst) const {
+            thrust::gather(I.begin(), I.end(), src.begin(), dst.begin());
+        }
+
+        void operator()(const vector &vec, std::vector<value_type> &vals) const {
+            thrust::gather(I.begin(), I.end(), vec.begin(), T.begin());
+            thrust::copy(T.begin(), T.end(), vals.begin());
+        }
+    };
+
+    struct scatter {
+        thrust::device_vector<ptrdiff_t>  I;
+
+        scatter(size_t size, const std::vector<ptrdiff_t> &I, const params &)
+            : I(I)
+        { }
+
+        void operator()(const vector &src, vector &dst) const {
+            thrust::scatter(src.begin(), src.end(), I.begin(), dst.begin());
+        }
+    };
 };
 
 //---------------------------------------------------------------------------
 // Backend interface implementation
 //---------------------------------------------------------------------------
 template < typename V >
-struct rows_impl< cuda_hyb_matrix<V> > {
-    static size_t get(const cuda_hyb_matrix<V> &A) {
-        return A.rows();
-    }
-};
-
-template < typename V >
-struct cols_impl< cuda_hyb_matrix<V> > {
-    static size_t get(const cuda_hyb_matrix<V> &A) {
-        return A.cols();
-    }
-};
-
-template < typename V >
-struct nonzeros_impl< cuda_hyb_matrix<V> > {
-    static size_t get(const cuda_hyb_matrix<V> &A) {
-        return A.nonzeros();
+struct bytes_impl< thrust::device_vector<V> > {
+    static size_t get(const thrust::device_vector<V> &v) {
+        return v.size() * sizeof(V);
     }
 };
 
 template < typename Alpha, typename Beta, typename V >
 struct spmv_impl<
-    Alpha, cuda_hyb_matrix<V>, thrust::device_vector<V>,
+    Alpha, cuda_matrix<V>, thrust::device_vector<V>,
     Beta,  thrust::device_vector<V>
     >
 {
-    typedef cuda_hyb_matrix<V> matrix;
+    typedef cuda_matrix<V> matrix;
     typedef thrust::device_vector<V> vector;
 
     static void apply(Alpha alpha, const matrix &A, const vector &x,
             Beta beta, vector &y)
     {
-        A.spmv(alpha, x, beta, y, typename boost::is_same<V, double>::type());
+        A.spmv(alpha, x, beta, y);
     }
 };
 
 template < typename V >
 struct residual_impl<
-    cuda_hyb_matrix<V>,
+    cuda_matrix<V>,
     thrust::device_vector<V>,
     thrust::device_vector<V>,
     thrust::device_vector<V>
     >
 {
-    typedef cuda_hyb_matrix<V> matrix;
+    typedef cuda_matrix<V> matrix;
     typedef thrust::device_vector<V> vector;
 
     static void apply(const vector &rhs, const matrix &A, const vector &x,
             vector &r)
     {
         thrust::copy(rhs.begin(), rhs.end(), r.begin());
-        A.spmv(-1, x, 1, r, typename boost::is_same<V, double>::type());
+        A.spmv(-1, x, 1, r);
     }
 };
 
@@ -375,15 +540,28 @@ struct clear_impl< thrust::device_vector<V> >
     }
 };
 
-template < typename V >
-struct copy_impl<
-    thrust::device_vector<V>,
-    thrust::device_vector<V>
-    >
+template <class V, class T>
+struct copy_impl<V, thrust::device_vector<T> >
 {
-    typedef thrust::device_vector<V> vector;
+    static void apply(const V &x, thrust::device_vector<T> &y)
+    {
+        thrust::copy(x.begin(), x.end(), y.begin());
+    }
+};
 
-    static void apply(const vector &x, vector &y)
+template <class T, class V>
+struct copy_impl<thrust::device_vector<T>, V >
+{
+    static void apply(const thrust::device_vector<T> &x, V &y)
+    {
+        thrust::copy(x.begin(), x.end(), y.begin());
+    }
+};
+
+template <class T1, class T2>
+struct copy_impl<thrust::device_vector<T1>, thrust::device_vector<T2> >
+{
+    static void apply(const thrust::device_vector<T1> &x, thrust::device_vector<T2> &y)
     {
         thrust::copy(x.begin(), x.end(), y.begin());
     }
@@ -533,6 +711,37 @@ struct vmul_impl<
                     ),
                 functor(a, b)
                 );
+    }
+};
+
+class cuda_event {
+    public:
+        cuda_event() : e(create_event(), backend::detail::cuda_deleter()) { }
+
+        float operator-(cuda_event tic) const {
+            float delta;
+            cudaEventSynchronize(e.get());
+            cudaEventElapsedTime(&delta, tic.e.get(), e.get());
+            return delta / 1000.0f;
+        }
+    private:
+        std::shared_ptr<std::remove_pointer<cudaEvent_t>::type> e;
+
+        static cudaEvent_t create_event() {
+            cudaEvent_t e;
+            cudaEventCreate(&e);
+            cudaEventRecord(e, 0);
+            return e;
+        }
+};
+
+struct cuda_clock {
+    typedef cuda_event value_type;
+
+    static const char* units() { return "s"; }
+
+    cuda_event current() const {
+        return cuda_event();
     }
 };
 

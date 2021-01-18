@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //
 // ==============================================================================
 
@@ -12,10 +12,9 @@
 // System includes
 // ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
+// // ------------------------------------------------------------------------------
+// // External includes
+// // ------------------------------------------------------------------------------
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -28,111 +27,205 @@
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/damping/damping_utilities.h"
-#include "custom_utilities/response_functions/strain_energy_response_function.h"
-#include "custom_utilities/response_functions/mass_response_function.h"
+#include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
-#include "custom_utilities/input_output/vtk_file_io.h"
-
+#include "custom_utilities/search_based_functions.h"
 
 // ==============================================================================
 
-namespace Kratos
-{
+namespace Kratos {
+namespace Python {
 
-namespace Python
+// Overloaded functions
+template<typename TMapper>
+inline void MapVector(TMapper& mapper,
+                const Variable< array_1d<double, 3> >& origin_variable,
+                const Variable< array_1d<double, 3> >& destination_variable)
 {
+    mapper.Map(origin_variable, destination_variable);
+}
 
-
-void  AddCustomUtilitiesToPython()
+template<typename TMapper>
+inline void MapScalar(TMapper& mapper,
+                const Variable< double >& origin_variable,
+                const Variable< double >& destination_variable)
 {
-    using namespace boost::python;
+    mapper.Map(origin_variable, destination_variable);
+}
+
+template<typename TMapper>
+inline void InverseMapVector(TMapper& mapper,
+                       const Variable< array_1d<double, 3> >& origin_variable,
+                       const Variable< array_1d<double, 3> >& destination_variable)
+{
+    mapper.InverseMap(origin_variable, destination_variable);
+}
+template<typename TMapper>
+inline void InverseMapScalar(TMapper& mapper,
+                       const Variable< double >& origin_variable,
+                       const Variable< double >& destination_variable)
+{
+    mapper.InverseMap(origin_variable, destination_variable);
+}
+
+inline double ComputeL2NormScalar(OptimizationUtilities& utils, const Variable< double >& variable)
+{
+    return utils.ComputeL2NormOfNodalVariable(variable);
+}
+
+inline double ComputeL2NormVector(OptimizationUtilities& utils, const Variable< array_1d<double, 3> >& variable)
+{
+    return utils.ComputeL2NormOfNodalVariable(variable);
+}
+
+inline double ComputeMaxNormScalar(OptimizationUtilities& utils, const Variable< double >& variable)
+{
+    return utils.ComputeMaxNormOfNodalVariable(variable);
+}
+
+inline double ComputeMaxNormVector(OptimizationUtilities& utils, const Variable< array_1d<double, 3> >& variable)
+{
+    return utils.ComputeMaxNormOfNodalVariable(variable);
+}
+
+inline void AssembleMatrixForVariableList(
+    OptimizationUtilities& utils,
+    Matrix& rMatrix,
+    pybind11::list& rVariables)
+{
+    std::size_t list_length = pybind11::len(rVariables);
+    std::vector<Variable<OptimizationUtilities::array_3d>*> variables_vector(list_length);
+    for (std::size_t i = 0; i < list_length; i++)
+    {
+        variables_vector[i] = (rVariables[i]).cast<Variable<OptimizationUtilities::array_3d>*>();
+    }
+    return utils.AssembleMatrix(rMatrix, variables_vector);
+}
+
+// ==============================================================================
+void  AddCustomUtilitiesToPython(pybind11::module& m)
+{
+    namespace py = pybind11;
 
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, Parameters&>())
-        .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
+    py::class_<MapperVertexMorphing >(m, "MapperVertexMorphing")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphing::Initialize)
+        .def("Update", &MapperVertexMorphing::Update)
+        .def("Map", MapScalar<MapperVertexMorphing>)
+        .def("Map", MapVector<MapperVertexMorphing>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphing>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphing>)
+        ;
+    py::class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingMatrixFree::Initialize)
+        .def("Update", &MapperVertexMorphingMatrixFree::Update)
+        .def("Map", MapScalar<MapperVertexMorphingMatrixFree>)
+        .def("Map", MapVector<MapperVertexMorphingMatrixFree>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphingMatrixFree>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphingMatrixFree>)
+        ;
+    py::class_<MapperVertexMorphingImprovedIntegration >(m, "MapperVertexMorphingImprovedIntegration")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingImprovedIntegration::Initialize)
+        .def("Update", &MapperVertexMorphingImprovedIntegration::Update)
+        .def("Map", MapScalar<MapperVertexMorphingImprovedIntegration>)
+        .def("Map", MapVector<MapperVertexMorphingImprovedIntegration>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphingImprovedIntegration>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphingImprovedIntegration>)
         ;
 
-    class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, Parameters&>())
-        .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
-        ;
-    
     // ================================================================
     // For a possible damping of nodal variables
     // ================================================================
-    class_<DampingUtilities, bases<Process> >("DampingUtilities", init<ModelPart&, boost::python::dict, Parameters&>())
+    py::class_<DampingUtilities >(m, "DampingUtilities")
+        .def(py::init<ModelPart&, pybind11::dict, Parameters>())
         .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)
         ;
- 
+
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
-    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters::Pointer>())
+    py::class_<OptimizationUtilities >(m, "OptimizationUtilities")
+        .def(py::init<ModelPart&, Parameters>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
-        .def("compute_search_direction_steepest_descent", &OptimizationUtilities::compute_search_direction_steepest_descent)
+        .def("ComputeSearchDirectionSteepestDescent", &OptimizationUtilities::ComputeSearchDirectionSteepestDescent)
         // ----------------------------------------------------------------
         // For running penalized projection method
         // ----------------------------------------------------------------
-        .def("compute_projected_search_direction", &OptimizationUtilities::compute_projected_search_direction)
-        .def("correct_projected_search_direction", &OptimizationUtilities::correct_projected_search_direction)
+        .def("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
+        .def("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
+        .def("GetCorrectionScaling", &OptimizationUtilities::GetCorrectionScaling)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------
-        .def("compute_design_update", &OptimizationUtilities::compute_design_update)
+        .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
+        .def("AddFirstVariableToSecondVariable", &OptimizationUtilities::AddFirstVariableToSecondVariable)
+        .def("ComputeL2NormOfNodalVariable", ComputeL2NormScalar)
+        .def("ComputeL2NormOfNodalVariable", ComputeL2NormVector)
+        .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormScalar)
+        .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormVector)
+        .def("AssembleVector", &OptimizationUtilities::AssembleVector)
+        .def("AssignVectorToVariable", &OptimizationUtilities::AssignVectorToVariable)
+        .def("AssembleMatrix", &AssembleMatrixForVariableList)
+        .def("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
         ;
 
     // ========================================================================
     // For pre- and post-processing of geometry data
     // ========================================================================
-    class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&>())
-        .def("compute_unit_surface_normals", &GeometryUtilities::compute_unit_surface_normals)
-        .def("project_nodal_variable_on_unit_surface_normals", &GeometryUtilities::project_nodal_variable_on_unit_surface_normals)
-        .def("update_coordinates_according_to_input_variable", &GeometryUtilities::update_coordinates_according_to_input_variable)
-        .def("extract_surface_nodes", &GeometryUtilities::extract_surface_nodes)
+    py::class_<GeometryUtilities >(m, "GeometryUtilities")
+        .def(py::init<ModelPart&>())
+        .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
+        .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
+        .def("ProjectNodalVariableOnDirection", &GeometryUtilities::ProjectNodalVariableOnDirection)
+        .def("ProjectNodalVariableOnTangentPlane", &GeometryUtilities::ProjectNodalVariableOnTangentPlane)
+        .def("ExtractBoundaryNodes", &GeometryUtilities::ExtractBoundaryNodes)
+        .def("ComputeDistancesToBoundingModelPart", &GeometryUtilities::ComputeDistancesToBoundingModelPart)
         ;
 
     // ========================================================================
-    // For calculations related to response functions
+    // For mesh handling
     // ========================================================================
-    class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, Parameters&>())
-        .def("initialize", &StrainEnergyResponseFunction::initialize)
-        .def("calculate_value", &StrainEnergyResponseFunction::calculate_value)
-        .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient) 
-        .def("get_value", &StrainEnergyResponseFunction::get_value)
-        .def("get_initial_value", &StrainEnergyResponseFunction::get_initial_value)  
-        .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)                              
-        ; 
-    class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, Parameters&>())
-        .def("initialize", &MassResponseFunction::initialize)
-        .def("calculate_value", &MassResponseFunction::calculate_value)
-        .def("calculate_gradient", &MassResponseFunction::calculate_gradient)  
-        .def("get_value", &MassResponseFunction::get_value)
-        .def("get_initial_value", &MassResponseFunction::get_initial_value) 
-        .def("get_gradient", &MassResponseFunction::get_gradient)                              
-        ;                     
+    py::class_<MeshControllerUtilities >(m, "MeshControllerUtilities")
+        .def(py::init<ModelPart&>())
+        .def("UpdateMeshAccordingInputVariable", &MeshControllerUtilities::UpdateMeshAccordingInputVariable)
+        .def("RevertMeshUpdateAccordingInputVariable", &MeshControllerUtilities::RevertMeshUpdateAccordingInputVariable)
+        .def("LogMeshChangeAccordingInputVariable", &MeshControllerUtilities::LogMeshChangeAccordingInputVariable)
+        .def("SetMeshToReferenceMesh", &MeshControllerUtilities::SetMeshToReferenceMesh)
+        .def("SetReferenceMeshToMesh", &MeshControllerUtilities::SetReferenceMeshToMesh)
+        .def("SetDeformationVariablesToZero", &MeshControllerUtilities::SetDeformationVariablesToZero)
+        .def("WriteCoordinatesToVariable", &MeshControllerUtilities::WriteCoordinatesToVariable)
+        .def("SubtractCoordinatesFromVariable", &MeshControllerUtilities::SubtractCoordinatesFromVariable)
+        .def("AddFirstVariableToSecondVariable", &MeshControllerUtilities::AddFirstVariableToSecondVariable)
+        ;
 
     // ========================================================================
     // For input / output
-    // ======================================================================== 
-    class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters&>())
-        .def("initializeLogging", &UniversalFileIO::initializeLogging)
-        .def("logNodalResults", &UniversalFileIO::logNodalResults)
-        ;           
-     
-    class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart&, Parameters&>())
-        .def("initializeLogging", &VTKFileIO::initializeLogging)
-        .def("logNodalResults", &VTKFileIO::logNodalResults)
-        ;           
+    // ========================================================================
+    py::class_<UniversalFileIO >(m, "UniversalFileIO")
+        .def(py::init<ModelPart&, std::string, std::string, Parameters>())
+        .def("InitializeLogging", &UniversalFileIO::InitializeLogging)
+        .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
+        ;
+
+    // ========================================================================
+    // Additional operations
+    // ========================================================================
+    py::class_<SearchBasedFunctions >(m, "SearchBasedFunctions")
+        .def(py::init<ModelPart&>())
+        .def("FlagNodesInRadius", &SearchBasedFunctions::FlagNodesInRadius)
+        ;
+
 }
 
-
 }  // namespace Python.
-
 } // Namespace Kratos
 

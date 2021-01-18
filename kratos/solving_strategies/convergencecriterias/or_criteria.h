@@ -2,24 +2,21 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_OR_CRITERIA_H)
 #define  KRATOS_OR_CRITERIA_H
 
-
 /* System includes */
 
-
 /* External includes */
-
 
 /* Project includes */
 #include "includes/define.h"
@@ -28,20 +25,16 @@
 
 namespace Kratos
 {
-
-///@name Kratos Globals 
+///@name Kratos Globals
 ///@{
-
 
 ///@}
 ///@name Type Definitions
 ///@{
 
 ///@}
-
-///@name  Enum's 
+///@name  Enum's
 ///@{
-
 
 ///@}
 ///@name  Functions
@@ -51,43 +44,30 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** Short class definition.
-Detail class definition.
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-*/
-
+/**
+ * @class Or_Criteria
+ * @ingroup KratosCore
+ * @brief This convergence criteria checks simultaneously two convergence criteria (one of them must be satisfied)
+ * @details It takes two different convergence criteria in order to work
+ * @author Riccardo Rossi
+ */
 template<class TSparseSpace,
          class TDenseSpace
          >
-class Or_Criteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class Or_Criteria
+    : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /** Counted pointer of Or_Criteria */
-
-
     KRATOS_CLASS_POINTER_DEFINITION(Or_Criteria );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+
+    /// The definition of the current class
+    typedef Or_Criteria< TSparseSpace, TDenseSpace > ClassType;
 
     typedef TSparseSpace SparseSpaceType;
 
@@ -99,73 +79,291 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
+    typedef typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
-    */
-    Or_Criteria
-    (
-        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pFirstCriterion,
-        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pSecondCriterion)
-        :ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+    //* Constructor.
+    explicit Or_Criteria()
+        : BaseType()
     {
-        mpFirstCriterion   =  pFirstCriterion;
-        mpSecondCriterion  =  pSecondCriterion;
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @details It takes two different convergence criteria in order to work
+     * @param ThisParameters The configuration parameters
+     */
+    explicit Or_Criteria(Kratos::Parameters ThisParameters)
+        :BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+    }
+
+    /**
+     * @brief Default constructor.
+     * @details It takes two different convergence criteria in order to work
+     * @param pFirstCriterion The first convergence criteria
+     * @param pSecondCriterion The second convergence criteria
+    */
+    explicit Or_Criteria(
+        ConvergenceCriteriaPointerType pFirstCriterion,
+        ConvergenceCriteriaPointerType pSecondCriterion
+        ) :BaseType(),
+           mpFirstCriterion(pFirstCriterion),
+           mpSecondCriterion(pSecondCriterion)
+    {
+        this->mActualizeRHSIsNeeded = false;
+        if(mpFirstCriterion->GetActualizeRHSflag()) this->mActualizeRHSIsNeeded = true;
+        if(mpSecondCriterion->GetActualizeRHSflag()) this->mActualizeRHSIsNeeded = true;
+
     }
 
     /** Copy constructor.
     */
-    Or_Criteria(Or_Criteria const& rOther)
-      :BaseType(rOther)
+    explicit Or_Criteria(Or_Criteria const& rOther)
+        :BaseType(rOther),
+         mpFirstCriterion(rOther.mpFirstCriterion),
+         mpSecondCriterion(rOther.mpSecondCriterion)
      {
-       mpFirstCriterion   =  rOther.mpFirstCriterion;
-       mpSecondCriterion  =  rOther.mpSecondCriterion;      
+        this->mActualizeRHSIsNeeded = false;
+        if(mpFirstCriterion->GetActualizeRHSflag()) this->mActualizeRHSIsNeeded = true;
+        if(mpSecondCriterion->GetActualizeRHSflag()) this->mActualizeRHSIsNeeded = true;
      }
 
     /** Destructor.
     */
-    virtual ~Or_Criteria () {}
+    ~Or_Criteria () override {}
 
 
     ///@}
     ///@name Operators
     ///@{
 
-    /**level of echo for the convergence criterion
-    0 -> mute... no echo at all
-    1 -> print basic informations
-    2 -> print extra informations
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
+    /**
+     * @brief It sets the level of echo for the solving strategy
+     * @param Level The level to set
+     * @details The different levels of echo are:
+     * - 0: Mute... no echo at all
+     * - 1: Printing time and basic informations
+     * - 2: Printing extra informations
      */
     void SetEchoLevel(int Level) override
     {
-      BaseType::SetEchoLevel(Level);
-      mpFirstCriterion->SetEchoLevel(Level);
-      mpSecondCriterion->SetEchoLevel(Level);
+        BaseType::SetEchoLevel(Level);
+        mpFirstCriterion->SetEchoLevel(Level);
+        mpSecondCriterion->SetEchoLevel(Level);
     }
 
+    /**
+     * @brief Criterias that need to be called before getting the solution
+     * @param rModelPart ModelPart containing the problem.
+     * @param rDofSet Container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     * @return true if convergence is achieved, false otherwise
+     */
+    bool PreCriteria(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        const bool first_criterion_result  = mpFirstCriterion ->PreCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool second_criterion_result = mpSecondCriterion ->PreCriteria(rModelPart,rDofSet,A,Dx,b);
 
-    /*Criteria that need to be called after getting the solution */
+        return (first_criterion_result || second_criterion_result);
+    }
+
+    /**
+     * @brief Criteria that need to be called after getting the solution
+     * @param rModelPart ModelPart containing the problem.
+     * @param rDofSet Container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     * @return true if convergence is achieved, false otherwise
+     */
     bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) override
+        ) override
     {
-        bool FirstCriterionResult  = mpFirstCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
-        bool SecondCriterionResult = mpSecondCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool first_criterion_result  = mpFirstCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool second_criterion_result = mpSecondCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
 
-        return (FirstCriterionResult || SecondCriterionResult);
-
+        return (first_criterion_result || second_criterion_result);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This function initialize the convergence criteria
+     * @param rModelPart The model part of interest
+     */
+    void Initialize(ModelPart& rModelPart) override
+    {
+        mpFirstCriterion->Initialize(rModelPart);
+        mpSecondCriterion->Initialize(rModelPart);
+    }
+
+    /**
+     * @brief This function initializes the solution step
+     * @param rModelPart ModelPart containing the problem.
+     * @param rDofSet Container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        mpFirstCriterion->InitializeSolutionStep(rModelPart,rDofSet,A,Dx,b);
+        mpSecondCriterion->InitializeSolutionStep(rModelPart,rDofSet,A,Dx,b);
+    }
+
+    /**
+     * @brief This function initializes the non linear iteration
+     * @param rModelPart ModelPart containing the problem.
+     * @param rDofSet Container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
+    void InitializeNonLinearIteration(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        mpFirstCriterion->InitializeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
+        mpSecondCriterion->InitializeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
+    }
+
+    /**
+     * @brief This function finalizes the solution step
+     * @param rModelPart ModelPart containing the problem.
+     * @param rDofSet Container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
+    void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        mpFirstCriterion->FinalizeSolutionStep(rModelPart,rDofSet,A,Dx,b);
+        mpSecondCriterion->FinalizeSolutionStep(rModelPart,rDofSet,A,Dx,b);
+    }
+
+    /**
+     * @brief This function finalizes the non linear iteration
+     * @param rModelPart ModelPart containing the problem.
+     * @param rDofSet Container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
+    void FinalizeNonLinearIteration(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        mpFirstCriterion->FinalizeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
+        mpSecondCriterion->FinalizeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
+    }
+
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed on the input provided.
+     * @details Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param rModelPart ModelPart containing the problem.
+     * @return 0 all ok
+     */
+    int Check(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        const int check1 = mpFirstCriterion->Check(rModelPart);
+        const int check2 = mpSecondCriterion->Check(rModelPart);
+
+        return check1 + check2;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                     : "or_criteria",
+            "first_criterion_settings" : {
+                "name"                            : "residual_criteria",
+                "residual_absolute_tolerance"     : 1.0e-4,
+                "residual_relative_tolerance"     : 1.0e-9
+            },
+            "second_criterion_settings" : {
+                "name"                            : "displacement_criteria",
+                "displacement_relative_tolerance" : 1.0e-4,
+                "displacement_absolute_tolerance" : 1.0e-9
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "or_criteria";
+    }
 
     ///@}
     ///@name Access
@@ -176,9 +374,31 @@ public:
     ///@{
 
     ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "Or_Criteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
 
 protected:
@@ -186,7 +406,7 @@ protected:
     ///@{
 
     ///@}
-    ///@name Protected member Variables 
+    ///@name Protected member Variables
     ///@{
 
     ///@}
@@ -198,7 +418,7 @@ protected:
     ///@{
 
     ///@}
-    ///@name Protected  Access 
+    ///@name Protected  Access
     ///@{
 
     ///@}
@@ -218,9 +438,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
-    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpFirstCriterion;
-    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpSecondCriterion;
+
+    ConvergenceCriteriaPointerType mpFirstCriterion;  /// The pointer to the first convergence criterion
+    ConvergenceCriteriaPointerType mpSecondCriterion; /// The pointer to the second convergence criterion
+
 
     ///@}
     ///@name Private Operators
@@ -244,7 +465,7 @@ private:
 
     ///@}
 
-}; /* Class ClassName */
+}; /* Class Or_Criteria */
 
 ///@}
 
@@ -256,5 +477,5 @@ private:
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_NEW_AND_CRITERIA  defined */
+#endif /* KRATOS_OR_CRITERIA_H  defined */
 

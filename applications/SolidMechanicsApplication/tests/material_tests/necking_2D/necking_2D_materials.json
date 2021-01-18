@@ -1,0 +1,72 @@
+{
+    "material_models_list" : [{
+        "python_module" : "assign_materials_process",
+        "kratos_module" : "ConstitutiveModelsApplication",
+        "help"          : "This process creates a material and assigns its properties",
+        "process_name"  : "AssignMaterialsProcess",
+        "Parameters"    : {
+            "model_part_name"  : "Domain",
+            "properties_id"    : 1,
+            "constitutive_law" : {
+                "name" : "LargeStrainPlaneStrain2DLaw.SimoJ2ThermoPlasticityModel"
+            },
+            "variables"        : {
+		"DENSITY": 7.80000e+03,
+		"YOUNG_MODULUS": 2.06900e+11,
+		"POISSON_RATIO": 2.90000e-01,
+		"STABILIZATION_FACTOR" : 1.0,
+                "BULK_MODULUS" : 164.206349206e9,
+                "C10" : 4.00969e10,
+		"THICKNESS": 1.00000e+00,
+		"YIELD_STRESS": 4.50000e+08,
+		"KINEMATIC_HARDENING_MODULUS": 1.29240e+08,
+		"HARDENING_EXPONENT": 1.69300e+01,
+		"REFERENCE_HARDENING_MODULUS": 4.50000e+08,
+		"INFINITY_HARDENING_MODULUS": 7.15000e+08,
+		"REFERENCE_TEMPERATURE": 2.93150e+02,
+		"THERMAL_EXPANSION_COEFFICIENT": 1.00000e-05,
+		"HEAT_CONDUCTIVITY": 4.50000e+01,
+		"HEAT_CAPACITY": 4.60000e+02,
+		"HEAT_SOURCE": 0.00000e+00,
+		"REFERENCE_CONDUCTIVITY": 1.00000e-03,
+		"HARDNESS_CONDUCTIVITY": 1.00000e-03
+            },
+            "tables"           : {}
+        }
+    }],
+    "_material_models_list" : [{
+        "python_module" : "assign_materials_process",
+        "kratos_module" : "ConstitutiveModelsApplication",
+        "help"          : "This process creates a material and assigns its properties",
+        "process_name"  : "AssignMaterialsProcess",
+        "Parameters"    : {
+            "model_part_name"  : "Domain",
+            "properties_id"    : 1,
+            "constitutive_law" : {
+                "name" : "KratosMultiphysics.SolidMechanicsApplication.HyperElasticPlasticThermalUPJ2PlaneStrain2DLaw"
+            },
+            "variables"        : {
+		"DENSITY": 7.80000e+03,
+		"YOUNG_MODULUS": 2.06900e+11,
+		"POISSON_RATIO": 2.90000e-01,
+		"STABILIZATION_FACTOR" : 1.0,
+                "BULK_MODULUS" : 164.206349206e9,
+                "C10" : 4.00969e10,
+		"THICKNESS": 1.00000e+00,
+		"YIELD_STRESS": 4.50000e+08,
+		"KINEMATIC_HARDENING_MODULUS": 1.29240e+08,
+		"HARDENING_EXPONENT": 1.69300e+01,
+		"REFERENCE_HARDENING_MODULUS": 4.50000e+08,
+		"INFINITY_HARDENING_MODULUS": 7.15000e+08,
+		"REFERENCE_TEMPERATURE": 2.93150e+02,
+		"THERMAL_EXPANSION_COEFFICIENT": 1.00000e-05,
+		"HEAT_CONDUCTIVITY": 4.50000e+01,
+		"HEAT_CAPACITY": 4.60000e+02,
+		"HEAT_SOURCE": 0.00000e+00,
+		"REFERENCE_CONDUCTIVITY": 1.00000e-03,
+		"HARDNESS_CONDUCTIVITY": 1.00000e-03
+            },
+            "tables"           : {}
+        }
+    }]
+}

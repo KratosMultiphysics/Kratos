@@ -34,7 +34,7 @@ namespace Kratos
 		{
 			template <typename TestType> class RegisterThisTest {
 			public:
-				RegisterThisTest(bool IsDisabled=false)
+				explicit RegisterThisTest(bool IsDisabled=false)
 				{
 					TestType* p_test = new TestType;
 					if (IsDisabled)
@@ -125,9 +125,9 @@ namespace Kratos
 			///@name Inquiry
 			///@{
 
-			bool IsEnabled();
-			bool IsDisabled();
-			bool IsSelected();
+			virtual bool IsEnabled() const;
+			virtual bool IsDisabled() const;
+			virtual bool IsSelected() const;
 
 
 			///@}
@@ -205,7 +205,7 @@ namespace Kratos
   KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)() : ParentName(KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName)) {}\
  private: \
   void TestFunction() override; \
-  static const Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > mDummy; 
+  static const Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > mDummy;
 
 #define KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName,ParentName) \
 class KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) : public ParentName \
@@ -261,7 +261,7 @@ class TestFixtureName : public TestCase \
  private: \
   void Setup() override; \
   void TearDown() override; \
-}; 
+};
 
 #define KRATOS_TEST_FIXTURE_SETUP(TestFixtureName) \
 void TestFixtureName::Setup()

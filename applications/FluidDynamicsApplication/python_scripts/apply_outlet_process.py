@@ -1,5 +1,7 @@
 import math
 import KratosMultiphysics
+from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
+
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 def Factory(settings, Model):
@@ -70,9 +72,8 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             condition.Set(KratosMultiphysics.OUTLET, True)
 
         # Construct the base process AssignValueProcess
-        import experimental_assign_value_process
-        self.aux_pressure_process = experimental_assign_value_process.AssignValueProcess(Model, pres_settings)
-        self.aux_external_pressure_process = experimental_assign_value_process.AssignValueProcess(Model, ext_pres_settings)
+        self.aux_pressure_process = AssignScalarVariableProcess(Model, pres_settings)
+        self.aux_external_pressure_process = AssignScalarVariableProcess(Model, ext_pres_settings)
 
 
     def ExecuteInitializeSolutionStep(self):
@@ -96,6 +97,12 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
 
     # Private methods section
     def _AddOutletHydrostaticComponent(self):
+        # Initialize body force value (avoid segfault in MPI if the local mesh has no outlet nodes)
+        body_force = KratosMultiphysics.Vector(3)
+        body_force[0] = 0.0
+        body_force[1] = 0.0
+        body_force[2] = 0.0
+
         # Get the body force value
         for node in self.outlet_model_part.Nodes:
             body_force = node.GetSolutionStepValue(KratosMultiphysics.BODY_FORCE, 0)
@@ -128,12 +135,13 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         for node in self.outlet_model_part.GetCommunicator().LocalMesh().Nodes:
             vnode = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
             outlet_avg_vel_norm += math.sqrt(vnode[0]*vnode[0] + vnode[1]*vnode[1] + vnode[2]*vnode[2])
-        outlet_avg_vel_norm = self.outlet_model_part.GetCommunicator().SumAll(outlet_avg_vel_norm)
+        comm = self.outlet_model_part.GetCommunicator().GetDataCommunicator()
+        outlet_avg_vel_norm = comm.SumAll(outlet_avg_vel_norm)
 
         tot_len = len(self.outlet_model_part.GetCommunicator().LocalMesh().Nodes)   # Partition outlet model part number of nodes
-        tot_len = self.outlet_model_part.GetCommunicator().SumAll(tot_len)          # Get the total outlet model part nodes
+        tot_len = comm.SumAll(tot_len)                                              # Get the total outlet model part nodes
 
-        outlet_avg_vel_norm /= tot_len;
+        outlet_avg_vel_norm /= tot_len
 
         # Store the average velocity in the ProcessInfo to be used in the outlet inflow prevention condition
         min_outlet_avg_vel_norm = 1.0

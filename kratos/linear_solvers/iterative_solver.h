@@ -14,22 +14,17 @@
 #if !defined(KRATOS_ITERATIVE_SOLVER_H_INCLUDED )
 #define  KRATOS_ITERATIVE_SOLVER_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/preconditioner.h"
-
 
 namespace Kratos
 {
@@ -88,6 +83,9 @@ public:
 
     typedef  TPreconditionerType PreconditionerType;
 
+    /// The index type definition to be consistent
+    typedef typename TSparseSpaceType::IndexType IndexType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -128,7 +126,7 @@ public:
         mMaxIterationsNumber(NewMaxIterationsNumber) {}
 
     IterativeSolver(Parameters settings,
-                    typename TPreconditionerType::Pointer pNewPreconditioner = boost::make_shared<TPreconditionerType>()
+                    typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()
                    ):
         mResidualNorm(0),
         mIterationsNumber(0),
@@ -142,7 +140,7 @@ public:
         "solver_type": "IterativeSolver",
         "tolerance" : 1.0e-6,
         "max_iteration" : 200,
-        "preconditioner_type" : "None",
+        "preconditioner_type": "none",
         "scaling":false
         }  )" );
 
@@ -167,7 +165,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~IterativeSolver() {}
+    ~IterativeSolver() override {}
 
 
     ///@}
@@ -193,7 +191,7 @@ public:
     		@param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     		@param rB. Right hand side vector.
     		*/
-    virtual void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         GetPreconditioner()->InitializeSolutionStep(rA,rX,rB);
     }
@@ -204,7 +202,7 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    virtual void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         GetPreconditioner()->FinalizeSolutionStep(rA,rX,rB);
     }
@@ -213,7 +211,7 @@ public:
      * Clear is designed to leave the solver object as if newly created.
      * After a clear a new Initialize is needed
      */
-    virtual void Clear() override
+    void Clear() override
     {
         GetPreconditioner()->Clear();
     }
@@ -224,7 +222,7 @@ public:
      * which require knowledge on the spatial position of the nodes associated to a given dof.
      * This function tells if the solver requires such data
      */
-    virtual bool AdditionalPhysicalDataIsNeeded() override
+    bool AdditionalPhysicalDataIsNeeded() override
     {
         if (GetPreconditioner()->AdditionalPhysicalDataIsNeeded())
             return true;
@@ -289,7 +287,7 @@ public:
         mMaxIterationsNumber = NewMaxIterationsNumber;
     }
 
-    virtual unsigned int GetMaxIterationsNumber()
+    virtual IndexType GetMaxIterationsNumber()
     {
         return mMaxIterationsNumber;
     }
@@ -299,17 +297,17 @@ public:
         mIterationsNumber = NewIterationNumber;
     }
 
-    virtual unsigned int GetIterationsNumber()
+    IndexType GetIterationsNumber() override
     {
         return mIterationsNumber;
     }
 
-    virtual void SetTolerance(double NewTolerance) override
+    void SetTolerance(double NewTolerance) override
     {
         mTolerance = NewTolerance;
     }
 
-    virtual double GetTolerance() override
+    double GetTolerance() override
     {
         return mTolerance;
     }
@@ -345,7 +343,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Iterative solver with " << GetPreconditioner()->Info();
@@ -353,13 +351,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
         if (mBNorm == 0.00)
             if (mResidualNorm != 0.00)
@@ -402,7 +400,7 @@ protected:
 
     double mFirstResidualNorm;
 
-    unsigned int mIterationsNumber;
+    IndexType mIterationsNumber;
 
     double mBNorm;
 
@@ -459,7 +457,7 @@ private:
 
     double mTolerance;
 
-    unsigned int mMaxIterationsNumber;
+    IndexType mMaxIterationsNumber;
 
     ///@}
     ///@name Private Operators

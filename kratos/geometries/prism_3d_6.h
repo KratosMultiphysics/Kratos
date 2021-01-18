@@ -29,9 +29,32 @@
 namespace Kratos
 {
 /**
- * An six node prism geometry with linear shape functions
+ * @class Prism3D6
+ * @ingroup KratosCore
+ * @brief A six node prism geometry with linear shape functions
+ * @details The node ordering corresponds with:
+ *                 w
+ *                 ^
+ *                 |
+ *                 3
+ *               ,/|`\
+ *             ,/  |  `\
+ *           ,/    |    `\
+ *          4------+------5
+ *          |      |      |
+ *          |    ,/|`\    |
+ *          |  ,/  |  `\  |
+ *          |,/    |    `\|
+ *         ,|      |      |\
+ *       ,/ |      0      | `\
+ *      u   |    ,/ `\    |    v
+ *          |  ,/     `\  |
+ *          |,/         `\|
+ *          1-------------2
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Prism3D6 : public Geometry<TPointType>
 {
 public:
@@ -194,11 +217,10 @@ public:
         this->Points().push_back( pPoint6 );
     }
 
-    Prism3D6( const PointsArrayType& ThisPoints )
+    explicit Prism3D6( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
-        if ( this->PointsNumber() != 6 )
-            KRATOS_ERROR << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF( this->PointsNumber() != 6 ) << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -227,20 +249,20 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Prism3D6( Prism3D6<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Prism3D6( Prism3D6<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
 
     /// Destructor. Does nothing!!!
-    virtual ~Prism3D6() {}
+    ~Prism3D6() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() override
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Prism;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType() override
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Prism3D6;
     }
@@ -296,32 +318,21 @@ public:
     }
 
 
-        virtual Geometry< Point<3> >::Pointer Clone() const override
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    //     Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
-        }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
+    //     }
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Prism3D6< Point<3> >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Prism3D6< Point<3> >( NewPoints ) );
 
-        return p_clone;
-    }
-
-
-    //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	if(rResult.size() != 6)
-           rResult.resize( 6, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 6.00 );
-        return rResult;
-    }
-
+    //     return p_clone;
+    // }
 
     /**
      * Informations
@@ -342,20 +353,12 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double Length() const override
+    double Length() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
+        const double volume = Volume();
 
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            Volume += temp[i] * integration_points[i].Weight();
-        }
-
-        return std::pow(Volume, 1.0/3.0)/3.0;
-//        return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
+        return std::pow(volume, 1.0/3.0)/3.0;
+//        return std::sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
     /**
@@ -372,32 +375,39 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double Area() const override
+    double Area() const override
     {
-        return fabs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
 
 
-
-    virtual double Volume() const override
+    /**
+     * This method calculates and returns the volume of this geometry.
+     * This method calculates and returns the volume of this geometry.
+     *
+     * This method uses the V = (A x B) * C / 6 formula.
+     *
+     * @return double value contains length, area or volume.
+     *
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     *
+     * :TODO: might be necessary to reimplement
+     */
+    double Volume() const override
     {
-
         Vector temp;
         this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
+        double volume = 0.0;
 
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            Volume += temp[i] * integration_points[i].Weight();
+        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
+            volume += temp[i] * integration_points[i].Weight();
         }
 
-        //KRATOS_WATCH(temp)
-        return Volume;
+        return volume;
     }
-
-
-
 
     /**
      * This method calculate and return length, area or volume of
@@ -412,21 +422,20 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double DomainSize() const override
+    double DomainSize() const override
     {
-        return fabs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Volume();
     }
-
 
     /**
     * Returns a matrix of the local coordinates of all points
     * @param rResult a Matrix that will be overwritten by the results
     * @return the coordinates of all points of the current geometry
     */
-    virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
         if ( rResult.size1() != 6 || rResult.size2() != 3 )
-            rResult.resize( 6, 3 );
+            rResult.resize( 6, 3 ,false);
 
         rResult( 0, 0 ) = 0.0;
         rResult( 0, 1 ) = 0.0;
@@ -456,9 +465,18 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry
+     * Returns whether given arbitrary point is inside the Geometry and the respective
+     * local point for the given global point
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
+    bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -471,32 +489,35 @@ public:
         return false;
     }
 
+    ///@}
+    ///@name Edge
+    ///@{
 
-
-    /** This method gives you number of all edges of this
-    geometry.
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
-    // will be used by refinement algorithm, thus uncommented. janosch.
-    virtual SizeType EdgesNumber() const override
+    SizeType EdgesNumber() const override
     {
         return 9;
     }
 
-    virtual SizeType FacesNumber() const override
-    {
-        return 5;
-    }
-
-    /** This method gives you all edges of this geometry.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
      */
-    virtual GeometriesArrayType Edges( void ) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -530,7 +551,31 @@ public:
         return edges;
     }
 
-    virtual GeometriesArrayType Faces( void ) override
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 5;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -560,7 +605,27 @@ public:
         return faces;
     }
 
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    {
+        // Check if faces have intersection
+        if(FaceType1(this->pGetPoint(0),this->pGetPoint(2), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(FaceType1(this->pGetPoint(3),this->pGetPoint(4), this->pGetPoint(5)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(FaceType2(this->pGetPoint(1),this->pGetPoint(2), this->pGetPoint(5), this->pGetPoint(4)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(FaceType2(this->pGetPoint(0),this->pGetPoint(3), this->pGetPoint(5), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(FaceType2(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(4), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
 
+        CoordinatesArrayType local_coordinates;
+        // If there are no faces intersecting the box then or the box is inside the hexahedron or it does not have intersection
+        if(IsInside(rLowPoint,local_coordinates))
+            return true;
+
+        return false;
+    }
 
     /**
      * Shape Function
@@ -576,7 +641,7 @@ public:
      * @return the value of the shape function at the given point
      * TODO: TO BE VERIFIED
      */
-    virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
         switch ( ShapeFunctionIndex )
@@ -601,6 +666,53 @@ public:
     }
 
     /**
+     * This method gives all non-zero shape functions values
+     * evaluated at the rCoordinates provided
+     * @return Vector of values of shape functions \f$ F_{i} \f$ where i is the shape function index (for NURBS it is the index of the local enumeration in the element).
+     * @see ShapeFunctionValue
+     * @see ShapeFunctionsLocalGradients
+     * @see ShapeFunctionLocalGradient
+    */
+    Vector& ShapeFunctionsValues (
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates
+        ) const override
+    {
+        if(rResult.size() != 6)
+            rResult.resize(6,false);
+
+        rResult[0] =  1.0 -( rCoordinates[0] + rCoordinates[1] + rCoordinates[2] - ( rCoordinates[0] *  rCoordinates[2] ) - ( rCoordinates[1] * rCoordinates[2] ) );
+        rResult[1] =  rCoordinates[0] - ( rCoordinates[0] * rCoordinates[2] );
+        rResult[2] =  rCoordinates[1] - ( rCoordinates[1] * rCoordinates[2] );
+        rResult[3] =  rCoordinates[2] - ( rCoordinates[0] * rCoordinates[2] ) - ( rCoordinates[1] * rCoordinates[2] );
+        rResult[4] =  rCoordinates[0] * rCoordinates[2];
+        rResult[5] =  rCoordinates[1] * rCoordinates[2];
+
+        return rResult;
+    }
+
+    /**
+     * Calculates the gradients in terms of local coordinateds
+     * of all shape functions in a given point.
+     * @param rPoint the current point at which the gradients are calculated
+     * @return the gradients of all shape functions
+     * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
+     */
+    Matrix& ShapeFunctionsLocalGradients(
+        Matrix& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
+    {
+        if(rResult.size1() != this->PointsNumber() || rResult.size2() != this->LocalSpaceDimension())
+            rResult.resize(this->PointsNumber(),this->LocalSpaceDimension(),false);
+
+        CalculateShapeFunctionsLocalGradients(rResult, rPoint);
+
+        return rResult;
+    }
+
+
+    /**
      * Input and output
      */
 
@@ -611,7 +723,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "3 dimensional prism with six nodes in 3D space";
     }
@@ -623,7 +735,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    virtual void PrintInfo( std::ostream& rOStream ) const override
+    void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "3 dimensional prism with six nodes in 3D space";
     }
@@ -637,7 +749,7 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    virtual void PrintData( std::ostream& rOStream ) const override
+    void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
@@ -653,12 +765,12 @@ protected:
      */
 
 private:
+    ///@name Static Member Variables
+    ///@{
 
-    /**
-     * Static Member Variables
-     */
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -666,12 +778,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const override
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    virtual void load( Serializer& rSerializer ) override
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
@@ -694,7 +806,10 @@ private:
      * @return the gradients of all shape functions
      * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
-    static Matrix& CalculateShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint )
+    static Matrix& CalculateShapeFunctionsLocalGradients(
+        Matrix& rResult,
+        const CoordinatesArrayType& rPoint
+        )
     {
         rResult( 0, 0 ) = -1.0 + rPoint[2];
         rResult( 0, 1 ) = -1.0 + rPoint[2];
@@ -728,13 +843,10 @@ private:
      * @return the matrix of values of every shape function in each integration point
      *
      */
-    static Matrix CalculateShapeFunctionsIntegrationPointsValues(
-        typename BaseType::IntegrationMethod ThisMethod )
+    static Matrix CalculateShapeFunctionsIntegrationPointsValues(typename BaseType::IntegrationMethod ThisMethod )
     {
-        IntegrationPointsContainerType all_integration_points =
-            AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
+        IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -743,8 +855,7 @@ private:
         Matrix shape_function_values( integration_points_number, points_number );
         //loop over all integration points
 
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
+        for ( int pnt = 0; pnt < integration_points_number; pnt++ ) {
             shape_function_values( pnt, 0 ) = ( 1.0
                                                 - integration_points[pnt].X()
                                                 - integration_points[pnt].Y()
@@ -931,15 +1042,11 @@ private:
  * Input and output
  */
 
-/**
- * input stream function
- */
+/// input stream function
 template<class TPointType> inline std::istream& operator >> (
     std::istream& rIStream, Prism3D6<TPointType>& rThis );
 
-/**
- * output stream function
- */
+/// output stream function
 template<class TPointType> inline std::ostream& operator << (
     std::ostream& rOStream, const Prism3D6<TPointType>& rThis )
 {
@@ -950,15 +1057,19 @@ template<class TPointType> inline std::ostream& operator << (
     return rOStream;
 }
 
-
 template<class TPointType> const
 GeometryData Prism3D6<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_2,
+    &msGeometryDimension,
+    GeometryData::GI_GAUSS_2,
     Prism3D6<TPointType>::AllIntegrationPoints(),
     Prism3D6<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
 
+template<class TPointType> const
+GeometryDimension Prism3D6<TPointType>::msGeometryDimension(
+    3, 3, 3);
+
 }// namespace Kratos.
 
-#endif // KRATOS_PRISM_3D_6_H_INCLUDED  defined 
+#endif // KRATOS_PRISM_3D_6_H_INCLUDED  defined

@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: clabra $
-//   Date:                $Date: 2007-03-27 17:02:19 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    clabra
 //
 
 
@@ -56,7 +60,7 @@ public:
         for(std::size_t i = 0; i < TDimension; i++)
             data[i] = T(0);
     }
-    Tvector( T const& value )
+    explicit Tvector( T const& value )
     {
         for(std::size_t i = 0; i < TDimension; i++)
             data[i] = value;
@@ -317,12 +321,14 @@ public:
     typedef SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,Dimension> ThisType;
 
 public:
+
     // Bin
-    //SubBinAxis<IndexType,SizeType> Axis[Dimension];
+    bool hasIterators;
     SubBinAxis<IndexType,SizeType> Axis[3];
     IteratorIteratorType RowBegin;
     IteratorIteratorType RowEnd;
     IteratorIteratorType DataBegin;
+
     // KDTree
     CoordinateType distance_to_partition;
     CoordinateType distance_to_partition2;
@@ -370,6 +376,8 @@ public:
             Axis[i].Set(Min_[i],Max_[i],MaxSize_[i],Block);
         }
         
+        hasIterators = true;
+
         DataBegin = IteratorBegin;
         
         RowBegin = DataBegin + Axis[0].Min;
@@ -390,36 +398,45 @@ public:
             Block *= MaxSize_[i-1];
             Axis[i].Set(Min_[i],Max_[i],MaxSize_[i],Block);
         }
+
+        hasIterators = false;
     }
 
     IndexType BeginRow(IndexType const& Idx)
     {
         return Idx + Axis[0].Min;
     }
+
     IndexType EndRow(IndexType const& Idx)
     {
         return Idx + Axis[0].Max+1;
     }
-
 
     SearchStructure const& operator++()
     {
         for(SizeType i = 0; i < Dimension; i++)
             ++(Axis[i]);
         
-        RowBegin = DataBegin + Axis[0].Min;
-        RowEnd   = DataBegin + Axis[0].Max + 1;
+        // Update the row iterators only if the DataBegin iterator exists
+        if(hasIterators) {
+            RowBegin = DataBegin + Axis[0].Min;
+            RowEnd   = DataBegin + Axis[0].Max + 1;
+        }
         
         return *this;
     }
+
     SearchStructure const& operator--()
     {
         for(SizeType i = 0; i < Dimension; i++)
             (Axis[i])--;
         
-        RowBegin = DataBegin + Axis[0].Min;
-        RowEnd   = DataBegin + Axis[0].Max + 1;
-        
+        // Update the row iterators only if the DataBegin iterator exists
+        if(hasIterators) {
+            RowBegin = DataBegin + Axis[0].Min;
+            RowEnd   = DataBegin + Axis[0].Max + 1;
+        }
+
         return *this;
     }
 

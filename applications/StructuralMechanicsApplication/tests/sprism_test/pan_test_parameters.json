@@ -1,45 +1,38 @@
 {
     "problem_data"             : {
         "problem_name"    : "pan_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
-        "time_step"       : 0.001,
+        "parallel_type"   : "OpenMP",
         "start_time"      : 0.000,
         "end_time"        : 1.000,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
+        "solver_type"                        : "Static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 0.001
+        },
         "buffer_size"                        : 3,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Arc-Length",
+        "analysis_type"                      : "arc_length",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "sprism_test/pan_test"
         },
-        "rotation_dofs"                      : false,
-        "pressure_dofs"                      : false,
-        "stabilization_factor"               : 1.0,
         "reform_dofs_at_each_step"           : true,
         "line_search"                        : false,
         "compute_reactions"                  : true,
-        "compute_contact_forces"             : false,
         "block_builder"                      : false,
-        "component_wise"                     : false,
         "move_mesh_flag"                     : true,
-        "convergence_criterion"              : "And_criterion",
+        "convergence_criterion"              : "and_criterion",
         "displacement_relative_tolerance"    : 1e-4,
         "displacement_absolute_tolerance"    : 1e-4,
         "residual_relative_tolerance"        : 1e-4,
         "residual_absolute_tolerance"        : 1e-4,
         "max_iteration"                      : 10,
         "linear_solver_settings":{
-                "solver_type": "SuperLUSolver",
-                "max_iteration": 500,
-                "tolerance": 1e-9,
-                "scaling": false,
-                "verbosity": 1
+                "solver_type": "skyline_lu_factorization"
         },
         "arc_length_settings": {
                 "Ide": 5,
@@ -54,71 +47,62 @@
                 "etmxa": 5,
                 "etmna": 0.1
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1", "DISPLACEMENT_Displacement_Auto2","DISPLACEMENT_Displacement_Auto3","POINTLOAD_PointLoad_Auto4"]
     },
+    "processes" : {
     "constraints_process_list" : [
     {
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : false,
+            "constrained"     : [true,false,false],
             "value"           : [0.0,0.0,0.0]
         }
     },
     {
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+            "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : false,
+            "constrained"     : [false,true,false],
             "value"           : [0.0,0.0,0.0]
         }
     },
     {
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
+            "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto3",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : true,
+            "constrained"     : [false,false,true],
             "value"           : [0.0,0.0,0.0]
         }
     }
     ],
-    "loads_process_list" : [],  
-    "json_output_process" : [
-    {
-        "python_module"   : "json_output_process",
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT_Z","POINT_LOAD_Z"],
-            "output_file_name" : "sprism_test/pan_test_results.json",
-            "model_part_name"  : "POINTLOAD_PointLoad_Auto4",
-            "time_frequency"   : 0.01
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.POINTLOAD_PointLoad_Auto4",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : -1.0e3,
+            "direction"       : [0.0,0.0,"t"],
+            "interval"        : [0.0,"End"]
         }
-    }
-    ],
+    }],
     "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
@@ -128,39 +112,32 @@
         "Parameters"            : {
             "check_variables" : ["DISPLACEMENT_Z","POINT_LOAD_Z"],
             "input_file_name" : "sprism_test/pan_test_results.json",
-            "model_part_name"  : "POINTLOAD_PointLoad_Auto4",
+            "model_part_name"  : "Structure.POINTLOAD_PointLoad_Auto4",
             "time_frequency"   : 0.01
         }
     }
     ],
-    "list_other_processes" : [
-    {
-        "python_module"   : "sprism_pan_test_local_process",
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
-        "help"                  : "",
-        "process_name"          : "ApplyLocalProcess",
-        "Parameters"            : {
-            "model_part_name"  : "POINTLOAD_PointLoad_Auto4"
-        }
-    },
-    {
-        "python_module"  :"sprism_process", 
-        "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication", 
-        "help"                 : "", 
+    "list_other_processes" : [{
+        "python_module"  :"sprism_process",
+        "kratos_module":"StructuralMechanicsApplication",
+        "help"                 : "",
         "process_name"         : "SPRISMProcess",
         "Parameters":{
-            "model_part_name"  : "Parts_Parts_Auto1"
+            "model_part_name"  : "Structure.Parts_Parts_Auto1"
             }
+    }]},
+    "_json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables" : ["DISPLACEMENT_Z","POINT_LOAD_Z"],
+            "output_file_name" : "sprism_test/pan_test_results.json",
+            "model_part_name"  : "Structure.POINTLOAD_PointLoad_Auto4",
+            "time_frequency"   : 0.01
+        }
     }
-    ],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    ]
 }

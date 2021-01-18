@@ -1,164 +1,258 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+# Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.ConvectionDiffusionApplication
-KratosMultiphysics.CheckForPreviousImport()
+import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
 
+# Importing the base class
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return LaplacianSolver(main_model_part, custom_settings)
+class PotentialFlowFormulation(object):
+    def __init__(self, formulation_settings):
+        self.element_name = None
+        self.condition_name = None
+        self.process_info_data = {}
 
-class LaplacianSolver:
-    def __init__(self, model_part, custom_settings):
-        self.MoveMeshFlag = False
+        if formulation_settings.Has("element_type"):
+            element_type = formulation_settings["element_type"].GetString()
+            if element_type == "incompressible":
+                self._SetUpIncompressibleElement(formulation_settings)
+            elif element_type == "compressible":
+                self._SetUpCompressibleElement(formulation_settings)
+            elif element_type == "embedded_incompressible":
+                self._SetUpEmbeddedIncompressibleElement(formulation_settings)
+            elif element_type == "embedded_compressible":
+                self._SetUpEmbeddedCompressibleElement(formulation_settings)
+            elif element_type == "perturbation_incompressible":
+                self._SetUpIncompressiblePerturbationElement(formulation_settings)
+            elif element_type == "perturbation_compressible":
+                self._SetUpCompressiblePerturbationElement(formulation_settings)
+            elif element_type == "perturbation_transonic":
+                self._SetUpTransonicPerturbationElement(formulation_settings)
+        else:
+            raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
 
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = model_part    
-        
-        ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
+    def SetProcessInfo(self, model_part):
+        for variable,value in self.process_info_data.items():
+            model_part.ProcessInfo[variable] = value
+
+    def _SetUpIncompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "incompressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "IncompressiblePotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
+    def _SetUpCompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "compressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "CompressiblePotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
+    def _SetUpIncompressiblePerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "perturbation_incompressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "IncompressiblePerturbationPotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
+    def _SetUpCompressiblePerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "perturbation_compressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "CompressiblePerturbationPotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
+    def _SetUpTransonicPerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "perturbation_transonic"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "TransonicPerturbationPotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
+    def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "embedded_incompressible",
+            "stabilization_factor": 0.0
+
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+        self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
+
+    def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "embedded_compressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "EmbeddedCompressiblePotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
+def CreateSolver(model, custom_settings):
+    return PotentialFlowSolver(model, custom_settings)
+
+class PotentialFlowSolver(FluidSolver):
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        # Default settings string in json format
+        default_settings = KratosMultiphysics.Parameters(r'''{
             "solver_type": "potential_flow_solver",
-            "echo_level": 1,
-            "relative_tolerance": 1e-5,
-            "absolute_tolerance": 1e-9,
+            "model_part_name": "PotentialFluidModelPart",
+            "domain_size": -1,
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "unknown_name"
+            },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
+            "formulation": {
+                "element_type": "incompressible"
+            },
             "maximum_iterations": 10,
+            "echo_level": 0,
+            "relative_tolerance": 1e-12,
+            "absolute_tolerance": 1e-12,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
-            "calculate_solution_norm" : false,
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts":[],
-            "no_skin_parts"                : [],
-            "model_import_settings": {
-                    "input_type": "mdpa",
-                    "input_filename": "unknown_name"
-            },
+            "calculate_solution_norm": false,
             "linear_solver_settings": {
-                    "solver_type": "AMGCL",
-                    "max_iteration": 400,
-                    "smoother_type":"ilu0",
-                    "coarsening_type":"aggregation",
-                    "krylov_type": "lgmres",
-                    "tolerance": 1e-9,
-                    "verbosity": 2,
-                    "scaling": false
-            }
-        }""")
-                    
-        ##overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
-        
-        #construct the linear solvers
-        import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+                "solver_type": "amgcl"
+            },
+            "volume_model_part_name": "volume_model_part",
+            "skin_parts":[""],
+            "assign_neighbour_elements_to_conditions": false,
+            "no_skin_parts": [""],
+            "time_stepping"                : {
+                "automatic_time_step" : false,
+                "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 1.0,
+                "time_step":            1.0
+            },
+            "move_mesh_flag": false,
+            "reference_chord": 1.0,
+            "auxiliary_variables_list" : []
+        }''')
 
-        print("Construction of LaplacianSolver finished")
+        default_settings.AddMissingParameters(super(PotentialFlowSolver, cls).GetDefaultParameters())
+        return default_settings
+
+    def __init__(self, model, custom_settings):
+
+        self._validate_settings_in_baseclass=True # To be removed eventually
+        super(PotentialFlowSolver, self).__init__(model, custom_settings)
+
+        # Set the element and condition names for the replace settings
+        self.formulation = PotentialFlowFormulation(self.settings["formulation"])
+        self.element_name = self.formulation.element_name
+        self.condition_name = self.formulation.condition_name
+        self.formulation.SetProcessInfo(self.main_model_part)
+        self.min_buffer_size = 1
+        self.domain_size = custom_settings["domain_size"].GetInt()
+        self.reference_chord = custom_settings["reference_chord"].GetDouble()
+        self.main_model_part.ProcessInfo.SetValue(KCPFApp.REFERENCE_CHORD,self.reference_chord)
+        self.element_has_nodal_properties = False
 
     def AddVariables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        
+        # Degrees of freedom
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
+
+        # Add variables that the user defined in the ProjectParameters
+        for i in range(self.settings["auxiliary_variables_list"].size()):
+            variable_name = self.settings["auxiliary_variables_list"][i].GetString()
+            variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+            self.main_model_part.AddNodalSolutionStepVariable(variable)
+
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables ADDED")
+
     def AddDofs(self):
-        for node in self.main_model_part.Nodes:
-            # adding dofs
-            node.AddDof(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-            node.AddDof(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-        
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
+
     def Initialize(self):
-        time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
-        
-        #self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
-            #self.main_model_part, 
-            #time_scheme, 
-            #self.linear_solver,
-            #self.settings["compute_reactions"].GetBool(), 
-            #self.settings["reform_dofs_at_each_step"].GetBool(), 
-            #self.settings["calculate_solution_norm"].GetBool(), 
-            #move_mesh_flag)
-            
-        conv_criteria = KratosMultiphysics.ResidualCriteria(
-            self.settings["relative_tolerance"].GetDouble(), 
-            self.settings["absolute_tolerance"].GetDouble())
-        max_iterations = self.settings["maximum_iterations"].GetInt()
-                
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
-            self.main_model_part, 
-            time_scheme, 
-            self.linear_solver,
-            conv_criteria,
-            max_iterations,
-            self.settings["compute_reactions"].GetBool(), 
-            self.settings["reform_dofs_at_each_step"].GetBool(), 
-            move_mesh_flag)
-        
-        (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
-        self.solver.Check()
-        
-    def ImportModelPart(self):
-        
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            #here it would be the place to import restart data if required
-            print(self.settings["model_import_settings"]["input_filename"].GetString())
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
-                     
-            throw_errors = False
-            KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part,throw_errors).Execute()
-            #here we replace the dummy elements we read with proper elements
-            self.settings.AddEmptyValue("element_replace_settings")
-            if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                    {
-                    "element_name":"CompressiblePotentialFlowElement3D4N",
-                    "condition_name": "PotentialWallCondition3D3N"
-                    }
-                    """)
-            elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                    {
-                    "element_name":"CompressiblePotentialFlowElement2D3N",
-                    "condition_name": "PotentialWallCondition2D2N"
-                    }
-                    """)
+        self._ComputeNodalElementalNeighbours()
+
+        solution_strategy = self._GetSolutionStrategy()
+        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        solution_strategy.Initialize()
+
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+
+    def _ComputeNodalElementalNeighbours(self):
+        # Find nodal neigbours util call
+        data_communicator  = KratosMultiphysics.DataCommunicator.GetDefault()
+        KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(
+            data_communicator,
+            self.GetComputingModelPart()).Execute()
+
+    def _GetStrategyType(self):
+        element_type = self.settings["formulation"]["element_type"].GetString()
+        if "incompressible" in element_type:
+            if not self.settings["formulation"].Has("stabilization_factor"):
+                strategy_type = "linear"
+            elif self.settings["formulation"]["stabilization_factor"].GetDouble() == 0.0:
+                strategy_type = "linear"
             else:
-                raise Exception("Domain size is not 2 or 3!!")
-            
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
-            
+                strategy_type = "non_linear"
+        elif "compressible" or "transonic" in element_type:
+            strategy_type = "non_linear"
         else:
-            raise Exception("other input options are not yet implemented")
-        
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        if(self.GetMinimumBufferSize() > current_buffer_size):
-            self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
-                
-        print ("model reading finished")
-        
-    def GetMinimumBufferSize(self):
-        return 2;
-    
-    def GetComputingModelPart(self):
-        return self.main_model_part
-        
-    def GetOutputVariables(self):
-        pass
-        
-    def ComputeDeltaTime(self):
-        pass
-        
-    def SaveRestart(self):
-        pass #one should write the restart file here
-        
-    def Solve(self):
-        (self.solver).Solve()
+            strategy_type = None
+        return strategy_type
 
-    #
-    def SetEchoLevel(self, level):
-        (self.solver).SetEchoLevel(level)
+    @classmethod
+    def _CreateScheme(self):
+        # Fake scheme creation to do the solution update
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        return scheme
 
-    #
-    def Clear(self):
-        (self.solver).Clear()
+    def _CreateConvergenceCriterion(self):
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(
+            self.settings["relative_tolerance"].GetDouble(),
+            self.settings["absolute_tolerance"].GetDouble())
+        return convergence_criterion
 
+    def _CreateSolutionStrategy(self):
+        strategy_type = self._GetStrategyType()
+        computing_model_part = self.GetComputingModelPart()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        if strategy_type == "linear":
+            solution_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(
+                computing_model_part,
+                time_scheme,
+                linear_solver,
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.settings["calculate_solution_norm"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool())
+        elif strategy_type == "non_linear":
+            convergence_criterion = self._GetConvergenceCriterion()
+            solution_strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+                computing_model_part,
+                time_scheme,
+                linear_solver,
+                convergence_criterion,
+                self.settings["maximum_iterations"].GetInt(),
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool())
+        else:
+            err_msg = "Unknown strategy type: \'" + strategy_type + "\'. Valid options are \'linear\' and \'non_linear\'."
+            raise Exception(err_msg)
+        return solution_strategy

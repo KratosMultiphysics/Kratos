@@ -22,8 +22,7 @@
 
 
 // External includes
-// TODO: I should change this to std::unordered_map when we switch to c++11
-#include "boost/unordered_map.hpp"
+#include <unordered_map>
 
 // Project includes
 #include "includes/define.h"
@@ -62,9 +61,9 @@ namespace Kratos
     deleting.
  */
 template<class TDataType,
-         class THashType = boost::hash<TDataType>,
+         class THashType = std::hash<TDataType>,
          class TGetKeyType = SetIdentityFunction<TDataType>,
-         class TPointerType = boost::shared_ptr<TDataType> >
+         class TPointerType = Kratos::shared_ptr<TDataType> >
 class PointerHashMapSet
 {
 
@@ -83,11 +82,10 @@ public:
     typedef TDataType data_type;
     typedef TDataType value_type;
     typedef THashType hasher;
-    typedef TPointerType pointer;
+    typedef TPointerType pointer_type;
     typedef TDataType& reference;
     typedef const TDataType& const_reference;
-	// TODO: I should change this to std::unordered_map when we switch to c++11
-	typedef boost::unordered_map<key_type, TPointerType, hasher> ContainerType;
+	typedef std::unordered_map<key_type, TPointerType, hasher> ContainerType;
 
     typedef typename ContainerType::size_type size_type;
     typedef typename ContainerType::iterator ptr_iterator;
@@ -110,7 +108,7 @@ private:
 		bool operator==(const iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
 		bool operator!=(const iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
 		data_type& operator*() const { return *(map_iterator->second); }
-		data_type* operator->() const { return map_iterator->second; }
+		pointer_type operator->() const { return map_iterator->second; }
 		ptr_iterator& base() { return map_iterator; }
 		ptr_iterator const& base() const { return map_iterator; }
 	};
@@ -126,7 +124,7 @@ private:
 		bool operator==(const const_iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
 		bool operator!=(const const_iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
 		data_type const& operator*() const { return *(map_iterator->second); }
-		data_type* operator->() const { return map_iterator->second; }
+		pointer_type operator->() const { return map_iterator->second; }
 		ptr_const_iterator& base() { return map_iterator; }
 		ptr_const_iterator const& base() const { return map_iterator; }
 	};
@@ -180,12 +178,14 @@ public:
 
     TDataType& operator[](const key_type& Key)
     {
-		return *(mData[Key].second);
+		KRATOS_DEBUG_ERROR_IF(mData.find(Key) == mData.end()) << "The key: " << Key << " is not available in the map" << std::endl;
+		return *(mData.find(Key)->second);
     }
 
-    pointer& operator()(const key_type& Key)
+    pointer_type& operator()(const key_type& Key)
     {
-		return mData[Key].second;
+		KRATOS_DEBUG_ERROR_IF(mData.find(Key) == mData.end()) << "The key: " << Key << " is not available in the map" << std::endl;
+		return mData.find(Key)->second;
 	}
 
     bool operator==( const PointerHashMapSet& r ) const // nothrow
@@ -286,14 +286,14 @@ public:
 
     iterator insert(TPointerType pData)
     {
-		std::string key=KeyOf(*pData);
-		typename ContainerType::value_type item(key, pData);
-		std::pair<typename ContainerType::iterator, bool> result = mData.insert(item);
-	// TODO: I should enable this after adding the KRATOS_ERROR to define.h. Pooyan.
-	//if(result.second != true)
-	//	KRATOS_ERROR << "Error in adding the new item" << std::endl
-		return result.first;
-	}
+        key_type key=KeyOf(*pData);
+        typename ContainerType::value_type item(key, pData);
+        std::pair<typename ContainerType::iterator, bool> result = mData.insert(item);
+        // TODO: I should enable this after adding the KRATOS_ERROR to define.h. Pooyan.
+        //if(result.second != true)
+        //	KRATOS_ERROR << "Error in adding the new item" << std::endl
+        return result.first;
+    }
 
     template <class InputIterator>
     void insert(InputIterator First, InputIterator Last)
@@ -510,7 +510,7 @@ private:
 
 		for (size_type i = 0; i < size; i++)
 		{
- 		        pointer p = nullptr;// new TDataType;
+ 		        pointer_type p = nullptr;// new TDataType;
 			rSerializer.load("E", p);
 			insert(p);
 		}

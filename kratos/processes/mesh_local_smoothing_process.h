@@ -55,9 +55,9 @@ namespace Kratos
 
 	  typedef Node<3> NodeType;
 
-	  typedef WeakPointerVector< Node<3> > NeighboursVectorType;
+	  typedef GlobalPointersVector< Node<3> > NeighboursVectorType;
 
-	  typedef std::vector<Point<3> > PointsVectorType;
+	  typedef std::vector<Point > PointsVectorType;
   
 	  ///@}
 	  ///@name Flags 
@@ -68,10 +68,14 @@ namespace Kratos
 	  ///@{ 
 
 	  /// Constructor takes the modelpart to apply smoothing to its mesh 0.
-	  MeshLocalSmoothingProcess(ModelPart& rModelPart, double AptQuality = 0.5, std::size_t MaxIterationsNumber = 10);
+	  MeshLocalSmoothingProcess(
+          ModelPart &rModelPart,
+          double AptQuality = 0.5,
+          std::size_t MaxIterationsNumber = 10,
+          const Flags &rBoundaryFlag = BOUNDARY);
 
       /// Destructor.
-      virtual ~MeshLocalSmoothingProcess();
+      ~MeshLocalSmoothingProcess() override;
       
 
       ///@}
@@ -83,7 +87,7 @@ namespace Kratos
       ///@name Operations
       ///@{
       
-	  virtual void Execute() override;
+	  void Execute() override;
       
       ///@}
       ///@name Access
@@ -100,13 +104,13 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override;
+      std::string Info() const override;
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override;
+      void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override;
+      void PrintData(std::ostream& rOStream) const override;
       
             
       ///@}      
@@ -170,6 +174,8 @@ namespace Kratos
 		double mMeshMinQuality;
 
 		double mMeshQualityNorm;
+
+        const Flags &mrBoundaryFlag;
         
         
       ///@} 
@@ -190,9 +196,9 @@ namespace Kratos
 
 		void PerformSmoothing();
 
-		void InterpolateNodeOptimumPosition(PointsVectorType const& rOptimumPoints, Vector const& rWeights, Point<3>& OptimumPosition);
+		void InterpolateNodeOptimumPosition(PointsVectorType const& rOptimumPoints, Vector const& rWeights, Point& OptimumPosition);
 
-		void MoveNodeIfImprovesMinimumQuality(NodeType& rNode, Point<3> const& OptimumPosition);
+		void MoveNodeIfImprovesMinimumQuality(NodeType& rNode, Point const& OptimumPosition);
 
 
 		///@} 

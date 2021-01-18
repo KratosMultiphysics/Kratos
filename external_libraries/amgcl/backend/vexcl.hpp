@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,12 +32,13 @@ THE SOFTWARE.
  */
 
 #include <iostream>
+#include <memory>
 
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <boost/range/iterator_range.hpp>
 
 #include <amgcl/solver/skyline_lu.hpp>
-#include <vexcl/vexcl.hpp>
+#include <vexcl/vector.hpp>
+#include <vexcl/gather.hpp>
 #include <vexcl/sparse/matrix.hpp>
 #include <vexcl/sparse/distributed.hpp>
 
@@ -70,11 +71,54 @@ struct vexcl_skyline_lu : solver::skyline_lu<value_type> {
         static_cast<const Base*>(this)->operator()(_rhs, _x);
         vex::copy(_x, x);
     }
+
+    size_t bytes() const {
+        return
+            backend::bytes(*static_cast<const Base*>(this)) +
+            backend::bytes(_rhs) +
+            backend::bytes(_x);
+    }
 };
 
 }
 
 namespace backend {
+
+/// The VexCL backend parameters.
+struct vexcl_params {
+
+    std::vector< vex::backend::command_queue > q; ///< Command queues that identify compute devices to use with VexCL.
+
+    /// Do CSR to ELL conversion on the GPU side.
+    /** This will result in faster setup, but will require more GPU memory. */
+    bool fast_matrix_setup;
+
+    vexcl_params() : fast_matrix_setup(true) {}
+
+#ifndef AMGCL_NO_BOOST
+    vexcl_params(const boost::property_tree::ptree &p)
+        : fast_matrix_setup(p.get("fast_matrix_setup", vexcl_params().fast_matrix_setup))
+    {
+        std::vector<vex::backend::command_queue> *ptr = 0;
+        ptr = p.get("q", ptr);
+        if (ptr) q = *ptr;
+        check_params(p, {"q", "fast_matrix_setup"});
+    }
+
+    void get(boost::property_tree::ptree &p, const std::string &path) const {
+        p.put(path + "q", &q);
+        p.put(path + "fast_matrix_setup", fast_matrix_setup);
+    }
+#endif
+
+    const std::vector<vex::backend::command_queue>& context() const {
+        if (q.empty())
+            return vex::current_context().queue();
+        else
+            return q;
+    }
+};
+
 
 /**
  * The backend uses the <a href="https://github.com/ddemidov/vexcl">VexCL</a>
@@ -97,47 +141,15 @@ struct vexcl {
     typedef vex::vector<value_type>                        matrix_diagonal;
     typedef DirectSolver                                   direct_solver;
 
-    struct provides_row_iterator : boost::false_type {};
+    struct provides_row_iterator : std::false_type {};
 
-    /// The VexCL backend parameters.
-    struct params {
-
-        std::vector< vex::backend::command_queue > q; ///< Command queues that identify compute devices to use with VexCL.
-
-        /// Do CSR to ELL conversion on the GPU side.
-        /** This will result in faster setup, but will require more GPU memory. */
-        bool fast_matrix_setup;
-
-        params() : fast_matrix_setup(true) {}
-
-        params(const boost::property_tree::ptree &p)
-            : AMGCL_PARAMS_IMPORT_CHILD(p, fast_matrix_setup)
-        {
-            std::vector<vex::backend::command_queue> *ptr = 0;
-            ptr = p.get("q", ptr);
-            if (ptr) q = *ptr;
-            AMGCL_PARAMS_CHECK(p, (q)(fast_matrix_setup));
-        }
-
-        void get(boost::property_tree::ptree &p, const std::string &path) const {
-            p.put(path + "q", &q);
-            AMGCL_PARAMS_EXPORT_VALUE(p, path, fast_matrix_setup);
-        }
-
-        const std::vector<vex::backend::command_queue>& context() const {
-            if (q.empty())
-                return vex::current_context().queue();
-            else
-                return q;
-
-        }
-    };
+    typedef vexcl_params params;
 
     static std::string name() { return "vexcl"; }
 
     // Copy matrix from builtin backend.
-    static boost::shared_ptr<matrix>
-    copy_matrix(boost::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
+    static std::shared_ptr<matrix>
+    copy_matrix(std::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
     {
         precondition(!prm.context().empty(), "Empty VexCL context!");
 
@@ -147,7 +159,7 @@ struct vexcl {
         const size_t m   = cols(*A);
         const size_t nnz = a.ptr[n];
 
-        return boost::make_shared<matrix>(prm.context(), n, m,
+        return std::make_shared<matrix>(prm.context(), n, m,
                 boost::make_iterator_range(a.ptr, a.ptr + n+1),
                 boost::make_iterator_range(a.col, a.col + nnz),
                 boost::make_iterator_range(a.val, a.val + nnz),
@@ -157,114 +169,126 @@ struct vexcl {
 
     // Copy vector from builtin backend.
     template <class T>
-    static boost::shared_ptr< vex::vector<T> >
+    static std::shared_ptr< vex::vector<T> >
     copy_vector(const std::vector<T> &x, const params &prm)
     {
         precondition(!prm.context().empty(), "Empty VexCL context!");
-        return boost::make_shared< vex::vector<T> >(prm.context(), x);
+        return std::make_shared< vex::vector<T> >(prm.context(), x);
     }
 
     template <class T>
-    static boost::shared_ptr< vex::vector<T> >
+    static std::shared_ptr< vex::vector<T> >
     copy_vector(const numa_vector<T> &x, const params &prm)
     {
         precondition(!prm.context().empty(), "Empty VexCL context!");
-        return boost::make_shared< vex::vector<T> >(prm.context(), x.size(), x.data());
+        return std::make_shared< vex::vector<T> >(prm.context(), x.size(), x.data());
     }
 
     // Copy vector from builtin backend.
     template <class T>
-    static boost::shared_ptr< vex::vector<T> >
-    copy_vector(boost::shared_ptr< numa_vector<T> > x, const params &prm)
+    static std::shared_ptr< vex::vector<T> >
+    copy_vector(std::shared_ptr< numa_vector<T> > x, const params &prm)
     {
         return copy_vector(*x, prm);
     }
 
     // Create vector of the specified size.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     create_vector(size_t size, const params &prm)
     {
         precondition(!prm.context().empty(), "Empty VexCL context!");
 
-        return boost::make_shared<vector>(prm.context(), size);
+        return std::make_shared<vector>(prm.context(), size);
     }
 
     struct gather {
-        mutable vex::gather<value_type> G;
-        mutable std::vector<value_type> tmp;
+        size_t n;
+        mutable vex::gather G;
+        mutable std::vector<char> buf;
 
         gather(size_t src_size, const std::vector<ptrdiff_t> &I, const params &prm)
-            : G(prm.context(), src_size, std::vector<size_t>(I.begin(), I.end())) { }
+            : n(I.size()), G(prm.context(), src_size, std::vector<size_t>(I.begin(), I.end()))
+        { }
 
-        void operator()(const vector &src, vector &dst) const {
-            G(src, tmp);
-            vex::copy(tmp, dst);
+        template <class S, class D>
+        void operator()(const vex::vector<S> &src, vex::vector<D> &dst) const {
+            if (buf.size() < sizeof(D) * n) buf.resize(sizeof(D) * n);
+            auto t = reinterpret_cast<D*>(buf.data());
+            G(src, t);
+            vex::copy(t, t + n, dst.begin());
         }
 
-        void operator()(const vector &vec, std::vector<value_type> &vals) const {
+        template <class S, class D>
+        void operator()(const vex::vector<S> &vec, std::vector<D> &vals) const {
             G(vec, vals);
         }
     };
 
     struct scatter {
-        mutable vex::scatter<value_type> S;
-        mutable std::vector<value_type> tmp;
+        size_t n;
+        mutable vex::scatter S;
+        mutable std::vector<char> buf;
 
         scatter(size_t size, const std::vector<ptrdiff_t> &I, const params &prm)
-            : S(prm.context(), size, std::vector<size_t>(I.begin(), I.end()))
-            , tmp(I.size())
+            : n(I.size()), S(prm.context(), size, std::vector<size_t>(I.begin(), I.end()))
         { }
 
-        void operator()(const vector &src, vector &dst) const {
-            vex::copy(src, tmp);
-            S(tmp, dst);
+        template <class S, class D>
+        void operator()(const vex::vector<S> &src, vex::vector<D> &dst) const {
+            if (buf.size() < sizeof(D) * n) buf.resize(sizeof(D) * n);
+            auto t = reinterpret_cast<D*>(buf.data());
+            vex::copy(src.begin(), src.end(), t);
+            S(t, dst);
         }
     };
 
 
     // Create direct solver for coarse level
-    static boost::shared_ptr<direct_solver>
-    create_solver(boost::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
+    static std::shared_ptr<direct_solver>
+    create_solver(std::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
     {
-        return boost::make_shared<direct_solver>(A, prm);
+        return std::make_shared<direct_solver>(A, prm);
     }
 };
 
 //---------------------------------------------------------------------------
 // Backend interface implementation
 //---------------------------------------------------------------------------
+template <typename T1, typename T2>
+struct backends_compatible< vexcl<T1>, vexcl<T2> > : std::true_type {};
+
 template < typename V, typename C, typename P >
-struct rows_impl< vex::sparse::distributed<vex::sparse::matrix<V, C, P>>> {
-    static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V, C, P>> &A) {
-        return A.rows();
+struct bytes_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P> > > {
+    static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V,C,P> > &A) {
+        return
+            sizeof(P) * (A.rows() + 1) +
+            sizeof(C) * A.nonzeros() +
+            sizeof(V) * A.nonzeros();
     }
 };
 
-template < typename V, typename C, typename P >
-struct cols_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P>> > {
-    static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V,C,P>> &A) {
-        return A.cols();
+template < typename V >
+struct bytes_impl< vex::vector<V> > {
+    static size_t get(const vex::vector<V> &v) {
+        return v.size() * sizeof(V);
     }
 };
 
-template < typename V, typename C, typename P >
-struct nonzeros_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P>> > {
-    static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V,C,P>> &A) {
-        return A.nonzeros();
-    }
-};
-
-template < typename Alpha, typename Beta, typename V, typename C, typename P >
+template < typename Alpha, typename Beta, typename Va, typename Vx, typename Vy, typename C, typename P >
 struct spmv_impl<
-    Alpha, vex::sparse::distributed<vex::sparse::matrix<V,C,P>>, vex::vector<V>,
-    Beta,  vex::vector<V>
+    Alpha, vex::sparse::distributed<vex::sparse::matrix<Va,C,P>>, vex::vector<Vx>,
+    Beta,  vex::vector<Vy>,
+    typename std::enable_if<
+        math::static_rows<Va>::value == 1 &&
+        math::static_rows<Vx>::value == 1 &&
+        math::static_rows<Vy>::value == 1
+        >::type
     >
 {
-    typedef vex::sparse::distributed<vex::sparse::matrix<V,C,P>> matrix;
-    typedef vex::vector<V> vector;
+    typedef vex::sparse::distributed<vex::sparse::matrix<Va,C,P>> matrix;
 
-    static void apply(Alpha alpha, const matrix &A, const vector &x,
-            Beta beta, vector &y)
+    static void apply(Alpha alpha, const matrix &A, const vex::vector<Vx> &x,
+            Beta beta, vex::vector<Vy> &y)
     {
         if (beta)
             y = alpha * (A * x) + beta * y;
@@ -273,19 +297,18 @@ struct spmv_impl<
     }
 };
 
-template < typename V, typename C, typename P >
+template < typename Va, typename Vf, typename Vx, typename Vr, typename C, typename P >
 struct residual_impl<
-    vex::sparse::distributed<vex::sparse::matrix<V,C,P>>,
-    vex::vector<V>,
-    vex::vector<V>,
-    vex::vector<V>
+    vex::sparse::distributed<vex::sparse::matrix<Va,C,P>>,
+    vex::vector<Vf>,
+    vex::vector<Vx>,
+    vex::vector<Vr>
     >
 {
-    typedef vex::sparse::distributed<vex::sparse::matrix<V,C,P>> matrix;
-    typedef vex::vector<V> vector;
+    typedef vex::sparse::distributed<vex::sparse::matrix<Va,C,P>> matrix;
 
-    static void apply(const vector &rhs, const matrix &A, const vector &x,
-            vector &r)
+    static void apply(const vex::vector<Vf> &rhs, const matrix &A, const vex::vector<Vx> &x,
+            vex::vector<Vr> &r)
     {
         r = rhs - A * x;
     }
@@ -300,26 +323,30 @@ struct clear_impl< vex::vector<V> >
     }
 };
 
-template < typename V >
-struct copy_impl<
-    vex::vector<V>,
-    vex::vector<V>
-    >
+template < class V, class T >
+struct copy_impl<V, vex::vector<T> >
 {
-    static void apply(const vex::vector<V> &x, vex::vector<V> &y)
+    static void apply(const V &x, vex::vector<T> &y)
     {
-        y = x;
+        vex::copy(x, y);
     }
 };
 
-template < typename V >
-struct copy_to_backend_impl<
-    vex::vector<V>
-    >
+template < class T, class V >
+struct copy_impl<vex::vector<T>, V>
 {
-    static void apply(const std::vector<V> &data, vex::vector<V> &x)
+    static void apply(const vex::vector<T> &x, V &y)
     {
-        vex::copy(data, x);
+        vex::copy(x, y);
+    }
+};
+
+template < class T1, class T2 >
+struct copy_impl<vex::vector<T1>, vex::vector<T2>>
+{
+    static void apply(const vex::vector<T1> &x, vex::vector<T2> &y)
+    {
+        vex::copy(x, y);
     }
 };
 
@@ -336,12 +363,12 @@ struct inner_product_impl<
     }
 };
 
-template < typename A, typename B, typename V >
+template < typename A, typename B, typename V1, typename V2 >
 struct axpby_impl<
-    A, vex::vector<V>,
-    B, vex::vector<V>
+    A, vex::vector<V1>,
+    B, vex::vector<V2>
     > {
-    static void apply(A a, const vex::vector<V> &x, B b, vex::vector<V> &y)
+    static void apply(A a, const vex::vector<V1> &x, B b, vex::vector<V2> &y)
     {
         if (b)
             y = a * x + b * y;
@@ -350,17 +377,17 @@ struct axpby_impl<
     }
 };
 
-template < typename A, typename B, typename C, typename V >
+template < typename A, typename B, typename C, typename V1, typename V2, typename V3 >
 struct axpbypcz_impl<
-    A, vex::vector<V>,
-    B, vex::vector<V>,
-    C, vex::vector<V>
+    A, vex::vector<V1>,
+    B, vex::vector<V2>,
+    C, vex::vector<V3>
     >
 {
     static void apply(
-            A a, const vex::vector<V> &x,
-            B b, const vex::vector<V> &y,
-            C c,       vex::vector<V> &z
+            A a, const vex::vector<V1> &x,
+            B b, const vex::vector<V2> &y,
+            C c,       vex::vector<V3> &z
             )
     {
         if (c)
@@ -370,14 +397,14 @@ struct axpbypcz_impl<
     }
 };
 
-template < typename A, typename B, typename V >
+template < typename A, typename B, typename Vx, typename Vy, typename Vz >
 struct vmul_impl<
-    A, vex::vector<V>, vex::vector<V>,
-    B, vex::vector<V>
+    A, vex::vector<Vx>, vex::vector<Vy>,
+    B, vex::vector<Vz>
     >
 {
-    static void apply(A a, const vex::vector<V> &x, const vex::vector<V> &y,
-            B b, vex::vector<V> &z)
+    static void apply(A a, const vex::vector<Vx> &x, const vex::vector<Vy> &y,
+            B b, vex::vector<Vz> &z)
     {
         if (b)
             z = a * x * y + b * z;
@@ -385,6 +412,17 @@ struct vmul_impl<
             z = a * x * y;
     }
 };
+
+template <class T, class V>
+struct reinterpret_impl<T, vex::vector<V>>
+{
+    typedef vex::vector<typename std::decay<T>::type> return_type;
+
+    static return_type get(const vex::vector<V> &x) {
+        return x.template reinterpret<typename std::decay<T>::type>();
+    }
+};
+
 
 } // namespace backend
 } // namespace amgcl

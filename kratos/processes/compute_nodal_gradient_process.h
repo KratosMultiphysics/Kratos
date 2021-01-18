@@ -8,27 +8,21 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//  Colaborator:     Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED )
 #define  KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
-#include "utilities/geometry_utilities.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -39,8 +33,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
 ///@}
 ///@name  Enum's
@@ -54,13 +46,80 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-//erases the nodes marked as
-/** Detail class definition.
-*/
+/**
+ * @brief This struct is used in order to identify when using the hitorical and non historical variables
+ */
+struct ComputeNodalGradientProcessSettings
+{
+    // Defining clearer options
+    constexpr static bool SaveAsHistoricalVariable = true;
+    constexpr static bool SaveAsNonHistoricalVariable = false;
+    constexpr static bool GetAsHistoricalVariable = true;
+    constexpr static bool GetAsNonHistoricalVariable = false;
+};
 
-template< int TDim, class TVarType > 
-class ComputeNodalGradientProcess
+/**
+ * @brief This struct is an auxiliar base class of the VariableVectorRetriever
+ */
+struct AuxiliarVariableVectorRetriever
+{
+    /// Destructor.
+    virtual ~AuxiliarVariableVectorRetriever()
+    {
+    }
+
+    /**
+     * @brief This method fills the vector of values
+     * @param rGeometry The geometry where values are stored
+     * @param rVariable The variable to retrieve
+     * @param rVector The vector to fill
+     */
+    virtual void GetVariableVector(
+        const Geometry<Node<3>>& rGeometry,
+        const Variable<double>& rVariable,
+        Vector& rVector
+        )
+    {
+        KRATOS_ERROR << "Calling base class implementation" << std::endl;
+    }
+};
+
+/**
+ * @brief This struct is used in order to retrieve values without loosing performance
+ */
+template<bool THistorical>
+struct VariableVectorRetriever
+    : public AuxiliarVariableVectorRetriever
+{
+    /// Destructor.
+    ~VariableVectorRetriever() override
+    {
+    }
+
+    /**
+     * @brief This method fills the vector of values
+     * @param rGeometry The geometry where values are stored
+     * @param rVariable The variable to retrieve
+     * @param rVector The vector to fill
+     */
+    void GetVariableVector(
+        const Geometry<Node<3>>& rGeometry,
+        const Variable<double>& rVariable,
+        Vector& rVector
+        ) override;
+};
+
+/**
+ * @class ComputeNodalGradientProcess
+ * @ingroup KratosCore
+ * @brief Compute Nodal Gradient process
+ * @details This process computes the gradient of a certain variable stored in the nodes
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ * @tparam THistorical If the variable is historical or not
+*/
+template<bool THistorical>
+class KRATOS_API(KRATOS_CORE) ComputeNodalGradientProcess
     : public Process
 {
 public:
@@ -74,14 +133,23 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ComputeNodalGradientProcess(ModelPart& model_part
-        , TVarType& r_origin_variable
-        , Variable<array_1d<double,3> >& r_gradient_variable
-        , Variable<double>& r_area_variable);
+    /// Default constructor. (Parameters)
+    ComputeNodalGradientProcess(
+        ModelPart& rModelPart,
+        Parameters ThisParameters = Parameters(R"({})")
+        );
+
+    /// Default constructor. (double)
+    ComputeNodalGradientProcess(
+        ModelPart& rModelPart,
+        const Variable<double>& rOriginVariable,
+        const Variable<array_1d<double,3> >& rGradientVariable,
+        const Variable<double>& rAreaVariable = NODAL_AREA,
+        const bool NonHistoricalVariable = false
+        );
 
     /// Destructor.
-    virtual ~ComputeNodalGradientProcess()
+    ~ComputeNodalGradientProcess() override
     {
     }
 
@@ -90,6 +158,7 @@ public:
     ///@name Operators
     ///@{
 
+    /// This operator is provided to call the process as a function and simply calls the Execute method.
     void operator()()
     {
         Execute();
@@ -100,66 +169,16 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute() override
-    {
-        KRATOS_TRY;
-        
-        //set to zero
-        
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(mr_model_part.Nodes().size()); i++)
-        {
-            auto it=mr_model_part.NodesBegin()+i;
-            it->FastGetSolutionStepValue(mr_area_variable) = 0.0;
-            it->FastGetSolutionStepValue(mr_gradient_variable).clear();
-        }
-        
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,  TDim> DN_DX;
-        array_1d<double,TDim+1> N;
-        double Volume;
-        
-        #pragma omp parallel for private(DN_DX,  N,  Volume)
-        for(int i=0; i<static_cast<int>(mr_model_part.Elements().size()); i++)
-        {
-            auto it=mr_model_part.ElementsBegin()+i;
-            Element::GeometryType& geom = it->GetGeometry();
-            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
-            
-            array_1d<double, TDim+1> values;
-            for(unsigned int i=0; i<TDim+1; i++)
-            {
-                values[i] = geom[i].FastGetSolutionStepValue(mr_origin_variable);
-            }
-            
-            const array_1d<double,TDim> grad = prod(trans(DN_DX), values);
-            
-            for(unsigned int i=0; i<TDim+1; i++)
-            {
-                for(unsigned int k=0; k<TDim; k++)
-                {
-                    double& val = geom[i].FastGetSolutionStepValue(mr_gradient_variable)[k];
-                    
-                    #pragma omp atomic
-                    val += N[i]*Volume*grad[k];
-                }
-                
-                double& vol = geom[i].FastGetSolutionStepValue(mr_area_variable);
-                
-                #pragma omp atomic
-                vol += N[i]*Volume;
-            }
-        }
-        
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(mr_model_part.Nodes().size()); i++)
-        {
-            auto it=mr_model_part.NodesBegin()+i;
-            it->FastGetSolutionStepValue(mr_gradient_variable) /= it->FastGetSolutionStepValue(mr_area_variable);
-        }
+    /**
+     * Execute method is used to execute the Process algorithms.
+     * In this process the gradient of a scalar variable will be computed
+     */
+    void Execute() override;
 
-        KRATOS_CATCH("")
-    }
-
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -176,19 +195,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "ComputeNodalGradientProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ComputeNodalGradientProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -245,11 +264,12 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mr_model_part;
-    TVarType& mr_origin_variable;
-    Variable<array_1d<double,3> >& mr_gradient_variable;
-    Variable<double>& mr_area_variable;
 
+    ModelPart& mrModelPart;                                           /// The main model part
+    const Variable<double>* mpOriginVariable = nullptr;               /// The scalar variable list to compute
+    const Variable<array_1d<double,3>>* mpGradientVariable;           /// The resultant gradient variable
+    const Variable<double>* mpAreaVariable = nullptr;                 /// The auxiliar area variable
+    bool mNonHistoricalVariable = false;                              /// If the variable is non-historical
 
     ///@}
     ///@name Private Operators
@@ -259,6 +279,45 @@ private:
     ///@name Private Operations
     ///@{
 
+    // TODO: Try to use enable_if!!!
+
+    /**
+     * This checks the definition and correct initialization of the origin variable, for which the
+     * gradient will be computed, and the variable chosen to compute the area.
+     */
+    void CheckOriginAndAreaVariables();
+
+    /**
+     * This clears the gradient
+     */
+    void ClearGradient();
+
+    /**
+     * This gets the gradient value
+     * @param rThisGeometry The geometry of the element
+     * @param i The node index
+     */
+    array_1d<double, 3>& GetGradient(
+        Element::GeometryType& rThisGeometry,
+        unsigned int i
+        );
+
+    /**
+     * @brief This function computes the elemental gradient of the origin variable and
+     * adds it to its corresponding nodes. It also computes the contribution of the element
+     * to the nodal volume.
+     */
+    void ComputeElementalContributionsAndVolume();
+
+    /**
+     * @brief This divides the gradient value by the nodal area
+     */
+    void PonderateGradient();
+
+    /**
+     * @brief This synchronizes the nodal contributions in parallel runs. Only needed in MPI.
+     */
+    void SynchronizeGradientAndVolume();
 
     ///@}
     ///@name Private  Access
@@ -298,7 +357,7 @@ private:
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   ComputeNodalGradientProcess& rThis);
-// 
+//
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
 //                                   const ComputeNodalGradientProcess& rThis)
@@ -306,124 +365,13 @@ private:
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-// 
+//
 //     return rOStream;
 // }
 ///@}
 
-///@name Explicit Specializations
-///@{
-
-    template<>
-    ComputeNodalGradientProcess<2, Variable<double>>::ComputeNodalGradientProcess(ModelPart& model_part
-        , Variable<double>& r_origin_variable
-        , Variable<array_1d<double,3> >& r_gradient_variable
-        , Variable<double>& r_area_variable)
-        :mr_model_part(model_part), mr_origin_variable(r_origin_variable), mr_gradient_variable(r_gradient_variable), mr_area_variable(r_area_variable)
-    {
-        KRATOS_TRY
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_origin_variable ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_origin_variable;
-        }
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_gradient_variable ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_gradient_variable;
-        }
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_area_variable ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_area_variable;
-        }
-        
-        KRATOS_CATCH("")
-    }
-    
-    template<>
-    ComputeNodalGradientProcess<3, Variable<double>>::ComputeNodalGradientProcess(ModelPart& model_part
-        , Variable<double>& r_origin_variable
-        , Variable<array_1d<double,3> >& r_gradient_variable
-        , Variable<double>& r_area_variable)
-        :mr_model_part(model_part), mr_origin_variable(r_origin_variable), mr_gradient_variable(r_gradient_variable), mr_area_variable(r_area_variable)
-    {
-        KRATOS_TRY
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_origin_variable ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_origin_variable;
-        }
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_gradient_variable ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_gradient_variable;
-        }
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_area_variable ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_area_variable;
-        }
-        
-        KRATOS_CATCH("")
-    }
-    
-    template<>
-    ComputeNodalGradientProcess<2, component_type>::ComputeNodalGradientProcess(ModelPart& model_part
-        , component_type& r_origin_variable
-        , Variable<array_1d<double,3> >& r_gradient_variable
-        , Variable<double>& r_area_variable)
-        :mr_model_part(model_part), mr_origin_variable(r_origin_variable), mr_gradient_variable(r_gradient_variable), mr_area_variable(r_area_variable)
-    {
-        KRATOS_TRY
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_origin_variable.GetSourceVariable() ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_origin_variable.GetSourceVariable();
-        }
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_gradient_variable ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_gradient_variable;
-        }
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_area_variable ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_area_variable;
-        }
-        
-        KRATOS_CATCH("")
-    }
-    
-    template<>
-    ComputeNodalGradientProcess<3, component_type>::ComputeNodalGradientProcess(ModelPart& model_part
-        , component_type& r_origin_variable
-        , Variable<array_1d<double,3> >& r_gradient_variable
-        , Variable<double>& r_area_variable)
-        :mr_model_part(model_part), mr_origin_variable(r_origin_variable), mr_gradient_variable(r_gradient_variable), mr_area_variable(r_area_variable)
-    {
-        KRATOS_TRY
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_origin_variable.GetSourceVariable() ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_origin_variable.GetSourceVariable();
-        }
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_gradient_variable ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_gradient_variable;
-        }
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_area_variable ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_area_variable;
-        }
-        
-        KRATOS_CATCH("")
-    }
-
 }  // namespace Kratos.
 
-#endif // KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED  defined 
+#endif // KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED  defined
 
 

@@ -14,17 +14,14 @@
 #if !defined(KRATOS_BICGSTAB_SOLVER_H_INCLUDED )
 #define  KRATOS_BICGSTAB_SOLVER_H_INCLUDED
 
-
-
 // System includes
-
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
-
+#include "factories/preconditioner_factory.h"
 
 namespace Kratos
 {
@@ -84,15 +81,22 @@ public:
 
     BICGSTABSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
         BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner) {}
-        
-    BICGSTABSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner = boost::make_shared<TPreconditionerType>()):
+
+    BICGSTABSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner):
         BaseType(settings, pNewPreconditioner) {}
-        
+
+    BICGSTABSolver(Parameters settings):
+        BaseType(settings)
+    {
+        if(settings.Has("preconditioner_type"))
+            BaseType::SetPreconditioner( PreconditionerFactory<TSparseSpaceType,TDenseSpaceType>().Create(settings["preconditioner_type"].GetString()) );
+    }
+
     /// Copy constructor.
     BICGSTABSolver(const BICGSTABSolver& Other) : BaseType(Other) {}
 
     /// Destructor.
-    virtual ~BICGSTABSolver() {}
+    ~BICGSTABSolver() override {}
 
 
     ///@}
@@ -186,7 +190,7 @@ public:
     ///@{
 
     /// Return information about this object.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Biconjugate gradient stabilized linear solver with " << BaseType::GetPreconditioner()->Info();
@@ -414,6 +418,6 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BICGSTAB_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_BICGSTAB_SOLVER_H_INCLUDED  defined
 
 

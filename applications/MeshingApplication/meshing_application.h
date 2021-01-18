@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -10,28 +10,21 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED )
 #define  KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-
-#include "includes/variables.h"
-#include "includes/legacy_structural_app_vars.h" //TODO: must be removed eventually
-#include "includes/condition.h"
 #include "includes/element.h"
 
 namespace Kratos
@@ -40,15 +33,6 @@ namespace Kratos
 ///@name Kratos Globals
 ///@{
 
-typedef array_1d<double,3> Vector3;
-    
-// Variables definition
-//KRATOS_DEFINE_VARIABLE(double, WEIGHT_FATHER_NODES ) // Moved to variables.h so trilinos application can use it too
-//KRATOS_DEFINE_VARIABLE(double, COUNTER) //already put on variables.h (warning was appearing on Windows)
-KRATOS_DEFINE_VARIABLE(double, ANISOTROPIC_RATIO);
-KRATOS_DEFINE_VARIABLE(Vector3, AUXILIAR_GRADIENT);
-KRATOS_DEFINE_VARIABLE(Vector,  AUXILIAR_HESSIAN);
-KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);
 ///@}
 ///@name Type Definitions
 ///@{
@@ -56,6 +40,35 @@ KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);
 ///@}
 ///@name  Enum's
 ///@{
+
+    /**
+     * @brief This enum defines the type of MMG libray used
+     */
+    enum class MMGLibrary
+    {
+        MMG2D = 0,
+        MMG3D = 1,
+        MMGS  = 2
+    };
+
+    /**
+     * @brief This enum defines the type of PMMG libray used
+     */
+    enum class PMMGLibrary
+    {
+        PMMG3D = 1
+    };
+
+
+    /**
+     * @brief This enums allows to differentiate the working framework
+     */
+    enum class FrameworkEulerLagrange {EULERIAN = 0, LAGRANGIAN = 1, ALE = 2};
+
+    /**
+     * @brief This enums allows to differentiate the discretization options
+     */
+    enum class DiscretizationOption {STANDARD = 0, LAGRANGIAN = 1, ISOSURFACE = 2};
 
 ///@}
 ///@name  Functions
@@ -68,7 +81,7 @@ KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosMeshingApplication : public KratosApplication
+class KRATOS_API(MESHING_APPLICATION) KratosMeshingApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -86,7 +99,7 @@ public:
     KratosMeshingApplication();
 
     /// Destructor.
-    virtual ~KratosMeshingApplication() {}
+    ~KratosMeshingApplication() override = default;
 
 
     ///@}
@@ -98,7 +111,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
 
 
@@ -117,20 +130,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosMeshingApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in KratosMeshingApplication");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -143,7 +156,6 @@ public:
         rOStream << "Conditions:" << std::endl;
         KratosComponents<Condition>().PrintData(rOStream);
     }
-
 
     ///@}
     ///@name Friends
@@ -197,9 +209,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
     const Element mTestElement2D;
     const Element mTestElement3D;
-
 
     ///@}
     ///@name Private Operators
@@ -252,6 +264,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED  defined 
-
-
+#endif // KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED  defined

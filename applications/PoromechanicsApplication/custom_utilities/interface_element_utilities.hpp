@@ -1,9 +1,16 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_INTERFACE_ELEMENT_UTILITIES )
 #define  KRATOS_INTERFACE_ELEMENT_UTILITIES
@@ -21,7 +28,7 @@ public:
         
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,2,4>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuMatrix(BoundedMatrix<double,2,4>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Line_interface_2d_2
         rNu(0,0) = -Ncontainer(GPoint,0); rNu(0,2) = Ncontainer(GPoint,1); 
@@ -30,7 +37,7 @@ public:
     
     //----------------------------------------------------------------------------------------
     
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,2,8>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuMatrix(BoundedMatrix<double,2,8>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Quadrilateral_interface_2d_4
         rNu(0,0) = -Ncontainer(GPoint,0); rNu(0,2) = -Ncontainer(GPoint,1); 
@@ -42,7 +49,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,3,12>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuMatrix(BoundedMatrix<double,3,12>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Quadrilateral_interface_3d_4
         rNu(0,0) = -Ncontainer(GPoint,0); rNu(0,3) = -Ncontainer(GPoint,1); 
@@ -56,7 +63,7 @@ public:
     
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,3,18>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuMatrix(BoundedMatrix<double,3,18>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Prism_interface_3d_6
         rNu(0,0) = -Ncontainer(GPoint,0); rNu(0,3) = -Ncontainer(GPoint,1); rNu(0,6) = -Ncontainer(GPoint,2); 
@@ -70,7 +77,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,3,24>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuMatrix(BoundedMatrix<double,3,24>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Hexahedral_interface_3d_8
         rNu(0,0) = -Ncontainer(GPoint,0); rNu(0,3) = -Ncontainer(GPoint,1); rNu(0,6) = -Ncontainer(GPoint,2); rNu(0,9)  = -Ncontainer(GPoint,3);
@@ -84,7 +91,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,3,12>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuElementMatrix(BoundedMatrix<double,3,12>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Quadrilateral_interface_2d_4
         rNut(0,0) = -Ncontainer(GPoint,0); rNut(0,3) = -Ncontainer(GPoint,1); 
@@ -96,7 +103,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,4,24>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuElementMatrix(BoundedMatrix<double,4,24>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Prism_interface_3d_6
         rNut(0,0) = -Ncontainer(GPoint,0); rNut(0,4) = -Ncontainer(GPoint,1); rNut(0,8)  = -Ncontainer(GPoint,2); 
@@ -110,7 +117,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,4,32>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuElementMatrix(BoundedMatrix<double,4,32>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Hexahedral_interface_3d_8
         rNut(0,0) = -Ncontainer(GPoint,0); rNut(0,4) = -Ncontainer(GPoint,1); rNut(0,8)  = -Ncontainer(GPoint,2); rNut(0,12) = -Ncontainer(GPoint,3);
@@ -124,7 +131,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    static inline void CalculatePermeabilityMatrix(boost::numeric::ublas::bounded_matrix<double,2,2>& rPermeabilityMatrix,
+    static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
                                                     const double& JointWidth, const double& Transversal_Permeability)
     {
         //Quadrilateral_interface_2d_4
@@ -134,7 +141,7 @@ public:
     
     //----------------------------------------------------------------------------------------
     
-    static inline void CalculatePermeabilityMatrix(boost::numeric::ublas::bounded_matrix<double,3,3>& rPermeabilityMatrix,
+    static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
                                                     const double& JointWidth, const double& Transversal_Permeability)
     {
         //Prism_interface_3d_6 & Hexahedral_interface_3d_8
@@ -164,7 +171,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    static inline void CalculateLinkPermeabilityMatrix(boost::numeric::ublas::bounded_matrix<double,2,2>& rPermeabilityMatrix,
+    static inline void CalculateLinkPermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
                                                     const double& JointWidth)
     {
         //Quadrilateral_interface_2d_4
@@ -174,7 +181,7 @@ public:
     
     //----------------------------------------------------------------------------------------
     
-    static inline void CalculateLinkPermeabilityMatrix(boost::numeric::ublas::bounded_matrix<double,3,3>& rPermeabilityMatrix,
+    static inline void CalculateLinkPermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
                                                     const double& JointWidth)
     {
         //Prism_interface_3d_6 & Hexahedral_interface_3d_8

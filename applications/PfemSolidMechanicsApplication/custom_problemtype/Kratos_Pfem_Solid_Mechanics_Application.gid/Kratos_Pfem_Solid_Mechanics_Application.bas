@@ -84,26 +84,7 @@ Begin Properties *MatNum
 *format "%10.5e"
  PERMEABILITY *MatProp(PERMEABILITY,real)
 *format "%10.5e"
- STABILIZATION_FACTOR *MatProp(STABILIZATION_FACTOR,real)
-*format "%10.5e"
- CONTACT_ADHESION *MatProp(CONTACT_ADHESION,real)
-*format "%10.5e"
- CONTACT_FRICTION_ANGLE *MatProp(CONTACT_FRICTION_ANGLE,real)
-*format "%10.5e"
- K0 *MatProp(K0,real)
-*elseif(strcmp(MatProp(HARDENING_MODEL),"MOHR_C")==0)
-*format "%10.5e"
- INTERNAL_FRICTION_ANGLE *MatProp(INTERNAL_FRICTION_ANGLE,real)
-*format "%10.5e"
- INTERNAL_DILATANCY_ANGLE *MatProp(INTERNAL_DILATANCY_ANGLE,real)
-*format "%10.5e"
- COHESION *MatProp(COHESION,real)
-*format "%10.5e"
- DENSITY_WATER *MatProp(WATER_DENSITY,real)
-*format "%10.5e"
- WATER_BULK_MODULUS *MatProp(WATER_BULK_MODULUS,real)
-*format "%10.5e"
- PERMEABILITY *MatProp(PERMEABILITY,real)
+ INITIAL_POROSITY *MatProp(POROSITY,real)
 *format "%10.5e"
  STABILIZATION_FACTOR *MatProp(STABILIZATION_FACTOR,real)
 *format "%10.5e"
@@ -151,6 +132,108 @@ Begin Properties *MatNum
  PERMEABILITY *MatProp(PERMEABILITY,real)
 *format "%10.5e"
  STABILIZATION_FACTOR *MatProp(STABILIZATION_FACTOR,real)
+*format "%10.5e"
+ STABILIZATION_FACTOR_WP *MatProp(STABILIZATION_FACTOR_WP,real)
+*format "%10.5e"
+ STABILIZATION_FACTOR_J *MatProp(STABILIZATION_FACTOR_J,real)
+*format "%10.5e"
+ CONTACT_ADHESION *MatProp(CONTACT_ADHESION,real)
+*format "%10.5e"
+ CONTACT_FRICTION_ANGLE *MatProp(CONTACT_FRICTION_ANGLE,real)
+*format "%10.5e"
+ K0 *MatProp(K0,real)
+*format "%10.5e"
+ THICKNESS *MatProp(THICKNESS,real)
+End Properties
+
+*endif
+*end materials
+*loop materials
+*if(strcmp(MatProp(Type),"FabricModel")==0)
+*format "%i"
+Begin Properties *MatNum
+*format "%10.5e"
+ DENSITY *MatProp(THICKNESS,real)
+*format "%10.5e"
+ YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
+*format "%10.5e"
+ POISSON_RATIO *MatProp(POISSON_RATIO,real)
+*format "%10.5e"
+ ALPHA *MatProp(ALPHA,real)
+*format "%10.5e"
+ BETA *MatProp(BETA,real)
+*format "%10.5e"
+ MF *MatProp(MF,real)
+*format "%10.5e"
+ CC *MatProp(CC,real)
+*format "%10.5e"
+ MM *MatProp(MM,real)
+*format "%10.5e"
+ RHOS *MatProp(RHOS,real)
+*format "%10.5e"
+ KSIS *MatProp(KSIS,real)
+*format "%10.5e"
+ RHOM *MatProp(RHOM,real)
+*format "%10.5e"
+ KSIM *MatProp(KSIM,real)
+*format "%10.5e"
+ PC0 *MatProp(PC0,real)
+*format "%10.5e"
+ VOID_RATIO *MatProp(VOID_RATIO,real)
+*format "%10.5e"
+ PS *MatProp(PS,real)
+*format "%10.5e"
+ PM *MatProp(PM,real)
+*format "%10.5e"
+ PLASTIC_MULTIPLIER *MatProp(PLASTIC_MULTIPLIER,real)
+End Properties
+
+*endif
+*end materials
+*loop materials
+*if(strcmp(MatProp(Type),"GensNovaPlasticity")==0)
+*format "%i"
+Begin Properties *MatNum
+*format "%10.5e"
+ DENSITY *MatProp(DENSITY,real)
+*format "%10.5e"
+ YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
+*format "%10.5e"
+ POISSON_RATIO *MatProp(POISSON_RATIO,real)
+*format "%10.5e"
+ ALPHA_SHEAR *MatProp(ALPHA_SHEAR,real)
+*format "%10.5e"
+ REFERENCE_PRESSURE *MatProp(REFERENCE_PRESSURE,real)
+*format "%10.5e"
+ CRITICAL_STATE_LINE *MatProp(CRITICAL_STATE_LINE,real)
+*format "%10.5e"
+ INTERNAL_FRICTION_ANGLE *MatProp(INTERNAL_FRICTION_ANGLE,real)
+*format "%10.5e"
+ KSIM *MatProp(KSIM,real)
+*format "%10.5e"
+ PS *MatProp(PS,real)
+*format "%10.5e"
+ PT *MatProp(PT,real)
+*format "%10.5e"
+ RHOS *MatProp(RHOS,real)
+*format "%10.5e"
+ RHOT *MatProp(RHOT,real)
+*format "%10.5e"
+ CHIS *MatProp(CHIS,real)
+*format "%10.5e"
+ CHIT *MatProp(CHIT,real)
+*format "%10.5e"
+ DENSITY_WATER *MatProp(WATER_DENSITY,real)
+*format "%10.5e"
+ WATER_BULK_MODULUS *MatProp(WATER_BULK_MODULUS,real)
+*format "%10.5e"
+ PERMEABILITY *MatProp(PERMEABILITY,real)
+*format "%10.5e"
+ STABILIZATION_FACTOR *MatProp(STABILIZATION_FACTOR,real)
+*format "%10.5e"
+ STABILIZATION_FACTOR_WP *MatProp(STABILIZATION_FACTOR_WP,real)
+*format "%10.5e"
+ STABILIZATION_FACTOR_J *MatProp(STABILIZATION_FACTOR_J,real)
 *format "%10.5e"
  CONTACT_ADHESION *MatProp(CONTACT_ADHESION,real)
 *format "%10.5e"
@@ -215,6 +298,78 @@ Begin Elements UpdatedLagrangianUwPElement2D3N
 End Elements
 
 *endif
+*set cond surface_UpdatedLagrangianUJElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements UpdatedLagrangianUJElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*set cond surface_UpdatedLagrangianUWElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements UpdatedLagrangianUWElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*set cond surface_UpdatedLagrangianUWwPElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements UpdatedLagrangianUWwPElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*set cond surface_UpdatedLagrangianUJWwPElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements UpdatedLagrangianUJWwPElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
 *set cond surface_UpdatedLagrangianUwPStabElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements UpdatedLagrangianUwPStabElement2D3N
@@ -251,45 +406,63 @@ Begin Elements AxisymUpdatedLagrangianUwPStabElement2D3N
 End Elements
 
 *endif
+*set cond surface_AxisymUpdatedLagrangianUJwPElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements AxisymUpdatedLagrangianUJwPElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*set cond surface_AxisymUpdatedLagrangianUJWwPElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements AxisymUpdatedLagrangianUJWwPElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*set cond surface_AxisymUpdatedLagrangianUJElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements AxisymUpdatedLagrangianUJElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
 *set cond surface_UpdatedLagrangianUPElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements UpdatedLagrangianUPElement2D3N
-*#// id prop_id	 n1	n2	n3	...
-*loop elems *OnlyInCond
-*set var ielem=operation(ielem+1)
-*set var i=0
-*set var j=ElemsNnode
-*format "%i%i%i%i%i%i%i%i"
-*ElemsNum *ElemsMat*\
-*for(i=1;i<=j;i=i+1)*\
- *ElemsConec(*i)*\
-*end
-
-*end elems
-End Elements
-
-*endif
-*set cond surface_UpdatedLagrangianUPStabElement2D3N *elems
-*if(CondNumEntities > 0)
-Begin Elements UpdatedLagrangianUPStabElement2D3N
-*#// id prop_id	 n1	n2	n3	...
-*loop elems *OnlyInCond
-*set var ielem=operation(ielem+1)
-*set var i=0
-*set var j=ElemsNnode
-*format "%i%i%i%i%i%i%i%i"
-*ElemsNum *ElemsMat*\
-*for(i=1;i<=j;i=i+1)*\
- *ElemsConec(*i)*\
-*end
-
-*end elems
-End Elements
-
-*endif
-*set cond surface_AxisymUpdatedLagrangianUPStabElement2D3N *elems
-*if(CondNumEntities > 0)
-Begin Elements AxisymUpdatedLagrangianUPStabElement2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)
@@ -377,12 +550,67 @@ Begin Elements UpdatedLagrangianUPElement3D4N
 End Elements
 
 *endif
+
+*set cond volume_UpdatedLagrangianUwPStabElement3D4N *elems
+*if(CondNumEntities > 0)
+Begin Elements UpdatedLagrangianUwPStabElement3D4N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*set cond volume_UpdatedLagrangianUJElement3D4N *elems
+*if(CondNumEntities > 0)
+Begin Elements UpdatedLagrangianUJElement3D4N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*set cond volume_UpdatedLagrangianUJwPElement3D4N *elems
+*if(CondNumEntities > 0)
+Begin Elements UpdatedLagrangianUJwPElement3D4N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
 *set cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
 *if(strcmp(cond(Parametric_Wall),"False")==0)
 *if(strcmp(cond(Body_Surface),"False")==0)
-*if(GenData(DOMAIN_SIZE,INT) == 3)
+*if(GenData(DIMENSION,INT) == 3)
 Begin Elements Element3D4N
 *else
 Begin Elements Element2D3N
@@ -415,7 +643,7 @@ End Elements
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
 *if(strcmp(cond(Body_Surface),"True")==0 || strcmp(cond(Parametric_Wall),"True")==0)
-*if(GenData(DOMAIN_SIZE,INT) == 3)
+*if(GenData(DIMENSION,INT) == 3)
 Begin Elements Element3D3N
 *else
 Begin Elements Element2D2N
@@ -581,6 +809,52 @@ End SubModelPart
 *end groups    
 *endif
 *set cond group_ANGULAR_MOVEMENT *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin SubModelPart *GroupName // *GroupNum
+
+ Begin SubModelPartNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+ End SubModelPartConditions
+
+End SubModelPart
+*end groups    
+*endif
+*set cond group_WATER_PRESSURE *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin SubModelPart *GroupName // *GroupNum
+
+ Begin SubModelPartNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+ End SubModelPartConditions
+
+End SubModelPart
+*end groups    
+*endif
+*set cond group_WATER_MOVEMENT *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
 Begin SubModelPart *GroupName // *GroupNum

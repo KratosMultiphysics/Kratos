@@ -1,9 +1,16 @@
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:               July 2016 $
-//   Revision:            $Revision:                 1.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_NONLOCAL_DAMAGE_3D_UTILITIES )
 #define  KRATOS_NONLOCAL_DAMAGE_3D_UTILITIES
@@ -21,9 +28,7 @@ class NonlocalDamage3DUtilities : public NonlocalDamageUtilities
 public:
 
     typedef NonlocalDamageUtilities::GaussPoint GaussPoint;
-    typedef NonlocalDamageUtilities::NeighbourPoint NeighbourPoint;
-    typedef NonlocalDamageUtilities::NonlocalPoint NonlocalPoint;
-    using NonlocalDamageUtilities::mNonlocalPointList;
+    using NonlocalDamageUtilities::mGaussPointList;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -35,7 +40,7 @@ private:
         int NRows, NColumns, NSections;
         double RowSize, ColumnSize, SectionSize;
         
-        std::vector< std::vector< std::vector< std::vector<GaussPoint> > > > GaussPointCellMatrix;
+        std::vector< std::vector< std::vector< std::vector<GaussPoint*> > > > GaussPointCellMatrix;
     };
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -50,23 +55,23 @@ public:
     ///------------------------------------------------------------------------------------
 
     /// Destructor
-    virtual ~NonlocalDamage3DUtilities() {}
+    ~NonlocalDamage3DUtilities() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    void SearchGaussPointsNeighbours (Parameters* pParameters, ModelPart& rModelPart)
+    void SearchGaussPointsNeighbours (Parameters* pParameters, ModelPart& rModelPart) override
     {
-        std::cout << "Starting non-local search of neighbours ..." << std::endl;
+        KRATOS_INFO("Nonlocal Damage 3D utility") << "Starting non-local search of neighbours ..." << std::endl;
         
         // Define necessary variables
         Utility3DVariables AuxVariables;
 
         //Set GaussPoints inside CellMatrix
         this->InitializeNonlocalSearch(AuxVariables,pParameters,rModelPart);
-                
+
         this->SearchNeighbours(AuxVariables,pParameters,rModelPart);
         
-        std::cout << "... search of neighbours completed." << std::endl;
+        KRATOS_INFO("Nonlocal Damage 3D utility") << "... search of neighbours completed." << std::endl;
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -95,9 +100,10 @@ protected:
         }
         
         // Locate GaussPoints inside CellMatrix
-        GaussPoint MyGaussPoint;
+        unsigned int NGPoints = 0;
         GeometryData::IntegrationMethod MyIntegrationMethod;
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        array_1d<double,3> AuxGlobalCoordinates;
         array_1d<double,3> AuxLocalCoordinates;
         
         Parameters& rParameters = *pParameters;
@@ -112,7 +118,7 @@ protected:
             ModelPart::ElementsContainerType::iterator el_begin = BodySubModelPart.ElementsBegin();
             
             // Loop through all body elements
-            #pragma omp parallel for private(MyGaussPoint,MyIntegrationMethod,AuxLocalCoordinates)
+            #pragma omp parallel for private(MyIntegrationMethod,AuxGlobalCoordinates,AuxLocalCoordinates)
             for(int j = 0; j < NElems; j++)
             {
                 ModelPart::ElementsContainerType::iterator itElem = el_begin + j;
@@ -124,7 +130,7 @@ protected:
                 Vector detJContainer(NumGPoints);
                 rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
                 std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(NumGPoints);
-                itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
+                itElem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
                 int Row;
                 int Column;
                 int Section;
@@ -136,21 +142,22 @@ protected:
                     AuxLocalCoordinates[0] = IntegrationPoints[GPoint][0];
                     AuxLocalCoordinates[1] = IntegrationPoints[GPoint][1];
                     AuxLocalCoordinates[2] = IntegrationPoints[GPoint][2];
-                    rGeom.GlobalCoordinates(MyGaussPoint.Coordinates,AuxLocalCoordinates); //Note: these are the CURRENT global coordinates
+                    rGeom.GlobalCoordinates(AuxGlobalCoordinates,AuxLocalCoordinates); //Note: these are the CURRENT global coordinates
 
                     // MyGaussPoint Weight
-                    MyGaussPoint.Weight = detJContainer[GPoint]*IntegrationPoints[GPoint].Weight();
-
-                    // MyGaussPoint ConstitutiveLaw Pointer
-                    MyGaussPoint.pConstitutiveLaw = ConstitutiveLawVector[GPoint];
+                    double Weight = detJContainer[GPoint]*IntegrationPoints[GPoint].Weight();
 
                     // MyGaussPoint Row, Column and Section
-                    Row = int((rAuxVariables.Y_max-MyGaussPoint.Coordinates[1])/rAuxVariables.RowSize);
-                    Column = int((MyGaussPoint.Coordinates[0]-rAuxVariables.X_min)/rAuxVariables.ColumnSize);
-                    Section = int((MyGaussPoint.Coordinates[2]-rAuxVariables.Z_min)/rAuxVariables.SectionSize);
+                    Row = int((rAuxVariables.Y_max-AuxGlobalCoordinates[1])/rAuxVariables.RowSize);
+                    Column = int((AuxGlobalCoordinates[0]-rAuxVariables.X_min)/rAuxVariables.ColumnSize);
+                    Section = int((AuxGlobalCoordinates[2]-rAuxVariables.Z_min)/rAuxVariables.SectionSize);
+
                     #pragma omp critical
                     {
-                        rAuxVariables.GaussPointCellMatrix[Row][Column][Section].push_back(MyGaussPoint);
+                        // Push Back GaussPoint (Heap)
+                        mGaussPointList.push_back( new GaussPoint(ConstitutiveLawVector[GPoint],AuxGlobalCoordinates,Weight) );
+                        rAuxVariables.GaussPointCellMatrix[Row][Column][Section].push_back(mGaussPointList[NGPoints]);
+                        NGPoints++;
                     }
                 }
             }
@@ -164,101 +171,78 @@ protected:
         Parameters* pParameters,
         ModelPart& rModelPart)
     {
-        NeighbourPoint MyNeighbourPoint;
-        array_1d<double,3> MyCoordinates;
-        array_1d<double,3> AuxLocalCoordinates;
-        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        Parameters& rParameters = *pParameters;
-        double CharacteristicLength = rParameters["characteristic_length"].GetDouble();
-        unsigned int NumBodySubModelParts = rParameters["body_domain_sub_model_part_list"].size();
-
-        // Loop through all BodySubModelParts
-        for(unsigned int i = 0; i < NumBodySubModelParts; i++)
+        int NGPoints = static_cast<int>(mGaussPointList.size());
+        double CharacteristicLength = (*pParameters)["characteristic_length"].GetDouble();
+        
+        // Loop through all Gauss Points
+        #pragma omp parallel for
+        for(int i = 0; i < NGPoints; i++)
         {
-            ModelPart& BodySubModelPart = rModelPart.GetSubModelPart(rParameters["body_domain_sub_model_part_list"][i].GetString());
+            GaussPoint& rMyGaussPoint = *(mGaussPointList[i]);
 
-            int NElems = static_cast<int>(BodySubModelPart.Elements().size());
-            ModelPart::ElementsContainerType::iterator el_begin = BodySubModelPart.ElementsBegin();
-            
-            // Loop through all body elements
-            #pragma omp parallel for private(MyNeighbourPoint,MyCoordinates,AuxLocalCoordinates)
-            for(int j = 0; j < NElems; j++)
+            double X_left = rMyGaussPoint.Coordinates[0] - CharacteristicLength;
+            double X_right = rMyGaussPoint.Coordinates[0] + CharacteristicLength;
+            double Y_top = rMyGaussPoint.Coordinates[1] + CharacteristicLength;
+            double Y_bot = rMyGaussPoint.Coordinates[1] - CharacteristicLength;
+            double Z_back = rMyGaussPoint.Coordinates[2] - CharacteristicLength;
+            double Z_front = rMyGaussPoint.Coordinates[2] + CharacteristicLength;
+
+            int Column_left = int((X_left-rAuxVariables.X_min)/rAuxVariables.ColumnSize);
+            int Column_right = int((X_right-rAuxVariables.X_min)/rAuxVariables.ColumnSize);
+            int Row_top = int((rAuxVariables.Y_max-Y_top)/rAuxVariables.RowSize);
+            int Row_bot = int((rAuxVariables.Y_max-Y_bot)/rAuxVariables.RowSize);
+            int Section_back = int((Z_back-rAuxVariables.Z_min)/rAuxVariables.SectionSize);
+            int Section_front = int((Z_front-rAuxVariables.Z_min)/rAuxVariables.SectionSize);
+
+            if(Column_left < 0) Column_left = 0;
+            if(Column_right >= rAuxVariables.NColumns) Column_right = rAuxVariables.NColumns-1;
+            if(Row_top < 0) Row_top = 0;
+            if(Row_bot >= rAuxVariables.NRows) Row_bot = rAuxVariables.NRows-1;
+            if(Section_back < 0) Section_back = 0;
+            if(Section_front >= rAuxVariables.NSections) Section_front = rAuxVariables.NSections-1;
+
+            // Search GaussPoints neighbours
+            for(int s = Section_back; s <= Section_front; s++)
             {
-                ModelPart::ElementsContainerType::iterator itElem = el_begin + j;
-
-                Element::GeometryType& rGeom = itElem->GetGeometry();
-                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(itElem->GetIntegrationMethod());
-                unsigned int NumGPoints = IntegrationPoints.size();
-                std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(NumGPoints);
-                itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
-
-                // Loop through GaussPoints
-                for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+                for(int k = Row_top; k <= Row_bot; k++)
                 {
-                    // Coordinates
-                    AuxLocalCoordinates[0] = IntegrationPoints[GPoint][0];
-                    AuxLocalCoordinates[1] = IntegrationPoints[GPoint][1];
-                    AuxLocalCoordinates[2] = IntegrationPoints[GPoint][2];
-                    rGeom.GlobalCoordinates(MyCoordinates,AuxLocalCoordinates); //Note: these are the CURRENT global coordinates
-
-                    double X_left = MyCoordinates[0] - CharacteristicLength;
-                    double X_right = MyCoordinates[0] + CharacteristicLength;
-                    double Y_top = MyCoordinates[1] + CharacteristicLength;
-                    double Y_bot = MyCoordinates[1] - CharacteristicLength;
-                    double Z_back = MyCoordinates[2] - CharacteristicLength;
-                    double Z_front = MyCoordinates[2] + CharacteristicLength;
-
-                    int Column_left = int((X_left-rAuxVariables.X_min)/rAuxVariables.ColumnSize);
-                    int Column_right = int((X_right-rAuxVariables.X_min)/rAuxVariables.ColumnSize);
-                    int Row_top = int((rAuxVariables.Y_max-Y_top)/rAuxVariables.RowSize);
-                    int Row_bot = int((rAuxVariables.Y_max-Y_bot)/rAuxVariables.RowSize);
-                    int Section_back = int((Z_back-rAuxVariables.Z_min)/rAuxVariables.SectionSize);
-                    int Section_front = int((Z_front-rAuxVariables.Z_min)/rAuxVariables.SectionSize);
-
-                    if(Column_left < 0) Column_left = 0;
-                    if(Column_right >= rAuxVariables.NColumns) Column_right = rAuxVariables.NColumns-1;
-                    if(Row_top < 0) Row_top = 0;
-                    if(Row_bot >= rAuxVariables.NRows) Row_bot = rAuxVariables.NRows-1;
-                    if(Section_back < 0) Section_back = 0;
-                    if(Section_front >= rAuxVariables.NSections) Section_front = rAuxVariables.NSections-1;
-                    
-                    NonlocalPoint MyPoint;
-                    MyPoint.pConstitutiveLaw = ConstitutiveLawVector[GPoint];
-                    
-                    // Search GaussPoints neighbours
-                    for(int s = Section_back; s <= Section_front; s++)
+                    for(int l = Column_left; l <= Column_right; l++)
                     {
-                        for(int k = Row_top; k <= Row_bot; k++)
+                        for(unsigned int m = 0; m < rAuxVariables.GaussPointCellMatrix[k][l][s].size(); m++)
                         {
-                            for(int l = Column_left; l <= Column_right; l++)
+                            if ( (&rMyGaussPoint) != rAuxVariables.GaussPointCellMatrix[k][l][s][m] )
                             {
-                                for(unsigned int m = 0; m < rAuxVariables.GaussPointCellMatrix[k][l][s].size(); m++)
+                                GaussPoint& rMyNeighbourPoint = *(rAuxVariables.GaussPointCellMatrix[k][l][s][m]);
+
+                                double Distance = sqrt((rMyNeighbourPoint.Coordinates[0]-rMyGaussPoint.Coordinates[0])*(rMyNeighbourPoint.Coordinates[0]-rMyGaussPoint.Coordinates[0]) +
+                                                (rMyNeighbourPoint.Coordinates[1]-rMyGaussPoint.Coordinates[1])*(rMyNeighbourPoint.Coordinates[1]-rMyGaussPoint.Coordinates[1]) +
+                                                (rMyNeighbourPoint.Coordinates[2]-rMyGaussPoint.Coordinates[2])*(rMyNeighbourPoint.Coordinates[2]-rMyGaussPoint.Coordinates[2]));
+
+                                if(Distance <= CharacteristicLength)
                                 {
-                                    const GaussPoint& MyGaussPoint = rAuxVariables.GaussPointCellMatrix[k][l][s][m];
-
-                                    double Distance = sqrt((MyGaussPoint.Coordinates[0]-MyCoordinates[0])*(MyGaussPoint.Coordinates[0]-MyCoordinates[0]) +
-                                                    (MyGaussPoint.Coordinates[1]-MyCoordinates[1])*(MyGaussPoint.Coordinates[1]-MyCoordinates[1]) +
-                                                    (MyGaussPoint.Coordinates[2]-MyCoordinates[2])*(MyGaussPoint.Coordinates[2]-MyCoordinates[2]));
-
-                                    if(Distance <= CharacteristicLength)
+                                    #pragma omp critical
                                     {
-                                        MyNeighbourPoint.pConstitutiveLaw = MyGaussPoint.pConstitutiveLaw;
-                                        MyNeighbourPoint.Weight = MyGaussPoint.Weight;
-                                        MyNeighbourPoint.Distance = Distance;
-                                        
-                                        MyPoint.NeighbourPoints.push_back(MyNeighbourPoint);
+                                        rMyGaussPoint.NeighbourPoints.push_back(&rMyNeighbourPoint);
                                     }
                                 }
                             }
                         }
                     }
-                    #pragma omp critical
-                    {
-                        mNonlocalPointList.push_back(MyPoint);
-                    }
                 }
             }
         }
+    }
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ComputeNeighbourDistance(
+        double& rDistance,
+        const GaussPoint& ReceiverPoint,
+        const GaussPoint& SourcePoint) override
+    {
+        rDistance = sqrt((SourcePoint.Coordinates[0]-ReceiverPoint.Coordinates[0])*(SourcePoint.Coordinates[0]-ReceiverPoint.Coordinates[0]) +
+                         (SourcePoint.Coordinates[1]-ReceiverPoint.Coordinates[1])*(SourcePoint.Coordinates[1]-ReceiverPoint.Coordinates[1]) +
+                         (SourcePoint.Coordinates[2]-ReceiverPoint.Coordinates[2])*(SourcePoint.Coordinates[2]-ReceiverPoint.Coordinates[2]));
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

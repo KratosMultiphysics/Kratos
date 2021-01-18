@@ -4,7 +4,7 @@ namespace Kratos
 {
 
 
-void Stokes3D::ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const element_data<4,3>& data)
+void Stokes3D::ComputeGaussPointLHSContribution(BoundedMatrix<double,16,16>& lhs, const element_data<4,3>& data)
 {
     const int nnodes = 4;
     const int dim = 3;
@@ -16,7 +16,7 @@ void Stokes3D::ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lh
     const Matrix& C = data.C;
 
     //get shape function values
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
     const array_1d<double,nnodes>& N = data.N;
 
 
@@ -461,10 +461,10 @@ void Stokes3D::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const 
     const double& bdf1 = data.bdf1;
     const double& bdf2 = data.bdf2;
 
-    const bounded_matrix<double,nnodes,dim>& v = data.v;
-    const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    const bounded_matrix<double,nnodes,dim>& f = data.f;
+    const BoundedMatrix<double,nnodes,dim>& v = data.v;
+    const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
+    const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
+    const BoundedMatrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& p = data.p;
 
     //get constitutive matrix
@@ -472,7 +472,7 @@ void Stokes3D::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const 
     const Vector& stress = data.stress;
 
     //get shape function values
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
     const array_1d<double,nnodes>& N = data.N;
 
     //compute an equivalent tau by Bitrans*c*Bi

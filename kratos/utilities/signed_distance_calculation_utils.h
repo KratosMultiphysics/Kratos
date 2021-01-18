@@ -1,47 +1,15 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
-/*
- * File:   signed_distance_calculation_utils.h
- * Author: rrossi
- *
- * Created on September 3, 2009, 8:34 AM
- */
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//                    
+//
 
 #ifndef _SIGNED_DISTANCE_CALCULATION_UTILS_H
 #define	_SIGNED_DISTANCE_CALCULATION_UTILS_H
@@ -174,12 +142,12 @@ public:
             it->GetValue(IS_VISITED) = 0;
         }
 
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        BoundedMatrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N, distances;
         array_1d<double,TDim> grad_d;
         array_1d<double,3> coord_on_0(3,0.0);
         array_1d<double,3> temp;
-        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> free_surface_points;
+        BoundedMatrix<double, TDim, TDim> free_surface_points;
 
         //fill the list of the first elements to be solved for the "distance"
         for(ElementsArrayType::iterator it =  r_model_part.ElementsBegin(); it !=r_model_part.ElementsEnd(); it++)
@@ -321,7 +289,7 @@ public:
                 //const array_1d<double,3>& center_coords = it->Coordinates();
 
                 //now loop all of its neighbours and calculate the distance value
-//                for (WeakPointerVector< Node<3> >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin();
+//                for (GlobalPointersVector< Node<3> >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin();
 //                        in != it->GetValue(NEIGHBOUR_NODES).end(); in++)
 //                {
 //                    const array_1d<double,3>& coords = in->Coordinates();
@@ -504,7 +472,7 @@ public:
             double zc = in->Z();
 
             double h = 0.0;
-            for (WeakPointerVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+            for (GlobalPointersVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                     i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
             {
                 double x = i->X();
@@ -560,7 +528,7 @@ private:
 //                                 Geometry< Node<3> >& geom,
 //                                 double xi, double eta,
 //                                 array_1d<double, 3 > N,
-//                                 const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> free_surface_points,
+//                                 const BoundedMatrix<double, TDim, TDim> free_surface_points,
 //                                 Variable<double>& rDistanceVar )
 //                 {
 //                     Point<3> aux(0.0, 0.0, 0.0);

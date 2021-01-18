@@ -6,22 +6,9 @@
 //
 
 // System includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // Project includes
-#include "includes/define.h"
 #include "includes/constitutive_law.h"
-#include "includes/node.h"
-#include "includes/variables.h"
-#include "includes/mesh.h"
-#include "includes/element.h"
-#include "includes/condition.h"
-#include "includes/properties.h"
-
-#include "python/pointer_vector_set_python_interface.h"
-#include "python/variable_indexing_python.h"
-#include "python/add_mesh_to_python.h"
 
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
@@ -51,39 +38,93 @@
 #include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
 
+#include "custom_constitutive/joint_cohesion_driven_3D_law.hpp"
+#include "custom_constitutive/joint_cohesion_driven_2D_law.hpp"
+#include "custom_constitutive/joint_stress_driven_3D_law.hpp"
+#include "custom_constitutive/joint_stress_driven_2D_law.hpp"
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-using namespace boost::python;
+namespace py = pybind11;
 
-void  AddCustomConstitutiveLawsToPython()
+void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
-    class_< ThermalLinearElastic3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalLinearElastic3DLaw",init<>() );
-    class_< ThermalLinearElastic2DPlaneStrain, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalLinearElastic2DPlaneStrain",init<>() );
-    class_< ThermalLinearElastic2DPlaneStress, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalLinearElastic2DPlaneStress",init<>() );
+    py::class_< ThermalLinearElastic3DLaw, ThermalLinearElastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "ThermalLinearElastic3DLaw")
+    .def(py::init<>());
+    py::class_< ThermalLinearElastic2DPlaneStrain, ThermalLinearElastic2DPlaneStrain::Pointer, ConstitutiveLaw >
+    (m, "ThermalLinearElastic2DPlaneStrain")
+    .def(py::init<>());
+    py::class_< ThermalLinearElastic2DPlaneStress, ThermalLinearElastic2DPlaneStress::Pointer, ConstitutiveLaw >
+    (m, "ThermalLinearElastic2DPlaneStress")
+    .def(py::init<>());
 
-    class_< LinearElastic3DLawNodal, bases< ConstitutiveLaw >, boost::noncopyable >( "LinearElastic3DLawNodal",init<>() );
-    class_< LinearElastic2DPlaneStrainNodal, bases< ConstitutiveLaw >, boost::noncopyable >( "LinearElastic2DPlaneStrainNodal",init<>() );
-    class_< LinearElastic2DPlaneStressNodal, bases< ConstitutiveLaw >, boost::noncopyable >( "LinearElastic2DPlaneStressNodal",init<>() );
+    py::class_< LinearElastic3DLawNodal, LinearElastic3DLawNodal::Pointer, ConstitutiveLaw >
+    (m, "LinearElastic3DLawNodal")
+    .def(py::init<>());
+    py::class_< LinearElastic2DPlaneStrainNodal, LinearElastic2DPlaneStrainNodal::Pointer, ConstitutiveLaw >
+    (m, "LinearElastic2DPlaneStrainNodal")
+    .def(py::init<>());
+    py::class_< LinearElastic2DPlaneStressNodal, LinearElastic2DPlaneStressNodal::Pointer, ConstitutiveLaw >
+    (m, "LinearElastic2DPlaneStressNodal")
+    .def(py::init<>());
 
-    class_< ThermalLinearElastic3DLawNodal, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalLinearElastic3DLawNodal",init<>() );
-    class_< ThermalLinearElastic2DPlaneStrainNodal, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalLinearElastic2DPlaneStrainNodal",init<>() );
-    class_< ThermalLinearElastic2DPlaneStressNodal, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalLinearElastic2DPlaneStressNodal",init<>() );
+    py::class_< ThermalLinearElastic3DLawNodal, ThermalLinearElastic3DLawNodal::Pointer, ConstitutiveLaw >
+    (m, "ThermalLinearElastic3DLawNodal")
+    .def(py::init<>());
+    py::class_< ThermalLinearElastic2DPlaneStrainNodal, ThermalLinearElastic2DPlaneStrainNodal::Pointer, ConstitutiveLaw >
+    (m, "ThermalLinearElastic2DPlaneStrainNodal")
+    .def(py::init<>());
+    py::class_< ThermalLinearElastic2DPlaneStressNodal, ThermalLinearElastic2DPlaneStressNodal::Pointer, ConstitutiveLaw >
+    (m, "ThermalLinearElastic2DPlaneStressNodal")
+    .def(py::init<>());
 
-    class_< ThermalSimoJuLocalDamage3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalSimoJuLocalDamage3DLaw",init<>() );
-    class_< ThermalSimoJuLocalDamagePlaneStrain2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalSimoJuLocalDamagePlaneStrain2DLaw",init<>() );
-    class_< ThermalSimoJuLocalDamagePlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalSimoJuLocalDamagePlaneStress2DLaw",init<>() );
+    py::class_< ThermalSimoJuLocalDamage3DLaw, ThermalSimoJuLocalDamage3DLaw::Pointer, ConstitutiveLaw >
+    (m, "ThermalSimoJuLocalDamage3DLaw")
+    .def(py::init<>());
+    py::class_< ThermalSimoJuLocalDamagePlaneStrain2DLaw, ThermalSimoJuLocalDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "ThermalSimoJuLocalDamagePlaneStrain2DLaw")
+    .def(py::init<>());
+    py::class_< ThermalSimoJuLocalDamagePlaneStress2DLaw, ThermalSimoJuLocalDamagePlaneStress2DLaw::Pointer, ConstitutiveLaw >
+    (m, "ThermalSimoJuLocalDamagePlaneStress2DLaw")
+    .def(py::init<>());
 
-    class_< ThermalSimoJuNonlocalDamage3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalSimoJuNonlocalDamage3DLaw",init<>() );
-    class_< ThermalSimoJuNonlocalDamagePlaneStrain2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalSimoJuNonlocalDamagePlaneStrain2DLaw",init<>() );
-    class_< ThermalSimoJuNonlocalDamagePlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalSimoJuNonlocalDamagePlaneStress2DLaw",init<>() );
+    py::class_< ThermalSimoJuNonlocalDamage3DLaw, ThermalSimoJuNonlocalDamage3DLaw::Pointer, ConstitutiveLaw >
+    (m, "ThermalSimoJuNonlocalDamage3DLaw")
+    .def(py::init<>());
+    py::class_< ThermalSimoJuNonlocalDamagePlaneStrain2DLaw, ThermalSimoJuNonlocalDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "ThermalSimoJuNonlocalDamagePlaneStrain2DLaw")
+    .def(py::init<>());
+    py::class_< ThermalSimoJuNonlocalDamagePlaneStress2DLaw, ThermalSimoJuNonlocalDamagePlaneStress2DLaw::Pointer, ConstitutiveLaw >
+    (m, "ThermalSimoJuNonlocalDamagePlaneStress2DLaw")
+    .def(py::init<>());
 
-    class_< ThermalModifiedMisesNonlocalDamage3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalModifiedMisesNonlocalDamage3DLaw",init<>() );
-    class_< ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw",init<>() );
-    class_< ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw",init<>() );
+    py::class_< ThermalModifiedMisesNonlocalDamage3DLaw, ThermalModifiedMisesNonlocalDamage3DLaw::Pointer, ConstitutiveLaw >
+    (m, "ThermalModifiedMisesNonlocalDamage3DLaw")
+    .def(py::init<>());
+    py::class_< ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw, ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw")
+    .def(py::init<>());
+    py::class_< ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw, ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw::Pointer, ConstitutiveLaw >
+    (m, "ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw")
+    .def(py::init<>());
+
+    py::class_< JointCohesionDriven3DLaw, JointCohesionDriven3DLaw::Pointer, ConstitutiveLaw >
+    (m, "JointCohesionDriven3DLaw")
+    .def( py::init<>() );
+    py::class_< JointCohesionDriven2DLaw, JointCohesionDriven2DLaw::Pointer, ConstitutiveLaw >
+    (m, "JointCohesionDriven2DLaw")
+    .def( py::init<>() );
+    py::class_< JointStressDriven3DLaw, JointStressDriven3DLaw::Pointer, ConstitutiveLaw >
+    (m, "JointStressDriven3DLaw")
+    .def( py::init<>() );
+    py::class_< JointStressDriven2DLaw, JointStressDriven2DLaw::Pointer, ConstitutiveLaw >
+    (m, "JointStressDriven2DLaw")
+    .def( py::init<>() );
 }
 
 }  // namespace Python.

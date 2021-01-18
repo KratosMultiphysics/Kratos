@@ -1,307 +1,188 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
-import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication
-import KratosMultiphysics.StructuralMechanicsApplication
-import KratosMultiphysics.ContactStructuralMechanicsApplication
-import KratosMultiphysics.FSIApplication
+import KratosMultiphysics as KM
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+# Import applications
+import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Import the implicit solver (the explicit one is derived from it)
-import structural_mechanics_implicit_dynamic_solver
+from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_implicit_dynamic_solver
 
-def CreateSolver(main_model_part, custom_settings):
-    return ImplicitMechanicalSolver(main_model_part, custom_settings)
+# Import auxiliar methods
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
 
-class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
-    
-    ##constructor. the constructor shall only take care of storing the settings 
-    ##and the pointer to the main_model part. This is needed since at the point of constructing the 
-    ##model part is still not filled and the variables are not yet allocated
-    ##
-    ##real construction shall be delayed to the function "Initialize" which 
-    ##will be called once the model is already filled
-    def __init__(self, main_model_part, custom_settings): 
-        
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part    
-        
-        ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type": "contact_structural_mechanics_implicit_dynamic_solver",
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
-            },
-            "echo_level": 0,
-            "buffer_size": 2,
-            "solution_type": "Dynamic",
-            "rayleigh_alpha": 0.0,
-            "rayleigh_beta":  0.0,
-            "scheme_type": "Newmark",
-            "damp_factor_m" : -0.1,
-            "time_integration_method": "Implicit",
-            "analysis_type": "Non-Linear",
-            "rotation_dofs": false,
-            "pressure_dofs": false,
-            "damp_factor_m":-0.1,
-            "rayleigh_alpha":0.0,
-            "rayleigh_beta" :0.0,
-            "stabilization_factor": 1.0,
-            "reform_dofs_at_each_step": true,
-            "line_search": false,
-            "implex": false,
-            "compute_reactions": true,
-            "compute_contact_forces": false,
-            "compute_mortar_contact": 1,
-            "block_builder": true,
-            "clear_storage": false,
-            "component_wise": false,
-            "move_mesh_flag": true,
-            "convergence_criterion": "Residual_criteria",
-            "displacement_relative_tolerance": 1.0e-4,
-            "displacement_absolute_tolerance": 1.0e-9,
-            "residual_relative_tolerance": 1.0e-4,
-            "residual_absolute_tolerance": 1.0e-9,
-            "max_iteration": 10,
-            "split_factor": 10.0,
-            "max_number_splits": 3,
-            "linear_solver_settings":{
-                "solver_type": "SuperLUSolver",
-                "max_iteration": 500,
-                "tolerance": 1e-9,
-                "scaling": false,
-                "verbosity": 1
-            },
-            "accelerate_convergence": false,
-            "convergence_accelerator":{
-                    "solver_type"       : "Relaxation",
-                    "acceleration_type" : "Aitken",
-                    "w_0"               :  0.01,
-                    "buffer_size"       :  10
-            },
-            "processes_sub_model_part_list": [""],
-            "problem_domain_sub_model_part_list": ["solid_model_part"]
-        }
-        """)
-        
-        ##overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
-        
-        #construct the linear solver
-        import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        
+# Import the contact convergence criteria factory
+from KratosMultiphysics.ContactStructuralMechanicsApplication.contact_convergence_criteria_factory import ContactConvergenceCriteriaFactory
+
+def CreateSolver(model, custom_settings):
+    return ContactImplicitMechanicalSolver(model, custom_settings)
+
+class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
+    """The structural mechanics contact implicit dynamic solver.
+
+    This class creates the mechanical solvers for contact implicit dynamic analysis.
+    It currently supports Newmark, Bossak and dynamic relaxation schemes.
+
+    Public member variables:
+    dynamic_settings -- settings for the implicit dynamic solvers.
+
+    See structural_mechanics_solver.py for more information.
+    """
+    def __init__(self, model, custom_settings):
+
+        self._validate_settings_in_baseclass=True # To be removed eventually
+
+        # Construct the base solver.
+        super().__init__(model, custom_settings)
+
+        self.contact_settings = self.settings["contact_settings"]
+
+        # Linear solver settings
+        if self.settings.Has("linear_solver_settings"):
+            self.linear_solver_settings = self.settings["linear_solver_settings"]
+        else:
+            self.linear_solver_settings = KM.Parameters("""{}""")
+
+        # Setting default configurations true by default
+        auxiliar_methods_solvers.AuxiliarSetSettings(self.settings, self.contact_settings)
+
+        # Setting echo level
         self.echo_level =  self.settings["echo_level"].GetInt()
-        print(self.echo_level)
-        
-        print("Construction of MechanicalSolver finished")
+
+        # Initialize the processes list
+        self.processes_list = None
+
+        # Initialize the post process
+        self.post_process = None
+
+        KM.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Construction of ContactMechanicalSolver finished")
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        auxiliar_methods_solvers.AuxiliarValidateSettings(self)
 
     def AddVariables(self):
-        
-        structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver.AddVariables(self)
-            
-        if  self.settings["compute_mortar_contact"].GetInt() > 0:
-            # Add normal
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-            # Add nodal area
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-            # Add lagrange multiplier
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
-            # Add weighted gap
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP)
-            # Add weighted slip
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP)
-            # Add weighted friction
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_FRICTION)
-            # Add normal augmentation factor
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.NORMAL_AUGMENTATION_FACTOR)
-            # Add tangent augmentation factor
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.TANGENT_AUGMENTATION_FACTOR)
-            # Auxiliar active
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_ACTIVE)
-            # Auxiliar slip
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_SLIP)
-            # Active check factor
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR)
-            if  self.settings["compute_mortar_contact"].GetInt() == 2:
-                # Add the double LM
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.DOUBLE_LM)
-   
-        print("::[Mechanical Solver]:: Variables ADDED")
-        
+
+        super().AddVariables()
+
+        mortar_type = self.contact_settings["mortar_type"].GetString()
+        auxiliar_methods_solvers.AuxiliarAddVariables(self.main_model_part, mortar_type)
+
+        KM.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Variables ADDED")
+
     def AddDofs(self):
 
-        structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver.AddDofs(self)
-        
-        if  self.settings["compute_mortar_contact"].GetInt() > 0:
-            for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X);
-                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y);
-                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z);
-                
-            if  self.settings["compute_mortar_contact"].GetInt() == 2:
-                for node in self.main_model_part.Nodes:
-                    node.AddDof(KratosMultiphysics.ContactStructuralMechanicsApplication.DOUBLE_LM_X);
-                    node.AddDof(KratosMultiphysics.ContactStructuralMechanicsApplication.DOUBLE_LM_Y);
-                    node.AddDof(KratosMultiphysics.ContactStructuralMechanicsApplication.DOUBLE_LM_Z);
-                    
+        super().AddDofs()
 
-        print("::[Mechanical Solver]:: DOF's ADDED")
-    
+        mortar_type = self.contact_settings["mortar_type"].GetString()
+        auxiliar_methods_solvers.AuxiliarAddDofs(self.main_model_part, mortar_type)
+
+        KM.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "DOF's ADDED")
+
     def Initialize(self):
-        structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver.Initialize(self)
-        #if  self.settings["compute_mortar_contact"].GetInt() > 0:
-            #self.computing_model_part.CreateSubModelPart("Contact")
-            #if  self.settings["compute_mortar_contact"].GetInt() == 2:
-                #self.computing_model_part.Set(KratosMultiphysics.MODIFIED, True)
-        
-    def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
+        super().Initialize() # The mechanical solver is created here.
 
-        if(scheme_type == "Newmark") or (scheme_type == "Bossak"):
-            self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
-            self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_BETA ] = self.settings["rayleigh_beta" ].GetDouble()
-            
-            if  self.settings["compute_mortar_contact"].GetInt() > 0:
-                if (scheme_type == "Newmark"):
-                    mechanical_scheme = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedBossakDisplacementContactScheme(0.0)
-                else:
-                    alpha = self.settings["damp_factor_m"].GetDouble()
-                    mechanical_scheme = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedBossakDisplacementContactScheme(alpha)
-            else:
-                mechanical_scheme = super(ImplicitMechanicalSolver,self)._GetSolutionScheme(scheme_type, component_wise, compute_contact_forces)
+        # No verbosity from strategy
+        if self.contact_settings["silent_strategy"].GetBool():
+            mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+            mechanical_solution_strategy.SetEchoLevel(0)
 
-        elif(scheme_type == "Relaxation"):
-          #~ self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString()).AddNodalSolutionStepVariable(DISPLACEMENT)  
-            
-            self.settings.AddEmptyValue("damp_factor_f")  
-            self.settings.AddEmptyValue("dynamic_factor_m")
-            self.settings["damp_factor_f"].SetDouble(-0.3)
-            self.settings["dynamic_factor_m"].SetDouble(10.0) 
-            
-            mechanical_scheme = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedRelaxationScheme(self.settings["damp_factor_f"].GetDouble(),
-                                                                                                                self.settings["dynamic_factor_m"].GetDouble())
-                                
-        return mechanical_scheme
-    
-    def _GetConvergenceCriterion(self):
-        # Creation of an auxiliar Kratos parameters object to store the convergence settings
-        conv_params = KratosMultiphysics.Parameters("{}")
-        conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
-        conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
-        conv_params.AddValue("echo_level",self.settings["echo_level"])
-        conv_params.AddValue("component_wise",self.settings["component_wise"])
-        conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
-        conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
-        conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
-        conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
-        
-        # Construction of the class convergence_criterion
-        import convergence_criteria_factory
-        convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
-        
-        if  self.settings["compute_mortar_contact"].GetInt() > 0:
-            Mortar = KratosMultiphysics.ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
-            Mortar.SetEchoLevel(self.echo_level)
-
-            convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion.mechanical_convergence_criterion)
-        
-        return convergence_criterion.mechanical_convergence_criterion
-    
-    def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
-        
-        if(component_wise):
-            self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(
-                                                                            self.computing_model_part, 
-                                                                            mechanical_scheme, 
-                                                                            self.linear_solver, 
-                                                                            mechanical_convergence_criterion, 
-                                                                            builder_and_solver, 
-                                                                            max_iters, 
-                                                                            compute_reactions, 
-                                                                            reform_step_dofs, 
-                                                                            move_mesh_flag)
+        # We set the flag INTERACTION
+        computing_model_part = self.GetComputingModelPart()
+        if self.contact_settings["simplified_semi_smooth_newton"].GetBool():
+            computing_model_part.Set(KM.INTERACTION, False)
         else:
-            if(line_search):
-                if(implex):
-                    self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(self.computing_model_part, 
-                                                                                                            mechanical_scheme, 
-                                                                                                            self.linear_solver, 
-                                                                                                            mechanical_convergence_criterion, 
-                                                                                                            builder_and_solver, 
-                                                                                                            max_iters, 
-                                                                                                            compute_reactions, 
-                                                                                                            reform_step_dofs, 
-                                                                                                            move_mesh_flag)
-                else:
-                    self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchStrategy(
-                                                                                self.computing_model_part, 
-                                                                                mechanical_scheme, 
-                                                                                self.linear_solver, 
-                                                                                mechanical_convergence_criterion, 
-                                                                                builder_and_solver, 
-                                                                                max_iters, 
-                                                                                compute_reactions, 
-                                                                                reform_step_dofs, 
-                                                                                move_mesh_flag)
+            computing_model_part.Set(KM.INTERACTION, True)
 
+    def Solve(self):
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
+
+        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+        auxiliar_methods_solvers.AuxiliarSolve(mechanical_solution_strategy)
+
+    def SolveSolutionStep(self):
+        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        return is_converged
+
+    def ExecuteFinalizeSolutionStep(self):
+        super().ExecuteFinalizeSolutionStep()
+        if self.contact_settings["ensure_contact"].GetBool():
+            computing_model_part = self.GetComputingModelPart()
+            CSMA.ContactUtilities.CheckActivity(computing_model_part)
+
+    def ComputeDeltaTime(self):
+        return auxiliar_methods_solvers.AuxiliarComputeDeltaTime(self.main_model_part, self.GetComputingModelPart(), self.settings, self.contact_settings)
+
+    def AddProcessesList(self, processes_list):
+        self.processes_list = CSMA.ProcessFactoryUtility(processes_list)
+
+    def AddPostProcess(self, post_process):
+        self.post_process = CSMA.ProcessFactoryUtility(post_process)
+
+    #### Private functions ####
+
+    def _get_convergence_criterion_settings(self):
+        # Create an auxiliary Kratos parameters object to store the convergence settings.
+        return auxiliar_methods_solvers.AuxiliarCreateConvergenceParameters(self.main_model_part, self.settings, self.contact_settings)
+
+    def _create_convergence_criterion(self):
+        convergence_criterion = ContactConvergenceCriteriaFactory(self.main_model_part, self._get_convergence_criterion_settings())
+        return convergence_criterion.mechanical_convergence_criterion
+
+    def _create_linear_solver(self):
+        linear_solver = super()._create_linear_solver()
+        return auxiliar_methods_solvers.AuxiliarCreateLinearSolver(self.main_model_part, self.settings, self.contact_settings, self.linear_solver_settings, linear_solver)
+
+    def _create_builder_and_solver(self):
+        if self.contact_settings["mortar_type"].GetString() != "":
+            linear_solver = self.get_linear_solver()
+            if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+                builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
-                if self.settings["analysis_type"].GetString() == "Linear":
-                    self.mechanical_solver = KratosMultiphysics.ResidualBasedLinearStrategy(
-                                                                            self.computing_model_part, 
-                                                                            mechanical_scheme, 
-                                                                            self.linear_solver, 
-                                                                            builder_and_solver, 
-                                                                            compute_reactions, 
-                                                                            reform_step_dofs, 
-                                                                            False, 
-                                                                            move_mesh_flag)
-                    
-                else:
-                    if  self.settings["accelerate_convergence"].GetBool():
-                        params = self.settings["convergence_accelerator"]
-                        import convergence_accelerator_factory     
-                        self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(params)
-                        self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactAcceleratedStrategy(
-                                                                                self.computing_model_part, 
-                                                                                mechanical_scheme, 
-                                                                                self.linear_solver, 
-                                                                                mechanical_convergence_criterion, 
-                                                                                builder_and_solver, 
-                                                                                max_iters, 
-                                                                                compute_reactions, 
-                                                                                reform_step_dofs, 
-                                                                                move_mesh_flag,
-                                                                                self.coupling_utility
-                                                                                )
-                    elif  self.settings["compute_mortar_contact"].GetInt() > 0:
-                        split_factor   = self.settings["split_factor"].GetDouble()
-                        max_number_splits = self.settings["max_number_splits"].GetInt()
-                        self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
-                                                                                self.computing_model_part, 
-                                                                                mechanical_scheme, 
-                                                                                self.linear_solver, 
-                                                                                mechanical_convergence_criterion, 
-                                                                                builder_and_solver, 
-                                                                                max_iters, 
-                                                                                compute_reactions, 
-                                                                                reform_step_dofs, 
-                                                                                move_mesh_flag,
-                                                                                split_factor,
-                                                                                max_number_splits
-                                                                                )
+                    # We use the elimination builder and solver
+                    if self.settings["multi_point_constraints_used"].GetBool():
+                        if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
+                            self.GetComputingModelPart().Set(KM.TO_SPLIT) # We set the flag for some operations
+                        builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
                     else:
-                        self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
-                                                                                self.computing_model_part, 
-                                                                                mechanical_scheme, 
-                                                                                self.linear_solver, 
-                                                                                mechanical_convergence_criterion, 
-                                                                                builder_and_solver, 
-                                                                                max_iters, 
-                                                                                compute_reactions, 
-                                                                                reform_step_dofs, 
-                                                                                move_mesh_flag)
+                        builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolver(linear_solver)
+        else:
+            builder_and_solver = super()._create_builder_and_solver()
+
+        return builder_and_solver
+
+    def _create_mechanical_solution_strategy(self):
+        if self.contact_settings["mortar_type"].GetString() != "":
+            if self.settings["analysis_type"].GetString() == "linear":
+                mechanical_solution_strategy = self._create_linear_strategy()
+            else:
+                if(self.settings["line_search"].GetBool()):
+                    mechanical_solution_strategy = self._create_contact_line_search_strategy()
+                else:
+                    mechanical_solution_strategy = self._create_contact_newton_raphson_strategy()
+        else:
+            mechanical_solution_strategy = super()._create_mechanical_solution_strategy()
+
+        return mechanical_solution_strategy
+
+    def _create_contact_line_search_strategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        self.mechanical_scheme = self.get_solution_scheme()
+        self.linear_solver = self.get_linear_solver()
+        self.mechanical_convergence_criterion = self.get_convergence_criterion()
+        self.builder_and_solver = self.get_builder_and_solver()
+        return auxiliar_methods_solvers.AuxiliarLineSearch(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
+
+    def _create_contact_newton_raphson_strategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        self.mechanical_scheme = self.get_solution_scheme()
+        self.mechanical_convergence_criterion = self.get_convergence_criterion()
+        self.builder_and_solver = self.get_builder_and_solver()
+        return auxiliar_methods_solvers.AuxiliarNewton(computing_model_part, self.mechanical_scheme, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        this_defaults = auxiliar_methods_solvers.AuxiliarContactSettings()
+        this_defaults.RecursivelyAddMissingParameters(super(ContactImplicitMechanicalSolver, cls).GetDefaultParameters())
+        return this_defaults

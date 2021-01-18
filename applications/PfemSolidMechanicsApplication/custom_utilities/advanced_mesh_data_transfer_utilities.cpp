@@ -22,7 +22,7 @@ namespace Kratos
 
    // crec que la solució és
 
-   void MeshDataTransferUtilities::PerformAnAdvancedTransfer( ElementsContainerType& rTemporal_elements, ModelPart& rModelPart, ModelPart::IndexType MeshId, const int& rLeastSquareInterpolation)
+   void MeshDataTransferUtilities::PerformAnAdvancedTransfer( ElementsContainerType& rTemporal_elements, ModelPart& rModelPart, const int& rLeastSquareInterpolation)
    {
       ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -35,7 +35,7 @@ namespace Kratos
 
       struct triangulateio Mesh2;
       std::vector< std::vector<int> > EdgeNeigh2;
-      ElementsContainerType& rSecondMesh = rModelPart.Elements(MeshId);
+      ElementsContainerType& rSecondMesh = rModelPart.Elements();
       ConvertAnElementContainerToTriangulate( rSecondMesh, Mesh2, EdgeNeigh2);
       std::cout << "   Mesh2Written: " << Mesh2.numberofpoints << " nodes "<<  std::endl;
 
@@ -159,15 +159,15 @@ namespace Kratos
          V(5) = SM(1,2);
          ThisInput.push_back(V);
 
-         (firstelemMesh2 + elem)->SetValueOnIntegrationPoints( VariableVector, ThisInput, CurrentProcessInfo);
+         (firstelemMesh2 + elem)->SetValuesOnIntegrationPoints( VariableVector, ThisInput, CurrentProcessInfo);
 
          if ( DetF0Interpolation) {
             ResultJ[0] = (MatrixOfDeterminants[elem]) / Areas[elem];
-            (firstelemMesh2 + elem)->SetValueOnIntegrationPoints( DETERMINANT_F, ResultJ, CurrentProcessInfo);
+            (firstelemMesh2 + elem)->SetValuesOnIntegrationPoints( DETERMINANT_F, ResultJ, CurrentProcessInfo);
          }
 
          ResultJ[0] = MatrixOfPlastic[elem] / Areas[elem];
-         //(firstelemMesh2 + elem)->SetValueOnIntegrationPoints( PlasticVariable, ResultJ, CurrentProcessInfo);
+         //(firstelemMesh2 + elem)->SetValuesOnIntegrationPoints( PlasticVariable, ResultJ, CurrentProcessInfo);
       }
 
       ClearTrianglesList( SuperMesh );

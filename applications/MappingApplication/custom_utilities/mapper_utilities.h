@@ -13,634 +13,302 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_MAPPER_UTILITIES_H_INCLUDED )
+#if !defined(KRATOS_MAPPER_UTILITIES_H_INCLUDED)
 #define  KRATOS_MAPPER_UTILITIES_H_INCLUDED
 
 // System includes
+#include <array>
+#include <vector>
 
 // External includes
-#ifdef KRATOS_USING_MPI
-#include "mpi.h" // for GetCurrentTime()
-#endif
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
-#include "utilities/math_utils.h" // Cross Product
-#include "utilities/openmp_utils.h" // for GetCurrentTime()
-
+#include "utilities/parallel_utilities.h"
+#include "mapping_application_variables.h"
+#include "custom_utilities/mapper_flags.h"
+#include "custom_utilities/mapper_local_system.h"
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
-///@{
+namespace MapperUtilities
+{
 
-///@name Kratos Globals
-///@{
+typedef std::size_t SizeType;
+typedef std::size_t IndexType;
 
-///@}
-///@name Type Definitions
-///@{
+typedef Node<3> NodeType;
 
-///@}
-///@name  Enum's
-///@{
+typedef Kratos::unique_ptr<MapperInterfaceInfo> MapperInterfaceInfoUniquePointerType;
 
-///@}
-///@name  Functions
-///@{
+typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
+typedef std::vector<std::vector<MapperInterfaceInfoPointerType>> MapperInterfaceInfoPointerVectorType;
 
-///@}
-///@name Kratos Classes
-///@{
+typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
+typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
+typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
 
-/// Short class definition.
-/** Detail class definition.
+using BoundingBoxType = std::array<double, 6>;
+// using BoundingBoxContainerType = std::vector<BoundingBoxType>;
+
+
+template< class TVarType >
+static void FillFunction(const NodeType& rNode,
+                         const TVarType& rVariable,
+                         double& rValue)
+{
+    rValue = rNode.FastGetSolutionStepValue(rVariable);
+}
+
+template< class TVarType >
+static void FillFunctionNonHist(const NodeType& rNode,
+                                const TVarType& rVariable,
+                                double& rValue)
+{
+    rValue = rNode.GetValue(rVariable);
+}
+
+template< class TVarType >
+static std::function<void(const NodeType&, const TVarType&, double&)>
+GetFillFunction(const Kratos::Flags& rMappingOptions)
+{
+    if (rMappingOptions.Is(MapperFlags::FROM_NON_HISTORICAL))
+        return &FillFunctionNonHist<TVarType>;
+    return &FillFunction<TVarType>;
+}
+
+template< class TVarType >
+static void UpdateFunction(NodeType& rNode,
+                           const TVarType& rVariable,
+                           const double Value,
+                           const double Factor)
+{
+    rNode.FastGetSolutionStepValue(rVariable) = Value * Factor;
+}
+
+template< class TVarType >
+static void UpdateFunctionWithAdd(NodeType& rNode,
+                            const TVarType& rVariable,
+                            const double Value,
+                            const double Factor)
+{
+    rNode.FastGetSolutionStepValue(rVariable) += Value * Factor;
+}
+
+template< class TVarType >
+static void UpdateFunctionNonHist(NodeType& rNode,
+                            const TVarType& rVariable,
+                            const double Value,
+                            const double Factor)
+{
+    rNode.GetValue(rVariable) = Value * Factor;
+}
+
+template< class TVarType >
+static void UpdateFunctionNonHistWithAdd(NodeType& rNode,
+                            const TVarType& rVariable,
+                            const double Value,
+                            const double Factor)
+{
+    rNode.GetValue(rVariable) += Value * Factor;
+}
+
+template< class TVarType >
+static std::function<void(NodeType&, const TVarType&, const double, const double)>
+GetUpdateFunction(const Kratos::Flags& rMappingOptions)
+{
+    if (rMappingOptions.Is(MapperFlags::ADD_VALUES) && rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL))
+        return &UpdateFunctionNonHistWithAdd<TVarType>;
+    if (rMappingOptions.Is(MapperFlags::ADD_VALUES))
+        return &UpdateFunctionWithAdd<TVarType>;
+    if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL))
+        return &UpdateFunctionNonHist<TVarType>;
+    return &UpdateFunction<TVarType>;
+}
+
+template< class TVectorType, class TVarType >
+void UpdateSystemVectorFromModelPart(TVectorType& rVector,
+                        ModelPart& rModelPart,
+                        const TVarType& rVariable,
+                        const Kratos::Flags& rMappingOptions)
+{
+    // Here we construct a function pointer to not have the if all the time inside the loop
+    const auto fill_fct = MapperUtilities::GetFillFunction<TVarType>(rMappingOptions);
+
+    const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
+    const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
+
+    #pragma omp parallel for
+    for (int i=0; i<num_local_nodes; i++) {
+        fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
+    }
+}
+
+template< class TVectorType, class TVarType >
+void UpdateModelPartFromSystemVector(const TVectorType& rVector,
+            ModelPart& rModelPart,
+            const TVarType& rVariable,
+            const Kratos::Flags& rMappingOptions)
+{
+    const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
+
+    // Here we construct a function pointer to not have the if all the time inside the loop
+    const auto update_fct = std::bind(MapperUtilities::GetUpdateFunction<TVarType>(rMappingOptions),
+                                        std::placeholders::_1,
+                                        std::placeholders::_2,
+                                        std::placeholders::_3,
+                                        factor);
+    const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
+    const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
+
+    #pragma omp parallel for
+    for (int i=0; i<num_local_nodes; i++) {
+        update_fct(*(nodes_begin + i), rVariable, rVector[i]);
+    }
+}
+
+/**
+* @brief Assigning INTERFACE_EQUATION_IDs to the nodes, with and without MPI
+* This function assigns the INTERFACE_EQUATION_IDs to the nodes, which
+* act as EquationIds for the MappingMatrix. This work with and without MPI,
+* in MPI a ScanSum is performed with the local number of nodes
+* @param rModelPartCommunicator The Modelpart-Communicator to be used
+* @author Philipp Bucher
 */
-class MapperUtilities
+void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
+
+template<class TMapperLocalSystem>
+void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicator,
+                                       std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
+{
+    const std::size_t num_nodes = rModelPartCommunicator.LocalMesh().NumberOfNodes();
+    const auto nodes_ptr_begin = rModelPartCommunicator.LocalMesh().Nodes().ptr_begin();
+
+    if (rLocalSystems.size() != num_nodes) {
+        rLocalSystems.resize(num_nodes);
+    }
+
+    #pragma omp parallel for
+    for (int i = 0; i< static_cast<int>(num_nodes); ++i) {
+        auto it_node = nodes_ptr_begin + i;
+        rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>((*it_node).get());
+    }
+
+    int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
+
+    KRATOS_ERROR_IF_NOT(num_local_systems > 0)
+        << "No mapper local systems were created" << std::endl;
+}
+
+void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rMapperLocalSystemPrototype,
+                                            const Communicator& rModelPartCommunicator,
+                                            std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems);
+
+template <class T1, class T2>
+inline double ComputeDistance(const T1& rCoords1,
+                              const T2& rCoords2)
+{
+    return std::sqrt( std::pow(rCoords1[0] - rCoords2[0] , 2) +
+                      std::pow(rCoords1[1] - rCoords2[1] , 2) +
+                      std::pow(rCoords1[2] - rCoords2[2] , 2) );
+}
+
+template <typename T>
+double ComputeMaxEdgeLengthLocal(const T& rEntityContainer);
+
+double ComputeSearchRadius(const ModelPart& rModelPart, int EchoLevel);
+
+double ComputeSearchRadius(const ModelPart& rModelPart1, const ModelPart& rModelPart2, const int EchoLevel);
+
+void CheckInterfaceModelParts(const int CommRank);
+
+BoundingBoxType ComputeLocalBoundingBox(const ModelPart& rModelPart);
+
+BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart);
+
+void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
+                                       const double Tolerance,
+                                       std::vector<double>& rBoundingBoxesWithTolerance);
+
+std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox);
+
+bool PointIsInsideBoundingBox(const BoundingBoxType& rBoundingBox,
+                              const array_1d<double, 3>& rCoords);
+
+void KRATOS_API(MAPPING_APPLICATION) SaveCurrentConfiguration(ModelPart& rModelPart);
+void KRATOS_API(MAPPING_APPLICATION) RestoreCurrentConfiguration(ModelPart& rModelPart);
+
+template<class TDataType>
+void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rVariable)
+{
+    KRATOS_TRY;
+
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        rNode.Data().Erase(rVariable);
+    });
+
+    KRATOS_CATCH("");
+}
+
+void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
+                                 const std::vector<double>& rBoundingBoxes,
+                                 const SizeType BufferSizeEstimate,
+                                 std::vector<std::vector<double>>& rSendBuffer,
+                                 std::vector<int>& rSendSizes);
+
+void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>& rRecvBuffer,
+                                          const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                          const int CommRank,
+                                          MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer);
+
+void FillBufferAfterLocalSearch(MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer,
+                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                const int CommRank,
+                                std::vector<std::vector<char>>& rSendBuffer,
+                                std::vector<int>& rSendSizes);
+
+void AssignInterfaceInfosAfterRemoteSearch(const MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer,
+                                           MapperLocalSystemPointerVectorPointer& rpMapperLocalSystems);
+
+void DeserializeMapperInterfaceInfosFromBuffer(
+    const std::vector<std::vector<char>>& rSendBuffer,
+    const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+    const int CommRank,
+    MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer);
+
+/**
+ * @class MapperInterfaceInfoSerializer
+ * @ingroup MappingApplication
+ * @brief Helper class to serialize/deserialize a vector containing MapperInterfaceInfos
+ * @details This class serializes the vector containing the MapperInterfaceInfos (Shared Ptrs)
+ * The goal of this class is to have a more efficient/faster implementation than the
+ * one of the Serializer by avoiding the casting that is done in the serializer when pointers
+ * are serialized
+ * @TODO test the performance against the Serializer
+ * @author Philipp Bucher
+ */
+class KRATOS_API(MAPPING_APPLICATION) MapperInterfaceInfoSerializer
 {
 public:
-    ///@name Type Definitions
-    ///@{
 
-    /// Pointer definition of MapperUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(MapperUtilities);
-
-    ///@}
-    ///@name  Enum's
-    ///@{
-
-    enum InterfaceObjectConstructionType
-    {
-        Node_Coords,
-        Condition_Center,
-        Condition_Gauss_Point,
-        // Point or Coordinates or sth => for Contact => create with list of points/coords,
-    };
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Destructor.
-    virtual ~MapperUtilities() { }
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    static double GetCurrentTime()
-    {
-        double current_time;
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-        int mpi_initialized;
-        MPI_Initialized(&mpi_initialized);
-        if (mpi_initialized)   // parallel execution, i.e. mpi imported in python
-        {
-            current_time = MPI_Wtime();
-        }
-        else     // serial execution, i.e. mpi NOT imported in python
-        {
-            current_time = OpenMPUtils::GetCurrentTime();
-        }
-#else // serial compilation
-        current_time = OpenMPUtils::GetCurrentTime();
-#endif
-
-        return current_time;
-    }
-
-    static int ComputeNumberOfNodes(ModelPart& rModelPart)
-    {
-        int num_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
-        rModelPart.GetCommunicator().SumAll(num_nodes); // Compute the sum among the partitions
-        return num_nodes;
-    }
-
-    static int ComputeNumberOfConditions(ModelPart& rModelPart)
-    {
-        int num_conditions = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
-        rModelPart.GetCommunicator().SumAll(num_conditions); // Compute the sum among the partitions
-        return num_conditions;
-    }
-
-    static int ComputeNumberOfElements(ModelPart& rModelPart)
-    {
-        int num_elements = rModelPart.GetCommunicator().LocalMesh().NumberOfElements();
-        rModelPart.GetCommunicator().SumAll(num_elements); // Compute the sum among the partitions
-        return num_elements;
-    }
-
-    static double ComputeDistance(const array_1d<double, 3>& rCoords1,
-                                  const array_1d<double, 3>& rCoords2)
-    {
-        return sqrt(pow(rCoords1[0] - rCoords2[0] , 2) +
-                    pow(rCoords1[1] - rCoords2[1] , 2) +
-                    pow(rCoords1[2] - rCoords2[2] , 2));
-    }
-
-    template <typename T>
-    static double ComputeMaxEdgeLengthLocal(const T& rEntityContainer)
-    {
-        double max_element_size = 0.0f;
-        // Loop through each edge of a geometrical entity ONCE
-        for (auto& r_entity : rEntityContainer)
-        {
-            for (std::size_t i = 0; i < (r_entity.GetGeometry().size() - 1); ++i)
-            {
-                for (std::size_t j = i + 1; j < r_entity.GetGeometry().size(); ++j)
-                {
-                    double edge_length = ComputeDistance(r_entity.GetGeometry()[i].Coordinates(),
-                                                         r_entity.GetGeometry()[j].Coordinates());
-                    max_element_size = std::max(max_element_size, edge_length);
-                }
-            }
-        }
-        return max_element_size;
-    }
-
-    static double ComputeMaxEdgeLengthLocal(const ModelPart::NodesContainerType& rNodes)
-    {
-        double max_element_size = 0.0f;
-        // TODO modify loop such that it loop only once over the nodes
-        for (auto& r_node_1 : rNodes)
-        {
-            for (auto& r_node_2 : rNodes)
-            {
-                double edge_length = ComputeDistance(r_node_1.Coordinates(),
-                                                     r_node_2.Coordinates());
-                max_element_size = std::max(max_element_size, edge_length);
-            }
-        }
-        return max_element_size;
-    }
-
-    static double ComputeSearchRadius(ModelPart& rModelPart1, ModelPart& rModelPart2, const int EchoLevel)
-    {
-        double search_radius = std::max(ComputeSearchRadius(rModelPart1, EchoLevel),
-                                        ComputeSearchRadius(rModelPart2, EchoLevel));
-        return search_radius;
-    }
-
-    static double ComputeSearchRadius(ModelPart& rModelPart, const int EchoLevel)
-    {
-        double search_safety_factor = 1.2;
-        double max_element_size = 0.0;
-
-        int num_conditions_global = ComputeNumberOfConditions(rModelPart);
-        int num_elements_global = ComputeNumberOfElements(rModelPart);
-
-        if (num_conditions_global > 0)
-        {
-            max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Conditions());
-
-        }
-        else if (num_elements_global > 0)
-        {
-            max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Elements());
-        }
-        else
-        {
-            if (EchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
-                std::cout << "MAPPER WARNING, no conditions/elements for search radius "
-                          << "computations in ModelPart \"" << rModelPart.Name() << "\" found, "
-                          << "using nodes (less efficient)" << std::endl;
-            max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Nodes());
-        }
-
-        rModelPart.GetCommunicator().MaxAll(max_element_size); // Compute the maximum among the partitions
-        return max_element_size * search_safety_factor;
-    }
-
-    static double ComputeConservativeFactor(const double NumNodesOrigin,
-                                            const double NumNodesDestination)
-    {
-        // NumNodes* are casted to doubles in order to use the double devision
-        // if this function would take ints, then the return value would also be an int!
-        KRATOS_ERROR_IF(NumNodesDestination <= 0) << "Division by zero!" << std::endl;
-
-        return NumNodesOrigin / NumNodesDestination;
-    }
-
-    static bool ProjectPointToLine(const Geometry<Node<3>>* pGeometry,
-                                   const array_1d<double, 3>& GlobalCoords,
-                                   array_1d<double, 3>& rLocalCoords,
-                                   double& rDistance)
-    {
-        // xi,yi are Nodal Coordinates, n is the destination condition's unit normal
-        // and d is the distance along n from the point to its projection in the condition
-        // | DestX-0.5(x1+x2) |   | 0.5(x2-x1)  nx |   | Chi |
-        // |                  | = |                | . |     |
-        // | DestY-0.5(y1+y2) |   | 0.5(y2-y1)  ny |   |  d  |
-
-        Matrix transform_matrix(2, 2, false);
-        Matrix inv_transform_matrix(2, 2, false);
-        double det;
-
-        array_1d<double, 2> RHS;
-        array_1d<double, 2> result_vec;
-
-        RHS[0] = GlobalCoords[0] - 0.5 * (pGeometry->GetPoint(0).X() + pGeometry->GetPoint(1).X());
-        RHS[1] = GlobalCoords[1] - 0.5 * (pGeometry->GetPoint(0).Y() + pGeometry->GetPoint(1).Y());
-
-        transform_matrix(0, 0) = 0.5 * (pGeometry->GetPoint(1).X() - pGeometry->GetPoint(0).X());
-        transform_matrix(1, 0) = 0.5 * (pGeometry->GetPoint(1).Y() - pGeometry->GetPoint(0).Y());
-
-        array_1d<double, 3> rNormal;
-        CalculateLineNormal(pGeometry, rNormal);
-        transform_matrix(0, 1) = rNormal[0];
-        transform_matrix(1, 1) = rNormal[1];
-
-        MathUtils<double>::InvertMatrix2(transform_matrix, inv_transform_matrix, det);
-        noalias(result_vec) = prod(inv_transform_matrix, RHS);
-
-        rLocalCoords[0] = result_vec[0];
-        rLocalCoords[1] = 0.0f;
-        rLocalCoords[2] = 0.0f;
-
-        rDistance = result_vec[1];
-
-        bool is_inside = false;
-
-        if (fabs(rLocalCoords[0]) <= 1.0f + MapperUtilities::tol_local_coords)
-        {
-            is_inside = true;
-        }
-        return is_inside;
-    }
-
-    static bool ProjectPointToTriangle(Geometry<Node<3>>* pGeometry,
-                                       const array_1d<double, 3>& GlobalCoords,
-                                       array_1d<double, 3>& rLocalCoords,
-                                       double& rDistance)
-    {
-        // xi,yi,zi are Nodal Coordinates, n is the destination condition's unit normal
-        // and d is the distance along n from the point to its projection in the condition
-        // | DestX-x1 |   | x2-x1  x3-x1  nx |   | Chi |
-        // | DestY-y1 | = | y2-y1  y3-y1  ny | . | Eta |
-        // | DestZ-z1 |   | z2-z1  z3-z1  nz |   |  d  |
-
-        Matrix transform_matrix(3, 3, false);
-        Matrix inv_transform_matrix(3, 3, false);
-        double det;
-
-        array_1d<double, 3> RHS;
-        array_1d<double, 3> result_vec;
-
-        RHS[0] = GlobalCoords[0] - pGeometry->GetPoint(0).X();
-        RHS[1] = GlobalCoords[1] - pGeometry->GetPoint(0).Y();
-        RHS[2] = GlobalCoords[2] - pGeometry->GetPoint(0).Z();
-
-        transform_matrix(0, 0) = pGeometry->GetPoint(1).X() - pGeometry->GetPoint(0).X();
-        transform_matrix(1, 0) = pGeometry->GetPoint(1).Y() - pGeometry->GetPoint(0).Y();
-        transform_matrix(2, 0) = pGeometry->GetPoint(1).Z() - pGeometry->GetPoint(0).Z();
-
-        transform_matrix(0, 1) = pGeometry->GetPoint(2).X() - pGeometry->GetPoint(0).X();
-        transform_matrix(1, 1) = pGeometry->GetPoint(2).Y() - pGeometry->GetPoint(0).Y();
-        transform_matrix(2, 1) = pGeometry->GetPoint(2).Z() - pGeometry->GetPoint(0).Z();
-
-        array_1d<double, 3> rNormal;
-        CalculateTriangleNormal(pGeometry, rNormal);
-        transform_matrix(0, 2) = rNormal[0];
-        transform_matrix(1, 2) = rNormal[1];
-        transform_matrix(2, 2) = rNormal[2];
-
-        MathUtils<double>::InvertMatrix3(transform_matrix, inv_transform_matrix, det);
-        noalias(result_vec) = prod(inv_transform_matrix, RHS);
-
-        rLocalCoords[0] = result_vec[0];
-        rLocalCoords[1] = result_vec[1];
-        rLocalCoords[2] = 0.0f;
-
-        rDistance = result_vec[2];
-
-        bool is_inside = false;
-
-        if (1.0f - rLocalCoords[0] - rLocalCoords[1] >= 0.0f - MapperUtilities::tol_local_coords)
-        {
-            if (rLocalCoords[0] >= 0.0f - MapperUtilities::tol_local_coords)
-            {
-                if (rLocalCoords[1] >= 0.0f - MapperUtilities::tol_local_coords)
-                {
-                    is_inside = true;
-                }
-            }
-        }
-        return is_inside;
-    }
-
-    static bool ProjectPointToQuadrilateral(Geometry<Node<3>>* pGeometry,
-                                            const array_1d<double, 3>& GlobalCoords,
-                                            array_1d<double, 3>& rLocalCoords,
-                                            double& rDistance)
-    {
-        bool is_inside = pGeometry->IsInside(GlobalCoords, rLocalCoords, tol_local_coords);
-
-        if (is_inside)
-        {
-            // Calculate Distance
-            array_1d<double, 3> projection_global_coords;
-            pGeometry->GlobalCoordinates(projection_global_coords, rLocalCoords);
-            rDistance = ComputeDistance(GlobalCoords, projection_global_coords);
-        }
-
-        return is_inside;
-    }
-
-    // static bool ProjectPointToTetrahedra(pGeometry,
-    //                                      const array_1d<double, 3>& GlobalCoords,
-    //                                      array_1d<double,3>& rLocalCoords,
-    //                                      double& rDistance) {
-    //     // xi,yi,zi are Nodal Coordinates
-    //     // | DestX-x1 |   | x2-x1  x3-x1  x4-x1 |   | Chi1 |
-    //     // | DestY-y1 | = | y2-y1  y3-y1  y4-y1 | . | Chi2 |
-    //     // | DestZ-z1 |   | z2-z1  z3-z1  z4-z1 |   | Chi3 |
-
-    //     Matrix transform_matrix(3, 3, false);
-    //     Matrix inv_transform_matrix(3, 3, false);
-    //     double det;
-
-    //     array_1d<double, 3> RHS;
-
-    //     RHS[0] = GlobalCoords[0] - pGeometry->GetPoint(0).X();
-    //     RHS[1] = GlobalCoords[1] - pGeometry->GetPoint(0).Y();
-    //     RHS[2] = GlobalCoords[2] - pGeometry->GetPoint(0).Z();
-
-    //     transform_matrix(0, 0) = pGeometry->GetPoint(1).X() - pGeometry->GetPoint(0).X();
-    //     transform_matrix(1, 0) = pGeometry->GetPoint(1).Y() - pGeometry->GetPoint(0).Y();
-    //     transform_matrix(2, 0) = pGeometry->GetPoint(1).Z() - pGeometry->GetPoint(0).Z();
-
-    //     transform_matrix(0, 1) = pGeometry->GetPoint(2).X() - pGeometry->GetPoint(0).X();
-    //     transform_matrix(1, 1) = pGeometry->GetPoint(2).Y() - pGeometry->GetPoint(0).Y();
-    //     transform_matrix(2, 1) = pGeometry->GetPoint(2).Z() - pGeometry->GetPoint(0).Z();
-
-    //     transform_matrix(0, 2) = pGeometry[3].X() - pGeometry->GetPoint(0).X();
-    //     transform_matrix(1, 2) = pGeometry[3].Y() - pGeometry->GetPoint(0).Y();
-    //     transform_matrix(2, 2) = pGeometry[3].Z() - pGeometry->GetPoint(0).Z();
-
-    //     MathUtils<double>::InvertMatrix3(transform_matrix,inv_transform_matrix,det);
-    //     noalias(rLocalCoords) = prod(inv_transform_matrix, RHS);
-
-    //     bool is_inside = false;
-
-    //     if( rLocalCoords[0] >= 0.0-MapperUtilities::tol_local_coords ) {
-    //         if( rLocalCoords[1] >= 0.0-MapperUtilities::tol_local_coords ) {
-    //             if( rLocalCoords[2] >= 0.0-MapperUtilities::tol_local_coords ) {
-    //                 if( (rLocalCoords[0] + rLocalCoords[1] + rLocalCoords[2]) <= (1.0+MapperUtilities::tol_local_coords)) {
-    //                     is_inside = true;
-
-    //                     rDistance = ComputeDistance(GlobalCoords, pGeometry.Center());
-    //                     rDistance /= pGeometry.Volume(); // Normalize Distance by Volume
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     return is_inside;
-    // }
-
-    // static bool ProjectPointToCondition(Geometry<Node<3>>* pGeometry,
-    //                                     const array_1d<double, 3>& GlobalCoords,
-    //                                     array_1d<double,3>& rLocalCoords,
-    //                                     double& rDistance) {
-
-    //     Condition::GeometryType& r_condition_geometry = pGeometry;
-    //     bool is_inside = r_condition_geometry.IsInside(GlobalCoords, rLocalCoords);
-
-    //     if (is_inside) {
-    //         // Calculate Distance
-    //         array_1d<double, 3> projection_global_coords;
-    //         r_condition_geometry.GlobalCoordinates(projection_global_coords, rLocalCoords);
-    //         rDistance = ComputeDistance(GlobalCoords, projection_global_coords);
-    //         // KRATOS_WATCH(rDistance)
-    //         // std::cout << "Local Coords: [ " << rLocalCoords[0] << " , " << rLocalCoords[1] << " , " << rLocalCoords[2] << " ]" << std::endl;
-    //     }
-
-    //     return is_inside;
-    // }
-
-    static bool PointLocalCoordinatesInVolume(Geometry<Node<3>>* pGeometry,
-            const array_1d<double, 3>& GlobalCoords,
-            array_1d<double, 3>& rLocalCoords,
-            double& rDistance)
-    {
-        bool is_inside = pGeometry->IsInside(GlobalCoords, rLocalCoords, tol_local_coords);
-
-        if (is_inside)
-        {
-            // Calculate Distance
-            rDistance = ComputeDistance(GlobalCoords, pGeometry->Center());
-            rDistance /= pGeometry->Volume();  // Normalize Distance by Volume
-
-        }
-
-        return is_inside;
-    }
-
-    static void CalculateLineNormal(const Geometry<Node<3>>* pGeometry,
-                                    array_1d<double, 3>& rNormal)
-    {
-        // TODO use the normal calculation in geometry.h once it is available
-        rNormal.clear();
-        array_1d<double, 3> v1, v2;
-        v1[0] = pGeometry->GetPoint(1).X() - pGeometry->GetPoint(0).X();
-        v1[1] = pGeometry->GetPoint(1).Y() - pGeometry->GetPoint(0).Y();
-        v1[2] = pGeometry->GetPoint(1).Z() - pGeometry->GetPoint(0).Z();
-        // Assuming plane X-Y in the 2D-case
-        v2[0] = 0.0f;
-        v2[1] = 0.0f;
-        v2[2] = 1.0f;
-
-        // Compute the condition normal
-        MathUtils<double>::CrossProduct(rNormal, v1, v2);
-
-        rNormal /= norm_2(rNormal); // normalize the nomal (i.e. length=1)
-    }
-
-    static void CalculateTriangleNormal(const Geometry<Node<3>>* pGeometry,
-                                        array_1d<double, 3>& rNormal)
-    {
-        // TODO use the normal calculation in geometry.h once it is available
-        rNormal.clear();
-        array_1d<double, 3> v1, v2;
-        v1[0] = pGeometry->GetPoint(1).X() - pGeometry->GetPoint(0).X();
-        v1[1] = pGeometry->GetPoint(1).Y() - pGeometry->GetPoint(0).Y();
-        v1[2] = pGeometry->GetPoint(1).Z() - pGeometry->GetPoint(0).Z();
-
-        v2[0] = pGeometry->GetPoint(2).X() - pGeometry->GetPoint(0).X();
-        v2[1] = pGeometry->GetPoint(2).Y() - pGeometry->GetPoint(0).Y();
-        v2[2] = pGeometry->GetPoint(2).Z() - pGeometry->GetPoint(0).Z();
-
-
-        // Compute the condition normal
-        MathUtils<double>::CrossProduct(rNormal, v1, v2);
-
-        rNormal /= norm_2(rNormal); // normalize the nomal (i.e. length=1)
-    }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "MapperUtilities" ;
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "MapperUtilities";
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
+    MapperInterfaceInfoSerializer(std::vector<MapperInterfaceInfoPointerType>& rMapperInterfaceInfosContainer,
+                                  const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
+        : mrInterfaceInfos(rMapperInterfaceInfosContainer)
+        , mrpRefInterfaceInfo(rpRefInterfaceInfo->Create())
+        { }
 
 private:
-    ///@name Static Member Variables
-    ///@{
 
+    std::vector<MapperInterfaceInfoPointerType>& mrInterfaceInfos;
+    MapperInterfaceInfoPointerType mrpRefInterfaceInfo;
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+    friend class Kratos::Serializer; // Adding "Kratos::" is nedded bcs of the "MapperUtilities"-namespace
 
-    static constexpr double tol_local_coords = 1E-15; // TODO what to use here?
-    // static constexpr double tol_local_coords = std::numeric_limits<double>::epsilon(); // gives Problems if nodes are in the same location
+    virtual void save(Kratos::Serializer& rSerializer) const;
+    virtual void load(Kratos::Serializer& rSerializer);
+};
 
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    /// Default constructor.
-    MapperUtilities() { }
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    MapperUtilities& operator=(MapperUtilities const& rOther);
-
-    //   /// Copy constructor.
-    //   MapperUtilities(MapperUtilities const& rOther){}
-
-
-    ///@}
-
-}; // Class MapperUtilities
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  MapperUtilities& rThis)
-{
-    return rIStream;
-}
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const MapperUtilities& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
-///@}
-
-///@} addtogroup block
+}  // namespace MapperUtilities.
 
 }  // namespace Kratos.
 

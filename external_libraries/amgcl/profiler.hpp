@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,11 +36,10 @@ THE SOFTWARE.
 #include <map>
 #include <string>
 #include <vector>
+#include <type_traits>
 
-#include <boost/type_traits.hpp>
-#include <boost/io/ios_state.hpp>
 #include <amgcl/perf_counter/clock.hpp>
-
+#include <amgcl/io/ios_saver.hpp>
 
 namespace amgcl {
 
@@ -55,15 +54,25 @@ template <class Counter = amgcl::perf_counter::clock, unsigned SHIFT_WIDTH = 2>
 class profiler {
     public:
         typedef typename Counter::value_type value_type;
+        typedef double delta_type;
 
         /// Initialization.
         /**
-         * \param name Profile title to use with output.
          */
-        profiler(const std::string &name = "Profile") : name(name) {
-            stack.reserve(128);
-            stack.push_back(&root);
-            root.begin = counter.current();
+        profiler() : name("Profile") {
+            init();
+        }
+
+        /// Send additional parameters to counter.
+        /**
+         * \param name Profile title to use with output.
+         * \param args Counter arguments.
+         */
+        template <class... Args>
+        profiler(const std::string &name, Args&&... args)
+            : name(name), counter(std::forward<Args>(args)...)
+        {
+            init();
         }
 
         /// Starts measurement.
@@ -79,12 +88,12 @@ class profiler {
         /**
          * Returns delta in the measured value since the corresponding tic().
          */
-        value_type toc(const std::string& /*name*/) {
+        delta_type toc(const std::string& /*name*/ = "") {
             profile_unit *top = stack.back();
             stack.pop_back();
 
             value_type current = counter.current();
-            value_type delta   = current - top->begin;
+            delta_type delta   = current - top->begin;
 
             top->length += delta;
             root.length = current - root.begin;
@@ -101,12 +110,24 @@ class profiler {
             root.begin = counter.current();
         }
 
+        struct scoped_ticker {
+            profiler &prof;
+            scoped_ticker(profiler &prof) : prof(prof) {}
+            ~scoped_ticker() {
+                prof.toc();
+            }
+        };
+
+        scoped_ticker scoped_tic(const std::string &name) {
+            tic(name);
+            return scoped_ticker(*this);
+        }
     private:
         struct profile_unit {
             profile_unit() : length(0) {}
 
-            value_type children_time() const {
-                value_type s = value_type();
+            delta_type children_time() const {
+                delta_type s = delta_type();
                 for(typename std::map<std::string, profile_unit>::const_iterator c = children.begin(); c != children.end(); c++)
                     s += c->second.length;
                 return s;
@@ -120,7 +141,7 @@ class profiler {
             }
 
             void print(std::ostream &out, const std::string &name,
-                    int level, value_type total, size_t width) const
+                    int level, delta_type total, size_t width) const
             {
                 using namespace std;
 
@@ -128,7 +149,7 @@ class profiler {
                 print_line(out, name, length, 100 * length / total, width - level);
 
                 if (children.size()) {
-                    value_type val = length - children_time();
+                    delta_type val = length - children_time();
                     double perc = 100.0 * val / total;
 
                     if (perc > 1e-1) {
@@ -142,7 +163,7 @@ class profiler {
             }
 
             void print_line(std::ostream &out, const std::string &name,
-                    value_type time, double perc, size_t width) const
+                    delta_type time, double perc, size_t width) const
             {
                 using namespace std;
 
@@ -155,21 +176,26 @@ class profiler {
             }
 
             value_type begin;
-            value_type length;
+            delta_type length;
 
             std::map<std::string, profile_unit> children;
         };
 
-        Counter counter;
         std::string name;
+        Counter counter;
         profile_unit root;
         std::vector<profile_unit*> stack;
+
+        void init() {
+            stack.reserve(128);
+            stack.push_back(&root);
+            root.begin = counter.current();
+        }
 
         void print(std::ostream &out) {
             if (stack.back() != &root)
                 out << "Warning! Profile is incomplete." << std::endl;
-
-            boost::io::ios_all_saver stream_state(out);
+            ios_saver ss(out);
             root.print(out, name, 0, root.length, root.total_width(name, 0));
         }
 
@@ -183,24 +209,6 @@ class profiler {
             prof.print(out);
             return out << std::endl;
         }
-};
-
-/// Scoped ticker.
-/** Calls prof.tic(name) on construction, and prof.toc(name) on destruction. */
-template <class Profiler>
-struct scoped_tic {
-    Profiler &prof;
-    std::string name;
-
-    scoped_tic(Profiler &prof, const std::string &name)
-        : prof(prof), name(name)
-    {
-        prof.tic(name);
-    }
-
-    ~scoped_tic() {
-        prof.toc(name);
-    }
 };
 
 } // namespace amgcl

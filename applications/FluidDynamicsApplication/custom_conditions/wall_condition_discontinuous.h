@@ -87,9 +87,8 @@ namespace Kratos
   It is intended to be used in combination with ASGS and VMS elements or their derived classes
   and the ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent time scheme, which supports
   slip conditions.
-  This condition will add a wall stress term to all nodes identified with IS_STRUCTURE!=0.0 (in the
-  non-historic database, that is, assigned using Node.SetValue()). This stress term is determined
-  according to the wall distance provided as Y_WALL.
+  This condition will add a wall stress term to all nodes identified with SLIP==true (in the
+  nodal flags). This stress term is determined according to the wall distance provided as Y_WALL.
   @see ASGS2D,ASGS3D,VMS,ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
  */
 template< unsigned int TDim, unsigned int TNumNodes = TDim >
@@ -100,7 +99,7 @@ public:
     ///@{
 
     /// Pointer definition of WallConditionDiscontinuous
-    KRATOS_CLASS_POINTER_DEFINITION(WallConditionDiscontinuous);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(WallConditionDiscontinuous);
 
     typedef Node < 3 > NodeType;
 
@@ -123,8 +122,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -181,7 +178,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~WallConditionDiscontinuous() {}
+    ~WallConditionDiscontinuous() override {}
 
 
     ///@}
@@ -206,30 +203,31 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Condition::Pointer(new WallConditionDiscontinuous(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+        return Kratos::make_intrusive<WallConditionDiscontinuous>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
 
 
-       virtual Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
-        {
-			return Condition::Pointer(new WallConditionDiscontinuous(NewId, pGeom, pProperties));
-		}
+    Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<WallConditionDiscontinuous>(NewId, pGeom, pProperties);
+    }
 
 
-    /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
+    /// Calculate wall stress term for all nodes with SLIP set.
     /**
       @param rDampMatrix Left-hand side matrix
       @param rRightHandSideVector Right-hand side vector
       @param rCurrentProcessInfo ProcessInfo instance (unused)
       */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
-        unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+        const ProcessInfo& r_process_info = rCurrentProcessInfo;
+        unsigned int step = r_process_info[FRACTIONAL_STEP];
         if ( step == 1)
         {
             // Initialize local contributions
@@ -260,9 +258,8 @@ public:
             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
             noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-            if(this->GetValue(IS_STRUCTURE) == 0.0 )
+            if(!this->Is(SLIP) )
             {
-	      //const unsigned int LocalSize = TNumNodes;
                 const GeometryType& rGeom = this->GetGeometry();
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
                 const unsigned int NumGauss = IntegrationPoints.size();
@@ -310,7 +307,7 @@ public:
 //             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
 //             noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 //
-//             if(this->GetValue(IS_STRUCTURE) == 0.0 )
+//             if (!this->Is(SLIP))
 //             {
 //                 const double N = 1.0 / static_cast<double>(TNumNodes);
 //                 array_1d<double,3> rNormal;
@@ -336,7 +333,7 @@ public:
 
 
     /// Check that all data required by this condition is available and reasonable
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY;
 
@@ -348,20 +345,7 @@ public:
         }
         else
         {
-            // Check that all required variables have been registered
-            if(VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-            if(MESH_VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
-            if(NORMAL.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","")
-                if(IS_STRUCTURE.Key() == 0)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
-            if(Y_WALL.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","")
-
                 // Checks on nodes
-
                 // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
                 for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
                 {
@@ -393,7 +377,7 @@ public:
     void ApplyInflowCondition(MatrixType& rLocalMatrix,
                               VectorType& rLocalVector)
     {
-        if (this->GetValue(IS_STRUCTURE) == 0.0)
+        if (!this->Is(SLIP))
         {
             const unsigned int LocalSize = TNumNodes;
             const GeometryType& rGeom = this->GetGeometry();
@@ -434,7 +418,7 @@ public:
                 //             }
 
                 // Velocity inflow correction
-                array_1d<double,3> Vel(3,0.0);
+                array_1d<double,3> Vel = ZeroVector(3);
                 double Density = 0.0;
 
                 for (unsigned int i = 0; i < TNumNodes; i++)
@@ -475,8 +459,8 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult,
+                                  const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /// Returns a list of the element's Dofs
@@ -484,8 +468,8 @@ public:
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& ConditionDofList,
-                            ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ConditionDofList,
+                            const ProcessInfo& CurrentProcessInfo) const override;
 
 
     ///@}
@@ -502,25 +486,25 @@ public:
     ///@name Input and output
     ///@{
 
-	/// Turn back information as a string.
-	virtual std::string Info() const override
-	{
-		std::stringstream buffer;
-		this->PrintInfo(buffer);
-		return buffer.str();
-	}
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        this->PrintInfo(buffer);
+        return buffer.str();
+    }
 
-	/// Print information about this object.
-	virtual void PrintInfo(std::ostream& rOStream) const override
-	{
-		rOStream << "WallConditionDiscontinuous" << TDim << "D #" << this->Id();
-	}
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "WallConditionDiscontinuous" << TDim << "D #" << this->Id();
+    }
 
-	/// Print object's data.
-	virtual void PrintData(std::ostream& rOStream) const override
-	{
-		this->pGetGeometry()->PrintData(rOStream);
-	}
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        this->pGetGeometry()->PrintData(rOStream);
+    }
 
 
     ///@}
@@ -586,13 +570,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         typedef WallCondition<TDim,TNumNodes> BaseType;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         typedef WallCondition<TDim,TNumNodes> BaseType;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );

@@ -44,7 +44,7 @@ void TetQuality::getQuality()
 	for (int i=0 ; i< aMesh->elements->Count();i++)
 	{
 		TTetra* t = (TTetra*)(aMesh->elements->elementAt(i));
-		if (t == NULL) 
+		if (t == nullptr) 
 			continue;
 		t->update();
 		this->fDieMax = Max(fDieMax,t->fMaxDiedralAngle);

@@ -1,20 +1,15 @@
-//   
-//   Project Name:        
+//
+//   Project Name:
 //   Last modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: $
 //
 
-// External includes 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
+// External includes
+#include "spaces/ublas_space.h"
 
 // Project includes
-#include "includes/define.h"
-#include "containers/flags.h"
 #include "custom_python/add_custom_mpi_strategies_to_python.h"
-#include "spaces/ublas_space.h"
 #include "includes/kratos_parameters.h"
 
 //Trilinos includes
@@ -40,25 +35,27 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+namespace py = pybind11;
 
-void  AddCustomMPIStrategiesToPython()
+void  AddCustomMPIStrategiesToPython(pybind11::module& m)
 {
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 
     typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
-    
+
     typedef TrilinosIncrementalUpdateStaticDampedScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosIncrementalUpdateStaticDampedSchemeType;
     typedef TrilinosDamUPScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosDamUPSchemeType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// Schemes
-    class_< TrilinosIncrementalUpdateStaticDampedSchemeType, bases<TrilinosBaseSchemeType>, boost::noncopyable >( "TrilinosIncrementalUpdateStaticDampedScheme", 
-        init< double >() );
-	class_< TrilinosDamUPSchemeType, bases< TrilinosBaseSchemeType >,  boost::noncopyable >("TrilinosDamUPScheme",
-        init< double, double, double, double >());
+    py::class_< TrilinosIncrementalUpdateStaticDampedSchemeType, typename TrilinosIncrementalUpdateStaticDampedSchemeType::Pointer, TrilinosBaseSchemeType>
+    (m,  "TrilinosIncrementalUpdateStaticDampedScheme")
+    .def(py::init< double >());
+	py::class_< TrilinosDamUPSchemeType, typename TrilinosDamUPSchemeType::Pointer, TrilinosBaseSchemeType >
+    (m, "TrilinosDamUPScheme")
+    .def(py::init< double, double, double, double >());
 }
 
 }  // namespace Python.

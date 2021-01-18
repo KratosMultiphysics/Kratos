@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -27,7 +27,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/gid_io.h"
 #include "geometries/geometry_data.h"
 
 #define tet10_a 0.108103018168070
@@ -62,6 +61,9 @@ public:
         mGidElementFamily(gid_element_type), mSize(number_of_integration_points),
         mIndexContainer(index_container) {}
 
+    ///Destructor
+  virtual ~GidGaussPointsContainer(){};
+
     bool AddElement( const ModelPart::ElementsContainerType::iterator pElemIt )
     {
         KRATOS_TRY
@@ -88,13 +90,118 @@ public:
         else return false;
         KRATOS_CATCH("")
     }
-    
 
-//            virtual void PrintResults( Variable<array_1d<double,3> > rVariable, ModelPart& r_model_part,
-//                                        double SolutionTag, unsigned int value_index )
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+//            virtual void PrintResults( Variable<array_1d<double,3> > rVariable, ModelPart& rModelPart,
+//                                        double SolutionTag, unsigned int ValueIndex )
+
+    virtual void PrintFlagsResults(
+        GiD_FILE ResultFile,
+        Kratos::Flags rFlag,
+        std::string rFlagName,
+        ModelPart& rModelPart,
+        double SolutionTag
+        )
+    {
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
+            //WriteGaussPoints(ResultFile);
+            GiD_fBeginResult(ResultFile,  (char *)(rFlagName).c_str(), (char *)("Kratos"), SolutionTag, GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+            if( mMeshElements.size() != 0 ) {
+                for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
+                    const double double_flag = static_cast<double>(it->Is(rFlag));
+                    for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                        GiD_fWriteScalar( ResultFile, it->Id(), double_flag);
+                    }
+                }
+            }
+            if( mMeshConditions.size() != 0 ) {
+                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
+                    const double double_flag = static_cast<double>(it->Is(rFlag));
+                    for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                        GiD_fWriteScalar( ResultFile, it->Id(), double_flag );
+                    }
+                }
+            }
+            GiD_fEndResult(ResultFile);
+        }
+    }
+
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<bool>& rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
+    {
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
+            //WriteGaussPoints(ResultFile);
+            GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
+                             GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+
+            std::vector<bool> ValuesOnIntPoint(mSize);
+            if( mMeshElements.size() != 0 ) {
+                for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            GiD_fWriteScalar( ResultFile, it->Id(), static_cast<double>(ValuesOnIntPoint[index]) );
+                        }
+                    }
+                }
+            }
+            if( mMeshConditions.size() != 0 ) {
+                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            GiD_fWriteScalar( ResultFile, it->Id(), static_cast<double>(ValuesOnIntPoint[index]) );
+                        }
+                    }
+                }
+            }
+            GiD_fEndResult(ResultFile);
+        }
+    }
+
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<int>& rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
+    {
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
+            //WriteGaussPoints(ResultFile);
+            GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
+                             GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+            std::vector<int> ValuesOnIntPoint(mSize);
+            if( mMeshElements.size() != 0 ) {
+                for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            GiD_fWriteScalar( ResultFile, it->Id(), static_cast<double>(ValuesOnIntPoint[index]) );
+                        }
+                    }
+                }
+            }
+            if( mMeshConditions.size() != 0 ) {
+                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            GiD_fWriteScalar( ResultFile, it->Id(), static_cast<double>(ValuesOnIntPoint[index]) );
+                        }
+                    }
+                }
+            }
+            GiD_fEndResult(ResultFile);
+        }
+    }
+
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -102,130 +209,75 @@ public:
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
                              GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
             std::vector<double> ValuesOnIntPoint(mSize);
-            if( mMeshElements.size() != 0 )
-            {
-                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                        it != mMeshElements.end(); it++ )
-                {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
-                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
-                    {
-                        int index = mIndexContainer[i];
-                        GiD_fWriteScalar( ResultFile, it->Id(), ValuesOnIntPoint[index] );
-                    }                    
+            if( mMeshElements.size() != 0 ) {
+                for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            GiD_fWriteScalar( ResultFile, it->Id(), ValuesOnIntPoint[index] );
+                        }
+                    }
                 }
             }
-            if( mMeshConditions.size() != 0 )
-            {
-                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
-                        it != mMeshConditions.end(); it++ )
-                {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
-                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
-                    {
-                        int index = mIndexContainer[i];
-                        GiD_fWriteScalar( ResultFile, it->Id(), ValuesOnIntPoint[index] );
-                    }                    
+            if( mMeshConditions.size() != 0 ) {
+                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            GiD_fWriteScalar( ResultFile, it->Id(), ValuesOnIntPoint[index] );
+                        }
+                    }
                 }
             }
             GiD_fEndResult(ResultFile);
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double,3> >& rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
-        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
-        {
-            //WriteGaussPoints(ResultFile);
-            GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
-                             GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
-            std::vector<int> ValuesOnIntPoint(mSize);
-            if( mMeshElements.size() != 0 )
-            {
-                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                        it != mMeshElements.end(); it++ )
-                {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
-                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
-                    {
-                        int index = mIndexContainer[i];
-                        GiD_fWriteScalar( ResultFile, it->Id(), double(ValuesOnIntPoint[index]) );
-                    }                    
-                }
-            }
-            if( mMeshConditions.size() != 0 )
-            {
-                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
-                        it != mMeshConditions.end(); it++ )
-                {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
-                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
-                    {
-                        int index = mIndexContainer[i];
-                        GiD_fWriteScalar( ResultFile, it->Id(), double(ValuesOnIntPoint[index]) );
-                    }                    
-                }
-            }
-            GiD_fEndResult(ResultFile);
-        }
-    }
-
-
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,3> > rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
-    {
-        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
-        {
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
             //WriteGaussPoints(ResultFile);
             GiD_fBeginResult( ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
                              GiD_Vector, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
             std::vector<array_1d<double,3> > ValuesOnIntPoint(mSize,ZeroVector(3));
-            if( mMeshElements.size() != 0 )
-            {
-                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                        it != mMeshElements.end(); it++ )
-                {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
-                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
-                    {
-                        int index = mIndexContainer[i];
-//                                    GiD_WriteScalar( it->Id(), ValuesOnIntPoint[index] );
-                        if( ValuesOnIntPoint[0].size() == 3 )
-                            GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
-                                             ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
-
-                    }                    
+            if( mMeshElements.size() != 0 ) {
+                for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            if( ValuesOnIntPoint[0].size() == 3 )
+                                GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
+                                                 ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
+                        }
+                    }
                 }
             }
-            if( mMeshConditions.size() != 0 )
-            {
-                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
-                        it != mMeshConditions.end(); it++ )
-                {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
-                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
-                    {
-                        int index = mIndexContainer[i];
-//                                    GiD_WriteScalar( it->Id(), ValuesOnIntPoint[index] );
-                        GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
-                                         ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
-
-                    }                    
+            if( mMeshConditions.size() != 0 ) {
+                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
+                                             ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
+                        }
+                    }
                 }
             }
             GiD_fEndResult(ResultFile);
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,6> > rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double,6> >& rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -233,38 +285,35 @@ public:
             GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), ( char*)("Kratos"),
                              SolutionTag, GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
             std::vector<array_1d<double, 6> > ValuesOnIntPoint(mSize);
-            if( mMeshElements.size() != 0 )
-            {
-                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                        it != mMeshElements.end(); ++it )
-                {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
-                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
+            if( mMeshElements.size() != 0 ) {
+                for( auto it = mMeshElements.begin(); it != mMeshElements.end(); ++it ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
-                        int index = mIndexContainer[i];
-                        GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
-                                           ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2],
-                                           ValuesOnIntPoint[index][3], ValuesOnIntPoint[index][4],
-                                           ValuesOnIntPoint[index][5] );
-                    }                    
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
+                                               ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2],
+                                               ValuesOnIntPoint[index][3], ValuesOnIntPoint[index][4],
+                                               ValuesOnIntPoint[index][5] );
+                        }
+                    }
                 }
             }
-            if( mMeshConditions.size() != 0 )
-            {
-                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
-                        it != mMeshConditions.end(); it++ )
-                {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
-                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
-                    {
-                        int index = mIndexContainer[i];
-                        GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
-                                           ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2],
-                                           ValuesOnIntPoint[index][3], ValuesOnIntPoint[index][4],
-                                           ValuesOnIntPoint[index][5] );
-                    }                    
+            if( mMeshConditions.size() != 0 ) {
+                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
+                                               ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2],
+                                               ValuesOnIntPoint[index][3], ValuesOnIntPoint[index][4],
+                                               ValuesOnIntPoint[index][5] );
+                        }
+                    }
                 }
             }
             GiD_fEndResult(ResultFile);
@@ -272,134 +321,150 @@ public:
     }
 
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<Vector>& rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
             //WriteGaussPoints(ResultFile);
             GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
-                             GiD_Vector, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                             GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+
             std::vector<Vector> ValuesOnIntPoint(mSize);
-            if( mMeshElements.size() != 0 )
-            {
-                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                        it != mMeshElements.end(); ++it )
-                {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
-                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
-                    {
-                        int index = mIndexContainer[i];
-                        if( ValuesOnIntPoint[0].size() == 3 )
-                            GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
-                                             ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
-                    }                    
+            if( mMeshElements.size() != 0 ) {
+                for( auto it = mMeshElements.begin(); it != mMeshElements.end(); ++it ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            const auto& values = ValuesOnIntPoint[index];
+                            if (values.size() ==3 )
+                                GiD_fWrite2DMatrix(ResultFile, it->Id(), values[0], values[1], values[2]);
+                            else if (values.size() == 6 )
+                                GiD_fWrite3DMatrix( ResultFile, it->Id(), values[0], values[1], values[2],
+                                    values[3], values[4], values[5] );
+                        }
+                    }
                 }
             }
-            if( mMeshConditions.size() != 0 )
-            {
-                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
-                        it != mMeshConditions.end(); it++ )
-                {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
-                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
-                    {
-                        int index = mIndexContainer[i];
-                        if( ValuesOnIntPoint[0].size() == 3 )
-                            GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
-                                             ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
-                    }                    
+            if( mMeshConditions.size() != 0 ) {
+                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            const auto& values = ValuesOnIntPoint[index];
+                            if (values.size() ==3 )
+                                GiD_fWrite2DMatrix(ResultFile, it->Id(), values[0], values[1], values[2]);
+                            else if (values.size() == 6 )
+                                GiD_fWrite3DMatrix( ResultFile, it->Id(), values[0], values[1], values[2],
+                                    values[3], values[4], values[5] );
+                        }
+                    }
                 }
             }
             GiD_fEndResult(ResultFile);
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<Matrix> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<Matrix>& rVariable, ModelPart& rModelPart,
+                               double SolutionTag, int ValueIndex )
     {
-        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
-        {
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
             //WriteGaussPoints(ResultFile);
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"),
                              SolutionTag, GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
             std::vector<Matrix> ValuesOnIntPoint(mSize);
-            if( mMeshElements.size() != 0 )
-            {
-                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                        it != mMeshElements.end(); ++it )
-                {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
-                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
-                    {
-                        int index = mIndexContainer[i];
-                        if(ValuesOnIntPoint[index].size1() ==3
-                                && ValuesOnIntPoint[index].size2() ==3)
-                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
-                                               ValuesOnIntPoint[index](1,1), ValuesOnIntPoint[index](2,2),
-                                               ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](1,2),
-                                               ValuesOnIntPoint[index](0,2) );
-                        else if(ValuesOnIntPoint[index].size1() ==2
-                                && ValuesOnIntPoint[index].size2() ==2)
-                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
-                                               ValuesOnIntPoint[index](1,1), 0.0,
-                                               ValuesOnIntPoint[index](0,1), 0.0, 0.0);
-                        else if(ValuesOnIntPoint[index].size1() ==1
-                                && ValuesOnIntPoint[index].size2() ==3)
-                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
-                                               ValuesOnIntPoint[index](0,1), 0.0,
-                                               ValuesOnIntPoint[index](0,2), 0.0, 0.0);
-                        else if(ValuesOnIntPoint[index].size1() ==1
-                                && ValuesOnIntPoint[index].size2() ==4)
-                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
-                                               ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
-                                               ValuesOnIntPoint[index](0,3), 0.0, 0.0);
-                        else if(ValuesOnIntPoint[index].size1() ==1
-                                && ValuesOnIntPoint[index].size2() ==6)
-                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
-                                               ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
-                                               ValuesOnIntPoint[index](0,3), ValuesOnIntPoint[index](0,4),
-                                               ValuesOnIntPoint[index](0,5) );
-
-                    }                    
+            if( mMeshElements.size() != 0 ) {
+                for( auto it = mMeshElements.begin(); it != mMeshElements.end(); ++it ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            if(ValuesOnIntPoint[index].size1() ==3
+                                    && ValuesOnIntPoint[index].size2() ==3) {
+                                GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
+                                                   ValuesOnIntPoint[index](1,1), ValuesOnIntPoint[index](2,2),
+                                                   ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](1,2),
+                                                   ValuesOnIntPoint[index](0,2) );
+                            }
+                            else if(ValuesOnIntPoint[index].size1() ==2
+                                    && ValuesOnIntPoint[index].size2() ==2) {
+                                GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
+                                                   ValuesOnIntPoint[index](1,1), 0.0,
+                                                   ValuesOnIntPoint[index](0,1), 0.0, 0.0);
+                            }
+                            else if(ValuesOnIntPoint[index].size1() ==1
+                                    && ValuesOnIntPoint[index].size2() ==3) {
+                                GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
+                                                   ValuesOnIntPoint[index](0,1), 0.0,
+                                                   ValuesOnIntPoint[index](0,2), 0.0, 0.0);
+                            }
+                            else if(ValuesOnIntPoint[index].size1() ==1
+                                    && ValuesOnIntPoint[index].size2() ==4) {
+                                GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
+                                                   ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
+                                                   ValuesOnIntPoint[index](0,3), 0.0, 0.0);
+                            }
+                            else if(ValuesOnIntPoint[index].size1() ==1
+                                    && ValuesOnIntPoint[index].size2() ==6) {
+                                GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
+                                                   ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
+                                                   ValuesOnIntPoint[index](0,3), ValuesOnIntPoint[index](0,4),
+                                                   ValuesOnIntPoint[index](0,5) );
+                            }
+                        }
+                    }
                 }
+
+                // Resize first matrix to (0,0) for test below
+                ValuesOnIntPoint[0].resize(0, 0, false);
+
             }
-            if( mMeshConditions.size() != 0 )
-            {
-                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
-                        it != mMeshConditions.end(); it++ )
-                {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
-                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
-                    {
-                        int index = mIndexContainer[i];
-                        if(ValuesOnIntPoint[index].size1() ==3
-                                && ValuesOnIntPoint[index].size2() ==3)
-                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
-                                               ValuesOnIntPoint[index](1,1), ValuesOnIntPoint[index](2,2),
-                                               ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](1,2),
-                                               ValuesOnIntPoint[index](0,2) );
-                        else if(ValuesOnIntPoint[index].size1() ==1
-                                && ValuesOnIntPoint[index].size2() ==6)
-                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
-                                               ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
-                                               ValuesOnIntPoint[index](0,3), ValuesOnIntPoint[index](0,4),
-                                               ValuesOnIntPoint[index](0,5) );
-                        else if(ValuesOnIntPoint[index].size1() ==1
-                                && ValuesOnIntPoint[index].size2() ==3)
-                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
-                                               ValuesOnIntPoint[index](0,1), 0.0,
-                                               ValuesOnIntPoint[index](0,2), 0.0, 0.0);
-                        else if(ValuesOnIntPoint[index].size1() ==1
-                                && ValuesOnIntPoint[index].size2() ==4)
-                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
-                                               ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
-                                               ValuesOnIntPoint[index](0,3), 0.0, 0.0);
-                    }                    
+            if( mMeshConditions.size() != 0 ) {
+                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
+                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                         rModelPart.GetProcessInfo() );
+
+                        if (ValuesOnIntPoint[0].size1() == 0 && ValuesOnIntPoint[0].size2() == 0) {
+                            // If we aren't getting any results, break
+                            break;
+                        }
+
+                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                            int index = mIndexContainer[i];
+                            if(ValuesOnIntPoint[index].size1() ==3
+                                    && ValuesOnIntPoint[index].size2() ==3) {
+                                GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
+                                                   ValuesOnIntPoint[index](1,1), ValuesOnIntPoint[index](2,2),
+                                                   ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](1,2),
+                                                   ValuesOnIntPoint[index](0,2) );
+                            }
+                            else if(ValuesOnIntPoint[index].size1() ==1
+                                    && ValuesOnIntPoint[index].size2() ==6) {
+                                GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
+                                                   ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
+                                                   ValuesOnIntPoint[index](0,3), ValuesOnIntPoint[index](0,4),
+                                                   ValuesOnIntPoint[index](0,5) );
+                            }
+                            else if(ValuesOnIntPoint[index].size1() ==1
+                                    && ValuesOnIntPoint[index].size2() ==3) {
+                                GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
+                                                   ValuesOnIntPoint[index](0,1), 0.0,
+                                                   ValuesOnIntPoint[index](0,2), 0.0, 0.0);
+                            }
+                            else if(ValuesOnIntPoint[index].size1() ==1
+                                    && ValuesOnIntPoint[index].size2() ==4) {
+                                GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
+                                                   ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
+                                                   ValuesOnIntPoint[index](0,3), 0.0, 0.0);
+                            }
+                        }
+                    }
                 }
             }
             GiD_fEndResult(ResultFile);
@@ -436,6 +501,20 @@ public:
                 GiD_fWriteGaussPoint2D( MeshFile, - 1.00/std::sqrt(3.0),   1.00/std::sqrt(3.0) );
                 GiD_fEndGaussPoint(MeshFile);
             }
+            else if( mGidElementFamily == GiD_Quadrilateral && mSize == 9 )
+            {
+                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Quadrilateral, NULL, 9, 0, 0 );
+                GiD_fWriteGaussPoint2D( MeshFile, -std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00));
+                GiD_fWriteGaussPoint2D( MeshFile,  0.00 , -std::sqrt(3.00/5.00) );
+                GiD_fWriteGaussPoint2D( MeshFile,  std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00) );
+                GiD_fWriteGaussPoint2D( MeshFile, -std::sqrt(3.00/5.00), 0.00 );
+                GiD_fWriteGaussPoint2D( MeshFile,   0.00 , 0.00 );
+                GiD_fWriteGaussPoint2D( MeshFile,  std::sqrt(3.00/5.00), 0.00);
+                GiD_fWriteGaussPoint2D( MeshFile, -std::sqrt(3.00/5.00), std::sqrt(3.00/5.00) );
+                GiD_fWriteGaussPoint2D( MeshFile,  0.00, std::sqrt(3.00/5.00) );
+                GiD_fWriteGaussPoint2D( MeshFile,  std::sqrt(3.00/5.00), std::sqrt(3.00/5.00) );
+                GiD_fEndGaussPoint(MeshFile);
+            }
             else if( mGidElementFamily == GiD_Tetrahedra && mSize == 5 )
             {
                 GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Tetrahedra, NULL, 4, 0, 0 );
@@ -463,17 +542,10 @@ public:
             else if( mGidElementFamily == GiD_Tetrahedra && mSize == 11 )
             {
                 GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Tetrahedra, NULL, 4, 0, 0 );
-                //GiD_WriteGaussPoint3D( 1.0/4.0, 1.0/4.0, 1.0/4.0 );
                 GiD_fWriteGaussPoint3D( MeshFile, 1.0/14.0, 1.0/14.0, 1.0/14.0 );
                 GiD_fWriteGaussPoint3D( MeshFile, 11.0/14.0, 1.0/14.0, 1.0/14.0 );
                 GiD_fWriteGaussPoint3D( MeshFile, 1.0/14.0, 11.0/14.0, 1.0/14.0 );
                 GiD_fWriteGaussPoint3D( MeshFile, 1.0/14.0, 1.0/14.0, 11.0/14.0 );
-                //GiD_WriteGaussPoint3D( (1.0+std::sqrt(5.0/14.0))/4.0, (1.0-std::sqrt(5.0/14.0))/4.0, (1.0-std::sqrt(5.0/14.0))/4.0 );
-                //GiD_WriteGaussPoint3D( (1.0+std::sqrt(5.0/14.0))/4.0,(1.0+std::sqrt(5.0/14.0))/4.0, (1.0-std::sqrt(5.0/14.0))/4.0 );
-                //GiD_WriteGaussPoint3D( (1.0-std::sqrt(5.0/14.0))/4.0,(1.0+std::sqrt(5.0/14.0))/4.0, (1.0-std::sqrt(5.0/14.0))/4.0 );
-                //GiD_WriteGaussPoint3D( (1.0-std::sqrt(5.0/14.0))/4.0,(1.0-std::sqrt(5.0/14.0))/4.0, (1.0+std::sqrt(5.0/14.0))/4.0 );
-                //GiD_WriteGaussPoint3D( (1.0+std::sqrt(5.0/14.0))/4.0,(1.0-std::sqrt(5.0/14.0))/4.0, (1.0+std::sqrt(5.0/14.0))/4.0 );
-                //GiD_WriteGaussPoint3D( (1.0-std::sqrt(5.0/14.0))/4.0,(1.0+std::sqrt(5.0/14.0))/4.0, (1.0+std::sqrt(5.0/14.0))/4.0 );
                 GiD_fEndGaussPoint(MeshFile);
             }
             else if ( mGidElementFamily == GiD_Triangle && mSize == 3 )
@@ -484,164 +556,20 @@ public:
                 GiD_fWriteGaussPoint2D( MeshFile, 1.0/6.0, 2.0/3.0 );
                 GiD_fEndGaussPoint(MeshFile);
             }
-            /* START: Adding manually the custom prism */
             else if ( mGidElementFamily == GiD_Prism  && mSize > 1)
             {
                 GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 6, 0, 0 );
 
-                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
-                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
-                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
+				GiD_fWriteGaussPoint3D(MeshFile, 1.00 / 6.00, 1.00 / 6.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
+				GiD_fWriteGaussPoint3D(MeshFile, 2.00 / 3.00, 1.00 / 6.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
+				GiD_fWriteGaussPoint3D(MeshFile, 1.00 / 6.00, 2.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
 
-                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
-                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
-                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
+				GiD_fWriteGaussPoint3D(MeshFile, 1.00 / 6.00, 1.00 / 6.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
+				GiD_fWriteGaussPoint3D(MeshFile, 2.00 / 3.00, 1.00 / 6.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
+				GiD_fWriteGaussPoint3D(MeshFile, 1.00 / 6.00, 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
 
                 GiD_fEndGaussPoint(MeshFile);
             }
-//            else if ( mGidElementFamily == GiD_Prism  && mSize == 2 )
-//            {
-//                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 6, 0, 0 );
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
-
-//                GiD_fEndGaussPoint(MeshFile);
-//            }
-//            else if ( mGidElementFamily == GiD_Prism  && mSize == 3 )
-//            {
-//                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 9, 0, 0 );
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.1127016653792583114821);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.1127016653792583114821);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.1127016653792583114821);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5000000000000000000000);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.8872983346207416885180);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.8872983346207416885180);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.8872983346207416885180);
-
-//                GiD_fEndGaussPoint(MeshFile);
-//            }
-//            else if ( mGidElementFamily == GiD_Prism  && mSize == 5 )
-//            {
-//                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 15, 0, 0 );
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.0469100770306680036012);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.0469100770306680036012);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.0469100770306680036012);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.2307653449471584544819);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.2307653449471584544819);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.2307653449471584544819);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5000000000000000000000);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.7692346550528415455182);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.7692346550528415455182);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.7692346550528415455182);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.9530899229693319963988);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.9530899229693319963988);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.9530899229693319963988);
-
-//                GiD_fEndGaussPoint(MeshFile);
-//            }
-//            else if ( mGidElementFamily == GiD_Prism  && mSize == 7 )
-//            {
-//                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 21, 0, 0 );
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.0254460438286207377369);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.0254460438286207377369);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.0254460438286207377369);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.1292344072003027800681);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.1292344072003027800681);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.1292344072003027800681);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.2970774243113014165467);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.2970774243113014165467);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.2970774243113014165467);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5000000000000000000000);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.7029225756886985834533);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.7029225756886985834533);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.7029225756886985834533);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.8707655927996972199320);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.8707655927996972199320);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.8707655927996972199320);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.9745539561713792622631);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.9745539561713792622631);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.9745539561713792622631);
-
-//                GiD_fEndGaussPoint(MeshFile);
-//            }
-//            else if ( mGidElementFamily == GiD_Prism  && mSize == 11 )
-//            {
-//                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 33, 0, 0 );
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.0108856709269715035981);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.0108856709269715035981);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.0108856709269715035981);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.0564687001159523504624);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.0564687001159523504624);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.0564687001159523504624);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.1349239972129753379533);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.1349239972129753379533);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.1349239972129753379533);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.2404519353965940920372);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.2404519353965940920372);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.2404519353965940920372);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.3652284220238275138343);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.3652284220238275138343);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.3652284220238275138343);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5000000000000000000000);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.6347715779761724861657);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.6347715779761724861657);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.6347715779761724861657);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.7595480646034059079628);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.7595480646034059079628);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.7595480646034059079628);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.8650760027870246620467);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.8650760027870246620467);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.8650760027870246620467);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.9435312998840476495376);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.9435312998840476495376);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.9435312998840476495376);
-
-//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.9891143290730284964020);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.9891143290730284964020);
-//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.9891143290730284964020);
-
-//                GiD_fEndGaussPoint(MeshFile);
-//            }
-            /* END: Adding manually the custom prism */
             else if ( mGidElementFamily == GiD_Point ||  mGidElementFamily == GiD_Sphere ||  mGidElementFamily == GiD_Circle )
             {
                 //Gid does not accept gauss points on Points, Circles or Spheres! (october 18th 2014)
@@ -658,7 +586,7 @@ public:
             }
         }
     }
-    
+
 
 protected:
 
@@ -674,5 +602,5 @@ protected:
 };//class GidGaussPointsContainer
 }// namespace Kratos.
 
-#endif // KRATOS_GID_GAUSS_POINT_CONTAINER_H_INCLUDED defined 
+#endif // KRATOS_GID_GAUSS_POINT_CONTAINER_H_INCLUDED defined
 

@@ -16,9 +16,8 @@
 
 // Project includes
 #include "custom_elements/isotropic_shell_element.hpp"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
-
 
 namespace Kratos
 {
@@ -42,8 +41,15 @@ IsotropicShellElement::IsotropicShellElement(IndexType NewId, GeometryType::Poin
 
 Element::Pointer IsotropicShellElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return boost::make_shared< IsotropicShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
-//     return Element::Pointer(new IsotropicShellElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_intrusive< IsotropicShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+Element::Pointer IsotropicShellElement::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive< IsotropicShellElement >(NewId, pGeom, pProperties);
 }
 
 IsotropicShellElement::~IsotropicShellElement()
@@ -52,14 +58,14 @@ IsotropicShellElement::~IsotropicShellElement()
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void IsotropicShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateAllMatrices(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void IsotropicShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     Matrix lhs(18,18);
     CalculateAllMatrices(lhs,rRightHandSideVector,rCurrentProcessInfo);
@@ -120,7 +126,7 @@ void IsotropicShellElement::CalculateLocalGlobalTransformation(
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateMembraneB( boost::numeric::ublas::bounded_matrix<double,9,3>& Bm,
+void IsotropicShellElement::CalculateMembraneB( BoundedMatrix<double,9,3>& Bm,
         const double&  beta0,
         const double& loc1,
         const double& loc2,
@@ -136,32 +142,32 @@ void IsotropicShellElement::CalculateMembraneB( boost::numeric::ublas::bounded_m
     KRATOS_TRY
 
 // 		array_1d<int,9> local_indices;
-// 		boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
-// 		boost::numeric::ublas::bounded_matrix<double,9,3> mBb;
+// 		BoundedMatrix<double,9,3> mBm;
+// 		BoundedMatrix<double,9,3> mBb;
 //
-    boost::numeric::ublas::bounded_matrix<double,3,3> Q;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Q1;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Q2;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Q3;
-    boost::numeric::ublas::bounded_matrix<double,3,3> aux33;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Te;
+    BoundedMatrix<double,3,3> Q;
+    BoundedMatrix<double,3,3> Q1;
+    BoundedMatrix<double,3,3> Q2;
+    BoundedMatrix<double,3,3> Q3;
+    BoundedMatrix<double,3,3> aux33;
+    BoundedMatrix<double,3,3> Te;
 //
-// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
-// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
+// 		BoundedMatrix<double,3,3> mEm;
+// 		BoundedMatrix<double,3,3> mEb;
 //
 // 		array_1d<double,9> H1;
 // 		array_1d<double,9> H2;
 // 		array_1d<double,9> H3;
 // 		array_1d<double,9> H4;
 
-    boost::numeric::ublas::bounded_matrix<double,9,3> TTu;
-// 		boost::numeric::ublas::bounded_matrix<double,3,9> aux39;
+    BoundedMatrix<double,9,3> TTu;
+// 		BoundedMatrix<double,3,9> aux39;
 //
-// 		boost::numeric::ublas::bounded_matrix<double,18,18> mKloc_system;
-// 		boost::numeric::ublas::bounded_matrix<double,18,18> rot18;
+// 		BoundedMatrix<double,18,18> mKloc_system;
+// 		BoundedMatrix<double,18,18> rot18;
 //
 // 		array_1d<double,3> temp;
-// 		boost::numeric::ublas::bounded_matrix<double,9,9> mKloc99;
+// 		BoundedMatrix<double,9,9> mKloc99;
 // 		Vector values(18);
 
 
@@ -301,7 +307,7 @@ void IsotropicShellElement::CalculateMembraneB( boost::numeric::ublas::bounded_m
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateBendingB( boost::numeric::ublas::bounded_matrix<double,9,3>& Bb,
+void IsotropicShellElement::CalculateBendingB( BoundedMatrix<double,9,3>& Bb,
         const double& loc2,
         const double& loc3,
         const double& x12,
@@ -401,12 +407,12 @@ void IsotropicShellElement::CalculateBendingB( boost::numeric::ublas::bounded_ma
 //************************************************************************************
 //************************************************************************************
 void IsotropicShellElement::CalculateMembraneContribution(
-    const boost::numeric::ublas::bounded_matrix<double,9,3>& Bm,
-    const boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
-    boost::numeric::ublas::bounded_matrix<double,9,9>& Km)
+    const BoundedMatrix<double,9,3>& Bm,
+    const BoundedMatrix<double,3,3>& Em,
+    BoundedMatrix<double,9,9>& Km)
 {
     KRATOS_TRY
-    boost::numeric::ublas::bounded_matrix<double,3,9> aux39;
+    BoundedMatrix<double,3,9> aux39;
     noalias(aux39) = prod(Em,trans(Bm) );
     noalias(Km) = prod(Bm, aux39);
 
@@ -416,9 +422,9 @@ void IsotropicShellElement::CalculateMembraneContribution(
 //************************************************************************************
 //************************************************************************************
 void IsotropicShellElement::AssembleMembraneContribution(
-    const boost::numeric::ublas::bounded_matrix<double,9,9>& Km,
+    const BoundedMatrix<double,9,9>& Km,
     const double& coeff,
-    boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system )
+    BoundedMatrix<double,18,18>& Kloc_system )
 {
     KRATOS_TRY
     array_1d<int,9> local_indices;
@@ -447,13 +453,13 @@ void IsotropicShellElement::AssembleMembraneContribution(
 //************************************************************************************
 //************************************************************************************
 void IsotropicShellElement::CalculateBendingContribution(
-    const boost::numeric::ublas::bounded_matrix<double,9,3>& Bb,
-    const boost::numeric::ublas::bounded_matrix<double,3,3>& Eb,
-    boost::numeric::ublas::bounded_matrix<double,9,9>& Kb
+    const BoundedMatrix<double,9,3>& Bb,
+    const BoundedMatrix<double,3,3>& Eb,
+    BoundedMatrix<double,9,9>& Kb
 )
 {
     KRATOS_TRY
-    boost::numeric::ublas::bounded_matrix<double,3,9> aux39;
+    BoundedMatrix<double,3,9> aux39;
     noalias(aux39) = prod(Eb,trans(Bb) );
     noalias(Kb) = prod(Bb, aux39);
     KRATOS_CATCH( "" )
@@ -462,9 +468,9 @@ void IsotropicShellElement::CalculateBendingContribution(
 //************************************************************************************
 //************************************************************************************
 void IsotropicShellElement::AssembleBendingContribution(
-    const boost::numeric::ublas::bounded_matrix<double,9,9>& Kb,
+    const BoundedMatrix<double,9,9>& Kb,
     const double& coeff,
-    boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system )
+    BoundedMatrix<double,18,18>& Kloc_system )
 {
     KRATOS_TRY
     array_1d<int,9> local_indices;
@@ -491,9 +497,9 @@ void IsotropicShellElement::AssembleBendingContribution(
 //************************************************************************************
 //************************************************************************************
 void IsotropicShellElement::CalculateGaussPointContribution(
-    boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system ,
-    const boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
-    const boost::numeric::ublas::bounded_matrix<double,3,3>& Eb,
+    BoundedMatrix<double,18,18>& Kloc_system ,
+    const BoundedMatrix<double,3,3>& Em,
+    const BoundedMatrix<double,3,3>& Eb,
     const double& weight,
     const double& h, /*thickness*/
     const double& loc1, /*local coords*/
@@ -507,9 +513,9 @@ void IsotropicShellElement::CalculateGaussPointContribution(
     const double& y31
 )
 {
-    boost::numeric::ublas::bounded_matrix<double,9,9> mKloc99;
-    boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
-    boost::numeric::ublas::bounded_matrix<double,9,3> mBb;
+    BoundedMatrix<double,9,9> mKloc99;
+    BoundedMatrix<double,9,3> mBm;
+    BoundedMatrix<double,9,3> mBb;
 
     //membrane stiffness
     double beta0 = CalculateBeta( Em );
@@ -530,7 +536,7 @@ void IsotropicShellElement::CalculateGaussPointContribution(
 
 //************************************************************************************
 //************************************************************************************
-double IsotropicShellElement::CalculateBeta( const boost::numeric::ublas::bounded_matrix<double,3,3>& Em )
+double IsotropicShellElement::CalculateBeta( const BoundedMatrix<double,3,3>& Em )
 {
     double nu = GetProperties()[POISSON_RATIO];
     double beta0 = 0.5*(1-4*nu*nu);
@@ -540,7 +546,7 @@ double IsotropicShellElement::CalculateBeta( const boost::numeric::ublas::bounde
 //************************************************************************************
 //************************************************************************************
 void IsotropicShellElement::CalculateMembraneElasticityTensor(
-    boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
+    BoundedMatrix<double,3,3>& Em,
     const double& h
 )
 {
@@ -562,7 +568,7 @@ void IsotropicShellElement::CalculateMembraneElasticityTensor(
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateBendingElasticityTensor( boost::numeric::ublas::bounded_matrix<double,3,3>& Eb, const double& h )
+void IsotropicShellElement::CalculateBendingElasticityTensor( BoundedMatrix<double,3,3>& Eb, const double& h )
 {
     double NU = GetProperties()[POISSON_RATIO];
     double E = GetProperties()[YOUNG_MODULUS];
@@ -585,11 +591,11 @@ void IsotropicShellElement::CalculateBendingElasticityTensor( boost::numeric::ub
 void IsotropicShellElement::CalculateAllMatrices(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    boost::numeric::ublas::bounded_matrix<double,18,18> mKloc_system;
-    boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
-    boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
+    BoundedMatrix<double,18,18> mKloc_system;
+    BoundedMatrix<double,3,3> mEm;
+    BoundedMatrix<double,3,3> mEb;
     Vector values(18);
 
 
@@ -647,7 +653,7 @@ void IsotropicShellElement::CalculateAllMatrices(
     CalculatePureDisplacement(values,v1,v2,v3);
     noalias(rRightHandSideVector) = - prod(mKloc_system,values);
 
-    boost::numeric::ublas::bounded_matrix<double,18,18> ProjOperator, WorkMatrix;
+    BoundedMatrix<double,18,18> ProjOperator, WorkMatrix;
     array_1d<double,18> WorkArray;
 
     //add geometric stiffness to the local system
@@ -694,7 +700,7 @@ void IsotropicShellElement::CalculateAllMatrices(
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void IsotropicShellElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     int number_of_nodes = 3;
     if(rResult.size() != 18)
@@ -716,11 +722,11 @@ void IsotropicShellElement::EquationIdVector(EquationIdVectorType& rResult, Proc
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void IsotropicShellElement::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     ElementalDofList.resize(0);
     ElementalDofList.reserve(18);
-    
+
     for (unsigned int i=0; i<GetGeometry().size(); i++)
     {
         ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
@@ -735,7 +741,7 @@ void IsotropicShellElement::GetDofList(DofsVectorType& ElementalDofList,ProcessI
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetValuesVector(Vector& values, int Step)
+void IsotropicShellElement::GetValuesVector(Vector& values, int Step) const
 {
     const unsigned int number_of_nodes = 3;
     //const unsigned int dim = 3;
@@ -765,13 +771,13 @@ void IsotropicShellElement::RotateToGlobal(
     const array_1d<double,3>& v1,
     const array_1d<double,3>& v2,
     const array_1d<double,3>& v3,
-    const boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system,
+    const BoundedMatrix<double,18,18>& Kloc_system,
     Matrix& rLeftHandSideMatrix
 )
 {
     KRATOS_TRY
-    boost::numeric::ublas::bounded_matrix<double,18,18> rot18=ZeroMatrix(18,18);
-    boost::numeric::ublas::bounded_matrix<double,3,3> aux33;
+    BoundedMatrix<double,18,18> rot18=ZeroMatrix(18,18);
+    BoundedMatrix<double,3,3> aux33;
     //calculate local rotation matrix
     aux33(0,0) = v1[0];
     aux33(0,1) = v1[1];
@@ -799,7 +805,7 @@ void IsotropicShellElement::RotateToGlobal(
         }
     }
 
-    boost::numeric::ublas::bounded_matrix<double,18,18> temp = prod(Kloc_system,rot18);
+    BoundedMatrix<double,18,18> temp = prod(Kloc_system,rot18);
     noalias(rLeftHandSideMatrix) = prod(trans(rot18),temp);
 
     KRATOS_CATCH( "" )
@@ -811,15 +817,15 @@ void IsotropicShellElement::RotateToGlobal(
     const array_1d<double,3>& v1,
     const array_1d<double,3>& v2,
     const array_1d<double,3>& v3,
-    const boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system,
+    const BoundedMatrix<double,18,18>& Kloc_system,
     Matrix& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector
 )
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,18,18> rot18=ZeroMatrix(18,18);
-    boost::numeric::ublas::bounded_matrix<double,3,3> aux33;
+    BoundedMatrix<double,18,18> rot18=ZeroMatrix(18,18);
+    BoundedMatrix<double,3,3> aux33;
 
     //calculate local rotation matrix
     aux33(0,0) = v1[0];
@@ -848,7 +854,7 @@ void IsotropicShellElement::RotateToGlobal(
         }
     }
 
-    boost::numeric::ublas::bounded_matrix<double,18,18> temp = prod(Kloc_system,rot18);
+    BoundedMatrix<double,18,18> temp = prod(Kloc_system,rot18);
     noalias(rLeftHandSideMatrix) = prod(trans(rot18),temp);
 
     array_1d<double,18> aaa;
@@ -935,17 +941,6 @@ void IsotropicShellElement::NicePrint(const Matrix& A)
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-
-
-//************************************************************************************
-//************************************************************************************
 void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -953,9 +948,9 @@ void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<Matrix >
     if(Output.size() != 1)
         Output.resize(1);
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
-// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
-    boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
+    BoundedMatrix<double,3,3> mEm;
+// 		BoundedMatrix<double,3,3> mEb;
+    BoundedMatrix<double,9,3> mBm;
 
     if(rVariable==GREEN_LAGRANGE_STRAIN_TENSOR)
     {
@@ -1060,10 +1055,10 @@ void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<double >
 
     if(rVariable==TEMPERATURE)
     {
-        boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
-        boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
-        boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
-        boost::numeric::ublas::bounded_matrix<double,9,3> mBb;
+        BoundedMatrix<double,3,3> mEm;
+        BoundedMatrix<double,3,3> mEb;
+        BoundedMatrix<double,9,3> mBm;
+        BoundedMatrix<double,9,3> mBb;
 
         //calculate local coordinates and rotation matrix
         array_1d<double,3> v1;
@@ -1169,8 +1164,8 @@ inline void IsotropicShellElement::AddVoigtTensorComponents(
 //************************************************************************************
 //************************************************************************************
 void IsotropicShellElement::CalculateKg_GaussPointContribution(
-    boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system ,
-    const boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
+    BoundedMatrix<double,18,18>& Kloc_system ,
+    const BoundedMatrix<double,3,3>& Em,
     const double& weight,
     const double& h, /*thickness*/
     const double& loc1, /*local coords*/
@@ -1188,15 +1183,15 @@ void IsotropicShellElement::CalculateKg_GaussPointContribution(
     KRATOS_TRY
     //definition of auxiliaries ... should be put global to optimize
     array_1d<double,3> local_stress, local_strain;
-    boost::numeric::ublas::bounded_matrix<double,2,2> stress_tensor, Jinv;
-    boost::numeric::ublas::bounded_matrix<double,9,2> DN_Dx;
-    boost::numeric::ublas::bounded_matrix<double,2,9> temp29;
+    BoundedMatrix<double,2,2> stress_tensor, Jinv;
+    BoundedMatrix<double,9,2> DN_Dx;
+    BoundedMatrix<double,2,9> temp29;
 
-// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
-// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
-    boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
-// 		boost::numeric::ublas::bounded_matrix<double,9,3> mBb;
-    boost::numeric::ublas::bounded_matrix<double,9,9> mKloc99;
+// 		BoundedMatrix<double,3,3> mEm;
+// 		BoundedMatrix<double,3,3> mEb;
+    BoundedMatrix<double,9,3> mBm;
+// 		BoundedMatrix<double,9,3> mBb;
+    BoundedMatrix<double,9,9> mKloc99;
 
     //membrane stresses and strains
     double beta0 = CalculateBeta( Em );
@@ -1210,7 +1205,7 @@ void IsotropicShellElement::CalculateKg_GaussPointContribution(
     stress_tensor(1,0) = local_stress[2];
     stress_tensor(1,1) = local_stress[1];
 
-    boost::numeric::ublas::bounded_matrix<double,2,9> DNu_loc,DNv_loc,DNw_loc,DN;
+    BoundedMatrix<double,2,9> DNu_loc,DNv_loc,DNw_loc,DN;
 
     //calculation of the local derivatives
     double alpha = 1.5;
@@ -1256,7 +1251,7 @@ void IsotropicShellElement::CalculateKg_GaussPointContribution(
 //************************************************************************************
 void IsotropicShellElement::CalculateAndAddKg(
     MatrixType& LHS,
-    boost::numeric::ublas::bounded_matrix<double,18,18>& rWorkMatrix,
+    BoundedMatrix<double,18,18>& rWorkMatrix,
     const double& x12,
     const double& x23,
     const double& x31,
@@ -1271,7 +1266,7 @@ void IsotropicShellElement::CalculateAndAddKg(
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
+    BoundedMatrix<double,3,3> mEm;
 
     double weight,loc1,loc2,loc3;
 
@@ -1370,7 +1365,7 @@ void IsotropicShellElement::Calculate(const Variable<Matrix >& rVariable, Matrix
     {
         //resize Kg if needed
         if(Output.size1() != 18) Output.resize(18,18,false);
-        boost::numeric::ublas::bounded_matrix<double,18,18> WorkMatrix;
+        BoundedMatrix<double,18,18> WorkMatrix;
 
         //calculate local coordinates and rotation matrix
         array_1d<double,3> v1;
@@ -1397,9 +1392,9 @@ void IsotropicShellElement::Calculate(const Variable<Matrix >& rVariable, Matrix
 //************************************************************************************
 void IsotropicShellElement::CalculateLocalShapeDerivatives(
     double alpha,
-    boost::numeric::ublas::bounded_matrix<double,2,9>& DNu_loc ,
-    boost::numeric::ublas::bounded_matrix<double,2,9>& DNv_loc ,
-    boost::numeric::ublas::bounded_matrix<double,2,9>& DNw_loc ,
+    BoundedMatrix<double,2,9>& DNu_loc ,
+    BoundedMatrix<double,2,9>& DNv_loc ,
+    BoundedMatrix<double,2,9>& DNw_loc ,
     const double& a, /*local coords*/ //loc1
     const double& b, //loc2
     const double& c, //loc3
@@ -1495,7 +1490,7 @@ void IsotropicShellElement::CalculateLocalShapeDerivatives(
 //************************************************************************************
 //************************************************************************************
 void IsotropicShellElement::CalculateProjectionOperator(
-    boost::numeric::ublas::bounded_matrix<double,18,18>& rProjOperator,
+    BoundedMatrix<double,18,18>& rProjOperator,
     const double& x12,
     const double& x23,
     const double& x31,
@@ -1506,8 +1501,8 @@ void IsotropicShellElement::CalculateProjectionOperator(
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,18,3> psi = ZeroMatrix(18,3);
-    boost::numeric::ublas::bounded_matrix<double,18,3> rho = ZeroMatrix(18,3);
+    BoundedMatrix<double,18,3> psi = ZeroMatrix(18,3);
+    BoundedMatrix<double,18,3> rho = ZeroMatrix(18,3);
 
     double x21 = -x12;
 
@@ -1542,7 +1537,7 @@ void IsotropicShellElement::CalculateProjectionOperator(
     rho(14,0) = 1.0/y31;
 
     //completing the calculation of the projections
-    noalias(rProjOperator) = IdentityMatrix(18,18);
+    noalias(rProjOperator) = IdentityMatrix(18);
     //noalias(rProjOperator) -= prod(trans(psi),rho);
     noalias(rProjOperator) -= prod(psi,trans(rho));
 
@@ -1553,11 +1548,11 @@ void IsotropicShellElement::CalculateProjectionOperator(
 //************************************************************************************
 //************************************************************************************
 void IsotropicShellElement::ApplyProjection(
-    boost::numeric::ublas::bounded_matrix<double,18,18>& rLeftHandSideMatrix,
+    BoundedMatrix<double,18,18>& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    boost::numeric::ublas::bounded_matrix<double,18,18>& rWorkMatrix,
+    BoundedMatrix<double,18,18>& rWorkMatrix,
     array_1d<double,18>& rWorkArray,
-    const boost::numeric::ublas::bounded_matrix<double,18,18>& rProjOperator
+    const BoundedMatrix<double,18,18>& rProjOperator
 )
 {
     KRATOS_TRY
@@ -1586,8 +1581,8 @@ void IsotropicShellElement::UpdateNodalReferenceSystem(
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> Ttilde;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Omega = ZeroMatrix(3,3);
+    BoundedMatrix<double,3,3> Ttilde;
+    BoundedMatrix<double,3,3> Omega = ZeroMatrix(3,3);
     array_1d<double,3> rot; //this will contain the incremental rotation in the last iteration
 
     //loop over nodes
@@ -1614,7 +1609,7 @@ void IsotropicShellElement::UpdateNodalReferenceSystem(
 
         double temp = 1.0/(1.0 + 0.25*omega_scalar_2);
 
-        noalias(Ttilde) = IdentityMatrix(3,3);
+        noalias(Ttilde) = IdentityMatrix(3);
         noalias(Ttilde) += temp * Omega;
         noalias(Ttilde) += 0.5*temp * prod( Omega, Omega);
 
@@ -1649,9 +1644,9 @@ void IsotropicShellElement::SaveOriginalReference(
     }
 
     //initializing nodal triad matrices
-    noalias(mTs[0]) = IdentityMatrix(3,3);
-    noalias(mTs[1]) = IdentityMatrix(3,3);
-    noalias(mTs[2]) = IdentityMatrix(3,3);
+    noalias(mTs[0]) = IdentityMatrix(3);
+    noalias(mTs[1]) = IdentityMatrix(3);
+    noalias(mTs[2]) = IdentityMatrix(3);
 
 
     KRATOS_CATCH( "" )
@@ -1672,7 +1667,7 @@ void IsotropicShellElement::CalculatePureDisplacement(
     if(values.size() != MatSize)	values.resize(MatSize,false);
 
     array_1d<double,3> temp_vec, temp_vec1;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Ttilde, temp, Omega, TE, aux;
+    BoundedMatrix<double,3,3> Ttilde, temp, Omega, TE, aux;
 
     //calculating original reference matrix
     for(unsigned int i=0; i<3; i++)
@@ -1691,11 +1686,11 @@ void IsotropicShellElement::CalculatePureDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //extract pure rotations from Omega
@@ -1739,7 +1734,7 @@ void IsotropicShellElement::CalculatePureMembraneDisplacement(
     if(values.size() != MatSize)	values.resize(MatSize,false);
 
     array_1d<double,3> temp_vec, temp_vec1;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Ttilde, temp, Omega, TE, aux;
+    BoundedMatrix<double,3,3> Ttilde, temp, Omega, TE, aux;
 
     //calculating original reference matrix
     for(unsigned int i=0; i<3; i++)
@@ -1758,11 +1753,11 @@ void IsotropicShellElement::CalculatePureMembraneDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //node pos in the current config
@@ -1802,7 +1797,7 @@ void IsotropicShellElement::CalculatePureBendingDisplacement(
     if(values.size() != MatSize)	values.resize(MatSize,false);
 
     array_1d<double,3> temp_vec, temp_vec1;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Ttilde, temp, Omega, TE, aux;
+    BoundedMatrix<double,3,3> Ttilde, temp, Omega, TE, aux;
 
     //calculating original reference matrix
     for(unsigned int i=0; i<3; i++)
@@ -1821,11 +1816,11 @@ void IsotropicShellElement::CalculatePureBendingDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //node pos in the current config
@@ -1852,13 +1847,13 @@ void IsotropicShellElement::CalculatePureBendingDisplacement(
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::InvertMatrix(const boost::numeric::ublas::bounded_matrix<double,3,3>& InputMatrix,
-        boost::numeric::ublas::bounded_matrix<double,3,3>& InvertedMatrix,
+void IsotropicShellElement::InvertMatrix(const BoundedMatrix<double,3,3>& InputMatrix,
+        BoundedMatrix<double,3,3>& InvertedMatrix,
         double& InputMatrixDet)
 {
     KRATOS_TRY
     if(InvertedMatrix.size1() != 3 || InvertedMatrix.size2() != 3)
-        InvertedMatrix.resize(3,3);
+        InvertedMatrix.resize(3,3, false);
 
     //filling the inverted matrix with the algebraic complements
     //first column
@@ -1936,25 +1931,29 @@ void IsotropicShellElement::SetupOrientationAngles()
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::Initialize()
+void IsotropicShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    //calculate local coordinates and rotation matrix
-    array_1d<double,3> v1;
-    array_1d<double,3> v2;
-    array_1d<double,3> v3;
-    double x12, x23, x31, y12, y23, y31;
-    double A;
 
-    CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,v3,A);
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        //calculate local coordinates and rotation matrix
+        array_1d<double,3> v1;
+        array_1d<double,3> v2;
+        array_1d<double,3> v3;
+        double x12, x23, x31, y12, y23, y31;
+        double A;
 
-    SaveOriginalReference(v1,v2,v3);
+        CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,v3,A);
 
-    noalias(rot_oldit[0]) = GetGeometry()[0].FastGetSolutionStepValue(ROTATION);
-    noalias(rot_oldit[1]) = GetGeometry()[1].FastGetSolutionStepValue(ROTATION);
-    noalias(rot_oldit[2]) = GetGeometry()[2].FastGetSolutionStepValue(ROTATION);
+        SaveOriginalReference(v1,v2,v3);
 
-    this->SetupOrientationAngles();
+        noalias(rot_oldit[0]) = GetGeometry()[0].FastGetSolutionStepValue(ROTATION);
+        noalias(rot_oldit[1]) = GetGeometry()[1].FastGetSolutionStepValue(ROTATION);
+        noalias(rot_oldit[2]) = GetGeometry()[2].FastGetSolutionStepValue(ROTATION);
+
+        this->SetupOrientationAngles();
+    }
 
     KRATOS_CATCH( "" )
 }
@@ -1963,7 +1962,7 @@ void IsotropicShellElement::Initialize()
 ////************************************************************************************
 ////************************************************************************************
 
-void IsotropicShellElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void IsotropicShellElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1973,7 +1972,7 @@ void IsotropicShellElement::InitializeSolutionStep( ProcessInfo& rCurrentProcess
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void IsotropicShellElement::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1997,7 +1996,7 @@ void IsotropicShellElement::FinalizeNonLinearIteration(ProcessInfo& CurrentProce
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -2010,9 +2009,9 @@ void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, Process
 
     CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,v3,area);
 
-    double h = GetProperties()[THICKNESS];
-    double density = GetProperties()[DENSITY];
-    double node_mass = area * density * h / 3.00;
+    const double h = GetProperties()[THICKNESS];
+    const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+    const double node_mass = area * density * h / 3.00;
 
     //lumped
     unsigned int MatSize = 18;
@@ -2038,7 +2037,7 @@ void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, Process
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetFirstDerivativesVector(Vector& values, int Step)
+void IsotropicShellElement::GetFirstDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize)   values.resize(MatSize,false);
@@ -2055,7 +2054,7 @@ void IsotropicShellElement::GetFirstDerivativesVector(Vector& values, int Step)
 }
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetSecondDerivativesVector(Vector& values, int Step)
+void IsotropicShellElement::GetSecondDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize) values.resize(MatSize,false);
@@ -2081,7 +2080,7 @@ void IsotropicShellElement::GetSecondDerivativesVector(Vector& values, int Step)
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

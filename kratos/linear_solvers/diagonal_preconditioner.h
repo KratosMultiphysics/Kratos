@@ -1,59 +1,25 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:33 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
 //
 //
-
 
 #if !defined(KRATOS_DIAGONAL_PRECONDITIONER_H_INCLUDED )
 #define  KRATOS_DIAGONAL_PRECONDITIONER_H_INCLUDED
-
-
 
 // System includes
 
 
 // External includes
+#include <boost/numeric/ublas/vector.hpp>
+
 
 // Project includes
 #include "includes/define.h"
@@ -119,7 +85,7 @@ public:
         : BaseType(Other), mDiagonal(Other.mDiagonal), mTemp(Other.mTemp) {}
 
     /// Destructor.
-    virtual ~DiagonalPreconditioner() {}
+    ~DiagonalPreconditioner() override {}
 
 
     ///@}
@@ -149,16 +115,13 @@ public:
     */
     void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        mDiagonal.resize(int(TSparseSpaceType::Size(rX)));
-        mTemp.resize(int(TSparseSpaceType::Size(rX)));
-
-        int i;
+        mDiagonal.resize(TSparseSpaceType::Size(rX));
+        mTemp.resize(TSparseSpaceType::Size(rX));
 
         const DataType zero = DataType();
-// 	  const DataType one = DataType(1.00);
 
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(rA.size1()) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(rA.size1()) ; ++i)
         {
             double diag_Aii = rA(i,i);
             if(diag_Aii != zero)
@@ -166,14 +129,6 @@ public:
             else
                 KRATOS_THROW_ERROR(std::logic_error,"zero found in the diagonal. Diagonal preconditioner can not be used","");
         }
-// 	      mDiagonal[i] = one;
-
-        /* 	  std::cout << "mDiagonal : " << mDiagonal << std::endl; */
-
-        /* for(i = 0 ; i < rA.RowsNumber() ; ++i)
-           for(j = 0 ; j < rA.RowsNumber() ; ++j) */
-
-
     }
 
     void Initialize(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
@@ -183,9 +138,8 @@ public:
 
     void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             mTemp[i] = rX[i] * mDiagonal[i];
         TSparseSpaceType::Mult(rA,mTemp, rY);
         ApplyLeft(rY);
@@ -193,9 +147,8 @@ public:
 
     void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             mTemp[i] = rX[i] * mDiagonal[i];
         TSparseSpaceType::TransposeMult(rA,mTemp, rY);
         ApplyRight(rY);
@@ -203,9 +156,8 @@ public:
 
     VectorType& ApplyLeft(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -213,9 +165,8 @@ public:
 
     VectorType& ApplyRight(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -229,9 +180,8 @@ public:
     */
     VectorType& ApplyTransposeLeft(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -239,9 +189,8 @@ public:
 
     VectorType& ApplyTransposeRight(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -249,12 +198,8 @@ public:
 
     VectorType& ApplyInverseRight(VectorType& rX) override
     {
-// 	  const DataType zero = DataType();
-
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
-            /*	    if(mDiagonal[i] != zero)*/
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] /= mDiagonal[i];
 
         return rX;
@@ -262,9 +207,8 @@ public:
 
     VectorType& Finalize(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -284,13 +228,13 @@ public:
     ///@{
 
     /// Return information about this object.
-    virtual std::string  Info() const override
+    std::string  Info() const override
     {
         return "Diagonal preconditioner";
     }
 
     /// Print information about this object.
-    virtual void  PrintInfo(std::ostream& OStream) const override
+    void  PrintInfo(std::ostream& OStream) const override
     {
         OStream << "Diagonal preconditioner";
     }
@@ -420,5 +364,4 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DIAGONAL_PRECONDITIONER_H_INCLUDED  defined 
-
+#endif // KRATOS_DIAGONAL_PRECONDITIONER_H_INCLUDED  defined

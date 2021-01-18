@@ -1,18 +1,26 @@
-//   
-//   Project Name:                  KratosDamApplication $
-//   Last Modified by:    $Author:        Lorenzo Gracia $
-//   Date:                $Date:           November 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Lorenzo Gracia
+//
 //
 
 #if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
 #define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
 
+// System includes
+#include <pybind11/pybind11.h>
+
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 
 namespace Kratos
 {
@@ -20,7 +28,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomUtilitiesToPython();
+void  AddCustomUtilitiesToPython(pybind11::module& m);
 
 }  // namespace Python.
 }  // namespace Kratos.

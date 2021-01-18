@@ -1,215 +1,225 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-## Importing the Kratos Library
+# Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
-import KratosMultiphysics.MetisApplication as KratosMetis           # Partitioning
+
+# Import applications
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD     # Fluid dynamics application
+from KratosMultiphysics.FluidDynamicsApplication import TrilinosExtension as TrilinosFluid
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
-## Checks that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+# Import base class file
+from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic
+from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
-## Import base class file
-import navier_stokes_solver_vmsmonolithic
+def CreateSolver(model, custom_settings):
+    return TrilinosNavierStokesSolverMonolithic(model, custom_settings)
 
-def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesMPISolver_VMSMonolithic(main_model_part, custom_settings)
+class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
-class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolver_VMSMonolithic):
-
-    def __init__(self, main_model_part, custom_settings):
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
-
+    @classmethod
+    def GetDefaultParameters(cls):
         ## Default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "trilinos_navier_stokes_solver_vmsmonolithic",
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
+            "formulation": {
+                "element_type": "vms"
+            },
             "maximum_iterations": 10,
-            "dynamic_tau": 0.01,
-            "oss_switch": 0,
             "echo_level": 0,
             "consider_periodic_conditions": false,
-            "time_order": 2,
             "compute_reactions": false,
-            "divergence_clearance_steps": 0,
+            "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
             "relative_velocity_tolerance": 1e-5,
             "absolute_velocity_tolerance": 1e-7,
             "relative_pressure_tolerance": 1e-5,
             "absolute_pressure_tolerance": 1e-7,
-            "linear_solver_settings"       : {
-                "solver_type"                        : "MultiLevelSolver",
-                "max_iteration"                      : 200,
-                "tolerance"                          : 1e-8,
-                "max_levels"                         : 3,
-                "symmetric"                          : false,
-                "reform_preconditioner_at_each_step" : true,
-                "scaling"                            : true
+            "linear_solver_settings": {
+                "solver_type": "amgcl"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
             "time_stepping": {
-                "automatic_time_step" : true,
+                "automatic_time_step" : false,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01
             },
+            "time_scheme": "bossak",
             "alpha":-0.3,
             "move_mesh_strategy": 0,
             "periodic": "periodic",
             "regularization_coef": 1000,
-            "move_mesh_flag": false,
-            "turbulence_model": "None"
+            "move_mesh_flag": false
         }""")
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverMonolithic, cls).GetDefaultParameters())
+        return default_settings
 
-        ## Construct the linear solver
-        import trilinos_linear_solver_factory
-        self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+    def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
+        # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
+        custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
+        super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).__init__(model,custom_settings)
 
-        ## Set the element replace settings
-        self.settings.AddEmptyValue("element_replace_settings")
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"VMS3D4N",
-                    "condition_name": "MonolithicWallCondition3D"
-                }
-                """)
-        elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"VMS2D3N",
-                    "condition_name": "MonolithicWallCondition2D"
-                }
-                """)
+        # Set up the auxiliary class with the formulation settings
+        self._SetFormulation()
+
+        scheme_type = self.settings["time_scheme"].GetString()
+        if scheme_type == "bossak":
+            self.min_buffer_size = 2
+        elif scheme_type == "bdf2":
+            self.min_buffer_size = 3
+        elif scheme_type == "steady":
+            self.min_buffer_size = 1
+            self._SetUpSteadySimulation()
         else:
-            raise Exception("Domain size is neither 2 nor 3!!")
+            msg  = "Unknown time_scheme option found in project parameters:\n"
+            msg += "\"" + scheme_type + "\"\n"
+            msg += "Accepted values are \"bossak\", \"bdf2\" or \"steady\".\n"
+            raise Exception(msg)
 
-        print("Construction of NavierStokesMPISolver_VMSMonolithic finished.")
-
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of TrilinosNavierStokesSolverMonolithic finished.")
 
     def AddVariables(self):
         ## Add variables from the base class
-        super(NavierStokesMPISolver_VMSMonolithic, self).AddVariables()
+        super(TrilinosNavierStokesSolverMonolithic, self).AddVariables()
 
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        KratosMPI.mpi.world.barrier()
 
-        if KratosMPI.mpi.rank == 0:
-            print("Variables for the VMS fluid Trilinos solver added correctly in each processor.")
-
+        KratosMultiphysics.Logger.Print("Variables for the VMS fluid Trilinos solver added correctly in each processor.")
 
     def ImportModelPart(self):
-        # Construct the Trilinos import model part utility
-        import trilinos_import_model_part_utility
-        TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        ## Construct the MPI import model part utility
+        self.distributed_model_part_importer = DistributedImportModelPartUtility(self.main_model_part, self.settings)
+        ## Execute the Metis partitioning and reading
+        self.distributed_model_part_importer.ImportModelPart()
 
-        # Execute the Metis partitioning and reading
-        TrilinosModelPartImporter.ExecutePartitioningAndReading()
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"MPI model reading finished.")
 
-        # Call the base class execute after reading (substitute elements, set density, viscosity and constitutie law)
-        super(NavierStokesMPISolver_VMSMonolithic, self)._ExecuteAfterReading()
+    def PrepareModelPart(self):
+        # Call the base solver to do the PrepareModelPart
+        # Note that his also calls the PrepareModelPart of the turbulence model
+        super(TrilinosNavierStokesSolverMonolithic, self).PrepareModelPart()
 
-        # Call the base class set buffer size
-        super(NavierStokesMPISolver_VMSMonolithic, self)._SetBufferSize()
+        # Create the MPI communicators
+        self.distributed_model_part_importer.CreateCommunicators()
 
-        # Construct the communicators
-        TrilinosModelPartImporter.CreateCommunicators()
+    def Finalize(self):
+        self._GetSolutionStrategy().Clear()
 
-        print ("MPI model reading finished.")
+    def _GetEpetraCommunicator(self):
+        if not hasattr(self, '_epetra_communicator'):
+            self._epetra_communicator = KratosTrilinos.CreateCommunicator()
+        return self._epetra_communicator
 
-
-    def AddDofs(self):
-        ## Base class DOFs addition
-        super(NavierStokesMPISolver_VMSMonolithic, self).AddDofs()
-        KratosMPI.mpi.world.barrier()
-
-        if KratosMPI.mpi.rank == 0:
-            print("DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
-
-
-    def Initialize(self):
-        ## Construct the communicator
-        self.EpetraCommunicator = KratosTrilinos.CreateCommunicator()
-
-        ## Get the computing model part
-        self.computing_model_part = self.GetComputingModelPart()
-
-        ## If needed, create the estimate time step utility
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
-
-        ## Creating the Trilinos convergence criteria
-        self.conv_criteria = KratosTrilinos.TrilinosUPCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                               self.settings["absolute_velocity_tolerance"].GetDouble(),
-                                                               self.settings["relative_pressure_tolerance"].GetDouble(),
-                                                               self.settings["absolute_pressure_tolerance"].GetDouble(),
-                                                               self.EpetraCommunicator)
-
-        ## Creating the Trilinos time scheme
-        if (self.settings["turbulence_model"].GetString() == "None"):
-            if self.settings["consider_periodic_conditions"].GetBool() == True:
-                self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
-                                                                                                          self.settings["move_mesh_strategy"].GetInt(),
-                                                                                                          self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                                                          KratosCFD.PATCH_INDEX)
+    def _CreateScheme(self):
+        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        # Cases in which the element manages the time integration
+        if self.element_integrates_in_time:
+            # "Fake" scheme for those cases in where the element manages the time integration
+            # It is required to perform the nodal update once the current time step is solved
+            scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(
+                domain_size,
+                domain_size + 1)
+            # In case the BDF2 scheme is used inside the element, set the time discretization utility to compute the BDF coefficients
+            if (self.settings["time_scheme"].GetString() == "bdf2"):
+                time_order = 2
+                self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
             else:
-                self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
-                                                                                                          self.settings["move_mesh_strategy"].GetInt(),
-                                                                                                          self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-
-
-        ## Set the guess_row_size (guess about the number of zero entries) for the Trilinos builder and solver
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
-            guess_row_size = 20*4
-        elif self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            guess_row_size = 10*3
-
-        ## Construct the Trilinos builder and solver
-        if self.settings["consider_periodic_conditions"].GetBool() == True:
-            self.builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(self.EpetraCommunicator,
-                                                                                           guess_row_size,
-                                                                                           self.trilinos_linear_solver,
-                                                                                           KratosCFD.PATCH_INDEX)
+                err_msg = "Requested elemental time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
+                err_msg += "Available options are: \"bdf2\""
+                raise Exception(err_msg)
+        # Cases in which a time scheme manages the time integration
         else:
-            self.builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolver(self.EpetraCommunicator,
-                                                                                   guess_row_size,
-                                                                                   self.trilinos_linear_solver)
+            # Bossak time integration scheme
+            if self.settings["time_scheme"].GetString() == "bossak":
+                # TODO: Can we remove this periodic check, Is the PATCH_INDEX used in this scheme?
+                if self.settings["consider_periodic_conditions"].GetBool() == True:
+                    scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        self.settings["alpha"].GetDouble(),
+                        domain_size,
+                        KratosCFD.PATCH_INDEX)
+                else:
+                    scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        self.settings["alpha"].GetDouble(),
+                        self.settings["move_mesh_strategy"].GetInt(),
+                        domain_size)
+            # BDF2 time integration scheme
+            elif self.settings["time_scheme"].GetString() == "bdf2":
+                scheme = TrilinosFluid.TrilinosBDF2TurbulentScheme()
+            # Time scheme for steady state fluid solver
+            elif self.settings["time_scheme"].GetString() == "steady":
+                scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
+                        self.settings["velocity_relaxation"].GetDouble(),
+                        self.settings["pressure_relaxation"].GetDouble(),
+                        domain_size)
 
-        ## Construct the Trilinos Newton-Raphson strategy
-        self.solver = KratosTrilinos.TrilinosNewtonRaphsonStrategy(self.main_model_part,
-                                                                   self.time_scheme,
-                                                                   self.trilinos_linear_solver,
-                                                                   self.conv_criteria,
-                                                                   self.builder_and_solver,
-                                                                   self.settings["maximum_iterations"].GetInt(),
-                                                                   self.settings["compute_reactions"].GetBool(),
-                                                                   self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                   self.settings["move_mesh_flag"].GetBool())
+        return scheme
 
-        (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
+    def _CreateLinearSolver(self):
+        linear_solver_configuration = self.settings["linear_solver_settings"]
+        return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
-        # self.solver.Initialize()
-        self.solver.Check()
+    def _CreateConvergenceCriterion(self):
+        if self.settings["time_scheme"].GetString() == "steady":
+            convergence_criterion = KratosTrilinos.TrilinosResidualCriteria(
+                self.settings["relative_velocity_tolerance"].GetDouble(),
+                self.settings["absolute_velocity_tolerance"].GetDouble())
+        else:
+            convergence_criterion = KratosTrilinos.TrilinosMixedGenericCriteria(
+                [(KratosMultiphysics.VELOCITY, self.settings["relative_velocity_tolerance"].GetDouble(), self.settings["absolute_velocity_tolerance"].GetDouble()),
+                (KratosMultiphysics.PRESSURE, self.settings["relative_pressure_tolerance"].GetDouble(), self.settings["absolute_pressure_tolerance"].GetDouble())])
+        convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
+        return convergence_criterion
 
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
+    def _CreateBuilderAndSolver(self):
+        # Set the guess_row_size (guess about the number of zero entries) for the Trilinos builder and solver
+        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if domain_size == 3:
+            guess_row_size = 20*4
+        else:
+            guess_row_size = 10*3
+        # Construct the Trilinos builder and solver
+        trilinos_linear_solver = self._GetLinearSolver()
+        epetra_communicator = self._GetEpetraCommunicator()
+        if self.settings["consider_periodic_conditions"].GetBool():
+            builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(
+                epetra_communicator,
+                guess_row_size,
+                trilinos_linear_solver,
+                KratosFluid.PATCH_INDEX)
+        else:
+            builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolver(
+                epetra_communicator,
+                guess_row_size,
+                trilinos_linear_solver)
+        return builder_and_solver
 
-        print ("Monolithic MPI solver initialization finished.")
-
-
-    def Solve(self):
-        self.DivergenceClearance()
-        (self.solver).Solve()
+    def _CreateSolutionStrategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        time_scheme = self._GetScheme()
+        convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
+        return KratosTrilinos.TrilinosNewtonRaphsonStrategy(
+            computing_model_part,
+            time_scheme,
+            convergence_criterion,
+            builder_and_solver,
+            self.settings["maximum_iterations"].GetInt(),
+            self.settings["compute_reactions"].GetBool(),
+            self.settings["reform_dofs_at_each_step"].GetBool(),
+            self.settings["move_mesh_flag"].GetBool())

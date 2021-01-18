@@ -11,9 +11,10 @@ namespace Kratos
  */
 template <>
 void WallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
-                                                    ProcessInfo& rCurrentProcessInfo)
+                                          const ProcessInfo& rCurrentProcessInfo) const 
 {
-    int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+    int step = r_process_info[FRACTIONAL_STEP];
     if ( step == 1 )
     {
         const unsigned int NumNodes = 2;
@@ -31,23 +32,23 @@ void WallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
     }
     else
     {
-        		if(this->Is(INTERFACE) && step==5 )
+        if(this->Is(INTERFACE) && step==5 )
         {
                 //add here a mass matrix in the form Dt/rho_equivalent_structure to the lhs alone
                 const SizeType NumNodes = 2;
 
                 if (rResult.size() != NumNodes)
-					rResult.resize(NumNodes, false);
+                    rResult.resize(NumNodes, false);
 
                 unsigned int LocalIndex = 0;
 
                 for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-					rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+                    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
         }
         else
         {
-			rResult.resize(0,false);
-		}
+            rResult.resize(0,false);
+        }
     }
 }
 
@@ -56,9 +57,10 @@ void WallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
  */
 template <>
 void WallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
-                                                    ProcessInfo& rCurrentProcessInfo)
+                                            const ProcessInfo& rCurrentProcessInfo) const 
 {
-    int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+    int step = r_process_info[FRACTIONAL_STEP];
     if ( step == 1 )
     {
         const SizeType NumNodes = 3;
@@ -77,23 +79,23 @@ void WallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
     }
     else
     {
-		if(this->Is(INTERFACE) && step==5 )
+        if(this->Is(INTERFACE) && step==5 )
         {
-                //add here a mass matrix in the form Dt/rho_equivalent_structure to the lhs alone
-                const SizeType NumNodes = 3;
+            //add here a mass matrix in the form Dt/rho_equivalent_structure to the lhs alone
+            const SizeType NumNodes = 3;
 
-                if (rResult.size() != NumNodes)
-					rResult.resize(NumNodes, false);
+            if (rResult.size() != NumNodes)
+                rResult.resize(NumNodes, false);
 
-                unsigned int LocalIndex = 0;
+            unsigned int LocalIndex = 0;
 
-                for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-					rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+            for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+                rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
         }
         else
         {
-			rResult.resize(0,false);
-		}
+            rResult.resize(0,false);
+        }
     }
 }
 
@@ -102,9 +104,10 @@ void WallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
  */
 template <>
 void WallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
-                                              ProcessInfo& rCurrentProcessInfo)
+                                              const ProcessInfo& rCurrentProcessInfo) const 
 {
- 	int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+ 	const ProcessInfo& r_process_info = rCurrentProcessInfo;
+	int step = r_process_info[FRACTIONAL_STEP];
     if ( step == 1 )
     {
         const SizeType NumNodes = 2;
@@ -139,7 +142,7 @@ void WallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
         else
         {
             rElementalDofList.resize(0);
-        }        
+        }
     }
 }
 
@@ -148,9 +151,10 @@ void WallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
  */
 template <>
 void WallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-                                    ProcessInfo& rCurrentProcessInfo)
+                                    const ProcessInfo& rCurrentProcessInfo) const 
 {
-	int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+	int step = r_process_info[FRACTIONAL_STEP];
     if ( step == 1 )
     {
         const SizeType NumNodes = 3;
@@ -223,7 +227,7 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void WallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLocalMatrix, VectorType &rLocalVector)
 {
     const WallCondition<TDim,TNumNodes>& rConstThis = *this;
-    if (rConstThis.GetValue(IS_STRUCTURE) == 0.0)
+    if (!rConstThis.Is(SLIP))
     {
         const unsigned int LocalSize = TDim;
         const GeometryType& rGeom = this->GetGeometry();
@@ -264,7 +268,7 @@ void WallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLocalMatr
             }
 
             // Velocity inflow correction
-            array_1d<double,3> Vel(3,0.0);
+            array_1d<double,3> Vel = ZeroVector(3);
             double Density = 0.0;
 
             for (unsigned int i = 0; i < TNumNodes; i++)

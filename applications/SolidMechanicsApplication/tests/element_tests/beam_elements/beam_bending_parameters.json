@@ -1,0 +1,58 @@
+{
+    "input_settings":{
+	"materials_file_name" : "element_tests/beam_elements/beam_bending_materials.json"
+    },
+    "time_settings" : {
+        "time_step"  : 1.0,
+        "end_time"   : 4
+    },
+    "model_settings"           : {
+        "domain_parts_list"    : ["Parts_Parts_Auto1"],
+        "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto1","ROTATION_Rotation_Auto1","PointMoment3D_Moment_on_points_Auto1"]
+    },
+    "solver_settings"          : {
+        "solver_type" : "solid_mechanics_static_solver",
+        "Parameters"  : {
+            "time_integration_settings" : {
+                "solution_type"      : "Static",
+                "integration_method" : "StaticStep"
+            },
+            "convergence_criterion_settings" : {
+                "convergence_criterion"       : "Residual_criterion",
+                "residual_relative_tolerance" : 1e-6,
+                "residual_absolute_tolerance" : 1e-9
+            },
+	    "dofs" : ["DISPLACEMENT","ROTATION"]
+        }
+    },
+    "constraints_process_list" : [{
+        "model_part_name" : "DISPLACEMENT_Displacement_Auto1"
+    },{
+        "model_part_name" : "ROTATION_Rotation_Auto1",
+        "variable_name"   : "ROTATION"
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "Parameters"    : {
+            "model_part_name" : "PointMoment3D_Moment_on_points_Auto1",
+            "variable_name"   : "MOMENT_LOAD",
+            "modulus"         : "3.1416*t",
+            "direction"       : [0.0,0.0,1.0]
+        }
+    }],
+    "check_process_list" : [
+	{
+            "python_module"   : "check_scalar_on_nodes_process",
+            "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+            "process_name"    : "CheckScalarOnNodesProcess",
+            "Parameters"      : {
+		"model_part_name" : "PointMoment3D_Moment_on_points_Auto1",
+		"variable_name"   : "DISPLACEMENT_X",
+		"interval"        : [4.0, "End"],
+		"value"           : -1.0,
+		"tolerance_rank"  : 3
+            }
+	}
+    ]
+}

@@ -1,4 +1,5 @@
 import KratosMultiphysics
+from KratosMultiphysics.assign_vector_variable_process import AssignVectorVariableProcess
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -26,9 +27,7 @@ class ApplyNoSlipProcess(KratosMultiphysics.Process):
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        import experimental_assign_vector_process
-
-        self.vector_process = experimental_assign_vector_process.AssignVectorProcess(Model, settings)
+        self.vector_process = AssignVectorVariableProcess(Model, settings)
 
 
     def ExecuteInitializeSolutionStep(self):

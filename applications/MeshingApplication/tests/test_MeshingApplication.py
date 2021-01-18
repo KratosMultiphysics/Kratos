@@ -1,31 +1,26 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
-import KratosMultiphysics.FluidDynamicsApplication
-import KratosMultiphysics.MeshingApplication
+import KratosMultiphysics.MeshingApplication         as MeshingApplication
+import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-## SMALL TESTS 
-from test_refine import TestRedistance as TTestRedistance
-from SmallTests import TwoDHessianTest as TTwoDHessianTest
-from SmallTests import ThreeDHessianTest as TThreeDHessianTest
-from SmallTests import TwoDCavityTest as TTwoDCavityTest
-from SmallTests import CoarseSphereTest as TCoarseSphereTest
-from SmallTests import TwoDDynamicBeamTest as TTwoDDynamicBeamTest
-from SmallTests import ThreeDDynamicBeamTest as TThreeDDynamicBeamTest
-from SmallTests import TwoDDynamicPlasticBeamTest as TTwoDDynamicPlasticBeamTest
+## SMALL TESTS
+from test_refine import TestRedistance                                     as TTestRedistance
+from test_remesh_rectangle import TestRemeshMMG2D                          as TTestRemeshMMG2D
+from test_remesh_sphere import TestRemeshMMG3D                             as TTestRemeshMMG3D
+from meshing_application_test_factory  import TwoDDynamicBeamTest          as TTwoDDynamicBeamTest
+from meshing_application_test_factory  import TwoDDynamicBeamLineLoadTest  as TTwoDDynamicBeamLineLoadTest
+from meshing_application_test_factory  import ThreeDShellTest              as TThreeDShellTest
+from meshing_application_test_factory  import ThreeDDynamicBeamTest        as TThreeDDynamicBeamTest
 
 ## NIGHTLY TESTS
-from NightlyTests import StanfordBunnyTest as TStanfordBunnyTest
 
-## VALIDATION TESTS 
-from ValidationTests import TwoDSphereRemeshedChannelTest as TTwoDSphereRemeshedChannelTest
-from ValidationTests import ThreeDSphereRemeshedChannelTest as TThreeDSphereRemeshedChannelTest
+## VALIDATION TESTS
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -41,63 +36,64 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TTestRedistance('test_refine_all'))
-    smallSuite.addTest(TTestRedistance('test_refine_half'))
-    smallSuite.addTest(TTestRedistance('test_refine_half_and_improve'))
-    if( hasattr(KratosMultiphysics.MeshingApplication,  "MmgUtility2D") ):
-        smallSuite.addTest(TTwoDHessianTest('test_execution'))
-        smallSuite.addTest(TThreeDHessianTest('test_execution'))
-        smallSuite.addTest(TTwoDCavityTest('test_execution'))
-        smallSuite.addTest(TCoarseSphereTest('test_execution'))
-        smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
-        smallSuite.addTest(TThreeDDynamicBeamTest('test_execution'))
-        smallSuite.addTest(TTwoDDynamicPlasticBeamTest('test_execution'))
+    if  hasattr(MeshingApplication,  "TetrahedraReconnectUtility") :
+        smallSuite.addTest(TTestRedistance('test_refine_all'))
+        smallSuite.addTest(TTestRedistance('test_refine_half'))
+        smallSuite.addTest(TTestRedistance('test_refine_half_and_improve'))
     else:
-        print("MMG utility is not compiled and the corresponding tests will not be executed")
+        KratosMultiphysics.Logger.PrintWarning("Unittests", "TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
+    if hasattr(MeshingApplication,  "MmgProcess2D"):
+        smallSuite.addTest(TTestRemeshMMG2D('test_remesh_rectangle_hessian'))
+        smallSuite.addTest(TTestRemeshMMG3D('test_remesh_sphere'))
+        smallSuite.addTest(TTestRemeshMMG3D('test_remesh_sphere_skin'))
+        smallSuite.addTest(TTestRemeshMMG3D('test_remesh_sphere_skin_prisms'))
+        smallSuite.addTest(TTestRemeshMMG3D('test_isosurface_remesh_sphere'))
+        smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
+        smallSuite.addTest(TTwoDDynamicBeamLineLoadTest('test_execution'))
+        smallSuite.addTest(TThreeDShellTest('test_execution'))
+        smallSuite.addTest(TThreeDDynamicBeamTest('test_execution'))
+    else:
+        KratosMultiphysics.Logger.PrintWarning("Unittests", "MMG process is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    if( hasattr(KratosMultiphysics.MeshingApplication,  "MmgUtility2D") ):
-        nightSuite.addTest(TStanfordBunnyTest('test_execution'))
-    else:
-        print("MMG utility is not compiled and the corresponding tests will not be executed")
-    
-    # For very long tests that should not be in nighly and you can use to validate 
+
+    # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-    if( hasattr(KratosMultiphysics.MeshingApplication,  "MmgUtility2D") ):
-        validationSuite.addTest(TTwoDSphereRemeshedChannelTest('test_execution'))
-        validationSuite.addTest(TThreeDSphereRemeshedChannelTest('test_execution'))
-    else:
-        print("MMG utility is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-        ])
-    )
-
-    if( hasattr(KratosMultiphysics.MeshingApplication,  "MmgUtility2D") ):
+    if  hasattr(MeshingApplication, "TetrahedraReconnectUtility"):
         allSuite.addTests(
             KratosUnittest.TestLoader().loadTestsFromTestCases([
-                TTestRedistance,
-                TTwoDHessianTest,
-                TThreeDHessianTest,
-                TTwoDCavityTest,
-                TCoarseSphereTest,
-                TTwoDDynamicBeamTest,
-                #TThreeDDynamicBeamTest,
-                #TTwoDDynamicPlasticBeamTest,
-                #TStanfordBunnyTest,
-                #TTwoDSphereRemeshedChannelTest,
-                #TThreeDSphereRemeshedChannelTest,
+                TTestRedistance
             ])
         )
     else:
-        print("MMG utility is not compiled and the corresponding tests will not be executed")
+        KratosMultiphysics.Logger.PrintWarning("Unittests", "TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
+
+    if hasattr(MeshingApplication, "MmgProcess2D") :
+        allSuite.addTests(
+            KratosUnittest.TestLoader().loadTestsFromTestCases([
+                TTestRemeshMMG2D,
+                TTestRemeshMMG3D,
+                TTwoDDynamicBeamTest,
+                TTwoDDynamicBeamLineLoadTest,
+                TThreeDShellTest,
+                TThreeDDynamicBeamTest,
+            ])
+        )
+    else:
+        KratosMultiphysics.Logger.PrintWarning("Unittests", "MMG process is not compiled and the corresponding tests will not be executed")
 
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+    run_cpp_unit_tests.run()
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
+
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
+    KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

@@ -31,7 +31,6 @@
 // Application includes
 #include "custom_utilities/solver_settings.h"
 
-
 namespace Kratos
 {
 ///@addtogroup PFEMFluidDynamicsApplication
@@ -57,11 +56,10 @@ namespace Kratos
 ///@{
 
 /// Helper class to define solution strategies for FS_Strategy.
-template< class TSparseSpace,
+template <class TSparseSpace,
           class TDenseSpace,
-          class TLinearSolver
-          >
-class TwoStepVPSettings: public TwoStepVPSolverSettings<TSparseSpace,TDenseSpace,TLinearSolver>
+          class TLinearSolver>
+class TwoStepVPSettings : public TwoStepVPSolverSettings<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -70,7 +68,7 @@ public:
     /// Pointer definition of TwoStepVPSettings
     KRATOS_CLASS_POINTER_DEFINITION(TwoStepVPSettings);
 
-    typedef TwoStepVPSolverSettings<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+    typedef TwoStepVPSolverSettings<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef typename BaseType::StrategyType StrategyType;
     typedef typename BaseType::StrategyPointerType StrategyPointerType;
     typedef typename BaseType::ProcessPointerType ProcessPointerType;
@@ -82,20 +80,19 @@ public:
     ///@{
 
     /// Constructor.
-    TwoStepVPSettings(ModelPart& rModelPart,
+    TwoStepVPSettings(ModelPart &rModelPart,
                       const unsigned int ThisDomainSize,
                       const unsigned int ThisTimeOrder,
-                      const bool ReformDofSet):
-        BaseType(rModelPart,ThisDomainSize,ThisTimeOrder,ReformDofSet)
-    {}
+                      const bool ReformDofSet) : BaseType(rModelPart, ThisDomainSize, ThisTimeOrder, ReformDofSet)
+    {
+    }
 
     /// Destructor.
-    virtual ~TwoStepVPSettings(){}
+    virtual ~TwoStepVPSettings() {}
 
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -105,7 +102,7 @@ public:
     ///@name Access
     ///@{
 
-    virtual void SetStrategy(StrategyLabel const& rStrategyLabel,
+    virtual void SetStrategy(StrategyLabel const &rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
                              const double Tolerance,
                              const unsigned int MaxIter)
@@ -113,7 +110,7 @@ public:
         KRATOS_TRY;
 
         // pointer types for solution strategy construcion
-        typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
+        typedef typename Scheme<TSparseSpace, TDenseSpace>::Pointer SchemePointerType;
         //typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 
@@ -121,44 +118,40 @@ public:
         bool CalculateReactions = false;
         bool CalculateNormDxFlag = true;
 
-        ModelPart& rModelPart = BaseType::GetModelPart();
+        ModelPart &rModelPart = BaseType::GetModelPart();
         // Modification of the DofSet is managed by the fractional step strategy, not the auxiliary velocity and pressure strategies.
         bool ReformDofSet = false; //BaseType::GetReformDofSet();
         unsigned int EchoLevel = BaseType::GetEchoLevel();
-        unsigned int StrategyEchoLevel = (EchoLevel > 0) ? (EchoLevel-1) : 0;
+        unsigned int StrategyEchoLevel = (EchoLevel > 0) ? (EchoLevel - 1) : 0;
 
-        if ( rStrategyLabel == BaseType::Velocity )
+        if (rStrategyLabel == BaseType::Velocity)
         {
             // Velocity Builder and Solver
-            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                                (pLinearSolver));
+            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pLinearSolver));
 
             SchemePointerType pScheme;
             //initializing fractional velocity solution step
 
-	    SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
-	    pScheme.swap(Temp);
- 
-            // Strategy
-            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+            SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
+            pScheme.swap(Temp);
 
+            // Strategy
+            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
         }
-        else if ( rStrategyLabel == BaseType::Pressure )
+        else if (rStrategyLabel == BaseType::Pressure)
         {
             // Pressure Builder and Solver
-//            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pLinearSolver, PRESSURE));
-            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pLinearSolver));
-            SchemePointerType pScheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
+            //            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pLinearSolver, PRESSURE));
+            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pLinearSolver));
+            SchemePointerType pScheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
 
             // Strategy
-            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
         }
 
         else
         {
-            KRATOS_THROW_ERROR(std::runtime_error,"Error in TwoStepVPSettings: Unknown strategy label.","");
+            KRATOS_THROW_ERROR(std::runtime_error, "Error in TwoStepVPSettings: Unknown strategy label.", "");
         }
 
         BaseType::mTolerances[rStrategyLabel] = Tolerance;
@@ -169,7 +162,6 @@ public:
 
         KRATOS_CATCH("");
     }
-
 
     ///@}
     ///@name Inquiry
@@ -183,21 +175,19 @@ public:
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "TwoStepVPSettings" ;
+        buffer << "TwoStepVPSettings";
         return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "TwoStepVPSettings";}
+    virtual void PrintInfo(std::ostream &rOStream) const { rOStream << "TwoStepVPSettings"; }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
-
+    virtual void PrintData(std::ostream &rOStream) const {}
 
     ///@}
     ///@name Friends
     ///@{
-
 
     ///@}
 
@@ -205,36 +195,29 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-
     ///@}
     ///@name Protected Operations
     ///@{
-
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
 
     ///@}
 
@@ -242,45 +225,38 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Private Operators
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
     ///@{
 
     /// Default constructor.
-    TwoStepVPSettings(){}
+    TwoStepVPSettings() {}
 
     /// Assignment operator.
-    TwoStepVPSettings& operator=(TwoStepVPSettings const& rOther){}
+    TwoStepVPSettings &operator=(TwoStepVPSettings const &rOther) {}
 
     /// Copy constructor.
-    TwoStepVPSettings(TwoStepVPSettings const& rOther){}
-
+    TwoStepVPSettings(TwoStepVPSettings const &rOther) {}
 
     ///@}
 
@@ -291,24 +267,22 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-template< class TDenseSpace, class TSparseSpace, class TLinearSolver >
-inline std::istream& operator >> (std::istream& rIStream,
-                                  TwoStepVPSettings<TSparseSpace,TDenseSpace,TLinearSolver>& rThis)
+template <class TDenseSpace, class TSparseSpace, class TLinearSolver>
+inline std::istream &operator>>(std::istream &rIStream,
+                                TwoStepVPSettings<TSparseSpace, TDenseSpace, TLinearSolver> &rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< class TDenseSpace, class TSparseSpace, class TLinearSolver >
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const TwoStepVPSettings<TSparseSpace,TDenseSpace,TLinearSolver>& rThis)
+template <class TDenseSpace, class TSparseSpace, class TLinearSolver>
+inline std::ostream &operator<<(std::ostream &rOStream,
+                                const TwoStepVPSettings<TSparseSpace, TDenseSpace, TLinearSolver> &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -320,6 +294,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 ///@} addtogroup block
 
-}  // namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_V_P_SETTINGS_H

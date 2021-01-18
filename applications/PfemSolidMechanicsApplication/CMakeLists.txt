@@ -2,64 +2,66 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosPfemSolidMechanicsApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+################### PYBIND11
+include(pybind11Tools)
+
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ContactMechanicsApplication )
 
-
-if(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The Solid Mechanics Application must be compiled before this one. Set SOLID_MECHANICS_APPLICATION=ON in the configure file.")
-endif(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
-
-if(NOT (${PFEM_BASE_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The Pfem Base Application must be compiled before this one. Set PFEM_BASE_APPLICATION=ON in the configure file.")
-endif(NOT (${PFEM_BASE_APPLICATION} MATCHES "ON"))
-
-if(NOT (${CONTACT_MECHANICS_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The Contact Mechanics Application must be compiled before this one. Set CONTACT_MECHANICS_APPLICATION=ON in the configure file.")
-endif(NOT (${CONTACT_MECHANICS_APPLICATION} MATCHES "ON"))
-
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/SolidMechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ContactMechanicsApplication)
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle/)
+  set(TRIANGLE_INSTALL_DIR ${KRATOS_SOURCE_DIR}/external_libraries/triangle/)
   include_directories( ${TRIANGLE_INSTALL_DIR} )
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
   set(INCLUDE_TETGEN ON)
-  set(TETGEN_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/tetgen/tetgen1.4.3.lib/)
+  set(TETGEN_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication/external_modules/tetgen/)
   include_directories( ${TETGEN_INSTALL_DIR} )
   link_directories( ${TETGEN_INSTALL_DIR} )
 endif(NOT DEFINED ${INCLUDE_TETGEN})
 
-## generate variables with the sources
-set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
+## Generate variables with the sources
+set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_solid_mechanics_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_solid_mechanics_application_variables.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_solid_mechanics_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
 
 	##elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_updated_lagrangian_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_updated_lagrangian_U_P_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_Stab_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_FIC_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_wP_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_weight_element.cpp
 
-	##conditions
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_penalty_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_LM_3D_condition.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_pressure_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_W_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_W_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_W_wP_DME_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_W_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_W_wP_HO_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_W_wP_DME_element.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_U_W_wP_element.cpp
+
+	## mixed elements
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_Pressure_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_P_wP_element.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_W_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_W_wP_DME_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_Pressure_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_P_wP_element.cpp
 
 
 	##constitutive laws
@@ -71,68 +73,66 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_U_P_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_J2_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_J2_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_J2_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_axisym_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/new_hencky_tresca_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_plane_strain_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/new_hencky_tresca_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_cam_clay_plane_strain_2D_law.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_cam_clay_axisym_2D_law.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_hencky_cam_clay_axisym_2D_law.cpp
 
 
-        ##hardening laws
+    ##hardening laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.cpp
 
 	##yield criteria
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/J2_yield_criterion.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/new_tresca_yield_criterion.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/tresca_yield_criterion.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/mohr_coulomb_yield_criterion.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/matsuoka_nakai_yield_criterion.cpp
 
 	##flow rules
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/non_associative_plastic_flow_rule.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/matsuoka_nakai_flow_rule.cpp
-
-
-	##friction laws
 
 	##processes
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/set_mechanical_initial_state_process.cpp
 
 	##utilities
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_mesh_data_transfer_utilities.cpp
-
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/water_pressure_utilities.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/water_pressure_utilities_Jacobian.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/axisym_water_pressure_utilities.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/axisym_water_pressure_utilities_Jacobian.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_mesh_data_transfer_utilities.cpp
 
 )
 
+## Generate variables with the sources
+set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE
+        # Custom python
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_solid_mechanics_python_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+)
+
+add_library(KratosPfemSolidMechanicsCore SHARED ${KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_CORE})
+target_link_libraries(KratosPfemSolidMechanicsCore PUBLIC KratosCore KratosSolidMechanicsCore KratosDelaunayMeshingCore KratosContactMechanicsCore)
+#target_link_libraries(KratosPfemSolidMechanicsCore PUBLIC KratosCore)
+set_target_properties(KratosPfemSolidMechanicsCore PROPERTIES COMPILE_DEFINITIONS "PFEM_SOLID_MECHANICS_APPLICATION=EXPORT,API")
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosPfemSolidMechanicsApplication SHARED ${KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES})
-#####***target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore)
-target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosSolidMechanicsApplication KratosContactMechanicsApplication)
+pybind11_add_module(KratosPfemSolidMechanicsApplication MODULE THIN_LTO ${KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosPfemSolidMechanicsApplication PRIVATE KratosPfemSolidMechanicsCore)
 set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES PREFIX "")
-set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "PFEM_SOLID_MECHANICS_APPLICATION=EXPORT,API")
-
-install(TARGETS KratosPfemSolidMechanicsApplication DESTINATION libs )
-
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -144,13 +144,31 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
+# Cotire
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosPfemSolidMechanicsCore)
+    cotire(KratosPfemSolidMechanicsApplication)
+endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/PfemSolidMechanicsApplication.py" DESTINATION KratosMultiphysics )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/PfemSolidMechanicsApplication.py KratosMultiphysics/PfemSolidMechanicsApplication/__init__.py )
+
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+# Install targets
+install(TARGETS KratosPfemSolidMechanicsCore DESTINATION libs )
+install(TARGETS KratosPfemSolidMechanicsApplication DESTINATION libs )

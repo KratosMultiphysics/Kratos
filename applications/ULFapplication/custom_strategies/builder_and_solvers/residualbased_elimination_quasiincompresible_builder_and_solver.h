@@ -19,8 +19,10 @@
 #endif
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
+// #include "boost/smart_ptr.hpp"
+#include <pybind11/pybind11.h>
+#include "includes/define.h"
+#include "includes/define_python.h"
 
 /* Project includes */
 #include "includes/define.h"
@@ -138,7 +140,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver() {}
+    ~ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver() override {}
 
 
     /*@} */
@@ -171,7 +173,7 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        KRATOS_WATCH("Initialize Solution Step::: EMPTY FUNCTION FOR THIS SOLVER")
+        //KRATOS_WATCH("Initialize Solution Step::: EMPTY FUNCTION FOR THIS SOLVER")
         KRATOS_CATCH("")
     }
 
@@ -182,7 +184,7 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        KRATOS_WATCH("Finalize Solution Step:::EMPTY FUNCTION FOR THIS SOLVER")
+        //KRATOS_WATCH("Finalize Solution Step:::EMPTY FUNCTION FOR THIS SOLVER")
         KRATOS_CATCH("")
     }
 
@@ -198,6 +200,47 @@ public:
     {
         KRATOS_TRY
 
+	//KRATOS_WATCH("ENTERED SETUP DOFSET OF BUILDER AND SOLVER OF ULF")
+	mActiveNodes.clear();
+        mActiveNodes.reserve(r_model_part.Nodes().size() );
+
+        for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
+        {
+            if( (it->GetValue(NEIGHBOUR_NODES)).size() != 0 )
+            {
+                mActiveNodes.push_back(*(it.base() ));
+            }
+        }
+
+        //getting the dof position
+        //unsigned int dof_position = (mActiveNodes.begin())->GetDofPosition(PRESSURE);
+
+        //fills the DofList and give a unique progressive tag to each node
+        BaseType::mDofSet.clear();
+        BaseType::mDofSet.reserve(mActiveNodes.size()*TDim );
+
+        for(GlobalPointersVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
+        {
+
+	     BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_X).get());
+	     BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Y).get());
+            //BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Y));
+	    if (TDim==3)
+	            BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Z).get());
+        }
+
+
+	this->mEquationSystemSize = BaseType::mDofSet.size();
+
+	 if (BaseType::mDofSet.size()==0)
+            KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
+
+        BaseType::mDofSetIsInitialized = true;
+
+	//KRATOS_WATCH("FINISHED SETUP DOFSET OF BUILDER AND SOLVER OF ULF")
+
+	//BELOW IS THE OLD VERSION
+	/*
         //count dofs
         mnumber_of_active_nodes = 0;
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
@@ -242,6 +285,9 @@ public:
         }
         //before it was like that:
         //this->mEquationSystemSize = rDofSet.size();
+
+
+
         this->mEquationSystemSize = BaseType::mDofSet.size();
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
@@ -249,6 +295,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 
         BaseType::mDofSetIsInitialized = true;
+	*/
 
         KRATOS_CATCH("")
     }
@@ -285,9 +332,7 @@ public:
         TSystemVectorType& b,
         TSystemMatrixType& mMconsistent,
         TSystemVectorType& mMdiagInv,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
+        ModelPart& rModelPart
     )
     {
         KRATOS_TRY
@@ -364,8 +409,6 @@ public:
             //assemble the elemental contribution
             AssembleLHS(A,LHS_Contribution,EquationId);
             AssembleRHS(b,RHS_Contribution,EquationId);
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
         }
         LHS_Contribution.resize(0,0,false);
 
@@ -394,8 +437,8 @@ public:
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
+        //KRATOS_WATCH(number_of_threads);
+        //KRATOS_WATCH(element_partition);
 
 
         double start_prod = omp_get_wtime();
@@ -432,17 +475,12 @@ public:
 
                 		}
                 */
-                // clean local elemental memory
-                pScheme->CleanMemory(*it);
 
                 //					#pragma omp critical
                 //					{
                 //						//assemble the elemental contribution
                 //						AssembleLHS(A,LHS_Contribution,EquationId);
                 //						AssembleRHS(b,RHS_Contribution,EquationId);
-                //
-                //						// clean local elemental memory
-                //						pScheme->CleanMemory(*it);
                 //					}
             }
         }
@@ -576,10 +614,17 @@ public:
     TSystemVectorType mMdiagInv;
     TSystemVectorType mpreconditioner;
     unsigned int mnumber_of_active_nodes;
-    /*@} */
-    /**@name Private Operators*/
+    GlobalPointersVector<Node<3> > mActiveNodes;
+
+//private:
+    /**@name Static Member Variables */
     /*@{ */
 
+
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
+  //  GlobalPointersVector<Node<3> > mActiveNodes;
 
     /*@} */
     /**@name Private Operations*/
@@ -836,8 +881,8 @@ public:
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
+        //KRATOS_WATCH(number_of_threads);
+        //KRATOS_WATCH(element_partition);
 
 
         double start_prod = omp_get_wtime();
@@ -873,17 +918,12 @@ public:
 
                 		}
                 */
-                // clean local elemental memory
-                pScheme->CleanMemory(*it);
 
                 //					#pragma omp critical
                 //					{
                 //						//assemble the elemental contribution
                 //						AssembleLHS(A,LHS_Contribution,EquationId);
                 //						AssembleRHS(b,RHS_Contribution,EquationId);
-                //
-                //						// clean local elemental memory
-                //						pScheme->CleanMemory(*it);
                 //					}
             }
         }
@@ -972,7 +1012,7 @@ public:
         unsigned int dof_position = r_model_part.NodesBegin()->GetDofPosition(DISPLACEMENT_X);
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
         {
-            WeakPointerVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
             if( neighb_nodes.size() != 0 )
             {
                 //first row in the block
@@ -986,7 +1026,7 @@ public:
                 }
 
                 //filling and order the first neighbours list
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     unsigned int tmp = (i->GetDof(DISPLACEMENT_X,dof_position)).EquationId();
@@ -1045,7 +1085,7 @@ public:
 
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
         {
-            WeakPointerVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
             if( neighb_nodes.size() != 0 )
             {
                 //first row in the block
@@ -1063,7 +1103,7 @@ public:
                 indices.push_back(row_index/TDim);
 
                 //filling and order the first neighbours list
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     unsigned int tmp = (i->GetDof(DISPLACEMENT_X,dof_position)).EquationId();
@@ -1117,7 +1157,7 @@ public:
 
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
         {
-            WeakPointerVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
             if( neighb_nodes.size() != 0 )
             {
                 //first row in the block
@@ -1131,7 +1171,7 @@ public:
                 }
 
                 //filling and order the first neighbours list
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     unsigned int tmp = (i->GetDof(DISPLACEMENT_X,dof_position)).EquationId();
@@ -1174,7 +1214,8 @@ public:
         //array_1d<double,TDim+1> rhs_contribution;
 
 #ifndef _OPENMP
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+//         BoundedMatrix::BoundedMatrix<double,TDim+1,TDim> DN_DX;
+        BoundedMatrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N;
         array_1d<unsigned int ,TDim+1> local_indices;
         double Volume;
@@ -1279,8 +1320,8 @@ public:
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, r_model_part.Elements().size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
+        //KRATOS_WATCH(number_of_threads);
+        //KRATOS_WATCH(element_partition);
 
 
         double start_prod = omp_get_wtime();
@@ -1290,7 +1331,7 @@ public:
         #pragma omp parallel for
         for (int k = 0; k < number_of_threads; k++)
         {
-            boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+            BoundedMatrix<double,TDim+1,TDim> DN_DX;
             array_1d<double,TDim+1> N;
             array_1d<unsigned int ,TDim+1> local_indices;
             //array_1d<double,TDim+1> rhs_contribution;
@@ -1630,7 +1671,7 @@ public:
         //first we assemble the diagonal mass matrix
         KRATOS_TRY
         //KRATOS_WATCH("BUILDING MASS MATRICES ")
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        BoundedMatrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N;
         array_1d<unsigned int ,TDim+1> local_indices;
         //array_1d<double,TDim+1> rhs_contribution;
@@ -2032,7 +2073,7 @@ public:
             {
                 if (in->FastGetSolutionStepValue(IS_FLUID)==1.0 && in->FastGetSolutionStepValue(IS_FREE_SURFACE)==1.0)
                 {
-                    KRATOS_WATCH("Computing pressure at a free surface node")
+                    //KRATOS_WATCH("Computing pressure at a free surface node")
                     in->FastGetSolutionStepValue(PRESSURE)=bulk_modulus*density*(in->FastGetSolutionStepValue(NODAL_AREA) - in->FastGetSolutionStepValue(NODAL_AREA,1))/(in->FastGetSolutionStepValue(NODAL_AREA));
 //=in->FastGetSolutionStepValue(PRESSURE,1)+bulk_modulus*density*(in->FastGetSolutionStepValue(NODAL_AREA) - in->FastGetSolutionStepValue(NODAL_AREA,1))/(in->FastGetSolutionStepValue(NODAL_AREA));
 
@@ -2073,7 +2114,7 @@ public:
         KRATOS_TRY
 //	double aaa=0.0;
         double dt = model_part.GetProcessInfo()[DELTA_TIME];
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        BoundedMatrix<double,3,2> DN_DX;
         array_1d<double,3> N;
         array_1d<double,3> aux0, aux1, aux2; //this are sized to 3 even in 2D!!
 
@@ -2112,8 +2153,8 @@ public:
             //pres_inc*=0.5;
 
             //Gradient operator G:
-            boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
-            boost::numeric::ublas::bounded_matrix<double,6,3> G = ZeroMatrix(6,3);
+            BoundedMatrix<double,6,2> shape_func = ZeroMatrix(6, 2);
+            BoundedMatrix<double,6,3> G = ZeroMatrix(6,3);
             for (int ii = 0; ii< 3; ii++)
             {
                 int column = ii*2;

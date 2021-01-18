@@ -1,0 +1,25 @@
+{
+    "material_models_list":[{
+        "python_module"   : "assign_materials_process",
+        "kratos_module"   : "ConstitutiveModelsApplication",
+        "help"            : "This process creates a material and assigns its properties",
+        "process_name"    : "AssignMaterialsProcess",
+	"Parameters"      : {
+	    "model_part_name" : "MaterialDomain",
+	    "properties_id"   : 0,
+            "material_name"   : "rubber",
+	    "constitutive_law": {
+                "name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw.OgdenModel"
+            },
+	    "variables": {
+		"MATERIAL_PARAMETERS": [0.746e6,-0.306e6,66.09,1.748,-1.656,7.671],
+		"BULK_MODULUS" : 1410000000.0
+            },
+	    "tables": {
+	    },
+ 	    "echo_level" : 0
+         }
+      }
+    ]
+
+}

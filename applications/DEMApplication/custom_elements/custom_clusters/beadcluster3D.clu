@@ -1,0 +1,30 @@
+//
+//   Cluster Name: "beadcluster3D"
+//   Author: Joaquin Irazabal
+//   Date:   2018-02-15
+//
+
+Name
+beadcluster3D
+
+Begin centers_and_radii
+-0.4 0.0 0.0 0.1
+-0.2 0.0 0.0 0.1
+0.0 0.0 0.0 0.1
+0.2 0.0 0.0 0.1
+0.4 0.0 0.0 0.1
+End centers_and_radii
+
+Particle_center_and_diameter // Needed by the mesher, KRATOS skips it. Centre of the cluster and distance between the farthest points
+0.0 0.0 0.0 1.0
+
+Size
+1.0
+
+Volume
+0.03141592
+
+Inertia per unit mass
+0.005
+0.085833333
+0.085833333

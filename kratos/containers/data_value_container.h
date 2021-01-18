@@ -29,7 +29,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
 #include "includes/kratos_components.h"
 #include "includes/exception.h"
 
@@ -63,12 +62,13 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class DataValueContainer
+class KRATOS_API(KRATOS_CORE) DataValueContainer
 {
 
 public:
     ///@name Type Definitions
     ///@{
+    KRATOS_DEFINE_LOCAL_FLAG(OVERWRITE_OLD_VALUES);
 
     /// Pointer definition of DataValueContainer
     KRATOS_CLASS_POINTER_DEFINITION(DataValueContainer);
@@ -80,10 +80,10 @@ public:
     typedef std::vector<ValueType> ContainerType;
 
     /// Type of the container used for variables
-    typedef std::vector<ValueType>::iterator IteratorType;
+    typedef std::vector<ValueType>::iterator iterator;
 
     /// Type of the container used for variables
-    typedef std::vector<ValueType>::const_iterator ConstantIteratorType;
+    typedef std::vector<ValueType>::const_iterator const_iterator;
 
     /// Type of the container used for variables
     typedef std::vector<ValueType>::size_type SizeType;
@@ -98,14 +98,14 @@ public:
     /// Copy constructor.
     DataValueContainer(DataValueContainer const& rOther)
     {
-        for(ConstantIteratorType i = rOther.mData.begin() ; i != rOther.mData.end() ; ++i)
+        for(const_iterator i = rOther.mData.begin() ; i != rOther.mData.end() ; ++i)
             mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
     }
 
     /// Destructor.
     virtual ~DataValueContainer()
     {
-        for(IteratorType i = mData.begin() ; i != mData.end() ; ++i)
+        for(iterator i = mData.begin() ; i != mData.end() ; ++i)
             i->first->Delete(i->second);
     }
 
@@ -129,16 +129,6 @@ public:
         return GetValue<TDataType>(rThisVariable);
     }
 
-    template<class TAdaptorType> typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType> const typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
     template<class TDataType> TDataType& operator[](const VariableData& rThisVariable)
     {
         return GetValue<TDataType>(rThisVariable);
@@ -159,14 +149,24 @@ public:
         return GetValue<TDataType>(rThisVariable);
     }
 
-    template<class TAdaptorType> typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable)
+    iterator begin()
     {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+        return mData.begin();
     }
 
-    template<class TAdaptorType> const typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable) const
+    const_iterator begin() const
     {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+        return mData.begin();
+    }
+
+    iterator end()
+    {
+        return mData.end();
+    }
+
+    const_iterator end() const
+    {
+        return mData.end();
     }
 
     /// Assignment operator.
@@ -174,7 +174,7 @@ public:
     {
         Clear();
 
-        for(ConstantIteratorType i = rOther.mData.begin() ; i != rOther.mData.end() ; ++i)
+        for(const_iterator i = rOther.mData.begin() ; i != rOther.mData.end() ; ++i)
             mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
 
         return *this;
@@ -188,17 +188,18 @@ public:
     {
         typename ContainerType::iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
-            return *static_cast<TDataType*>(i->second);
-        
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
+            return *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex());
+
 #ifdef KRATOS_DEBUG
         if(OpenMPUtils::IsInParallel() != 0)
             KRATOS_ERROR << "attempting to do a GetValue for: " << rThisVariable << " unfortunately the variable is not in the database and the operations is not threadsafe (this function is being called from within a parallel region)" << std::endl;
-#endif 
-        
-        mData.push_back(ValueType(&rThisVariable,new TDataType(rThisVariable.Zero())));
+#endif
 
-        return *static_cast<TDataType*>(mData.back().second);
+        auto p_source_variable = &rThisVariable.GetSourceVariable();
+        mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
+
+        return *(static_cast<TDataType*>(mData.back().second) + rThisVariable.GetComponentIndex());
     }
 
     //TODO: make the variable of the constant version consistent with the one of the "classical" one
@@ -206,20 +207,10 @@ public:
     {
         typename ContainerType::const_iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
-            return *static_cast<const TDataType*>(i->second);
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
+            return *(static_cast<const TDataType*>(i->second) + rThisVariable.GetComponentIndex());
 
         return rThisVariable.Zero();
-    }
-
-    template<class TAdaptorType> typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType> const typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
     }
 
     SizeType Size()
@@ -231,22 +222,20 @@ public:
     {
         typename ContainerType::iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
-            *static_cast<TDataType*>(i->second) = rValue;
-        else
-            mData.push_back(ValueType(&rThisVariable,new TDataType(rValue))); //TODO: this shall be insert not push_back
-    }
-
-    template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue)
-    {
-        rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable())) = rValue;
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end()) {
+            *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex()) = rValue;
+        } else {
+            auto p_source_variable = &rThisVariable.GetSourceVariable();
+            mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
+            *(static_cast<TDataType*>(mData.back().second) + rThisVariable.GetComponentIndex()) = rValue;
+        }
     }
 
     template<class TDataType> void Erase(const Variable<TDataType>& rThisVariable)
     {
         typename ContainerType::iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
         {
             i->first->Delete(i->second);
             mData.erase(i);
@@ -261,6 +250,8 @@ public:
         mData.clear();
     }
 
+    void Merge(const DataValueContainer& rOther, Flags Options);
+
     ///@}
     ///@name Access
     ///@{
@@ -272,15 +263,10 @@ public:
 
     template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
     {
-        return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())) != mData.end());
+        return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())) != mData.end());
     }
 
-    template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.GetSourceVariable().Key())) != mData.end());
-    }
-
-    bool IsEmpty()
+    bool IsEmpty() const
     {
         return mData.empty();
     }
@@ -304,7 +290,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        for(ConstantIteratorType i = mData.begin() ; i != mData.end() ; ++i)
+        for(const_iterator i = mData.begin() ; i != mData.end() ; ++i)
         {
             rOStream <<"    ";
             i->first->Print(i->second, rOStream);
@@ -362,10 +348,10 @@ private:
     {
         std::size_t mI;
     public:
-        IndexCheck(int I) : mI(I) {}
+        explicit IndexCheck(std::size_t I) : mI(I) {}
         bool operator()(const ValueType& I)
         {
-            return I.first->Key() == mI;
+            return I.first->SourceKey() == mI;
         }
     };
 
@@ -394,32 +380,9 @@ private:
 
     friend class Serializer;
 
+    virtual void save(Serializer& rSerializer) const;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        std::size_t size = mData.size();
-        rSerializer.save("Size", size);
-        for(std::size_t i = 0 ; i < size ; i++)
-        {
-            rSerializer.save("Variable Name", mData[i].first->Name());
-            mData[i].first->Save(rSerializer, mData[i].second);
-        }
-    }
-
-    virtual void load(Serializer& rSerializer)
-    {
-        std::size_t size;
-        rSerializer.load("Size", size);
-        mData.resize(size);
-        std::string name;
-        for(std::size_t i = 0 ; i < size ; i++)
-        {
-            rSerializer.load("Variable Name", name);
-            mData[i].first = KratosComponents<VariableData>::pGet(name);
-            mData[i].first->Allocate(&(mData[i].second));
-            mData[i].first->Load(rSerializer, mData[i].second);
-        }
-    }
+    virtual void load(Serializer& rSerializer);
 
 
     ///@}
@@ -440,6 +403,7 @@ private:
     ///@}
 
 }; // Class DataValueContainer
+
 
 ///@}
 
@@ -471,6 +435,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DATA_VALUE_CONTAINER_H_INCLUDED  defined 
+#endif // KRATOS_DATA_VALUE_CONTAINER_H_INCLUDED  defined
 
 

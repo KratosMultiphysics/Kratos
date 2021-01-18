@@ -105,7 +105,7 @@ public:
 	///@{
 
 	/// Pointer definition of FSWernerWengleWallCondition
-	KRATOS_CLASS_POINTER_DEFINITION(FSWernerWengleWallCondition);
+	KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FSWernerWengleWallCondition);
 
 	typedef Node < 3 > NodeType;
 
@@ -190,7 +190,7 @@ public:
 	}
 
 	/// Destructor.
-	virtual ~FSWernerWengleWallCondition()
+	~FSWernerWengleWallCondition() override
 	{}
 
 	///@}
@@ -216,125 +216,103 @@ public:
 	 @param ThisNodes An array containing the nodes of the new condition
 	 @param pProperties Pointer to the condition's properties
 	 */
-	virtual Condition::Pointer Create(IndexType NewId,
+	Condition::Pointer Create(IndexType NewId,
 			NodesArrayType const& ThisNodes,
-			PropertiesType::Pointer pProperties) const
+			PropertiesType::Pointer pProperties) const override
 	{
-		return Condition::Pointer(new FSWernerWengleWallCondition(NewId,
-						GetGeometry().Create(ThisNodes), pProperties));
+		return Kratos::make_intrusive<FSWernerWengleWallCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
 	}
 
+	/// Create a new FSWernerWengleWallCondition object.
+	/**
+	 @param NewId Index of the new condition
+     @param pGeom A pointer to the geometry of the new condition
+	 @param pProperties Pointer to the condition's properties
+	 */
+	Condition::Pointer Create(
+		IndexType NewId,
+		GeometryType::Pointer pGeom,
+		PropertiesType::Pointer pProperties) const override
+	{
+		return Kratos::make_intrusive<FSWernerWengleWallCondition>(NewId, pGeom, pProperties);
+    }
+
 	/// Find the condition's parent element.
-	void Initialize()
+	void Initialize(const ProcessInfo &rCurrentProcessInfo) override
 	{
 		KRATOS_TRY;
 
-		const array_1d<double,3>& rNormal = this->GetValue(NORMAL);
-		if (norm_2(rNormal) == 0.0)
-		  {
-		    std::cout << "error on condition -> " << this->Id() << std::endl;
-		    KRATOS_THROW_ERROR(std::logic_error, "NORMAL must be calculated before using this condition","");
-		  }
+		if (this->Is(SLIP))
+		{
+			const array_1d<double, 3> &rNormal = this->GetValue(NORMAL);
+			KRATOS_ERROR_IF(norm_2(rNormal) == 0.0) << "NORMAL must be calculated before using this " << this->Info() << "\n";
+		}
 
 		if (mInitializeWasPerformed)
 		{
-		        return;
+			return;
 		}
 
 		mInitializeWasPerformed = true;
 
+		KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() == 0) << this->Info() << " cannot find parent element\n";
+
 		double EdgeLength;
-		array_1d<double,3> Edge;
-		GeometryType& rGeom = this->GetGeometry();
-		WeakPointerVector<Element> ElementCandidates;
-		for (SizeType i = 0; i < TNumNodes; i++)
+		array_1d<double, 3> Edge;
+
+		mpElement = this->GetValue(NEIGHBOUR_ELEMENTS)(0);
+		GeometryType &rElemGeom = mpElement->GetGeometry();
+
+		Edge = rElemGeom[1].Coordinates() - rElemGeom[0].Coordinates();
+		mMinEdgeLength = Edge[0] * Edge[0];
+		for (SizeType d = 1; d < TDim; d++)
 		{
-			WeakPointerVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
-			for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
-			{
-				ElementCandidates.push_back(rNodeElementCandidates(j));
-			}
+			mMinEdgeLength += Edge[d] * Edge[d];
 		}
 
-		std::vector<IndexType> NodeIds(TNumNodes), ElementNodeIds;
-
-		for (SizeType i=0; i < TNumNodes; i++)
+		for (SizeType j = 2; j < rElemGeom.PointsNumber(); j++)
 		{
-			NodeIds[i] = rGeom[i].Id();
-		}
-
-		std::sort(NodeIds.begin(), NodeIds.end());
-
-		for (SizeType i=0; i < ElementCandidates.size(); i++)
-		{
-			GeometryType& rElemGeom = ElementCandidates[i].GetGeometry();
-			ElementNodeIds.resize(rElemGeom.PointsNumber());
-
-			for (SizeType j=0; j < rElemGeom.PointsNumber(); j++)
+			for (SizeType k = 0; k < j; k++)
 			{
-				ElementNodeIds[j] = rElemGeom[j].Id();
-			}
+				Edge = rElemGeom[j].Coordinates() - rElemGeom[k].Coordinates();
+				EdgeLength = Edge[0] * Edge[0];
 
-			std::sort(ElementNodeIds.begin(), ElementNodeIds.end());
-
-			if ( std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()) )
-			{
-				mpElement = ElementCandidates(i);
-
-				Edge = rElemGeom[1].Coordinates() - rElemGeom[0].Coordinates();
-				mMinEdgeLength = Edge[0]*Edge[0];
-				for (SizeType d=1; d < TDim; d++)
+				for (SizeType d = 1; d < TDim; d++)
 				{
-					mMinEdgeLength += Edge[d]*Edge[d];
+					EdgeLength += Edge[d] * Edge[d];
 				}
 
-				for (SizeType j=2; j < rElemGeom.PointsNumber(); j++)
-				{
-					for(SizeType k=0; k < j; k++)
-					{
-						Edge = rElemGeom[j].Coordinates() - rElemGeom[k].Coordinates();
-						EdgeLength = Edge[0]*Edge[0];
-
-						for (SizeType d = 1; d < TDim; d++)
-						{
-							EdgeLength += Edge[d]*Edge[d];
-						}
-
-						mMinEdgeLength = (EdgeLength < mMinEdgeLength) ? EdgeLength : mMinEdgeLength;
-					}
-				}
-				mMinEdgeLength = sqrt(mMinEdgeLength);
-				return;
+				mMinEdgeLength = (EdgeLength < mMinEdgeLength) ? EdgeLength : mMinEdgeLength;
 			}
 		}
+		mMinEdgeLength = sqrt(mMinEdgeLength);
+		return;
 
-		std::cout << "error in condition -> " << this->Id() << std::endl;
-		KRATOS_THROW_ERROR(std::logic_error, "Condition cannot find parent element","");
 		KRATOS_CATCH("");
 	}
 
-	virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-			ProcessInfo& rCurrentProcessInfo)
+	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+			ProcessInfo& rCurrentProcessInfo) override
 	{
 		VectorType RHS;
 		this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
 	}
 
-	/// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.
+	/// Calculate wall stress term for all nodes with SLIP set.
 	/**
 	 @param rLeftHandSideMatrix Left-hand side matrix
 	 @param rRightHandSideVector Right-hand side vector
 	 @param rCurrentProcessInfo ProcessInfo instance
 	 */
-	virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+	void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo)
+			const ProcessInfo& rCurrentProcessInfo) override
 	{
 		KRATOS_TRY;
 
 		if (mInitializeWasPerformed == false)
 		{
-		        Initialize();
+		        Initialize(rCurrentProcessInfo);
 		}
 
 		if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
@@ -354,7 +332,7 @@ public:
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 			noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-			if (this->GetValue(IS_STRUCTURE) != 0.0)
+			if (this->Is(SLIP))
 			  this->ApplyWallLaw(rLeftHandSideMatrix, rRightHandSideVector);
 		}
 		else if (rCurrentProcessInfo[FRACTIONAL_STEP] == 5)
@@ -394,7 +372,7 @@ public:
 	}
 
 	/// Check that all data required by this condition is available and reasonable.
-	virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+	int Check(const ProcessInfo& rCurrentProcessInfo) const override
 	{
 		KRATOS_TRY;
 
@@ -406,22 +384,6 @@ public:
 		}
 		else
 		{
-			// Check that all required variables have been registered
-			if(VELOCITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-			if(PRESSURE.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-			if(MESH_VELOCITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
-			if(DENSITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-			if(VISCOSITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-			if(NORMAL.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","");
-			if(IS_STRUCTURE.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
-
 			// Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
 			for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
 			{
@@ -454,23 +416,23 @@ public:
 	 * @param rResult A vector containing the global Id of each row
 	 * @param rCurrentProcessInfo the current process info object
 	 */
-	virtual void EquationIdVector(EquationIdVectorType& rResult,
-			ProcessInfo& rCurrentProcessInfo);
+	void EquationIdVector(EquationIdVectorType& rResult,
+			const ProcessInfo& rCurrentProcessInfo) const override;
 
 	/// Returns a list of the condition's Dofs.
 	/**
 	 * @param ConditionDofList the list of DOFs
 	 * @param rCurrentProcessInfo the current process info instance
 	 */
-	virtual void GetDofList(DofsVectorType& rConditionDofList,
-			ProcessInfo& rCurrentProcessInfo);
+	void GetDofList(DofsVectorType& rConditionDofList,
+			const ProcessInfo& rCurrentProcessInfo) const override;
 
 	/// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z) for each node.
 	/**
 	 * @param Values Vector of nodal unknowns
 	 * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
 	 */
-	virtual void GetValuesVector(Vector& Values, int Step = 0)
+	void GetValuesVector(Vector& Values, int Step = 0) const override
 	{
 		const SizeType LocalSize = TDim * TNumNodes;
 		unsigned int LocalIndex = 0;
@@ -482,7 +444,7 @@ public:
 
 		for (unsigned int i = 0; i < TNumNodes; ++i)
 		{
-			array_1d<double,3>& rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
+			const array_1d<double,3>& rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
 			for (unsigned int d = 0; d < TDim; ++d)
 			{
 				Values[LocalIndex++] = rVelocity[d];
@@ -494,28 +456,28 @@ public:
 	///@name Access
 	///@{
 
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
             std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 	///@}
 	///@name Inquiry
@@ -526,7 +488,7 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const
+	std::string Info() const override
 	{
 		std::stringstream buffer;
 		buffer << "FSWernerWengleWallCondition" << TDim << "D";
@@ -534,11 +496,11 @@ public:
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream& rOStream) const
+	void PrintInfo(std::ostream& rOStream) const override
 	{	rOStream << "FSWernerWengleWallCondition";}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream& rOStream) const
+	void PrintData(std::ostream& rOStream) const override
 	{}
 
 	///@}
@@ -565,7 +527,7 @@ protected:
 
 	ElementPointerType pGetElement()
 	{
-		return mpElement.lock();
+		return mpElement->shared_from_this();
 	}
 
 	template< class TVariableType >
@@ -636,7 +598,7 @@ protected:
 			for(SizeType i=0; i < rGeometry.PointsNumber(); ++i)
 			{
 				const NodeType& rNode = rGeometry[i];
-				if(rNode.GetValue(Y_WALL) != 0.0 && rNode.GetValue(IS_STRUCTURE) != 0.0)
+				if(rNode.GetValue(Y_WALL) != 0.0 && rNode.Is(SLIP))
 				{
 					WallVel = rNode.FastGetSolutionStepValue(VELOCITY,1) - rNode.FastGetSolutionStepValue(MESH_VELOCITY,1);
 					tmp = norm_2(WallVel);
@@ -660,7 +622,7 @@ protected:
 	 */
 	void ApplyIACPenalty(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo)
+			const ProcessInfo& rCurrentProcessInfo)
 	{
 		GeometryType& rGeometry = this->GetGeometry();
 		const array_1d<double,3>& rNormal = this->GetValue(NORMAL);
@@ -701,7 +663,7 @@ private:
 
 	friend class Serializer;
 
-	virtual void save(Serializer& rSerializer) const
+	void save(Serializer& rSerializer) const override
 	{
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
         rSerializer.save("mInitializeWasPerformed",mInitializeWasPerformed);
@@ -709,7 +671,7 @@ private:
         rSerializer.save("mpElement",mpElement);
 	}
 
-	virtual void load(Serializer& rSerializer)
+	void load(Serializer& rSerializer) override
 	{
 		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
         rSerializer.load("mInitializeWasPerformed",mInitializeWasPerformed);

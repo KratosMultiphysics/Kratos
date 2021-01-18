@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_CAM_CLAY_KINEMATIC_HARDENING_LAW_H_INCLUDED )
-#define  KRATOS_CAM_CLAY_KINEMATIC_HARDENING_LAW_H_INCLUDED
+#if !defined(KRATOS_CAM_CLAY_HARDENING_LAW_H_INCLUDED )
+#define  KRATOS_CAM_CLAY_HARDENING_LAW_H_INCLUDED
 
 
 
@@ -46,32 +46,32 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class CamClayKinematicHardeningLaw 
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) CamClayHardeningLaw 
         : public HardeningLaw 
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of CamClayKinematicHardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION( CamClayKinematicHardeningLaw );
+    /// Pointer definition of CamClayHardeningLaw
+    KRATOS_CLASS_POINTER_DEFINITION( CamClayHardeningLaw );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    CamClayKinematicHardeningLaw();
+    CamClayHardeningLaw();
 
 
     /// Copy constructor.
-    CamClayKinematicHardeningLaw(CamClayKinematicHardeningLaw const& rOther);
+    CamClayHardeningLaw(CamClayHardeningLaw const& rOther);
 
     /// Assignment operator.
-    CamClayKinematicHardeningLaw& operator=(CamClayKinematicHardeningLaw const& rOther);
+    CamClayHardeningLaw& operator=(CamClayHardeningLaw const& rOther);
 
     /// Destructor.
-    ~CamClayKinematicHardeningLaw();
+    ~CamClayHardeningLaw();
 
     ///@}
     ///@name Operators
@@ -82,7 +82,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual double& CalculateHardening(double &rHardening, const double &rAlpha, const double rTemperature = 0);
+    double& CalculateHardening(double &rHardening, const double &rAlpha, const double rTemperature = 0) override;
 	
 /*    double& CalculateIsotropicHardening(double &rIsotropicHardening, const double &rAlpha, double rTemperature = 0);
 
@@ -191,9 +191,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry
@@ -207,7 +207,7 @@ private:
 
     ///@}
 
-}; // Class LinearIsotropicKinematicHardeningLaw
+}; // Class CamClayHardeningLaw
 
 ///@}
 
@@ -222,11 +222,11 @@ private:
 
 // /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   LinearIsotropicKinematicHardeningLaw& rThis);
+//                                   LinearIsotropicHardeningLaw& rThis);
 
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const LinearIsotropicKinematicHardeningLaw& rThis)
+//                                   const LinearIsotropicHardeningLaw& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
@@ -240,6 +240,5 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED  defined 
-
+#endif // KRATOS_CAM_CLAY_HARDENING_LAW_H_INCLUDED defined
 

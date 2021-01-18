@@ -7,27 +7,26 @@
 //
 //
 
-#if !defined(KRATOS_ADD_CUSTOM_BOUNDING_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CUSTOM_BOUNDING_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_CUSTOM_BOUNDING_TO_PYTHON_H_INCLUDED)
+#define KRATOS_ADD_CUSTOM_BOUNDING_TO_PYTHON_H_INCLUDED
 
 // System includes
 
 // External includes
-
+#include <pybind11/pybind11.h>
 // Project includes
-#include "includes/define.h"
-
+#include "includes/define_python.h"
 
 namespace Kratos
 {
 
-  namespace Python
-  {
+namespace Python
+{
 
-    void  AddCustomBoundingToPython();
-  
-  }  // namespace Python.
- 
-}  // namespace Kratos.
+void AddCustomBoundingToPython(pybind11::module &m);
 
-#endif // KRATOS_ADD_CUSTOM_BOUNDING_TO_PYTHON_H_INCLUDED  defined 
+} // namespace Python.
+
+} // namespace Kratos.
+
+#endif // KRATOS_ADD_CUSTOM_BOUNDING_TO_PYTHON_H_INCLUDED  defined

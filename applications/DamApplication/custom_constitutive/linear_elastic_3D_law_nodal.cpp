@@ -65,14 +65,14 @@ void LinearElastic3DLawNodal::CalculateMaterialResponseKirchhoff (Parameters& rV
 		
 		if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) //TOTAL STRESS
 		{
-			StressVector = prod(ConstitutiveMatrix,StrainVector);
+			noalias(StressVector) = prod(ConstitutiveMatrix,StrainVector);
 		}
 	}
     else if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) //TOTAL STRESS
     {        
         this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
-        StressVector = prod(ConstitutiveMatrix,StrainVector);
+        noalias(StressVector) = prod(ConstitutiveMatrix,StrainVector);
     }
 
 

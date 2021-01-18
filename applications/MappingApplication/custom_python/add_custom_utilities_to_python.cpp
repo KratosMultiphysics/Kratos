@@ -1,178 +1,45 @@
-// Kratos Multi-Physics
-//
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-//
-//         -        Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-//         -        Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-//                  in the documentation and/or other materials provided with the distribution.
-//         -        All advertising materials mentioning features or use of this software must display the following acknowledgement:
-//                         This product includes Kratos Multi-Physics technology.
-//         -        Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Philipp Bucher, Jordi Cotela
+//
+// See Master-Thesis P.Bucher
+// "Development and Implementation of a Parallel
+//  Framework for Non-Matching Grid Mapping"
 
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/mapper_utilities.h"
+#include "custom_utilities/mapping_intersection_utilities.h"
 
-#include "custom_utilities/mapper_flags.h"
-#include "custom_utilities/mapper_factory.h"
 
+namespace Kratos {
+namespace Python {
 
-namespace Kratos
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
 
-namespace Python
-{
+    auto m_mapper_utilities = m.def_submodule("MapperUtilities");
+    auto m_mapping_intersection_utils = m.def_submodule("MappingIntersectionUtilities");
 
-// Wrapper functions for taking a default argument for the flags
-void UpdateInterface(MapperFactory& dummy)
-{
-    Kratos::Flags dummy_flags = Kratos::Flags();
-    double dummy_search_radius = -1.0f;
-    dummy.UpdateInterface(dummy_flags, dummy_search_radius);
-}
-
-void UpdateInterface(MapperFactory& dummy, Kratos::Flags& options)
-{
-    double dummy_search_radius = -1.0f;
-    dummy.UpdateInterface(options, dummy_search_radius);
-}
-
-void UpdateInterface(MapperFactory& dummy, double search_radius)
-{
-    Kratos::Flags dummy_flags = Kratos::Flags();
-    dummy.UpdateInterface(dummy_flags, search_radius);
-}
-
-
-void Map(MapperFactory& dummy,
-         const Variable<double>& origin_variable,
-         const Variable<double>& destination_variable)
-{
-    Kratos::Flags dummy_flags = Kratos::Flags();
-    dummy.Map(origin_variable, destination_variable, dummy_flags);
-}
-
-void Map(MapperFactory& dummy,
-         const Variable< array_1d<double, 3> >& origin_variable,
-         const Variable< array_1d<double, 3> >& destination_variable)
-{
-    Kratos::Flags dummy_flags = Kratos::Flags();
-    dummy.Map(origin_variable, destination_variable, dummy_flags);
-}
-
-void InverseMap(MapperFactory& dummy,
-                const Variable<double>& origin_variable,
-                const Variable<double>& destination_variable)
-{
-    Kratos::Flags dummy_flags = Kratos::Flags();
-    dummy.InverseMap(origin_variable, destination_variable, dummy_flags);
-}
-
-void InverseMap(MapperFactory& dummy,
-                const Variable< array_1d<double, 3> >& origin_variable,
-                const Variable< array_1d<double, 3> >& destination_variable)
-{
-    Kratos::Flags dummy_flags = Kratos::Flags();
-    dummy.InverseMap(origin_variable, destination_variable, dummy_flags);
-}
-
-void  AddCustomUtilitiesToPython()
-{
-    using namespace boost::python;
-
-    void (*pUpdateInterface)(MapperFactory &)
-        = &UpdateInterface;
-
-    void (*pUpdateInterfaceOptions)(MapperFactory &, Kratos::Flags &)
-        = &UpdateInterface;
-
-    void (*pUpdateInterfaceSearchRadius)(MapperFactory &, double)
-        = &UpdateInterface;
-
-    void (*pMapScalar)(MapperFactory &,
-                       const Variable<double> &,
-                       const Variable<double> &)
-        = &Map;
-
-    void (*pMapVector)(MapperFactory &,
-                       const Variable< array_1d<double, 3> > &,
-                       const Variable< array_1d<double, 3> > &)
-        = &Map;
-
-    void (*pInverseMapScalar)(MapperFactory &,
-                              const Variable<double> &,
-                              const Variable<double> &)
-        = &InverseMap;
-
-    void (*pInverseMapVector)(MapperFactory &,
-                              const Variable< array_1d<double, 3> > &,
-                              const Variable< array_1d<double, 3> > &)
-        = &InverseMap;
-
-
-    void (MapperFactory::*pUpdateInterfaceFull)(Kratos::Flags &, double)
-        = &MapperFactory::UpdateInterface;
-
-    void (MapperFactory::*pMapScalarOptions)(const Variable<double> &,
-            const Variable<double> &,
-            Kratos::Flags &)
-        = &MapperFactory::Map;
-
-    void (MapperFactory::*pMapVectorOptions)(const Variable< array_1d<double, 3> > &,
-            const Variable< array_1d<double, 3> > &,
-            Kratos::Flags &)
-        = &MapperFactory::Map;
-
-    void (MapperFactory::*pInverseMapScalarOptions)(const Variable<double> &,
-            const Variable<double> &,
-            Kratos::Flags &)
-        = &MapperFactory::InverseMap;
-
-    void (MapperFactory::*pInverseMapVectorOptions)(const Variable< array_1d<double, 3> > &,
-            const Variable< array_1d<double, 3> > &,
-            Kratos::Flags &)
-        = &MapperFactory::InverseMap;
-
-
-    class_< MapperFactory > mapper_factory = class_<MapperFactory>("MapperFactory", init<ModelPart&, ModelPart&, Parameters&>())
-            .def("UpdateInterface",  pUpdateInterface)
-            .def("UpdateInterface",  pUpdateInterfaceOptions)
-            .def("UpdateInterface",  pUpdateInterfaceSearchRadius)
-            .def("Map",              pMapScalar)
-            .def("Map",              pMapVector)
-            .def("InverseMap",       pInverseMapScalar)
-            .def("InverseMap",       pInverseMapVector)
-
-            .def("UpdateInterface",  pUpdateInterfaceFull)
-            .def("Map",              pMapScalarOptions)
-            .def("Map",              pMapVectorOptions)
-            .def("InverseMap",       pInverseMapScalarOptions)
-            .def("InverseMap",       pInverseMapVectorOptions)
-            ;
-
-    mapper_factory.attr("SWAP_SIGN") = MapperFlags::SWAP_SIGN;
-    mapper_factory.attr("ADD_VALUES") = MapperFlags::ADD_VALUES;
-    mapper_factory.attr("CONSERVATIVE") = MapperFlags::CONSERVATIVE;
-    mapper_factory.attr("REMESHED") = MapperFlags::REMESHED;
-
+    m_mapper_utilities.def("SaveCurrentConfiguration", &MapperUtilities::SaveCurrentConfiguration);
+    m_mapper_utilities.def("RestoreCurrentConfiguration", &MapperUtilities::RestoreCurrentConfiguration);
+    m_mapping_intersection_utils.def("FindIntersection1DGeometries2D", &MappingIntersectionUtilities::FindIntersection1DGeometries2D);
+    m_mapping_intersection_utils.def("CreateQuadraturePointsCoupling1DGeometries2D", &MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D);
 }
 
 }  // namespace Python.
-
 } // Namespace Kratos

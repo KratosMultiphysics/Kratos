@@ -1,0 +1,35 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "smallest_rve_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "rve_settings"     : {
+        "boundary_mp_name"  : "Structure.SurfacePressure3D_Pressure_on_surfaces_Auto2",
+        "averaging_mp_name" : "Structure",
+        "print_rve_post"    : false,
+        "perturbation"      : 1e-6
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "static",
+        "model_part_name"                    : "Structure",
+        "block_builder"                      : true,
+        "multi_point_constraints_used"       : true,
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "rve_test/smallest_rve_test"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "rve_test/smallest_rve_test_materials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        }
+    },
+    "output_processes" : { }
+}

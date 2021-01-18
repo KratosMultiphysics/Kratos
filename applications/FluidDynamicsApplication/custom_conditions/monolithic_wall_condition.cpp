@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -23,7 +23,7 @@ namespace Kratos
  */
 template <>
 void MonolithicWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const 
 {
     const unsigned int NumNodes = 2;
     const unsigned int LocalSize = 6;
@@ -45,7 +45,7 @@ void MonolithicWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResul
  */
 template <>
 void MonolithicWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -68,7 +68,7 @@ void MonolithicWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResul
  */
 template <>
 void MonolithicWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo)
+       const ProcessInfo& rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = 2;
     const SizeType LocalSize = 6;
@@ -91,7 +91,7 @@ void MonolithicWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
  */
 template <>
 void MonolithicWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -116,7 +116,7 @@ void MonolithicWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
 template<unsigned int TDim, unsigned int TNumNodes>
 void MonolithicWallCondition<TDim,TNumNodes>::CalculateLocalVelocityContribution(MatrixType &rDampMatrix,
                                                                                  VectorType &rRightHandSideVector,
-                                                                                 ProcessInfo &rCurrentProcessInfo)
+                                                                                 const ProcessInfo &rCurrentProcessInfo)
 {
     // Initialize local contributions
     const SizeType LocalSize = (TDim + 1) * TNumNodes;
@@ -137,7 +137,7 @@ void MonolithicWallCondition<TDim,TNumNodes>::CalculateLocalVelocityContribution
 //        ExternalPressure += rGeom[d].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
 //    ExternalPressure *= NodeFactor;
 
-//    array_1d<double,3> AreaNormal(3,0.0);
+//    array_1d<double,3> AreaNormal = ZeroVector(3);
 //    this->CalculateNormal(AreaNormal);
 
 //    unsigned int Row = 0;
@@ -261,7 +261,7 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void MonolithicWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLocalMatrix, VectorType &rLocalVector)
 {
     const MonolithicWallCondition<TDim,TNumNodes>& rConstThis = *this;
-    if (rConstThis.GetValue(IS_STRUCTURE) == 0.0)
+    if (!rConstThis.Is(SLIP))
     {
         const unsigned int LocalSize = TDim+1;
         const GeometryType& rGeom = this->GetGeometry();
@@ -299,7 +299,7 @@ void MonolithicWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &
             }
 
             // Velocity inflow correction
-            array_1d<double,3> Vel(3,0.0);
+            array_1d<double,3> Vel = ZeroVector(3);
             double Density = 0.0;
 
             for (unsigned int i = 0; i < TNumNodes; i++)

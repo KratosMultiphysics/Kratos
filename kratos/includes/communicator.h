@@ -1,23 +1,16 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
@@ -37,12 +30,9 @@
 
 // Project includes
 #include "includes/define.h"
-// #include "includes/process_info.h"
-// #include "containers/data_value_container.h"
-#include "includes/mesh.h"
-#include "includes/element.h"
 #include "includes/condition.h"
-
+#include "includes/element.h"
+#include "includes/mesh.h"
 
 namespace Kratos
 {
@@ -66,11 +56,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
+// Forward declaration of DataCommunicator
+class DataCommunicator;
 
-/** Detail class definition.
+/// The Commmunicator class manages communication for distributed ModelPart instances.
+/** The base Communicator class only holds the required data (local and remote mesh interfaces)
+ *  for communication. The actual communication is implemented in the derived MPICommunicator.
  */
-class Communicator
+class KRATOS_API(KRATOS_CORE) Communicator
 {
 public:
     ///@name  Enum's
@@ -96,7 +89,7 @@ public:
 
     typedef Condition ConditionType;
 
-    typedef vector<int> NeighbourIndicesContainerType;
+    typedef DenseVector<int> NeighbourIndicesContainerType;
 
     typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
 
@@ -177,718 +170,263 @@ public:
     ///@{
 
     /// Default constructor.
+    Communicator();
 
-    Communicator() : mNumberOfColors(1)
-        , mpLocalMesh(MeshType::Pointer(new MeshType))
-        , mpGhostMesh(MeshType::Pointer(new MeshType)),
-        mpInterfaceMesh(MeshType::Pointer(new MeshType))
-    {
-        MeshType mesh;
-        mLocalMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
-        mGhostMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
-        mInterfaceMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
-    }
+    /// Constructor using a custom DataCommunicator.
+    /** This constructor is intended for use from derived classes,
+     *  since the base Communicator class will often not use the communicator at all.
+     *  @param rDataCommunicator Reference to a DataCommunicator.
+     */
+    Communicator(const DataCommunicator& rDataCommunicator);
 
     /// Copy constructor.
-
-    Communicator(Communicator const& rOther)
-        : mNumberOfColors(rOther.mNumberOfColors)
-        , mNeighbourIndices(rOther.mNeighbourIndices)
-        , mpLocalMesh(MeshType::Pointer(rOther.mpLocalMesh))
-        , mpGhostMesh(MeshType::Pointer(rOther.mpGhostMesh))
-        , mpInterfaceMesh(MeshType::Pointer(rOther.mpInterfaceMesh))
-        , mLocalMeshes(rOther.mLocalMeshes)
-        , mGhostMeshes(rOther.mGhostMeshes)
-        , mInterfaceMeshes(rOther.mInterfaceMeshes)
-    {
-    }
-
-    virtual Communicator::Pointer Create()
-    {
-        KRATOS_TRY
-
-        return Communicator::Pointer(new Communicator);
-
-        KRATOS_CATCH("");
-    }
+    Communicator(Communicator const& rOther);
 
     /// Destructor.
+    virtual ~Communicator() = default;
 
-    virtual ~Communicator()
-    {
-    }
+    virtual Communicator::Pointer Create(const DataCommunicator& rDataCommunicator) const;
 
+    virtual Communicator::Pointer Create() const;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-
-    Communicator & operator=(Communicator const& rOther)
-    {
-        mNumberOfColors = rOther.mNumberOfColors;
-        mNeighbourIndices = rOther.mNeighbourIndices;
-        mpLocalMesh = rOther.mpLocalMesh;
-        mpGhostMesh = rOther.mpGhostMesh;
-        mpInterfaceMesh = rOther.mpInterfaceMesh;
-        mLocalMeshes = rOther.mLocalMeshes;
-        mGhostMeshes = rOther.mGhostMeshes;
-        mInterfaceMeshes = rOther.mInterfaceMeshes;
-
-        return *this;
-    }
-
-
+    Communicator & operator=(Communicator const& rOther) = delete;
 
     ///@}
     ///@name Access
     ///@{
 
-    virtual int MyPID()
-    {
-        return 0;
-    }
+    virtual bool IsDistributed() const;
 
-    virtual int TotalProcesses()
-    {
-        return 1;
-    }
+    virtual int MyPID() const;
 
-    SizeType GetNumberOfColors()
-    {
-        return mNumberOfColors;
-    }
+    virtual int TotalProcesses() const;
 
-    void SetNumberOfColors(SizeType NewNumberOfColors)
-    {
-        if (mNumberOfColors == NewNumberOfColors)
-            return;
+    SizeType GlobalNumberOfNodes() const;
 
-        mNumberOfColors = NewNumberOfColors;
-        MeshType mesh;
+    SizeType GlobalNumberOfElements() const;
 
-        mLocalMeshes.clear();
-        mGhostMeshes.clear();
-        mInterfaceMeshes.clear();
+    SizeType GlobalNumberOfConditions() const;
 
-        for (IndexType i = 0; i < mNumberOfColors; i++)
-        {
-            mLocalMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
-            mGhostMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
-            mInterfaceMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
-        }
-    }
+    SizeType GetNumberOfColors() const;
 
-    NeighbourIndicesContainerType& NeighbourIndices()
-    {
-        return mNeighbourIndices;
-    }
+    void SetNumberOfColors(SizeType NewNumberOfColors);
 
-    NeighbourIndicesContainerType const& NeighbourIndices() const
-    {
-        return mNeighbourIndices;
-    }
-    
-    // Set the local mesh pointer to the given mesh
-    void SetLocalMesh(MeshType::Pointer pGivenMesh) 
-    {   
-        mpLocalMesh = pGivenMesh;
-    }
+    void AddColors(SizeType NumberOfAddedColors);
 
-    // Returns pointer to the mesh storing all local entites
+    NeighbourIndicesContainerType& NeighbourIndices();
 
-    MeshType::Pointer pLocalMesh()
-    {
-        return mpLocalMesh;
-    }
+    NeighbourIndicesContainerType const& NeighbourIndices() const;
 
-    // Returns pointer to the mesh storing all ghost entites
+    /// Set the local mesh pointer to the given mesh
+    void SetLocalMesh(MeshType::Pointer pGivenMesh);
 
-    MeshType::Pointer pGhostMesh()
-    {
-        return mpGhostMesh;
-    }
+    /// Returns pointer to the mesh storing all local entites
+    MeshType::Pointer pLocalMesh();
 
-    // Returns pointer to the mesh storing all interface entites
+    /// Returns pointer to the mesh storing all ghost entites
+    MeshType::Pointer pGhostMesh();
 
-    MeshType::Pointer pInterfaceMesh()
-    {
-        return mpInterfaceMesh;
-    }
+    /// Returns pointer to the mesh storing all interface entites
+    MeshType::Pointer pInterfaceMesh();
 
-    // Returns a constant pointer to the mesh storing all local entites
+    /// Returns a constant pointer to the mesh storing all local entites
+    const MeshType::Pointer pLocalMesh() const;
 
-    const MeshType::Pointer pLocalMesh() const
-    {
-        return mpLocalMesh;
-    }
+    /// Returns a constant pointer to the mesh storing all ghost entites
+    const MeshType::Pointer pGhostMesh() const;
 
-    // Returns a constant pointer to the mesh storing all ghost entites
+    /// Returns a constant pointer to the mesh storing all interface entites
+    const MeshType::Pointer pInterfaceMesh() const;
 
-    const MeshType::Pointer pGhostMesh() const
-    {
-        return mpGhostMesh;
-    }
+    MeshType::Pointer pLocalMesh(IndexType ThisIndex);
 
-    // Returns a constant pointer to the mesh storing all interface entites
+    MeshType::Pointer pGhostMesh(IndexType ThisIndex);
 
-    const MeshType::Pointer pInterfaceMesh() const
-    {
-        return mpInterfaceMesh;
-    }
+    MeshType::Pointer pInterfaceMesh(IndexType ThisIndex);
 
-    MeshType::Pointer pLocalMesh(IndexType ThisIndex)
-    {
-        return mLocalMeshes(ThisIndex);
-    }
+    const MeshType::Pointer pLocalMesh(IndexType ThisIndex) const;
 
-    MeshType::Pointer pGhostMesh(IndexType ThisIndex)
-    {
-        return mGhostMeshes(ThisIndex);
-    }
+    const MeshType::Pointer pGhostMesh(IndexType ThisIndex) const;
 
-    MeshType::Pointer pInterfaceMesh(IndexType ThisIndex)
-    {
-        return mInterfaceMeshes(ThisIndex);
-    }
+    const MeshType::Pointer pInterfaceMesh(IndexType ThisIndex) const;
 
-    const MeshType::Pointer pLocalMesh(IndexType ThisIndex) const
-    {
-        return mLocalMeshes(ThisIndex);
-    }
+    /// Returns the reference to the mesh storing all local entites
+    MeshType& LocalMesh();
 
-    const MeshType::Pointer pGhostMesh(IndexType ThisIndex) const
-    {
-        return mGhostMeshes(ThisIndex);
-    }
+    /// Returns the reference to the mesh storing all ghost entites
+    MeshType& GhostMesh();
 
-    const MeshType::Pointer pInterfaceMesh(IndexType ThisIndex) const
-    {
-        return mInterfaceMeshes(ThisIndex);
-    }
+    /// Returns the reference to the mesh storing all interface entites
+    MeshType& InterfaceMesh();
 
-    // Returns the reference to the mesh storing all local entites
+    /// Returns a constant reference to the mesh storing all local entites
+    MeshType const& LocalMesh() const;
 
-    MeshType& LocalMesh()
-    {
-        return *mpLocalMesh;
-    }
+    /// Returns a constant reference to the mesh storing all ghost entites
+    MeshType const& GhostMesh() const;
 
-    // Returns the reference to the mesh storing all ghost entites
+    /// Returns a constant reference to the mesh storing all interface entites
+    MeshType const& InterfaceMesh() const;
 
-    MeshType& GhostMesh()
-    {
-        return *mpGhostMesh;
-    }
+    MeshType& LocalMesh(IndexType ThisIndex);
 
-    // Returns the reference to the mesh storing all interface entites
+    MeshType& GhostMesh(IndexType ThisIndex);
 
-    MeshType& InterfaceMesh()
-    {
-        return *mpInterfaceMesh;
-    }
+    MeshType& InterfaceMesh(IndexType ThisIndex);
 
-    // Returns a constant reference to the mesh storing all local entites
+    MeshType const& LocalMesh(IndexType ThisIndex) const;
 
-    MeshType const& LocalMesh() const
-    {
-        return *mpLocalMesh;
-    }
+    MeshType const& GhostMesh(IndexType ThisIndex) const;
 
-    // Returns a constant reference to the mesh storing all ghost entites
+    MeshType const& InterfaceMesh(IndexType ThisIndex) const;
 
-    MeshType const& GhostMesh() const
-    {
-        return *mpGhostMesh;
-    }
+    MeshesContainerType& LocalMeshes();
 
-    // Returns a constant reference to the mesh storing all interface entites
+    MeshesContainerType& GhostMeshes();
 
-    MeshType const& InterfaceMesh() const
-    {
-        return *mpInterfaceMesh;
-    }
+    MeshesContainerType& InterfaceMeshes();
 
-    MeshType& LocalMesh(IndexType ThisIndex)
-    {
-        return mLocalMeshes[ThisIndex];
-    }
+    MeshesContainerType const& LocalMeshes() const;
 
-    MeshType& GhostMesh(IndexType ThisIndex)
-    {
-        return mGhostMeshes[ThisIndex];
-    }
+    MeshesContainerType const& GhostMeshes() const;
 
-    MeshType& InterfaceMesh(IndexType ThisIndex)
-    {
-        return mInterfaceMeshes[ThisIndex];
-    }
+    MeshesContainerType const& InterfaceMeshes() const;
 
-    MeshType const& LocalMesh(IndexType ThisIndex) const
-    {
-        return mLocalMeshes[ThisIndex];
-    }
-
-    MeshType const& GhostMesh(IndexType ThisIndex) const
-    {
-        return mGhostMeshes[ThisIndex];
-    }
-
-    MeshType const& InterfaceMesh(IndexType ThisIndex) const
-    {
-        return mInterfaceMeshes[ThisIndex];
-    }
-
-    MeshesContainerType& LocalMeshes()
-    {
-        return mLocalMeshes;
-    }
-
-    MeshesContainerType& GhostMeshes()
-    {
-        return mGhostMeshes;
-    }
-
-    MeshesContainerType& InterfaceMeshes()
-    {
-        return mInterfaceMeshes;
-    }
-
-    MeshesContainerType const& LocalMeshes() const
-    {
-        return mLocalMeshes;
-    }
-
-    MeshesContainerType const& GhostMeshes() const
-    {
-        return mGhostMeshes;
-    }
-
-    MeshesContainerType const& InterfaceMeshes() const
-    {
-        return mInterfaceMeshes;
-    }
+    virtual const DataCommunicator& GetDataCommunicator() const;
 
     ///@}
     ///@name Operations
     ///@{
 
-    virtual void Barrier()
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-    }
+    virtual bool SynchronizeNodalSolutionStepsData();
 
-    virtual bool SumAll(int& rValue)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
-    }
+    virtual bool SynchronizeDofs();
 
-    virtual bool SumAll(double& rValue)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
-    }
-    
-    virtual bool SumAll(array_1d<double, 3>& rValue)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
-    }
+    virtual bool SynchronizeVariable(Variable<int> const& rThisVariable);
 
-    virtual bool MinAll(int& rValue)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
-    }
+    virtual bool SynchronizeVariable(Variable<double> const& rThisVariable);
 
-    virtual bool MinAll(double& rValue)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
-    }
+    virtual bool SynchronizeVariable(Variable<bool> const& rThisVariable);
 
-    virtual bool MaxAll(int& rValue)
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
+    virtual bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& rThisVariable);
 
-    virtual bool MaxAll(double& rValue)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
-    }
-    
-    virtual bool ScanSum(const double& send_partial, double& receive_accumulated)
-    {
-        receive_accumulated = send_partial;
-        return true;
-    }
-    
-    virtual bool ScanSum(const int& send_partial, int& receive_accumulated)
-    {
-        receive_accumulated = send_partial;
-        return true;
-    }
-    
-    virtual bool SynchronizeElementalIds()
-    {
-        // #if defined(KRATOS_USING_MPI )
-        //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
-    }
+    virtual bool SynchronizeVariable(Variable<array_1d<double, 4 > > const& rThisVariable);
 
-    virtual bool SynchronizeNodalSolutionStepsData()
-    {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
+    virtual bool SynchronizeVariable(Variable<array_1d<double, 6 > > const& rThisVariable);
 
-    }
+    virtual bool SynchronizeVariable(Variable<array_1d<double, 9 > > const& rThisVariable);
 
-    virtual bool SynchronizeDofs()
-    {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
+    virtual bool SynchronizeVariable(Variable<Vector> const& rThisVariable);
 
-    }
-    
-    virtual bool SynchronizeVariable(Variable<int> const& ThisVariable)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
-    }
-    
-    virtual bool SynchronizeVariable(Variable<double> const& ThisVariable)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
-    }
-    
-    virtual bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& ThisVariable)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
-    }
-    
-    virtual bool SynchronizeVariable(Variable<Vector> const& ThisVariable)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
-    }
-    
-    virtual bool SynchronizeVariable(Variable<Matrix> const& ThisVariable)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
-    }
+    virtual bool SynchronizeVariable(Variable<Matrix> const& rThisVariable);
 
-    // This function is for test and will be changed. Pooyan.
-    virtual bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable)
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
+    virtual bool SynchronizeNonHistoricalVariable(Variable<int> const& rThisVariable);
 
-    }
-    
-    virtual bool SynchronizeElementalFlags()
-    {
-        return true;
-    }
+    virtual bool SynchronizeNonHistoricalVariable(Variable<double> const& rThisVariable);
 
-    virtual bool AssembleCurrentData(Variable<int> const& ThisVariable)
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
+    virtual bool SynchronizeNonHistoricalVariable(Variable<bool> const& rThisVariable);
 
-    }
+    virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 3 > > const& rThisVariable);
 
-    virtual bool AssembleCurrentData(Variable<double> const& ThisVariable)
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
+    virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 4 > > const& rThisVariable);
 
-    }
+    virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 6 > > const& rThisVariable);
 
-    virtual bool AssembleCurrentData(Variable<array_1d<double, 3 > > const& ThisVariable)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
+    virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 9 > > const& rThisVariable);
 
-    }
+    virtual bool SynchronizeNonHistoricalVariable(Variable<Vector> const& rThisVariable);
 
-    virtual bool AssembleCurrentData(Variable<Vector> const& ThisVariable)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
+    virtual bool SynchronizeNonHistoricalVariable(Variable<Matrix> const& rThisVariable);
 
-    }
+    /// Synchronize variable in nodal solution step data to the minimum value across all processes.
+    /** @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable);
 
-    virtual bool AssembleCurrentData(Variable<Matrix> const& ThisVariable)
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
+    /// Synchronize variable in nodal data to the minimum value across all processes.
+    /** @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeNonHistoricalDataToMin(Variable<double> const& ThisVariable);
 
-    }
+    virtual bool SynchronizeElementalFlags();
 
-    virtual bool AssembleNonHistoricalData(Variable<int> const& ThisVariable)
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
+    virtual bool AssembleCurrentData(Variable<int> const& ThisVariable);
 
-    }
+    virtual bool AssembleCurrentData(Variable<double> const& ThisVariable);
 
-    virtual bool AssembleNonHistoricalData(Variable<double> const& ThisVariable)
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
+    virtual bool AssembleCurrentData(Variable<array_1d<double, 3 > > const& ThisVariable);
 
-    }
+    virtual bool AssembleCurrentData(Variable<Vector> const& ThisVariable);
 
-    virtual bool AssembleNonHistoricalData(Variable<array_1d<double, 3 > > const& ThisVariable)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
+    virtual bool AssembleCurrentData(Variable<Matrix> const& ThisVariable);
 
-    }
-    
-    
-    virtual bool AssembleNonHistoricalData(Variable<vector<array_1d<double,3> > > const& ThisVariable)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
+    virtual bool AssembleNonHistoricalData(Variable<int> const& ThisVariable);
 
-    }
-    
-    virtual bool AssembleNonHistoricalData(Variable<Vector> const& ThisVariable)
-    {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
-        return true;
+    virtual bool AssembleNonHistoricalData(Variable<double> const& ThisVariable);
 
-    }
+    virtual bool AssembleNonHistoricalData(Variable<array_1d<double, 3 > > const& ThisVariable);
 
-    virtual bool AssembleNonHistoricalData(Variable<Matrix> const& ThisVariable)
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
+    virtual bool AssembleNonHistoricalData(Variable<DenseVector<array_1d<double,3> > > const& ThisVariable);
 
-    }
-    
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<int> const& ThisVariable)
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
+    virtual bool AssembleNonHistoricalData(Variable<Vector> const& ThisVariable);
 
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<double> const& ThisVariable)
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
+    virtual bool AssembleNonHistoricalData(Variable<Matrix> const& ThisVariable);
 
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<array_1d<double, 3 > > const& ThisVariable)
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
-    
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<vector<array_1d<double,3> > > const& ThisVariable)
-    {
-    /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
-    
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<vector<int> > const& ThisVariable)
-    {
-    /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<int> const& ThisVariable);
 
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<Vector> const& ThisVariable)
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<double> const& ThisVariable);
 
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<Matrix> const& ThisVariable)
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
-    
-    virtual bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects) 
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
-    
-    virtual bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects) 
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
-    
-    virtual bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects) 
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
-    
-    virtual bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects,Kratos::Serializer& particleSerializer) 
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
-    
-    virtual bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer) 
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
-    
-    virtual bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer) 
-    {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
-        return true;
-    }
-    
-    void Clear()
-    {
-        mNumberOfColors = 0;
-        mNeighbourIndices.clear();
-        mpLocalMesh->MeshType::Clear();
-        mpGhostMesh->MeshType::Clear();
-        mpInterfaceMesh->MeshType::Clear();
-        mLocalMeshes.clear();
-        mGhostMeshes.clear();
-        mInterfaceMeshes.clear();
-    }
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<array_1d<double, 3 > > const& ThisVariable);
 
-    ///@}
-    ///@name Access
-    ///@{
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<DenseVector<array_1d<double,3> > > const& ThisVariable);
 
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<DenseVector<int> > const& ThisVariable);
+
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<Vector> const& ThisVariable);
+
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<Matrix> const& ThisVariable);
+
+    virtual bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects);
+
+    virtual bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects);
+
+    virtual bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects);
+
+    virtual bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects,Kratos::Serializer& particleSerializer);
+
+    virtual bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer);
+
+    virtual bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer);
+
+    virtual bool SynchronizeOrNodalFlags(const Flags& TheFlags);
+
+    virtual bool SynchronizeAndNodalFlags(const Flags& TheFlags);
+
+    virtual bool SynchronizeNodalFlags();
+
+    void Clear();
 
     ///@}
     ///@name Inquiry
     ///@{
 
+    /// Turn back information as a string.
+    virtual std::string Info() const;
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const;
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream, std::string const& rPrefixString="") const;
 
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-
-    virtual std::string Info() const
-    {
-        return "Communicator";
-    }
-
-    /// Print information about this object.
-
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << Info();
-    }
-
-    /// Print object's data.
-
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-        for (IndexType i = 0; i < mLocalMeshes.size(); i++)
-        {
-            rOStream << "    Local Mesh " << i << " : " << std::endl;
-            LocalMesh(i).PrintData(rOStream);
-            rOStream << "    Ghost Mesh " << i << " : " << std::endl;
-            GhostMesh(i).PrintData(rOStream);
-            rOStream << "    Interface Mesh " << i << " : " << std::endl;
-            InterfaceMesh(i).PrintData(rOStream);
-        }
-    }
-
 
     ///@}
     ///@name Friends
@@ -927,6 +465,8 @@ protected:
     // To store interfaces ghost+local entities
     MeshesContainerType mInterfaceMeshes;
 
+    // Interface to MPI communication
+    const DataCommunicator& mrDataCommunicator;
 
     ///@}
     ///@name Protected Operators
@@ -1027,6 +567,6 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_COMMUNICATOR_H_INCLUDED  defined 
+#endif // KRATOS_COMMUNICATOR_H_INCLUDED  defined
 
 

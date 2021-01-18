@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED )
+#if !defined(KRATOS_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED)
 #define  KRATOS_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED
 
 // System includes
@@ -69,9 +69,9 @@ namespace Kratos
 
     /// Assignment operator.
     LinearAssociativePlasticFlowRule& operator=(LinearAssociativePlasticFlowRule const& rOther);
-	
+
     /// Destructor.
-    virtual ~LinearAssociativePlasticFlowRule();
+    ~LinearAssociativePlasticFlowRule() override;
 
 
     ///@}
@@ -82,12 +82,12 @@ namespace Kratos
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this flow rule
      */
-    virtual FlowRule::Pointer Clone() const;
+    FlowRule::Pointer Clone() const override;
 
     ///@}
     ///@name Operations
     ///@{
-    
+
     //void CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
 
     ///@}
@@ -130,7 +130,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -140,7 +140,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters );
+    bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters ) override;
 
 
     ///@}
@@ -168,8 +168,8 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -192,9 +192,9 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry
@@ -250,6 +250,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED  defined
 
 

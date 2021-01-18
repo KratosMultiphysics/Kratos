@@ -1,0 +1,21 @@
+{
+    "input_settings": {
+        "parameters_file_name": "element_tests/shear_2D_parameters_no_parts.json",
+        "model_parts":{
+	    "domain_parts_list"    : ["Parts_Parts_Auto1"],
+            "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","LineLoad2D_Load_on_lines_Auto2","LineLoad2D_Load_on_lines_Auto3","LineLoad2D_Load_on_lines_Auto4","LineLoad2D_Load_on_lines_Auto5"]
+        },
+        "processes_parts":{
+            "constraint_processes_parts" : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2"],
+            "loads_processes_parts" : ["LineLoad2D_Load_on_lines_Auto2","LineLoad2D_Load_on_lines_Auto3","LineLoad2D_Load_on_lines_Auto4","LineLoad2D_Load_on_lines_Auto5"],
+	    "check_processes_parts" : ["LineLoad2D_Load_on_lines_Auto4"]
+        },
+        "materials_file_name" : "element_tests/shear_2D_materials_no_parts.json",
+        "material":{
+            "material_ids"   : [1],
+            "material_parts" : ["Parts_Parts_Auto1"]
+        }
+    }
+
+}
+

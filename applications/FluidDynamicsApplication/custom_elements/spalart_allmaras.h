@@ -1,40 +1,14 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela, Riccardo Rossi
+//
 
 #if !defined(KRATOS_SPALART_ALLMARAS_H_INCLUDED )
 #define  KRATOS_SPALART_ALLMARAS_H_INCLUDED
@@ -88,7 +62,7 @@ public:
     ///@{
 
     /// Pointer definition of SpalartAllmaras
-    KRATOS_CLASS_POINTER_DEFINITION(SpalartAllmaras);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SpalartAllmaras);
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
@@ -131,7 +105,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~SpalartAllmaras()
+    ~SpalartAllmaras() override
     {}
 
     ///@}
@@ -144,21 +118,24 @@ public:
     ///@{
 
     /// Create a new SpalartAllmaras element and return a pointer to it
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties)  const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties)  const override;
+
+    /// Create a new SpalartAllmaras element and return a pointer to it
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties)  const override;
 
     /// Check that all required data containers are properly initialized and registered in Kratos
     /** @return 0 if no errors are detected.
       */
-    virtual int Check(const ProcessInfo &rCurrentProcessInfo);
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     /// Calculate Shape function derivatives for the element
-    virtual void Initialize();
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Calculates the projection term for stabilization
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 //    /// Compute projection of convective term for stabilization
-//    virtual void InitializeNonLinearIteration(ProcessInfo &CurrentProcessInfo);
+//    virtual void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
 
     /// Evaluate the elemental contribution to the problem for turbulent viscosity.
     /**
@@ -166,21 +143,21 @@ public:
      * @param rRightHandSideVector Elemental right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containg the element
      */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 //    {
 //        KRATOS_THROW_ERROR(std::logic_error, "SplartAllmaras::CalculateRightHandSide method not implemented", "");
 //    }
 
     /// Fill given array with containing the element's degrees of freedom
-    virtual void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Fill given vector with the linear system row index for the element's degrees of freedom
-    virtual void EquationIdVector(Element::EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(Element::EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Fill given vector with nodal values of the problem variable (TURBULENT_VISCOSITY)
-    virtual void GetValuesVector(Vector& rValues, int Step = 0);
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     ///@}
     ///@name Access
@@ -197,7 +174,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "SpalartAllmaras" << this->GetGeometry().WorkingSpaceDimension() << "D #" << Id();
@@ -205,7 +182,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SpalartAllmaras" << this->GetGeometry().WorkingSpaceDimension() << "D #" << Id() << std::endl;
         rOStream << "Number of Nodes: " << this->GetGeometry().PointsNumber() << std::endl;
@@ -213,7 +190,7 @@ public:
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         this->PrintInfo(rOStream);
         rOStream << "Geometry Data: " << std::endl;
@@ -282,7 +259,7 @@ protected:
 
     template< class TVariableType >
     void EvaluateInPoint(TVariableType& rResult,
-                         const Kratos::Variable<TVariableType> Var,
+                         const Kratos::Variable<TVariableType>& Var,
                          const ShapeFunctionsType& rShapeFunc)
     {
         rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(Var);
@@ -349,7 +326,7 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_TRY;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
@@ -382,7 +359,7 @@ private:
         KRATOS_CATCH("");
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_TRY;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,Element);

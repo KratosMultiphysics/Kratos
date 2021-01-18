@@ -1,4 +1,9 @@
 import KratosMultiphysics
+from KratosMultiphysics import check_scalar_to_nodes_process
+
+# Import KratosUnittest
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+
 from math import *
 
 def Factory(settings, Model):
@@ -6,22 +11,22 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return CheckVectorComponentsToNodesProcess(Model, settings["Parameters"])
 
-# Import KratosUnittest 
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
             {
+                "help"                 : "This process checks analytically from a function the solution (vector) in a set of nodes belonging a certain submodelpart",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "SPECIFY_VARIABLE_NAME",
                 "interval"             : [0.0, 1e30],
                 "value"                : [10.0, "3*t", "x+y"],
-                "tolerance_rank"       : 3, 
+                "tolerance_rank"       : 3,
+                "reference_conf"       : false,
                 "local_axes"           : {}
             }
             """
@@ -43,20 +48,17 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
         self.model_part = Model[settings["model_part_name"].GetString()]
 
         self.aux_processes = []
-        
-        print(settings.PrettyPrintJsonString())
-
-        import check_scalar_to_nodes_process
 
         #component X
         if(not settings["value"][0].IsNull()):
             x_params = KratosMultiphysics.Parameters("{}")
             x_params.AddValue("model_part_name",settings["model_part_name"])
             x_params.AddValue("mesh_id",settings["mesh_id"])
-            x_params.AddEmptyValue("tolerance_rank")).SetInt(settings["tolerance_rank"].GetInt()
+            x_params.AddEmptyValue("tolerance_rank").SetInt(settings["tolerance_rank"].GetInt())
             x_params.AddValue("interval",settings["interval"])
             x_params.AddValue("value",settings["value"][0])
             x_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_X")
+            x_params.AddValue("reference_conf",settings["reference_conf"])
             x_params.AddValue("local_axes",settings["local_axes"])
             self.aux_processes.append( check_scalar_to_nodes_process.CheckScalarToNodesProcess(Model, x_params) )
 
@@ -69,6 +71,7 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
             y_params.AddValue("interval",settings["interval"])
             y_params.AddValue("value",settings["value"][1])
             y_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Y")
+            y_params.AddValue("reference_conf",settings["reference_conf"])
             y_params.AddValue("local_axes",settings["local_axes"])
             self.aux_processes.append( check_scalar_to_nodes_process.CheckScalarToNodesProcess(Model, y_params) )
 
@@ -81,6 +84,7 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
             z_params.AddValue("interval",settings["interval"])
             z_params.AddValue("value",settings["value"][2])
             z_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Z")
+            z_params.AddValue("reference_conf",settings["reference_conf"])
             z_params.AddValue("local_axes",settings["local_axes"])
             self.aux_processes.append( check_scalar_to_nodes_process.CheckScalarToNodesProcess(Model, z_params) )
 

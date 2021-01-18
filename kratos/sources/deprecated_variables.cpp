@@ -11,9 +11,6 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
-#include <vector>
 
 // External includes
 
@@ -21,45 +18,6 @@
 #include "includes/define.h"
 #include "includes/deprecated_variables.h"
 #include "includes/kernel.h"
-#include "includes/node.h"
-#include "includes/element.h"
-#include "includes/condition.h"
-#include "includes/constitutive_law.h"
-#include "includes/geometrical_object.h"
-
-#include "geometries/line_2d.h"
-#include "geometries/line_2d_2.h"
-#include "geometries/line_2d_3.h"
-#include "geometries/line_3d_2.h"
-#include "geometries/line_3d_3.h"
-#include "geometries/point.h"
-#include "geometries/point_2d.h"
-#include "geometries/point_3d.h"
-#include "geometries/sphere_3d_1.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/triangle_2d_6.h"
-#include "geometries/triangle_3d_3.h"
-#include "geometries/triangle_3d_6.h"
-#include "geometries/quadrilateral_2d_4.h"
-#include "geometries/quadrilateral_2d_8.h"
-#include "geometries/quadrilateral_2d_9.h"
-#include "geometries/quadrilateral_3d_4.h"
-#include "geometries/quadrilateral_3d_8.h"
-#include "geometries/quadrilateral_3d_9.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/tetrahedra_3d_10.h"
-#include "geometries/prism_3d_6.h"
-#include "geometries/prism_3d_15.h"
-#include "geometries/hexahedra_3d_8.h"
-#include "geometries/hexahedra_3d_20.h"
-#include "geometries/hexahedra_3d_27.h"
-
-#include "python/add_deprecated_variables_to_python.h"
-
-#include "includes/convection_diffusion_settings.h"
-#include "includes/radiation_settings.h"
-
-#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -163,6 +121,16 @@ namespace Kratos
 
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( xi_c )
 
+	//for Thermo Mechanical Application
+	KRATOS_CREATE_VARIABLE(int, NODE_PROPERTY_ID)
+	KRATOS_CREATE_VARIABLE(int, REF_ID)
+	KRATOS_CREATE_VARIABLE(double, PARTICLE_RADIUS)
+	KRATOS_CREATE_VARIABLE(double, POSETIVE_DISTANCE)
+	KRATOS_CREATE_VARIABLE(double, NAGATIVE_DISTANCE)
+	KRATOS_CREATE_VARIABLE(bool, IS_ESCAPED)
+	KRATOS_CREATE_VARIABLE(int, IS_SOLIDIFIED)
+	KRATOS_CREATE_VARIABLE(int, IS_GRAVITY_FILLING)
+
 
 
   void KratosApplication::RegisterDeprecatedVariables()
@@ -258,6 +226,16 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(   IS_DIVIDED )
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( xi_c )
+
+	//for Thermo Mechanical Application
+	KRATOS_REGISTER_VARIABLE(NODE_PROPERTY_ID)
+	KRATOS_REGISTER_VARIABLE(REF_ID)
+	KRATOS_REGISTER_VARIABLE(PARTICLE_RADIUS)
+	KRATOS_REGISTER_VARIABLE(POSETIVE_DISTANCE)
+	KRATOS_REGISTER_VARIABLE(NAGATIVE_DISTANCE)
+	KRATOS_REGISTER_VARIABLE(IS_ESCAPED)
+	KRATOS_REGISTER_VARIABLE(IS_SOLIDIFIED)
+	KRATOS_REGISTER_VARIABLE(IS_GRAVITY_FILLING)
 
   }
 }  // namespace Kratos.

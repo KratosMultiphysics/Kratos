@@ -1,0 +1,59 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   2.0000000000   1.0000000000   0.0000000000
+    2   0.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements TrussElement3D2N// GUI group identifier: Truss
+        1          0          2          1
+End Elements
+
+Begin Conditions DisplacementControlCondition3D1N// GUI group identifier: top
+    1 0 1
+End Conditions
+
+Begin SubModelPart Parts_Truss // Group Truss // Subtree Parts
+    Begin SubModelPartNodes
+            1
+            2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Fixed // Group Fixed // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_top // Group top // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart PrescribedDisplacement_top // Group top // Subtree PrescribedDisplacement
+    Begin SubModelPartNodes
+            1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+            1
+    End SubModelPartConditions
+End SubModelPart

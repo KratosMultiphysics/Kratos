@@ -45,7 +45,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class TrescaExplicitFlowRule
+  class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) TrescaExplicitFlowRule
 	  :public J2ExplicitFlowRule
   {
   
@@ -75,7 +75,7 @@ namespace Kratos
     TrescaExplicitFlowRule& operator=(TrescaExplicitFlowRule const& rOther);
 	
     // CLONE
-    virtual FlowRule::Pointer Clone() const;
+    FlowRule::Pointer Clone() const override;
 
     /// Destructor.
     virtual ~TrescaExplicitFlowRule();
@@ -106,13 +106,13 @@ namespace Kratos
     ///@{
 
     // /// Turn back information as a string.
-    // virtual std::string Info() const;
+    // std::string Info() const override;
 
     // /// Print information about this object.
-    // virtual void PrintInfo(std::ostream& rOStream) const;
+    // void PrintInfo(std::ostream& rOStream) const override;
 
     // /// Print object's data.
-    // virtual void PrintData(std::ostream& rOStream) const;
+    // void PrintData(std::ostream& rOStream) const override;
 
 
     ///@}
@@ -143,14 +143,14 @@ namespace Kratos
 
 
 
-      virtual void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH);
+      void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH) override;
 
-//    virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
+//    bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
 
 
     //void UpdateConfiguration( ExponentialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );	  
     
-    void CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative); 
+    void CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative) override; 
            
 //    void CalculateInvariantsAndDerivatives(const Vector& rStressVector, InvariantsStructure& rInv);
     
@@ -203,9 +203,9 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry

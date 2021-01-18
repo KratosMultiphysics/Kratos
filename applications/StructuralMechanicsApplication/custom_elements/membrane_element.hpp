@@ -6,13 +6,11 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Klaus B. Sautter
 //
 
-#if !defined(KRATOS_MEMBRANE_ELEMENT_H_INCLUDED )
-#define  KRATOS_MEMBRANE_ELEMENT_H_INCLUDED
-
-
+#if !defined(MEMBRANE_ELEMENT_3D_H_INCLUDED )
+#define  MEMBRANE_ELEMENT_3D_H_INCLUDED
 
 // System includes
 
@@ -21,16 +19,16 @@
 // Project includes
 #include "includes/element.h"
 
-
 namespace Kratos
 {
-class MembraneElement
+
+  class MembraneElement
     : public Element
-{
-public:
+  {
+  public:
 
     // Counted pointer of MembraneElement
-    KRATOS_CLASS_POINTER_DEFINITION( MembraneElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MembraneElement);
 
     // Constructor using an array of nodes
     MembraneElement(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -39,201 +37,347 @@ public:
     MembraneElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Destructor
-    virtual ~MembraneElement();
+    ~MembraneElement() = default;
 
+
+
+    enum class VoigtType {
+      Strain,
+      Stress
+    };
+
+    enum class ConfigurationType {
+      Current,
+      Reference
+    };
 
     // Name Operations
 
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties) const;
+        PropertiesType::Pointer pProperties
+        ) const override;
 
     void EquationIdVector(
-        EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo);
+      EquationIdVectorType& rResult,
+      const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
-        DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo);
+      DofsVectorType& ElementalDofList,
+      const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void Initialize ();
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(
+      MatrixType& rLeftHandSideMatrix,
+      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo);
+      VectorType& rRightHandSideVector,
+      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo);
+      MatrixType& rLeftHandSideMatrix,
+      VectorType& rRightHandSideVector,
+      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(
-        const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& Output,
-        const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo);
-
-    void FinalizeSolutionStep(
-        ProcessInfo& rCurrentProcessInfo);
 
     void GetValuesVector(
-        Vector& values,
-        int Step = 0);
+      Vector& rValues,
+      int Step = 0) const override;
 
     void GetFirstDerivativesVector(
-        Vector& values,
-        int Step = 0);
+      Vector& rValues,
+      int Step = 0) const override;
 
     void GetSecondDerivativesVector(
-        Vector& values,
-        int Step = 0);
+      Vector& rValues,
+      int Step = 0) const override;
 
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                     std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-
-protected:
-
-
-private:
-    ///@name Static Member Variables
+    void CalculateOnIntegrationPoints(
+      const Variable<array_1d<double, 3>>& rVariable,
+      std::vector<array_1d<double, 3>>& rOutput,
+      const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    Geometry< Point<3,double> >::Pointer  mpReferenceGeometry;
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
+      const ProcessInfo& rCurrentProcessInfo) override;
 
-    Vector mDetJ0;
-
-    double mTotalDomainInitialSize;
-    double mdensity;
-    double mThickness0; //thickness in the reference configuration
-
-
-    Vector mThickness;									//container of thickness
-    std::vector< array_1d<double,3> > mStrainsVector;	//container of Strain
-    std::vector< array_1d<double,6> > mStressesVector;	//container of Stress
-    std::vector< array_1d<double,6> > mCauchyStressesVector;	//container of Stress
-
-
-    std::vector< array_1d<double,3> >  mV1;
-    std::vector< array_1d<double,3> >  mV2;
-    std::vector< Matrix >              mG_Vector;
-
-    void CalculateAll(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag);
-
-    void CalculateAndAddKm(
-        Matrix& K,
-        Matrix& msB,
-        Matrix& msD,
-        double weight);
-
-    void CalculateAndAddKg(
-        Matrix& K,
-        boost::numeric::ublas::bounded_matrix<double,3,3>& msQ,
-        const Matrix& DN_De,
-        Vector& msStressVector,
-        double weight);
-
-    void CalculateAndSubKp(
-        Matrix& K,
-        array_1d<double,3>& ge,
-        array_1d<double,3>& gn,
-        const Matrix& DN_De,
-        const Vector& N,
-        double pressure,
-        double weight);
-
-    void ClearNodalForces();
+    void CalculateLumpedMassVector(
+      VectorType& rMassVector,
+      const ProcessInfo& rCurrentProcessInfo) const override;
 
     void AddExplicitContribution(
-        const VectorType& rRHSVector,
-        const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo);
+      const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+      const Variable<array_1d<double, 3>>& rDestinationVariable,
+      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void AddExplicitContribution(
+      const VectorType& rRHSVector,
+      const Variable<VectorType>& rRHSVariable,
+      const Variable<double >& rDestinationVariable,
+      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(const Variable<Matrix>& rVariable,
+      Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void MakeCrossMatrix(
-        boost::numeric::ublas::bounded_matrix<double,3,3>& M,
-        array_1d<double,3>& U);
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CrossProduct(
-        array_1d<double,3>& cross,
-        array_1d<double,3>& a,
-        array_1d<double,3>& b);
+  private:
+     /**
+     * @brief Calculates the covariant base vectors
+     * @param rBaseVectors The base vectors to be calculated
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param Configuration Reference/Current
+     */
+    void CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
+     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration);
 
-    void SubtractMatrix(
-        MatrixType& Destination,
-        boost::numeric::ublas::bounded_matrix<double,3,3>& InputMatrix,
-        int InitialRow,
-        int InitialCol);
+      /**
+     * @brief Calculates the covariant metric
+     * @param rMetric The metric to be calculated
+     * @param rBaseVectorCovariant Covariant base vectors
+     */
+    void CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant);
 
-    void ExpandReducedMatrix(
-        Matrix& Destination,
-        Matrix& ReducedMatrix);
+     /**
+     * @brief Calculates the contra variant base vectors
+     * @param rBaseVectors The base vectors to be calculated
+     * @param rContraVariantMetric Contra variant metric
+     * @param rCovariantBaseVectors Covariant base vectors
+     */
+    void ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,const Matrix& rContraVariantMetric,
+      const array_1d<Vector,2> rCovariantBaseVectors);
 
-    void CalculateQ(
-        boost::numeric::ublas::bounded_matrix<double,3,3>& msQ,
-        Matrix& msG);
+      /**
+     * @brief Calculates the contra variant metric
+     * @param rMetric The metric to be calculated
+     * @param rCovariantMetric Covariant metric
+     */
+    void ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric);
 
-    void CalculateB(
-        Matrix& msB,
-        boost::numeric::ublas::bounded_matrix<double,3,3>& msQ,
-        const Matrix& DN_De,
-        array_1d<double,3>& ge,
-        array_1d<double,3>& gn);
 
-    void CalculateJ(
-        boost::numeric::ublas::bounded_matrix<double,2,2>& j,
-        array_1d<double,3>& ge,
-        array_1d<double,3>& gn,
-        array_1d<double,3>& v3);
+      /**
+     * @brief Calculates 1st derivative of the current covariant base vectors
+     * @param rBaseVectors The derived base bectors
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param DofR current degree of freedom 1
+     */
+    void DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
+     const Matrix& rShapeFunctionGradientValues, const SizeType DofR);
 
-    void CalculateStrain(
-        Vector& StrainVector,
-        boost::numeric::ublas::bounded_matrix<double,2,2>& C);
 
-    void CalculateAndAdd_BodyForce(
-        const Vector& N,
-        const ProcessInfo& rCurrentProcessInfo,
-        array_1d<double,3>& BodyForce,
-        VectorType& rRightHandSideVector,
-        double weight);
+      /**
+     * @brief Calculates 2nd derivative of the current covariant metric
+     * @param rMetric The derived metric
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param DofR current degree of freedom 1
+     * @param DofS current degree of freedom 2
+     */
+    void Derivative2CurrentCovariantMetric(Matrix& rMetric,
+      const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS);
 
-    void CalculateAndAdd_PressureForce(
-        VectorType& residualvector,
-        const Vector& N,
-        const array_1d<double,3>& v3,
-        double pressure,
-        double weight,
-        const ProcessInfo& rCurrentProcessInfo);
 
-    // this function transforms the local stress (with 3 components)
-    // to the global one (with 6 components)
-    void Calculate_GlobalStressVector(
-        array_1d<double,6>& GlobalVector,
-        Vector& LocalStressVector,
-        array_1d<double,3>& v1,
-        array_1d<double,3>& v2);
+      /**
+     * @brief Calculates the determinant of the Jacobian
+     * @param rDetJacobi The determinant of the Jacobian
+     * @param rReferenceBaseVectors Reference base vectors
+     */
+    void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors);
 
-    //auxiliary function needed in the calculation of output stresses
-    inline array_1d<double,6> VoigtTensorComponents(
-        array_1d<double,3>& a,
-        array_1d<double,3>& b);
 
-    int  Check( const ProcessInfo& rCurrentProcessInfo);
+      /**
+     * @brief Calculates 2nd derivative of the green lagrange strain
+     * @param rStrain The derived strain
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param DofR current degree of freedom 1
+     * @param DofS current degree of freedom 2
+     * @param rTransformationMatrix local coordinate system transformation
+     */
+    void Derivative2StrainGreenLagrange(Vector& rStrain,
+      const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
+      const Matrix& rTransformationMatrix);
+
+
+
+      /**
+     * @brief Calculates 1st derivative of the green lagrange strain
+     * @param rStrain The derived strain
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param DofR current degree of freedom 1
+     * @param rCurrentCovariantBaseVectors current covariant base vectors
+     * @param rTransformationMatrix local coordinate system transformation
+     */
+    void DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
+      const array_1d<Vector,2> rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix);
+
+
+      /**
+     * @brief Calculates green lagrange strain
+     * @param rStrain The strain
+     * @param rReferenceCoVariantMetric reference covariant metric
+     * @param rCurrentCoVariantMetric current covariant metric
+     * @param rTransformationMatrix local coordinate system transformation
+     */
+    void StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
+       const Matrix& rTransformationMatrix);
+
+      /**
+     * @brief Calculates the piola-kirchhoff-2 stress
+     * @param rStress The stress
+     * @param rReferenceContraVariantMetric reference contra variant metric
+     * @param rReferenceCoVariantMetric reference covariant metric
+     * @param rCurrentCoVariantMetric current covariant metric
+     * @param rTransformedBaseVectors local coordinate system
+     * @param rTransformationMatrix local coordinate system transformation
+     * @param rIntegrationPointNumber current integration point number
+     */
+    void MaterialResponse(Vector& rStress,
+      const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
+      const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber,
+      Matrix& rTangentModulus);
+
+
+      /**
+     * @brief Adds pre-stress to a given stress vector
+     * @param rStress The stress
+     * @param rTransformedBaseVectors local coordinate system
+     */
+    void AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>& rTransformedBaseVectors);
+
+      /**
+     * @brief Calculates 1st derivative of the current covariant metric
+     * @param rMetric The derived metric
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param DofR current degree of freedom 1
+     * @param rCurrentCovariantBaseVectors current covariant base vectors
+     */
+    void DerivativeCurrentCovariantMetric(Matrix& rMetric,
+      const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector,2> rCurrentCovariantBaseVectors);
+
+
+      /**
+     * @brief Calculates the internal forces
+     * @param rInternalForces The internal forces
+     * @param ThisMethod numerical integration method
+     */
+    void InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod);
+
+
+      /**
+     * @brief Calculates the stiffness matrix
+     * @param rStiffnessMatrix The stiffness matrix
+     * @param ThisMethod numerical integration method
+     */
+    void TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod);
+
+
+      /**
+     * @brief Calculates initial stress part of the total stiffness matrix
+     * @param rEntryIJ the matrix entry to be calculated
+     * @param rStressVector Current stress
+     * @param rPositionI current degree of freedom 1
+     * @param rPositionJ current degree of freedom 2
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param rTransformationMatrix local coordinate system transformation
+     */
+    void InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
+      const Vector& rStressVector,
+      const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
+      const Matrix& rTransformationMatrix);
+
+
+
+      /**
+     * @brief Calculates material part of the total stiffness matrix
+     * @param rEntryIJ the matrix entry to be calculated
+     * @param rMaterialTangentModulus material tangent modulus
+     * @param rPositionI current degree of freedom 1
+     * @param rPositionJ current degree of freedom 2
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param rCurrentCovariantBaseVectors current covariant base vectors
+     * @param rTransformationMatrix local coordinate system transformation
+     */
+    void MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
+      const Matrix& rMaterialTangentModulus,
+      const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
+      const array_1d<Vector,2>& rCurrentCovariantBaseVectors,const Matrix& rTransformationMatrix);
+
+
+
+      /**
+     * @brief Transform strains to a given local coordinate system
+     * @param rStrains the strains in the given local coordinate system
+     * @param rReferenceStrains the strains in the reference coordinate system
+     * @param rTransformationMatrix local coordinate system transformation
+     */
+    void TransformStrains(Vector& rStrains, Vector& rReferenceStrains, const Matrix& rTransformationMatrix);
+
+
+      /**
+     * @brief Creates a given local coordinate system
+     * @param rBaseVectors the new local coordinate system
+     * @param rLocalBaseVectors the base coordinate system
+     */
+    void TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
+     const array_1d<Vector,2>& rLocalBaseVectors);
+
+
+      /**
+     * @brief Creates the transformation matrix for a given local coordinate system
+     * @param rTransformationMatrix the transformation matrix
+     * @param rTransformedBaseVectors local coordinate system
+     * @param rLocalReferenceBaseVectors the base coordinate system
+     */
+    template <class T>
+    void InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
+      const T& rLocalReferenceBaseVectors);
+
+
+      /**
+     * @brief Calculates the principal vectors
+     * @param rPrincipalVector the principal vectors
+     * @param rNonPrincipalVector reference state
+     */
+    void PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector);
+
+
+    void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
+        std::vector< Vector >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
+       const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase);
+
+
+    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector);
+
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
+    double mReferenceArea = 0.0;
 
     ///@}
     ///@name Serialization
@@ -242,50 +386,16 @@ private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    MembraneElement() {}
+    MembraneElement() = default;
 
-    void save( Serializer& rSerializer ) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
-        rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
-        rSerializer.save("ReferenceGeometry",mpReferenceGeometry);
-        rSerializer.save("DetJ0",mDetJ0);
-        rSerializer.save("TotalDomainInitialSize",mTotalDomainInitialSize);
-        rSerializer.save("density",mdensity);
-        rSerializer.save("Thickness0",mThickness0);
-        rSerializer.save("Thickness",mThickness);
-        rSerializer.save("StrainsVector",mStrainsVector);
-        rSerializer.save("StressesVector",mStressesVector);
-        rSerializer.save("CauchyStressesVector",mCauchyStressesVector);
-        rSerializer.save("Thickness0",mThickness0);
-        rSerializer.save("V1",mV1);
-        rSerializer.save("V2",mV2);
-        rSerializer.save("G_Vector",mG_Vector);
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load( Serializer& rSerializer )
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
-        rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
-        rSerializer.load("ReferenceGeometry",mpReferenceGeometry);
-        rSerializer.load("DetJ0",mDetJ0);
-        rSerializer.load("TotalDomainInitialSize",mTotalDomainInitialSize);
-        rSerializer.load("density",mdensity);
-        rSerializer.load("Thickness0",mThickness0);
-        rSerializer.load("Thickness",mThickness);
-        rSerializer.load("StrainsVector",mStrainsVector);
-        rSerializer.load("StressesVector",mStressesVector);
-        rSerializer.load("CauchyStressesVector",mCauchyStressesVector);
-        rSerializer.load("Thickness0",mThickness0);
-        rSerializer.load("V1",mV1);
-        rSerializer.load("V2",mV2);
-        rSerializer.load("G_Vector",mG_Vector);
-    }
+    void load(Serializer& rSerializer) override;
 
     ///@}
 
-};	// class MembraneElement.
+  };	// class MembraneElement.
 
 }	// namespace Kratos.
 
-#endif // KRATOS_MEMBRANE_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_MEMBRANE_ELEMENT_3D_H_INCLUDED  defined

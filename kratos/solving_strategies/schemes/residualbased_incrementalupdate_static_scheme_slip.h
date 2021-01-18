@@ -18,7 +18,6 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */
@@ -76,7 +75,11 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedIncrementalUpdateStaticSchemeSlip);
 
+    typedef Scheme<TSparseSpace,TDenseSpace> BaseSchemeType;
+
     typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
+
+    typedef ResidualBasedIncrementalUpdateStaticSchemeSlip<TSparseSpace, TDenseSpace> ClassType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -88,23 +91,62 @@ public:
 
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    typedef CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> RotationToolType;
+    typedef typename CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double>::Pointer RotationToolPointerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
+    /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedIncrementalUpdateStaticSchemeSlip() : BaseType()
+    {
+    }
+
+    /**
+     * @brief Constructor. The pseudo static scheme (parameters)
+     * @param ThisParameters Configuration parameters
+     */
+    explicit ResidualBasedIncrementalUpdateStaticSchemeSlip(Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"        : "ResidualBasedIncrementalUpdateStaticSchemeSlip",
+            "domain_size" : 3,
+            "block_size"  : 3
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        const int domain_size = ThisParameters["domain_size"].GetInt();
+        const int block_size = ThisParameters["block_size"].GetInt();
+        mpRotationTool = Kratos::make_shared<RotationToolType>(domain_size, block_size, SLIP);
+    }
+
     /// Constructor.
     /** @param DomainSize Number of spatial dimensions (2 or 3).
       * @param BlockSize Number of matrix and vector rows associated to each node. Only the first DomainSize rows will be rotated.
       */
-    ResidualBasedIncrementalUpdateStaticSchemeSlip(unsigned int DomainSize,
+    explicit ResidualBasedIncrementalUpdateStaticSchemeSlip(unsigned int DomainSize,
                                                    unsigned int BlockSize):
-        ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
-        mRotationTool(DomainSize,BlockSize,IS_STRUCTURE,0.0)
+        BaseType(),
+        mpRotationTool(Kratos::make_shared<RotationToolType>(DomainSize,BlockSize,SLIP))
+    {}
+
+    /// Constructor providing a custom rotation tool.
+
+    /** @param pRotationTool a pointer to the helper class that manages DOF rotation.
+      */
+    explicit ResidualBasedIncrementalUpdateStaticSchemeSlip(RotationToolPointerType pRotationTool):
+        BaseType(),
+        mpRotationTool(pRotationTool)
     {}
 
     /// Destructor.
-    virtual ~ResidualBasedIncrementalUpdateStaticSchemeSlip(){}
+    ~ResidualBasedIncrementalUpdateStaticSchemeSlip() override{}
 
     ///@}
     ///@name Operators
@@ -115,107 +157,125 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseSchemeType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
     /// Update the degrees of freedom after a solution iteration.
-    virtual void Update(ModelPart& r_model_part,
-                        DofsArrayType& rDofSet,
-                        TSystemMatrixType& A,
-                        TSystemVectorType& Dx,
-                        TSystemVectorType& b) override
+    void Update(ModelPart& r_model_part,
+                DofsArrayType& rDofSet,
+                TSystemMatrixType& A,
+                TSystemVectorType& Dx,
+                TSystemVectorType& b) override
     {
         KRATOS_TRY;
 
-        mRotationTool.RotateVelocities(r_model_part);
+        mpRotationTool->RotateVelocities(r_model_part);
 
         BaseType::Update(r_model_part,rDofSet,A,Dx,b);
 
-        mRotationTool.RecoverVelocities(r_model_part);
+        mpRotationTool->RecoverVelocities(r_model_part);
 
         KRATOS_CATCH("");
     }
 
 
     /// Obtain an element's local contribution to the system and apply slip conditions if needed.
-    virtual void CalculateSystemContributions(Element::Pointer rCurrentElement,
-                                              LocalSystemMatrixType& LHS_Contribution,
-                                              LocalSystemVectorType& RHS_Contribution,
-                                              Element::EquationIdVectorType& EquationId,
-                                              ProcessInfo& CurrentProcessInfo) override
+    void CalculateSystemContributions(Element& rCurrentElement,
+                                      LocalSystemMatrixType& LHS_Contribution,
+                                      LocalSystemVectorType& RHS_Contribution,
+                                      Element::EquationIdVectorType& EquationId,
+                                      const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
         BaseType::CalculateSystemContributions(rCurrentElement,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
 
-        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
-        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+        mpRotationTool->Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+        mpRotationTool->ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
 
         KRATOS_CATCH("");
     }
 
     /// Obtain an element's local contribution to the RHS and apply slip conditions if needed.
-    virtual void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
-                                            LocalSystemVectorType& RHS_Contribution,
-                                            Element::EquationIdVectorType& EquationId,
-                                            ProcessInfo& CurrentProcessInfo) override
+    void CalculateRHSContribution(Element& rCurrentElement,
+                                  LocalSystemVectorType& RHS_Contribution,
+                                  Element::EquationIdVectorType& EquationId,
+                                  const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
-        BaseType::Calculate_RHS_Contribution(rCurrentElement,RHS_Contribution,EquationId,CurrentProcessInfo);
+        BaseType::CalculateRHSContribution(rCurrentElement,RHS_Contribution,EquationId,CurrentProcessInfo);
 
-        mRotationTool.Rotate(RHS_Contribution,rCurrentElement->GetGeometry());
-        mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());
+        mpRotationTool->Rotate(RHS_Contribution,rCurrentElement.GetGeometry());
+        mpRotationTool->ApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
 
         KRATOS_CATCH("");
     }
 
     /// Obtain an element's local contribution to the system matrix and apply slip conditions if needed.
-    virtual void Calculate_LHS_Contribution(Element::Pointer rCurrentElement,
-                                            LocalSystemMatrixType& LHS_Contribution,
-                                            Element::EquationIdVectorType& EquationId,
-                                            ProcessInfo& CurrentProcessInfo) override
+    void CalculateLHSContribution(Element& rCurrentElement,
+                                  LocalSystemMatrixType& LHS_Contribution,
+                                  Element::EquationIdVectorType& EquationId,
+                                  const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
-        BaseType::Calculate_LHS_Contribution(rCurrentElement,LHS_Contribution,EquationId,CurrentProcessInfo);
+        BaseType::CalculateLHSContribution(rCurrentElement,LHS_Contribution,EquationId,CurrentProcessInfo);
 
         LocalSystemVectorType Temp = ZeroVector(LHS_Contribution.size1());
-        mRotationTool.Rotate(LHS_Contribution,Temp,rCurrentElement->GetGeometry());
-        mRotationTool.ApplySlipCondition(LHS_Contribution,Temp,rCurrentElement->GetGeometry());
+        mpRotationTool->Rotate(LHS_Contribution,Temp,rCurrentElement.GetGeometry());
+        mpRotationTool->ApplySlipCondition(LHS_Contribution,Temp,rCurrentElement.GetGeometry());
 
         KRATOS_CATCH("");
     }
 
 
     /// Obtain a condition's local contribution to the system and apply slip conditions if needed.
-    virtual void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
-                                                        LocalSystemMatrixType& LHS_Contribution,
-                                                        LocalSystemVectorType& RHS_Contribution,
-                                                        Element::EquationIdVectorType& EquationId,
-                                                        ProcessInfo& CurrentProcessInfo) override
+    void CalculateSystemContributions(Condition& rCurrentCondition,
+                                      LocalSystemMatrixType& LHS_Contribution,
+                                      LocalSystemVectorType& RHS_Contribution,
+                                      Element::EquationIdVectorType& EquationId,
+                                      const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
-        BaseType::Condition_CalculateSystemContributions(rCurrentCondition,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
+        BaseType::CalculateSystemContributions(rCurrentCondition,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
 
-        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
-        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+        mpRotationTool->Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+        mpRotationTool->ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
 
         KRATOS_CATCH("");
     }
 
     /// Obtain a condition's local contribution to the RHS and apply slip conditions if needed.
-    virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
-                                                      LocalSystemVectorType& RHS_Contribution,
-                                                      Element::EquationIdVectorType& EquationId,
-                                                      ProcessInfo& CurrentProcessInfo) override
+    void CalculateRHSContribution(Condition& rCurrentCondition,
+                                  LocalSystemVectorType& RHS_Contribution,
+                                  Element::EquationIdVectorType& EquationId,
+                                  const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
-        BaseType::Condition_Calculate_RHS_Contribution(rCurrentCondition,RHS_Contribution,EquationId,CurrentProcessInfo);
+        BaseType::CalculateRHSContribution(rCurrentCondition,RHS_Contribution,EquationId,CurrentProcessInfo);
 
-        mRotationTool.Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
-        mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
+        mpRotationTool->Rotate(RHS_Contribution,rCurrentCondition.GetGeometry());
+        mpRotationTool->ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
 
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "static_slip_scheme";
     }
 
     ///@}
@@ -227,11 +287,23 @@ public:
     ///@name Inquiry
     ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedIncrementalUpdateStaticSchemeSlip";
+    }
 
-    ///@}
-    ///@name Input and output
-    ///@{
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -289,7 +361,7 @@ private:
     ///@{
 
     /// Rotation tool instance
-    CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> mRotationTool;
+    RotationToolPointerType mpRotationTool;
 
     ///@}
     ///@name Serialization

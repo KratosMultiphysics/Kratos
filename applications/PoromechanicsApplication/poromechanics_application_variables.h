@@ -1,9 +1,16 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_POROMECHANICS_APPLICATION_VARIABLES_H_INCLUDED )
 #define  KRATOS_POROMECHANICS_APPLICATION_VARIABLES_H_INCLUDED
@@ -13,14 +20,14 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "includes/cfd_variables.h"
-#include "solid_mechanics_application_variables.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
 //Define Variables
 
-//Warning: Note that the application variables must not be defined if they already exist in "includes/variables.h", 
-//         in "includes/cfd_variables.h" or in "solid_mechanics_application_variables.h"
+//Warning: Note that the application variables must not be defined if they already exist in "includes/variables.h",
+//         in "includes/cfd_variables.h" or in "structural_mechanics_application_variables.h"
 
 KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, VELOCITY_COEFFICIENT )
 KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, DT_PRESSURE_COEFFICIENT )
@@ -53,6 +60,8 @@ KRATOS_DEFINE_APPLICATION_VARIABLE(POROMECHANICS_APPLICATION, bool, IS_CONVERGED
 
 KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, Matrix, TOTAL_STRESS_TENSOR )
 
+KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, Matrix, INITIAL_STRESS_TENSOR )
+
 KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, STATE_VARIABLE )
 KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, ARC_LENGTH_LAMBDA )
 KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, ARC_LENGTH_RADIUS_FACTOR )
@@ -66,7 +75,17 @@ KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, JOINT_WID
 
 KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, bool, NODAL_SMOOTHING )
 KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, Matrix, NODAL_CAUCHY_STRESS_TENSOR )
-KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, NODAL_VON_MISES_STRESS )
+KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, Matrix, EFFECTIVE_STRESS_TENSOR )
+KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, Matrix, NODAL_EFFECTIVE_STRESS_TENSOR )
+KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, NODAL_DAMAGE_VARIABLE )
+KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, NODAL_JOINT_AREA )
+KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, NODAL_JOINT_WIDTH )
+KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, NODAL_JOINT_DAMAGE )
+
+KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, SHEAR_FRACTURE_ENERGY )
+
+KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, BIOT_COEFFICIENT )
+
 }
 
 #endif	/* KRATOS_POROMECHANICS_APPLICATION_VARIABLES_H_INCLUDED */

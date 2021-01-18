@@ -1,17 +1,20 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: janosch $
-//   Date:                $Date: 2008-07-23 14:47:45 $
-//   Revision:            $Revision: 1.3 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
 
 // System includes
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
-
+#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define.h"
@@ -19,32 +22,23 @@
 #include "custom_python/add_linear_solvers_to_python.h"
 
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+PYBIND11_MODULE(KratosExternalSolversApplication,m)
 {
+    namespace py = pybind11;
 
-namespace Python
-{
+    py::class_<KratosExternalSolversApplication,
+        KratosExternalSolversApplication::Pointer,
+        KratosApplication >(m,"KratosExternalSolversApplication")
+        .def(py::init<>())
+        ;
 
-using namespace boost::python;
-
-
-
-BOOST_PYTHON_MODULE(KratosExternalSolversApplication)
-{
-
-    class_<KratosExternalSolversApplication,
-           KratosExternalSolversApplication::Pointer,
-           bases<KratosApplication>, boost::noncopyable >("KratosExternalSolversApplication")
-           ;
-
-    AddLinearSolversToPython();
-
-
+    AddLinearSolversToPython(m);
 }
 
-
 }  // namespace Python.
-
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

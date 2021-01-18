@@ -1,24 +1,14 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
 //
-
-
-
-
-
-
-
-
-
-
 
 #ifndef KRATOS_PERIODIC_CONDITION_H
 #define	KRATOS_PERIODIC_CONDITION_H
@@ -39,7 +29,7 @@
 #include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "includes/process_info.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "includes/condition.h"
 #include "includes/serializer.h"
 
@@ -121,9 +111,6 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
-
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -131,7 +118,7 @@ public:
     /// Constructor.
     /** @param NewId Index number of the new condition (optional)
      */
-    PeriodicCondition(IndexType NewId = 0);
+    explicit PeriodicCondition(IndexType NewId = 0);
 
     /// Constructor using an array of nodes
     /**
@@ -164,7 +151,7 @@ public:
 
 
     /// Destructor.
-    virtual ~PeriodicCondition();
+    ~PeriodicCondition() override;
 
 
     ///@}
@@ -184,36 +171,36 @@ public:
                               PropertiesType::Pointer pProperties) const override;
 
     /// Check input to ensure that it makes sense.
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a matrix of penalty terms for the periodic variables.
     /**
      * The weight of the penalty terms is given by the member variable mWeight,
-     * set using SetValueOnIntegrationPoints. The periodic variables are read from
+     * set using SetValuesOnIntegrationPoints. The periodic variables are read from
      * the value of PERIODIC_VARIABLES stored in rCurrentProcessInfo.
      * @param rLeftHandSideMatrix Local left hand side matrix (output)
      * @param rRightHandSideVector Local right hand side vector (output)
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a matrix of penalty terms for the periodic variables.
     /**
      * @param rLeftHandSideMatrix Local left hand side matrix (output)
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns RHS values for the penalized dofs.
     /**
      * @param rRightHandSideVector Local right hand side vector (output)
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Provides the global indices for each one of this element's local rows
     /**
@@ -222,19 +209,19 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    virtual void GetDofList(DofsVectorType& ElementalDofList,
-                            ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList,
+                    const ProcessInfo& CurrentProcessInfo) const override;
 
     /// Returns the values of the unknowns for each node
-    virtual void GetValuesVector(Vector& Values, int Step = 0) override;
+    void GetValuesVector(Vector& Values, int Step = 0) const override;
 
     ///@}
     ///@name Conditional Data
@@ -255,7 +242,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "PeriodicCondition #" << Id();
@@ -263,13 +250,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "PeriodicCondition #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
         Condition::PrintData(rOStream);
     }
@@ -335,9 +322,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@}
@@ -371,8 +358,6 @@ private:
 }; // Class PeriodicCondition
 
 ///@}
-
-template class KRATOS_API(KRATOS_CORE) KratosComponents<PeriodicCondition >;
 
 ///@name Type Definitions
 ///@{

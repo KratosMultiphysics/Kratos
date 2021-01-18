@@ -1,46 +1,14 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//	 Project Name:		  Kratos
-//	 Last Modified by:	  $Author: rrossi $
-//	 Date:				  $Date: 2007-03-06 10:30:32 $
-//	 Revision:			  $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
 //
 //
 
@@ -53,18 +21,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 #include <string>
 #include <iostream>
+#include <array>
 
 
 // External	includes
-#include <boost/array.hpp>
 
 // Project includes
 #include "includes/define.h"
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+#include "includes/amatrix_interface.h"
+#else
 #include "includes/ublas_interface.h"
 
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <boost/numeric/ublas/storage.hpp>
 #include <boost/numeric/ublas/detail/vector_assign.hpp>
+#endif // ifdef KRATOS_USE_AMATRIX
 
 namespace Kratos
 {
@@ -88,6 +60,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+template <typename TDataType, std::size_t TSize> using array_1d = Internals::Matrix<TDataType,TSize, 1>;
+#else
 /// Short	class definition.
 /** Detail class definition.
 */
@@ -110,7 +85,7 @@ public:
     typedef	T value_type;
     typedef	typename boost::numeric::ublas::type_traits<T>::const_reference const_reference;
     typedef	T &reference;
-    typedef	boost::array<T,N> array_type;
+    typedef	std::array<T,N> array_type;
     typedef	T *pointer;
     typedef	array_1d<T, N> self_type;
     typedef	const boost::numeric::ublas::vector_reference<const self_type>	const_closure_type;
@@ -183,34 +158,26 @@ public:
     BOOST_UBLAS_INLINE
     const_reference	operator ()	(size_type i) const
     {
-#ifndef NDEBUG
-        if(i>=N) KRATOS_THROW_ERROR(std::argument_error,"index greater than the size of the array - index is i = ", i);
-#endif
+        KRATOS_DEBUG_ERROR_IF(i>=N) << "Index greater than the size of the array - index is i = " << i << std::endl;
         return data_[i];
     }
     BOOST_UBLAS_INLINE
     reference operator () (size_type i)
     {
-#ifndef NDEBUG
-        if(i>=N) KRATOS_THROW_ERROR(std::argument_error,"index greater than the size of the array - index is i = ", i);
-#endif
+        KRATOS_DEBUG_ERROR_IF(i>=N) << "Index greater than the size of the array - index is i = " << i << std::endl;
         return data_[i];
     }
 
     BOOST_UBLAS_INLINE
     const_reference	operator []	(size_type i) const
     {
-#ifndef NDEBUG
-        if(i>=N) KRATOS_THROW_ERROR(std::argument_error,"index greater than the size of the array - index is i = ", i);
-#endif
+        KRATOS_DEBUG_ERROR_IF(i>=N) << "Index greater than the size of the array - index is i = " << i << std::endl;
         return data_[i];
     }
     BOOST_UBLAS_INLINE
     reference operator [] (size_type i)
     {
-#ifndef NDEBUG
-        if(i>=N) KRATOS_THROW_ERROR(std::argument_error,"index greater than the size of the array - index is i = ", i);
-#endif
+        KRATOS_DEBUG_ERROR_IF(i>=N) << "Index greater than the size of the array - index is i = " << i << std::endl;
         return data_[i];
     }
 
@@ -775,6 +742,7 @@ private:
     ///@}
 
 }; // Class	array_1d
+#endif // ifndef KRATOS_USE_AMATRIX
 
 ///@}
 
@@ -791,4 +759,4 @@ private:
 
 }  // namespace	Kratos.
 
-#endif // KRATOS_ARRAY_1D_H_INCLUDED  defined 
+#endif // KRATOS_ARRAY_1D_H_INCLUDED  defined

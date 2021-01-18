@@ -2,13 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//  Collaborator:    Vicente Mataix Ferrandiz
+//
 //
 
 #if !defined(KRATOS_UBLAS_SPACE_H_INCLUDED )
@@ -34,7 +35,7 @@
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "includes/matrix_market_interface.h"
-
+#include "utilities/dof_updater.h"
 
 namespace Kratos
 {
@@ -89,6 +90,16 @@ public:
 ///@name Type Definitions
 ///@{
 
+template <class TDataType, class TMatrixType, class TVectorType>
+class UblasSpace;
+
+template <class TDataType>
+using TUblasSparseSpace =
+    UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+template <class TDataType>
+using TUblasDenseSpace =
+    UblasSpace<TDataType, DenseMatrix<TDataType>, DenseVector<TDataType>>;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -125,8 +136,15 @@ public:
 
     typedef std::size_t SizeType;
 
-    typedef typename boost::shared_ptr< TMatrixType > MatrixPointerType;
-    typedef typename boost::shared_ptr< TVectorType > VectorPointerType;
+    typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
+    typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
+
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+    template<typename T> using compressed_matrix = boost::numeric::ublas::compressed_matrix<T>;
+#endif // ifdef KRATOS_USE_AMATRIX
+
+    typedef DofUpdater< UblasSpace<TDataType,TMatrixType,TVectorType> > DofUpdaterType;
+    typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -186,20 +204,27 @@ public:
     }
 
     /// rXi = rMij
+	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+	template<typename TColumnType>
+	static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+	{
+		if (rX.size() != rM.size1())
+			rX.resize(rM.size1(), false);
 
-    static void GetColumn(unsigned int j, MatrixType& rM, VectorType& rX)
-    {
-        rX = column(rM, j);
-    }
+		for (std::size_t i = 0; i < rM.size1(); i++) {
+			rX[i] = rM(i, j);
+		}
+	}
 
+	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+	template<typename TColumnType>
+	static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+	{
+		for (std::size_t i = 0; i < rM.size1(); i++) {
+			rM(i,j) = rX[i];
+		}
+	}
 
-    ///////////////////////////////// TODO: Take a close look to this method!!!!!!!!!!!!!!!!!!!!!!!!!
-    /// rMij = rXi
-
-    static void SetColumn(unsigned int j, MatrixType& rM, VectorType& rX)
-    {
-        rX = row(rM, j);
-    }
 
     /// rY = rX
 
@@ -215,7 +240,7 @@ public:
 #ifndef _OPENMP
         rY.assign(rX);
 #else
-        
+
         const int size = rX.size();
         if (rY.size() != static_cast<unsigned int>(size))
             rY.resize(size, false);
@@ -239,7 +264,7 @@ public:
         #pragma omp parallel for reduction( +: total), firstprivate(size)
         for(int i =0; i<size; ++i)
             total += rX[i]*rY[i];
-        
+
         return total;
 #endif
     }
@@ -249,30 +274,76 @@ public:
 
     static TDataType TwoNorm(VectorType const& rX)
     {
-        return sqrt(Dot(rX, rX));
+        return std::sqrt(Dot(rX, rX));
     }
-    
-    static TDataType TwoNorm(MatrixType const& rA) // Frobenious norm
+
+    static TDataType TwoNorm(const Matrix& rA) // Frobenious norm
     {
-        TDataType aux_sum = TDataType(); 
-        
-        for (unsigned int i = 1; i < rA.size1(); i++)
-        {
-            for (unsigned int j = 1; j < rA.size2(); j++)
-            {
-                aux_sum += rA(i,j) * rA(i,j);
+        TDataType aux_sum = TDataType();
+        #pragma omp parallel for reduction(+:aux_sum)
+        for (int i=0; i<static_cast<int>(rA.size1()); ++i) {
+            for (int j=0; j<static_cast<int>(rA.size2()); ++j) {
+                aux_sum += std::pow(rA(i,j),2);
             }
         }
-        
         return std::sqrt(aux_sum);
     }
 
-    static void Mult(Matrix& rA, VectorType& rX, VectorType& rY)
+    static TDataType TwoNorm(const compressed_matrix<TDataType> & rA) // Frobenious norm
+    {
+        TDataType aux_sum = TDataType();
+
+        const auto& r_values = rA.value_data();
+
+        #pragma omp parallel for reduction(+:aux_sum)
+        for (int i=0; i<static_cast<int>(r_values.size()); ++i) {
+            aux_sum += std::pow(r_values[i] , 2);
+        }
+        return std::sqrt(aux_sum);
+    }
+
+    /**
+     * This method computes the Jacobi norm
+     * @param rA The matrix to compute the Jacobi norm
+     * @return aux_sum: The Jacobi norm
+     */
+    static TDataType JacobiNorm(const Matrix& rA)
+    {
+        TDataType aux_sum = TDataType();
+        #pragma omp parallel for reduction(+:aux_sum)
+        for (int i=0; i<static_cast<int>(rA.size1()); ++i) {
+            for (int j=0; j<static_cast<int>(rA.size2()); ++j) {
+                if (i != j) {
+                    aux_sum += std::abs(rA(i,j));
+                }
+            }
+        }
+        return aux_sum;
+    }
+
+    static TDataType JacobiNorm(const compressed_matrix<TDataType>& rA)
+    {
+        TDataType aux_sum = TDataType();
+
+        typedef typename compressed_matrix<TDataType>::const_iterator1 t_it_1;
+        typedef typename compressed_matrix<TDataType>::const_iterator2 t_it_2;
+
+        for (t_it_1 it_1 = rA.begin1(); it_1 != rA.end1(); ++it_1) {
+            for (t_it_2 it_2 = it_1.begin(); it_2 != it_1.end(); ++it_2) {
+                if (it_2.index1() != it_2.index2()) {
+                    aux_sum += std::abs(*it_2);
+                }
+            }
+        }
+        return aux_sum;
+    }
+
+    static void Mult(const Matrix& rA, VectorType& rX, VectorType& rY)
     {
         axpy_prod(rA, rX, rY, true);
     }
 
-    static void Mult(compressed_matrix<TDataType>& rA, VectorType& rX, VectorType& rY)
+    static void Mult(const compressed_matrix<TDataType>& rA, VectorType& rX, VectorType& rY)
     {
 #ifndef _OPENMP
         axpy_prod(rA, rX, rY, true);
@@ -281,9 +352,10 @@ public:
 #endif
     }
 
-    static void TransposeMult(MatrixType& rA, VectorType& rX, VectorType& rY)
+    template< class TOtherMatrixType >
+    static void TransposeMult(TOtherMatrixType& rA, VectorType& rX, VectorType& rY)
     {
-        axpy_prod(rX, rA, rY, true);
+		boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
     } // rY = rAT * rX
 
     static inline SizeType GraphDegree(IndexType i, TMatrixType& A)
@@ -468,6 +540,11 @@ public:
     }
 
 
+    static void SetValue(VectorType& rX, IndexType i, TDataType value)
+    {
+        rX[i] = value;
+    }
+
     /// rX = A
 
     static void Set(VectorType& rX, TDataType A)
@@ -480,9 +557,19 @@ public:
         rA.resize(m, n, false);
     }
 
+    static void Resize(MatrixPointerType& pA, SizeType m, SizeType n)
+    {
+        pA->resize(m, n, false);
+    }
+
     static void Resize(VectorType& rX, SizeType n)
     {
         rX.resize(n, false);
+    }
+
+    static void Resize(VectorPointerType& pX, SizeType n)
+    {
+        pX->resize(n, false);
     }
 
     static void Clear(MatrixPointerType& pA)
@@ -497,29 +584,6 @@ public:
         pX->resize(0, false);
     }
 
-    /*	static void Clear(MatrixType& rA)
-            {rA.clear();}
-
-    static void Clear(VectorType& rX) {rX.clear();}*/
-
-    template<class TOtherMatrixType>
-    inline static void ClearData(TOtherMatrixType& rA)
-    {
-        rA.clear();
-    }
-
-    inline static void ClearData(compressed_matrix<TDataType>& rA)
-    {
-        rA.clear();
-        //    	rA.value_data() = unbounded_array<TDataType>();
-        //if(rA.non_zeros() != 0) rA.value_data() = unbounded_array<TDataType>();
-    }
-
-    inline static void ClearData(VectorType& rX)
-    {
-        rX = VectorType();
-    }
-
     template<class TOtherMatrixType>
     inline static void ResizeData(TOtherMatrixType& rA, SizeType m)
     {
@@ -530,7 +594,7 @@ public:
 #else
         DataType* vals = rA.value_data().begin();
         #pragma omp parallel for firstprivate(m)
-        for(int i=0; i<m; ++i)
+        for(int i=0; i<static_cast<int>(m); ++i)
             vals[i] = TDataType();
 #endif
     }
@@ -543,7 +607,7 @@ public:
 #else
         TDataType* vals = rA.value_data().begin();
         #pragma omp parallel for firstprivate(m)
-        for(int i=0; i<m; ++i)
+        for(int i=0; i<static_cast<int>(m); ++i)
             vals[i] = TDataType();
 #endif
     }
@@ -554,7 +618,7 @@ public:
 #ifndef _OPENMP
         std::fill(rX.begin(), rX.end(), TDataType());
 #else
-        const int size = rX.size(); 
+        const int size = rX.size();
         #pragma omp parallel for firstprivate(size)
         for(int i=0; i<size; ++i)
             rX[i] = TDataType();
@@ -593,7 +657,7 @@ public:
 #ifndef _OPENMP
         std::fill(rX.begin(), rX.end(), TDataType());
 #else
-        const int size = rX.size(); 
+        const int size = rX.size();
         #pragma omp parallel for firstprivate(size)
         for(int i=0; i<size; ++i)
             rX[i] = TDataType();
@@ -670,20 +734,20 @@ public:
 
     //***********************************************************************
 
-    inline static bool IsDistributed()
+    inline static constexpr bool IsDistributed()
     {
         return false;
     }
 
     //***********************************************************************
 
-    inline static double GetValue(const VectorType& x, std::size_t I)
+    inline static TDataType GetValue(const VectorType& x, std::size_t I)
     {
         return x[I];
     }
     //***********************************************************************
 
-    static void GatherValues(const VectorType& x, const std::vector<std::size_t>& IndexArray, double* pValues)
+    static void GatherValues(const VectorType& x, const std::vector<std::size_t>& IndexArray, TDataType* pValues)
     {
         KRATOS_TRY
 
@@ -694,19 +758,25 @@ public:
     }
 
     template< class TOtherMatrixType >
-    static bool WriteMatrixMarketMatrix(const char *FileName, TOtherMatrixType &M, bool Symmetric)
+    static bool WriteMatrixMarketMatrix(const char* pFileName, /*const*/ TOtherMatrixType& rM, const bool Symmetric)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
-        return Kratos::WriteMatrixMarketMatrix(FileName,M,Symmetric);
+        return Kratos::WriteMatrixMarketMatrix(pFileName, rM, Symmetric);
     }
-    
+
     template< class VectorType >
-    static bool WriteMatrixMarketVector(const char *FileName, VectorType& V)
+    static bool WriteMatrixMarketVector(const char* pFileName, const VectorType& rV)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
-        return Kratos::WriteMatrixMarketVector(FileName,V);
+        return Kratos::WriteMatrixMarketVector(pFileName, rV);
     }
-    
+
+    static DofUpdaterPointerType CreateDofUpdater()
+    {
+        DofUpdaterType tmp;
+        return tmp.Create();
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -771,7 +841,7 @@ private:
     static void ParallelProductNoAdd(const MatrixType& A, const VectorType& in, VectorType& out)
     {
         //create partition
-        vector<unsigned int> partition;
+        DenseVector<unsigned int> partition;
         unsigned int number_of_threads = omp_get_max_threads();
         unsigned int number_of_initialized_rows = A.filled1() - 1;
         CreatePartition(number_of_threads, number_of_initialized_rows, partition);
@@ -797,7 +867,7 @@ private:
         }
     }
 
-    static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+    static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, DenseVector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads + 1);
         int partition_size = number_of_rows / number_of_threads;
@@ -904,6 +974,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_UBLAS_SPACE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_UBLAS_SPACE_H_INCLUDED  defined

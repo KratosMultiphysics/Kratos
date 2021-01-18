@@ -1,0 +1,77 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "weak_sliding",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.3
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Dynamic",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
+        "time_integration_method"            : "explicit",
+        "scheme_type"                        : "central_differences",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "weak_sliding_explicit/FEM"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "weak_sliding_explicit/StructuralMaterials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1e-03
+        },
+        "rotation_dofs"                      : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_supp_all",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_supp_x_y",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,false],
+                "value"           : [0.0,0.0,null],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.PointLoad3D_neumann",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : 1000.0,
+                "direction"       : [0.0,0.0,1.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes"     : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+                "input_file_name"  : "weak_sliding_explicit/weak_sliding_test_results.json",
+                "model_part_name"  : "Structure.checkMP",
+                "tolerance"        : 1e-2,
+                "time_frequency"   : 0.299
+            }
+        }]
+    },
+    "output_processes" : {}
+}

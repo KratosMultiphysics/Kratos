@@ -1,95 +1,103 @@
-import os
+from contact_structural_mechanics_test_factory import ContactStructuralMechanicsTestFactory as TestFactory
 
-# Import Kratos
-from KratosMultiphysics import *
+class SimplePatchTestTwoDMeshTying(TestFactory):
+    file_name = "mesh_tying_test/simple_patch_test_2D"
 
-# Import KratosUnittest
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-import Kratos_Execute_Solid_Test as Execute_Test
+class SimpleSlopePatchTestTwoDMeshTying(TestFactory):
+    file_name = "mesh_tying_test/hyper_simple_slope_patch_test_2D"
 
-# This utiltiy will control the execution scope in case we need to acces files or we depend
-# on specific relative locations of the files.
+class SimplestPatchTestThreeDMeshTying(TestFactory):
+    file_name = "mesh_tying_test/3D_contact_simplest_patch_matching_test"
 
-# TODO: Should we move this to KratosUnittest?
-class controlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
+class ALMHyperSimplePatchTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
 
-    def __enter__(self):
-        os.chdir(self.scope)
+class ALMHyperSimplePatchTrianglesTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_triangles_test"
 
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
+class ALMHyperSimplePatchTestWithEliminationContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_with_elimination"
 
-class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
+class ALMHyperSimplePatchTestWithEliminationWithConstraintContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_with_elimination_with_constraints"
 
-    def setUp(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            # Initialize GiD  I/O
-            parameter_file = open(self.file_name + "_parameters.json", 'r')
-            ProjectParameters = Parameters(parameter_file.read())
+class ALMHyperSimpleSlopePatchTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test"
 
-            # Creating the model part
-            self.test = Execute_Test.Kratos_Execute_Test(ProjectParameters)
+class ALMThreeDSimplestPatchMatchingTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test"
 
-    def test_execution(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.Solve()
+class PenaltyThreeDSimplestPatchMatchingTestContact(TestFactory):
+    file_name = "penalty_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test"
 
-    def tearDown(self):
-        pass
-    
-#class BasicCATest(StructuralMechanichsTestFactory):
-    #file_name = "CA_test/basic_CA_test"
-    
-#class SolidCATest(StructuralMechanichsTestFactory):
-    #file_name = "CA_test/solid_CA_test"
-    
-class HyperSimplePatchTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/hyper_simple_patch_test"
-    
-class SimplePatchTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/simple_patch_test"
-    
-class SimpleSlopePatchTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/simple_slope_patch_test"
-    
-class SimplePatchNotMatchingATestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/simple_patch_notmatching_a_test"
-    
-class SimplePatchNotMatchingBTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/simple_patch_notmatching_b_test"
-    
-class TaylorPatchTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/taylor_patch_test"
+class ComponentsALMHyperSimpleTrianglePatchTestContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_triangle_patch_test"
 
-class TaylorPatchDynamicTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/taylor_patch_dynamic_test"
-    
-class HertzSimpleSphereTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/simple_hertz_sphere_plate_test"
-    
-class HertzSimpleTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/hertz_simple_test"
-    
-class HertzSphereTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/hertz_sphere_plate_test"
-    
-class HertzCompleteTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/hertz_complete_test"
+class ComponentsALMHyperSimplePatchTestContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
 
-class ThreeDSimplestPatchMatchingTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_3D/3D_contact_simplest_patch_matching_test"
-    
-class ThreeDSimplestTrianglePatchMatchingTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_3D/3D_contact_simplest_triangle_patch_matching_test"
-    
-class ThreeDPatchMatchingTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_3D/3D_contact_patch_matching_test"
+class ComponentsALMHyperSimplePatchTestWithEliminationContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_with_elimination"
 
-class ThreeDPatchNotMatchingTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_3D/3D_contact_patch_nonmatching_test"
-    
+class ComponentsALMHyperSimplePatchTestWithEliminationWithConstraintContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_with_elimination_with_constraints"
+
+class ComponentsALMHyperSimpleSlopePatchTestContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test"
+
+class ComponentsALMThreeDSimplestPatchMatchingTestContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test"
+
+class ALMHyperSimplePatchFrictionalTestContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/hyper_simple_patch_test"
+
+class ALMNoFrictionHyperSimplePatchFrictionalTestContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/no_friction_hyper_simple_patch_test"
+
+class ALMPerfectStickHyperSimplePatchFrictionalTestContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/perfect_stick_hyper_simple_patch_test"
+
+class ALMThresholdSlipHyperSimplePatchFrictionalTestContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/threshold_slip_hyper_simple_patch_test"
+
+class ALMHyperSimplePatchFrictionalSlipTestContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/hyper_simple_slip_patch_test"
+
+class ALMHyperSimplePatchFrictionalStickTestContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/hyper_simple_stick_patch_test"
+
+class PenaltyFrictionlessHyperSimplePatchFrictionalTestContact(TestFactory):
+    file_name = "penalty_frictionless_contact_test_2D/hyper_simple_patch_test"
+
+class PenaltyNoFrictionHyperSimplePatchFrictionalTestContact(TestFactory):
+    file_name = "penalty_frictional_contact_test_2D/no_friction_hyper_simple_patch_test"
+
+class PenaltyPerfectStickHyperSimplePatchFrictionalTestContact(TestFactory):
+    file_name = "penalty_frictional_contact_test_2D/perfect_stick_hyper_simple_patch_test"
+
+class PenaltyThresholdSlipHyperSimplePatchFrictionalTestContact(TestFactory):
+    file_name = "penalty_frictional_contact_test_2D/threshold_slip_hyper_simple_patch_test"
+
+class PenaltyHyperSimplePatchFrictionalSlipTestContact(TestFactory):
+    file_name = "penalty_frictional_contact_test_2D/hyper_simple_slip_patch_test"
+
+class PenaltyHyperSimplePatchFrictionalStickTestContact(TestFactory):
+    file_name = "penalty_frictional_contact_test_2D/hyper_simple_stick_patch_test"
+
+class TwoDSimplestPatchMatchingTestContact(TestFactory):
+    file_name = "mpc_contact_tests/2D_contact_simplest_patch_matching_test"
+
+class TwoDSimplestWithFrictionPatchMatchingTestContact(TestFactory):
+    file_name = "mpc_contact_tests/2D_contact_simplest_with_friction_patch_matching_test"
+
+class ThreeDSimplestPatchMatchingTestContact(TestFactory):
+    file_name = "mpc_contact_tests/3D_contact_simplest_patch_matching_test"
+
+class ThreeDSimplestWithFrictionPatchMatchingTestContact(TestFactory):
+    file_name = "mpc_contact_tests/3D_contact_simplest_with_friction_patch_matching_test"

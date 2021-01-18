@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //
 // ==============================================================================
 
@@ -19,29 +19,15 @@
 #include <algorithm>
 
 // ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
-
-// ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
 #include "spatial_containers/spatial_containers.h"
-#include "utilities/timer.h"
-#include "processes/node_erase_process.h"
-#include "utilities/binbased_fast_point_locator.h"
-#include "utilities/normal_calculation_utils.h"
+#include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
+#include "mapper_base.h"
 #include "filter_function.h"
 
 // ==============================================================================
@@ -73,14 +59,13 @@ namespace Kratos
 
 */
 
-class MapperVertexMorphingMatrixFree
+class MapperVertexMorphingMatrixFree : public Mapper
 {
 public:
     ///@name Type Definitions
     ///@{
 
     // Type definitions for better reading later
-    typedef array_1d<double,3> array_3d;
     typedef Node < 3 > NodeType;
     typedef Node < 3 > ::Pointer NodeTypePointer;
     typedef std::vector<NodeType::Pointer> NodeVector;
@@ -90,7 +75,7 @@ public:
 
     // Type definitions for tree-search
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > KDTree;    
+    typedef Tree< KDTreePartition<BucketType> > KDTree;
 
     /// Pointer definition of MapperVertexMorphingMatrixFree
     KRATOS_CLASS_POINTER_DEFINITION(MapperVertexMorphingMatrixFree);
@@ -100,18 +85,13 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingMatrixFree( ModelPart& designSurface, Parameters& optimizationSettings )
-        : mrDesignSurface( designSurface ),
-          mNumberOfDesignVariables( designSurface.Nodes().size() ),
-          mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
-          mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
-          mMaxNumberOfNeighbors( optimizationSettings["design_variables"]["filter"]["max_nodes_in_filter_radius"].GetInt() )
+    MapperVertexMorphingMatrixFree( ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters MapperSettings )
+        : mrOriginModelPart( rOriginModelPart ),
+          mrDestinationModelPart( rDestinationModelPart ),
+          mMapperSettings( MapperSettings ),
+          mFilterRadius( MapperSettings["filter_radius"].GetDouble() ),
+          mMaxNumberOfNeighbors( MapperSettings["max_nodes_in_filter_radius"].GetInt())
     {
-        CreateListOfNodesOfDesignSurface();
-        CreateSearchTreeWithAllNodesOnDesignSurface();
-        CreateFilterFunction();
-        InitializeMappingVariables();
-        AssignMappingIds();
     }
 
     /// Destructor.
@@ -129,282 +109,304 @@ public:
     ///@name Operations
     ///@{
 
-    // ==============================================================================
-    void CreateListOfNodesOfDesignSurface()
+    // --------------------------------------------------------------------------
+    void Initialize() override
     {
-        mListOfNodesOfDesignSurface.resize(mNumberOfDesignVariables);
-        std::size_t counter = 0;
-        for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
+        BuiltinTimer timer;
+        KRATOS_INFO("ShapeOpt") << "Starting initialization of matrix-free mapper..." << std::endl;
+
+        CreateListOfNodesInOriginModelPart();
+        CreateFilterFunction();
+        InitializeMappingVariables();
+        AssignMappingIds();
+
+        CreateSearchTreeWithAllNodesInOriginModelPart();
+
+        mIsMappingInitialized = true;
+
+        KRATOS_INFO("ShapeOpt") << "Finished initialization of matrix-free mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void Map( const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable ) override
+    {
+        if (mIsMappingInitialized == false)
+            Initialize();
+
+        BuiltinTimer mapping_time;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
+
+        // Prepare vectors for mapping
+        mValuesDestination[0].clear();
+        mValuesDestination[1].clear();
+        mValuesDestination[2].clear();
+
+        // Perform mapping
+        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
-            NodeTypePointer pnode = *(node_it.base());
-            mListOfNodesOfDesignSurface[counter++] = pnode;
-        }
-    }
+            auto& node_i = *(destination_nodes_begin + node_itr);
 
-    // --------------------------------------------------------------------------
-    void CreateSearchTreeWithAllNodesOnDesignSurface()
-    {
-        boost::timer timer;        
-        std::cout << "> Creating search tree to perform mapping..." << std::endl;        
-        mpSearchTree = boost::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
-        std::cout << "> Search tree created in: " << timer.elapsed() << " s" << std::endl;        
-    }   
-
-    // --------------------------------------------------------------------------
-    void CreateFilterFunction()
-    {
-        mpFilterFunction = boost::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
-    }     
-
-    // --------------------------------------------------------------------------
-    void InitializeMappingVariables()
-    {
-        x_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
-        y_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
-        z_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
-        x_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
-        y_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
-        z_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
-    }
-
-    // --------------------------------------------------------------------------
-    void AssignMappingIds()
-    {
-        unsigned int i = 0;
-        for(auto& node_i : mrDesignSurface.Nodes())
-            node_i.SetValue(MAPPING_ID,i++);
-    }
-
-    // --------------------------------------------------------------------------
-    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
-    {
-        boost::timer mapping_time;
-        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;    
-        
-        RecreateSearchTreeIfGeometryHasChanged();
-        ClearVectorsForMappingToDesignSpace();
-        MapVariableComponentwiseToDesignSpace( rNodalVariable );
-        AssignResultingDesignVectorsToNodalVariable( rNodalVariableInDesignSpace );
-
-        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
-    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
-    {
-        boost::timer mapping_time;
-        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
-
-        RecreateSearchTreeIfGeometryHasChanged();
-        ClearVectorsForMappingToGeometrySpace();
-        MapVariableComponentwiseToGeometrySpace( rNodalVariable );
-        AssignResultingGeometryVectorsToNodalVariable( rNodalVariableInGeometrySpace );
-
-        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
-    void RecreateSearchTreeIfGeometryHasChanged()
-    {
-        if(HasGeometryChanged())
-        {
-            mpSearchTree.reset();
-            CreateSearchTreeWithAllNodesOnDesignSurface();
-        }
-    }
-
-    // --------------------------------------------------------------------------
-    void ClearVectorsForMappingToDesignSpace()
-    {
-        x_variables_in_design_space.clear();
-        y_variables_in_design_space.clear();
-        z_variables_in_design_space.clear();
-    }   
-
-    // --------------------------------------------------------------------------
-    void ClearVectorsForMappingToGeometrySpace()
-    {
-        x_variables_in_geometry_space.clear();
-        y_variables_in_geometry_space.clear();
-        z_variables_in_geometry_space.clear();
-    }
-
-    // --------------------------------------------------------------------------
-    void MapVariableComponentwiseToDesignSpace( const Variable<array_3d>& rNodalVariable )
-    {
-        for(auto& node_i : mrDesignSurface.Nodes())
-        {
-            NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
-            std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
-            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             mFilterRadius, 
-                                                                             neighbor_nodes.begin(),
-                                                                             resulting_squared_distances.begin(), 
-                                                                             mMaxNumberOfNeighbors );
-
-            std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
-            double sum_of_weights = 0.0;
-
-            ThrowWarningIfMaxNodeNeighborsReached( node_i, number_of_neighbors );                                                                               
-            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-            PerformLocalTransposeMapping( rNodalVariable, node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );            
-        } 
-    }
-
-    // --------------------------------------------------------------------------
-    void MapVariableComponentwiseToGeometrySpace( const Variable<array_3d>& rNodalVariable )
-    {
-        for(auto& node_i : mrDesignSurface.Nodes())
-        {
             NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
             std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             mFilterRadius, 
+                                                                             mFilterRadius,
                                                                              neighbor_nodes.begin(),
-                                                                             resulting_squared_distances.begin(), 
+                                                                             resulting_squared_distances.begin(),
                                                                              mMaxNumberOfNeighbors );
+
+            ThrowWarningIfNumberOfNeighborsExceedsLimit(node_i, number_of_neighbors);
 
             std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
-
-            ThrowWarningIfMaxNodeNeighborsReached( node_i, number_of_neighbors );                                                                               
             ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-            PerformLocalMapping( rNodalVariable, node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-        }        
-    }       
 
-    // --------------------------------------------------------------------------
-    void AssignResultingDesignVectorsToNodalVariable( const Variable<array_3d> &rNodalVariable )
-    {
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
-        {
-            int i = node_i->GetValue(MAPPING_ID);
+            int node_i_mapping_id = node_i.GetValue(MAPPING_ID);
+            for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+            {
+                double weight = list_of_weights[neighbor_itr] / sum_of_weights;
 
-            Vector node_vector = ZeroVector(3);
-            node_vector(0) = x_variables_in_design_space[i];
-            node_vector(1) = y_variables_in_design_space[i];
-            node_vector(2) = z_variables_in_design_space[i];
-            node_i->FastGetSolutionStepValue(rNodalVariable) = node_vector;
+                ModelPart::NodeType& node_j = *neighbor_nodes[neighbor_itr];
+                array_3d& nodal_variable = node_j.FastGetSolutionStepValue(rOriginVariable);
+
+                #pragma omp atomic
+                mValuesDestination[0][node_i_mapping_id] += weight*nodal_variable[0];
+                #pragma omp atomic
+                mValuesDestination[1][node_i_mapping_id] += weight*nodal_variable[1];
+                #pragma omp atomic
+                mValuesDestination[2][node_i_mapping_id] += weight*nodal_variable[2];
+            }
         }
+
+        // Assign results to nodal variable
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
+        {
+            auto& node_i = *(destination_nodes_begin + node_itr);
+
+            int i = node_i.GetValue(MAPPING_ID);
+
+            array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rDestinationVariable);
+            r_node_vector(0) = mValuesDestination[0][i];
+            r_node_vector(1) = mValuesDestination[1][i];
+            r_node_vector(2) = mValuesDestination[2][i];
+        }
+
+        KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
-    void AssignResultingGeometryVectorsToNodalVariable( const Variable<array_3d> &rNodalVariable )
+    void Map( const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable ) override
     {
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        if (mIsMappingInitialized == false)
+            Initialize();
+
+        BuiltinTimer mapping_time;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
+
+        // Prepare vectors for mapping
+        mValuesDestination[0].clear();
+
+        // Perform mapping
+        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
-            int i = node_i->GetValue(MAPPING_ID);
+            auto& node_i = *(destination_nodes_begin + node_itr);
 
-            Vector node_vector = ZeroVector(3);
-            node_vector(0) = x_variables_in_geometry_space[i];
-            node_vector(1) = y_variables_in_geometry_space[i];
-            node_vector(2) = z_variables_in_geometry_space[i];
-            node_i->FastGetSolutionStepValue(rNodalVariable) = node_vector;
+            NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
+            std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
+            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
+                                                                             mFilterRadius,
+                                                                             neighbor_nodes.begin(),
+                                                                             resulting_squared_distances.begin(),
+                                                                             mMaxNumberOfNeighbors );
+
+            ThrowWarningIfNumberOfNeighborsExceedsLimit(node_i, number_of_neighbors);
+
+            std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
+            double sum_of_weights = 0.0;
+            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+
+            int node_i_mapping_id = node_i.GetValue(MAPPING_ID);
+            for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+            {
+                double weight = list_of_weights[neighbor_itr] / sum_of_weights;
+                ModelPart::NodeType& node_j = *neighbor_nodes[neighbor_itr];
+
+                #pragma omp atomic
+                mValuesDestination[0][node_i_mapping_id] += weight*node_j.FastGetSolutionStepValue(rOriginVariable);
+            }
         }
-    } 
 
-    // --------------------------------------------------------------------------
-    void ThrowWarningIfMaxNodeNeighborsReached( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
-    {
-        if(number_of_neighbors >= mMaxNumberOfNeighbors)
-            std::cout << "\n> WARNING!!!!! For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
+        // Assign results to nodal variable
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
+        {
+            auto& node_i = *(destination_nodes_begin + node_itr);
+            int i = node_i.GetValue(MAPPING_ID);
+
+            node_i.FastGetSolutionStepValue(rDestinationVariable) = mValuesDestination[0][i];
+        }
+
+        KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
-    void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node, 
-                                        NodeVector& neighbor_nodes, 
-                                        unsigned int number_of_neighbors,
-                                        std::vector<double>& list_of_weights, 
-                                        double& sum_of_weights )
+    void InverseMap( const Variable<array_3d> &rDestinationVariable, const Variable<array_3d> &rOriginVariable ) override
     {
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
-        {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( design_node.Coordinates(), neighbor_node.Coordinates() );
+        if (mIsMappingInitialized == false)
+            Initialize();
 
-            list_of_weights[neighbor_itr] = weight;
-            sum_of_weights += weight;
+        BuiltinTimer mapping_time;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
+
+        // Prepare vectors for mapping
+        mValuesOrigin[0].clear();
+        mValuesOrigin[1].clear();
+        mValuesOrigin[2].clear();
+
+        // Perform mapping
+        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
+        {
+            auto& node_i = *(destination_nodes_begin + node_itr);
+
+            NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
+            std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
+            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
+                                                                             mFilterRadius,
+                                                                             neighbor_nodes.begin(),
+                                                                             resulting_squared_distances.begin(),
+                                                                             mMaxNumberOfNeighbors );
+
+            ThrowWarningIfNumberOfNeighborsExceedsLimit(node_i, number_of_neighbors);
+
+            std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
+            double sum_of_weights = 0.0;
+            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+
+            array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rDestinationVariable);
+            for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+            {
+                ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+                int neighbor_node_mapping_id = neighbor_node.GetValue(MAPPING_ID);
+
+                double weight = list_of_weights[neighbor_itr] / sum_of_weights;
+
+                #pragma omp atomic
+                mValuesOrigin[0][neighbor_node_mapping_id] += weight*nodal_variable[0];
+                #pragma omp atomic
+                mValuesOrigin[1][neighbor_node_mapping_id] += weight*nodal_variable[1];
+                #pragma omp atomic
+                mValuesOrigin[2][neighbor_node_mapping_id] += weight*nodal_variable[2];
+            }
         }
+
+        // Assign results to nodal variable
+        const auto origin_nodes_begin = mrOriginModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrOriginModelPart.NumberOfNodes()); node_itr++)
+        {
+            auto& node_i = *(origin_nodes_begin + node_itr);
+            int i = node_i.GetValue(MAPPING_ID);
+
+            array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rOriginVariable);
+            r_node_vector(0) = mValuesOrigin[0][i];
+            r_node_vector(1) = mValuesOrigin[1][i];
+            r_node_vector(2) = mValuesOrigin[2][i];
+        }
+
+        KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
-    void PerformLocalTransposeMapping( const Variable<array_3d>& rNodalVariable,
-                                       ModelPart::NodeType& design_node, 
-                                       NodeVector& neighbor_nodes, 
-                                       unsigned int number_of_neighbors,
-                                       std::vector<double>& list_of_weights, 
-                                       double& sum_of_weights )
+    void InverseMap( const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable ) override
     {
-        array_3d& nodal_variable = design_node.FastGetSolutionStepValue(rNodalVariable);
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+        if (mIsMappingInitialized == false)
+            Initialize();
+
+        BuiltinTimer mapping_time;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
+
+        // Prepare vectors for mapping
+        mValuesOrigin[0].clear();
+
+        // Perform mapping
+        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            int neighbor_node_mapping_id = neighbor_node.GetValue(MAPPING_ID);
+            auto& node_i = *(destination_nodes_begin + node_itr);
 
-            double weight = list_of_weights[neighbor_itr] / sum_of_weights;
+            NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
+            std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
+            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
+                                                                             mFilterRadius,
+                                                                             neighbor_nodes.begin(),
+                                                                             resulting_squared_distances.begin(),
+                                                                             mMaxNumberOfNeighbors );
 
-            x_variables_in_design_space[neighbor_node_mapping_id] += weight*nodal_variable[0];
-            y_variables_in_design_space[neighbor_node_mapping_id] += weight*nodal_variable[1];
-            z_variables_in_design_space[neighbor_node_mapping_id] += weight*nodal_variable[2];
+            ThrowWarningIfNumberOfNeighborsExceedsLimit(node_i, number_of_neighbors);
+
+            std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
+            double sum_of_weights = 0.0;
+            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+
+            double variable_value = node_i.FastGetSolutionStepValue(rDestinationVariable);
+            for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+            {
+                ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+                int neighbor_node_mapping_id = neighbor_node.GetValue(MAPPING_ID);
+
+                double weight = list_of_weights[neighbor_itr] / sum_of_weights;
+
+                #pragma omp atomic
+                mValuesOrigin[0][neighbor_node_mapping_id] += weight*variable_value;
+            }
         }
+
+        // Assign results to nodal variable
+        const auto origin_nodes_begin = mrOriginModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrOriginModelPart.NumberOfNodes()); node_itr++)
+        {
+            auto& node_i = *(origin_nodes_begin + node_itr);
+            int i = node_i.GetValue(MAPPING_ID);
+
+            node_i.FastGetSolutionStepValue(rOriginVariable) = mValuesOrigin[0][i];
+        }
+
+        KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
-    void PerformLocalMapping( const Variable<array_3d>& rNodalVariable,
-                              ModelPart::NodeType& design_node, 
-                              NodeVector& neighbor_nodes, 
-                              unsigned int number_of_neighbors,
-                              std::vector<double>& list_of_weights, 
-                              double& sum_of_weights )
+    void Update() override
     {
-        int design_node_mapping_id = design_node.GetValue(MAPPING_ID);
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
-        {
-            double weight = list_of_weights[neighbor_itr] / sum_of_weights;
+        if (mIsMappingInitialized == false)
+            KRATOS_ERROR << "Mapping has to be initialized before calling the Update-function!";
 
-            ModelPart::NodeType& node_j = *neighbor_nodes[neighbor_itr];
-            array_3d& nodal_variable = node_j.FastGetSolutionStepValue(rNodalVariable);
+        BuiltinTimer timer;
+        KRATOS_INFO("ShapeOpt") << "Starting to update mapper..." << std::endl;
 
-            x_variables_in_geometry_space[design_node_mapping_id] += weight*nodal_variable[0];
-            y_variables_in_geometry_space[design_node_mapping_id] += weight*nodal_variable[1];
-            z_variables_in_geometry_space[design_node_mapping_id] += weight*nodal_variable[2];
-        }
+        CreateSearchTreeWithAllNodesInOriginModelPart();
+
+        KRATOS_INFO("ShapeOpt") << "Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
-    bool HasGeometryChanged()
-    {
-        double sumOfAllCoordinates = 0.0;
-        for(auto& node_i : mrDesignSurface.Nodes())
-        {
-            array_3d& coord = node_i.Coordinates();
-            sumOfAllCoordinates += coord[0] + coord[1] + coord[2];
-        }
-
-        if(IsFirstMappingOperation())
-        {
-            mControlSum = sumOfAllCoordinates;
-            return false;
-        }
-        else if (mControlSum == sumOfAllCoordinates)
-            return false;
-        else 
-        {
-            mControlSum = sumOfAllCoordinates;
-            return true;
-        }
-    } 
-
-    // --------------------------------------------------------------------------
-    bool IsFirstMappingOperation()
-    {
-        if(mControlSum == 0.0)
-            return true;
-        else 
-             return false;
-    }   
-
-    // ==============================================================================
 
     ///@}
     ///@name Access
@@ -421,19 +423,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "MapperVertexMorphingMatrixFree";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MapperVertexMorphingMatrixFree";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -491,30 +493,23 @@ private:
     ///@name Member Variables
     ///@{
 
-    // ==============================================================================
     // Initialized by class constructor
-    // ==============================================================================
-    ModelPart& mrDesignSurface;
-    const unsigned int mNumberOfDesignVariables;
-    std::string mFilterType;
+    ModelPart& mrOriginModelPart;
+    ModelPart& mrDestinationModelPart;
+    Parameters mMapperSettings;
     double mFilterRadius;
-    unsigned int mMaxNumberOfNeighbors;            
+    unsigned int mMaxNumberOfNeighbors;
     FilterFunction::Pointer mpFilterFunction;
 
-    // ==============================================================================
     // Variables for spatial search
-    // ==============================================================================
     unsigned int mBucketSize = 100;
-    NodeVector mListOfNodesOfDesignSurface;
+    NodeVector mListOfNodesInOriginModelPart;
     KDTree::Pointer mpSearchTree;
 
-    // ==============================================================================
     // Variables for mapping
-    // ==============================================================================
-    Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;    
-    Vector x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
-    double mControlSum = 0.0;
-
+    std::vector<Vector> mValuesOrigin;
+    std::vector<Vector> mValuesDestination;
+    bool mIsMappingInitialized = false;
 
     ///@}
     ///@name Private Operators
@@ -525,6 +520,83 @@ private:
     ///@name Private Operations
     ///@{
 
+    // --------------------------------------------------------------------------
+    void CreateListOfNodesInOriginModelPart()
+    {
+        mListOfNodesInOriginModelPart.resize(mrOriginModelPart.Nodes().size());
+        int counter = 0;
+        for (ModelPart::NodesContainerType::iterator node_it = mrOriginModelPart.NodesBegin(); node_it != mrOriginModelPart.NodesEnd(); ++node_it)
+        {
+            NodeTypePointer pnode = *(node_it.base());
+            mListOfNodesInOriginModelPart[counter++] = pnode;
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    void CreateFilterFunction()
+    {
+        std::string filter_type = mMapperSettings["filter_function_type"].GetString();
+        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+
+        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
+    }
+
+    // --------------------------------------------------------------------------
+    void InitializeMappingVariables()
+    {
+        const unsigned int origin_node_number = mrOriginModelPart.Nodes().size();
+        mValuesOrigin.resize(3,ZeroVector(origin_node_number));
+
+        const unsigned int destination_node_number = mrDestinationModelPart.Nodes().size();
+        mValuesDestination.resize(3,ZeroVector(destination_node_number));
+    }
+
+    // --------------------------------------------------------------------------
+    void AssignMappingIds()
+    {
+        unsigned int i = 0;
+        for(auto& node_i : mrOriginModelPart.Nodes())
+            node_i.SetValue(MAPPING_ID,i++);
+
+        i = 0;
+        for(auto& node_i : mrDestinationModelPart.Nodes())
+            node_i.SetValue(MAPPING_ID,i++);
+    }
+
+    // --------------------------------------------------------------------------
+    void CreateSearchTreeWithAllNodesInOriginModelPart()
+    {
+        BuiltinTimer timer;
+        KRATOS_INFO("ShapeOpt") << "Creating search tree to perform mapping..." << std::endl;
+        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesInOriginModelPart.begin(), mListOfNodesInOriginModelPart.end(), mBucketSize));
+        KRATOS_INFO("ShapeOpt") << "Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void ThrowWarningIfNumberOfNeighborsExceedsLimit(ModelPart::NodeType& given_node, unsigned int number_of_neighbors)
+    {
+        if(number_of_neighbors >= mMaxNumberOfNeighbors)
+            KRATOS_WARNING("ShapeOpt::MapperVertexMorphingMatrixFree") << "For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node,
+                                        NodeVector& neighbor_nodes,
+                                        unsigned int number_of_neighbors,
+                                        std::vector<double>& list_of_weights,
+                                        double& sum_of_weights )
+    {
+        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+        {
+            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+            double weight = mpFilterFunction->compute_weight( design_node.Coordinates(), neighbor_node.Coordinates() );
+
+            list_of_weights[neighbor_itr] = weight;
+            sum_of_weights += weight;
+        }
+    }
+
+    // --------------------------------------------------------------------------
 
     ///@}
     ///@name Private  Access

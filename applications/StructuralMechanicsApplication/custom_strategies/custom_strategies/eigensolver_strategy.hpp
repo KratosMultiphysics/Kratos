@@ -16,18 +16,13 @@
 #define  KRATOS_EIGENSOLVER_STRATEGY
 
 // System includes
-#include<iostream>
-#include<vector>
-#include<iterator>
 
 // External includes
-#include<boost/timer.hpp>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "includes/ublas_interface.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "utilities/builtin_timer.h"
+#include "spaces/ublas_space.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -74,15 +69,13 @@ public:
 
     typedef typename BaseType::TBuilderAndSolverType::Pointer BuilderAndSolverPointerType;
 
-    typedef typename TDenseSpace::VectorPointerType DenseVectorPointerType;
-
-    typedef typename TDenseSpace::MatrixPointerType DenseMatrixPointerType;
-
     typedef typename TDenseSpace::VectorType DenseVectorType;
 
     typedef typename TDenseSpace::MatrixType DenseMatrixType;
 
     typedef TSparseSpace SparseSpaceType;
+
+    typedef typename TSparseSpace::VectorPointerType SparseVectorPointerType;
 
     typedef typename TSparseSpace::MatrixPointerType SparseMatrixPointerType;
 
@@ -96,11 +89,17 @@ public:
 
     /// Constructor.
     EigensolverStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         SchemePointerType pScheme,
-        BuilderAndSolverPointerType pBuilderAndSolver
+        BuilderAndSolverPointerType pBuilderAndSolver,
+        double MassMatrixDiagonalValue,
+        double StiffnessMatrixDiagonalValue,
+        bool ComputeModalDecomposition = false
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
+            mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
+            mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
+            mComputeModalDecompostion(ComputeModalDecomposition)
     {
         KRATOS_TRY
 
@@ -111,13 +110,16 @@ public:
         // ensure initialization of system matrices in InitializeSolutionStep()
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
 
-        mInitializeWasPerformed = false;
-
         // default echo level (mute)
         this->SetEchoLevel(0);
 
         // default rebuild level (build at each solution step)
         this->SetRebuildLevel(1);
+
+        SparseMatrixType* AuxMassMatrix = new SparseMatrixType;
+        mpMassMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxMassMatrix);
+        SparseMatrixType* AuxStiffnessMatrix = new SparseMatrixType;
+        mpStiffnessMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxStiffnessMatrix);
 
         KRATOS_CATCH("")
     }
@@ -126,7 +128,7 @@ public:
     EigensolverStrategy(const EigensolverStrategy& Other) = delete;
 
     /// Destructor.
-    virtual ~EigensolverStrategy()
+    ~EigensolverStrategy() override
     {
         // Clear() controls order of deallocation to avoid invalid memory access
         // in some special cases.
@@ -174,21 +176,37 @@ public:
 
     SparseMatrixType& GetMassMatrix()
     {
+//         if (mpMassMatrix == nullptr)
+//         {
+//             KRATOS_ERROR << "CHEK YOUR MASS MATRIX PLEASE IS INITIALIZED" << std::endl;
+//         }
         return *mpMassMatrix;
     }
 
     SparseMatrixType& GetStiffnessMatrix()
     {
+//         if (mpStiffnessMatrix == nullptr)
+//         {
+//             KRATOS_ERROR << "CHEK YOUR STIFFNESS MATRIX PLEASE IS INITIALIZED" << std::endl;
+//         }
         return *mpStiffnessMatrix;
     }
 
     SparseMatrixPointerType& pGetMassMatrix()
     {
+//         if (mpMassMatrix == nullptr)
+//         {
+//             KRATOS_ERROR << "CHEK YOUR MASS MATRIX PLEASE IS INITIALIZED" << std::endl;
+//         }
         return mpMassMatrix;
     }
 
     SparseMatrixPointerType& pGetStiffnessMatrix()
     {
+//         if (mpStiffnessMatrix == nullptr)
+//         {
+//             KRATOS_ERROR << "CHEK YOUR STIFFNESS MATRIX PLEASE IS INITIALIZED" << std::endl;
+//         }
         return mpStiffnessMatrix;
     }
 
@@ -209,109 +227,54 @@ public:
      * - 2 -> print linear solver data
      * - 3 -> print debug information
      */
-    void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::SetEchoLevel(Level);
         this->pGetBuilderAndSolver()->SetEchoLevel(Level);
     }
 
-    /// Initialization to be performed once before using the strategy.
-    virtual void Initialize()
+    /**
+     * Initialization to be performed once before using the strategy.
+     */
+    void Initialize() override
     {
         KRATOS_TRY
 
-        auto& rModelPart = BaseType::GetModelPart();
-        const auto rank = rModelPart.GetCommunicator().MyPID();
+        ModelPart& rModelPart = BaseType::GetModelPart();
+        const int rank = rModelPart.GetCommunicator().MyPID();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Entering Initialize() of EigensolverStrategy." << std::endl;
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Entering Initialize" << std::endl;
 
-        this->Check();
-
-        auto& pScheme = this->pGetScheme();
-
-        if (pScheme->SchemeIsInitialized() == false)
-            pScheme->Initialize(rModelPart);
-
-        if (pScheme->ElementsAreInitialized() == false)
-            pScheme->InitializeElements(rModelPart);
-
-        if (pScheme->ConditionsAreInitialized() == false)
-            pScheme->InitializeConditions(rModelPart);
-
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Exiting Initialize() of EigensolverStrategy." << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    double Solve()
-    {
-        KRATOS_TRY
-
-        auto& rModelPart = BaseType::GetModelPart();
-        const auto rank = rModelPart.GetCommunicator().MyPID();
-
-        // operations to be done once
-        if (this->GetIsInitialized() == false)
+        if (mInitializeWasPerformed == false)
         {
-            Initialize();
-            this->SetIsInitialized(true);
+            SchemePointerType& pScheme = this->pGetScheme();
+
+            if (pScheme->SchemeIsInitialized() == false)
+                pScheme->Initialize(rModelPart);
+
+            if (pScheme->ElementsAreInitialized() == false)
+                pScheme->InitializeElements(rModelPart);
+
+            if (pScheme->ConditionsAreInitialized() == false)
+                pScheme->InitializeConditions(rModelPart);
         }
 
-        this->InitializeSolutionStep();
-
-        auto& pScheme = this->pGetScheme();
-        auto& rMassMatrix = this->GetMassMatrix();
-        auto& rStiffnessMatrix = this->GetStiffnessMatrix();
-
-        // initialize dummy rhs vector
-        SparseVectorType b;
-        SparseSpaceType::Resize(b,SparseSpaceType::Size1(rMassMatrix));
-        SparseSpaceType::Set(b,0.0);
-
-        // generate lhs matrix. the factor 1 is chosen to preserve
-        // spd property
-        rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
-        this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
-        this->ApplyDirichletConditions(rMassMatrix, 1.0);
-
-        // generate rhs matrix. the factor -1 is chosen to make
-        // eigenvalues corresponding to fixed dofs negative
-        rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
-        this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
-        ApplyDirichletConditions(rStiffnessMatrix,-1.0);
-
-        // eigenvector matrix and eigenvalue vector are initialized by the solver
-        DenseVectorType Eigenvalues;
-        DenseMatrixType Eigenvectors;
-
-        // solve for eigenvalues and eigenvectors
-        boost::timer system_solve_time;
-        this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Solve(
-                rStiffnessMatrix,
-                rMassMatrix,
-                Eigenvalues,
-                Eigenvectors);
-        if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            std::cout << "system_solve_time : " << system_solve_time.elapsed() << std::endl;
-
-        this->AssignVariables(Eigenvalues,Eigenvectors);
-
-        this->FinalizeSolutionStep();
-
-        return 0.0;
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Exiting Initialize" << std::endl;
 
         KRATOS_CATCH("")
     }
 
-    /// Clear the strategy.
-    virtual void Clear()
+    /**
+     * Clears the internal storage
+     */
+    void Clear() override
     {
         KRATOS_TRY
 
         // if the preconditioner is saved between solves, it should be cleared here
-        auto& pBuilderAndSolver = this->pGetBuilderAndSolver();
+        BuilderAndSolverPointerType& pBuilderAndSolver = this->pGetBuilderAndSolver();
         pBuilderAndSolver->GetLinearSystemSolver()->Clear();
 
         if (this->pGetMassMatrix() != nullptr)
@@ -320,8 +283,7 @@ public:
         if (this->pGetStiffnessMatrix() != nullptr)
             this->pGetStiffnessMatrix() = nullptr;
 
-
-        // re-setting internal flag to ensure that the dof sets are recalculated
+        // Re-setting internal flag to ensure that the dof sets are recalculated
         pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
 
         pBuilderAndSolver->Clear();
@@ -333,102 +295,201 @@ public:
         KRATOS_CATCH("")
     }
 
-    /// Initialization to be performed before every solve.
-    virtual void InitializeSolutionStep()
+    /**
+     * Performs all the required operations that should be done (for each step)
+     * before solving the solution step.
+     * A member variable should be used as a flag to make sure this function is called only once per step.
+     */
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY
 
-        auto& rModelPart = BaseType::GetModelPart();
-        const auto rank = rModelPart.GetCommunicator().MyPID();
+        ModelPart& rModelPart = BaseType::GetModelPart();
+        const int rank = rModelPart.GetCommunicator().MyPID();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Entering InitializeSolutionStep() of EigensolverStrategy" << std::endl;
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Entering InitializeSolutionStep" << std::endl;
 
-        auto& pBuilderAndSolver = this->pGetBuilderAndSolver();
-        auto& pScheme = this->pGetScheme();
-        auto& pStiffnessMatrix = this->pGetStiffnessMatrix();
-        auto& rStiffnessMatrix = *pStiffnessMatrix;
+        BuilderAndSolverPointerType& pBuilderAndSolver = this->pGetBuilderAndSolver();
+        SchemePointerType& pScheme = this->pGetScheme();
+        SparseMatrixPointerType& pStiffnessMatrix = this->pGetStiffnessMatrix();
+        SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
 
-        // initialize dummy vectors
-        auto pDx = SparseSpaceType::CreateEmptyVectorPointer();
-        auto pb = SparseSpaceType::CreateEmptyVectorPointer();
+        // Initialize dummy vectors
+        SparseVectorPointerType pDx = SparseSpaceType::CreateEmptyVectorPointer();
+        SparseVectorPointerType pb = SparseSpaceType::CreateEmptyVectorPointer();
         auto& rDx = *pDx;
         auto& rb = *pb;
 
-        // reset solution dofs
-        boost::timer system_construction_time;
+        // Reset solution dofs
+        BuiltinTimer system_construction_time;
         if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
-                pBuilderAndSolver->GetReshapeMatrixFlag() == true)
+            pBuilderAndSolver->GetReshapeMatrixFlag() == true)
         {
-            // set up list of dofs
-            boost::timer setup_dofs_time;
+            // Set up list of dofs
+            BuiltinTimer setup_dofs_time;
             pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
 
-            // set global equation ids
-            boost::timer setup_system_time;
+            KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << setup_dofs_time.ElapsedSeconds() << std::endl;
+
+            // Set global equation ids
+            BuiltinTimer setup_system_time;
             pBuilderAndSolver->SetUpSystem(rModelPart);
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
 
-            // resize and initialize system matrices
-            boost::timer system_matrix_resize_time;
-            auto& pMassMatrix = this->pGetMassMatrix();
+            KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << setup_system_time.ElapsedSeconds() << std::endl;
 
-            // mass matrix
-            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, 
-                    pMassMatrix,
-                    pDx,
-                    pb,
-                    rModelPart.Elements(),
-                    rModelPart.Conditions(),
-                    rModelPart.GetProcessInfo());
+            // Resize and initialize system matrices
+            BuiltinTimer system_matrix_resize_time;
+            SparseMatrixPointerType& pMassMatrix = this->pGetMassMatrix();
 
-            // stiffness matrix
-            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, 
-                    pStiffnessMatrix,
-                    pDx,
-                    pb,
-                    rModelPart.Elements(),
-                    rModelPart.Conditions(),
-                    rModelPart.GetProcessInfo());
+            // Mass matrix
+            pBuilderAndSolver->ResizeAndInitializeVectors(
+                pScheme, pMassMatrix, pDx, pb, rModelPart);
 
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                std::cout << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
+            // Stiffness matrix
+            pBuilderAndSolver->ResizeAndInitializeVectors(
+                pScheme, pStiffnessMatrix, pDx, pb, rModelPart);
+
+            KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << system_matrix_resize_time.ElapsedSeconds() << std::endl;
         }
         else
         {
-            SparseSpaceType::Resize(rb,SparseSpaceType::Size1(rStiffnessMatrix));
-            SparseSpaceType::Set(rb,0.0);
-            SparseSpaceType::Resize(rDx,SparseSpaceType::Size1(rStiffnessMatrix));
-            SparseSpaceType::Set(rDx,0.0);
+            SparseSpaceType::Resize(rb, SparseSpaceType::Size1(rStiffnessMatrix));
+            SparseSpaceType::Set(rb, 0.0);
+            SparseSpaceType::Resize(rDx, SparseSpaceType::Size1(rStiffnessMatrix));
+            SparseSpaceType::Set(rDx, 0.0);
         }
-        if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            std::cout << "system_construction_time : " << system_construction_time.elapsed() << std::endl;
 
-        // initial operations ... things that are constant over the solution step
-        pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(),rStiffnessMatrix,rDx,rb);
+        KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+            << system_construction_time.ElapsedSeconds() << std::endl;
 
-        // initial operations ... things that are constant over the solution step
-        pScheme->InitializeSolutionStep(BaseType::GetModelPart(),rStiffnessMatrix,rDx,rb);
+        // Initial operations ... things that are constant over the solution
+        // step
+        pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(),
+                                                  rStiffnessMatrix, rDx, rb);
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Exiting InitializeSolutionStep() of EigensolverStrategy" << std::endl;
+        // Initial operations ... things that are constant over the solution
+        // step
+        pScheme->InitializeSolutionStep(BaseType::GetModelPart(), rStiffnessMatrix, rDx, rb);
+
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Exiting InitializeSolutionStep" << std::endl;
 
         KRATOS_CATCH("")
     }
 
-    /// Check whether initial input is valid.
-    virtual int Check()
+    bool SolveSolutionStep() override
+    {
+        KRATOS_TRY;
+
+        ModelPart& rModelPart = BaseType::GetModelPart();
+
+        SchemePointerType& pScheme = this->pGetScheme();
+        SparseMatrixType& rMassMatrix = this->GetMassMatrix();
+        SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
+
+        // Initialize dummy rhs vector
+        SparseVectorType b;
+        SparseSpaceType::Resize(b,SparseSpaceType::Size1(rMassMatrix));
+        SparseSpaceType::Set(b,0.0);
+
+        // if the size of the Matrix is the same as the size of the dofset, then also the dirichlet-dofs are in the matrix
+        // i.e. a BlockBuilder is used
+        const bool matrix_contains_dirichlet_dofs = SparseSpaceType::Size1(rMassMatrix) == this->pGetBuilderAndSolver()->GetDofSet().size();
+
+        rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
+        TSparseSpace::SetToZero(rMassMatrix);
+        this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
+        if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
+            this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
+        }
+        if (matrix_contains_dirichlet_dofs) {
+            this->ApplyDirichletConditions(rMassMatrix, mMassMatrixDiagonalValue);
+        }
+
+        if (BaseType::GetEchoLevel() == 4) {
+            TSparseSpace::WriteMatrixMarketMatrix("MassMatrix.mm", rMassMatrix, false);
+        }
+
+        rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
+        TSparseSpace::SetToZero(rStiffnessMatrix);
+        this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
+        if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
+            this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rStiffnessMatrix, b);
+        }
+
+        if (matrix_contains_dirichlet_dofs) {
+            this->ApplyDirichletConditions(rStiffnessMatrix, mStiffnessMatrixDiagonalValue);
+        }
+
+        if (BaseType::GetEchoLevel() == 4) {
+            TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
+        }
+
+        // Eigenvector matrix and eigenvalue vector are initialized by the solver
+        DenseVectorType Eigenvalues;
+        DenseMatrixType Eigenvectors;
+
+        // Solve for eigenvalues and eigenvectors
+        BuiltinTimer system_solve_time;
+        this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Solve(
+                rStiffnessMatrix,
+                rMassMatrix,
+                Eigenvalues,
+                Eigenvectors);
+
+        KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0)
+                << system_solve_time.ElapsedSeconds() << std::endl;
+
+
+        this->AssignVariables(Eigenvalues,Eigenvectors);
+
+
+        if (mComputeModalDecompostion) {
+            ComputeModalDecomposition(Eigenvectors);
+        }
+
+        return true;
+        KRATOS_CATCH("")
+    }
+
+    void FinalizeSolutionStep() override
+    {
+        KRATOS_TRY;
+
+        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Entering FinalizeSolutionStep" << std::endl;
+
+        SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
+        SparseVectorPointerType pDx = SparseSpaceType::CreateEmptyVectorPointer();
+        SparseVectorPointerType pb = SparseSpaceType::CreateEmptyVectorPointer();
+        pGetBuilderAndSolver()->FinalizeSolutionStep(
+            BaseType::GetModelPart(), rStiffnessMatrix, *pDx, *pb);
+        pGetScheme()->FinalizeSolutionStep(BaseType::GetModelPart(),
+                                           rStiffnessMatrix, *pDx, *pb);
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Exiting FinalizeSolutionStep" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Function to perform expensive checks.
+     * It is designed to be called ONCE to verify that the input is correct.
+     */
+    int Check() override
     {
         KRATOS_TRY
 
-        auto& rModelPart = BaseType::GetModelPart();
-        const auto rank = rModelPart.GetCommunicator().MyPID();
+        ModelPart& rModelPart = BaseType::GetModelPart();
+        const int rank = rModelPart.GetCommunicator().MyPID();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Entering Check() of EigensolverStrategy" << std::endl;
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Entering Check" << std::endl;
 
         // check the model part
         BaseType::Check();
@@ -439,8 +500,8 @@ public:
         // check the builder and solver
         this->pGetBuilderAndSolver()->Check(rModelPart);
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Exiting Check() of EigensolverStrategy" << std::endl;
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Exiting Check" << std::endl;
 
         return 0;
 
@@ -507,7 +568,12 @@ private:
 
     SparseMatrixPointerType mpStiffnessMatrix;
 
-    bool mInitializeWasPerformed;
+    bool mInitializeWasPerformed = false;
+
+    double mMassMatrixDiagonalValue = 0.0;
+    double mStiffnessMatrixDiagonalValue = 1.0;
+
+    bool mComputeModalDecompostion = false;
 
     ///@}
     ///@name Private Operators
@@ -523,14 +589,16 @@ private:
      *  component-wise aggregation. Rows and columns of the fixed dofs are replaced
      *  with zeros on the off-diagonal and the diagonal is scaled by factor.
      */
-    void ApplyDirichletConditions(SparseMatrixType& rA, double Factor)
+    void ApplyDirichletConditions(
+        SparseMatrixType& rA,
+        double Factor)
     {
         KRATOS_TRY
 
-        const auto rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Entering ApplyDirichletConditions() of EigensolverStrategy" << std::endl;
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Entering ApplyDirichletConditions" << std::endl;
 
         const std::size_t SystemSize = rA.size1();
         std::vector<double> ScalingFactors(SystemSize);
@@ -575,21 +643,29 @@ private:
             {
                 // row dof is fixed. zero off-diagonal columns and factor diagonal
                 for (std::size_t j = ColBegin; j < ColEnd; ++j)
+                {
                     if (static_cast<int>(AColIndices[j]) != k)
+                    {
                         AValues[j] = 0.0;
+                    }
                     else
+                    {
                         AValues[j] *= Factor;
+                    }
+                }
             }
             else
             {
                 // row dof is not fixed. zero columns associated with fixed dofs
                 for (std::size_t j = ColBegin; j < ColEnd; ++j)
+                {
                     AValues[j] *= ScalingFactors[AColIndices[j]];
+                }
             }
         }
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "Exiting ApplyDirichletConditions() of EigensolverStrategy" << std::endl;
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Exiting ApplyDirichletConditions" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -597,33 +673,65 @@ private:
     /// Assign eigenvalues and eigenvectors to kratos variables.
     void AssignVariables(DenseVectorType& rEigenvalues, DenseMatrixType& rEigenvectors)
     {
-        auto& rModelPart = BaseType::GetModelPart();
-        const auto NumEigenvalues = rEigenvalues.size();
+        ModelPart& rModelPart = BaseType::GetModelPart();
+        const std::size_t NumEigenvalues = rEigenvalues.size();
 
         // store eigenvalues in process info
         rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR] = rEigenvalues;
 
-        for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++)
-        {
-            ModelPart::NodeType::DofsContainerType& NodeDofs = itNode->GetDofs();
-            const auto NumNodeDofs = NodeDofs.size();
-            Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
-            if (rNodeEigenvectors.size1() != NumEigenvalues || rNodeEigenvectors.size2() != NumNodeDofs)
-                rNodeEigenvectors.resize(NumEigenvalues,NumNodeDofs,false);
+        const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
 
-            // the jth column index of EIGENVECTOR_MATRIX corresponds to the jth nodal dof. therefore,
-            // the dof ordering must not change.
-            if (NodeDofs.IsSorted() == false)
-                NodeDofs.Sort();
+        for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++) {
+            ModelPart::NodeType::DofsContainerType& NodeDofs = itNode->GetDofs();
+            const std::size_t NumNodeDofs = NodeDofs.size();
+            Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
+            if (rNodeEigenvectors.size1() != NumEigenvalues || rNodeEigenvectors.size2() != NumNodeDofs) {
+                rNodeEigenvectors.resize(NumEigenvalues,NumNodeDofs,false);
+            }
 
             // fill the EIGENVECTOR_MATRIX
-            for (std::size_t i = 0; i < NumEigenvalues; i++)
+            for (std::size_t i = 0; i < NumEigenvalues; i++) {
                 for (std::size_t j = 0; j < NumNodeDofs; j++)
                 {
-                    auto itDof = std::begin(NodeDofs) + j;
-                    rNodeEigenvectors(i,j) = rEigenvectors(i,itDof->EquationId());
+                    const auto itDof = std::begin(NodeDofs) + j;
+                    bool is_active = !(r_dof_set.find(**itDof) == r_dof_set.end());
+                    if ((*itDof)->IsFree() && is_active) {
+                       rNodeEigenvectors(i,j) = rEigenvectors(i,(*itDof)->EquationId());
+                    }
+                    else {
+                       rNodeEigenvectors(i,j) = 0.0;
+                    }
                 }
+            }
         }
+    }
+
+    ///
+     /**
+     * Computes the modal decomposition depending on the number of eigenvalues
+     * chosen and stores them in the corresponding variables. Can be activated by setting
+     * bool variable exposed to the python interface.
+     */
+    void ComputeModalDecomposition(const DenseMatrixType& rEigenvectors)
+    {
+        const SparseMatrixType& rMassMatrix = this->GetMassMatrix();
+        SparseMatrixType m_temp = ZeroMatrix(rEigenvectors.size1(),rEigenvectors.size2());
+        boost::numeric::ublas::axpy_prod(rEigenvectors,rMassMatrix,m_temp,true);
+        Matrix modal_mass_matrix = ZeroMatrix(m_temp.size1(),m_temp.size1());
+        boost::numeric::ublas::axpy_prod(m_temp,trans(rEigenvectors),modal_mass_matrix);
+
+        const SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
+        SparseMatrixType k_temp = ZeroMatrix(rEigenvectors.size1(),rEigenvectors.size2());
+        boost::numeric::ublas::axpy_prod(rEigenvectors,rStiffnessMatrix,k_temp,true);
+        Matrix modal_stiffness_matrix = ZeroMatrix(k_temp.size1(),k_temp.size1());
+        boost::numeric::ublas::axpy_prod(k_temp,trans(rEigenvectors),modal_stiffness_matrix);
+
+        ModelPart& rModelPart = BaseType::GetModelPart();
+        rModelPart.GetProcessInfo()[MODAL_MASS_MATRIX] = modal_mass_matrix;
+        rModelPart.GetProcessInfo()[MODAL_STIFFNESS_MATRIX] = modal_stiffness_matrix;
+
+        KRATOS_INFO("ModalMassMatrix")      << modal_mass_matrix << std::endl;
+        KRATOS_INFO("ModalStiffnessMatrix") << modal_stiffness_matrix << std::endl;
     }
 
     ///@}

@@ -65,7 +65,7 @@ ConstitutiveLaw::Pointer SimoJuLocalDamagePlaneStress2DLaw::Clone() const
 void SimoJuLocalDamagePlaneStress2DLaw::CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry )
 {
     //rCharacteristicSize is the diameter of a circle with the same area as the element
-    rCharacteristicSize = sqrt(4.0*DomainGeometry.Area()/KRATOS_M_PI);
+    rCharacteristicSize = sqrt(4.0*DomainGeometry.Area()/Globals::Pi);
 }
 
 } // Namespace Kratos

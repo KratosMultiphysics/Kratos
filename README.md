@@ -1,47 +1,108 @@
-<img src="http://www.cimne.com/kratos/img/logo.png">
+<p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
-# Overview
+[![Release][release-image]][releases] [![License][license-image]][license] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI]
 
-Kratos is a framework for building multi-disciplinary finite element programs. It provides several tools for fast implementation of finite element applications. CFD, CSD, Thermally Coupled Problems, Particles, ...
+[release-image]: https://img.shields.io/badge/release-8.1-green.svg?style=flat
+[releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
-# What is Kratos?
+[license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
+[license]: https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt
 
-_Kratos_ is a framework for building multi-disciplinary finite element programs. It provides several tools for easy implementation of finite element applications and a common platform providing effortless interaction between them. _Kratos_ has an innovative variable base interface designed to be used at different levels of abstraction and implemented to be very clear and extendible. It also provides an efficient yet flexible data structure which can be used to store any type of data in a type-safe manner. The [Python](http://www.python.org/) scripting language is used to define the main procedure of _Kratos_ which significantly improves the flexibility of the framework in time of use.
+[Nightly-Build]: https://github.com/KratosMultiphysics/Kratos/workflows/Nightly%20Build/badge.svg
+[Nightly-link]: https://github.com/KratosMultiphysics/Kratos/actions?query=workflow%3A%22Nightly+Build%22
 
-The kernel and application approach is used to reduce the possible conflicts arising between developers of different fields. Also layers are designed to reflect the working space of different people, considering their programming knowledge.
+[DOI-image]: https://zenodo.org/badge/DOI/10.5281/zenodo.3234644.svg
 
-_Kratos_ is Parallelized for **Shared Memory Machines** (**SMM**s) and **Distributed Memory Machines** (**DMM**s). In the same way it provides tools for its applications to adapt easily their algorithms to these architectures. Its scalability has been verified up to thousands of cores.
+[DOI]: https://doi.org/10.5281/zenodo.3234644
 
-If you have not visited the general [CIMNE _Kratos_ Website](http://www.cimne.com/kratos), you can do it to have an overview of the _Kratos_ capabilities.
+_KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
 
-# Who may use _Kratos_?
+**Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
-Some potential users of _Kratos_ are:
 
-* _Finite Element Developers_: These developers are considered to be more expert in **FEM**, from the physical and mathematical points of view, than C++ programming. For this reason, _Kratos_ provides their requirements without involving them in advanced programming concepts. 
+# Main Features
+**Kratos** is __multiplatform__ and available for __Windows, Linux__ (several distros) and __macOS__.
 
-* _Application Developers_: These users are less interested in finite element programming and their programming knowledge may vary from very expert to higher than basic. They may use not only _Kratos_ itself but also any other applications provided by finite element developers, or other application developers. Developers of optimization programs or design tools are the typical users of this kind. 
+**Kratos** is __OpenMP__ and __MPI__ parallel and scalable up to thousands of cores.
 
-* _Package Users Engineers_: and designers are other users of _Kratos_. They use the complete package of _Kratos_ and its applications to model and solve their problem without getting involved in internal programming of this package. For these users _Kratos_ has to provide a flexible external interface to enable them use different features of _Kratos_ without changing its implementation. 
+**Kratos** provides a core which defines the common framework and several application which work like plug-ins that can be extended in diverse fields.
 
-#Who is _Kratos_?
+Its main applications are:
+- [DEM](applications/DEMApplication) for cohesive and non cohesive spheric and non spheric particles simultion
+- [Fluid Dynamics](applications/FluidDynamicsApplication/README.md) Provides 2D and 3D incompressible fluids formulation
+- [Fluid Structure Interaction](applications/FSIApplication/README.md) for solution of different FSI problems
+- [Structural Mechanics](applications/StructuralMechanicsApplication/README.md) Providing solution for solid, shell and beam structures with linear and nonlinear, static and dynamic behavior
+- [Contact Structural Mechanics](applications/ContactStructuralMechanicsApplication/README.md) For contact problems used along the [Structural Mechanics application](applications/StructuralMechanicsApplication/README.md)
 
-The _Kratos_ structure, due to its multi disciplinary nature, has to support the wide variety of algorithms involved in different areas. That's the principal reason that explain the variety of people, mostly engineers, composing the _Kratos_ Community. 
+Some main modules are:
+- [Linear Solvers](applications/LinearSolversApplication/README.md)
+- [Trilinos](applications/TrilinosApplication/README.md)
+- [Metis](applications/MetisApplication/README.md)
+- [Meshing](applications/MeshingApplication/README.md)
 
-#Keywords
+# Examples of use
+Kratos has been used for simulation of many different problems in a wide variety of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
 
-**Free Multi-physic Finite Element Method C++ Open Source Code**
+<span>
+<img align="center" src="https://github.com/KratosMultiphysics/Examples/raw/master/fluid_dynamics/use_cases/barcelona_wind/resources/BarcelonaVelocityVector.png" width="288">
+  Barcelona Wind Simulation
+</span>
+<br>
 
-_Kratos_ is **MULTI-PHYSIC**. One of the main topics in engineering nowadays is the combination of different analysis (thermal, fluid dynamic, structural) with optimising methods in one global software package with just one user interface and, even more, the possibility to extend the implemented solution to new problems.
+# Contributors
+Organizations contributing to Kratos:
 
-_Kratos_ is **FINITE ELEMENT METHOD** (**FEM**) based. Many problems in engineering and applied science are governed by **Partial Differential Equations** (**PDE**), easily handled by computer thanks to numerical methods. The **FEM** is one of the most powerful, flexible and versatile existing methods.
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/CIMNE_logo.png" width="128">
+</br></br><p>International Center for Numerical Methods in Engineering</p>
 
-_Kratos_ is **OBJECT ORIENTED**. An integration of disciplines, in the physical as well as in the mathematical sense, suggests the use of the modern object oriented philosophy from the computational point of view. The modular design, hierarchy and abstraction of these approaches fits to the generality, flexibility and reusability required for the current and future challenges in numerical methods.
+</br></br>
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/Oop.jpg)
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUM_Logo.png" width="128">
+</br><p>Chair of Structural Analysis</br>Technical University of Munich </p>
 
-_Kratos_ is **OPEN SOURCE**. The main code and program structure is available and aimed to grow with the need of any user willing to expand it. The **[BSD](https://github.com/KratosMultiphysics/Kratos/wiki/_new)** (**Berkeley Software Distribution**) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
+</br><p>Altair Engineering</p>
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/Manos.jpg)
+# Our Users
+Some users of the technologies developed in Kratos are:
 
-_Kratos_ is **FREE** because is devoted mainly to developers, researchers and students and, therefore, is the most fruitful way to share knowledge and built a robust numerical methods laboratory adapted to their users' needs. Free because you have the freedom to modify and distribute the software. The one thing you're not able to do with free software is take away other people's freedom. Please, read the license for more detailed information.
+<span>
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/AIRBUS_logo.png" width="128">
+<p>Airbus Defence and Space</br>Stress Methods & Optimisation Department</p>
+</span>
+<span>
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/siemens_logo.png" width="128">
+<p>Siemens AG</br>Corporate Technology</p>
+</span>
+<span>
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/onera_logo.png" width="128">
+<p>ONERA, The French Aerospace Lab<br>Applied Aerodynamics Department</p>
+</span>
+<span>
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/Deltares_logo.png" width="128">
+<p>Deltares</p>
+</span>
+
+
+Looking forward to seeing your logo here!
+
+# Special Thanks To
+In Kratos Core:
+- [Boost](http://www.boost.org/) for ublas
+- [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
+- [GidPost](https://www.gidhome.com/gid-plus/tools/476/gidpost/) providing output to [GiD](https://www.gidhome.com/)
+- [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
+- [JSON](https://github.com/nlohmann/json) JSON for Modern C++
+- [filesystem](https://github.com/gulrak/filesystem) Header-only single-file std::filesystem compatible helper library, based on the C++17 specs
+- [ZLib](https://zlib.net/) The compression library
+
+In applications:
+- [Eigen](http://eigen.tuxfamily.org) For linear solvers used in the [LinearSolversApplication](applications/LinearSolversApplication)
+- [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in [TrilinosApplication](applications/TrilinosApplication)
+- [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in [MetisApplication](applications/MetisApplication/README.md)
+
+# How to cite Kratos?
+Please, use the following references when citing Kratos in your work.
+- Dadvand, P., Rossi, R. & Oñate, E. An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Arch Computat Methods Eng 17, 253–297 (2010). https://doi.org/10.1007/s11831-010-9045-2
+- Dadvand, P., Rossi, R., Gil, M., Martorell, X., Cotela, J., Juanpere, E., Idelsohn, S., Oñate, E. (2013). Migration of a generic multi-physics framework to HPC environments. Computers & Fluids. 80. 301–309. 10.1016/j.compfluid.2012.02.004.
+- Mataix Ferrándiz, V., Bucher, P., Rossi, R., Cotela, J., Carbonell, J. M., Zorrilla, R., … Tosi, R. (2020, November 27). KratosMultiphysics (Version 8.1). Zenodo. https://doi.org/10.5281/zenodo.3234644

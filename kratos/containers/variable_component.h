@@ -1,46 +1,14 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:33 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
 //
 //
 
@@ -48,20 +16,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_VARIABLE_COMPONENT_H_INCLUDED )
 #define  KRATOS_VARIABLE_COMPONENT_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
-#include "variable_data.h"
-
+#include "containers/variable_data.h"
 
 namespace Kratos
 {
@@ -85,14 +48,16 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Provide information for store or retrive a component of a variable in data container.
-/** Provide information for store or retrive a component of a
-    variable in data container. This class also provide a method to
-    extract its component value from the source variable value in
-    container.
-*/
+/**
+ * @class VariableComponent
+ * @brief Provide information for store or retrive a component of a variable in data container.
+ * @details Provide information for store or retrive a component of a variable in data container. This class also provide a method to extract its component value from the source variable value in container.
+ * @tparam TAdaptorType The adaptor variable type
+ * @ingroup KratosCore
+ * @author Pooyan Dadvand
+ */
 template<class TAdaptorType>
-class VariableComponent : public VariableData
+class KRATOS_DEPRECATED_MESSAGE("This class is no longer used and can be removed") VariableComponent : public VariableData
 {
 public:
     ///@name Type Definitions
@@ -119,21 +84,31 @@ public:
     /// Adaptor type.
     typedef TAdaptorType AdaptorType;
 
+    typedef VariableComponent<TAdaptorType> VariableComponentType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    VariableComponent(const std::string& NewName, const AdaptorType& NewAdaptor)
-        : BaseType(NewName, sizeof(DataType), true), mAdaptor(NewAdaptor)
+    VariableComponent(
+        const std::string& rComponentName,
+        const std::string& rSourceName,
+        int ComponentIndex,
+        const AdaptorType& rNewAdaptor,
+        const VariableComponentType* pTimeDerivativeVariable = nullptr
+        )
+        : BaseType(rComponentName, sizeof(DataType),&rNewAdaptor.GetSourceVariable(), rNewAdaptor.GetComponentIndex()), mpSourceVariable(&rNewAdaptor.GetSourceVariable()),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {
+        SetKey(GenerateKey(rSourceName, sizeof(DataType), true, ComponentIndex));
     }
 
     /// Copy constructor.
     VariableComponent(const VariableComponent& rOther)
-        : BaseType(rOther), mAdaptor(rOther.mAdaptor) {}
+        : BaseType(rOther), mpSourceVariable(rOther.mpSourceVariable) {}
 
     /// Destructor.
-    virtual ~VariableComponent() {}
+    ~VariableComponent() override {}
 
 
     ///@}
@@ -145,39 +120,44 @@ public:
     ///@name Operations
     ///@{
 
-
     ///@}
     ///@name Access
     ///@{
 
-    const SourceVariableType& GetSourceVariable() const
+    /**
+     * @brief This method returns the time derivative component variable
+     * @return The reference of the time derivative component variable (if any)
+     */
+    const VariableComponentType& GetTimeDerivative() const
     {
-        return mAdaptor.GetSourceVariable();
+        KRATOS_DEBUG_ERROR_IF(mpTimeDerivativeVariable == nullptr) << "Time derivative for Variable \"" << Name() << "\" was not assigned" << std::endl;
+        return *mpTimeDerivativeVariable;
     }
 
-    const AdaptorType& GetAdaptor() const
+    const SourceVariableType& GetSourceVariable() const
     {
-        return mAdaptor;
+        return *mpSourceVariable;
     }
 
     DataType& GetValue(SourceType& SourceValue) const
     {
-        return mAdaptor.GetValue(SourceValue);
+        return GetValueByIndex(SourceValue,GetComponentIndex());
     }
 
     const DataType& GetValue(const SourceType& SourceValue) const
     {
-        return mAdaptor.GetValue(SourceValue);
+        return GetValueByIndex(SourceValue,GetComponentIndex());
     }
 
     static VariableComponent const& StaticObject()
     {
-        return msStaticObject;
+        static const VariableComponent<TAdaptorType> static_object("NONE", "NONE", 0, TAdaptorType::StaticObject());
+        return static_object;
     }
 
     void Print(const void* pSource, std::ostream& rOStream) const override
     {
-        rOStream << Name() << " component of " <<  mAdaptor.GetSourceVariable().Name() << " variable : " <<  *static_cast<const DataType* >(pSource) ;
+        rOStream << Name() << " component of " <<  GetSourceVariable().Name() << " variable : " <<  *static_cast<const DataType* >(pSource) ;
     }
 
     ///@}
@@ -190,17 +170,17 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << Name() << " component of " <<  mAdaptor.GetSourceVariable().Name() << " variable";
+        buffer << Name() << " component of " <<  GetSourceVariable().Name() << " variable";
         return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Name() << " component of " <<  mAdaptor.GetSourceVariable().Name() << " variable";
+        rOStream << Name() << " component of " <<  GetSourceVariable().Name() << " variable";
     }
 
     /// Print object's data.
@@ -232,7 +212,7 @@ protected:
     VariableComponent& operator=(const VariableComponent& rOther)
     {
         BaseType::operator=(rOther);
-        mAdaptor = rOther.mAdaptor;
+        mpSourceVariable = rOther.mpSourceVariable;
     }
 
     ///@}
@@ -263,12 +243,13 @@ private:
 
     static const VariableComponent  msStaticObject;
 
-
     ///@}
     ///@name Member Variables
     ///@{
 
-    TAdaptorType mAdaptor;
+    const SourceVariableType* mpSourceVariable;
+
+    const VariableComponentType* mpTimeDerivativeVariable = nullptr; /// Definition of the pointer to the variable for the time derivative
 
     ///@}
     ///@name Serialization
@@ -282,6 +263,21 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /// This is the default function for getting a value by index using operator[]
+    /** It is templated so one can create specialized version of this for types without operator[]
+    **/
+    template<typename TValueType>
+    DataType& GetValueByIndex(TValueType& rValue, std::size_t index) const
+    {
+        return rValue[index];
+    }
+
+    template<typename TValueType>
+    const DataType& GetValueByIndex(const TValueType& rValue, std::size_t index) const
+    {
+        return rValue[index];
+    }
 
 
     ///@}
@@ -305,9 +301,6 @@ private:
 }; // Class VariableComponent
 
 ///@}
-
-template<class TAdaptorType>
-const VariableComponent<TAdaptorType> VariableComponent<TAdaptorType>::msStaticObject("NONE", TAdaptorType::StaticObject());
 
 ///@name Type Definitions
 ///@{
@@ -338,6 +331,6 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FILENAME_H_INCLUDED  defined 
+#endif // KRATOS_FILENAME_H_INCLUDED  defined
 
 

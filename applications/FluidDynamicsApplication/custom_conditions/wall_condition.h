@@ -89,9 +89,8 @@ namespace Kratos
       It is intended to be used in combination with ASGS and VMS elements or their derived classes
       and the ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent time scheme, which supports
       slip conditions.
-      This condition will add a wall stress term to all nodes identified with IS_STRUCTURE!=0.0 (in the
-      non-historic database, that is, assigned using Node.SetValue()). This stress term is determined
-      according to the wall distance provided as Y_WALL.
+      This condition will add a wall stress term to all nodes identified with SLIP==true (in the
+      nodal flags). This stress term is determined according to the wall distance provided as Y_WALL.
       @see ASGS2D,ASGS3D,VMS,ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
      */
     template< unsigned int TDim, unsigned int TNumNodes = TDim >
@@ -102,7 +101,7 @@ namespace Kratos
         ///@{
 
         /// Pointer definition of WallCondition
-        KRATOS_CLASS_POINTER_DEFINITION(WallCondition);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(WallCondition);
 
         typedef Node < 3 > NodeType;
 
@@ -125,8 +124,6 @@ namespace Kratos
         typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
         typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-        typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
 
         ///@}
         ///@name Life Cycle
@@ -183,7 +180,7 @@ namespace Kratos
         }
 
         /// Destructor.
-        virtual ~WallCondition(){}
+        ~WallCondition() override{}
 
 
         ///@}
@@ -208,26 +205,26 @@ namespace Kratos
           @param ThisNodes An array containing the nodes of the new condition
           @param pProperties Pointer to the element's properties
           */
-        virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+        Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
         {
-            return Condition::Pointer(new WallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+            return Kratos::make_intrusive<WallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         }
 
 
-        virtual Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+        Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
         {
-	  		return Condition::Pointer(new WallCondition(NewId, pGeom, pProperties));
+            return Kratos::make_intrusive<WallCondition>(NewId, pGeom, pProperties);
         }
 
         /**
          * Clones the selected element variables, creating a new one
-         * @param NewId: the ID of the new element
-         * @param ThisNodes: the nodes of the new element
-         * @param pProperties: the properties assigned to the new element
+         * @param NewId the ID of the new element
+         * @param ThisNodes the nodes of the new element
+         * @param pProperties the properties assigned to the new element
          * @return a Pointer to the new element
          */
 
-        virtual Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
+        Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
         {
             Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
@@ -238,8 +235,8 @@ namespace Kratos
         }
 
 
-        virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                           ProcessInfo& rCurrentProcessInfo) override
+        void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                           const ProcessInfo& rCurrentProcessInfo) override
         {
             VectorType RHS;
             this->CalculateLocalSystem(rLeftHandSideMatrix,RHS,rCurrentProcessInfo);
@@ -247,17 +244,18 @@ namespace Kratos
 
 
 
-        /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
+        /// Calculate wall stress term for all nodes with SLIP set.
         /**
           @param rDampingMatrix Left-hand side matrix
           @param rRightHandSideVector Right-hand side vector
           @param rCurrentProcessInfo ProcessInfo instance (unused)
           */
-        virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+        void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo) override
+                                          const ProcessInfo& rCurrentProcessInfo) override
         {
-			unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+            const ProcessInfo& r_process_info = rCurrentProcessInfo;
+            unsigned int step = r_process_info[FRACTIONAL_STEP];
             if ( step == 1)
             {
                 // Initialize local contributions
@@ -293,11 +291,9 @@ namespace Kratos
                     noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes,TNumNodes);
                     noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
-                    const double dt = rCurrentProcessInfo[DELTA_TIME];
-                    const double equivalent_structural_density = rCurrentProcessInfo[DENSITY];
+                    const double dt = r_process_info[DELTA_TIME];
+                    const double equivalent_structural_density = r_process_info[DENSITY];
                     const double diag_term = dt*Area*N/( equivalent_structural_density );
-
-					//KRATOS_WATCH(equivalent_structural_density)
 
                     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
                     {
@@ -317,7 +313,7 @@ namespace Kratos
 
 
         /// Check that all data required by this condition is available and reasonable
-        virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
+        int Check(const ProcessInfo& rCurrentProcessInfo) const override
         {
             KRATOS_TRY;
 
@@ -329,20 +325,7 @@ namespace Kratos
             }
             else
             {
-                // Check that all required variables have been registered
-                if(VELOCITY.Key() == 0)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-                if(MESH_VELOCITY.Key() == 0)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
-                if(NORMAL.Key() == 0)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","")
-                if(IS_STRUCTURE.Key() == 0)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
-                if(Y_WALL.Key() == 0)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","")
-
                 // Checks on nodes
-
                 // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
                 for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
                 {
@@ -371,8 +354,8 @@ namespace Kratos
          * @param rResult A vector containing the global Id of each row
          * @param rCurrentProcessInfo the current process info object (unused)
          */
-        virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+        void EquationIdVector(EquationIdVectorType& rResult,
+                                      const ProcessInfo& rCurrentProcessInfo) const override;
 
 
         /// Returns a list of the element's Dofs
@@ -380,8 +363,8 @@ namespace Kratos
          * @param ElementalDofList the list of DOFs
          * @param rCurrentProcessInfo the current process info instance
          */
-        virtual void GetDofList(DofsVectorType& ConditionDofList,
-                                ProcessInfo& CurrentProcessInfo) override;
+        void GetDofList(DofsVectorType& ConditionDofList,
+                                const ProcessInfo& CurrentProcessInfo) const override;
 
 
         /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) for each node
@@ -389,8 +372,8 @@ namespace Kratos
          * @param Values Vector of nodal unknowns
          * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
          */
-        virtual void GetValuesVector(Vector& Values,
-                                     int Step = 0) override
+        void GetValuesVector(Vector& Values,
+                                     int Step = 0) const override
         {
             const SizeType LocalSize = TDim * TNumNodes;
             unsigned int LocalIndex = 0;
@@ -400,7 +383,7 @@ namespace Kratos
 
             for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
             {
-                array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
+                const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
                 for (unsigned int d = 0; d < TDim; ++d)
                     Values[LocalIndex++] = rVelocity[d];
             }
@@ -430,7 +413,7 @@ namespace Kratos
 //        }
 
 
-        virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                                                  std::vector<array_1d<double, 3 > >& rValues,
                                                  const ProcessInfo& rCurrentProcessInfo) override
         {
@@ -454,7 +437,7 @@ namespace Kratos
 
 
 
-        virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+        void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                                                  std::vector<double>& rValues,
                                                  const ProcessInfo& rCurrentProcessInfo) override
         {
@@ -470,7 +453,7 @@ namespace Kratos
         }
 
 
-        virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                                                  std::vector<array_1d<double, 6 > >& rValues,
                                                  const ProcessInfo& rCurrentProcessInfo) override
         {
@@ -480,7 +463,7 @@ namespace Kratos
         }
 
 
-        virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+        void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
                                                  std::vector<Vector>& rValues,
                                                  const ProcessInfo& rCurrentProcessInfo) override
         {
@@ -490,7 +473,7 @@ namespace Kratos
         }
 
 
-        virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+        void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                                  std::vector<Matrix>& rValues,
                                                  const ProcessInfo& rCurrentProcessInfo) override
         {
@@ -516,24 +499,24 @@ namespace Kratos
         ///@{
 
         /// Turn back information as a string.
-        virtual std::string Info() const override
+        std::string Info() const override
         {
             std::stringstream buffer;
-			this->PrintInfo(buffer);
+            this->PrintInfo(buffer);
             return buffer.str();
         }
 
         /// Print information about this object.
-        virtual void PrintInfo(std::ostream& rOStream) const override
-	   	{
-			rOStream << "WallCondition" << TDim << "D #" << this->Id();
-		}
+        void PrintInfo(std::ostream& rOStream) const override
+        {
+            rOStream << "WallCondition" << TDim << "D #" << this->Id();
+        }
 
         /// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const override
-	   	{
-			this->pGetGeometry()->PrintData(rOStream);
-		}
+        void PrintData(std::ostream& rOStream) const override
+        {
+            this->pGetGeometry()->PrintData(rOStream);
+        }
 
 
         ///@}
@@ -584,7 +567,7 @@ namespace Kratos
             {
                 const NodeType& rConstNode = rGeometry[itNode];
                 const double y = rConstNode.GetValue(Y_WALL); // wall distance to use in stress calculation
-                if( y > 0.0 && rConstNode.GetValue(IS_STRUCTURE) != 0.0 )
+                if( y > 0.0 && rConstNode.Is(SLIP) )
                 {
                     array_1d<double,3> Vel = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
                     const array_1d<double,3>& VelMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
@@ -700,12 +683,12 @@ namespace Kratos
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const override
+        void save(Serializer& rSerializer) const override
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
         }
 
-        virtual void load(Serializer& rSerializer) override
+        void load(Serializer& rSerializer) override
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
         }

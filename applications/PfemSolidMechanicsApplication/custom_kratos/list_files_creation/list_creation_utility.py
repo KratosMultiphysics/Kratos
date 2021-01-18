@@ -15,13 +15,13 @@ if(list_variables.print_lists == "True"):
     print_lists = True
 else:
     print_lists = False
-    
+
 # set output mode
 if(list_variables.output_mode == "Binary"):
     output_mode = ".post.bin"
 if(list_variables.output_mode == "Ascii"):
     output_mode = ".post.res"
-            
+
 # initialize lists
 file_list = list_variables.file_list
 
@@ -42,7 +42,7 @@ def RemoveListFiles():
             if(os.path.exists(f)):
                 try:
                     os.remove(f)
-                except WindowsError:
+                except OSError:
                     pass
 
 # ----------------------------------------------------------------#
@@ -50,13 +50,13 @@ def RemoveListFiles():
 def FileExists(file_name):
 
     file_exists = False
-    
+
     if(os.path.exists(file_name)):
         file_exists = True
 
     return file_exists
- 
-# ----------------------------------------------------------------#       
+
+# ----------------------------------------------------------------#
 #
 def ReBuildListFiles():
 
@@ -70,25 +70,25 @@ def ReBuildListFiles():
         for f in os.listdir(problem_path):
 
             if(f.endswith(output_mode)):
-                    
+
                 #if f.name = problem_tested_145.post.bin
                 file_parts = f.split('_')  # you get ["problem","tested","145.post.bin"]
-                num_parts  = len(file_parts) 
-                
+                num_parts  = len(file_parts)
+
                 end_parts  = file_parts[num_parts-1].split(".") # you get ["145","post","bin"]
                 print_id   = end_parts[0] # you get "145"
-                
+
                 file_id.append(int(print_id))
 
-  
+
         file_id.sort()
 
         num_list_files = len(file_id)
 
         for lfile in range(0, num_list_files):
-               
+
             print_id   = file_id[lfile]
-                   
+
             num_list_files = len(file_list)
 
             for lfile in range(0, num_list_files):
@@ -98,14 +98,14 @@ def ReBuildListFiles():
 
                     if(FileExists(problempath) == False):
                         header_in_list[lfile]
-                                
+
                     listfile = open(problempath, "a")
 
                     if(header_in_list[lfile]):
                         problemname = "Multiple\n"
                         listfile.write(problemname)
                         header_in_list[lfile] = False
-                        
+
                     problemname = problem_name + "_" + str(print_id) + output_mode + "\n"
                     listfile.write(problemname)
                     listfile.close()

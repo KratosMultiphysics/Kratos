@@ -10,14 +10,13 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <pybind11/pybind11.h>
+//#include <pybind11/st1.h>
 
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_modelers_to_python.h"
-
 
 // Meshers
 // #include "custom_modelers/triangular_fluid_mesh_2D_modeler.hpp"
@@ -28,13 +27,10 @@ namespace Kratos
 namespace Python
 {
 
- void  AddCustomModelersToPython()
-  {
+void AddCustomModelersToPython(pybind11::module &m)
+{
+}
 
-      
-  }
-
-}  // namespace Python.
+} // namespace Python.
 
 } // Namespace Kratos
-

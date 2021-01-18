@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -21,11 +21,11 @@ namespace Kratos
  */
 template <>
 void VMS<2>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
+                              const ProcessInfo& rCurrentProcessInfo) const 
 {
     const unsigned int NumNodes(3),LocalSize(9);
     unsigned int LocalIndex = 0;
-    
+
     unsigned int vpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
     unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
 
@@ -45,7 +45,7 @@ void VMS<2>::EquationIdVector(EquationIdVectorType& rResult,
  */
 template <>
 void VMS<3>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
+                              const ProcessInfo& rCurrentProcessInfo) const 
 {
     const unsigned int NumNodes(4),LocalSize(16);
     unsigned int LocalIndex = 0;
@@ -69,7 +69,7 @@ void VMS<3>::EquationIdVector(EquationIdVectorType& rResult,
  */
 template <>
 void VMS<2>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
+                        const ProcessInfo& rCurrentProcessInfo) const 
 {
     const unsigned int NumNodes(3),LocalSize(9);
     if (rElementalDofList.size() != LocalSize)
@@ -90,7 +90,7 @@ void VMS<2>::GetDofList(DofsVectorType& rElementalDofList,
  */
 template <>
 void VMS<3>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
+                        const ProcessInfo& rCurrentProcessInfo) const 
 {
     const unsigned int NumNodes(4),LocalSize(16);
     if (rElementalDofList.size() != LocalSize)
@@ -111,7 +111,7 @@ void VMS<3>::GetDofList(DofsVectorType& rElementalDofList,
  * @see VMS::GetFirstDerivativesVector
  */
 template <>
-void VMS<2>::GetFirstDerivativesVector(Vector& Values, int Step)
+void VMS<2>::GetFirstDerivativesVector(Vector& Values, int Step) const 
 {
     const unsigned int NumNodes(3),LocalSize(9);
     unsigned int LocalIndex = 0;
@@ -121,7 +121,7 @@ void VMS<2>::GetFirstDerivativesVector(Vector& Values, int Step)
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
+        const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
         Values[LocalIndex++] = rVelocity[0];
         Values[LocalIndex++] = rVelocity[1];
         Values[LocalIndex++] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE, Step);
@@ -132,7 +132,7 @@ void VMS<2>::GetFirstDerivativesVector(Vector& Values, int Step)
  * @see VMS::GetFirstDerivativesVector
  */
 template <>
-void VMS<3>::GetFirstDerivativesVector(Vector& Values, int Step)
+void VMS<3>::GetFirstDerivativesVector(Vector& Values, int Step) const 
 {
     const unsigned int NumNodes(4),LocalSize(16);
     unsigned int LocalIndex = 0;
@@ -142,7 +142,7 @@ void VMS<3>::GetFirstDerivativesVector(Vector& Values, int Step)
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
+        const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
         Values[LocalIndex++] = rVelocity[0];
         Values[LocalIndex++] = rVelocity[1];
         Values[LocalIndex++] = rVelocity[2];
@@ -154,7 +154,7 @@ void VMS<3>::GetFirstDerivativesVector(Vector& Values, int Step)
  * @see VMS::GetSecondDerivativesVector
  */
 template <>
-void VMS<2>::GetSecondDerivativesVector(Vector& Values, int Step)
+void VMS<2>::GetSecondDerivativesVector(Vector& Values, int Step) const 
 {
     const unsigned int NumNodes(3),LocalSize(9);
     unsigned int LocalIndex = 0;
@@ -164,7 +164,7 @@ void VMS<2>::GetSecondDerivativesVector(Vector& Values, int Step)
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        array_1d<double,3>& rAcceleration = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
+        const array_1d<double,3>& rAcceleration = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
         Values[LocalIndex++] = rAcceleration[0];
         Values[LocalIndex++] = rAcceleration[1];
         Values[LocalIndex++] = 0.0; // Pressure Dof
@@ -175,7 +175,7 @@ void VMS<2>::GetSecondDerivativesVector(Vector& Values, int Step)
  * @see VMS::GetSecondDerivativesVector
  */
 template <>
-void VMS<3>::GetSecondDerivativesVector(Vector& Values, int Step)
+void VMS<3>::GetSecondDerivativesVector(Vector& Values, int Step) const 
 {
     const unsigned int NumNodes(4),LocalSize(16);
     unsigned int LocalIndex = 0;
@@ -185,7 +185,7 @@ void VMS<3>::GetSecondDerivativesVector(Vector& Values, int Step)
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        array_1d<double,3>& rAcceleration = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
+        const array_1d<double,3>& rAcceleration = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
         Values[LocalIndex++] = rAcceleration[0];
         Values[LocalIndex++] = rAcceleration[1];
         Values[LocalIndex++] = rAcceleration[2];
@@ -236,7 +236,7 @@ void VMS<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
 
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        BoundedMatrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
@@ -249,7 +249,7 @@ void VMS<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
     {
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        BoundedMatrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         array_1d<double,3> AdvVel;
@@ -267,7 +267,7 @@ void VMS<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
 
         // Set output vector (for a single integration point)
         rOutput.resize(1);
-        array_1d<double,3> MomError(3,0.0);
+        array_1d<double,3> MomError = ZeroVector(3);
         if (rCurrentProcessInfo[OSS_SWITCH]==1)
         {
             this->OSSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
@@ -316,7 +316,7 @@ void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
 
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        BoundedMatrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
@@ -331,7 +331,7 @@ void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
     {
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        BoundedMatrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         array_1d<double,3> AdvVel;
@@ -349,7 +349,7 @@ void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
 
         // Set output vector (for a single integration point)
         rOutput.resize(1);
-        array_1d<double,3> MomError(3,0.0);
+        array_1d<double,3> MomError = ZeroVector(3);
         if (rCurrentProcessInfo[OSS_SWITCH]==1)
         {
             this->OSSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
@@ -380,12 +380,12 @@ void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
 
 
 template <>
-double VMS<2,3>::EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double,3,2> &rDN_DX) const
+double VMS<2,3>::EquivalentStrainRate(const BoundedMatrix<double,3,2> &rDN_DX) const
 {
     const GeometryType& rGeom = this->GetGeometry();
 
     // Calculate Symetric gradient (Voigt notation)
-    array_1d<double,3> S(3,0.0);
+    array_1d<double,3> S = ZeroVector(3);
     for (unsigned int n = 0; n < 3; ++n)
     {
         const array_1d<double,3>& rVel = rGeom[n].FastGetSolutionStepValue(VELOCITY);
@@ -400,12 +400,12 @@ double VMS<2,3>::EquivalentStrainRate(const boost::numeric::ublas::bounded_matri
 
 
 template <>
-double VMS<3,4>::EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double,4,3> &rDN_DX) const
+double VMS<3,4>::EquivalentStrainRate(const BoundedMatrix<double,4,3> &rDN_DX) const
 {
     const GeometryType& rGeom = this->GetGeometry();
 
     // Calculate Symetric gradient (Voigt notation)
-    array_1d<double,6> S(6,0.0);
+    array_1d<double,6> S = ZeroVector(6);
     for (unsigned int n = 0; n < 4; ++n)
     {
         const array_1d<double,3>& rVel = rGeom[n].FastGetSolutionStepValue(VELOCITY);
@@ -426,8 +426,8 @@ double VMS<3,4>::EquivalentStrainRate(const boost::numeric::ublas::bounded_matri
  * See VMS::CalculateB
  */
 template <>
-void VMS<2,3>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 3, 6 >& rB,
-                           const boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rShapeDeriv)
+void VMS<2,3>::CalculateB( BoundedMatrix<double, 3, 6 >& rB,
+                           const BoundedMatrix<double, 3, 2 >& rShapeDeriv)
 {
     for (unsigned int i = 0; i < 3; i++)
     {
@@ -446,8 +446,8 @@ void VMS<2,3>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 3, 6 >&
  * See VMS::CalculateB
  */
 template <>
-void VMS<3,4>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 6, 12 >& rB,
-                           const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv)
+void VMS<3,4>::CalculateB( BoundedMatrix<double, 6, 12 >& rB,
+                           const BoundedMatrix<double, 4, 3 >& rShapeDeriv)
 {
     const unsigned int Dim = 3;
     const unsigned int NumNodes = 4;
@@ -481,7 +481,7 @@ void VMS<3,4>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 6, 12 >
  * See VMS::CalculateC
  */
 template <>
-void VMS<2,3>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & rC,
+void VMS<2,3>::CalculateC(BoundedMatrix<double, 3, 3 > & rC,
                           const double Viscosity)
 {
     rC(0, 0) =  Viscosity*(1.3333333333333333333333333333333);
@@ -499,7 +499,7 @@ void VMS<2,3>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 3, 3 > &
  * See VMS::CalculateC
  */
 template <>
-void VMS<3,4>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 6,6 > & rC,
+void VMS<3,4>::CalculateC(BoundedMatrix<double, 6,6 > & rC,
                           const double Viscosity)
 {
     noalias(rC) = ZeroMatrix(6,6);
@@ -534,7 +534,7 @@ void VMS<3,4>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 6,6 > & 
  */
 template <>
 void VMS<2,3>::AddViscousTerm(MatrixType& rDampingMatrix,
-                              const boost::numeric::ublas::bounded_matrix<double,3,2>& rShapeDeriv,
+                              const BoundedMatrix<double,3,2>& rShapeDeriv,
                               const double Weight)
 {
     const unsigned int NumNodes = 3;
@@ -569,7 +569,7 @@ void VMS<2,3>::AddViscousTerm(MatrixType& rDampingMatrix,
  */
 template <>
 void VMS<3,4>::AddViscousTerm(MatrixType& rDampingMatrix,
-                              const boost::numeric::ublas::bounded_matrix<double,4,3>& rShapeDeriv,
+                              const BoundedMatrix<double,4,3>& rShapeDeriv,
                               const double Weight)
 {
     const unsigned int NumNodes = 4;

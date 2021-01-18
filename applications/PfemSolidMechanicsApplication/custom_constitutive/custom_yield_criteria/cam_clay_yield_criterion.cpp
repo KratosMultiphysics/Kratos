@@ -15,380 +15,296 @@
 
 // Project includes
 #include "includes/define.h"
+#include "custom_utilities/stress_invariants_utilities.hpp"
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
 
 #include "pfem_solid_mechanics_application_variables.h"
+
 
 namespace Kratos
 {
 
 
-//*******************************CONSTRUCTOR******************************************
-//************************************************************************************
-CamClayYieldCriterion::CamClayYieldCriterion()
-	:YieldCriterion()
-{
-   
-}
-
-//*****************************INITIALIZATION CONSTRUCTOR*****************************
-//************************************************************************************
-
-CamClayYieldCriterion::CamClayYieldCriterion(HardeningLawPointer pHardeningLaw)
-	:YieldCriterion(pHardeningLaw)
-{
-   
-}
-
-
-//*******************************ASSIGMENT OPERATOR***********************************
-//************************************************************************************
-
-CamClayYieldCriterion& CamClayYieldCriterion::operator=(CamClayYieldCriterion const& rOther)
-{
-   YieldCriterion::operator=(rOther);
-   return *this;
-}
-
-//*******************************COPY CONSTRUCTOR*************************************
-//************************************************************************************
-
-CamClayYieldCriterion::CamClayYieldCriterion(CamClayYieldCriterion const& rOther)
-	:YieldCriterion(rOther)
-{
-
-}
-
-
-//********************************DESTRUCTOR******************************************
-//************************************************************************************
-
-CamClayYieldCriterion::~CamClayYieldCriterion()
-{
-}
-
-
-
-//************************* CALCULATE YIELD FUNCTION  ******************
-//**********************************************************************
-
-double& CamClayYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha)
-{
- 
-   double MeanStress;
-   double DeviatoricQ;
-   this->CalculateInvariants( rStressVector, MeanStress, DeviatoricQ);
-   
-   const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
-
-   double PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha);
-
-   double ThirdInvariantEffect = EvaluateThirdInvariantEffect(rStressVector);
-
-   rStateFunction = pow(ThirdInvariantEffect * DeviatoricQ/ShearM, 2);
-   rStateFunction += (MeanStress * (MeanStress - PreconsolidationStress) );
-
-
-
-//   std::cout << "P " << MeanStress << " Q " << DeviatoricQ << " PC " << PreconsolidationStress << " st " << rStateFunction << std::endl;
-//   std::cout << " SV " << rStressVector << std::endl;
-   //rStateFunction = -1.0;
-   return rStateFunction; 
-}
-
-
-void CamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rYieldFunctionD, const double& rAlpha)
-{
-    double PreconsolidationStress = 0;
-    PreconsolidationStress = this->GetHardeningLaw().CalculateHardening(PreconsolidationStress, rAlpha);
-    const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
-    double MeanStress;
-    double DeviatoricQ;
-
-
-    this->CalculateInvariants( rStressVector, MeanStress, DeviatoricQ);
-    double ThirdInvariantEffect = EvaluateThirdInvariantEffect(rStressVector);
-
-    Vector IdentityVector = ZeroVector(6);
-    for (unsigned int i = 0; i<3; ++i)
-          IdentityVector(i) = 1.0/3.0;
-
-    Vector ShearVector = ZeroVector(6);
-    for (unsigned int i = 0; i<3; ++i)
-       ShearVector(i) = rStressVector(i) - MeanStress;
-
-    for (unsigned int i = 3; i<6; ++i)
-       ShearVector(i) = 2.0*rStressVector(i);
- 
-  
-    rYieldFunctionD = ( 2.0*MeanStress - PreconsolidationStress) * IdentityVector; 
- 
-    rYieldFunctionD += 3.0 * ShearVector * pow(ThirdInvariantEffect/ShearM, 2) ;
-
-    //CalculateAndAddThirdInvDerivative( rStressVector, rYieldFunctionD);
-
-
-}
-
-double CamClayYieldCriterion::EvaluateThirdInvariantEffect( const Vector& rStressVector)
-{
-
-
-   double Effect = 1.0;
-   double Friction = this->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
-   if (Friction < 0.0) {
-      return 1.0;
-   }
-   Friction *= GetPI() / 180.0;
-
-   Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rStressVector );
-
-   double MeanStress = 0.0;
-   for (unsigned int i = 0; i < 3; ++i)
-      MeanStress += StressTensor(i,i);
-   MeanStress /=3;
-
-   double J2InvSQ = 0.0;
-   for (unsigned int i = 0; i < 3; ++i)
-      J2InvSQ += pow(StressTensor(i,i) - MeanStress, 2);
-
-   J2InvSQ += 2.0*pow(StressTensor(0,1), 2);
-   J2InvSQ += 2.0*pow(StressTensor(0,2), 2);
-   J2InvSQ += 2.0*pow(StressTensor(1,2), 2);
-
-   J2InvSQ = sqrt( J2InvSQ/2.0);
-
-   for (unsigned int i = 0; i < 3; ++i)
-      StressTensor(i,i) -= MeanStress;
-   double LodeSin = MathUtils<double>::Det(StressTensor);
-
-   LodeSin = 3.0*sqrt(3.0)/2.0 * LodeSin / pow( J2InvSQ, 3);
-
-
-
-   double epsi = 1.0e-5;
-   double LodeAngle;
-   if ( fabs( LodeSin ) > 1.0-epsi) {
-      LodeAngle = -30.0*GetPI() / 180.0 * LodeSin / fabs(LodeSin);
-   }
-   else if ( J2InvSQ < 10.0*epsi) {
-      LodeAngle = 30.0*GetPI() / 180.0;
-   } 
-   else {
-      LodeAngle = std::asin( -LodeSin) / 3.0;
-   }
-
-
-   //std::cout << " JUST TO CHECK: rSV " << rStressVector << " LDOE " << LodeAngle/(GetPI()/180.0) << " lodeSin " << LodeSin << " invJ2 " << J2InvSQ << std::endl;
-
-   double LodeCut = GetSmoothingLodeAngle();
-
-   if ( fabs(LodeAngle)  < LodeCut) {
-
-      Effect = std::cos(LodeAngle) - 1.0/sqrt(3.0) * std::sin(Friction) * std::sin(LodeAngle); 
-
-   }
-   else {
-
-      double A, B;
-      GetSmoothingConstants(A, B, LodeAngle);
-      Effect = A + B*std::sin(3.0*LodeAngle);
-      //std::cout << " LODE " << LodeAngle / (GetPI() / 180.0) <<  " lodeCUT " << LodeCut/(GetPI() / 180.0) << std::endl;
+   //*******************************CONSTRUCTOR******************************************
+   //************************************************************************************
+   CamClayYieldCriterion::CamClayYieldCriterion()
+      :YieldCriterion()
+   {
 
    }
 
-   //Effect /= (3.0-std::sin(Friction)) / 2.0/sqrt(3.0);
-   Effect /= ( sqrt(3)/6) * (3.0 - std::sin(Friction) );
+   //*****************************INITIALIZATION CONSTRUCTOR*****************************
+   //************************************************************************************
 
-   //std::cout << " ---InTheEffect: Lode " << LodeAngle*180.0/GetPI() << " and Effect " << Effect << std::endl;
-   return Effect;
-
-}
-
-void CamClayYieldCriterion::CalculateInvariants(const Vector& rStressVector, double& rMeanPressure, double& rDeviatoricQ)
-{
-    rMeanPressure = 0.0;
-    for (unsigned int i = 0; i<3; ++i)
-         rMeanPressure += rStressVector(i);
-
-    rMeanPressure /= 3.0;
-
-    rDeviatoricQ = 0.0;
-   
-    for (unsigned int i = 0; i<3; ++i)
-      rDeviatoricQ += pow( rStressVector(i) - rMeanPressure, 2);
-
-    for (unsigned int i = 3; i<6; ++i)
-      rDeviatoricQ += 2.0*pow(rStressVector(i), 2);
-   
-    rDeviatoricQ = pow( 1.5 * rDeviatoricQ, 0.5);
-
-
-}
-
-
-void CamClayYieldCriterion::CalculateAndAddThirdInvDerivative(const Vector& rStressVector, Vector& rYieldFunctionD)
-{
-
-   // LAS PROPERAS LINEAS SON UN DESASTRE PORQUE ES UN COPY PASTE DE UN TROZO QUE SALE ARRIBA
-
-   double Effect = 1.0;
-   double Friction = this->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
-   if (Friction < 0.0) {
-      return;
-   }
-   Friction *= GetPI() / 180.0;
-
-   Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rStressVector );
-
-   double MeanStress = 0.0;
-   for (unsigned int i = 0; i < 3; ++i)
-      MeanStress += StressTensor(i,i);
-   MeanStress /=3;
-
-   double J2InvSQ = 0.0;
-   for (unsigned int i = 0; i < 3; ++i)
-      J2InvSQ += pow(StressTensor(i,i) - MeanStress, 2);
-
-   J2InvSQ += 2.0*pow(StressTensor(0,1), 2);
-   J2InvSQ += 2.0*pow(StressTensor(0,2), 2);
-   J2InvSQ += 2.0*pow(StressTensor(1,2), 2);
-
-   J2InvSQ = sqrt( J2InvSQ/2.0);
-
-   for (unsigned int i = 0; i < 3; ++i)
-      StressTensor(i,i) -= MeanStress;
-   double LodeSin = MathUtils<double>::Det(StressTensor);
-
-   LodeSin = 3.0*sqrt(3.0)/2.0 * LodeSin / pow( J2InvSQ, 3);
-
-
-
-   double epsi = 1.0e-5;
-   double LodeAngle;
-   if ( fabs( LodeSin ) > 1.0-epsi) {
-      LodeAngle = -30.0*GetPI() / 180.0 * LodeSin / fabs(LodeSin);
-   }
-   else if ( J2InvSQ < 10.0*epsi) {
-      LodeAngle = 30.0*GetPI() / 180.0;
-   } 
-   else {
-      LodeAngle = std::asin( -LodeSin) / 3.0;
-   }
-
-
-   double LodeCut = GetSmoothingLodeAngle();
-   double C2, C3;
-   double EffectDeriv;
-   const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
-
-   if ( fabs(LodeAngle)  < LodeCut) {
-
-      Effect = std::cos(LodeAngle) - 1.0/sqrt(3.0) * std::sin(Friction) * std::sin(LodeAngle); 
-      EffectDeriv = -std::sin(LodeAngle) - 1.0/sqrt(3.0) * std::sin(Friction) * std::cos(LodeAngle);
-
-      C2 = -std::tan(3.0*LodeAngle) * 6.0 * Effect*EffectDeriv * pow( J2InvSQ/ShearM, 2);
-
-      C3 = -6.0*sqrt(3.0) * Effect * EffectDeriv;
-      C3 /= std::cos( 3.0*LodeAngle) * 2.0*  pow( ShearM, 2);
-
-   }
-   else {
-
-      double A, B;
-      GetSmoothingConstants(A, B, LodeAngle);
-      Effect = A + B*std::sin(3.0*LodeAngle);
-
-      EffectDeriv = 3.0*B; // this cos is ommited because in C2 is a cos and ... * cos(3.0*LodeAngle). Idem in C3;
-
-      C2 = -std::sin(3.0*LodeAngle) *   Effect*EffectDeriv * 6.0* pow( J2InvSQ/ShearM, 2);
-
-      C3 = -6.0*sqrt(3.0) * Effect * EffectDeriv;
-      C3 /=  2.0* pow( ShearM, 2);
+   CamClayYieldCriterion::CamClayYieldCriterion(HardeningLawPointer pHardeningLaw)
+      :YieldCriterion(pHardeningLaw)
+   {
 
    }
 
-   double Adimm = (3.0-std::sin(Friction)) * sqrt(3.0) / 6.0;
-   C2 /= pow(Adimm, 2);
-   C3 /= pow(Adimm, 2);
+
+   //*******************************ASSIGMENT OPERATOR***********************************
+   //************************************************************************************
+
+   CamClayYieldCriterion& CamClayYieldCriterion::operator=(CamClayYieldCriterion const& rOther)
+   {
+      YieldCriterion::operator=(rOther);
+      return *this;
+   }
+
+   //*******************************COPY CONSTRUCTOR*************************************
+   //************************************************************************************
+
+   CamClayYieldCriterion::CamClayYieldCriterion(CamClayYieldCriterion const& rOther)
+      :YieldCriterion(rOther)
+   {
+
+   }
 
 
-   Vector ShearStress = rStressVector;
-   for (unsigned int i = 0; i < 3; ++i)
-      ShearStress(i) -= MeanStress;
+   //********************************DESTRUCTOR******************************************
+   //************************************************************************************
 
-   Vector C2Vector = ShearStress;
-   for (unsigned int i = 3; i < 6; ++i )
-      C2Vector(i) *= 2.0;
-
-   C2Vector /= 2.0 * J2InvSQ;
-
-   Vector C3Vector = ZeroVector(6);
-
-
-   // FALTER TERMES
-   C3Vector(0) = ShearStress(1)*ShearStress(2) - pow( ShearStress(4), 2); 
-   C3Vector(1) = ShearStress(2)*ShearStress(0) - pow( ShearStress(5), 2); 
-   C3Vector(2) = ShearStress(0)*ShearStress(1) - pow( ShearStress(3), 2); 
-
-   C3Vector(3) = 2.0 * ( ShearStress(4)*ShearStress(5) - ShearStress(2)*ShearStress(3));
-   C3Vector(4) = 2.0 * ( ShearStress(5)*ShearStress(3) - ShearStress(0)*ShearStress(4));
-   C3Vector(5) = 2.0 * ( ShearStress(3)*ShearStress(4) - ShearStress(1)*ShearStress(5));
-
-   for (unsigned int i = 0; i < 3; ++i)
-      C3Vector(i) += pow(J2InvSQ, 2) / 3.0;
-
-   Vector ThisDerivative =  C2*C2Vector + C3*C3Vector;
-
-   rYieldFunctionD += ThisDerivative;
-
-
-}
-
-//************************* YIELD FUNCTION DERIVATIVE ******************
-//**********************************************************************
-
-void CamClayYieldCriterion::GetSmoothingConstants(double& rA, double& rB, const double& rLodeAngle)
-{
-
-   
-    double SmoothingAngle = this->GetSmoothingLodeAngle();
-    double FrictionAngle = this->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
-    FrictionAngle *= GetPI() / 180.0;
-
-    double Sign = 1.0;
-    if ( rLodeAngle < 0.0)
-           Sign = -1.0;
-
-    rA = 3.0 +  std::tan(SmoothingAngle) * std::tan(3.0*SmoothingAngle) + Sign * (std::tan( 3.0*SmoothingAngle) - 3.0*std::tan(SmoothingAngle)) * std::sin( FrictionAngle) / sqrt(3.0);
-    rA *= (1.0/3.0) * std::cos( SmoothingAngle );
-
-    //rSmoothingConstants.B = -1.0/ ( 3.0*std::cos( SmoothingAngle) ) * ( Sign * std::sin(SmoothingAngle) + std::sin(FrictionAngle)*std::cos(SmoothingAngle) / sqrt(3.0));
-    rB = -1.0 * ( Sign* std::sin(SmoothingAngle) + std::sin(FrictionAngle)*std::cos(SmoothingAngle) / sqrt(3.0) ) / ( 3.0*std::cos(3.0*SmoothingAngle) );
+   CamClayYieldCriterion::~CamClayYieldCriterion()
+   {
+   }
 
 
 
-}
-double CamClayYieldCriterion::GetSmoothingLodeAngle()
-{
-    return 29.9*GetPI()/180.0;
-}
+   //************************* CALCULATE YIELD FUNCTION  ******************
+   //**********************************************************************
+
+   double& CamClayYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha)
+   {
+
+      double MeanStress, LodeAngle;
+      double DeviatoricQ; // == sqrt(3)*J2
+
+      StressInvariantsUtilities::CalculateStressInvariants( rStressVector, MeanStress, DeviatoricQ, LodeAngle);
+      DeviatoricQ *= sqrt(3.0);
 
 
-double CamClayYieldCriterion::GetPI()
-{
-   return 3.14159265359;
-}
+      const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
+
+      double PreconsolidationStress = 0.0;
+      PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha);
+      double ThirdInvariantEffect = EvaluateThirdInvariantEffect(LodeAngle);
+
+      rStateFunction = pow(ThirdInvariantEffect * DeviatoricQ/ShearM, 2);
+      rStateFunction += (MeanStress * (MeanStress - PreconsolidationStress) );
+
+      return rStateFunction; 
+   }
+
+
+   //*******************************CALCULATE YIELD FUNCTION DERIVATIVE *****************
+   //************************************************************************************
+   void CamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rYieldFunctionD, const double& rAlpha)
+   {
+      double PreconsolidationStress = 0.0;
+      PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha);
+      const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
+      double MeanStress, J2, LodeAngle;
+
+      Vector V1, V2;
+
+      StressInvariantsUtilities::CalculateStressInvariants( rStressVector, MeanStress, J2, LodeAngle);
+      StressInvariantsUtilities::CalculateDerivativeVectors( rStressVector, V1, V2);
+
+      double ThirdInvariantEffect = EvaluateThirdInvariantEffect( LodeAngle);
+
+
+      rYieldFunctionD = ( 2.0*MeanStress - PreconsolidationStress) * V1 + 2.0 * 3.0 * pow( ThirdInvariantEffect / ShearM, 2) * J2 * V2;
+
+      CalculateAndAddThirdInvDerivative( rStressVector, rYieldFunctionD);
+   }
+
+   //*******************************Evaluate Effect THird Invariant *** *****************
+   //************************************************************************************
+   double CamClayYieldCriterion::EvaluateThirdInvariantEffect( const double& rLodeAngle)
+   {
+
+
+      double Effect = 1.0;
+      double Friction = this->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
+      if (Friction < 1.0E-3) {
+         return 1.0;
+      }
+      Friction *= GetPI() / 180.0;
+
+
+      if ( true) {
+         double LodeCut = GetSmoothingLodeAngle();
+
+         if ( fabs( rLodeAngle)  < LodeCut) {
+            Effect = std::cos( rLodeAngle) - 1.0/sqrt(3.0) * std::sin(Friction) * std::sin(rLodeAngle); 
+         }
+         else {
+
+            double A, B;
+            GetSmoothingConstants(A, B, rLodeAngle);
+            Effect = A + B*std::sin(3.0*rLodeAngle);
+         }
+
+         Effect /= ( sqrt(3)/6) * (3.0 - std::sin(Friction) );
+      }
+      else {
+         double Betta = 0.9;
+         Betta *= -1.0; // different lode angle definition, but this works.
+         double GammaL = 6.0 / GetPI()  * std::atan(  std::sin( Friction) / sqrt(3.0) );
+         double Gamma = ( 1- GammaL);
+         double Alpha = 1.0 / std::cos( ( 1.0 + GammaL ) * GetPI() / 6.0 );
+
+         Effect = Alpha * std::cos(   std::acos( Betta * std::sin(3.0*rLodeAngle ) ) / 3.0 - Gamma * GetPI() / 6.0 );
+
+      }
+      //std::cout << "LODE: " << rLodeAngle << " " << rLodeAngle * 180.0 / GetPI() << "  " << EffectPrev << " " << Effect << std::endl;
+
+
+
+      return Effect;
+
+   }
+
+
+   //*******************************Add  derivative of Effect THird Invariant *** *****************
+   //************************************************************************************
+   void CamClayYieldCriterion::CalculateAndAddThirdInvDerivative(const Vector& rStressVector, Vector& rYieldFunctionD)
+   {
+
+      double Effect = 1.0;
+      double Friction = this->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
+      if (Friction < 1.0E-3) {
+         return ;
+      }
+      Friction *= GetPI() / 180.0;
+
+
+      double MeanStress, J2, LodeAngle;
+      Vector V1, V2, V3;
+
+      StressInvariantsUtilities::CalculateStressInvariants( rStressVector, MeanStress, J2, LodeAngle);
+      // since I will be dividing by J2
+      if ( J2 < 1E-5)
+         return;
+
+      StressInvariantsUtilities::CalculateDerivativeVectors( rStressVector, V1, V2, V3);
+      double C2, C3;
+      double EffectDeriv;
+      const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
+
+
+      if (true) {
+         double LodeCut = GetSmoothingLodeAngle();
+
+         if ( fabs(LodeAngle)  < LodeCut) {
+
+            Effect = std::cos(LodeAngle) - 1.0/sqrt(3.0) * std::sin(Friction) * std::sin(LodeAngle); 
+            EffectDeriv = -std::sin(LodeAngle) - 1.0/sqrt(3.0) * std::sin(Friction) * std::cos(LodeAngle);
+
+            C2 = -std::tan(3.0*LodeAngle) * 6.0 * Effect*EffectDeriv * pow( J2/ShearM, 2);
+            C2 = -6.0 * J2 / pow( ShearM, 2) * Effect * EffectDeriv * std::tan(3.0*LodeAngle);
+
+            C3 = -6.0*sqrt(3.0) * Effect * EffectDeriv;
+            C3 /= std::cos( 3.0*LodeAngle) * 2.0*  pow( ShearM, 2);
+
+            C3 = -3 * sqrt(3.0) * Effect * EffectDeriv / ( pow( ShearM, 2) * std::cos( 3.0*LodeAngle) );
+            C3 /= J2;
+         }
+         else {
+
+            double A, B;
+            GetSmoothingConstants(A, B, LodeAngle);
+            Effect = A + B*std::sin(3.0*LodeAngle);
+
+            C2 = - 18.0 * J2 / pow(ShearM, 2) * B * Effect * sin( 3.0*LodeAngle);
+            C2 = -18.0 * J2 / pow(ShearM, 2) * B * Effect * sin(3.0*LodeAngle);
+
+            C3 = -9.0*sqrt(3.0) * Effect * B;
+            C3 /=   pow( ShearM, 2);
+            C3 /= J2;
+
+         }
+
+         double Adimm = (3.0-std::sin(Friction)) * sqrt(3.0) / 6.0;
+         C2 /= pow(Adimm, 2);
+         C3 /= pow(Adimm, 2);
+      }
+      else {
+
+         double Betta = 0.90;
+         Betta *= -1.0; // different lode angle definition, but this works.
+         double GammaL = 6.0 / GetPI()  * std::atan(  std::sin( Friction) / sqrt(3.0) );
+         double Gamma = ( 1- GammaL);
+         double Alpha = 1.0 / std::cos( ( 1.0 + GammaL ) * GetPI() / 6.0 );
+
+         Effect = Alpha * std::cos(   std::acos( Betta * std::sin(3.0*LodeAngle ) ) / 3.0 - Gamma * GetPI() / 6.0 );
+         EffectDeriv = Alpha * Betta * std::sin(   std::acos( Betta * std::sin(3.0*LodeAngle ) ) / 3.0 - Gamma * GetPI() / 6.0 );
+         EffectDeriv /=  sqrt(  1.0 - pow( Betta * std::sin( 3.0 * LodeAngle), 2 ) );
+         //EffectDeriv *= std::cos( 3.0 * LodeAngle) ; // removing cos
+
+         //C2 = -6.0 * J2 / pow( ShearM, 2.0) * Effect * EffectDeriv * std::tan(3.0*LodeAngle); // removing cos
+         C2 = -6.0 * J2 / pow( ShearM, 2) * Effect * EffectDeriv * std::sin(3.0*LodeAngle);
+
+         //C3 = -3 * sqrt(3.0) * Effect * EffectDeriv / ( pow( ShearM, 2.0) * std::cos( 3.0*LodeAngle) ); // removing cos
+         C3 = -3 * sqrt(3.0) * Effect * EffectDeriv / ( pow( ShearM, 2) ); 
+         C3 /= J2;
+      }
+      Vector ThisDerivative =  C2* V2 + C3*V3;
+
+      /*std::cout << " LODE " << LodeAngle <<" LODE " << LodeAngle * 180.0 / GetPI() << " EFFECT " << Effect <<  " DERIVATIVE " << EffectDeriv * std::cos( 3.0 * LodeAngle)  << std::endl;
+        std::cout << " PREVIOUS ANAL DERIVATIVE " << rYieldFunctionD << std::endl;
+        std::cout << " AND THIS NEW C2 " << C2 << " and C3 " << C3 << std::endl;
+        std::cout << " V2 " << V2 << " V3 " << V3 << std::endl;*/
+      rYieldFunctionD += ThisDerivative;
+
+
+   }
+
+   //************************* smoothingInvariants of something ***********
+   //**********************************************************************
+
+   void CamClayYieldCriterion::GetSmoothingConstants(double& rA, double& rB, const double& rLodeAngle)
+   {
+
+
+      double SmoothingAngle = this->GetSmoothingLodeAngle();
+      double FrictionAngle = this->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
+      FrictionAngle *= GetPI() / 180.0;
+
+      double Sign = 1.0;
+      if ( rLodeAngle < 0.0)
+         Sign = -1.0;
+
+      rA = 3.0 +  std::tan(SmoothingAngle) * std::tan(3.0*SmoothingAngle) + Sign * (std::tan( 3.0*SmoothingAngle) - 3.0*std::tan(SmoothingAngle)) * std::sin( FrictionAngle) / sqrt(3.0);
+      rA *= (1.0/3.0) * std::cos( SmoothingAngle );
+
+      rB = -1.0 * ( Sign* std::sin(SmoothingAngle) + std::sin(FrictionAngle)*std::cos(SmoothingAngle) / sqrt(3.0) ) / ( 3.0*std::cos(3.0*SmoothingAngle) );
+
+
+
+   }
+   double CamClayYieldCriterion::GetSmoothingLodeAngle()
+   {
+      return 27.0*GetPI()/180.0;
+   }
+
+
+   double CamClayYieldCriterion::GetPI()
+   {
+      return 3.14159265359;
+   }
+
 
 
 void CamClayYieldCriterion::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, YieldCriterion )
+   KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, YieldCriterion )
 }
 
 void CamClayYieldCriterion::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, YieldCriterion )
+   KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, YieldCriterion )
 }
 
 

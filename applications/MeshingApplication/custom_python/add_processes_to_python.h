@@ -55,7 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 
@@ -70,7 +70,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddProcessesToPython();
+void  AddProcessesToPython(pybind11::module& m);
 
 }  // namespace Python.
 

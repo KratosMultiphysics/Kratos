@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/large_displacement_element.hpp"
+#include "custom_elements/solid_elements/large_displacement_element.hpp"
 
 #include "pfem_solid_mechanics_application_variables.h"
 
@@ -39,7 +39,7 @@ namespace Kratos
    /// Updated Lagrangian Large Displacement Lagrangian U-wP Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
 
 
-   class UpdatedLagrangianUJElement
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) UpdatedLagrangianUJElement
       : public LargeDisplacementElement
    {
       public:
@@ -54,6 +54,10 @@ namespace Kratos
          typedef ConstitutiveLawType::StressMeasure StressMeasureType;
          ///Type definition for integration methods
          typedef GeometryData::IntegrationMethod IntegrationMethod;
+         ///Type for size
+         typedef GeometryData::SizeType SizeType;
+         ///Type for element variables
+         typedef LargeDisplacementElement::ElementDataType ElementDataType;
 
          /// Counted pointer of LargeDisplacementUPElement
          KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUJElement );
@@ -99,7 +103,7 @@ namespace Kratos
           * @param pProperties: the properties assigned to the new element
           * @return a Pointer to the new element
           */
-         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
          /**
           * clones the selected element variables, creating a new one
@@ -108,7 +112,7 @@ namespace Kratos
           * @param pProperties: the properties assigned to the new element
           * @return a Pointer to the new element
           */
-         Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+         Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
          //************* GETTING METHODS
 
@@ -117,7 +121,7 @@ namespace Kratos
          /**
           * Set a double  Value on the Element Constitutive Law
           */
-         void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+         void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
          //GET:
@@ -125,11 +129,11 @@ namespace Kratos
          /**
           * Get on rVariable a double Value from the Element Constitutive Law
           */
-         void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+         void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-         void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+         void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-         void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo);
+         void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
          //************* STARTING - ENDING  METHODS
 
@@ -137,43 +141,62 @@ namespace Kratos
           * Called to initialize the element.
           * Must be called before any calculation is done
           */
-         void Initialize();
+         void Initialize() override;
 
          /*
           * Called at the beginning of each solution step
           */
 
-         void InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo);
+         void InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Sets on rElementalDofList the degrees of freedom of the considered element geometry
           */
-         void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+         void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Sets on rResult the ID's of the element degrees of freedom
           */
-         void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+         void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Sets on rValues the nodal displacements
           */
-         void GetValuesVector(Vector& rValues, int Step = 0);
+         void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
          /**
           * Sets on rValues the nodal velocities
           */
-         void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+         void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
          /**
           * Sets on rValues the nodal accelerations
           */
-         void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+         void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
          /**
           * Called at the end of eahc solution step
           */
-         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+         //************* COMPUTING  METHODS
+
+         /**
+          * this is called during the assembling process in order
+          * to calculate the elemental mass matrix
+          * @param rMassMatrix: the elemental mass matrix
+          * @param rCurrentProcessInfo: the current process info instance
+          */
+         void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+         /**
+          * this is called during the assembling process in order
+          * to calculate the elemental damping matrix
+          * @param rDampingMatrix: the elemental damping matrix
+          * @param rCurrentProcessInfo: the current process info instance
+          */
+         void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
 
          //************************************************************************************
          //************************************************************************************
@@ -184,13 +207,13 @@ namespace Kratos
           * or that no common error is found.
           * @param rCurrentProcessInfo
           */
-         int Check(const ProcessInfo& rCurrentProcessInfo);
+         int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Calculate Element Kinematics
           */
-         virtual void CalculateKinematics(GeneralVariables& rVariables,
-               const double& rPointNumber);
+         void CalculateKinematics(ElementDataType& rVariables,
+               const double& rPointNumber) override;
 
 
          /**
@@ -203,7 +226,7 @@ namespace Kratos
          /**
           * Calculation of the Deformation Matrix  BL
           */
-         virtual void CalculateDeformationMatrix(Matrix& rB,
+         void CalculateDeformationMatrix(Matrix& rB,
                Matrix& rF,
                Matrix& rDN_DX);
 
@@ -240,27 +263,28 @@ namespace Kratos
           */
          Vector mDeterminantF0;
 
-         /**** 
+         /****
           * Some double member variable
-          ****/    
+          ****/
          double mElementStabilizationNumber;
 
-         /*** 
-           Just to check a few things
-          ***/
-         //bool mCompressibleWater;
 
          ///@}
          ///@name Protected Operators
          ///@{
 
          /**
+          * Get element size from the dofs
+          */
+         virtual SizeType GetDofsSize() const override;
+
+         /**
           * Calculates the elemental contributions
           * \f$ K^e = w\,B^T\,D\,B \f$ and
           * \f$ r^e \f$
           */
-         virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
-               ProcessInfo& rCurrentProcessInfo);
+         void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
+               ProcessInfo& rCurrentProcessInfo) override;
 
          ///@}
          ///@name Protected Operations
@@ -270,52 +294,52 @@ namespace Kratos
           * Calculation and addition of the matrices of the LHS
           */
 
-         virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-               GeneralVariables& rVariables,
-               double& rIntegrationWeight);
+         void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+               ElementDataType& rVariables,
+               double& rIntegrationWeight) override;
 
          /**
           * Calculation and addition of the vectors of the RHS
           */
 
-         virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-               GeneralVariables& rVariables,
+         void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+               ElementDataType& rVariables,
                Vector& rVolumeForce,
-               double& rIntegrationWeight);
+               double& rIntegrationWeight) override;
 
          /**
           * Initialize Element General Variables
           */
-         virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+         void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Finalize Element Internal Variables
           */
-         virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
+         void FinalizeStepVariables(ElementDataType & rVariables, const double& rPointNumber) override;
 
 
 
          /**
           * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
           */
-         virtual void CalculateAndAddKuum(MatrixType& rK,
-               GeneralVariables & rVariables,
+         void CalculateAndAddKuum(MatrixType& rK,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
-               );
+               ) override;
 
          /**
           * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
           */
-         virtual void CalculateAndAddKuug(MatrixType& rK,
-               GeneralVariables & rVariables,
+         void CalculateAndAddKuug(MatrixType& rK,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
-               );
+               ) override;
 
          /**
           * Calculation of the Kup matrix
           */
          virtual void CalculateAndAddKuJ (MatrixType& rK,
-               GeneralVariables & rVariables,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
                );
 
@@ -323,7 +347,7 @@ namespace Kratos
           * Calculation of the Kpu matrix
           */
          virtual void CalculateAndAddKJu(MatrixType& rK,
-               GeneralVariables & rVariables,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
                );
 
@@ -332,7 +356,7 @@ namespace Kratos
           * Calculation of the Kpp matrix
           */
          virtual void CalculateAndAddKJJ(MatrixType& rK,
-               GeneralVariables & rVariables,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
                );
 
@@ -340,24 +364,24 @@ namespace Kratos
          /**
           * Calculation of the Kpp Stabilization Term matrix
           */
-         virtual void CalculateAndAddKJJStab(MatrixType& rK, GeneralVariables & rVariables,
+         virtual void CalculateAndAddKJJStab(MatrixType& rK, ElementDataType & rVariables,
                double& rIntegrationWeight
                );
          /**
           * Calculation of the External Forces Vector. Fe = N * t + N * b
           */
          void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-               GeneralVariables& rVariables,
+               ElementDataType& rVariables,
                Vector& rVolumeForce,
                double& rIntegrationWeight
-               );
+               ) override;
 
 
          /**
           * Calculation of the Internal Forces due to Pressure-Balance
           */
          virtual void CalculateAndAddJacobianForces(VectorType& rRightHandSideVector,
-               GeneralVariables & rVariables,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
                );
 
@@ -366,51 +390,45 @@ namespace Kratos
           * Calculation of the Internal Forces due to Pressure-Balance
           */
          virtual void CalculateAndAddStabilizedJacobian(VectorType& rRightHandSideVector,
-               GeneralVariables & rVariables,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
                );
 
          /**
           * Calculation of the Internal Forces due to sigma. Fi = B * sigma
           */
-         virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-               GeneralVariables & rVariables,
+         void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
-               );
+               ) override;
 
-         /**
-          * Initialize System Matrices
-          */
-         void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-               VectorType& rRightHandSideVector,
-               Flags& rCalculationFlags);
 
          //on integration points:
          /**
           * Calculate a double Variable on the Element Constitutive Law
           */
-         void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+         void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-         void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+         void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-         void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+         void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
          /**
           * Get the Historical Deformation Gradient to calculate after finalize the step
           */
-         virtual void GetHistoricalVariables( GeneralVariables& rVariables, 
-               const double& rPointNumber );
+         void GetHistoricalVariables( ElementDataType& rVariables,
+               const double& rPointNumber ) override;
 
          /**
           * Calculation of the Volume Change of the Element
           */
-         virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
+         double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
          /*
           * Function to modify the deformation gradient to the constitutitve equation
           */
-         virtual void ComputeConstitutiveVariables( GeneralVariables& rVariables, Matrix& rFT, double& rdetFT); 
+         virtual void ComputeConstitutiveVariables( ElementDataType& rVariables, Matrix& rFT, double& rdetFT);
 
          ///@}
          ///@name Protected  Access
@@ -454,9 +472,9 @@ namespace Kratos
 
          // A private default constructor necessary for serialization
 
-         virtual void save(Serializer& rSerializer) const;
+         void save(Serializer& rSerializer) const override;
 
-         virtual void load(Serializer& rSerializer);
+         void load(Serializer& rSerializer) override;
 
 
          ///@name Private Inquiry
@@ -473,4 +491,3 @@ namespace Kratos
 
 } // namespace Kratos
 #endif // KRATOS_UPDATED_LAGRANGIAN_U_J_ELEMENT_H_INCLUDED
-

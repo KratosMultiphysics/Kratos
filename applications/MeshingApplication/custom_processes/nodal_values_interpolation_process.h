@@ -1,28 +1,39 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_NODAL_VALUES_INTERPOLATION_PROCESS )
 #define  KRATOS_NODAL_VALUES_INTERPOLATION_PROCESS
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
 // Project includes
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
+#include "processes/process.h"
+
+/* Several includes */
 #include "includes/model_part.h"
+#include "includes/key_hash.h"
 #include "includes/kratos_parameters.h"
-// Include the point locator
+
+/* Utilities */
 #include "utilities/binbased_fast_point_locator.h"
+#include "utilities/openmp_utils.h"
+
+/* Tree structures */
+// #include "spatial_containers/bounding_volume_tree.h" // k-DOP
+#include "spatial_containers/spatial_containers.h" // kd-tree
 
 namespace Kratos
 {
@@ -32,16 +43,15 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
+    /// Defining the integers
+    typedef std::size_t SizeType;
+    typedef std::size_t IndexType;
+
 ///@}
 ///@name  Enum's
 ///@{
-    
-    #if !defined(FRAMEWORK_EULER_LAGRANGE)
-    #define FRAMEWORK_EULER_LAGRANGE
-        enum FrameworkEulerLagrange {Eulerian = 0, Lagrangian = 1};
-    #endif
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -50,73 +60,207 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief NodalValuesInterpolationProcess
- * This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
- * The process employs the projection.h from MeshingApplication, which works internally using a kd-tree 
+/**
+ * @ingroup MeshingApplication
+ * @class PointBoundary
+ * @brief Custom Point container to be used to look in the boundary skin
+ * @details The main difference with this point and the base one is that it contains the pointer to condition where the center of the points belongs
+ * @author Vicente Mataix Ferrandiz
  */
+class PointBoundary
+    : public Point
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-template<unsigned int TDim>
-class NodalValuesInterpolationProcess 
+    typedef Point BaseType;
+
+    /// Counted pointer of PointBoundary
+    KRATOS_CLASS_POINTER_DEFINITION( PointBoundary );
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructors
+    PointBoundary():
+        BaseType(),
+        mpOriginCond(nullptr)
+    {}
+
+    PointBoundary(const array_1d<double, 3>& Coords)
+        :BaseType(Coords),
+         mpOriginCond(nullptr)
+    {}
+
+    PointBoundary(Condition::Pointer pCond):
+        mpOriginCond(pCond)
+    {
+        UpdatePoint();
+    }
+
+    PointBoundary(
+        const array_1d<double, 3>& Coords,
+        Condition::Pointer pCond
+    ):
+        BaseType(Coords),
+        mpOriginCond(pCond)
+    {}
+
+    ///Copy constructor  (not really required)
+    PointBoundary(const PointBoundary& rhs):
+        BaseType(rhs),
+        mpOriginCond(rhs.mpOriginCond)
+    {
+    }
+
+    /// Destructor.
+    ~PointBoundary() override= default;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Returns the point
+     * @return The point
+     */
+    BaseType GetPoint()
+    {
+        BaseType Point(this->Coordinates());
+        return Point;
+    }
+
+    /**
+     * @brief Set the point
+     * @param Point The point
+     */
+    void SetPoint(const BaseType Point)
+    {
+        this->Coordinates() = Point.Coordinates();
+    }
+
+    /**
+     * @brief Sets the condition associated to the point
+     * @param pCond The pointer to the condition
+     */
+    void SetCondition(Condition::Pointer pCond)
+    {
+        mpOriginCond = pCond;
+    }
+
+    /**
+     * @brief Returns the condition associated to the point
+     * @return mpOriginCond The pointer to the condition associated to the point
+     */
+    Condition::Pointer GetCondition()
+    {
+        KRATOS_DEBUG_ERROR_IF(mpOriginCond.get() == nullptr) << "Condition no initialized in the PointBoundary class" << std::endl;
+        return mpOriginCond;
+    }
+
+    /**
+     * @brief This method checks everything is right
+     */
+    void Check()
+    {
+        KRATOS_TRY;
+
+        auto aux_coord = Kratos::make_shared<array_1d<double, 3>>(this->Coordinates());
+        KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointBoundary class" << std::endl;
+        KRATOS_ERROR_IF(mpOriginCond.get() == nullptr) << "Condition no initialized in the PointBoundary class" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This function updates the database, using as base for the coordinates the condition center
+     */
+    void UpdatePoint()
+    {
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
+#else
+        noalias(this->Coordinates()) = mpOriginCond->GetGeometry().Center().Coordinates();
+#endif // ifdef KRATOS_USE_AMATRIX
+    }
+
+private:
+    ///@name Member Variables
+    ///@{
+    Condition::Pointer mpOriginCond; /// Condition pointer
+    ///@}
+
+}; // Class PointBoundary
+
+/**
+ * @class NodalValuesInterpolationProcess
+ * @ingroup MeshingApplication
+ * @brief This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
+ * @details The process employs the projection.h from MeshingApplication, which works internally using a kd-tree. Additionally if it can't found the node inside the reference mesh it will try to extrapolate from the skin (if the option is activated)
+ * @author Vicente Mataix Ferrandiz
+ */
+template<SizeType TDim>
+class KRATOS_API(MESHING_APPLICATION) NodalValuesInterpolationProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
-    
+
     // General type definitions
     typedef ModelPart::NodesContainerType                    NodesArrayType;
     typedef ModelPart::ElementsContainerType              ElementsArrayType;
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
     typedef Node<3>                                                NodeType;
     typedef Geometry<NodeType>                                 GeometryType;
+    typedef Point                                                 PointType;
+    typedef PointType::CoordinatesArrayType            CoordinatesArrayType;
+
+    // Type definitions for the tree
+    typedef PointBoundary                                 PointBoundaryType;
+    typedef PointBoundaryType::Pointer                     PointTypePointer;
+    typedef std::vector<PointTypePointer>                       PointVector;
+    typedef PointVector::iterator                             PointIterator;
+    typedef std::vector<double>                              DistanceVector;
+    typedef DistanceVector::iterator                       DistanceIterator;
+
+    // KDtree definitions
+    typedef Bucket< 3ul, PointBoundaryType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
+    typedef Tree< KDTreePartition<BucketType> > KDTreeType;
 
     /// Pointer definition of NodalValuesInterpolationProcess
     KRATOS_CLASS_POINTER_DEFINITION( NodalValuesInterpolationProcess );
-      
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    /**
+     * @brief This enums allows to differentiate the working framework
+     */
+    enum class FrameworkEulerLagrange {EULERIAN = 0, LAGRANGIAN = 1, ALE = 2};
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    // Class Constructor
-    
     /**
-     * The constructor of the search utility uses the following inputs:
-     * @param rOriginMainModelPart: The model part from where interpolate values
-     * @param rDestinationMainModelPart: The model part where we want to interpolate the values
-     * @param ThisParameters: The parameters containing all the information needed
+     * @brief The constructor of the search utility uses the following inputs:
+     * @param rOriginMainModelPart The model part from where interpolate values
+     * @param rDestinationMainModelPart The model part where we want to interpolate the values
+     * @param ThisParameters The parameters containing all the information needed
      */
-    
+
     NodalValuesInterpolationProcess(
         ModelPart& rOriginMainModelPart,
         ModelPart& rDestinationMainModelPart,
         Parameters ThisParameters = Parameters(R"({})")
-        )
-    :mrOriginMainModelPart(rOriginMainModelPart),
-     mrDestinationMainModelPart(rDestinationMainModelPart)
-     {
-         Parameters DefaultParameters = Parameters(R"(
-         {
-            "echo_level"            : 1, 
-            "framework"             : "Eulerian", 
-            "max_number_of_searchs" : 1000, 
-            "step_data_size"        : 0, 
-            "buffer_size"           : 0
-         })");
-         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-         
-         mEchoLevel = ThisParameters["echo_level"].GetInt();
-         mFramework = ConvertFramework(ThisParameters["framework"].GetString());
-         mMaxNumberOfResults = ThisParameters["max_number_of_searchs"].GetInt();
-         mStepDataSize = ThisParameters["step_data_size"].GetInt();
-         mBufferSize   = ThisParameters["buffer_size"].GetInt();
-        
-         if (mEchoLevel > 0)
-         {
-             std::cout << "Step data size: " << mStepDataSize << " Buffer size: " << mBufferSize << std::endl;
-         }
-     }
-    
-    virtual ~NodalValuesInterpolationProcess(){};
+        );
+
+    /// Destructor
+    ~NodalValuesInterpolationProcess() override= default;;
 
     ///@}
     ///@name Operators
@@ -130,66 +274,17 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
-     * We execute the search relative to the old and new model part
+     * @brief We execute the search relative to the old and new model part
      */
-    
-    virtual void Execute()
-    {
-        // We create the locator
-        BinBasedFastPointLocator<TDim> PointLocator = BinBasedFastPointLocator<TDim>(mrOriginMainModelPart);
-        PointLocator.UpdateSearchDatabase();
-        
-        // Iterate in the nodes
-        NodesArrayType& pNode = mrDestinationMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
-        
-        /* Nodes */
-//         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNode.begin() + i;
-            
-            Vector ShapeFunctions;
-            Element::Pointer pElement;
-            
-            const bool IsFound = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), ShapeFunctions, pElement, mMaxNumberOfResults);
-            
-            if (IsFound == false)
-            {
-                if (mEchoLevel > 0 || mFramework == Lagrangian) // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
-                {
-                   std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
-                   std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
-                   
-                   if (mFramework == Lagrangian)
-                   {
-                       std::cout << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
-                   }
-                }
-            }
-            else
-            {
-                for(unsigned int iStep = 0; iStep < mBufferSize; iStep++)
-                {
-                    CalculateStepData(*(itNode.base()), pElement, ShapeFunctions, iStep);
-                }
-                
-                // After we interpolate the DISPLACEMENT we interpolate the initial coordinates to ensure a functioning of the simulation
-                if (mFramework == Lagrangian)
-                {
-                    if ( itNode->SolutionStepsDataHas( DISPLACEMENT ) == false ) // Fisrt we check if we have the displacement variable
-                    {
-                        KRATOS_ERROR << "Missing DISPLACEMENT on node " << itNode->Id() << std::endl;
-                    }
-                    
-                    CalculateInitialCoordinates(*(itNode.base()));
-                }
-            }
-        }
-    }
-    
+    void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -204,16 +299,16 @@ public:
 
     /************************************ GET INFO *************************************/
     /***********************************************************************************/
-    
-    virtual std::string Info() const
+
+    std::string Info() const override
     {
         return "NodalValuesInterpolationProcess";
     }
 
     /************************************ PRINT INFO ***********************************/
     /***********************************************************************************/
-    
-    virtual void PrintInfo(std::ostream& rOStream) const
+
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
@@ -225,7 +320,7 @@ public:
     ///@}
 
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -237,7 +332,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -263,15 +358,12 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
-    ModelPart& mrOriginMainModelPart;                    // The origin model part
-    ModelPart& mrDestinationMainModelPart;               // The destination model part
-    unsigned int mMaxNumberOfResults;                    // The maximum number of results to consider in the search
-    unsigned int mStepDataSize;                          // The size of the database
-    unsigned int mBufferSize;                            // The size of the buffer
-    FrameworkEulerLagrange mFramework;                   // The framework
-    unsigned int mEchoLevel;                             // The level of verbosity
-    
+
+    ModelPart& mrOriginMainModelPart;               /// The origin model part
+    ModelPart& mrDestinationMainModelPart;          /// The destination model part
+    Parameters mThisParameters;                     /// Here the configuration parameters are stored
+    std::unordered_set<std::string> mListVariables; /// List of non-historical variables
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -279,49 +371,168 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
-     * It calculates the initial coordinates interpolated to the node
-     * @return itNode: The node pointer
-     */
-    
-    void CalculateInitialCoordinates(NodeType::Pointer& pNode);
-    
-    /**
-     * It calculates the Step data interpolated to the node
-     * @return itNode: The node pointer
-     * @param pElement: The element pointer
-     */
-    
-    void CalculateStepData(
-        NodeType::Pointer& pNode,
-        const Element::Pointer& pElement,
-        const Vector ShapeFunctions,
-        const unsigned int Step
-        );
-    
-    /**
-     * This converts the framework string to an enum
-     * @param str: The string
+     * @brief This converts the framework string to an enum
+     * @param Str The string
      * @return FrameworkEulerLagrange: The equivalent enum
      */
-        
-    FrameworkEulerLagrange ConvertFramework(const std::string& str)
+    static inline FrameworkEulerLagrange ConvertFramework(const std::string& Str)
     {
-        if(str == "Lagrangian") 
-        {
-            return Lagrangian;
-        }
-        else if(str == "Eulerian") 
-        {
-            return Eulerian;
-        }
+        if(Str == "Lagrangian" || Str == "LAGRANGIAN")
+            return FrameworkEulerLagrange::LAGRANGIAN;
+        else if(Str == "Eulerian" || Str == "EULERIAN")
+            return FrameworkEulerLagrange::EULERIAN;
+        else if(Str == "ALE")
+            return FrameworkEulerLagrange::ALE;
         else
-        {
-            return Eulerian;
+            return FrameworkEulerLagrange::EULERIAN;
+    }
+
+    /**
+     * @brief It calculates the data (DataContainer) interpolated to the node
+     * @param pNode The node pointer
+     * @param pEntity The element pointer
+     * @param rShapeFunctions The shape functions
+     */
+    template<class TEntity>
+    void CalculateData(
+        NodeType::Pointer pNode,
+        const typename TEntity::Pointer& pEntity,
+        const Vector& rShapeFunctions
+        )
+    {
+        // The nodal data (non-historical) of each node of the original mesh
+        GeometryType& r_geometry = pEntity->GetGeometry();
+        const SizeType number_of_nodes = r_geometry.size();
+
+        // Now we interpolate the values of each node
+        double aux_coeff = 0.0;
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            aux_coeff += rShapeFunctions[i];
+        }
+        for (auto& var_name : mListVariables) {
+            if (KratosComponents<Variable<double>>::Has(var_name)) {
+                const Variable<double>& var = KratosComponents<Variable<double>>::Get(var_name);
+                if (std::abs(aux_coeff) > std::numeric_limits<double>::epsilon()) {
+                    aux_coeff = 1.0/aux_coeff;
+                    double aux_value = 0.0;
+                    for (IndexType i = 0; i < number_of_nodes; ++i) {
+                        if (r_geometry[i].Has(var)) {
+                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(var);
+                        }
+                    }
+                    pNode->SetValue(var, aux_coeff * aux_value);
+                }
+            } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name)) {
+                const Variable<array_1d<double, 3>>& var = KratosComponents<Variable<array_1d<double, 3>>>::Get(var_name);
+                if (std::abs(aux_coeff) > std::numeric_limits<double>::epsilon()) {
+                    aux_coeff = 1.0/aux_coeff;
+                    array_1d<double, 3> aux_value = ZeroVector(3);
+                    for (IndexType i = 0; i < number_of_nodes; ++i) {
+                        if (r_geometry[i].Has(var)) {
+                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(var);
+                        }
+                    }
+                    pNode->SetValue(var, aux_coeff * aux_value);
+                }
+            } else if (KratosComponents<Variable<Vector>>::Has(var_name)) {
+                const Variable<Vector>& var = KratosComponents<Variable<Vector>>::Get(var_name);
+                if (std::abs(aux_coeff) > std::numeric_limits<double>::epsilon()) {
+                    aux_coeff = 1.0/aux_coeff;
+                    Vector aux_value = ZeroVector(r_geometry[0].GetValue(var).size());
+                    for (IndexType i = 0; i < number_of_nodes; ++i) {
+                        if (r_geometry[i].Has(var)) {
+                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(var);
+                        }
+                    }
+                    pNode->SetValue(var, aux_coeff * aux_value);
+                }
+            } else if (KratosComponents<Variable<Matrix>>::Has(var_name)) {
+                const Variable<Matrix>& var = KratosComponents<Variable<Matrix>>::Get(var_name);
+                if (std::abs(aux_coeff) > std::numeric_limits<double>::epsilon()) {
+                    aux_coeff = 1.0/aux_coeff;
+                    Matrix aux_value = ZeroMatrix(r_geometry[0].GetValue(var).size1(), r_geometry[0].GetValue(var).size2());
+                    for (IndexType i = 0; i < number_of_nodes; ++i) {
+                        if (r_geometry[i].Has(var)) {
+                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(var);
+                        }
+                    }
+                    pNode->SetValue(var, aux_coeff * aux_value);
+                }
+            }
         }
     }
-    
+
+    /**
+     * @brief This methoid creates the list of non-historical variables fro nodal interpolation
+     */
+    void GetListNonHistoricalVariables();
+
+    /**
+     * @brief It calculates the Step data interpolated to the node
+     * @param pNode The node pointer
+     * @param pEntity The element pointer
+     * @param rShapeFunctions The shape functions
+     * @param Step The current time step
+     */
+    template<class TEntity>
+    void CalculateStepData(
+        NodeType::Pointer pNode,
+        const typename TEntity::Pointer& pEntity,
+        const Vector& rShapeFunctions,
+        const IndexType Step
+        )
+    {
+        // The nodal data (historical)
+        double* step_data = pNode->SolutionStepData().Data(Step);
+        for (int j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j)
+            step_data[j] = 0;
+
+        // The nodal data (historical) of each node of the original mesh
+        GeometryType& geom = pEntity->GetGeometry();
+        const SizeType number_of_nodes = geom.size();
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            const double* nodal_data = geom[i].SolutionStepData().Data(Step);
+            // Now we interpolate the values of each node
+            for (int j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j) {
+                step_data[j] += rShapeFunctions[i] * nodal_data[j];
+            }
+        }
+    }
+
+    /**
+     * @brief This methoid a boundary model part in the reference and target model part
+     * @param rAuxiliarNameModelPart The name of the model part to be created
+     */
+    void GenerateBoundary(const std::string& rAuxiliarNameModelPart);
+
+    /**
+     * @brief This methoid a boundary model part in the reference and target model part
+     * @param rModelPart The model part to compute
+     * @param rAuxiliarNameModelPart The name of the model part to be created
+     */
+    void GenerateBoundaryFromElements(
+        ModelPart& rModelPart,
+        const std::string& rAuxiliarNameModelPart
+        );
+
+    /**
+     * @brief This methoid a boundary model part in the reference and target model part
+     * @param rAuxiliarNameModelPart The name of the model part to be created
+     * @param rToExtrapolateNodes The list of nodes to extrapolate
+     */
+    void ExtrapolateValues(
+        const std::string& rAuxiliarNameModelPart,
+        std::vector<NodeType::Pointer>& rToExtrapolateNodes
+        );
+
+    /**
+     * @brief This method computes the normal in a skin model part (saved in non historical variables)
+     * @param rModelPart The input model part with the skin
+     */
+    void ComputeNormalSkin(ModelPart& rModelPart);
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -337,82 +548,6 @@ private:
     ///@}
 
 }; // Class NodalValuesInterpolationProcess
-
-///@name Explicit Specializations
-///@{
-    
-    template<>  
-    void NodalValuesInterpolationProcess<2>::CalculateInitialCoordinates(NodeType::Pointer& pNode)
-    {
-        // We interpolate the initial coordinates (X = X0 + DISPLACEMENT), then X0 = X - DISPLACEMENT        
-        pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
-        pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>  
-    void NodalValuesInterpolationProcess<3>::CalculateInitialCoordinates(NodeType::Pointer& pNode)
-    {        
-        // We interpolate the initial coordinates (X = X0 + DISPLACEMENT), then X0 = X - DISPLACEMENT        
-        pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
-        pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
-        pNode->Z0() = pNode->Z() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Z);
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>  
-    void NodalValuesInterpolationProcess<2>::CalculateStepData(
-        NodeType::Pointer& pNode,
-        const Element::Pointer& pElement,
-        const Vector ShapeFunctions,
-        const unsigned int Step
-        )
-    {
-        double* StepData = pNode->SolutionStepData().Data(Step);
-        
-        double* NodeData0 = pElement->GetGeometry()[0].SolutionStepData().Data(Step);
-        double* NodeData1 = pElement->GetGeometry()[1].SolutionStepData().Data(Step);
-        double* NodeData2 = pElement->GetGeometry()[2].SolutionStepData().Data(Step);
-        
-        for (unsigned int j = 0; j < mStepDataSize; j++)
-        {
-            StepData[j] = ShapeFunctions[0] * NodeData0[j]
-                        + ShapeFunctions[1] * NodeData1[j]
-                        + ShapeFunctions[2] * NodeData2[j];
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>  
-    void NodalValuesInterpolationProcess<3>::CalculateStepData(
-        NodeType::Pointer& pNode,
-        const Element::Pointer& pElement,
-        const Vector ShapeFunctions,
-        const unsigned int Step
-        )
-    {
-        double* StepData = pNode->SolutionStepData().Data(Step);
-        
-        // NOTE: This just works with tetrahedron (you are going to have problems with anything else)
-        double* NodeData0 = pElement->GetGeometry()[0].SolutionStepData().Data(Step);
-        double* NodeData1 = pElement->GetGeometry()[1].SolutionStepData().Data(Step);
-        double* NodeData2 = pElement->GetGeometry()[2].SolutionStepData().Data(Step);
-        double* NodeData3 = pElement->GetGeometry()[3].SolutionStepData().Data(Step);
-        
-        for (unsigned int j = 0; j < mStepDataSize; j++)
-        {
-            StepData[j] = ShapeFunctions[0] * NodeData0[j]
-                        + ShapeFunctions[1] * NodeData1[j]
-                        + ShapeFunctions[2] * NodeData2[j]
-                        + ShapeFunctions[3] * NodeData3[j];
-        }
-    }
 
 ///@}
 
@@ -445,4 +580,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NODAL_VALUES_INTERPOLATION_PROCESS  defined 
+#endif // KRATOS_NODAL_VALUES_INTERPOLATION_PROCESS  defined

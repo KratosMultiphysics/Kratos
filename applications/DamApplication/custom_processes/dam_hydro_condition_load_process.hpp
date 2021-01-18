@@ -1,19 +1,27 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosDamApplication    $
-//   Last modified by:    $Author: Lorenzo Gracia $
-//   Date:                $Date:        July 2016 $
-//   Revision:            $Revision:          0.0 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Lorenzo Gracia
+//
 //
 
-#if !defined(KRATOS_DAM_HYDRO_CONDITION_LOAD_PROCESS )
-#define  KRATOS_DAM_HYDRO_CONDITION_LOAD_PROCESS
+#if !defined(KRATOS_DAM_HYDRO_CONDITION_LOAD_PROCESS)
+#define KRATOS_DAM_HYDRO_CONDITION_LOAD_PROCESS
 
 #include <cmath>
 
+// Project includes
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
+// Application include
 #include "dam_application_variables.h"
 
 namespace Kratos
@@ -21,38 +29,37 @@ namespace Kratos
 
 class DamHydroConditionLoadProcess : public Process
 {
-    
-public:
 
+  public:
     KRATOS_CLASS_POINTER_DEFINITION(DamHydroConditionLoadProcess);
-    
-    typedef Table<double,double> TableType;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    typedef Table<double, double> TableType;
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamHydroConditionLoadProcess(ModelPart& model_part,
-                                Parameters rParameters
-                                ) : Process(Flags()) , mr_model_part(model_part)
+    DamHydroConditionLoadProcess(ModelPart &rModelPart,
+                                 Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart)
     {
         KRATOS_TRY
-			 
+
         //only include validation with c++11 since raw_literals do not exist in c++03
-        Parameters default_parameters( R"(
+        Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed"                                              : false,
                 "Modify"                                                : true,
                 "Gravity_Direction"                                     : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
                 "Spe_weight"                                            : 0.0,
                 "Water_level"                                           : 0.0,
-                "Water_Table"                                           : 0 
-            }  )" );
-            
-        
+                "Water_Table"                                           : 0,
+                "interval":[
+                0.0,
+                0.0
+                ]
+            }  )");
+
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
         rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"];
@@ -61,199 +68,179 @@ public:
 
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
-        
-        mmesh_id = rParameters["mesh_id"].GetInt();
-        mvariable_name = rParameters["variable_name"].GetString();
-        mis_fixed = rParameters["is_fixed"].GetBool();
-        mgravity_direction = rParameters["Gravity_Direction"].GetString();
-        mreference_coordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
-        mspecific = rParameters["Spe_weight"].GetDouble();
-        mwater_level = rParameters["Water_level"].GetDouble();
-        
-        mtime_unit_converter = mr_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
-        mTableId = rParameters["Water_Table"].GetInt();
-        
-        if(mTableId != 0)
-            mpTable = model_part.pGetTable(mTableId);
 
-        
+        mVariableName = rParameters["variable_name"].GetString();
+        mGravityDirection = rParameters["Gravity_Direction"].GetString();
+        mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
+        mSpecific = rParameters["Spe_weight"].GetDouble();
+        mWaterLevel = rParameters["Water_level"].GetDouble();
+
+        mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
+        mTableId = rParameters["Water_Table"].GetInt();
+
+        if (mTableId != 0)
+            mpTable = mrModelPart.pGetTable(mTableId);
+
         KRATOS_CATCH("");
     }
 
     ///------------------------------------------------------------------------------------
-    
+
     /// Destructor
     virtual ~DamHydroConditionLoadProcess() {}
 
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void Execute()
+    void Execute() override
     {
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
         KRATOS_TRY;
-        
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
-        int direction;
-        
-        if( mgravity_direction == "X")
-            direction = 1;
-        else if( mgravity_direction == "Y")
-            direction = 2;
-        else
-            direction = 3;
-        
-		double ref_coord = mreference_coordinate + mwater_level;     
-                       
-        if(nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
 
-            #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
+        int direction;
+
+        if (mGravityDirection == "X")
+            direction = 0;
+        else if (mGravityDirection == "Y")
+            direction = 1;
+        else
+            direction = 2;
+
+        double ref_coord = mReferenceCoordinate + mWaterLevel;
+
+        if (nnodes != 0)
+        {
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
+
+#pragma omp parallel for
+            for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                if(mis_fixed)
-                {
-                    it->Fix(var);
-                }
-                
-                double pressure = (mspecific*(ref_coord- (it->Coordinate(direction))));
-                
-                if(pressure>0.0)
+                double pressure = (mSpecific * (ref_coord - it->Coordinates()[direction]));
+
+                if (pressure > 0.0)
                 {
                     it->FastGetSolutionStepValue(var) = pressure;
                 }
                 else
                 {
-                    it->FastGetSolutionStepValue(var)=0.0;
+                    it->FastGetSolutionStepValue(var) = 0.0;
                 }
-            }            
+            }
         }
-        
+
         KRATOS_CATCH("");
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
-        
-        KRATOS_TRY;
-        
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        
-        // Getting the values of table in case that it exist        
-        if(mTableId != 0)
-        { 
-            double time = mr_model_part.GetProcessInfo()[TIME];
-            time = time/mtime_unit_converter;
-            mwater_level = mpTable->GetValue(time);
-        }
-        
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
-        
-        int direction;
-        
-        if( mgravity_direction == "X")
-            direction = 1;
-        else if( mgravity_direction == "Y")
-            direction = 2;
-        else
-            direction = 3;
-                
-        double ref_coord = mreference_coordinate + mwater_level;        
-        
-        if(nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
 
-            #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
+        KRATOS_TRY;
+
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
+
+        // Getting the values of table in case that it exist
+        if (mTableId != 0)
+        {
+            double time = mrModelPart.GetProcessInfo()[TIME];
+            time = time / mTimeUnitConverter;
+            mWaterLevel = mpTable->GetValue(time);
+        }
+
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
+
+        int direction;
+
+        if (mGravityDirection == "X")
+            direction = 0;
+        else if (mGravityDirection == "Y")
+            direction = 1;
+        else
+            direction = 2;
+
+        double ref_coord = mReferenceCoordinate + mWaterLevel;
+
+        if (nnodes != 0)
+        {
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
+
+#pragma omp parallel for
+            for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                if(mis_fixed)
-                {
-                    it->Fix(var);
-                }
-                
-                double pressure = (mspecific*(ref_coord- (it->Coordinate(direction))));
-                               
-                if(pressure>0.0)
+                double pressure = (mSpecific * (ref_coord - it->Coordinates()[direction]));
+
+                if (pressure > 0.0)
                 {
                     it->FastGetSolutionStepValue(var) = pressure;
                 }
                 else
                 {
-                    it->FastGetSolutionStepValue(var)=0.0;
+                    it->FastGetSolutionStepValue(var) = 0.0;
                 }
-            }            
+            }
         }
-        
+
         KRATOS_CATCH("");
     }
-    
+
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamHydroConditionLoadProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamHydroConditionLoadProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-protected:
-
+  protected:
     /// Member Variables
 
-    ModelPart& mr_model_part;
-    std::size_t mmesh_id;
-    std::string mvariable_name;
-    std::string mgravity_direction;
-    bool mis_fixed;
-    double mreference_coordinate;
-    double mspecific;
-    double mwater_level;
-    double mtime_unit_converter;
+    ModelPart &mrModelPart;
+    std::string mVariableName;
+    std::string mGravityDirection;
+    double mReferenceCoordinate;
+    double mSpecific;
+    double mWaterLevel;
+    double mTimeUnitConverter;
     TableType::Pointer mpTable;
     int mTableId;
 
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-private:
-
+  private:
     /// Assignment operator.
-    DamHydroConditionLoadProcess& operator=(DamHydroConditionLoadProcess const& rOther);
+    DamHydroConditionLoadProcess &operator=(DamHydroConditionLoadProcess const &rOther);
 
-};//Class
-
+}; //Class
 
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  DamHydroConditionLoadProcess& rThis);
+inline std::istream &operator>>(std::istream &rIStream,
+                                DamHydroConditionLoadProcess &rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const DamHydroConditionLoadProcess& rThis)
+inline std::ostream &operator<<(std::ostream &rOStream,
+                                const DamHydroConditionLoadProcess &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

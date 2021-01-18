@@ -1,21 +1,21 @@
-//   
+//
 //   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//   Created by:          $Author:            JMCarbonell $
+//   Last modified by:    $Co-Author:                     $
+//   Date:                $Date:                July 2018 $
+//   Revision:            $Revision:                  0.0 $
+//
 //
 
-#if !defined(KRATOS_ELEMENT_UTILITIES )
-#define  KRATOS_ELEMENT_UTILITIES
+#if !defined(KRATOS_ELEMENT_UTILITIES_H_INCLUDED )
+#define  KRATOS_ELEMENT_UTILITIES_H_INCLUDED
 
 // System includes
-//#include <cmath>
+
+// External includes
 
 // Project includes
-//#include "utilities/math_utils.h"
-#include "includes/element.h"
-
-// Application includes
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
@@ -23,1074 +23,635 @@ namespace Kratos
 
 class ElementUtilities
 {
-    
-public:
+ public:
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,2,6>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+  ///@name Type Definitions
+  ///@{
+
+  //definition of the size type
+  typedef std::size_t SizeType;
+
+  ///definition of node type (default is: Node<3>)
+  typedef Node<3> NodeType;
+
+  ///definition of the geometry type with given NodeType
+  typedef Geometry<NodeType> GeometryType;
+  ///@}
+
+
+  /**
+   * @brief Calculate Delta Position
+   * @param rDeltaPosition, matrix storing the displacement or position increment, returned parameter
+   * @param rGeometry, geometry where the gradient is calculated
+   */
+  static inline void CalculateDeltaPosition(Matrix& rDeltaPosition, const GeometryType& rGeometry)
+  {
+
+    const SizeType number_of_nodes = rGeometry.PointsNumber();
+    const SizeType dimension  = rGeometry.WorkingSpaceDimension();
+
+    if(rDeltaPosition.size1() != number_of_nodes || rDeltaPosition.size2() !=  dimension)
+      rDeltaPosition.resize(number_of_nodes,dimension,false);
+
+    //noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
+
+    if( rGeometry[0].SolutionStepsDataHas(STEP_DISPLACEMENT) )
     {
-        //Triangle_2d_3
-        rNu(0,0) = Ncontainer(GPoint,0); rNu(0,2) = Ncontainer(GPoint,1); rNu(0,4) = Ncontainer(GPoint,2);
-        rNu(1,1) = Ncontainer(GPoint,0); rNu(1,3) = Ncontainer(GPoint,1); rNu(1,5) = Ncontainer(GPoint,2);
-    }
-    
-    //----------------------------------------------------------------------------------------
-    
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,2,8>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
-    {
-        //Quadrilateral_2d_4
-        rNu(0,0) = Ncontainer(GPoint,0); rNu(0,2) = Ncontainer(GPoint,1); rNu(0,4) = Ncontainer(GPoint,2); rNu(0,6) = Ncontainer(GPoint,3);
-        rNu(1,1) = Ncontainer(GPoint,0); rNu(1,3) = Ncontainer(GPoint,1); rNu(1,5) = Ncontainer(GPoint,2); rNu(1,7) = Ncontainer(GPoint,3);
-    }
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        const array_1d<double, 3 > & CurrentStepDisplacement = rGeometry[i].FastGetSolutionStepValue(STEP_DISPLACEMENT,0);
 
-    //----------------------------------------------------------------------------------------
-
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,3,12>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
-    {
-        //Tetrahedra_3d_4
-        rNu(0,0) = Ncontainer(GPoint,0); rNu(0,3) = Ncontainer(GPoint,1); rNu(0,6) = Ncontainer(GPoint,2); rNu(0,9)  = Ncontainer(GPoint,3);
-        rNu(1,1) = Ncontainer(GPoint,0); rNu(1,4) = Ncontainer(GPoint,1); rNu(1,7) = Ncontainer(GPoint,2); rNu(1,10) = Ncontainer(GPoint,3);
-        rNu(2,2) = Ncontainer(GPoint,0); rNu(2,5) = Ncontainer(GPoint,1); rNu(2,8) = Ncontainer(GPoint,2); rNu(2,11) = Ncontainer(GPoint,3);
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,3,18>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
-    {
-        //Prism_3d_6
-        rNu(0,0) = Ncontainer(GPoint,0); rNu(0,3) = Ncontainer(GPoint,1); rNu(0,6) = Ncontainer(GPoint,2);
-        rNu(1,1) = Ncontainer(GPoint,0); rNu(1,4) = Ncontainer(GPoint,1); rNu(1,7) = Ncontainer(GPoint,2);
-        rNu(2,2) = Ncontainer(GPoint,0); rNu(2,5) = Ncontainer(GPoint,1); rNu(2,8) = Ncontainer(GPoint,2);
-
-        rNu(0,9) = Ncontainer(GPoint,3); rNu(0,12) = Ncontainer(GPoint,4); rNu(0,15) = Ncontainer(GPoint,5);
-        rNu(1,10) = Ncontainer(GPoint,3); rNu(1,13) = Ncontainer(GPoint,4); rNu(1,16) = Ncontainer(GPoint,5);
-        rNu(2,11) = Ncontainer(GPoint,3); rNu(2,14) = Ncontainer(GPoint,4); rNu(2,17) = Ncontainer(GPoint,5);
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,3,24>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
-    {
-        //Hexahedron_3d_8
-        rNu(0,0) = Ncontainer(GPoint,0); rNu(0,3) = Ncontainer(GPoint,1); rNu(0,6) = Ncontainer(GPoint,2); rNu(0,9)  = Ncontainer(GPoint,3);
-        rNu(1,1) = Ncontainer(GPoint,0); rNu(1,4) = Ncontainer(GPoint,1); rNu(1,7) = Ncontainer(GPoint,2); rNu(1,10) = Ncontainer(GPoint,3);
-        rNu(2,2) = Ncontainer(GPoint,0); rNu(2,5) = Ncontainer(GPoint,1); rNu(2,8) = Ncontainer(GPoint,2); rNu(2,11) = Ncontainer(GPoint,3);
-
-        rNu(0,12) = Ncontainer(GPoint,4); rNu(0,15) = Ncontainer(GPoint,5); rNu(0,18) = Ncontainer(GPoint,6); rNu(0,21) = Ncontainer(GPoint,7);
-        rNu(1,13) = Ncontainer(GPoint,4); rNu(1,16) = Ncontainer(GPoint,5); rNu(1,19) = Ncontainer(GPoint,6); rNu(1,22) = Ncontainer(GPoint,7);
-        rNu(2,14) = Ncontainer(GPoint,4); rNu(2,17) = Ncontainer(GPoint,5); rNu(2,20) = Ncontainer(GPoint,6); rNu(2,23) = Ncontainer(GPoint,7);
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,3,9>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
-    {
-        //Triangle_2d_3
-        rNut(0,0) = Ncontainer(GPoint,0); rNut(0,3) = Ncontainer(GPoint,1); rNut(0,6) = Ncontainer(GPoint,2);
-        rNut(1,1) = Ncontainer(GPoint,0); rNut(1,4) = Ncontainer(GPoint,1); rNut(1,7) = Ncontainer(GPoint,2);
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,3,12>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
-    {
-        //Quadrilateral_2d_4
-        rNut(0,0) = Ncontainer(GPoint,0); rNut(0,3) = Ncontainer(GPoint,1); rNut(0,6) = Ncontainer(GPoint,2); rNut(0,9) = Ncontainer(GPoint,3);
-        rNut(1,1) = Ncontainer(GPoint,0); rNut(1,4) = Ncontainer(GPoint,1); rNut(1,7) = Ncontainer(GPoint,2); rNut(1,10) = Ncontainer(GPoint,3);
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,4,16>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
-    {
-        //Tetrahedra_3d_4
-        rNut(0,0) = Ncontainer(GPoint,0); rNut(0,4) = Ncontainer(GPoint,1); rNut(0,8)  = Ncontainer(GPoint,2); rNut(0,12) = Ncontainer(GPoint,3);
-        rNut(1,1) = Ncontainer(GPoint,0); rNut(1,5) = Ncontainer(GPoint,1); rNut(1,9)  = Ncontainer(GPoint,2); rNut(1,13) = Ncontainer(GPoint,3);
-        rNut(2,2) = Ncontainer(GPoint,0); rNut(2,6) = Ncontainer(GPoint,1); rNut(2,10) = Ncontainer(GPoint,2); rNut(2,14) = Ncontainer(GPoint,3);
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,4,24>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
-    {
-        //Prism_3d_6
-        rNut(0,0) = Ncontainer(GPoint,0); rNut(0,4) = Ncontainer(GPoint,1); rNut(0,8) = Ncontainer(GPoint,2);
-        rNut(1,1) = Ncontainer(GPoint,0); rNut(1,5) = Ncontainer(GPoint,1); rNut(1,9) = Ncontainer(GPoint,2); 
-        rNut(2,2) = Ncontainer(GPoint,0); rNut(2,6) = Ncontainer(GPoint,1); rNut(2,10) = Ncontainer(GPoint,2); 
-
-        rNut(0,12) = Ncontainer(GPoint,3); rNut(0,16) = Ncontainer(GPoint,4); rNut(0,20) = Ncontainer(GPoint,5);
-        rNut(1,13) = Ncontainer(GPoint,3); rNut(1,17) = Ncontainer(GPoint,4); rNut(1,21) = Ncontainer(GPoint,5);
-        rNut(2,14) = Ncontainer(GPoint,3); rNut(2,18) = Ncontainer(GPoint,4); rNut(2,22) = Ncontainer(GPoint,5);
-    }
-    
-    //----------------------------------------------------------------------------------------
-
-    static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,4,32>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
-    {
-        //Hexahedron_3d_8
-        rNut(0,0) = Ncontainer(GPoint,0); rNut(0,4) = Ncontainer(GPoint,1); rNut(0,8) = Ncontainer(GPoint,2); rNut(0,12) = Ncontainer(GPoint,3);
-        rNut(1,1) = Ncontainer(GPoint,0); rNut(1,5) = Ncontainer(GPoint,1); rNut(1,9) = Ncontainer(GPoint,2); rNut(1,13) = Ncontainer(GPoint,3);
-        rNut(2,2) = Ncontainer(GPoint,0); rNut(2,6) = Ncontainer(GPoint,1); rNut(2,10) = Ncontainer(GPoint,2); rNut(2,14) = Ncontainer(GPoint,3);
-
-        rNut(0,16) = Ncontainer(GPoint,4); rNut(0,20) = Ncontainer(GPoint,5); rNut(0,24) = Ncontainer(GPoint,6); rNut(0,28) = Ncontainer(GPoint,7);
-        rNut(1,17) = Ncontainer(GPoint,4); rNut(1,21) = Ncontainer(GPoint,5); rNut(1,25) = Ncontainer(GPoint,6); rNut(1,29) = Ncontainer(GPoint,7);
-        rNut(2,18) = Ncontainer(GPoint,4); rNut(2,22) = Ncontainer(GPoint,5); rNut(2,26) = Ncontainer(GPoint,6); rNut(2,30) = Ncontainer(GPoint,7);
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    static inline void InterpolateVariableWithComponents(array_1d<double,2>& rVector,const Matrix& Ncontainer, 
-                                                        const array_1d<double,6>& VariableWithComponents,const unsigned int& GPoint)
-    {        
-        //Triangle_2d_3
-        noalias(rVector) = ZeroVector(2);
-        
-        unsigned int index = 0;
-        for(unsigned int i=0; i<3; i++)
+        for ( SizeType j = 0; j < dimension; j++ )
         {
-            rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
-            rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
+          rDeltaPosition(i,j) = CurrentStepDisplacement[j];
         }
-    }
-    
-    //----------------------------------------------------------------------------------------
 
-    static inline void InterpolateVariableWithComponents(array_1d<double,2>& rVector,const Matrix& Ncontainer, 
-                                                        const array_1d<double,8>& VariableWithComponents,const unsigned int& GPoint)
-    {        
-        //Quadrilateral_2d_4
-        noalias(rVector) = ZeroVector(2);
-        
-        unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
+      }
+    }
+    else{
+
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        const array_1d<double, 3 > & CurrentDisplacement  = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double, 3 > & PreviousDisplacement = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( SizeType j = 0; j < dimension; j++ )
         {
-            rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
-            rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
+          rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
         }
+      }
+
     }
 
-    //----------------------------------------------------------------------------------------
-        
-    static inline void InterpolateVariableWithComponents(array_1d<double,3>& rVector,const Matrix& Ncontainer, 
-                                                        const array_1d<double,12>& VariableWithComponents,const unsigned int& GPoint)
+  }
+
+  /**
+   * @brief Calculate Total Delta Position
+   * @param rDeltaPosition, matrix storing the displacement or position increment from origin, returned parameter
+   * @param rGeometry, geometry where the gradient is calculated
+   */
+  static inline void CalculateTotalDeltaPosition(Matrix & rDeltaPosition, const GeometryType& rGeometry)
+  {
+    const SizeType number_of_nodes = rGeometry.PointsNumber();
+    const SizeType dimension  = rGeometry.WorkingSpaceDimension();
+
+    if(rDeltaPosition.size1() != number_of_nodes || rDeltaPosition.size2() !=  dimension)
+      rDeltaPosition.resize(number_of_nodes,dimension,false);
+
+    //noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
+
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
-        //Tetrahedra_3d_4
-        noalias(rVector) = ZeroVector(3);
-        
-        unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
-        {
-            rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
-            rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
-            rVector[2] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
-        }
+      const array_1d<double, 3 > & CurrentDisplacement  = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+
+      for ( SizeType j = 0; j < dimension; j++ )
+      {
+        rDeltaPosition(i,j) = CurrentDisplacement[j];
+      }
     }
 
-    //----------------------------------------------------------------------------------------
-        
-    static inline void InterpolateVariableWithComponents(array_1d<double,3>& rVector,const Matrix& Ncontainer, 
-                                                        const array_1d<double,18>& VariableWithComponents,const unsigned int& GPoint)
+  }
+
+  /**
+   * @brief Calculate Norm of stresses.VelocityGradient
+   * @param rVelocityGradient, matrix form of the velocity gradient, returned parameter
+   * @param rGeometry, geometry where the gradient is calculated
+   * @param rDN_DX, shape functions derivatives
+   * @param Alpha, parameter to change the step calculation [0,1]
+   */
+  static inline void CalculateVelocityGradient(Matrix& rVelocityGradient, const GeometryType& rGeometry,
+                                               const Matrix& rDN_DX, const double Alpha = 1.0)
+  {
+
+    const SizeType number_of_nodes  = rGeometry.PointsNumber();
+    const SizeType dimension        = rGeometry.WorkingSpaceDimension();
+
+    if( rVelocityGradient.size1() != dimension || rVelocityGradient.size2() != dimension )
+      rVelocityGradient.resize(dimension,dimension);
+
+    noalias(rVelocityGradient) = ZeroMatrix(dimension,dimension);
+
+    if( Alpha != 1.0 ){
+
+      if( dimension == 2 )
+      {
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+          const array_1d<double,3>& rPreviousVelocity = rGeometry[i].FastGetSolutionStepValue(VELOCITY,1);
+          const array_1d<double,3>& rCurrentVelocity  = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
+          rVelocityGradient ( 0 , 0 ) += (rCurrentVelocity[0] * Alpha + rPreviousVelocity[0]* (1.0-Alpha))*rDN_DX ( i , 0 );
+          rVelocityGradient ( 0 , 1 ) += (rCurrentVelocity[0] * Alpha + rPreviousVelocity[0]* (1.0-Alpha))*rDN_DX ( i , 1 );
+          rVelocityGradient ( 1 , 0 ) += (rCurrentVelocity[1] * Alpha + rPreviousVelocity[1]* (1.0-Alpha))*rDN_DX ( i , 0 );
+          rVelocityGradient ( 1 , 1 ) += (rCurrentVelocity[1] * Alpha + rPreviousVelocity[1]* (1.0-Alpha))*rDN_DX ( i , 1 );
+        }
+      }
+      else if( dimension == 3)
+      {
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+          const array_1d<double,3>& rPreviousVelocity = rGeometry[i].FastGetSolutionStepValue(VELOCITY,1);
+          const array_1d<double,3>& rCurrentVelocity  = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
+          rVelocityGradient ( 0 , 0 ) += (rCurrentVelocity[0] * Alpha + rPreviousVelocity[0]* (1.0-Alpha))*rDN_DX ( i , 0 );
+          rVelocityGradient ( 0 , 1 ) += (rCurrentVelocity[0] * Alpha + rPreviousVelocity[0]* (1.0-Alpha))*rDN_DX ( i , 1 );
+          rVelocityGradient ( 0 , 2 ) += (rCurrentVelocity[0] * Alpha + rPreviousVelocity[0]* (1.0-Alpha))*rDN_DX ( i , 2 );
+          rVelocityGradient ( 1 , 0 ) += (rCurrentVelocity[1] * Alpha + rPreviousVelocity[1]* (1.0-Alpha))*rDN_DX ( i , 0 );
+          rVelocityGradient ( 1 , 1 ) += (rCurrentVelocity[1] * Alpha + rPreviousVelocity[1]* (1.0-Alpha))*rDN_DX ( i , 1 );
+          rVelocityGradient ( 1 , 2 ) += (rCurrentVelocity[1] * Alpha + rPreviousVelocity[1]* (1.0-Alpha))*rDN_DX ( i , 2 );
+          rVelocityGradient ( 2 , 0 ) += (rCurrentVelocity[2] * Alpha + rPreviousVelocity[2]* (1.0-Alpha))*rDN_DX ( i , 0 );
+          rVelocityGradient ( 2 , 1 ) += (rCurrentVelocity[2] * Alpha + rPreviousVelocity[2]* (1.0-Alpha))*rDN_DX ( i , 1 );
+          rVelocityGradient ( 2 , 2 ) += (rCurrentVelocity[2] * Alpha + rPreviousVelocity[2]* (1.0-Alpha))*rDN_DX ( i , 2 );
+        }
+      }
+
+    }
+    else{
+
+      if( dimension == 2 )
+      {
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+          const array_1d<double,3>& rCurrentVelocity = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
+          rVelocityGradient ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+          rVelocityGradient ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+          rVelocityGradient ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+          rVelocityGradient ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+        }
+
+      }
+      else if( dimension == 3)
+      {
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+          const array_1d<double,3>& rCurrentVelocity = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
+          rVelocityGradient ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+          rVelocityGradient ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+          rVelocityGradient ( 0 , 2 ) += rCurrentVelocity[0]*rDN_DX ( i , 2 );
+          rVelocityGradient ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+          rVelocityGradient ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+          rVelocityGradient ( 1 , 2 ) += rCurrentVelocity[1]*rDN_DX ( i , 2 );
+          rVelocityGradient ( 2 , 0 ) += rCurrentVelocity[2]*rDN_DX ( i , 0 );
+          rVelocityGradient ( 2 , 1 ) += rCurrentVelocity[2]*rDN_DX ( i , 1 );
+          rVelocityGradient ( 2 , 2 ) += rCurrentVelocity[2]*rDN_DX ( i , 2 );
+        }
+      }
+    }
+
+  }
+
+  /**
+   * @brief Calculate the Deformation Gradient Tensor
+   * @param rVelocityGradient, matrix form for the deformation gradient, returned parameter
+   * @param rGeometry, geometry where the gradient is calculated
+   * @param rDN_DX, shape functions derivatives
+   * @param rDeltaPosition, matrix containing increment of position
+   */
+  static inline void CalculateDeformationGradient(Matrix& rDeformationGradient, const GeometryType& rGeometry,
+                                                  const Matrix& rDN_DX, const Matrix& rDeltaPosition)
+  {
+    const SizeType number_of_nodes = rGeometry.PointsNumber();
+    const SizeType dimension       = rGeometry.WorkingSpaceDimension();
+
+    if( rDeformationGradient.size1() != dimension || rDeformationGradient.size2() != dimension )
+      rDeformationGradient.resize(dimension, dimension, false);
+
+    noalias(rDeformationGradient) = IdentityMatrix(dimension);
+
+    if( dimension == 2 )
     {
-        //Prism_3d_6
-        noalias(rVector) = ZeroVector(3);
-        
-        unsigned int index = 0;
-        for(unsigned int i=0; i<6; i++)
-        {
-            rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
-            rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
-            rVector[2] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
-        }
-    }
-    
-    //----------------------------------------------------------------------------------------
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        rDeformationGradient ( 0 , 0 ) += rDeltaPosition(i,0)*rDN_DX ( i , 0 );
+        rDeformationGradient ( 0 , 1 ) += rDeltaPosition(i,0)*rDN_DX ( i , 1 );
+        rDeformationGradient ( 1 , 0 ) += rDeltaPosition(i,1)*rDN_DX ( i , 0 );
+        rDeformationGradient ( 1 , 1 ) += rDeltaPosition(i,1)*rDN_DX ( i , 1 );
+      }
 
-    static inline void InterpolateVariableWithComponents(array_1d<double,3>& rVector,const Matrix& Ncontainer, 
-                                                        const array_1d<double,24>& VariableWithComponents,const unsigned int& GPoint)
+    }
+    else if( dimension == 3)
     {
-        //Hexahedra_3d_8
-        noalias(rVector) = ZeroVector(3);
-        
-        unsigned int index = 0;
-        for(unsigned int i=0; i<8; i++)
-        {
-            rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
-            rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
-            rVector[2] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
-        }
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        rDeformationGradient ( 0 , 0 ) += rDeltaPosition(i,0)*rDN_DX ( i , 0 );
+        rDeformationGradient ( 0 , 1 ) += rDeltaPosition(i,0)*rDN_DX ( i , 1 );
+        rDeformationGradient ( 0 , 2 ) += rDeltaPosition(i,0)*rDN_DX ( i , 2 );
+        rDeformationGradient ( 1 , 0 ) += rDeltaPosition(i,1)*rDN_DX ( i , 0 );
+        rDeformationGradient ( 1 , 1 ) += rDeltaPosition(i,1)*rDN_DX ( i , 1 );
+        rDeformationGradient ( 1 , 2 ) += rDeltaPosition(i,1)*rDN_DX ( i , 2 );
+        rDeformationGradient ( 2 , 0 ) += rDeltaPosition(i,2)*rDN_DX ( i , 0 );
+        rDeformationGradient ( 2 , 1 ) += rDeltaPosition(i,2)*rDN_DX ( i , 1 );
+        rDeformationGradient ( 2 , 2 ) += rDeltaPosition(i,2)*rDN_DX ( i , 2 );
+      }
     }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    static inline void FillArray1dOutput(array_1d<double,3>& rOutputValue, const array_1d<double,2>& ComputedValue)
+    else
     {
-        rOutputValue[0] = ComputedValue[0];
-        rOutputValue[1] = ComputedValue[1];
-        rOutputValue[2] = 0.0;
+      KRATOS_ERROR << " something is wrong with the dimension when computing the Deformation Gradient " << std::endl;
     }
-    
-    //----------------------------------------------------------------------------------------
-    
-    static inline void FillArray1dOutput(array_1d<double,3>& rOutputValue, const array_1d<double,3>& ComputedValue)
+
+  }
+
+  /**
+   * @brief Calculate the VelocityGradient vector (no voigt form)
+   * @param rVelocityGradient, vector form of the non symmetric velocity gradient, returned parameter
+   * @param rGeometry, geometry where the gradient is calculated
+   * @param rDN_DX, shape functions derivatives
+   * @param Alpha, parameter to change the step calculation [0,1]
+   */
+  static inline void CalculateVelocityGradientVector(Vector& rVelocityGradient, const GeometryType& rGeometry,
+                                                     const Matrix& rDN_DX, const double Alpha = 1.0)
+  {
+
+    const SizeType number_of_nodes  = rGeometry.PointsNumber();
+    const SizeType dimension        = rGeometry.WorkingSpaceDimension();
+
+    if( rVelocityGradient.size() != dimension*dimension )
+      rVelocityGradient.resize(dimension*dimension);
+
+    noalias(rVelocityGradient) = ZeroVector(dimension * dimension);
+
+    array_1d<double,3> Velocity;
+    if( dimension == 2 )
     {
-        rOutputValue[0] = ComputedValue[0];
-        rOutputValue[1] = ComputedValue[1];
-        rOutputValue[2] = ComputedValue[2];
-    }
-    
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        const array_1d<double,3>& rPreviousVelocity = rGeometry[i].FastGetSolutionStepValue(VELOCITY,1);
+        const array_1d<double,3>& rCurrentVelocity  = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
 
-    static inline void GetDisplacementsVector(array_1d<double,6>& rDisplacementVector, const Element::GeometryType& Geom)
+        Velocity = rCurrentVelocity * Alpha + rPreviousVelocity * (1.0-Alpha);
+
+        rVelocityGradient[0] += Velocity[0]*rDN_DX ( i , 0 );
+        rVelocityGradient[1] += Velocity[1]*rDN_DX ( i , 1 );
+        rVelocityGradient[2] += Velocity[0]*rDN_DX ( i , 1 );
+        rVelocityGradient[3] += Velocity[1]*rDN_DX ( i , 0 );
+      }
+    }
+    else if( dimension == 3)
     {
-        //Triangle_2d_3
-        array_1d<double,3> DisplacementAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<3; i++)
-        {
-            noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
-        }
-    }
 
-    //----------------------------------------------------------------------------------------
-    
-    static inline void GetDisplacementsVector(array_1d<double,8>& rDisplacementVector, const Element::GeometryType& Geom)
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        const array_1d<double,3>& rPreviousVelocity = rGeometry[i].FastGetSolutionStepValue(VELOCITY,1);
+        const array_1d<double,3>& rCurrentVelocity  = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
+
+        Velocity = rCurrentVelocity * Alpha + rPreviousVelocity * (1.0-Alpha);
+
+        rVelocityGradient[0] += Velocity[0]*rDN_DX ( i , 0 );
+        rVelocityGradient[1] += Velocity[1]*rDN_DX ( i , 1 );
+        rVelocityGradient[2] += Velocity[2]*rDN_DX ( i , 2 );
+
+        rVelocityGradient[3] += Velocity[0]*rDN_DX ( i , 1 );
+        rVelocityGradient[4] += Velocity[1]*rDN_DX ( i , 2 );
+        rVelocityGradient[5] += Velocity[2]*rDN_DX ( i , 0 );
+
+        rVelocityGradient[6] += Velocity[1]*rDN_DX ( i , 0 );
+        rVelocityGradient[7] += Velocity[2]*rDN_DX ( i , 1 );
+        rVelocityGradient[8] += Velocity[0]*rDN_DX ( i , 2 );
+      }
+
+    }
+    else
     {
-        //Quadrilateral_2d_4
-        array_1d<double,3> DisplacementAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
-        {
-            noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
-        }
+      KRATOS_ERROR << " something is wrong with the dimension when computing symmetric velocity gradient " << std::endl;
     }
 
-    //----------------------------------------------------------------------------------------
 
-    static inline void GetDisplacementsVector(array_1d<double,12>& rDisplacementVector, const Element::GeometryType& Geom)
+  }
+
+  /**
+   * @brief Calculate the symmetric VelocityGradient vector
+   * @param rVelocityGradientMatrix, matrix form of the velocity gradient
+   * @param rSymmetricVelocityGradientVector, vector form of the symmetric velocity gradient, returned parameter
+   */
+  static inline void CalculateSymmetricVelocityGradientVector(const Matrix& rVelocityGradientMatrix,
+                                                              Vector& rSymmetricVelocityGradientVector,
+                                                              const SizeType& rDimension)
+  {
+
+    if( rDimension == 2 )
     {
-        //Tetrahedra_3d_4
-        array_1d<double,3> DisplacementAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
-        {
-            noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
-            rDisplacementVector[index++] = DisplacementAux[2];
-        }
-    }
+      if ( rSymmetricVelocityGradientVector.size() != 3 ) rSymmetricVelocityGradientVector.resize( 3, false );
 
-    //----------------------------------------------------------------------------------------
-    
-    static inline void GetDisplacementsVector(array_1d<double,18>& rDisplacementVector, const Element::GeometryType& Geom)
+      rSymmetricVelocityGradientVector[0] = rVelocityGradientMatrix( 0, 0 );
+      rSymmetricVelocityGradientVector[1] = rVelocityGradientMatrix( 1, 1 );
+      rSymmetricVelocityGradientVector[2] = 0.5 * (rVelocityGradientMatrix( 0, 1 ) + rVelocityGradientMatrix( 1, 0 )); // xy
+
+    }
+    else if( rDimension == 3 )
     {
-        //Prism_3d_6
-        array_1d<double,3> DisplacementAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<6; i++)
-        {
-            noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
-            rDisplacementVector[index++] = DisplacementAux[2];
-        }
+      if ( rSymmetricVelocityGradientVector.size() != 6 ) rSymmetricVelocityGradientVector.resize( 6, false );
+
+      rSymmetricVelocityGradientVector[0] = rVelocityGradientMatrix( 0, 0 );
+      rSymmetricVelocityGradientVector[1] = rVelocityGradientMatrix( 1, 1 );
+      rSymmetricVelocityGradientVector[2] = rVelocityGradientMatrix( 2, 2 );
+      rSymmetricVelocityGradientVector[3] = 0.5 * ( rVelocityGradientMatrix( 0, 1 ) + rVelocityGradientMatrix( 1, 0 ) ); // xy
+      rSymmetricVelocityGradientVector[4] = 0.5 * ( rVelocityGradientMatrix( 1, 2 ) + rVelocityGradientMatrix( 2, 1 ) ); // yz
+      rSymmetricVelocityGradientVector[5] = 0.5 * ( rVelocityGradientMatrix( 0, 2 ) + rVelocityGradientMatrix( 2, 0 ) ); // xz
+
     }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetDisplacementsVector(array_1d<double,24>& rDisplacementVector, const Element::GeometryType& Geom)
+    else
     {
-        //Hexahedron_3d_8
-        array_1d<double,3> DisplacementAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<8; i++)
-        {
-            noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
-            rDisplacementVector[index++] = DisplacementAux[2];
-        }
+      KRATOS_ERROR << " something is wrong with the dimension symmetric velocity gradient " << std::endl;
     }
 
-    //----------------------------------------------------------------------------------------
-    
-    static inline void GetVelocitiesVector(array_1d<double,6>& rVelocityVector, const Element::GeometryType& Geom)
+  }
+
+  /**
+   * @brief Calculate the skew-symmetric VelocityGradient vector
+   * @param rVelocityGradientMatrix, matrix form of the velocity gradient
+   * @param rSkewSymmetricVelocityGradientVector, vector form of the symmetric velocity gradient, returned parameter
+   */
+  static inline void CalculateSkewSymmetricVelocityGradientVector(const Matrix& rVelocityGradientMatrix,
+                                                                  Vector& rSkewSymmetricVelocityGradientVector,
+                                                                  const SizeType& rDimension)
+  {
+
+    if( rDimension == 2 )
     {
-        //Triangle_2d_3
-        array_1d<double,3> VelocityAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<3; i++)
-        {
-            noalias(VelocityAux) = Geom[i].FastGetSolutionStepValue(VELOCITY);
-            rVelocityVector[index++] = VelocityAux[0];
-            rVelocityVector[index++] = VelocityAux[1];
-        }
-    }
-    
-    //----------------------------------------------------------------------------------------
+      if ( rSkewSymmetricVelocityGradientVector.size() != 3 ) rSkewSymmetricVelocityGradientVector.resize( 3, false );
 
-    static inline void GetVelocitiesVector(array_1d<double,8>& rVelocityVector, const Element::GeometryType& Geom)
+      rSkewSymmetricVelocityGradientVector[0] = 0.0;
+      rSkewSymmetricVelocityGradientVector[1] = 0.0;
+      rSkewSymmetricVelocityGradientVector[2] = 0.5 * (rVelocityGradientMatrix( 0, 1 ) - rVelocityGradientMatrix( 1, 0 )); // xy
+
+    }
+    else if( rDimension == 3 )
     {
-        //Quadrilateral_2d_4
-        array_1d<double,3> VelocityAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
-        {
-            noalias(VelocityAux) = Geom[i].FastGetSolutionStepValue(VELOCITY);
-            rVelocityVector[index++] = VelocityAux[0];
-            rVelocityVector[index++] = VelocityAux[1];
-        }
+      if ( rSkewSymmetricVelocityGradientVector.size() != 6 ) rSkewSymmetricVelocityGradientVector.resize( 6, false );
+
+      rSkewSymmetricVelocityGradientVector[0] = 0.0;
+      rSkewSymmetricVelocityGradientVector[1] = 0.0;
+      rSkewSymmetricVelocityGradientVector[2] = 0.0;
+      rSkewSymmetricVelocityGradientVector[3] = 0.5 * ( rVelocityGradientMatrix( 0, 1 ) - rVelocityGradientMatrix( 1, 0 ) ); // xy
+      rSkewSymmetricVelocityGradientVector[4] = 0.5 * ( rVelocityGradientMatrix( 1, 2 ) - rVelocityGradientMatrix( 2, 1 ) ); // yz
+      rSkewSymmetricVelocityGradientVector[5] = 0.5 * ( rVelocityGradientMatrix( 0, 2 ) - rVelocityGradientMatrix( 2, 0 ) ); // xz
+
     }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetVelocitiesVector(array_1d<double,12>& rVelocityVector, const Element::GeometryType& Geom)
+    else
     {
-        //Tetrahedra_3d_4
-        array_1d<double,3> VelocityAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
-        {
-            noalias(VelocityAux) = Geom[i].FastGetSolutionStepValue(VELOCITY);
-            rVelocityVector[index++] = VelocityAux[0];
-            rVelocityVector[index++] = VelocityAux[1];
-            rVelocityVector[index++] = VelocityAux[2];
-        }
+      KRATOS_ERROR << " something is wrong with the dimension skew symmetric velocity gradient " << std::endl;
     }
-    
-    //----------------------------------------------------------------------------------------
 
-    static inline void GetVelocitiesVector(array_1d<double,18>& rVelocityVector, const Element::GeometryType& Geom)
+  }
+
+
+  /**
+   * @brief Calculate Linear deformation matrix BL
+   * @param rDeformationMatrix, matrix form, returned parameter
+   * @param rGeometry, geometry where the gradient is calculated
+   * @param rDN_DX, shape functions derivatives
+   */
+  static inline void CalculateLinearDeformationMatrix(Matrix& rDeformationMatrix, const GeometryType& rGeometry, const Matrix& rDN_DX)
+  {
+
+    const SizeType number_of_nodes  = rGeometry.PointsNumber();
+    const SizeType dimension        = rGeometry.WorkingSpaceDimension();
+    unsigned int voigt_size         = dimension * (dimension +1) * 0.5;
+
+    if ( rDeformationMatrix.size1() != voigt_size || rDeformationMatrix.size2() != dimension*number_of_nodes )
+      rDeformationMatrix.resize(voigt_size, dimension*number_of_nodes, false );
+
+
+    if( dimension == 2 )
     {
-        //Prism_3d_6
-        array_1d<double,3> VelocityAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<6; i++)
-        {
-            noalias(VelocityAux) = Geom[i].FastGetSolutionStepValue(VELOCITY);
-            rVelocityVector[index++] = VelocityAux[0];
-            rVelocityVector[index++] = VelocityAux[1];
-            rVelocityVector[index++] = VelocityAux[2];
-        }
+
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        unsigned int index = 2 * i;
+
+        rDeformationMatrix( 0, index + 0 ) = rDN_DX( i, 0 );
+        rDeformationMatrix( 0, index + 1 ) = 0.0;
+        rDeformationMatrix( 1, index + 0 ) = 0.0;
+        rDeformationMatrix( 1, index + 1 ) = rDN_DX( i, 1 );
+        rDeformationMatrix( 2, index + 0 ) = rDN_DX( i, 1 );
+        rDeformationMatrix( 2, index + 1 ) = rDN_DX( i, 0 );
+      }
+
     }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetVelocitiesVector(array_1d<double,24>& rVelocityVector, const Element::GeometryType& Geom)
+    else if( dimension == 3 )
     {
-        //Hexahedra_3d_8
-        array_1d<double,3> VelocityAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<8; i++)
-        {
-            noalias(VelocityAux) = Geom[i].FastGetSolutionStepValue(VELOCITY);
-            rVelocityVector[index++] = VelocityAux[0];
-            rVelocityVector[index++] = VelocityAux[1];
-            rVelocityVector[index++] = VelocityAux[2];
-        }
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        unsigned int index = 3 * i;
+
+        rDeformationMatrix( 0, index + 0 ) = rDN_DX( i, 0 );
+        rDeformationMatrix( 0, index + 1 ) = 0.0;
+        rDeformationMatrix( 0, index + 2 ) = 0.0;
+
+        rDeformationMatrix( 1, index + 0 ) = 0.0;
+        rDeformationMatrix( 1, index + 1 ) = rDN_DX( i, 1 );
+        rDeformationMatrix( 1, index + 2 ) = 0.0;
+
+        rDeformationMatrix( 2, index + 0 ) = 0.0;
+        rDeformationMatrix( 2, index + 1 ) = 0.0;
+        rDeformationMatrix( 2, index + 2 ) = rDN_DX( i, 2 );
+
+        rDeformationMatrix( 3, index + 0 ) = rDN_DX( i, 1 );
+        rDeformationMatrix( 3, index + 1 ) = rDN_DX( i, 0 );
+        rDeformationMatrix( 3, index + 2 ) = 0.0;
+
+        rDeformationMatrix( 4, index + 0 ) = 0.0;
+        rDeformationMatrix( 4, index + 1 ) = rDN_DX( i, 2 );
+        rDeformationMatrix( 4, index + 2 ) = rDN_DX( i, 1 );
+
+        rDeformationMatrix( 5, index + 0 ) = rDN_DX( i, 2 );
+        rDeformationMatrix( 5, index + 1 ) = 0.0;
+        rDeformationMatrix( 5, index + 2 ) = rDN_DX( i, 0 );
+
+      }
     }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetVolumeAccelerationVector(array_1d<double,6>& rVolumeAccelerationVector, const Element::GeometryType& Geom)
+    else
     {
-        //Triangle_2d_3
-        array_1d<double,3> BodyAccelerationAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<3; i++)
-        {
-            noalias(BodyAccelerationAux) = Geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[0];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[1];
-        }
+      KRATOS_ERROR << " something is wrong with the dimension when computing linear DeformationMatrix " << std::endl;
     }
-    
-    //----------------------------------------------------------------------------------------
 
-    static inline void GetVolumeAccelerationVector(array_1d<double,8>& rVolumeAccelerationVector, const Element::GeometryType& Geom)
+  }
+
+
+  /**
+   * @brief Calculate Norm of stresses.
+   * @param rStressVector, the stress tensor in voigt form
+   * @return StressNorm, the norm of stresses
+   */
+  static inline double CalculateStressNorm(const Vector& rStressVector)
+  {
+    Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(rStressVector); //reduced dimension stress tensor
+
+    Matrix StressTensor(3,3); //3D stress tensor
+    noalias(StressTensor) = ZeroMatrix(3,3);
+    for(unsigned int i=0; i<LocalStressTensor.size1(); i++)
     {
-        //Quadrilateral_2d_4
-        array_1d<double,3> BodyAccelerationAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
-        {
-            noalias(BodyAccelerationAux) = Geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[0];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[1];
-        }
+      for(unsigned int j=0; j<LocalStressTensor.size2(); j++)
+      {
+        StressTensor(i,j) = LocalStressTensor(i,j);
+      }
     }
 
-    //----------------------------------------------------------------------------------------
+    double StressNorm =  ((StressTensor(0,0)*StressTensor(0,0))+(StressTensor(1,1)*StressTensor(1,1))+(StressTensor(2,2)*StressTensor(2,2))+
+                          (StressTensor(0,1)*StressTensor(0,1))+(StressTensor(0,2)*StressTensor(0,2))+(StressTensor(1,2)*StressTensor(1,2))+
+                          (StressTensor(1,0)*StressTensor(1,0))+(StressTensor(2,0)*StressTensor(2,0))+(StressTensor(2,1)*StressTensor(2,1)));
 
-    static inline void GetVolumeAccelerationVector(array_1d<double,12>& rVolumeAccelerationVector, const Element::GeometryType& Geom)
+    StressNorm = sqrt(StressNorm);
+
+    return StressNorm;
+
+  };
+
+
+  /**
+   * @brief Calculate VonMises stress.
+   * @param rStressVector, the stress tensor in voigt form
+   * @return VonMisesStress, the von mises stress
+   */
+  static inline double CalculateVonMises(const Vector& rStressVector)
+  {
+    Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(rStressVector); //reduced dimension stress tensor
+
+    Matrix StressTensor(3,3); //3D stress tensor
+    noalias(StressTensor) = ZeroMatrix(3,3);
+    for(unsigned int i=0; i<LocalStressTensor.size1(); i++)
     {
-        //Tetrahedra_3d_4
-        array_1d<double,3> BodyAccelerationAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
-        {
-            noalias(BodyAccelerationAux) = Geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[0];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[1];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[2];
-        }
+      for(unsigned int j=0; j<LocalStressTensor.size2(); j++)
+      {
+        StressTensor(i,j) = LocalStressTensor(i,j);
+      }
     }
-    
-    //----------------------------------------------------------------------------------------
 
-    static inline void GetVolumeAccelerationVector(array_1d<double,18>& rVolumeAccelerationVector, const Element::GeometryType& Geom)
+    //in general coordinates:
+    double SigmaEquivalent =  (0.5)*((StressTensor(0,0)-StressTensor(1,1))*((StressTensor(0,0)-StressTensor(1,1)))+
+                                     (StressTensor(1,1)-StressTensor(2,2))*((StressTensor(1,1)-StressTensor(2,2)))+
+                                     (StressTensor(2,2)-StressTensor(0,0))*((StressTensor(2,2)-StressTensor(0,0)))+
+                                     6*(StressTensor(0,1)*StressTensor(1,0)+StressTensor(1,2)*StressTensor(2,1)+StressTensor(2,0)*StressTensor(0,2)));
+
+    if( SigmaEquivalent < 0 )
+      SigmaEquivalent = 0;
+
+    SigmaEquivalent = sqrt(SigmaEquivalent);
+
+    return SigmaEquivalent;
+  }
+
+  /**
+   * @brief Calculate VonMises stress.
+   * @param rStressVector, the stress tensor in voigt form
+   * @return VonMisesStress, the von mises stress
+   */
+  static inline double CalculateVonMisesUsingPrincipalStresses(const Vector& rStressVector)
+  {
+
+    //in principal stresses:
+
+    Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(rStressVector); //reduced dimension stress tensor
+
+    Matrix StressTensor(3,3); //3D stress tensor
+    noalias(StressTensor) = ZeroMatrix(3,3);
+    for(unsigned int i=0; i<LocalStressTensor.size1(); i++)
     {
-        //Prism_3d_6
-        array_1d<double,3> BodyAccelerationAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<6; i++)
-        {
-            noalias(BodyAccelerationAux) = Geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[0];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[1];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[2];
-        }
+      for(unsigned int j=0; j<LocalStressTensor.size2(); j++)
+      {
+        StressTensor(i,j) = LocalStressTensor(i,j);
+      }
     }
 
-    //----------------------------------------------------------------------------------------
 
-    static inline void GetVolumeAccelerationVector(array_1d<double,24>& rVolumeAccelerationVector, const Element::GeometryType& Geom)
+    double tolerance  = 1e-10;
+    double zero       = 1e-10;
+    double NormStress = 0.00;
+
+    CheckZeroDiagonalComponents (StressTensor);
+
+    Vector PrincipalStress(3);
+    noalias(PrincipalStress) = ZeroVector(3);
+
+    NormStress =SolidMechanicsMathUtilities<double>::NormTensor(StressTensor);
+
+    Vector MainStresses(3);
+    noalias(MainStresses) = ZeroVector(3);
+
+    bool main_tensor = CheckPrincipalStresses( StressTensor );
+
+    if(!main_tensor)
     {
-        //Hexahedra_3d_8
-        array_1d<double,3> BodyAccelerationAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<8; i++)
-        {
-            noalias(BodyAccelerationAux) = Geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[0];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[1];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[2];
-        }
+
+      if(NormStress>1e-6)
+      {
+        MainStresses = SolidMechanicsMathUtilities<double>::EigenValues(StressTensor,tolerance,zero);
+      }
+      else
+      {
+        noalias(MainStresses) = ZeroVector(3);
+      }
+
     }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    static inline void CalculatePermeabilityMatrix(boost::numeric::ublas::bounded_matrix<double,2,2>& rPermeabilityMatrix,
-                                                    const Element::PropertiesType& Prop)
+    else
     {
-        //2D
-        rPermeabilityMatrix(0,0) = Prop[PERMEABILITY_XX];
-        rPermeabilityMatrix(1,1) = Prop[PERMEABILITY_YY];
-        
-        rPermeabilityMatrix(0,1) = Prop[PERMEABILITY_XY];
-        rPermeabilityMatrix(1,0) = rPermeabilityMatrix(0,1);
+      noalias(MainStresses) = ZeroVector(3);
+      for(unsigned int i=0; i<StressTensor.size1(); i++)
+        MainStresses[i]=StressTensor(i,i);
     }
 
-    //----------------------------------------------------------------------------------------
-    
-    static inline void CalculatePermeabilityMatrix(boost::numeric::ublas::bounded_matrix<double,3,3>& rPermeabilityMatrix,
-                                                    const Element::PropertiesType& Prop)
+
+    for(unsigned int i=0; i<MainStresses.size(); i++)
+      PrincipalStress[i]=MainStresses[i];
+
+
+    double SigmaEquivalent =  (0.5)*((PrincipalStress[0]-PrincipalStress[1])*(PrincipalStress[0]-PrincipalStress[1]) +
+                                     (PrincipalStress[1]-PrincipalStress[2])*(PrincipalStress[1]-PrincipalStress[2]) +
+                                     (PrincipalStress[2]-PrincipalStress[0])*(PrincipalStress[2]-PrincipalStress[0]));
+
+
+    SigmaEquivalent = sqrt(SigmaEquivalent);
+
+    return SigmaEquivalent;
+  }
+
+
+
+
+
+ protected:
+
+  /**
+   * @brief Check and correct diagonal terms in the stress tensor
+   * @param rStressTensor, the stress tensor in matrix form
+   */
+  static inline void  CheckZeroDiagonalComponents (Matrix& StressTensor)
+  {
+    // No null diagonal terms are accepted in the eigenvalue calculation
+    for(unsigned int i=0; i<StressTensor.size1(); i++)
     {
-        //3D
-        rPermeabilityMatrix(0,0) = Prop[PERMEABILITY_XX];
-        rPermeabilityMatrix(1,1) = Prop[PERMEABILITY_YY];
-        rPermeabilityMatrix(2,2) = Prop[PERMEABILITY_ZZ];
-        
-        rPermeabilityMatrix(0,1) = Prop[PERMEABILITY_XY];
-        rPermeabilityMatrix(1,0) = rPermeabilityMatrix(0,1);
-        
-        rPermeabilityMatrix(1,2) = Prop[PERMEABILITY_YZ];
-        rPermeabilityMatrix(2,1) = rPermeabilityMatrix(1,2);
-
-        rPermeabilityMatrix(2,0) = Prop[PERMEABILITY_ZX];
-        rPermeabilityMatrix(0,2) = rPermeabilityMatrix(2,0);
+      if (fabs(StressTensor(i,i))<1e-10)
+      {
+        StressTensor(i,i) = 1e-10;
+      }
     }
+  }
 
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    static inline void InvertMatrix2(boost::numeric::ublas::bounded_matrix<double,2,2>& rInvertedMatrix,
-                                    const boost::numeric::ublas::bounded_matrix<double,2,2>& InputMatrix)
+  /**
+   * @brief Check no zero diagonal terms in the diagonalized stress tensor
+   * @param rStressTensor, the stress tensor in matrix form
+   * @return bool, if zero principal stresses are detected
+   */
+  static inline bool CheckPrincipalStresses (Matrix& StressTensor)
+  {
+    // No null diagonal terms are accepted in the eigenvalue calculation
+    bool main = true;
+    for(unsigned int i=0; i<StressTensor.size1(); i++)
     {
-        double InputMatrixDet = InputMatrix(0,0)*InputMatrix(1,1)-InputMatrix(0,1)*InputMatrix(1,0);
-        
-        rInvertedMatrix(0,0) =  InputMatrix(1,1)/InputMatrixDet;
-        rInvertedMatrix(0,1) = -InputMatrix(0,1)/InputMatrixDet;
-        rInvertedMatrix(1,0) = -InputMatrix(1,0)/InputMatrixDet;
-        rInvertedMatrix(1,1) =  InputMatrix(0,0)/InputMatrixDet;
-    }
-    
-    //----------------------------------------------------------------------------------------
-/*
-	template<class T>
-	bool InvertMatrix(const T& input, T& inverse)
-	{
-		typedef permutation_matrix<std::size_t> pmatrix;
-
-		// create a working copy of the input
-		T A(input);
-
-		// create a permutation matrix for the LU-factorization
-		pmatrix pm(A.size1());
-
-		// perform LU-factorization
-		int res = lu_factorize(A, pm);
-		if (res != 0)
-			return false;
-
-		// create identity matrix of "inverse"
-		inverse.assign(identity_matrix<double> (A.size1()));
-
-		// backsubstitute to get the inverse
-		lu_substitute(A, pm, inverse);
-
-		return true;
-	}
-*/
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,6,6>& UBlockMatrix)
-    {        
-        //Triangle_2d_3
-        unsigned int Global_i, Global_j, Local_i, Local_j;
-
-        for(unsigned int i = 0; i < 3; i++)
+      for(unsigned int j=0; j<StressTensor.size2(); j++)
+      {
+        if(i!=j)
         {
-            Global_i = i * (2 + 1);
-            Local_i = i * 2;
-
-            for(unsigned int j = 0; j < 3; j++)
-            {
-                Global_j = j * (2 + 1);
-                Local_j = j * 2;
-
-                rLeftHandSideMatrix(Global_i,Global_j)     += UBlockMatrix(Local_i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1)   += UBlockMatrix(Local_i,Local_j+1);
-                rLeftHandSideMatrix(Global_i+1,Global_j)   += UBlockMatrix(Local_i+1,Local_j);
-                rLeftHandSideMatrix(Global_i+1,Global_j+1) += UBlockMatrix(Local_i+1,Local_j+1);
-            }
+          if (fabs(StressTensor(i,j))>1e-10)
+          {
+            main = false;
+          }
         }
-    }
-    
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,8,8>& UBlockMatrix)
-    {        
-        //Quadrilateral_2d_4
-        unsigned int Global_i, Global_j, Local_i, Local_j;
-
-        for(unsigned int i = 0; i < 4; i++)
-        {
-            Global_i = i * (2 + 1);
-            Local_i = i * 2;
-
-            for(unsigned int j = 0; j < 4; j++)
-            {
-                Global_j = j * (2 + 1);
-                Local_j = j * 2;
-
-                rLeftHandSideMatrix(Global_i,Global_j)     += UBlockMatrix(Local_i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1)   += UBlockMatrix(Local_i,Local_j+1);
-                rLeftHandSideMatrix(Global_i+1,Global_j)   += UBlockMatrix(Local_i+1,Local_j);
-                rLeftHandSideMatrix(Global_i+1,Global_j+1) += UBlockMatrix(Local_i+1,Local_j+1);
-            }
-        }
+      }
     }
 
-    //----------------------------------------------------------------------------------------
+    return main;
+  }
 
-    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,12,12>& UBlockMatrix)
-    {
-        //Tetrahedra_3d_4
-        unsigned int Global_i, Global_j, Local_i, Local_j;
+};
+} // namespace Kratos.
 
-        for(unsigned int i = 0; i < 4; i++)
-        {
-            Global_i = i * (3 + 1);
-            Local_i = i * 3;
-
-            for(unsigned int j = 0; j < 4; j++)
-            {
-                Global_j = j * (3 + 1);
-                Local_j = j * 3;
-
-                rLeftHandSideMatrix(Global_i,Global_j)     += UBlockMatrix(Local_i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1)   += UBlockMatrix(Local_i,Local_j+1);
-                rLeftHandSideMatrix(Global_i+1,Global_j)   += UBlockMatrix(Local_i+1,Local_j);
-                rLeftHandSideMatrix(Global_i+1,Global_j+1) += UBlockMatrix(Local_i+1,Local_j+1);
-
-                rLeftHandSideMatrix(Global_i,Global_j+2)   += UBlockMatrix(Local_i,Local_j+2);
-                rLeftHandSideMatrix(Global_i+1,Global_j+2) += UBlockMatrix(Local_i+1,Local_j+2);
-                rLeftHandSideMatrix(Global_i+2,Global_j+1) += UBlockMatrix(Local_i+2,Local_j+1);
-                rLeftHandSideMatrix(Global_i+2,Global_j)   += UBlockMatrix(Local_i+2,Local_j);
-                rLeftHandSideMatrix(Global_i+2,Global_j+2) += UBlockMatrix(Local_i+2,Local_j+2);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,18,18>& UBlockMatrix)
-    {        
-        //Prism_3d_6
-        unsigned int Global_i, Global_j, Local_i, Local_j;
-
-        for(unsigned int i = 0; i < 6; i++)
-        {
-            Global_i = i * (3 + 1);
-            Local_i = i * 3;
-
-            for(unsigned int j = 0; j < 6; j++)
-            {
-                Global_j = j * (3 + 1);
-                Local_j = j * 3;
-
-                rLeftHandSideMatrix(Global_i,Global_j)     += UBlockMatrix(Local_i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1)   += UBlockMatrix(Local_i,Local_j+1);
-                rLeftHandSideMatrix(Global_i+1,Global_j)   += UBlockMatrix(Local_i+1,Local_j);
-                rLeftHandSideMatrix(Global_i+1,Global_j+1) += UBlockMatrix(Local_i+1,Local_j+1);
-
-                rLeftHandSideMatrix(Global_i,Global_j+2)   += UBlockMatrix(Local_i,Local_j+2);
-                rLeftHandSideMatrix(Global_i+1,Global_j+2) += UBlockMatrix(Local_i+1,Local_j+2);
-                rLeftHandSideMatrix(Global_i+2,Global_j+1) += UBlockMatrix(Local_i+2,Local_j+1);
-                rLeftHandSideMatrix(Global_i+2,Global_j)   += UBlockMatrix(Local_i+2,Local_j);
-                rLeftHandSideMatrix(Global_i+2,Global_j+2) += UBlockMatrix(Local_i+2,Local_j+2);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,24,24>& UBlockMatrix)
-    {
-        //Hexahedra_3d_8
-        unsigned int Global_i, Global_j, Local_i, Local_j;
-
-        for(unsigned int i = 0; i < 8; i++)
-        {
-            Global_i = i * (3 + 1);
-            Local_i = i * 3;
-
-            for(unsigned int j = 0; j < 8; j++)
-            {
-                Global_j = j * (3 + 1);
-                Local_j = j * 3;
-
-                rLeftHandSideMatrix(Global_i,Global_j)     += UBlockMatrix(Local_i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1)   += UBlockMatrix(Local_i,Local_j+1);
-                rLeftHandSideMatrix(Global_i+1,Global_j)   += UBlockMatrix(Local_i+1,Local_j);
-                rLeftHandSideMatrix(Global_i+1,Global_j+1) += UBlockMatrix(Local_i+1,Local_j+1);
-
-                rLeftHandSideMatrix(Global_i,Global_j+2)   += UBlockMatrix(Local_i,Local_j+2);
-                rLeftHandSideMatrix(Global_i+1,Global_j+2) += UBlockMatrix(Local_i+1,Local_j+2);
-                rLeftHandSideMatrix(Global_i+2,Global_j+1) += UBlockMatrix(Local_i+2,Local_j+1);
-                rLeftHandSideMatrix(Global_i+2,Global_j)   += UBlockMatrix(Local_i+2,Local_j);
-                rLeftHandSideMatrix(Global_i+2,Global_j+2) += UBlockMatrix(Local_i+2,Local_j+2);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-    
-    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,6,3>& UPBlockMatrix)
-    {
-        //Triangle_2d_3
-        unsigned int Global_i, Global_j, Local_i;
-
-        for(unsigned int i = 0; i < 3; i++)
-        {
-            Global_i = i * (2 + 1);
-            Local_i = i * 2;
-
-            for(unsigned int j = 0; j < 3; j++)
-            {
-                Global_j = j * (2 + 1) + 2;
-
-                rLeftHandSideMatrix(Global_i,Global_j)   += UPBlockMatrix(Local_i,j);
-                rLeftHandSideMatrix(Global_i+1,Global_j) += UPBlockMatrix(Local_i+1,j);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-    
-    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,8,4>& UPBlockMatrix)
-    {        
-        //Quadrilateral_2d_4
-        unsigned int Global_i, Global_j, Local_i;
-
-        for(unsigned int i = 0; i < 4; i++)
-        {
-            Global_i = i * (2 + 1);
-            Local_i = i * 2;
-
-            for(unsigned int j = 0; j < 4; j++)
-            {
-                Global_j = j * (2 + 1) + 2;
-
-                rLeftHandSideMatrix(Global_i,Global_j)   += UPBlockMatrix(Local_i,j);
-                rLeftHandSideMatrix(Global_i+1,Global_j) += UPBlockMatrix(Local_i+1,j);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,12,4>& UPBlockMatrix)
-    {
-        //Tetrahedra_3d_4
-        unsigned int Global_i, Global_j, Local_i;
-
-        for(unsigned int i = 0; i < 4; i++)
-        {
-            Global_i = i * (3 + 1);
-            Local_i = i * 3;
-
-            for(unsigned int j = 0; j < 4; j++)
-            {
-                Global_j = j * (3 + 1) + 3;
-
-                rLeftHandSideMatrix(Global_i,Global_j)   += UPBlockMatrix(Local_i,j);
-                rLeftHandSideMatrix(Global_i+1,Global_j) += UPBlockMatrix(Local_i+1,j);
-                rLeftHandSideMatrix(Global_i+2,Global_j) += UPBlockMatrix(Local_i+2,j);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,18,6>& UPBlockMatrix)
-    {
-        //Prism_3d_6
-        unsigned int Global_i, Global_j, Local_i;
-
-        for(unsigned int i = 0; i < 6; i++)
-        {
-            Global_i = i * (3 + 1);
-            Local_i = i * 3;
-
-            for(unsigned int j = 0; j < 6; j++)
-            {
-                Global_j = j * (3 + 1) + 3;
-
-                rLeftHandSideMatrix(Global_i,Global_j)   += UPBlockMatrix(Local_i,j);
-                rLeftHandSideMatrix(Global_i+1,Global_j) += UPBlockMatrix(Local_i+1,j);
-                rLeftHandSideMatrix(Global_i+2,Global_j) += UPBlockMatrix(Local_i+2,j);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,24,8>& UPBlockMatrix)
-    {        
-        //Hexahedra_3d_8
-        unsigned int Global_i, Global_j, Local_i;
-
-        for(unsigned int i = 0; i < 8; i++)
-        {
-            Global_i = i * (3 + 1);
-            Local_i = i * 3;
-
-            for(unsigned int j = 0; j < 8; j++)
-            {
-                Global_j = j * (3 + 1) + 3;
-
-                rLeftHandSideMatrix(Global_i,Global_j)   += UPBlockMatrix(Local_i,j);
-                rLeftHandSideMatrix(Global_i+1,Global_j) += UPBlockMatrix(Local_i+1,j);
-                rLeftHandSideMatrix(Global_i+2,Global_j) += UPBlockMatrix(Local_i+2,j);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,3,6>& PUBlockMatrix)
-    {        
-        //Triangle_2d_3
-        unsigned int Global_i, Global_j, Local_j;
-
-        for(unsigned int i = 0; i < 3; i++)
-        {
-            Global_i = i * (2 + 1) + 2;
-
-            for(unsigned int j = 0; j < 3; j++)
-            {
-                Global_j = j * (2 + 1);
-                Local_j = j * 2;
-
-                rLeftHandSideMatrix(Global_i,Global_j)   += PUBlockMatrix(i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1) += PUBlockMatrix(i,Local_j+1);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,4,8>& PUBlockMatrix)
-    {        
-        //Quadrilateral_2d_4
-        unsigned int Global_i, Global_j, Local_j;
-
-        for(unsigned int i = 0; i < 4; i++)
-        {
-            Global_i = i * (2 + 1) + 2;
-
-            for(unsigned int j = 0; j < 4; j++)
-            {
-                Global_j = j * (2 + 1);
-                Local_j = j * 2;
-
-                rLeftHandSideMatrix(Global_i,Global_j)   += PUBlockMatrix(i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1) += PUBlockMatrix(i,Local_j+1);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,4,12>& PUBlockMatrix)
-    {
-        //Tetrahedra_3d_4
-        unsigned int Global_i, Global_j, Local_j;
-
-        for(unsigned int i = 0; i < 4; i++)
-        {
-            Global_i = i * (3 + 1) + 3;
-
-            for(unsigned int j = 0; j < 4; j++)
-            {
-                Global_j = j * (3 + 1);
-                Local_j = j * 3;
-
-                rLeftHandSideMatrix(Global_i,Global_j)   += PUBlockMatrix(i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1) += PUBlockMatrix(i,Local_j+1);
-                rLeftHandSideMatrix(Global_i,Global_j+2) += PUBlockMatrix(i,Local_j+2);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,6,18>& PUBlockMatrix)
-    {
-        //Prism_3d_6
-        unsigned int Global_i, Global_j, Local_j;
-
-        for(unsigned int i = 0; i < 6; i++)
-        {
-            Global_i = i * (3 + 1) + 3;
-
-            for(unsigned int j = 0; j < 6; j++)
-            {
-                Global_j = j * (3 + 1);
-                Local_j = j * 3;
-
-                rLeftHandSideMatrix(Global_i,Global_j)   += PUBlockMatrix(i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1) += PUBlockMatrix(i,Local_j+1);
-                rLeftHandSideMatrix(Global_i,Global_j+2) += PUBlockMatrix(i,Local_j+2);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,8,24>& PUBlockMatrix)
-    {        
-        //Hexahedra_3d_8
-        unsigned int Global_i, Global_j, Local_j;
-
-        for(unsigned int i = 0; i < 8; i++)
-        {
-            Global_i = i * (3 + 1) + 3;
-
-            for(unsigned int j = 0; j < 8; j++)
-            {
-                Global_j = j * (3 + 1);
-                Local_j = j * 3;
-
-                rLeftHandSideMatrix(Global_i,Global_j)   += PUBlockMatrix(i,Local_j);
-                rLeftHandSideMatrix(Global_i,Global_j+1) += PUBlockMatrix(i,Local_j+1);
-                rLeftHandSideMatrix(Global_i,Global_j+2) += PUBlockMatrix(i,Local_j+2);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-    
-    template< class TMatrixType >
-    static inline void AssemblePBlockMatrix(Matrix& rLeftHandSideMatrix,const TMatrixType& PBlockMatrix, const unsigned int& Dim, const unsigned int& NumNodes)
-    {
-        unsigned int Global_i, Global_j;
-
-        for(unsigned int i = 0; i < NumNodes; i++)
-        {
-            Global_i = i * (Dim + 1) + Dim;
-
-            for(unsigned int j = 0; j < NumNodes; j++)
-            {
-                Global_j = j * (Dim + 1) + Dim;
-
-                rLeftHandSideMatrix(Global_i,Global_j) += PBlockMatrix(i,j);
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssembleUBlockVector(Vector& rRightHandSideVector, const array_1d<double,6>& UBlockVector)
-    {        
-        //Triangle_2d_3
-        unsigned int Global_i, Local_i;
-
-        for(unsigned int i = 0; i < 3; i++)
-        {
-            Global_i = i * (2 + 1);
-            Local_i  = i * 2;
-
-            rRightHandSideVector[Global_i]   += UBlockVector[Local_i];
-            rRightHandSideVector[Global_i+1] += UBlockVector[Local_i+1];
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssembleUBlockVector(Vector& rRightHandSideVector, const array_1d<double,8>& UBlockVector)
-    {        
-        //Quadrilateral_2d_4
-        unsigned int Global_i, Local_i;
-
-        for(unsigned int i = 0; i < 4; i++)
-        {
-            Global_i = i * (2 + 1);
-            Local_i  = i * 2;
-
-            rRightHandSideVector[Global_i]   += UBlockVector[Local_i];
-            rRightHandSideVector[Global_i+1] += UBlockVector[Local_i+1];
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssembleUBlockVector(Vector& rRightHandSideVector, const array_1d<double,12>& UBlockVector)
-    {        
-        //Tetrahedra_3d_4
-        unsigned int Global_i, Local_i;
-
-        for(unsigned int i = 0; i < 4; i++)
-        {
-            Global_i = i * (3 + 1);
-            Local_i  = i * 3;
-
-            rRightHandSideVector[Global_i]   += UBlockVector[Local_i];
-            rRightHandSideVector[Global_i+1] += UBlockVector[Local_i+1];
-            rRightHandSideVector[Global_i+2] += UBlockVector[Local_i+2];
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssembleUBlockVector(Vector& rRightHandSideVector, const array_1d<double,18>& UBlockVector)
-    {        
-        //Prism_3d_6
-        unsigned int Global_i, Local_i;
-
-        for(unsigned int i = 0; i < 6; i++)
-        {
-            Global_i = i * (3 + 1);
-            Local_i  = i * 3;
-
-            rRightHandSideVector[Global_i]   += UBlockVector[Local_i];
-            rRightHandSideVector[Global_i+1] += UBlockVector[Local_i+1];
-            rRightHandSideVector[Global_i+2] += UBlockVector[Local_i+2];
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void AssembleUBlockVector(Vector& rRightHandSideVector, const array_1d<double,24>& UBlockVector)
-    {        
-        //Hexahedra_3d_8
-        unsigned int Global_i, Local_i;
-
-        for(unsigned int i = 0; i < 8; i++)
-        {
-            Global_i = i * (3 + 1);
-            Local_i  = i * 3;
-
-            rRightHandSideVector[Global_i]   += UBlockVector[Local_i];
-            rRightHandSideVector[Global_i+1] += UBlockVector[Local_i+1];
-            rRightHandSideVector[Global_i+2] += UBlockVector[Local_i+2];
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-    
-    template< class TVectorType >
-    static inline void AssemblePBlockVector(Vector& rRightHandSideVector,const TVectorType& PBlockVector, const unsigned int& Dim, const unsigned int& NumNodes)
-    {
-        unsigned int Global_i;
-        
-        for(unsigned int i = 0; i < NumNodes; i++)
-        {
-            Global_i = i * (Dim + 1) + Dim;
-
-            rRightHandSideVector[Global_i] += PBlockVector[i];
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        
-    /// CalculateExtrapolationMatrix
-    /// The matrix contains the shape functions at each GP evaluated at each node.
-    /// Rows: nodes
-    /// Columns: GP
-            
-    static inline void CalculateExtrapolationMatrix(boost::numeric::ublas::bounded_matrix<double,4,4>& rExtrapolationMatrix)
-    {
-        //Quadrilateral_2d_4
-        //GI_GAUSS_2
-        
-        rExtrapolationMatrix(0,0) = 1.8660254037844386; rExtrapolationMatrix(0,1) = -0.5; rExtrapolationMatrix(0,2) = 0.13397459621556132; rExtrapolationMatrix(0,3) = -0.5;
-        rExtrapolationMatrix(1,0) = -0.5; rExtrapolationMatrix(1,1) = 1.8660254037844386; rExtrapolationMatrix(1,2) = -0.5; rExtrapolationMatrix(1,3) = 0.13397459621556132;
-        rExtrapolationMatrix(2,0) = 0.13397459621556132; rExtrapolationMatrix(2,1) = -0.5; rExtrapolationMatrix(2,2) = 1.8660254037844386; rExtrapolationMatrix(2,3) = -0.5;
-        rExtrapolationMatrix(3,0) = -0.5; rExtrapolationMatrix(3,1) = 0.13397459621556132; rExtrapolationMatrix(3,2) = -0.5; rExtrapolationMatrix(3,3) = 1.8660254037844386;
-    }
-    
-    //----------------------------------------------------------------------------------------    
-    
-    static inline void CalculateExtrapolationMatrix(boost::numeric::ublas::bounded_matrix<double,8,8>& rExtrapolationMatrix)
-    {
-        //Hexahedra_3d_8
-        //GI_GAUSS_2
-        
-        rExtrapolationMatrix(0,0) = 2.549038105676658; rExtrapolationMatrix(0,1) = -0.6830127018922192; rExtrapolationMatrix(0,2) = 0.18301270189221927; rExtrapolationMatrix(0,3) = -0.6830127018922192;
-        rExtrapolationMatrix(0,4) = -0.6830127018922192; rExtrapolationMatrix(0,5) = 0.18301270189221927; rExtrapolationMatrix(0,6) = -0.04903810567665795; rExtrapolationMatrix(0,7) = 0.18301270189221927;
-        
-        rExtrapolationMatrix(1,0) = -0.6830127018922192; rExtrapolationMatrix(1,1) = 2.549038105676658; rExtrapolationMatrix(1,2) = -0.6830127018922192; rExtrapolationMatrix(1,3) = 0.18301270189221927;
-        rExtrapolationMatrix(1,4) = 0.18301270189221927; rExtrapolationMatrix(1,5) = -0.6830127018922192; rExtrapolationMatrix(1,6) = 0.18301270189221927; rExtrapolationMatrix(1,7) = -0.04903810567665795;
-        
-        rExtrapolationMatrix(2,0) = 0.18301270189221927; rExtrapolationMatrix(2,1) = -0.6830127018922192; rExtrapolationMatrix(2,2) = 2.549038105676658; rExtrapolationMatrix(2,3) = -0.6830127018922192;
-        rExtrapolationMatrix(2,4) = -0.04903810567665795; rExtrapolationMatrix(2,5) = 0.18301270189221927; rExtrapolationMatrix(2,6) = -0.6830127018922192; rExtrapolationMatrix(2,7) = 0.18301270189221927;
-        
-        rExtrapolationMatrix(3,0) = -0.6830127018922192; rExtrapolationMatrix(3,1) = 0.18301270189221927; rExtrapolationMatrix(3,2) = -0.6830127018922192; rExtrapolationMatrix(3,3) = 2.549038105676658;
-        rExtrapolationMatrix(3,4) = 0.18301270189221927; rExtrapolationMatrix(3,5) = -0.04903810567665795; rExtrapolationMatrix(3,6) = 0.18301270189221927; rExtrapolationMatrix(3,7) = -0.6830127018922192;
-
-        rExtrapolationMatrix(4,0) = -0.6830127018922192; rExtrapolationMatrix(4,1) = 0.18301270189221927; rExtrapolationMatrix(4,2) = -0.04903810567665795; rExtrapolationMatrix(4,3) = 0.18301270189221927;
-        rExtrapolationMatrix(4,4) = 2.549038105676658; rExtrapolationMatrix(4,5) = -0.6830127018922192; rExtrapolationMatrix(4,6) = 0.18301270189221927; rExtrapolationMatrix(4,7) = -0.6830127018922192;
-
-        rExtrapolationMatrix(5,0) = 0.18301270189221927; rExtrapolationMatrix(5,1) = -0.6830127018922192; rExtrapolationMatrix(5,2) = 0.18301270189221927; rExtrapolationMatrix(5,3) = -0.04903810567665795;
-        rExtrapolationMatrix(5,4) = -0.6830127018922192; rExtrapolationMatrix(5,5) = 2.549038105676658; rExtrapolationMatrix(5,6) = -0.6830127018922192; rExtrapolationMatrix(5,7) = 0.18301270189221927;
-
-        rExtrapolationMatrix(6,0) = -0.04903810567665795; rExtrapolationMatrix(6,1) = 0.18301270189221927; rExtrapolationMatrix(6,2) = -0.6830127018922192; rExtrapolationMatrix(6,3) = 0.18301270189221927;
-        rExtrapolationMatrix(6,4) = 0.18301270189221927; rExtrapolationMatrix(6,5) = -0.6830127018922192; rExtrapolationMatrix(6,6) = 2.549038105676658; rExtrapolationMatrix(6,7) = -0.6830127018922192;
-
-        rExtrapolationMatrix(7,0) = 0.18301270189221927; rExtrapolationMatrix(7,1) = -0.04903810567665795; rExtrapolationMatrix(7,2) = 0.18301270189221927; rExtrapolationMatrix(7,3) = -0.6830127018922192;
-        rExtrapolationMatrix(7,4) = -0.6830127018922192; rExtrapolationMatrix(7,5) = 0.18301270189221927; rExtrapolationMatrix(7,6) = -0.6830127018922192; rExtrapolationMatrix(7,7) = 2.549038105676658;
-    }
-
-}; /* Class ElementUtilities*/
-} /* namespace Kratos.*/
-
-#endif /* KRATOS_ELEMENT_UTILITIES defined */
+#endif // KRATOS_ELELMENT_UTILITIES_H_INCLUDED

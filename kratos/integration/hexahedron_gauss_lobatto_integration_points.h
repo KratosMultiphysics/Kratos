@@ -1,8 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.7 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Josep Maria Carbonell
 //
 //
 
@@ -23,7 +28,7 @@ namespace Kratos
 {
 
 //TODO
-class KRATOS_API(KRATOS_CORE) HexahedronGaussLobattoIntegrationPoints1
+class HexahedronGaussLobattoIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(HexahedronGaussLobattoIntegrationPoints1);
@@ -33,7 +38,7 @@ public:
 
     typedef IntegrationPoint<3> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 4> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -42,13 +47,15 @@ public:
         return 4;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0] = IntegrationPointType( -1.00 , -1.00, 0.00, 1.00 );
-        msIntegrationPoints[1] = IntegrationPointType(  1.00 , -1.00, 0.00, 1.00 );
-        msIntegrationPoints[2] = IntegrationPointType(  1.00 ,  1.00, 0.00, 1.00 );
-        msIntegrationPoints[3] = IntegrationPointType( -1.00 ,  1.00, 0.00, 1.00 );
-        return msIntegrationPoints;
+        static const IntegrationPointsArrayType s_integration_points{{
+            IntegrationPointType( -1.00 , -1.00, 0.00, 1.00 ),
+            IntegrationPointType(  1.00 , -1.00, 0.00, 1.00 ),
+            IntegrationPointType(  1.00 ,  1.00, 0.00, 1.00 ),
+            IntegrationPointType( -1.00 ,  1.00, 0.00, 1.00 )
+        }};
+        return s_integration_points;
     }
 
     std::string Info() const
@@ -57,15 +64,11 @@ public:
         buffer << "Hexahedron Gauss-Lobatto quadrature 1 ";
         return buffer.str();
     }
-protected:
 
-private:
 
-    static IntegrationPointsArrayType msIntegrationPoints;
-    
 }; // Class HexahedronGaussLobattoIntegrationPoints1
 
-class KRATOS_API(KRATOS_CORE) HexahedronGaussLobattoIntegrationPoints2
+class HexahedronGaussLobattoIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(HexahedronGaussLobattoIntegrationPoints2);
@@ -75,7 +78,7 @@ public:
 
     typedef IntegrationPoint<3> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 8> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 8> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -84,19 +87,19 @@ public:
         return 8;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
-        // This is added to solve the problem of static initialization. Pooyan.
-        msIntegrationPoints[0] = IntegrationPointType( -1.00 , -1.00, -1.00, 0.50 );
-        msIntegrationPoints[1] = IntegrationPointType(  1.00 , -1.00, -1.00, 0.50 );
-        msIntegrationPoints[2] = IntegrationPointType(  1.00 ,  1.00, -1.00, 0.50 );
-        msIntegrationPoints[3] = IntegrationPointType( -1.00 ,  1.00, -1.00, 0.50 );
-		
-        msIntegrationPoints[4] = IntegrationPointType( -1.00 , -1.00,  1.00, 0.50 );
-        msIntegrationPoints[5] = IntegrationPointType(  1.00 , -1.00,  1.00, 0.50 );
-        msIntegrationPoints[6] = IntegrationPointType(  1.00 ,  1.00,  1.00, 0.50 );
-        msIntegrationPoints[7] = IntegrationPointType( -1.00 ,  1.00,  1.00, 0.50 );
-        return msIntegrationPoints;
+        static const IntegrationPointsArrayType s_integration_points{{
+            IntegrationPointType( -1.00 , -1.00, -1.00, 0.50 ),
+            IntegrationPointType(  1.00 , -1.00, -1.00, 0.50 ),
+            IntegrationPointType(  1.00 ,  1.00, -1.00, 0.50 ),
+            IntegrationPointType( -1.00 ,  1.00, -1.00, 0.50 ),
+            IntegrationPointType( -1.00 , -1.00,  1.00, 0.50 ),
+            IntegrationPointType(  1.00 , -1.00,  1.00, 0.50 ),
+            IntegrationPointType(  1.00 ,  1.00,  1.00, 0.50 ),
+            IntegrationPointType( -1.00 ,  1.00,  1.00, 0.50 )
+        }};
+        return s_integration_points;
     }
 
     std::string Info() const
@@ -105,11 +108,7 @@ public:
         buffer << "Hexahedron Gauss-Lobatto quadrature 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class HexahedronGaussLobattoIntegrationPoints2
 
@@ -117,6 +116,6 @@ private:
 
 }
 
-#endif // KRATOS_HEXAHEDRON_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED defined 
+#endif // KRATOS_HEXAHEDRON_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED defined
 
 

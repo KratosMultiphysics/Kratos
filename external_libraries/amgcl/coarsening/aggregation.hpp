@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,9 +31,8 @@ THE SOFTWARE.
  * \brief  Non-smoothed aggregation coarsening.
  */
 
-#include <boost/tuple/tuple.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <tuple>
+#include <memory>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/coarsening/detail/scaled_galerkin.hpp>
@@ -68,6 +67,7 @@ namespace coarsening {
 /**
  * \ingroup coarsening
  */
+template <class Backend>
 struct aggregation {
     typedef pointwise_aggregates Aggregates;
 
@@ -94,14 +94,17 @@ struct aggregation {
          */
         float over_interp;
 
-        params() : over_interp(1.5f) { }
+        params()
+            : over_interp(math::static_rows<typename Backend::value_type>::value == 1 ? 1.5f : 2.0f)
+        {}
 
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_CHILD(p, aggr),
               AMGCL_PARAMS_IMPORT_CHILD(p, nullspace),
               AMGCL_PARAMS_IMPORT_VALUE(p, over_interp)
         {
-            AMGCL_PARAMS_CHECK(p, (aggr)(nullspace)(over_interp));
+            check_params(p, {"aggr", "nullspace", "over_interp"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
@@ -109,7 +112,10 @@ struct aggregation {
             AMGCL_PARAMS_EXPORT_CHILD(p, path, nullspace);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, over_interp);
         }
-    };
+#endif
+    } prm;
+
+    aggregation(const params &prm = params()) : prm(prm) {}
 
     /// Creates transfer operators for the given system matrix.
     /**
@@ -118,28 +124,24 @@ struct aggregation {
      * \returns   A tuple of prolongation and restriction operators.
      */
     template <class Matrix>
-    static boost::tuple<
-        boost::shared_ptr<Matrix>,
-        boost::shared_ptr<Matrix>
+    std::tuple<
+        std::shared_ptr<Matrix>,
+        std::shared_ptr<Matrix>
         >
-    transfer_operators(const Matrix &A, params &prm)
-    {
+    transfer_operators(const Matrix &A) {
         const size_t n = rows(A);
 
-        TIC("aggregates");
+        AMGCL_TIC("aggregates");
         Aggregates aggr(A, prm.aggr, prm.nullspace.cols);
-        TOC("aggregates");
+        AMGCL_TOC("aggregates");
 
-        TIC("interpolation");
-        boost::shared_ptr<Matrix> P = tentative_prolongation<Matrix>(
+        AMGCL_TIC("interpolation");
+        auto P = tentative_prolongation<Matrix>(
                 n, aggr.count, aggr.id, prm.nullspace, prm.aggr.block_size
                 );
-        TOC("interpolation");
+        AMGCL_TOC("interpolation");
 
-        if (prm.nullspace.cols > 0)
-            prm.aggr.block_size = prm.nullspace.cols;
-
-        return boost::make_tuple(P, transpose(*P));
+        return std::make_tuple(P, transpose(*P));
     }
 
     /// Creates system matrix for the coarser level.
@@ -150,14 +152,8 @@ struct aggregation {
      * \returns System matrix for the coarser level.
      */
     template <class Matrix>
-    static boost::shared_ptr<Matrix>
-    coarse_operator(
-            const Matrix &A,
-            const Matrix &P,
-            const Matrix &R,
-            const params &prm
-            )
-    {
+    std::shared_ptr<Matrix>
+    coarse_operator(const Matrix &A, const Matrix &P, const Matrix &R) const {
         return detail::scaled_galerkin(A, P, R, 1 / prm.over_interp);
     }
 };

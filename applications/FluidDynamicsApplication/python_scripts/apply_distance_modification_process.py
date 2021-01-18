@@ -11,25 +11,27 @@ class ApplyDistanceModificationProcess(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings):
 
+        msg  = "The python distance modification process is deprecated.\n"
+        msg += "Please use (or implement) the \'distance_modification_settings\' in the \'solver_settings\'.\n"
+        KratosMultiphysics.Logger.PrintWarning("ApplyDistanceModificationProcess",msg)
+
         KratosMultiphysics.Process.__init__(self)
 
         default_parameters = KratosMultiphysics.Parameters( """
         {
-            "mesh_id"                                   : 0,
-            "model_part_name"                           : "CHOOSE_FLUID_MODELPART_NAME",
-            "check_at_each_time_step"                   : false,
-            "recover_original_distance_at_each_step"    : false
+            "model_part_name"                        : "CHOOSE_FLUID_MODELPART_NAME",
+            "distance_threshold"                     : 0.01,
+            "continuous_distance"                    : true,
+            "check_at_each_time_step"                : false,
+            "avoid_almost_empty_elements"            : true,
+            "deactivate_full_negative_elements"      : true,
+            "recover_original_distance_at_each_step" : false
         }  """ )
 
         settings.ValidateAndAssignDefaults(default_parameters);
 
         self.fluid_model_part = Model[settings["model_part_name"].GetString()]
-        self.check_at_each_time_step = settings["check_at_each_time_step"].GetBool()
-        self.recover_original_distance_at_each_step = settings["recover_original_distance_at_each_step"].GetBool()
-
-        self.DistanceModificationProcess = KratosFluid.DistanceModificationProcess(self.fluid_model_part,
-                                                                                   self.check_at_each_time_step,
-                                                                                   self.recover_original_distance_at_each_step)
+        self.DistanceModificationProcess = KratosFluid.DistanceModificationProcess(self.fluid_model_part, settings)
 
 
     def ExecuteInitialize(self):

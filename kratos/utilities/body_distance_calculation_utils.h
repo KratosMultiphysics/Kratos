@@ -1,49 +1,17 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Antonia Laresse
+//                   Riccardo Rossi
+//                    
+//
 
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
-
-/* *********************************************************
- *
- *   Last Modified by:    $Author: antonia $
- *   Date:                $Date: 2008-05-13 14:12:19 $
- *   Revision:            $Revision: 1.5 $
- *
- * ***********************************************************/
 #include "includes/model_part.h"
 
 #if !defined(KRATOS_BODY_DISTANCE_CALCULATION_UTILS )
@@ -60,6 +28,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/deprecated_variables.h"
+#include "includes/global_pointer_variables.h"
 
 
 namespace Kratos
@@ -214,7 +183,7 @@ public:
         //KRATOS_WATCH(elements_to_solve.size());
 
         //this is the "total" solution loop
-        boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+        BoundedMatrix<double, TDim + 1, TDim> DN_DX;
         array_1d<double, TDim + 1 > N;
 
         array_1d<double, TDim> d;
@@ -312,7 +281,7 @@ public:
 //                 {
 //                     if (it->GetValue(IS_VISITED) != 1) //it was not possible to calculate the distance
 //                     {
-//                         for (WeakPointerVector< Element >::iterator ie = it->GetValue(NEIGHBOUR_ELEMENTS).begin();
+//                         for (GlobalPointersVector< Element >::iterator ie = it->GetValue(NEIGHBOUR_ELEMENTS).begin();
 //                                 ie != it->GetValue(NEIGHBOUR_ELEMENTS).end(); ie++)
 //                             ie->GetValue(IS_VISITED)=1;
 //                     }
@@ -342,8 +311,9 @@ public:
                 if(it->FastGetSolutionStepValue(rDistanceVar) < max_distance)
                 {
                     //loop over neighbour elements and add them to the todo list
-                    for (WeakPointerVector< Element >::iterator ie = it->GetValue(NEIGHBOUR_ELEMENTS).begin();
-                            ie != it->GetValue(NEIGHBOUR_ELEMENTS).end(); ie++)
+                    // for (GlobalPointersVector< Element >::iterator ie = it->GetValue(NEIGHBOUR_ELEMENTS).ptr_begin();
+                    //         ie != it->GetValue(NEIGHBOUR_ELEMENTS).ptr_end(); ie++)
+                    for(auto ie : it->GetValue(NEIGHBOUR_ELEMENTS).GetContainer())
                     {
                         unsigned int visited_nodes = 0;
                         Element::GeometryType& geom = ie->GetGeometry();
@@ -358,7 +328,7 @@ public:
                             if( ie->GetValue(IS_VISITED) != 1 ) //it is to be used for the next step (an was not added before by another element)
                             {
                                 ie->GetValue(IS_VISITED) = 1;
-                                elements_to_solve.push_back( (*(ie.base())).lock());
+                                elements_to_solve.push_back( Element::Pointer(ie->shared_from_this()) );
                             }
 
                         //                        if(visited_nodes == TDim+1)
@@ -388,7 +358,7 @@ public:
                 confirmed_failures++;
                 double davg = 0.0;
                 double counter = 0.0;
-                for (WeakPointerVector< Node < 3 > >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin(); in != it->GetValue(NEIGHBOUR_NODES).end(); in++)
+                for (GlobalPointersVector< Node < 3 > >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin(); in != it->GetValue(NEIGHBOUR_NODES).end(); in++)
                 {
                     if (in->GetValue(IS_VISITED) == 1)
                     {

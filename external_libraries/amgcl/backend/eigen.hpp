@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,12 +31,8 @@ THE SOFTWARE.
  * \brief  Sparse matrix in CRS format.
  */
 
-#include <boost/type_traits.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <Eigen/SparseCore>
-#include <amgcl/util.hpp>
-#include <amgcl/backend/builtin.hpp>
+#include <memory>
+#include <amgcl/adapter/eigen.hpp>
 #include <amgcl/solver/skyline_lu.hpp>
 
 namespace amgcl {
@@ -64,7 +60,7 @@ struct eigen {
 
     typedef solver::skyline_lu<real> direct_solver;
 
-    struct provides_row_iterator : boost::true_type {};
+    struct provides_row_iterator : std::true_type {};
 
     /// Backend parameters.
     typedef amgcl::detail::empty_params params;
@@ -72,12 +68,12 @@ struct eigen {
     static std::string name() { return "eigen"; }
 
     /// Copy matrix from builtin backend.
-    static boost::shared_ptr<matrix>
-    copy_matrix(boost::shared_ptr< typename builtin<real>::matrix > A, const params&)
+    static std::shared_ptr<matrix>
+    copy_matrix(std::shared_ptr< typename builtin<real>::matrix > A, const params&)
     {
         const typename builtin<real>::matrix &a = *A;
 
-        return boost::shared_ptr<matrix>(
+        return std::shared_ptr<matrix>(
                 new matrix(
                     rows(*A), cols(*A), nonzeros(*A),
                     const_cast<index_type*>(a.ptr),
@@ -89,38 +85,38 @@ struct eigen {
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     copy_vector(typename builtin<real>::vector const &x, const params&)
     {
-        return boost::make_shared<vector>(
+        return std::make_shared<vector>(
                 Eigen::Map<const vector>(x.data(), x.size())
                 );
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
-    copy_vector(boost::shared_ptr< typename builtin<real>::vector > x, const params &prm)
+    static std::shared_ptr<vector>
+    copy_vector(std::shared_ptr< typename builtin<real>::vector > x, const params &prm)
     {
         return copy_vector(*x, prm);
     }
 
     /// Create vector of the specified size.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     create_vector(size_t size, const params&)
     {
-        return boost::make_shared<vector>(size);
+        return std::make_shared<vector>(size);
     }
 
     /// Create direct solver for coarse level
-    static boost::shared_ptr<direct_solver>
-    create_solver(boost::shared_ptr< typename builtin<real>::matrix > A, const params&)
+    static std::shared_ptr<direct_solver>
+    create_solver(std::shared_ptr< typename builtin<real>::matrix > A, const params&)
     {
-        return boost::make_shared<direct_solver>(*A);
+        return std::make_shared<direct_solver>(*A);
     }
 
     private:
         struct hold_host {
-            typedef boost::shared_ptr< crs<real, ptrdiff_t, ptrdiff_t> > host_matrix;
+            typedef std::shared_ptr< crs<real, ptrdiff_t, ptrdiff_t> > host_matrix;
             host_matrix host;
 
             hold_host( host_matrix host ) : host(host) {}
@@ -132,112 +128,13 @@ struct eigen {
 
 };
 
-//---------------------------------------------------------------------------
-// Backend interface specialization for Eigen types
-//---------------------------------------------------------------------------
-template <class T, class Enable = void>
-struct is_eigen_sparse_matrix : boost::false_type {};
-
-template <class T, class Enable = void>
-struct is_eigen_type : boost::false_type {};
-
-template <typename Scalar, int Flags, typename Storage>
-struct is_eigen_sparse_matrix<
-    Eigen::MappedSparseMatrix<Scalar, Flags, Storage>
-    > : boost::true_type
-{};
-
-template <typename Scalar, int Flags, typename Storage>
-struct is_eigen_sparse_matrix<
-    Eigen::SparseMatrix<Scalar, Flags, Storage>
-    > : boost::true_type
-{};
-
-template <class T>
-struct is_eigen_type<
-    T,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename boost::is_arithmetic<typename T::Scalar>::type,
-                typename boost::is_base_of<Eigen::EigenBase<T>, T>::type
-            >::type
-        >::type
-    > : boost::true_type
-{};
-
-template <class T>
-struct value_type<
-    T,
-    typename boost::enable_if<
-        typename is_eigen_type<T>::type>::type
-    >
-{
-    typedef typename T::Scalar type;
-};
-
-template <class T>
-struct rows_impl<
-    T,
-    typename boost::enable_if<typename is_eigen_sparse_matrix<T>::type>::type
-    >
-{
-    static size_t get(const T &matrix) {
-        return matrix.rows();
-    }
-};
-
-template <class T>
-struct cols_impl<
-    T,
-    typename boost::enable_if<typename is_eigen_sparse_matrix<T>::type>::type
-    >
-{
-    static size_t get(const T &matrix) {
-        return matrix.cols();
-    }
-};
-
-template <class T>
-struct nonzeros_impl<
-    T,
-    typename boost::enable_if<typename is_eigen_sparse_matrix<T>::type>::type
-    >
-{
-    static size_t get(const T &matrix) {
-        return matrix.nonZeros();
-    }
-};
-
-template <class T>
-struct row_iterator <
-    T,
-    typename boost::enable_if<typename is_eigen_sparse_matrix<T>::type>::type
-    >
-{
-    typedef typename T::InnerIterator type;
-};
-
-template <class T>
-struct row_begin_impl <
-    T,
-    typename boost::enable_if<typename is_eigen_sparse_matrix<T>::type>::type
-    >
-{
-    typedef typename row_iterator<T>::type iterator;
-    static iterator get(const T &matrix, size_t row) {
-        return iterator(matrix, row);
-    }
-};
-
 template < class Alpha, class M, class V1, class Beta, class V2 >
 struct spmv_impl<
     Alpha, M, V1, Beta, V2,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename is_eigen_sparse_matrix<M>::type,
-                typename is_eigen_type<V1>::type,
-                typename is_eigen_type<V2>::type
-            >::type
+    typename std::enable_if<
+        is_eigen_sparse_matrix<M>::value &&
+        is_eigen_type<V1>::value &&
+        is_eigen_type<V2>::value
         >::type
     >
 {
@@ -253,13 +150,11 @@ struct spmv_impl<
 template < class M, class V1, class V2, class V3 >
 struct residual_impl<
     M, V1, V2, V3,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename is_eigen_sparse_matrix<M>::type,
-                typename is_eigen_type<V1>::type,
-                typename is_eigen_type<V2>::type,
-                typename is_eigen_type<V3>::type
-            >::type
+    typename std::enable_if<
+        is_eigen_sparse_matrix<M>::value &&
+        is_eigen_type<V1>::value &&
+        is_eigen_type<V2>::value &&
+        is_eigen_type<V3>::value
         >::type
     >
 {
@@ -272,7 +167,7 @@ struct residual_impl<
 template < typename V >
 struct clear_impl<
     V,
-    typename boost::enable_if< typename is_eigen_type<V>::type >::type
+    typename std::enable_if<is_eigen_type<V>::value>::type
     >
 {
     static void apply(V &x)
@@ -284,11 +179,9 @@ struct clear_impl<
 template < class V1, class V2 >
 struct inner_product_impl<
     V1, V2,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename is_eigen_type<V1>::type,
-                typename is_eigen_type<V2>::type
-            >::type
+    typename std::enable_if<
+        is_eigen_type<V1>::value &&
+        is_eigen_type<V2>::value
         >::type
     >
 {
@@ -302,11 +195,9 @@ struct inner_product_impl<
 template < class A, class V1, class B, class V2 >
 struct axpby_impl<
     A, V1, B, V2,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename is_eigen_type<V1>::type,
-                typename is_eigen_type<V2>::type
-            >::type
+    typename std::enable_if<
+        is_eigen_type<V1>::value &&
+        is_eigen_type<V2>::value
         >::type
     >
 {
@@ -322,12 +213,10 @@ struct axpby_impl<
 template < class A, class V1, class B, class V2, class C, class V3 >
 struct axpbypcz_impl<
     A, V1, B, V2, C, V3,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename is_eigen_type<V1>::type,
-                typename is_eigen_type<V2>::type,
-                typename is_eigen_type<V3>::type
-            >::type
+    typename std::enable_if<
+        is_eigen_type<V1>::value &&
+        is_eigen_type<V2>::value &&
+        is_eigen_type<V3>::value
         >::type
     >
 {
@@ -349,12 +238,10 @@ struct axpbypcz_impl<
 template < class Alpha, class V1, class V2, class Beta, class V3 >
 struct vmul_impl<
     Alpha, V1, V2, Beta, V3,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename is_eigen_type<V1>::type,
-                typename is_eigen_type<V2>::type,
-                typename is_eigen_type<V3>::type
-            >::type
+    typename std::enable_if<
+        is_eigen_type<V1>::value &&
+        is_eigen_type<V2>::value &&
+        is_eigen_type<V3>::value
         >::type
     >
 {
@@ -370,11 +257,9 @@ struct vmul_impl<
 template < class V1, class V2 >
 struct copy_impl<
     V1, V2,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename is_eigen_type<V1>::type,
-                typename is_eigen_type<V2>::type
-            >::type
+    typename std::enable_if<
+        is_eigen_type<V1>::value &&
+        is_eigen_type<V2>::value
         >::type
     >
 {

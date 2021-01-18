@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -103,20 +103,15 @@ namespace adapter {
  */
 template <class RowBuilder>
 struct matrix_builder {
+    typedef typename RowBuilder::val_type value_type;
     typedef typename RowBuilder::col_type col_type;
-    typedef typename RowBuilder::val_type val_type;
 
     RowBuilder build_row;
 
-    mutable std::vector<col_type> col;
-    mutable std::vector<val_type> val;
+    matrix_builder(const RowBuilder &row_builder) : build_row(row_builder) {}
 
-    matrix_builder(const RowBuilder &row_builder) : build_row(row_builder)
-    {}
-
-    size_t rows() const { return build_row.rows(); }
-    size_t cols() const { return build_row.rows(); }
-
+    size_t rows()     const { return build_row.rows(); }
+    size_t cols()     const { return build_row.rows(); }
     size_t nonzeros() const { return build_row.nonzeros(); }
 
     struct row_iterator {
@@ -126,44 +121,36 @@ struct matrix_builder {
         typedef typename std::vector<col_type>::const_iterator col_iterator;
         typedef typename std::vector<val_type>::const_iterator val_iterator;
 
-        row_iterator(
-                col_iterator col_begin,
-                col_iterator col_end,
-                val_iterator val_begin
-                )
-            : m_col(col_begin), m_end(col_end), m_val(val_begin)
-        {}
+        row_iterator(const RowBuilder &build_row, size_t i) : ptr(0)
+        {
+            build_row(i, m_col, m_val);
+        }
 
         operator bool() const {
-            return m_col != m_end;
+            return m_col.size() - ptr;
         }
 
         row_iterator& operator++() {
-            ++m_col;
-            ++m_val;
+            ++ptr;
             return *this;
         }
 
         col_type col() const {
-            return *m_col;
+            return m_col[ptr];
         }
 
         val_type value() const {
-            return *m_val;
+            return m_val[ptr];
         }
 
         private:
-            col_iterator m_col;
-            col_iterator m_end;
-            val_iterator m_val;
+            int ptr;
+            std::vector<col_type>   m_col;
+            std::vector<value_type> m_val;
     };
 
     row_iterator row_begin(size_t i) const {
-        col.clear();
-        val.clear();
-        build_row(i, col, val);
-
-        return row_iterator(col.begin(), col.end(), val.begin());
+        return row_iterator(build_row, i);
     }
 
 };
@@ -177,65 +164,14 @@ matrix_builder<RowBuilder> make_matrix(const RowBuilder &row_builder) {
 } // namespace adapter
 
 namespace backend {
-
-//---------------------------------------------------------------------------
-// Specialization of matrix interface
-//---------------------------------------------------------------------------
-template <class RowBuilder>
-struct value_type< adapter::matrix_builder<RowBuilder> >
-{
-    typedef typename adapter::matrix_builder<RowBuilder>::val_type type;
-};
-
-template <class RowBuilder>
-struct rows_impl< adapter::matrix_builder<RowBuilder> >
-{
-    static size_t get(const adapter::matrix_builder<RowBuilder> &A) {
-        return A.rows();
-    }
-};
-
-template <class RowBuilder>
-struct cols_impl< adapter::matrix_builder<RowBuilder> >
-{
-    static size_t get(const adapter::matrix_builder<RowBuilder> &A) {
-        return A.cols();
-    }
-};
-
-template <class RowBuilder>
-struct nonzeros_impl< adapter::matrix_builder<RowBuilder> >
-{
-    static size_t get(const adapter::matrix_builder<RowBuilder> &A) {
-        return A.nonzeros();
-    }
-};
-
-template <class RowBuilder>
-struct row_iterator< adapter::matrix_builder<RowBuilder> >
-{
-    typedef typename adapter::matrix_builder<RowBuilder>::row_iterator type;
-};
-
-template <class RowBuilder>
-struct row_begin_impl< adapter::matrix_builder<RowBuilder> >
-{
-    typedef adapter::matrix_builder<RowBuilder> Matrix;
-    static typename row_iterator<Matrix>::type
-    get(const Matrix &matrix, size_t row) {
-        return matrix.row_begin(row);
-    }
-};
-
 namespace detail {
 
 template <class RowBuilder>
 struct use_builtin_matrix_ops< amgcl::adapter::matrix_builder<RowBuilder> >
-    : boost::true_type
+    : std::true_type
 {};
 
 } // namespace detail
-
 } // namespace backend
 } // namespace amgcl
 

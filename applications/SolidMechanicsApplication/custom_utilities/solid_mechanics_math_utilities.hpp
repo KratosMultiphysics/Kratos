@@ -7,9 +7,9 @@
 //
 //
 
-#if !defined(KRATOS_SOLID_MECHANICS_MATH_UTILITIES)
-#define KRATOS_SOLID_MECHANICS_MATH_UTILITIES
-#define PI 3.1415926535898
+#if !defined(KRATOS_SOLID_MECHANICS_MATH_UTILITIES_H_INCLUDED)
+#define KRATOS_SOLID_MECHANICS_MATH_UTILITIES_H_INCLUDED
+
 
 #ifdef FIND_MAX
 #undef FIND_MAX
@@ -23,13 +23,15 @@
 // External includes
 
 // Project includes
+#include "includes/global_variables.h"
 #include "utilities/math_utils.h"
 #include "geometries/point.h"
 
 
 namespace Kratos
 {
-template<class TDataType> class SolidMechanicsMathUtilities
+template<class TDataType>
+class SolidMechanicsMathUtilities
 {
 public:
     /**
@@ -46,13 +48,13 @@ public:
 
     typedef MathUtils<TDataType> MathUtilsType;
 
-    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor;
+    typedef DenseVector<Vector> Second_Order_Tensor;
 
-    typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
+    typedef DenseVector<Second_Order_Tensor> Third_Order_Tensor;
 
-    typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
+    typedef DenseVector<DenseVector<Matrix> > Fourth_Order_Tensor;
 
-    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; 
+    typedef DenseMatrix<Second_Order_Tensor> Matrix_Second_Tensor;
 
 
     /**
@@ -107,15 +109,15 @@ public:
         }
 
         if(p < 0) return false; //in this case the square roots below will be negative. This substitutes with better efficiency lines 107-110
-        
+
         solution(0)=
-            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))+PI/3.0)
+            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))+ Globals::Pi / 3.0)
             -b/(3*a);
         solution(1)=
             sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p))))-b/(3*a)
             ;
         solution(2)=
-            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))-PI/3.0)
+            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))- Globals::Pi / 3.0)
             -b/(3*a);
 
 //        if(std::isnan<double>(solution(0)) || std::isnan<double>(solution(1))|| std::isnan<double>(solution(2)))
@@ -235,33 +237,33 @@ public:
     /**
      * calculates the eigenvectiors using a direct method.
      * @param A the given square matrix the eigenvalues are to be calculated.
-     * WARNING only valid symmetric 3*3 Matrices 
+     * WARNING only valid symmetric 3*3 Matrices
      */
 
 
-    static inline Vector EigenValuesDirectMethod(const Matrix& A) 
+    static inline Vector EigenValuesDirectMethod(const Matrix& A)
     {
         // Given a real symmetric 3x3 matrix A, compute the eigenvalues
         int dim= A.size1();
         Vector Result(dim);
 	noalias(Result) = ZeroVector(dim);
-            
+
         const double p1 = A(0,1)*A(0,1) + A(0,2)*A(0,2) + A(1,2)*A(1,2);
-        if (p1 == 0) 
+        if (p1 == 0)
         {//A is diagonal.
             Result[0] = A(0,0);
             Result[1] = A(1,1);
-            Result[2] = A(2,2); 
+            Result[2] = A(2,2);
             return Result;
         }
-                            
+
         const double q = (A(0,0) + A(1,1) + A(2,2)) / 3.0;
         const double p2 = (A(0,0) - q) * (A(0,0) - q) + (A(1,1) - q) * (A(1,1) - q) + (A(2,2) - q) * (A(2,2) - q) + 2.0 * p1;
         const double p = sqrt(p2 / 6.0);
-            
+
         Matrix B(3,3);
         const double inv_p = 1.0/p;
-            
+
         // B = (1 / p) * (A - q * I)  where  I is the identity matrix
         B(0,0) = inv_p * (A(0,0) - q);
         B(1,1) = inv_p * (A(1,1) - q);
@@ -272,21 +274,21 @@ public:
         B(2,0) = inv_p * A(2,0);
         B(1,2) = inv_p * A(1,2);
         B(2,1) = inv_p * A(2,1);
-                                    
+
         //r = det(B) / 2
         double r = 0.5 * ( B(0,0)*B(1,1)*B(2,2) + B(0,1)*B(1,2)*B(2,0) + B(1,0)*B(2,1)*B(0,2) - B(2,0)*B(1,1)*B(0,2) - B(1,0)*B(0,1)*B(2,2) - B(0,0)*B(2,1)*B(1,2) );
 
         // In exact arithmetic for a symmetric matrix  -1 <= r <= 1
         // but computation error can leave it slightly outside this range.
         double phi = 0.0;
-        if (r <= -1) { phi = KRATOS_M_PI / 3.0; }
+        if (r <= -1) { phi = Globals::Pi / 3.0; }
         else if (r >= 1) { phi = 0.0; }
         else { phi = acos(r) / 3.0;}
-            
+
         // the eigenvalues satisfy eig3 <= eig2 <= eig1
         Result[0] = q + 2.0 * p * cos(phi);
-        Result[2] = q + 2.0 * p * cos(phi + (2.0*KRATOS_M_PI/3.0));
-        Result[1] = 3.0 * q - Result[0] - Result[2];     //% since trace(A) = eig1 + eig2 + eig3   
+        Result[2] = q + 2.0 * p * cos(phi + (2.0 * Globals::Pi / 3.0));
+        Result[1] = 3.0 * q - Result[0] - Result[2];     //% since trace(A) = eig1 + eig2 + eig3
 
         return Result;
     }
@@ -421,17 +423,17 @@ public:
      * The eigenvectors and eigenvalues are calculated using the iterative
      * Gauss-Seidel-method
      * @param A the given symmetric matrix where the eigenvectors have to be calculated.
-     * @param vectors where the eigenvectors will be stored 
+     * @param vectors where the eigenvectors will be stored
      * @param lambda wher the eigenvalues will be stored
      * @param zero_tolerance the largest value considered to be zero
      * @param max_iterations allowed
      */
 
 
-    static inline void EigenVectors(const MatrixType& A, 
-				    MatrixType& vectors, 
-				    VectorType& lambda, 
-				    double zero_tolerance =1e-9, 
+    static inline void EigenVectors(const MatrixType& A,
+				    MatrixType& vectors,
+				    VectorType& lambda,
+				    double zero_tolerance =1e-9,
 				    int max_iterations = 10)
     {
         Matrix Help= A;
@@ -547,7 +549,7 @@ public:
             Rotation(index2,index2)=c;
 
 //                 Help.resize(A.size1(),A.size1(),false);
-//                 noalias(Help)=ZeroMatrix(A.size1(),A.size1());	    
+//                 noalias(Help)=ZeroMatrix(A.size1(),A.size1());
 
             noalias(VDummy) = ZeroMatrix(Help.size1(), Help.size2());
 
@@ -564,7 +566,7 @@ public:
             V= VDummy;
 
 //                 Matrix VTA(3,3);
-//                 noalias(VTA) = ZeroMatrix(3,3);	    
+//                 noalias(VTA) = ZeroMatrix(3,3);
 //                 for(int i=0; i< Help.size1(); i++)
 //                 {
 //                     for(int j=0; j< Help.size1(); j++)
@@ -607,7 +609,6 @@ public:
         for(unsigned int i=0; i<Help.size1(); i++)
             lambda(i)= Help(i,i);
 
-        return;
     }
 
 
@@ -624,7 +625,7 @@ public:
 
     static inline void EigenVectors3x3(const Matrix& A, Matrix&V, Vector& d)
     {
-      
+
       if(A.size1()!=3 || A.size2()!=3)
 	std::cout<<" GIVEN MATRIX IS NOT 3x3  eigenvectors calculation "<<std::endl;
 
@@ -637,14 +638,14 @@ public:
 	  V(i,j) = A(i,j);
 	}
       }
-      
+
       // *******************//
       //Symmetric Housholder reduction to tridiagonal form
-      
+
       for (int j = 0; j < 3; j++) {
 	d[j] = V(2,j);
       }
-    
+
       // Householder reduction to tridiagonal form.
 
       for (int i = 2; i > 0; i--) {
@@ -747,7 +748,7 @@ public:
       }
       V(2,2) = 1.0;
       e[0] = 0.0;
-      
+
       // *******************//
 
       // Symmetric tridiagonal QL algorithm.
@@ -839,7 +840,7 @@ public:
 	d[l] = d[l] + f;
 	e[l] = 0.0;
       }
-  
+
       // Sort eigenvalues and corresponding vectors.
 
       for (int i = 0; i < 2; i++) {
@@ -914,7 +915,7 @@ public:
                         {
                             theta = 0.5*atan(2*A(i,j)/(A(i,i)-A(j,j)));
                         }
-                        else theta = 0.25*PI;
+                        else theta = 0.25 * Globals::Pi;
                     }
                     MatrixType T(n,n);
 		    noalias(T) = IdentityMatrix( n );
@@ -1162,15 +1163,21 @@ public:
     */
     static int InvertMatrix( const MatrixType& input, MatrixType& inverse )
     {
-        int singular = 0;
-        using namespace boost::numeric::ublas;
-        typedef permutation_matrix<std::size_t> pmatrix;
-        Matrix A(input);
-        pmatrix pm(A.size1());
-        singular = lu_factorize(A,pm);
-        inverse.assign( IdentityMatrix(A.size1()));
-        lu_substitute(A, pm, inverse);
-        return singular;
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+      Matrix A(input);
+      AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
+      int singular = lu_factorization.determinant();
+      inverse = lu_factorization.inverse();
+      return singular;
+#else
+      typedef permutation_matrix<std::size_t> pmatrix;
+      Matrix A(input);
+      pmatrix pm(A.size1());
+      int singular = lu_factorize(A,pm);
+      inverse.assign( IdentityMatrix(A.size1()));
+      lu_substitute(A, pm, inverse);
+      return singular;
+ #endif // ifdef KRATOS_USE_AMATRIX
     }
 
     /**
@@ -1199,7 +1206,7 @@ public:
     {
         if(Stress.size()==6)
         {
-            Tensor.resize(3,3);
+           Tensor.resize(3,3,false);
             Tensor(0,0)= Stress(0);
             Tensor(0,1)= Stress(3);
             Tensor(0,2)= Stress(5);
@@ -1212,13 +1219,13 @@ public:
         }
         if(Stress.size()==3)
         {
-            Tensor.resize(2,2);
+            Tensor.resize(2,2,false);
             Tensor(0,0)= Stress(0);
             Tensor(0,1)= Stress(2);
             Tensor(1,0)= Stress(2);
             Tensor(1,1)= Stress(1);
         }
-        return;
+
     }
 
     /**
@@ -1247,7 +1254,7 @@ public:
             Vector(1)= Tensor(1,1);
             Vector(2)= Tensor(0,1);
         }
-        return;
+
     }
 
     static inline void TensorToMatrix(Fourth_Order_Tensor& Tensor,Matrix& Matrix)
@@ -1320,7 +1327,7 @@ public:
             Matrix(2,2) = Tensor[0][1](0,1);
 
         }
-        return;
+
     }
 
     /**
@@ -1371,7 +1378,7 @@ public:
             }
         }
 
-        return;
+
     }
     /**
     * Transforms a given 6*6 Matrix to a corresponing 4th order tensor
@@ -1416,7 +1423,7 @@ public:
             }
         }
 
-        return;
+
     }
     /**
     * Transforms a given 4th order tensor to a corresponing 6*6 Matrix
@@ -1490,7 +1497,6 @@ public:
                 Matrix(i,j)= Tensor[help1][help2](help3,help4)*coeff;
             }
 
-        return;
     }
 
     /**
@@ -1545,7 +1551,6 @@ public:
         Matrix(5,4) = 2.0*Tensor[59];
         Matrix(5,5) = 2.0*Tensor[60];
 
-        return;
     }
     /**
     * Generates the fourth order deviatoric unity tensor
@@ -1613,12 +1618,12 @@ public:
     * @param result_points vertices of overlapping polygon
     * @return false= no overlapping polygon, true= overlapping polygon found
     */
-    static bool Clipping(std::vector<Point<3>* >& clipping_points,std::vector<Point<3>* >& subjected_points, std::vector<Point<3>* >& result_points, double tolerance)
+    static bool Clipping(std::vector<Point* >& clipping_points,std::vector<Point* >& subjected_points, std::vector<Point* >& result_points, double tolerance)
     {
         result_points= subjected_points;
         Vector actual_edge(3);
         Vector actual_normal(3);
-        std::vector<Point<3>* > temp_results;
+        std::vector<Point* > temp_results;
         bool is_visible= false;
         for(unsigned int clipp_edge=0; clipp_edge<clipping_points.size(); clipp_edge++)
         {
@@ -1691,7 +1696,7 @@ public:
                     if(is_visible)
                         temp_results.push_back(result_points[subj_edge]);
 
-                    temp_results.push_back(new Point<3>((*(clipping_points[clipp_edge])+coeff(1)*(*(clipping_points[index_clipp_2])-*(clipping_points[clipp_edge])))));
+                    temp_results.push_back(new Point((*(clipping_points[clipp_edge])+coeff(1)*(*(clipping_points[index_clipp_2])-*(clipping_points[clipp_edge])))));
 
                     is_visible= !is_visible;
 
@@ -1708,7 +1713,60 @@ public:
             return true;
     }
 
+
+  inline static VectorType range(const unsigned int start,  const unsigned int end)
+  {
+    int size = end-start;
+    if(size<0)
+      KRATOS_ERROR<<" range out of bounds start:"<<start<<" end:"<<end<<std::endl;
+
+    VectorType b(size);
+
+    for(int i = 0; i<size; ++i)
+      b[i] = start + i;
+
+    return b;
+  }
+
+
+  inline static MatrixType project(const MatrixType& rMatrix, VectorType irange, VectorType jrange)
+  {
+
+    MatrixType A(irange.size(), jrange.size());
+
+    for(unsigned int i = 0; i<irange.size(); ++i)
+      for(unsigned int j = 0; j<jrange.size(); ++j)
+        A(i,j) = rMatrix(irange[i],jrange[j]);
+
+    return A;
+  }
+
+
+  inline static MatrixType& project(MatrixType& rMatrixA, VectorType irange, VectorType jrange, const MatrixType& rMatrixB)
+  {
+
+    for(unsigned int i = 0; i<irange.size(); ++i)
+      for(unsigned int j = 0; j<jrange.size(); ++j)
+        rMatrixA(irange[i],jrange[j]) = rMatrixB(i,j);
+
+    return rMatrixA;
+  }
+
+
+  inline static VectorType project(const VectorType& rVector, VectorType irange)
+  {
+
+    VectorType b(irange.size());
+
+    for(unsigned int i = 0; i<irange.size(); ++i)
+      b[i] = rVector[irange[i]];
+
+    return b;
+  }
+
+
+
 private:
 };// class SolidMechanicsMathUtilities
 }
-#endif /* KRATOS_SOLID_MECHANICS_MATH_UTILITIESS defined */
+#endif /* KRATOS_SOLID_MECHANICS_MATH_UTILITIESS_H_INCLUDED defined */

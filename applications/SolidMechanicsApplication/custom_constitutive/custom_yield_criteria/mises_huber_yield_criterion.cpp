@@ -8,15 +8,13 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "solid_mechanics_application_variables.h"
 #include "custom_constitutive/custom_yield_criteria/mises_huber_yield_criterion.hpp"
+
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -27,7 +25,7 @@ namespace Kratos
 MisesHuberYieldCriterion::MisesHuberYieldCriterion()
 	:YieldCriterion()
 {
-   
+
 }
 
 
@@ -37,7 +35,7 @@ MisesHuberYieldCriterion::MisesHuberYieldCriterion()
 MisesHuberYieldCriterion::MisesHuberYieldCriterion(HardeningLawPointer pHardeningLaw)
 	:YieldCriterion(pHardeningLaw)
 {
-   
+
 }
 
 //*******************************ASSIGMENT OPERATOR***********************************
@@ -63,8 +61,7 @@ MisesHuberYieldCriterion::MisesHuberYieldCriterion(MisesHuberYieldCriterion cons
 
 YieldCriterion::Pointer MisesHuberYieldCriterion::Clone() const
 {
-  YieldCriterion::Pointer p_clone(new MisesHuberYieldCriterion(*this));
-  return p_clone;
+  return Kratos::make_shared<MisesHuberYieldCriterion>(*this);
 }
 
 //********************************DESTRUCTOR******************************************
@@ -90,11 +87,11 @@ double& MisesHuberYieldCriterion::CalculateYieldCondition(double & rStateFunctio
 
 	//std::cout<<" yield function "<<std::endl;
 	//rHardeningParameters.print();
-	
+
 	Hardening = mpHardeningLaw->CalculateHardening(Hardening, rHardeningParameters);
-		
+
 	rStateFunction = rStressNorm - sqrt(2.0/3.0) * Hardening;
-		
+
 	return rStateFunction;
 }
 
@@ -116,11 +113,11 @@ double& MisesHuberYieldCriterion::CalculateStateFunction(double & rStateFunction
 
 	//std::cout<<" state function "<<std::endl;
 	//rHardeningParameters.print();
-	
+
 	Hardening = mpHardeningLaw->CalculateHardening( Hardening, rHardeningParameters );
 
 	rStateFunction = rStressNorm - 2.0 * rLameMu_bar * rDeltaGamma - sqrt(2.0/3.0) * ( Hardening );
-		
+
 	return rStateFunction;
 }
 
@@ -139,13 +136,13 @@ double& MisesHuberYieldCriterion::CalculateDeltaStateFunction(double & rDeltaSta
 
 	//std::cout<<" delta state function "<<std::endl;
 	//rHardeningParameters.print();
-      
+
 	DeltaHardening = mpHardeningLaw->CalculateDeltaHardening( DeltaHardening, rHardeningParameters );
 
 	//std::cout<<" DeltaHardening "<<DeltaHardening<<std::endl;
 
 	rDeltaStateFunction = 2.0 * rLameMu_bar + (2.0/3.0) * DeltaHardening;
-		
+
 	return rDeltaStateFunction;
 }
 

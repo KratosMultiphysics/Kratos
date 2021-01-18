@@ -57,7 +57,7 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
@@ -75,7 +75,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElasticPlaneStrain2DLaw();
+    ~HyperElasticPlaneStrain2DLaw() override;
 
     /**
      * Operators
@@ -88,7 +88,7 @@ public:
     /**
      * Dimension of the law:
      */
-    SizeType WorkingSpaceDimension()
+    SizeType WorkingSpaceDimension() override
     {
         return 2;
     };
@@ -96,7 +96,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize()
+    SizeType GetStrainSize() override
     {
         return 3;
     };
@@ -106,7 +106,7 @@ public:
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
 
     /**
     * Input and output
@@ -114,15 +114,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    //String Info() const override;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    //void PrintInfo(std::ostream& rOStream) const override;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    //void PrintData(std::ostream& rOStream) const override;
 
 protected:
 
@@ -144,8 +144,8 @@ protected:
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-            Vector& rStrainVector );
+    void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+            Vector& rStrainVector ) override;
 
 
     /**
@@ -153,8 +153,8 @@ protected:
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-                                         Vector& rStrainVector );
+    void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+                                         Vector& rStrainVector ) override;
 
 
     /**
@@ -163,11 +163,11 @@ protected:
      * matrix is to be generated for
      * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
-    void CalculateConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-                                      Matrix& rConstitutiveMatrix);
+    void CalculateConstitutiveMatrix ( const MaterialResponseVariables& rElasticVariables,
+                                       Matrix& rConstitutiveMatrix ) override;
 
 
- 
+
 private:
 
     ///@name Static Member Variables
@@ -197,12 +197,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElastic3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElastic3DLaw )
     }
@@ -211,4 +211,4 @@ private:
 
 }; // Class HyperElasticPlaneStrain2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HYPERELASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_HYPERELASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined

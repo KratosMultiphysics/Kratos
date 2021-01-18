@@ -1,48 +1,15 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
 
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
-/* *********************************************************
-*
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2008-11-10 14:23:33 $
-*   Revision:            $Revision: 1.12 $
-*
-* ***********************************************************/
 
 
 #if !defined(KRATOS_ADAPTIVE_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY )
@@ -53,7 +20,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */
@@ -132,6 +98,9 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( AdaptiveResidualBasedNewtonRaphsonStrategy );
 
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+
+    typedef AdaptiveResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
+
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -155,16 +124,52 @@ public:
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-
     /*@} */
     /**@name Life Cycle
     */
     /*@{ */
 
+    /**
+     * @brief Default constructor
+     */
+    explicit AdaptiveResidualBasedNewtonRaphsonStrategy() : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit AdaptiveResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Getting builder and solver
+        auto p_builder_and_solver = this->GetBuilderAndSolver();
+        if (p_builder_and_solver != nullptr) {
+            // Tells to the builder and solver if the reactions have to be Calculated or not
+            p_builder_and_solver->SetCalculateReactionsFlag(this->GetCalculateReactionsFlag());
+
+            // Tells to the Builder And Solver if the system matrix and vectors need to
+            // be reshaped at each step or not
+            p_builder_and_solver->SetReshapeMatrixFlag(this->GetReformDofSetAtEachStepFlag());
+        } else {
+            KRATOS_WARNING("AdaptiveResidualBasedNewtonRaphsonStrategy") << "BuilderAndSolver is not initialized. Please assign one before settings flags" << std::endl;
+        }
+
+        mpA = TSparseSpace::CreateEmptyMatrixPointer();
+        mpDx = TSparseSpace::CreateEmptyVectorPointer();
+        mpb = TSparseSpace::CreateEmptyVectorPointer();
+    }
+
     /** Constructor.
     */
     AdaptiveResidualBasedNewtonRaphsonStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -176,8 +181,7 @@ public:
         double ReductionFactor = 0.5,
         double IncreaseFactor = 1.3,
         int NumberOfCycles = 5
-    )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
         //set flags to default values
@@ -233,8 +237,23 @@ public:
         KRATOS_CATCH("")
     }
 
-    AdaptiveResidualBasedNewtonRaphsonStrategy(
-        ModelPart& model_part,
+    /**
+     * Constructor specifying the builder and solver
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param pNewBuilderAndSolver The builder and solver employed
+     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     * @param ReductionFactor The factor of reduction
+     * @param IncreaseFactor The increase factor
+     * @param NumberOfCycles The number of cycles
+     */
+    explicit AdaptiveResidualBasedNewtonRaphsonStrategy(
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -247,8 +266,7 @@ public:
         double ReductionFactor = 0.5,
         double IncreaseFactor = 1.3,
         int NumberOfCycles = 5
-    )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
         //set flags to default values
@@ -300,7 +318,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~AdaptiveResidualBasedNewtonRaphsonStrategy() {}
+    ~AdaptiveResidualBasedNewtonRaphsonStrategy() override {}
 
     /** Destructor.
     */
@@ -367,6 +385,19 @@ public:
 
     //*********************************************************************************
     /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
+
+    /**
+    * @brief Create method
+    * @param rModelPart The model part of the problem
+    * @param ThisParameters The configuration parameters
+    */
+    typename BaseType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     /**
     operation to predict the solution ... if it is not called a trivial predictor is used in which the
@@ -709,7 +740,7 @@ public:
         TSystemVectorType& mb = *mpb;
 
 
-        if (mpConvergenceCriteria->mActualizeRHSIsNeeded == true)
+        if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
         {
             GetBuilderAndSolver()->BuildRHS(GetScheme(),BaseType::GetModelPart(),mb);
         }
@@ -767,6 +798,43 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                : "adaptative_newton_raphson_strategy",
+            "min_iteration"                       : 4,
+            "reduction_factor"                    : 0.5,
+            "increase_factor"                     : 1.3,
+            "number_of_cycles"                    : 5,
+            "max_iteration"                       : 10,
+            "reform_dofs_at_each_step"            : false,
+            "compute_reactions"                   : false,
+            "builder_and_solver_settings"         : {},
+            "convergence_criteria_settings"       : {},
+            "linear_solver_settings"              : {},
+            "scheme_settings"                     : {}
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "adaptative_newton_raphson_strategy";
+    }
+
     /*@} */
     /**@name Operators
     */
@@ -781,19 +849,38 @@ public:
     /**@name Access */
     /*@{ */
 
-    TSystemMatrixType& GetSystemMatrix()
+    TSystemMatrixType& GetSystemMatrix() override
     {
         TSystemMatrixType& mA = *mpA;
 
         return mA;
     }
 
-
-
     /*@} */
     /**@name Inquiry */
     /*@{ */
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "AdaptiveResidualBasedNewtonRaphsonStrategy";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     /*@} */
     /**@name Friends */
@@ -916,7 +1003,7 @@ protected:
             pScheme->InitializeElements(BaseType::GetModelPart());
 
         //initialisation of the convergence criteria
-        if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
+        if (mpConvergenceCriteria->IsInitialized() == false)
             mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
 
 
@@ -938,7 +1025,7 @@ protected:
 
 
         //setting up the Vectors involved to the correct size
-        pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
+        pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA,mpDx,mpb,BaseType::GetModelPart());
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
@@ -998,6 +1085,38 @@ protected:
         }
 
     }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mMinIterationNumber = ThisParameters["min_iteration"].GetInt();
+        mReductionFactor = ThisParameters["reduction_factor"].GetDouble();
+        mIncreaseFactor = ThisParameters["increase_factor"].GetDouble();
+        mNumberOfCycles = ThisParameters["number_of_cycles"].GetInt();
+        mMaxIterationNumber = ThisParameters["max_iteration"].GetInt();
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+
+        // Saving the convergence criteria to be used
+        if (ThisParameters["convergence_criteria_settings"].Has("name")) {
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        }
+
+        // Saving the scheme
+        if (ThisParameters["scheme_settings"].Has("name")) {
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        }
+
+        // Setting up the default builder and solver
+        if (ThisParameters["builder_and_solver_settings"].Has("name")) {
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        }
+    }
+
     /*@} */
     /**@name Private Operations*/
     /*@{ */

@@ -88,14 +88,11 @@ bool NonlocalDamageFlowRule::UpdateInternalVariables( RadialReturnVariables& rRe
         {
             mInternalVariables.EquivalentPlasticStrain = mThermalVariables.PlasticDissipation;
         }
-        mInternalVariables.EquivalentPlasticStrainOld = mInternalVariables.EquivalentPlasticStrain;
         
         Restore = false;
     }
     else // There was no convergence
-    {
-        mInternalVariables.EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrainOld;
-        
+    {   
         Restore = true;
     }
 
@@ -142,8 +139,7 @@ bool NonlocalDamageFlowRule::CalculateInternalVariables(RadialReturnVariables& r
     //Update maximum historical equivalent strain and set whether the tangent matrix needs to be computed
     bool Tangent;
     if(mThermalVariables.PlasticDissipation >= mInternalVariables.EquivalentPlasticStrain)
-    {
-        mInternalVariables.EquivalentPlasticStrain = mThermalVariables.PlasticDissipation;
+    {   
         //rReturnMappingVariables.Options.Set(PLASTIC_REGION,true); //loading with growing damage
         //Tangent = true;
         //TODO: For the moment we use the secant constitutive tensor

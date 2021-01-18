@@ -7,37 +7,42 @@
 //
 //
 
-// System includes 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+// System includes
 
-// External includes 
-
-// Project includes
-#include "includes/node.h"
-#include "includes/define.h"
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-#include "utilities/openmp_utils.h"
+// External includes
 
 //Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
 
+// Project includes
+#include "includes/node.h"
+#include "linear_solvers/linear_solver.h"
+#include "utilities/openmp_utils.h"
+
 #include "custom_utilities/two_step_v_p_settings.h"
+#include "custom_utilities/postprocess_utilities.h"
+#include "custom_utilities/pfem_fluid_gid_io.h"
 
 namespace Kratos
 {
-	
-  namespace Python
-  {
-    
-    void  AddCustomUtilitiesToPython()
-    {
+namespace Python
+{
+namespace py = pybind11;
 
-      using namespace boost::python;
-    }
+void AddCustomUtilitiesToPython(pybind11::module &m)
+{
 
-  }  // namespace Python.
+    py::class_<PostProcessUtilities, PostProcessUtilities::Pointer>(m, "PostProcessUtilities")
+        .def(py::init<>())
+        .def("RebuildPostProcessModelPart", &PostProcessUtilities::RebuildPostProcessModelPart);
 
+    py::class_<PfemFluidGidIO<>, PfemFluidGidIO<>::Pointer, GidIO<>>(m,
+                                                                     "PfemFluidGidIO")
+        .def(py::init<std::string const &, GiD_PostMode,
+                      MultiFileFlag,
+                      WriteDeformedMeshFlag,
+                      WriteConditionsFlag>());
+}
+
+} // namespace Python.
 } // Namespace Kratos
-

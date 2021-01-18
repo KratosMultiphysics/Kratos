@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: clabra $
-//   Date:                $Date: 2007-03-29 19:37:47 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    clabra
 //
 
 #if !defined(KRATOS_POINT_SEARCH_H_INCLUDED )
@@ -74,25 +78,41 @@ class PointSearch : public SpatialSearch
       ///@name Operations
       ///@{
         
-      void SearchNodesInRadiusExclusive (
-          ModelPart& rModelPart,
-          NodesContainerType const& InputNodes,
-          const RadiusArrayType & Radius,
-          VectorResultNodesContainerType& rResults,
-          VectorDistanceType& rResultsDistance )
-      {
-          static_cast<TDerived*>(this)->SearchNodesInRadiusExclusiveImplementation(rModelPart,InputNodes,Radius,rResults,rResultsDistance);
-      }
-      
-      void SearchElementsInRadiusInclusive (
-          ModelPart& rModelPart,
-          ElementsContainerType const& InputElements,
-          const RadiusArrayType & Radius,
-          VectorResultNodesContainerType& rResults,
-          VectorDistanceType& rResultsDistance )
-      {     
-          KRATOS_THROW_ERROR(std::runtime_error,"Elemental search is not defined for point based structures","");
-      }
+        /**
+         * Search neighbours for every node in "InputNodes" excluding itself
+         * @param StructureNodes      List of nodes against which the neighbours are searched
+         * @param InputNodes          List of nodes to be searched
+         * @param Radius              List of search radius for every node
+         * @param rResults            Array of results for each node
+         * @param rResultDistance     Array of distances for each result of each node
+         */
+        virtual void SearchNodesInRadiusExclusive (
+            NodesContainerType const& StructureNodes,
+            NodesContainerType const& InputNodes,
+            const RadiusArrayType & Radius,
+            VectorResultNodesContainerType& rResults,
+            VectorDistanceType& rResultsDistance ){
+
+            static_cast<TDerived*>(this)->SearchNodesInRadiusExclusiveImplementation(StructureNodes,InputNodes,Radius,rResults,rResultsDistance);
+        }
+       
+        /**
+         * Search neighbours for every node in "InputNodes" including itself
+         * @param StructureNodes      List of nodes against which the neighbours are searched
+         * @param InputNodes          List of nodes to be searched
+         * @param Radius              List of search radius for every node
+         * @param rResults            Array of results for each node
+         * @param rResultDistance     Array of distances for each result of each node
+         */
+        virtual void SearchNodesInRadiusInclusive (
+            NodesContainerType const& StructureNodes,
+            NodesContainerType const& InputNodes,
+            const RadiusArrayType & Radius,
+            VectorResultNodesContainerType& rResults,
+            VectorDistanceType& rResultsDistance ) {
+
+            static_cast<TDerived*>(this)->SearchNodesInRadiusInclusiveImplementation(StructureNodes,InputNodes,Radius,rResults,rResultsDistance);
+        }   
         
       ///@}
       ///@name Access

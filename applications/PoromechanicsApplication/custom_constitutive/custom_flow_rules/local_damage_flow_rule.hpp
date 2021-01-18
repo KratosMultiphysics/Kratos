@@ -37,15 +37,15 @@ public:
     LocalDamageFlowRule& operator=(LocalDamageFlowRule const& rOther);
 	
     /// Destructor
-    virtual ~LocalDamageFlowRule();
+    ~LocalDamageFlowRule() override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    FlowRule::Pointer Clone() const;
+    FlowRule::Pointer Clone() const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    
-    void CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
+    void CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors ) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -61,12 +61,12 @@ private:
     
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FlowRule )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FlowRule )
     }

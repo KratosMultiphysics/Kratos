@@ -2,35 +2,116 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+from KratosMultiphysics.DelaunayMeshingApplication import meshing_strategy
 
-import meshing_strategy
+from importlib import import_module
 
 def CreateMeshingStrategy(main_model_part, custom_settings):
     return FluidMeshingStrategy(main_model_part, custom_settings)
 
 class FluidMeshingStrategy(meshing_strategy.MeshingStrategy):
 
-    def SetMeshModelers(self):
+    #
+    def __init__(self, main_model_part, custom_settings):
 
-        print("::[Fluid Meshing Strategy]:: SET MESH MODELER")
+        self.main_model_part = main_model_part
 
-        modelers = []        
+        ##settings string in json format
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+             "python_module": "meshing_strategy",
+             "meshing_frequency": 0.0,
+             "remesh": false,
+             "refine": false,
+             "transfer" : false,
+             "reference_element_type": "Element2D3N",
+             "reference_condition_type": "CompositeCondition2D3N"
+        }
+        """)
+
+        ##overwrite the default settings with user-provided parameters
+        self.settings = custom_settings
+        self.settings.ValidateAndAssignDefaults(default_settings)
+
+        self.echo_level = 0
+
+    #
+    def Initialize(self,meshing_parameters,dimension):
+
+        #meshing parameters
+        self.MeshingParameters = meshing_parameters
+
+        meshing_options = KratosMultiphysics.Flags()
+
+        meshing_options.Set(KratosDelaunay.MesherUtilities.REMESH, self.settings["remesh"].GetBool())
+        meshing_options.Set(KratosDelaunay.MesherUtilities.REFINE, self.settings["refine"].GetBool())
+        meshing_options.Set(KratosDelaunay.MesherUtilities.TRANSFER, self.settings["transfer"].GetBool())
+        meshing_options.Set(KratosDelaunay.MesherUtilities.RECONNECT, False)
+        meshing_options.Set(KratosDelaunay.MesherUtilities.CONSTRAINED, False)
+        meshing_options.Set(KratosDelaunay.MesherUtilities.MESH_SMOOTHING, False)
+        meshing_options.Set(KratosDelaunay.MesherUtilities.VARIABLES_SMOOTHING, False)
+
+        self.MeshingParameters.SetOptions(meshing_options)
+        self.MeshingParameters.SetReferenceElement(self.settings["reference_element_type"].GetString())
+        self.MeshingParameters.SetReferenceCondition(self.settings["reference_condition_type"].GetString())
+
+        #set variables to global transfer
+        self.MeshDataTransfer   = KratosDelaunay.MeshDataTransferUtilities()
+        self.TransferParameters = KratosDelaunay.TransferParameters()
+        self.global_transfer    = False
+
+        #mesh meshers for the current strategy
+        self.meshers = []
+
+        #configure meshers:
+        self.SetMeshers();
+
+        self.model_part = self.main_model_part
+        if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
+            self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
+
+        for mesher in self.meshers:
+            mesher.SetEchoLevel(self.echo_level)
+            mesher.Initialize(dimension)
+
+        self.number_of_nodes      = 0
+        self.number_of_elements   = 0
+        self.number_of_conditions = 0
+
+    #
+    def SetMeshers(self):
+
+        meshers_list = []
         if( self.settings["remesh"].GetBool() and self.settings["refine"].GetBool() ):
-            modelers.append("fluid_pre_refining_modeler")
-            #modelers.append("fluid_post_refining_modeler")
+            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_complete_mesher")
+            #mesher_list.append("fluid_post_refining_mesher")
         elif( self.settings["remesh"].GetBool() ):
-            modelers.append("reconnect_modeler")
+            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_keeping_nodes_mesher")
         elif( self.settings["transfer"].GetBool() ):
-            modelers.append("transfer_modeler")
- 
-        for modeler in modelers:
-            meshing_module =__import__(modeler)      
-            mesher = meshing_module.CreateMeshModeler(self.main_model_part,self.MeshingParameters) 
-            self.mesh_modelers.append(mesher)
-  
+            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_none_mesher")
+
+        for mesher in meshers_list:
+            full_module_name = mesher
+            meshing_module = import_module(full_module_name)
+            new_mesher = meshing_module.CreateMesher(self.main_model_part,self.MeshingParameters)
+            self.meshers.append(new_mesher)
+
+    #
+    def GetMeshers(self):
+
+        meshers_list = []
+
+        if( self.settings["remesh"].GetBool() and self.settings["refine"].GetBool() ):
+
+            meshers_list.append("pre_refining_mesher")
+            meshers_list.append("post_refining_mesher")
+
+        elif( self.settings["remesh"].GetBool() ):
+
+            meshers_list.append("reconnect_mesher")
+
+        return meshers_list
     #

@@ -23,6 +23,8 @@
 #include "testing/tester.h"
 #include "testing/test_suite.h" // it includes the test_case.h
 #include "includes/exception.h"
+#include "includes/parallel_environment.h"
+#include "includes/data_communicator.h"
 
 
 namespace Kratos
@@ -50,44 +52,45 @@ namespace Kratos
 				i_test->second->ResetResult();
 		}
 
-		void Tester::RunAllTestCases()
+		int Tester::RunAllTestCases()
 		{
 			// TODO: Including the initialization time in the timing.
 			ResetAllTestCasesResults();
 			SelectOnlyEnabledTestCases();
-			RunSelectedTestCases();
+			return RunSelectedTestCases();
 		}
 
-		void Tester::ProfileAllTestCases()
+		int Tester::ProfileAllTestCases()
 		{
 			ResetAllTestCasesResults();
 			SelectOnlyEnabledTestCases();
-			ProfileSelectedTestCases();
+			return ProfileSelectedTestCases();
 		}
 
-		void Tester::RunTestSuite(std::string const& TestSuiteName)
+		int Tester::RunTestSuite(std::string const& TestSuiteName)
 		{
 			// TODO: Including the initialization time in the timing.
 			ResetAllTestCasesResults();
 			UnSelectAllTestCases();
 			GetTestSuite(TestSuiteName).Select();
-			RunSelectedTestCases();
+			return RunSelectedTestCases();
 		}
 
-		void Tester::RunTestCases(std::string const& TestCasesNamePattern)
+		int Tester::RunTestCases(std::string const& TestCasesNamePattern)
 		{
 			ResetAllTestCasesResults();
 			UnSelectAllTestCases();
 			SelectTestCasesByPattern(TestCasesNamePattern);
-			RunSelectedTestCases();
+			return RunSelectedTestCases();
 
 			//KRATOS_CHECK(std::regex_match(s, std::regex(buffer.str())));
 
 		}
 
-		void Tester::ProfileTestSuite(std::string const& TestSuiteName)
+		int Tester::ProfileTestSuite(std::string const& TestSuiteName)
 		{
-			KRATOS_ERROR << "Profile test suite is not implmented yet" << std::endl;
+            KRATOS_ERROR << "Profile test suite is not implmented yet" << std::endl;
+            return 0;
 		}
 
 		std::size_t Tester::NumberOfFailedTestCases()
@@ -98,6 +101,20 @@ namespace Kratos
 			{
 				TestCaseResult const& test_case_result = i_test->second->GetResult();
 				if (test_case_result.IsFailed())
+					result++;
+			}
+
+			return result;
+		}
+
+		std::size_t Tester::NumberOfSkippedTestCases()
+		{
+			std::size_t result = 0;
+			for (auto i_test = GetInstance().mTestCases.begin();
+			i_test != GetInstance().mTestCases.end(); i_test++)
+			{
+				TestCaseResult const& test_case_result = i_test->second->GetResult();
+				if (test_case_result.IsSkipped())
 					result++;
 			}
 
@@ -227,24 +244,35 @@ namespace Kratos
 		void Tester::SelectTestCasesByPattern(std::string const& TestCasesNamePattern)
 		{
 			// creating the regex pattern replacing * with ".*"
-#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9))) 
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9)))
 			KRATOS_ERROR << "This method is not compiled well. You should use a GCC 4.9 or higher" << std::endl;
-#else  
+#else
 			std::regex replace_star("\\*");
 			std::stringstream regex_pattern_string;
 			std::regex_replace(std::ostreambuf_iterator<char>(regex_pattern_string),
 				TestCasesNamePattern.begin(), TestCasesNamePattern.end(), replace_star, ".*");
 			for (auto i_test = GetInstance().mTestCases.begin();
 				i_test != GetInstance().mTestCases.end(); i_test++)
-				if (std::regex_match(i_test->second->Name(), std::regex(regex_pattern_string.str())))
-					i_test->second->Select();
-#endif  
+				if (std::regex_match(i_test->second->Name(), std::regex(regex_pattern_string.str()))) {
+					if (i_test->second->IsEnabled()) {
+						i_test->second->Select();
+                    } else {
+                        i_test->second->UnSelect();
+                    }
+                }
+#endif
 		}
 
-		void Tester::RunSelectedTestCases()
+		int Tester::RunSelectedTestCases()
 		{
 			auto start = std::chrono::steady_clock::now();
 			auto number_of_run_tests = NumberOfSelectedTestCases();
+
+			std::stringstream secondary_stream;
+			std::streambuf* original_buffer = nullptr;
+			if (GetInstance().mVerbosity != Verbosity::TESTS_OUTPUTS && ParallelEnvironment::GetDefaultRank() != 0) {
+				original_buffer = std::cout.rdbuf(secondary_stream.rdbuf());
+			}
 
 			std::size_t test_number = 0;
 			for (auto i_test = GetInstance().mTestCases.begin();
@@ -268,12 +296,17 @@ namespace Kratos
 			auto end = std::chrono::steady_clock::now();
 			std::chrono::duration<double> elapsed = end - start;
 
-			ReportResults(std::cout, number_of_run_tests, elapsed.count());
+			auto tmp = ReportResults(std::cout, number_of_run_tests, elapsed.count());
+
+			if (GetInstance().mVerbosity != Verbosity::TESTS_OUTPUTS && ParallelEnvironment::GetDefaultRank() != 0) {
+				std::cout.rdbuf(original_buffer);
+			}
+			return tmp;
 		}
 
 
 
-		void Tester::ProfileSelectedTestCases()
+		int Tester::ProfileSelectedTestCases()
 		{
 			KRATOS_ERROR << "Profile test cases is not implemented yet" << std::endl;
 			auto start = std::chrono::steady_clock::now();
@@ -293,7 +326,7 @@ namespace Kratos
 			auto end = std::chrono::steady_clock::now();
 			std::chrono::duration<double> elapsed = end - start;
 
-			ReportResults(std::cout, number_of_run_tests, elapsed.count());
+			return ReportResults(std::cout, number_of_run_tests, elapsed.count());
 		}
 
 		std::size_t Tester::NumberOfSelectedTestCases()
@@ -313,17 +346,21 @@ namespace Kratos
 			if (GetInstance().mVerbosity >= Verbosity::TESTS_LIST)
 			{
 				std::cout << pTheTestCase->Name();
+				std::cout << std::flush;
 			}
 		}
 
 		void Tester::EndShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase)
 		{
 			constexpr std::size_t ok_culumn = 72;
-			if (GetInstance().mVerbosity == Verbosity::PROGRESS)
+			if (GetInstance().mVerbosity == Verbosity::PROGRESS) {
 				if (pTheTestCase->GetResult().IsSucceed())
 					std::cout << ".";
-				else
+				else if (pTheTestCase->GetResult().IsFailed())
 					std::cout << "F";
+				else if (pTheTestCase->GetResult().IsSkipped())
+					std::cout << "s";
+			}
 			else if (GetInstance().mVerbosity >= Verbosity::TESTS_LIST)
 			{
 				for (std::size_t i = pTheTestCase->Name().size(); i < ok_culumn; i++)
@@ -331,39 +368,56 @@ namespace Kratos
 
 				if (pTheTestCase->GetResult().IsSucceed())
 				{
-					std::cout << " OK." << std::endl;
+					std::cout << "OK." << std::endl;
 					if (GetInstance().mVerbosity == Verbosity::TESTS_OUTPUTS)
 						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
 				}
-				else
+				else if (pTheTestCase->GetResult().IsFailed())
 				{
-					std::cout << " FAILED!" << std::endl;
+					std::cout << "FAILED!" << std::endl;
 					if (GetInstance().mVerbosity >= Verbosity::FAILED_TESTS_OUTPUTS)
 						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
+				}
+				else if (pTheTestCase->GetResult().IsSkipped())
+				{
+					std::cout << "SKIPPED." << std::endl;
+					if (GetInstance().mVerbosity == Verbosity::TESTS_OUTPUTS)
+						std::cout << pTheTestCase->GetResult().GetErrorMessage() << std::endl;
 				}
 			}
 		}
 
-		void Tester::ReportResults(std::ostream& rOStream, std::size_t NumberOfRunTests,double ElapsedTime)
+		int Tester::ReportResults(std::ostream& rOStream, std::size_t NumberOfRunTests,double ElapsedTime)
 		{
+            int exit_code = 0;
+
 			if (GetInstance().mVerbosity == Verbosity::PROGRESS)
 				rOStream << std::endl;
 
 			auto number_of_failed_tests = NumberOfFailedTestCases();
+			auto number_of_skipped_tests = NumberOfSkippedTestCases();
 
 			std::string total_test_cases = " test case";
 			auto total_test_cases_size = GetInstance().mTestCases.size();
 			if (total_test_cases_size > 1)
 				total_test_cases += "s";
 
-			if (number_of_failed_tests == 0)
-				rOStream << "Ran " << NumberOfRunTests << " of " << total_test_cases_size << total_test_cases << " in " << ElapsedTime << "s. OK." << std::endl;
-			else
-			{
-				rOStream << "Ran " << NumberOfRunTests << " of " << total_test_cases_size << total_test_cases << " in " << ElapsedTime << "s. " << number_of_failed_tests << " failed:" << std::endl;
-				ReportFailures(rOStream);
+			rOStream << "Ran " << NumberOfRunTests << " of " << total_test_cases_size << total_test_cases << " in " << ElapsedTime << "s";
+			if (number_of_skipped_tests > 0) {
+				rOStream << " (" << number_of_skipped_tests << " skipped)";
 			}
 
+			if (number_of_failed_tests == 0) {
+				rOStream << ". OK" << std::endl;
+			}
+			else
+			{
+				rOStream << ". " << number_of_failed_tests << " failed:" << std::endl;
+				ReportFailures(rOStream);
+                exit_code = 1;
+			}
+
+            return exit_code;
 		}
 
 
@@ -376,14 +430,44 @@ namespace Kratos
 				if (test_case_result.IsFailed())
 				{
 					rOStream << "    " << i_test->first << " Failed";
-					if (test_case_result.GetErrorMessage().size() == 0)
-						rOStream << std::endl;
+					if (ParallelEnvironment::GetDefaultSize() == 1)
+					{
+						if (test_case_result.GetErrorMessage().size() == 0)
+							rOStream << std::endl;
+						else
+						{
+							rOStream << " with message: " << std::endl;
+							rOStream << "        " << test_case_result.GetErrorMessage() << std::endl;
+						}
+					}
 					else
 					{
-						rOStream << " with message: " << std::endl;
-						rOStream << "        " << test_case_result.GetErrorMessage() << std::endl;
+						Tester::ReportDistributedFailureDetails(rOStream, i_test->second);
 					}
 				}
+			}
+		}
+
+		void Tester::ReportDistributedFailureDetails(std::ostream& rOStream, const TestCase* const pTheTestCase)
+		{
+			TestCaseResult const& r_test_case_result = pTheTestCase->GetResult();
+			rOStream << " with messages: " << std::endl;
+			rOStream << "From rank 0:" << std::endl << r_test_case_result.GetErrorMessage() << std::endl;
+			const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+			const int parallel_rank = r_comm.Rank();
+			const int parallel_size = r_comm.Size();
+			if (parallel_rank == 0)
+			{
+				for (int i = 1; i < parallel_size; i++)
+				{
+					std::string remote_message;
+					r_comm.Recv(remote_message, i,i);
+					rOStream << "From rank " << i << ":" << std::endl << remote_message << std::endl;
+				}
+			}
+			else
+			{
+				r_comm.Send(r_test_case_result.GetErrorMessage(), 0, parallel_rank);
 			}
 		}
 

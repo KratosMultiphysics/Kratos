@@ -197,13 +197,13 @@ public:
     }
 
     /// Destructor. Do nothing!!!
-    virtual ~Point3D() {}
+    ~Point3D() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() override
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Point;
     }
-    GeometryData::KratosGeometryType GetGeometryType() override
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Point3D;
     }
@@ -256,27 +256,37 @@ public:
         return typename BaseType::Pointer(new Point3D(ThisPoints));
     }
 
-    
-    virtual Geometry< Point<3> >::Pointer Clone() const override
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
-        }
+    // Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Point3D< Point<3> >( NewPoints ) );
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
+    //     }
 
-        return p_clone;
-    }
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Point3D< Point<3> >( NewPoints ) );
 
-    //lumping factors for the calculation of the lumped mass matrix
-    //    virtual Vector& LumpingFactors(Vector& rResult) const
-    //	{
-    //	}
+    //     return p_clone;
+    // }
+
+//     /**
+//      * @brief Lumping factors for the calculation of the lumped mass matrix
+//      * @param rResult Vector containing the lumping factors
+//      * @param LumpingMethod The lumping method considered. The three methods available are:
+//      *      - The row sum method
+//      *      - Diagonal scaling
+//      *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+//      */
+//     Vector& LumpingFactors(
+//         Vector& rResult,
+//         const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+//         )  const override
+//	{
+//	}
 
     ///@}
     ///@name Informations
@@ -294,7 +304,7 @@ public:
     @see Volume()
     @see DomainSize()
     */
-    virtual double Length() const override
+    double Length() const override
     {
         return 0.00;
     }
@@ -310,7 +320,7 @@ public:
     @see Volume()
     @see DomainSize()
     */
-    virtual double Area() const override
+    double Area() const override
     {
         return 0.00;
     }
@@ -326,24 +336,14 @@ public:
     @see Area()
     @see Volume()
     */
-    virtual double DomainSize() const override
+    double DomainSize() const override
     {
         return 0.00;
     }
 
-
-//      virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
-//              {
-//                 //rResult.Geometry() = *(this);
-//                 BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());
-//              }
-
-
-
     ///@}
     ///@name Jacobian
     ///@{
-
 
     /** Jacobians for given  method. This method
     calculate jacobians matrices in all integrations points of
@@ -508,12 +508,12 @@ public:
     /** EdgesNumber
     @return SizeType containes number of this geometry edges.
     */
-    virtual SizeType EdgesNumber() const override
+    SizeType EdgesNumber() const override
     {
         return 1;
     }
 
-    virtual SizeType FacesNumber() const override
+    SizeType FacesNumber() const override
     {
         return 0;
     }
@@ -528,9 +528,9 @@ public:
 //     	    KRATOS_ERROR << "This method is not implemented yet!" << *this << std::endl;
 //       return 0;
 //          }
-// 
-// 
-// 
+//
+//
+//
 //          virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod) const
 //     	{
 //     		  KRATOS_ERROR << "Jacobian is not square" << std::endl;
@@ -572,7 +572,7 @@ public:
     @see PrintData()
     @see PrintInfo()
     */
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "a point in 3D space";
     }
@@ -583,7 +583,7 @@ public:
     @see PrintData()
     @see Info()
     */
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "a point in 3D space";
     }
@@ -596,7 +596,7 @@ public:
     @see PrintInfo()
     @see Info()
     */
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "a point in 3D space";
     }
@@ -651,7 +651,9 @@ private:
     ///@{
 
     static const GeometryData msGeometryData;
-    
+
+    static const GeometryDimension msGeometryDimension;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -713,12 +715,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
     }
@@ -766,16 +768,18 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 template<class TPointType>
-const GeometryData Point3D<TPointType>::msGeometryData( 3,
-        3,
-        0,
+const GeometryData Point3D<TPointType>::msGeometryData(
+        &msGeometryDimension,
         GeometryData::GI_GAUSS_1,
         Point3D<TPointType>::AllIntegrationPoints(),
         Point3D<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients());
 
+template<class TPointType>
+const GeometryDimension Point3D<TPointType>::msGeometryDimension(
+    3, 3, 0);
+
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_2D_H_INCLUDED  defined 
+#endif // KRATOS_LINE_2D_H_INCLUDED  defined

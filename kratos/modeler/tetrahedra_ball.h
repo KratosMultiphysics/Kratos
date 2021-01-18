@@ -64,7 +64,7 @@ namespace Kratos
 
 	  /// Constructor which creates the ball for given node. 
 	  /// This constructor uses the GetValue(NEIGHBOUR_ELEMENTS) of the node.
-      TetrahedraBall(NodeType const& rThisNode);
+      TetrahedraBall(NodeType& rThisNode);
 
       /// Destructor.
 	  virtual ~TetrahedraBall() {}

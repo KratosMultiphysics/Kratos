@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:                  KratosDamApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:           February 2017 $
@@ -24,7 +24,7 @@
 namespace Kratos
 {
 
-class ThermalSimoJuNonlocalDamage3DLaw : public ThermalNonlocalDamage3DLaw
+class KRATOS_API(DAM_APPLICATION) ThermalSimoJuNonlocalDamage3DLaw : public ThermalNonlocalDamage3DLaw
 {
 
 public:
@@ -39,10 +39,10 @@ public:
 
     /// Default Constructor
     ThermalSimoJuNonlocalDamage3DLaw();
-    
+
     /// Second Constructor
-    ThermalSimoJuNonlocalDamage3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
-    
+    ThermalSimoJuNonlocalDamage3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
+
     /// Copy Constructor
     ThermalSimoJuNonlocalDamage3DLaw (const ThermalSimoJuNonlocalDamage3DLaw& rOther);
 
@@ -50,10 +50,10 @@ public:
     virtual ~ThermalSimoJuNonlocalDamage3DLaw();
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
-    
-    ConstitutiveLaw::Pointer Clone() const;
+
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+
+    ConstitutiveLaw::Pointer Clone() const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -63,24 +63,24 @@ protected:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry );
+    void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry ) override;
 
 private:
-    
+
     /// Serialization
-    
+
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
 }; // Class ThermalSimoJuNonlocalDamage3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_THERMAL_SIMO_JU_NONLOCAL_DAMAGE_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_THERMAL_SIMO_JU_NONLOCAL_DAMAGE_3D_LAW_H_INCLUDED  defined

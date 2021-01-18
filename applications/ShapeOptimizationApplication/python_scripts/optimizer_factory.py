@@ -4,118 +4,171 @@
 #  License:         BSD License
 #                   license: ShapeOptimizationApplication/license.txt
 #
-#  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+#  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 #
 # ==============================================================================
 
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division 
+from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+# Kratos Core and Apps
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
-# Additional imports
-import timer_factory
-import mapper_factory
-import communicator_factory
-import algorithm_factory
+# additional imports
+from .custom_timer import Timer
+from .analyzer_empty import EmptyAnalyzer
+from . import model_part_controller_factory
+from . import analyzer_factory
+from . import communicator_factory
+from . import algorithm_factory
 
 # ==============================================================================
-def CreateOptimizer( inputModelPart, optimizationSettings ):
+def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyzer()):
 
-    design_variables_type = optimizationSettings["design_variables"]["design_variables_type"].GetString()
-    
-    if design_variables_type == "vertex_morphing":
-        return VertexMorphingMethod( inputModelPart, optimizationSettings )
+    _ValidateSettings(optimization_settings)
+
+    model_part_controller = model_part_controller_factory.CreateController(optimization_settings["model_settings"], model)
+
+    analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer)
+
+    communicator = communicator_factory.CreateCommunicator(optimization_settings)
+
+    if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
+        optimizer =  VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
     else:
-        raise NameError("The following design variables type is not supported by the optimizer (name may be misspelled): " + design_variables_type)              
+        raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
+
+    return optimizer
+
+# ------------------------------------------------------------------------------
+def _ValidateSettings(optimization_settings):
+    _ValidateTopLevelSettings(optimization_settings)
+    _ValidateObjectiveSettingsRecursively(optimization_settings["objectives"])
+    _ValidateConstraintSettings(optimization_settings["constraints"])
+
+# ------------------------------------------------------------------------------
+def _ValidateTopLevelSettings(optimization_settings):
+    default_settings = KM.Parameters("""
+    {
+        "model_settings" : { },
+        "objectives" : [ ],
+        "constraints" : [ ],
+        "design_variables" : { },
+        "optimization_algorithm" : { },
+        "output" : { }
+    }""")
+
+    for key in default_settings.keys():
+        if not optimization_settings.Has(key):
+            raise RuntimeError("CreateOptimizer: Required setting '{}' missing in 'optimization_settings'!".format(key))
+
+    optimization_settings.ValidateAndAssignDefaults(default_settings)
+
+# ------------------------------------------------------------------------------
+def _ValidateObjectiveSettingsRecursively(objective_settings):
+    default_settings = KM.Parameters("""
+    {
+        "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
+        "type"                                : "minimization",
+        "scaling_factor"                      : 1.0,
+        "analyzer"                            : "external",
+        "response_settings"                   : {},
+        "is_combined"                         : false,
+        "combination_type"                    : "sum",
+        "combined_responses"                  : [],
+        "weight"                              : 1.0,
+        "project_gradient_on_surface_normals" : false
+    }""")
+    for itr in range(objective_settings.size()):
+        objective_settings[itr].ValidateAndAssignDefaults(default_settings)
+
+        if objective_settings[itr]["is_combined"].GetBool():
+            _ValidateObjectiveSettingsRecursively(objective_settings[itr]["combined_responses"])
+
+# ------------------------------------------------------------------------------
+def _ValidateConstraintSettings(constraint_settings):
+    default_settings = KM.Parameters("""
+    {
+        "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
+        "type"                                : "<",
+        "scaling_factor"                      : 1.0,
+        "reference"                           : "initial_value",
+        "reference_value"                     : 1.0,
+        "analyzer"                            : "external",
+        "response_settings"                   : {},
+        "project_gradient_on_surface_normals" : false
+    }""")
+    for itr in range(constraint_settings.size()):
+        constraint_settings[itr].ValidateAndAssignDefaults(default_settings)
+
 
 # ==============================================================================
 class VertexMorphingMethod:
     # --------------------------------------------------------------------------
-    def __init__( self, inputModelPart, optimizationSettings ):
-        
-        self.inputModelPart = inputModelPart
-        self.optimizationSettings = optimizationSettings
-        self.__addVariablesNeededForOptimization( inputModelPart )
+    def __init__(self, optimization_settings, model_part_controller, analyzer, communicator):
+        self.optimization_settings = optimization_settings
+        self.model_part_controller = model_part_controller
+        self.analyzer = analyzer
+        self.communicator = communicator
+
+        self.__AddVariablesToBeUsedByAllAglorithms()
+        self.__AddVariablesToBeUsedByDesignVariables()
 
     # --------------------------------------------------------------------------
-    def __addVariablesNeededForOptimization( self, inputModelPart ):
-        inputModelPart.AddNodalSolutionStepVariable(NORMAL)
-        inputModelPart.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
-        inputModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
-        inputModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
-        inputModelPart.AddNodalSolutionStepVariable(MAPPED_OBJECTIVE_SENSITIVITY)
-        inputModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
-        inputModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
-        inputModelPart.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY) 
-        inputModelPart.AddNodalSolutionStepVariable(DESIGN_UPDATE)
-        inputModelPart.AddNodalSolutionStepVariable(DESIGN_CHANGE_ABSOLUTE)  
-        inputModelPart.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
-        inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
-        inputModelPart.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
+    def __AddVariablesToBeUsedByAllAglorithms(self):
+        model_part = self.model_part_controller.GetOptimizationModelPart()
+        number_of_objectives = self.optimization_settings["objectives"].size()
+        number_of_constraints = self.optimization_settings["constraints"].size()
+
+        nodal_variable = KM.KratosGlobals.GetVariable("DF1DX")
+        model_part.AddNodalSolutionStepVariable(nodal_variable)
+        nodal_variable = KM.KratosGlobals.GetVariable("DF1DX_MAPPED")
+        model_part.AddNodalSolutionStepVariable(nodal_variable)
+
+        for itr in range(1,number_of_constraints+1):
+            nodal_variable = KM.KratosGlobals.GetVariable("DC"+str(itr)+"DX")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+            nodal_variable = KM.KratosGlobals.GetVariable("DC"+str(itr)+"DX_MAPPED")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+
+        model_part.AddNodalSolutionStepVariable(KSO.CONTROL_POINT_UPDATE)
+        model_part.AddNodalSolutionStepVariable(KSO.CONTROL_POINT_CHANGE)
+        model_part.AddNodalSolutionStepVariable(KSO.SHAPE_UPDATE)
+        model_part.AddNodalSolutionStepVariable(KSO.SHAPE_CHANGE)
+        model_part.AddNodalSolutionStepVariable(KSO.MESH_CHANGE)
+        model_part.AddNodalSolutionStepVariable(KM.NORMAL)
+        model_part.AddNodalSolutionStepVariable(KSO.NORMALIZED_SURFACE_NORMAL)
+
+    def __AddVariablesToBeUsedByDesignVariables(self):
+        if self.optimization_settings["design_variables"]["filter"].Has("in_plane_morphing") and \
+            self.optimization_settings["design_variables"]["filter"]["in_plane_morphing"].GetBool():
+                model_part = self.model_part_controller.GetOptimizationModelPart()
+                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
+                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
+                model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
 
     # --------------------------------------------------------------------------
-    def importModelPart( self ):
-        model_part_io = ModelPartIO( self.optimizationSettings["design_variables"]["input_model_part_name"].GetString() )
-        model_part_io.ReadModelPart( self.inputModelPart )
-        buffer_size = 1
-        self.inputModelPart.SetBufferSize( buffer_size )
-        self.inputModelPart.ProcessInfo.SetValue( DOMAIN_SIZE, self.optimizationSettings["design_variables"]["domain_size"].GetInt() )
+    def Optimize(self):
+        algorithm_name = self.optimization_settings["optimization_algorithm"]["name"].GetString()
 
-    # --------------------------------------------------------------------------
-    def importAnalyzer( self, newAnalyzer ): 
-        self.analyzer = newAnalyzer
+        KM.Logger.Print("")
+        KM.Logger.Print("===============================================================================")
+        KM.Logger.PrintInfo("ShapeOpt", Timer().GetTimeStamp(), ": Starting optimization using the following algorithm: ", algorithm_name)
+        KM.Logger.Print("===============================================================================\n")
 
-    # --------------------------------------------------------------------------
-    def optimize( self ):
-        
-        timer = timer_factory.CreateTimer()
-        algorithmName = self.optimizationSettings["optimization_algorithm"]["name"].GetString()
+        algorithm = algorithm_factory.CreateOptimizationAlgorithm(self.optimization_settings,
+                                                                  self.analyzer,
+                                                                  self.communicator,
+                                                                  self.model_part_controller)
+        algorithm.CheckApplicability()
+        algorithm.InitializeOptimizationLoop()
+        algorithm.RunOptimizationLoop()
+        algorithm.FinalizeOptimizationLoop()
 
-        print("\n> ==============================================================================================================")
-        print("> ",timer.getTimeStamp(),": Starting optimization using the following algorithm: ", algorithmName)
-        print("> ==============================================================================================================\n")
-    
-        designSurface = self.__getDesignSurfaceFromInputModelPart()
-        dampingRegions = self.__getdampingRegionsFromInputModelPart()
-
-        mapper = mapper_factory.CreateMapper( designSurface, self.optimizationSettings ) 
-        communicator = communicator_factory.CreateCommunicator( self.optimizationSettings )
-
-        algorithm = algorithm_factory.CreateAlgorithm( designSurface, dampingRegions, self.analyzer, mapper, communicator, self.optimizationSettings )
-        algorithm.execute()       
-
-        print("\n> ==============================================================================================================")
-        print("> Finished optimization                                                                                           ")
-        print("> ==============================================================================================================\n")
-    
-    # --------------------------------------------------------------------------
-    def __getDesignSurfaceFromInputModelPart( self ):
-        nameOfDesingSurface = self.optimizationSettings["design_variables"]["design_submodel_part_name"].GetString()
-        if self.inputModelPart.HasSubModelPart( nameOfDesingSurface ):
-            optimizationModel = self.inputModelPart.GetSubModelPart( nameOfDesingSurface )
-            print("> The following design surface was defined:\n\n",optimizationModel)
-            return optimizationModel
-        else:
-            raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)         
-
-    # --------------------------------------------------------------------------
-    def __getdampingRegionsFromInputModelPart( self ):
-        dampingRegions = {}
-        print("> The following damping regions are defined: \n")
-        for regionNumber in range(self.optimizationSettings["design_variables"]["damping"]["damping_regions"].size()):
-            regionName = self.optimizationSettings["design_variables"]["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
-            if self.inputModelPart.HasSubModelPart(regionName):
-                print(regionName)
-                dampingRegions[regionName] = self.inputModelPart.GetSubModelPart(regionName)
-            else:
-                raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)    
-        print("")    
-        return dampingRegions               
+        KM.Logger.Print("")
+        KM.Logger.Print("===============================================================================")
+        KM.Logger.PrintInfo("ShapeOpt", "Finished optimization")
+        KM.Logger.Print("===============================================================================\n")
 
 # ==============================================================================

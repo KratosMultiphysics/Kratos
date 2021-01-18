@@ -7,28 +7,21 @@ namespace Kratos {
 template< unsigned int TDim >
 Element::Pointer StationaryStokes<TDim>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new StationaryStokes<TDim>(NewId, this->GetGeometry().Create(ThisNodes), pProperties) );
+    return Kratos::make_intrusive< StationaryStokes<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template< unsigned int TDim >
-int StationaryStokes<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+Element::Pointer StationaryStokes<TDim>::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
+{
+    return Kratos::make_intrusive<StationaryStokes>(NewId, pGeom, pProperties);
+}
+
+template< unsigned int TDim >
+int StationaryStokes<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     int Result = Element::Check(rCurrentProcessInfo);
 
-    // Check that all required variables have been registered
-    if(VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-    if(PRESSURE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-    if(DENSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-    if(VISCOSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-    if(BODY_FORCE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"BODY_FORCE Key is 0. Check if the application was correctly registered.","");
-
     // Checks on nodes
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
@@ -58,7 +51,7 @@ int StationaryStokes<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
 }
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::Initialize()
+void StationaryStokes<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -89,7 +82,7 @@ void StationaryStokes<TDim>::Initialize()
         MathUtils<double>::InvertMatrix( J[g], InvJ, DetJ );
 
         //calculating the shape function derivatives in global coordinates
-        mDN_DX[g].resize(NumNodes,TDim);
+        mDN_DX[g].resize(NumNodes,TDim, false);
         noalias( mDN_DX[g] ) = prod( DNv_De[g], InvJ );
 
         // Gauss point weight is stored as a fraction of the elemental area
@@ -100,7 +93,7 @@ void StationaryStokes<TDim>::Initialize()
 }
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+void StationaryStokes<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
     // Obtain required constants
     GeometryType& rGeom = this->GetGeometry();
@@ -132,8 +125,8 @@ void StationaryStokes<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatri
 
         double Density;
         double Viscosity;
-        array_1d<double,3> BodyForce(3,0.0);
-        array_1d<double,3> Velocity(3,0.0);
+        array_1d<double,3> BodyForce = ZeroVector(3);
+        array_1d<double,3> Velocity = ZeroVector(3);
 
         // Interpolation
         this->EvaluateInPoint(Density,DENSITY,N,rGeom);
@@ -161,9 +154,9 @@ void StationaryStokes<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatri
 
 template< unsigned int TDim >
 void StationaryStokes<TDim>::GetDofList(DofsVectorType &rElementalDofList,
-                                  ProcessInfo &rCurrentProcessInfo)
+                                  const ProcessInfo &rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = (TDim + 1) * NumNodes;
 
@@ -183,9 +176,9 @@ void StationaryStokes<TDim>::GetDofList(DofsVectorType &rElementalDofList,
 
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::EquationIdVector(Element::EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
+void StationaryStokes<TDim>::EquationIdVector(Element::EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = (TDim + 1) * NumNodes;
 
@@ -205,9 +198,9 @@ void StationaryStokes<TDim>::EquationIdVector(Element::EquationIdVectorType &rRe
 
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step)
+void StationaryStokes<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = (TDim + 1) * NumNodes;
 

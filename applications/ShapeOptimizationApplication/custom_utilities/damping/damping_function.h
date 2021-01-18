@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
@@ -12,20 +12,14 @@
 #ifndef DAMPING_FUNCTION_H
 #define DAMPING_FUNCTION_H
 
+#define PI 3.141592653589793238462643383279502884197169399375105820974944592308
+
 // ------------------------------------------------------------------------------
 // System includes
 // ------------------------------------------------------------------------------
 #include <iostream>
 #include <string>
 #include <algorithm>
-
-// ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -89,28 +83,23 @@ class DampingFunction
     DampingFunction(std::string damping_function_type, double damping_radius)
         : m_damping_radius(damping_radius)
     {
-        // Create strings to compare to
-        std::string cosine("cosine");
-        std::string linear("linear");
-        std::string quartic("quartic");
-
         // Set type of dymping function
 
         // Type 1: Cosine function
-        if (damping_function_type.compare(cosine) == 0)
+        if (damping_function_type == "cosine")
             m_damping_function_type = 1;
 
         // Type 2: Linear function
-        else if (damping_function_type.compare(linear) == 0)
+        else if (damping_function_type == "linear")
             m_damping_function_type = 2;
 
         // Type 3: Quartic function
-        else if (damping_function_type.compare(quartic) == 0)
-            m_damping_function_type = 3;            
+        else if (damping_function_type == "quartic")
+            m_damping_function_type = 3;
 
         // Throw error message in case of wrong specification
         else
-            KRATOS_THROW_ERROR(std::invalid_argument, "Specified damping function type not recognized. Options are: linear , cosine. Specified: ",damping_function_type);
+            KRATOS_ERROR << "Specified damping function type not recognized. Options are: linear , cosine. Specified: " << damping_function_type << std::endl;
     }
 
     /// Destructor.
@@ -166,7 +155,7 @@ class DampingFunction
             // Compute damping factor
             damping_factor = std::min(1.0, (1-pow(numerator,4.0)/pow(m_damping_radius,4.0)));
             break;
-        }        
+        }
         }
 
         return damping_factor;

@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 // Application includes
 #include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
@@ -15,6 +21,14 @@ template< unsigned int TDim, unsigned int TNumNodes >
 Condition::Pointer UPwNormalFluxFICCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
 {
     return Condition::Pointer(new UPwNormalFluxFICCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+GeometryData::IntegrationMethod UPwNormalFluxFICCondition<TDim,TNumNodes>::GetIntegrationMethod()
+{
+    return GeometryData::GI_GAUSS_2;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -45,7 +59,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftH
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
     const double BulkModulus = Prop[YOUNG_MODULUS]/(3.0*(1.0-2.0*Prop[POISSON_RATIO]));
-    const double BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
+    const double BiotCoefficient = Prop[BIOT_COEFFICIENT];
     FICVariables.BiotModulusInverse = (BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
     for(unsigned int i=0; i<TNumNodes; i++)
     {
@@ -107,7 +121,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRight
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
     const double BulkModulus = Prop[YOUNG_MODULUS]/(3.0*(1.0-2.0*Prop[POISSON_RATIO]));
-    const double BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
+    const double BiotCoefficient = Prop[BIOT_COEFFICIENT];
     FICVariables.BiotModulusInverse = (BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
     for(unsigned int i=0; i<TNumNodes; i++)
     {
@@ -151,7 +165,7 @@ void UPwNormalFluxFICCondition<2,2>::CalculateElementLength(double& rElementLeng
 template<>
 void UPwNormalFluxFICCondition<3,3>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
-    rElementLength = sqrt(4.0*Geom.Area()/KRATOS_M_PI);
+    rElementLength = sqrt(4.0*Geom.Area()/Globals::Pi);
 }
 
 //----------------------------------------------------------------------------------------
@@ -159,7 +173,7 @@ void UPwNormalFluxFICCondition<3,3>::CalculateElementLength(double& rElementLeng
 template<>
 void UPwNormalFluxFICCondition<3,4>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
-    rElementLength = sqrt(4.0*Geom.Area()/KRATOS_M_PI);
+    rElementLength = sqrt(4.0*Geom.Area()/Globals::Pi);
 }
 
 //----------------------------------------------------------------------------------------
@@ -182,7 +196,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassMatri
                                         outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
     
     //Distribute boundary mass matrix into the elemental matrix
-    ElementUtilities::AssemblePBlockMatrix< boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rFICVariables.PMatrix,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rFICVariables.PMatrix,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------
@@ -208,7 +222,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassFlow(
     noalias(rVariables.PVector) = prod(rFICVariables.PMatrix,rFICVariables.DtPressureVector);
     
     //Distribute boundary mass flow vector into elemental vector
-    ElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

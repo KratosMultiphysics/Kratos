@@ -1,48 +1,13 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Nelson Lafontaine $
-//   Date:                $Date: 29-09-2010 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Nelson Lafontaine
 //
 
 
@@ -56,6 +21,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iostream>
 #include <cmath>
 #include <algorithm>
+#include <array>
 //#include <time.h>
 
 // Project includes
@@ -102,49 +68,44 @@ public:
 
     enum { Dimension = TConfigure::Dimension };
 
-    typedef TConfigure                                   Configure;
-    typedef typename TConfigure::PointType               PointType;
-    typedef typename TConfigure::PointerType             PointerType;
-    typedef typename TConfigure::ContainerType           ContainerType;
-    typedef typename TConfigure::IteratorType            IteratorType;
-    typedef typename TConfigure::ResultContainerType     ResultContainerType; //
-    typedef typename TConfigure::ResultIteratorType      ResultIteratorType;
-
-    //typedef Cell<Configure> CellType;
-    //typedef std::vector<CellType> CellContainerType;
-    //typedef typename CellContainerType::iterator CellContainerIterator;
-
-
-    /*       typedef BoundingBox< PointType,PointerType> BoundingBoxType; */
-    /*       typedef std::vector< BoundingBoxType > BoundingBoxContainerType;     */
-    /*       typedef typename BoundingBoxContainerType::iterator BoundingBoxIterator;  */
+    typedef TConfigure                                  Configure;
+    typedef typename TConfigure::PointType              PointType;
+    typedef typename TConfigure::PointerType            PointerType;
+    typedef typename TConfigure::ContainerType          ContainerType;
+    typedef typename TConfigure::IteratorType           IteratorType;
+    typedef typename TConfigure::ResultContainerType    ResultContainerType;
+    typedef typename TConfigure::ResultIteratorType     ResultIteratorType;
 
     typedef TreeNode<Dimension, PointType, PointerType, IteratorType,  typename TConfigure::DistanceIteratorType> TreeNodeType;
-    typedef typename TreeNodeType::CoordinateType  CoordinateType;  // double
-    typedef typename TreeNodeType::SizeType        SizeType;        // std::size_t
-    typedef typename TreeNodeType::IndexType       IndexType;       // std::size_t
+    
+    typedef typename TreeNodeType::CoordinateType       CoordinateType;  // double
+    typedef typename TreeNodeType::SizeType             SizeType;        // std::size_t
+    typedef typename TreeNodeType::IndexType            IndexType;       // std::size_t
 
+    typedef Tvector<CoordinateType,Dimension>           CoordinateArray;
+    typedef Tvector<SizeType,Dimension>                 SizeArray;
+    typedef Tvector<IndexType,Dimension>                IndexArray;
 
-    typedef std::vector<PointerType>        PointVector;
-    typedef typename PointVector::iterator  PointIterator;
-
-    typedef std::vector<PointerType>        LocalContainerType;
-    typedef typename LocalContainerType::iterator LocalIteratorType;
-
-    ///Contact Pair
-    typedef typename TConfigure::ContainerContactType  ContainerContactType;
-    typedef typename TConfigure::IteratorContactType IteratorContactType;
-
-    ///typedef TreeNodeType LeafType;
     typedef typename TreeNodeType::IteratorIteratorType IteratorIteratorType;
     typedef typename TreeNodeType::SearchStructureType  SearchStructureType;
 
-    typedef std::vector<IteratorType>          IteratorVector;
-    typedef typename IteratorVector::iterator  IteratorIterator;
-    typedef typename IteratorVector::const_iterator IteratorConstIterator;
+    // Local Container ( PointPointer Container per Cell )
+    // can be different to ContainerType
+    // not always PointVector == ContainerType ( if ContainerType = C array )
+    typedef std::vector<PointerType>                    LocalContainerType;
+    typedef typename LocalContainerType::iterator       LocalIteratorType;
 
-    typedef std::vector<IndexType> IndexContainer;
-    typedef typename IndexContainer::iterator  IndexIterator;
+    ///Contact Pair
+    typedef typename TConfigure::ContainerContactType   ContainerContactType;
+    typedef typename TConfigure::IteratorContactType    IteratorContactType;
+
+    typedef std::vector<IndexType>                      IndexContainer;
+    typedef typename IndexContainer::iterator           IndexIterator;
+
+    // Legacy typedef ( to preserve compativility in case someone was using this definitions)
+    typedef std::vector<IteratorType>                   IteratorVector;
+    typedef typename IteratorVector::iterator           IteratorIterator;
+    typedef typename IteratorVector::const_iterator     IteratorConstIterator;
 
     /// Pointer definition of BinsObjectStatic
     KRATOS_CLASS_POINTER_DEFINITION(BinsObjectStatic);
@@ -160,19 +121,16 @@ public:
     BinsObjectStatic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd)
         : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)
     {
+        auto mNumPoints = std::distance(mObjectsBegin, mObjectsEnd);
 
         CalculateBoundingBox();
-        CalculateCellSize();
-        //AllocateCellsContainer();
+        CalculateCellSize(mNumPoints);
         GenerateBins();
-
-
     }
 
     BinsObjectStatic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, const SizeType Nx, const SizeType Ny, const SizeType Nz )
         : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)
     {
-
         CalculateBoundingBox();
 
         mN[0] = Nx;
@@ -196,10 +154,7 @@ public:
             mInvCellSize[i] = 1.00 / mCellSize[i];
         }
 
-
         GenerateBins();
-
-
     }
 
 
@@ -281,30 +236,44 @@ public:
         rout << "]" << std::endl;
     }
 
-
-    /*
-          CellContainerType& GetCellContainer()
-           {
-             return mCells;
-           }
-    */
-    Tvector<SizeType, Dimension>& GetDivisions()
-    {
+    /**
+     * @brief Get the Divisions object
+     * 
+     * @return SizeArray& Array containing the number of Cells in each dimension
+     */
+    SizeArray& GetDivisions() {
         return mN;
     }
-    /*
-          Tvector<CoordinateType, Dimension>& GetCellSize()
-          {
-           return mCellSize;
-          }
-    */
+
+    /**
+     * @brief Get the Cell Size object
+     * 
+     * @return CoordinateArray& Array containing the size of the Cell in each dimension
+     */
+    CoordinateArray& GetCellSize() {
+        return mCellSize;
+    }
+
+    /**
+     * @brief Get the Min Point object
+     * 
+     * @return PointType& Min point of the bins
+     */
+    PointType& GetMinPoint() {
+        return mMinPoint;
+    }
+
+    /**
+     * @brief Get the Max Point object
+     * 
+     * @return PointType& Max point of the bins
+     */
+    PointType& GetMaxPoint() {
+        return mMaxPoint;
+    }
 
 //************************************************************************
 //************************************************************************
-
-
-
-
 
     ///@}
     ///@name Friends
@@ -325,9 +294,6 @@ public:
     ///@}
     ///@name Protected Operators
     ///@{
-
-
-
 
     /// Computa los boxes de cada uno de los elementos del model part
     void CalculateBoundingBox()
@@ -398,47 +364,44 @@ public:
 //************************************************************************
 //************************************************************************
 
-    void CalculateCellSize()
+    /** 
+     * @brief Calculates the cell size of the bins.
+     * 
+     * Calculates the cell size of the bins using an average aproximation of the objects in the bins.
+     * 
+     * @param ApproximatedSize Aproximate number of objects that will be stored in the bins
+     */
+    void CalculateCellSize(std::size_t ApproximatedSize) 
     {
-
-
-        double delta[Dimension];
-        double alpha[Dimension];
-        double mult_delta = 1.00;
-        SizeType index = 0;
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            delta[i] = mMaxPoint[i] - mMinPoint[i];
-            if ( delta[i] > delta[index] )
-                index = i;
-            delta[i] = (delta[i] == 0.00) ? 1.00 : delta[i];
+        std::size_t average_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(ApproximatedSize), 1.00 / Dimension));
+        
+        std::array<double, 3> lengths;
+        double average_length = 0.00;
+        
+        for (int i = 0; i < Dimension; i++) {
+            lengths[i] = mMaxPoint[i] - mMinPoint[i];
+            average_length += lengths[i];
         }
+        average_length *= 1.00 / 3.00;
 
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            alpha[i] = delta[i] / delta[index];
-            mult_delta *= alpha[i];
-        }
-
-
-        mN[index] = static_cast<SizeType>( pow(static_cast<CoordinateType>(SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd)/mult_delta), 1.00/Dimension) +1 );
-
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            if(i!=index)
-            {
-                mN[i] = static_cast<SizeType>(alpha[i] * mN[index]);
-                mN[i] = ( mN[i] == 0 ) ? 1 : mN[i];
+        if (average_length < std::numeric_limits<double>::epsilon()) {
+            for(int i = 0; i < Dimension; i++) {
+                mN[i] = 1;
             }
+            return;
         }
 
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            mCellSize[i] = delta[i] / mN[i];
+        for (int i = 0; i < Dimension; i++) {
+             mN[i] = static_cast<std::size_t>(lengths[i] / average_length * (double)average_number_of_cells) + 1;
+            
+            if (mN[i] > 1) {
+                mCellSize[i] = lengths[i] / mN[i];
+            } else {
+                mCellSize[i] = average_length;
+            }
+
             mInvCellSize[i] = 1.00 / mCellSize[i];
         }
-
-
     }
 
 
@@ -459,16 +422,6 @@ public:
             Size *= mN[i];
         mObjectsAccess.resize(Size+1,0);
 
-        /*
-        	   PointVector TempObjects(n_objects); //(mPointBegin,mPointEnd);
-               IteratorType iter_object = mObjectsBegin;
-               for(PointIterator iter = TempObjects.begin(); iter != TempObjects.end(); iter++, iter_object++)
-                 *iter = *iter_object;
-
-        	   // Reset index vector
-        	   for( IteratorIterator Iter = mIndexCell.begin(); Iter != mIndexCell.end(); Iter++)
-        		 *Iter = mObjectsBegin;
-        */
         // Update storage counter, storing ahead
         for( IteratorType i_object = mObjectsBegin ; i_object != mObjectsEnd ; i_object++)
         {
@@ -905,19 +858,12 @@ private:
     IteratorType mObjectsBegin;
     IteratorType mObjectsEnd;
 
-    Tvector<CoordinateType,Dimension>  mCellSize;
-    Tvector<CoordinateType,Dimension>  mInvCellSize;
-    Tvector<SizeType,Dimension>  mN;
+    CoordinateArray mCellSize;
+    CoordinateArray mInvCellSize;
+    SizeArray       mN;
 
-    //CellContainerType mCells;  ///The bin
-
-    // Bins Access Vector ( vector<Iterator> )
-    //IteratorVector           mIndexCell;
-    //IteratorIterator         mIndexCellBegin;
-    //IteratorIterator         mIndexCellEnd;
-    LocalContainerType       mObjectList;
-
-    IndexContainer          mObjectsAccess;
+    LocalContainerType  mObjectList;
+    IndexContainer      mObjectsAccess;
 
 
 

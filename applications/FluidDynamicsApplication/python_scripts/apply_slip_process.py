@@ -6,7 +6,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplySlipProcess(Model, settings["Parameters"])
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class ApplySlipProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -15,33 +15,47 @@ class ApplySlipProcess(KratosMultiphysics.Process):
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
-                "avoid_recomputing_normals": false
-            }  """ );
+                "avoid_recomputing_normals": false,
+                "uniform_navier_slip_length" : 0.01
+            }  """ )
 
-        settings.ValidateAndAssignDefaults(default_parameters);
+        self.navier_slip_active = False
+        if settings.Has("uniform_navier_slip_length"):
+            self.navier_slip_active = True
+
+        settings.ValidateAndAssignDefaults(default_parameters)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.avoid_recomputing_normals = settings["avoid_recomputing_normals"].GetBool()
 
-        # Compute the normal on the nodes of interest -
-        # Note that the model part employed here is supposed to only have slip "conditions"
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-
         # Mark the nodes and conditions with the appropriate slip flag
-        #TODO: Remove the IS_STRUCTURE variable set as soon as the flag SLIP migration is done
-        for condition in self.model_part.Conditions: #TODO: this may well not be needed!
+        for condition in self.model_part.Conditions:
             condition.Set(KratosMultiphysics.SLIP, True)
-            condition.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
 
-        #TODO: Remove the IS_STRUCTURE variable set as soon as the flag SLIP migration is done
         for node in self.model_part.Nodes:
             node.Set(KratosMultiphysics.SLIP, True)
-            node.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
-            node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0)
             node.SetValue(KratosMultiphysics.Y_WALL,0.0)
 
+        if self.navier_slip_active:
+            navier_slip_length = settings["uniform_navier_slip_length"].GetDouble()
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
+                KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH,
+                navier_slip_length,
+                self.model_part.Nodes)
+        else:
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
+                KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH,
+                1.0e8,
+                self.model_part.Nodes)
+
+    def ExecuteInitialize(self):
+        # Compute the normal on the nodes of interest -
+        # Note that the model part employed here is supposed to only have slip "conditions"
+        enforce_generic_algorithm = True
+        KratosMultiphysics.NormalCalculationUtils().CalculateNormals(self.model_part, enforce_generic_algorithm)
 
     def ExecuteInitializeSolutionStep(self):
         # Recompute the normals if needed
         if self.avoid_recomputing_normals == False:
-            KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+            enforce_generic_algorithm = True
+            KratosMultiphysics.NormalCalculationUtils().CalculateNormals(self.model_part, enforce_generic_algorithm)

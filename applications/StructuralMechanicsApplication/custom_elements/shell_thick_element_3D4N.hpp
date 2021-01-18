@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Massimo Petracca
 //
@@ -19,14 +19,10 @@
 // External includes
 
 // Project includes
-#include "includes/element.h"
-#include "custom_utilities/shell_cross_section.hpp"
-#include "utilities/quaternion.h"
+#include "custom_elements/base_shell_element.h"
 
 namespace Kratos
 {
-
-
 ///@name Kratos Globals
 ///@{
 ///@}
@@ -62,20 +58,18 @@ class ShellQ4_LocalCoordinateSystem;
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class ShellThickElement3D4N : public Element
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N : public BaseShellElement
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(ShellThickElement3D4N);
-
-    typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D4N);
 
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
-    typedef boost::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
+    typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
 
     typedef array_1d<double, 3> Vector3Type;
 
@@ -99,24 +93,24 @@ public:
 
         JacobianOperator();
 
-        void Calculate(const ShellQ4_LocalCoordinateSystem & CS, const Matrix & dN);
+        void Calculate(const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN);
 
-        inline const Matrix & Jacobian()const
+        inline const Matrix& Jacobian()const
         {
             return mJac;
         }
 
-        inline const Matrix & Inverse()const
+        inline const Matrix& Inverse()const
         {
             return mInv;
         }
 
-        inline const Matrix & XYDerivatives()const
+        inline const Matrix& XYDerivatives()const
         {
             return mXYDeriv;
         }
 
-        inline const double Determinant()const
+        inline double Determinant()const
         {
             return mDet;
         }
@@ -144,8 +138,7 @@ public:
      *     International Journal for Numerical Methods in Eng.,
      *     vol. 21, 367-383, 1985
      */
-    struct MITC4Params
-    {
+    struct MITC4Params {
 
         double Ax;
         double Ay;
@@ -156,7 +149,7 @@ public:
         Matrix Transformation;
         Matrix ShearStrains;
 
-        MITC4Params(const ShellQ4_LocalCoordinateSystem & LCS);
+        MITC4Params(const ShellQ4_LocalCoordinateSystem& LCS);
 
     };
 
@@ -182,11 +175,11 @@ public:
 
         inline void Initialize(const GeometryType& geom);
 
-        inline void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+        inline void InitializeSolutionStep();
 
-        inline void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+        inline void FinalizeSolutionStep();
 
-        inline void FinalizeNonLinearIteration(const Vector& displacementVector, ProcessInfo& CurrentProcessInfo);
+        inline void FinalizeNonLinearIteration(const Vector& displacementVector);
 
     private:
 
@@ -197,8 +190,8 @@ public:
         array_1d<double, 24> displ_converged;   /*!< (converged) vector containing the displacement vector */
 
         array_1d<double, 5>           residual; /*!< vector containing the 5 residuals for the 5 enhanced strain parameters */
-        bounded_matrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
-        bounded_matrix<double, 5, 24> L;        /*!< 5x24 coupling matrix */
+        BoundedMatrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
+        BoundedMatrix<double, 5, 24> L;        /*!< 5x24 coupling matrix */
 
         bool mInitialized;                      /*!< Initialization flag */
 
@@ -295,7 +288,7 @@ public:
                           PropertiesType::Pointer pProperties,
                           CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-    virtual ~ShellThickElement3D4N();
+    ~ShellThickElement3D4N() override;
 
     ///@}
 
@@ -304,63 +297,65 @@ public:
 
     // Basic
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+    ) const override;
 
-    void Initialize();
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+    ) const override;
 
-    void ResetConstitutiveLaw();
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CleanMemory();
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValuesVector(Vector& values, int Step = 0);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetFirstDerivativesVector(Vector& values, int Step = 0);
+    // More results calculation on integration points to interface with python
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetSecondDerivativesVector(Vector& values, int Step = 0);
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                      std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
+                                      3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    // Calculate functions
+    void Calculate(const Variable<Matrix >& rVariable,
+                   Matrix& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
-
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
-
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo);
-
-    // Results calculation on integration points
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
 
     ///@name Public specialized Access - Temporary
     ///@{
-
-    void SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections);
 
     ///@}
 
@@ -372,7 +367,7 @@ protected:
     /**
      * Protected empty constructor
      */
-    ShellThickElement3D4N() : Element()
+    ShellThickElement3D4N() : BaseShellElement()
     {
     }
 
@@ -383,9 +378,26 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CalculateStressesFromForceResultants(VectorType& rstresses,
+            const double& rthickness);
+
+    void CalculateLaminaStrains(ShellCrossSection::Pointer& section, const Vector& generalizedStrains, std::vector<VectorType>& rlaminateStrains);
+
+    void CalculateLaminaStresses(ShellCrossSection::Pointer& section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType>& rlaminateStrains, std::vector<VectorType>& rlaminateStresses);
+
+    double CalculateTsaiWuPlaneStress(const std::vector<VectorType>& rlaminateStresses, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
+
+    void CalculateVonMisesStress(const Vector& generalizedStresses,
+                                 const Variable<double>& rVariable, double& rVon_Mises_Result);
+
+    void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable,
+            int& iJob, bool& bGlobal);
+
+    double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
+
     void DecimalCorrection(Vector& a);
 
-    void SetupOrientationAngles();
+    void SetupOrientationAngles() override;
 
     void CalculateBMatrix(double xi, double eta,
                           const JacobianOperator& Jac, const MITC4Params& params,
@@ -394,19 +406,21 @@ private:
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
                       VectorType& rRightHandSideVector,
-                      ProcessInfo& rCurrentProcessInfo,
-                      const bool LHSrequired,
-                      const bool RHSrequired);
+                      const ProcessInfo& rCurrentProcessInfo,
+                      const bool CalculateStiffnessMatrixFlag,
+                      const bool CalculateResidualVectorFlag) override;
 
-    void AddBodyForces(const array_1d<double,4> & dA, VectorType& rRightHandSideVector);
+    void AddBodyForces(const array_1d<double,4>& dA, VectorType& rRightHandSideVector);
 
-    bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
-            std::vector<array_1d<double,3> >& rValues,
-            const ProcessInfo& rCurrentProcessInfo);
-
-    bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
+    bool TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
             const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+    * Returns the behavior of this shell (thin/thick)
+    * @return the shell behavior
+    */
+    ShellCrossSection::SectionBehaviorType GetSectionBehavior() const override;
 
     ///@}
 
@@ -419,8 +433,6 @@ private:
 
     CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
-    CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
-
     EASOperatorStorage mEASStorage; /*!< The storage instance for the EAS Operator */
 
     ///@}
@@ -430,9 +442,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
 

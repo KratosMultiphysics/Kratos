@@ -8,33 +8,25 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 
 
 #if !defined(KRATOS_KRATOS_PARAMETERS_H_INCLUDED )
 #define  KRATOS_KRATOS_PARAMETERS_H_INCLUDED
 
-
 // System includes
 
-#include <string>
-#include <iostream>
-#include <sstream>
-
 // External includes
-
+#include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
 
 // Project includes
-#include "includes/define.h"
-#include "rapidjson/document.h"
-#include "rapidjson/error/en.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/prettywriter.h"
-#include "rapidjson/stringbuffer.h"
+#include "includes/serializer.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -55,503 +47,826 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class Parameters
+/**
+ * @class Parameters
+ * @ingroup KratosCore
+ * @brief This class provides to Kratos a data structure for I/O based on the standard of JSON
+ * @details In computing, JavaScript Object Notation or JSON is an open-standard file format that uses human-readable text to transmit data objects consisting of attribute–value pairs and array data types (or any other serializable value). It is a very common data format used for asynchronous browser–server communication, including as a replacement for XML in some AJAX-style systems. More info: https://json.org/
+ * This class uses nlohmann JSON header only library
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ */
+class KRATOS_API(KRATOS_CORE) Parameters
 {
 private:
-	///@name Nested clases
-	///@{
-  class iterator_adaptor : public std::iterator<std::forward_iterator_tag, Parameters>
-	{
-    using value_iterator = rapidjson::Value::MemberIterator;
-		value_iterator mValueIterator;
-    std::unique_ptr<Parameters> mpParameters;
-	public:
-		iterator_adaptor(value_iterator it, boost::shared_ptr<rapidjson::Document> pdoc) :mValueIterator(it), mpParameters(new Parameters(&it->value, pdoc)) {}
-		iterator_adaptor(const iterator_adaptor& it) : mValueIterator(it.mValueIterator), mpParameters(new Parameters(*(it.mpParameters))) {}
-		iterator_adaptor& operator++() { mValueIterator++; return *this; }
-		iterator_adaptor operator++(int) { iterator_adaptor tmp(*this); operator++(); return tmp; }
-		bool operator==(const iterator_adaptor& rhs) const { return mValueIterator == rhs.mValueIterator; }
-		bool operator!=(const iterator_adaptor& rhs) const { return mValueIterator != rhs.mValueIterator; }
-		Parameters& operator*() const { mpParameters->SetUnderlyingSotrage(&mValueIterator->value); return *mpParameters; }
-		Parameters* operator->() const { mpParameters->SetUnderlyingSotrage(&mValueIterator->value); return mpParameters.get(); }
-		value_iterator& base() { return mValueIterator; }
-		value_iterator const& base() const { return mValueIterator; }
-    std::string name() {return mValueIterator->name.GetString();}
-	};
+    ///@name Nested clases
+    ///@{
+    /**
+     * @class iterator_adaptor
+     * @ingroup KratosCore
+     * @brief This nested class can be used to adapt a Parameter iterator
+     * @author Riccardo Rossi
+     */
+    class KRATOS_API(KRATOS_CORE) iterator_adaptor
+        : public std::iterator<std::forward_iterator_tag, Parameters>
+    {
+        ///@name Type Definitions
+        ///@{
 
-  class const_iterator_adaptor : public std::iterator<std::forward_iterator_tag, Parameters>
-	{
-    using value_iterator = rapidjson::Value::ConstMemberIterator;
-		value_iterator mValueIterator;
-    std::unique_ptr<Parameters> mpParameters;
-	public:
-		const_iterator_adaptor(value_iterator it, boost::shared_ptr<rapidjson::Document> pdoc) :mValueIterator(it), mpParameters(new Parameters(const_cast<rapidjson::Value*>(&it->value), pdoc)) {}
-		const_iterator_adaptor(const const_iterator_adaptor& it) : mValueIterator(it.mValueIterator), mpParameters(new Parameters(*(it.mpParameters))) {}
-		const_iterator_adaptor& operator++() { mValueIterator++; return *this; }
-		const_iterator_adaptor operator++(int) { const_iterator_adaptor tmp(*this); operator++(); return tmp; }
-		bool operator==(const const_iterator_adaptor& rhs) const { return mValueIterator == rhs.mValueIterator; }
-		bool operator!=(const const_iterator_adaptor& rhs) const { return mValueIterator != rhs.mValueIterator; }
-		const Parameters& operator*() const { mpParameters->SetUnderlyingSotrage(const_cast<rapidjson::Value*>(&mValueIterator->value)); return *mpParameters; }
-		const Parameters* operator->() const { mpParameters->SetUnderlyingSotrage(const_cast<rapidjson::Value*>(&mValueIterator->value)); return mpParameters.get(); }
-		value_iterator& base() { return mValueIterator; }
-		value_iterator const& base() const { return mValueIterator; }
-    std::string name() {return mValueIterator->name.GetString();}
-	};
+        using value_iterator = nlohmann::detail::iter_impl<nlohmann::json>; /// Iterator definition
 
-	  ///@}
+        ///@}
+        ///@name Member Variables
+        ///@{
+
+        std::size_t mDistance = 0;                       /// The iterator distance
+        nlohmann::json& mrValue;                         /// The original container
+        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
+
+        ///@}
+    public:
+        ///@name Life Cycle
+        ///@{
+
+        /**
+         * @brief Default constructor (iterator + root Parameter)
+         * @param itValue The iterator to adapt
+         * @param pRoot The root Parameter pointer
+         */
+        iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot);
+
+        /**
+         * @brief Default constructor (just iterator)
+         * @param itValue The iterator to adapt
+         */
+        iterator_adaptor(const iterator_adaptor& itValue);
+
+        ///@}
+        ///@name Operators
+        ///@{
+
+        /**
+         * @brief operator ++
+         * @details This adds one to the current iterator
+         * @return The next iterator
+         */
+        iterator_adaptor& operator++();
+
+        /**
+         * @brief operator ++int
+         * @details This adds N to the current iterator
+         * @param int N increment of iterations
+         * @return The +N iterator
+         */
+        iterator_adaptor operator++(int);
+
+        /**
+         * @brief operator ==
+         * @details This operator check if the iterator is equal to another given iterator
+         * @return True if equal, false otherwise
+         */
+        bool operator==(const iterator_adaptor& rhs) const;
+
+        /**
+         * @brief operator !=
+         * @details This operator check if the iterator is not equal to another given iterator
+         * @return True if not equal, false otherwise
+         */
+        bool operator!=(const iterator_adaptor& rhs) const;
+
+        /**
+         * @brief operator*
+         * @details This operator returns the pointer of a given iterator
+         * @return The Pointer of the given iterator
+         */
+        Parameters& operator*() const;
+
+        /**
+         * @brief operator ->
+         * @details This operator acces to the pointer of the Parameter
+         * @return The pointer of the parameter
+         */
+        Parameters* operator->() const;
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+        /**
+         * @brief This method returs the current iterator
+         * @return The current iterator
+         */
+        inline value_iterator GetCurrentIterator() const;
+
+        /**
+         * @brief This method returns the key of the current Parameter iterator
+         * @return The key (name) of the Parameter iterator
+         */
+        const std::string name();
+
+        ///@}
+    };
+
+    /**
+     * @class const_iterator_adaptor
+     * @ingroup KratosCore
+     * @brief This nested class can be used to adapt a Parameter constant iterator
+     * @author Riccardo Rossi
+     */
+    class KRATOS_API(KRATOS_CORE) const_iterator_adaptor
+        : public std::iterator<std::forward_iterator_tag, Parameters>
+    {
+        ///@name Type Definitions
+        ///@{
+
+        using value_iterator = nlohmann::detail::iter_impl<const nlohmann::json>; /// Iterator definition
+
+        ///@}
+        ///@name Member Variables
+        ///@{
+
+        std::size_t mDistance = 0;                       /// The iterator distance
+        nlohmann::json& mrValue;                         /// The original container
+        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
+
+        ///@}
+    public:
+        ///@name Life Cycle
+        ///@{
+
+        /**
+         * @brief Default constructor (constant iterator + root Parameter)
+         * @param itValue The iterator to adapt
+         * @param pRoot The root Parameter pointer
+         */
+        const_iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot);
+
+        /**
+         * @brief Default constructor (just constant iterator)
+         * @param itValue The iterator to adapt
+         * @todo Use copy constructor in the following method
+         */
+        const_iterator_adaptor(const const_iterator_adaptor& itValue);
+
+        ///@}
+        ///@name Operators
+        ///@{
+
+        /**
+         * @brief operator ++
+         * @details This adds one to the current iterator
+         * @return The next iterator (const)
+         */
+        const_iterator_adaptor& operator++();
+
+        /**
+         * @brief operator ++int
+         * @details This adds N to the current iterator
+         * @param int N increment of iterations
+         * @return The +N iterator (const)
+         */
+        const_iterator_adaptor operator++(int);
+
+        /**
+         * @brief operator ==
+         * @details This operator check if the iterator is equal to another given iterator
+         * @return True if equal, false otherwise
+         */
+        bool operator==(const const_iterator_adaptor& rhs) const;
+
+        /**
+         * @brief operator !=
+         * @details This operator check if the iterator is not equal to another given iterator
+         * @return True if not equal, false otherwise
+         */
+        bool operator!=(const const_iterator_adaptor& rhs) const;
+
+        /**
+         * @brief operator*
+         * @details This operator returns the pointer of a given iterator
+         * @return The Pointer of the given iterator
+         */
+        const Parameters& operator*() const;
+
+        /**
+         * @brief operator ->
+         * @details This operator acces to the pointer of the Parameter
+         * @return The pointer of the parameter
+         */
+        const Parameters* operator->() const;
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+        /**
+         * @brief This method returs the current iterator
+         * @return The current iterator
+         */
+        inline value_iterator GetCurrentIterator() const;
+
+        /**
+         * @brief This method returns the key of the current Parameter iterator
+         * @return The key (name) of the Parameter iterator
+         */
+        const std::string name();
+
+        ///@}
+    };
+
+    ///@}
 
 public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Index definition
+    typedef std::size_t IndexType;
+
+    /// Size definition
+    typedef std::size_t SizeType;
+
+    /// Pointer definition of MmgProcess
     KRATOS_CLASS_POINTER_DEFINITION(Parameters);
 
+    /// Definiton of the iterators
     using iterator = iterator_adaptor;
     using const_iterator = const_iterator_adaptor;
 
-    Parameters(const std::string json_string)
-    {
+    /// Iterators from nlohmann::json
+    typedef nlohmann::detail::iter_impl<nlohmann::json> json_iterator;
+    typedef nlohmann::detail::iter_impl<const nlohmann::json> json_const_iterator;
+    typedef nlohmann::detail::iteration_proxy<json_iterator> json_iteration_proxy;
+    typedef nlohmann::detail::iteration_proxy<json_const_iterator> json_const_iteration_proxy;
 
-        mpdoc =  boost::shared_ptr<rapidjson::Document>(new rapidjson::Document() );
-        rapidjson::ParseResult ok = mpdoc->Parse<0>(json_string.c_str());
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-        if( !ok )
-        {
-            std::stringstream msg;
-            msg << rapidjson::GetParseError_En(ok.Code()) << " offset of the error from the beginning of the string = " << ok.Offset() << std::endl;
-            msg << "a much more explicative error message can be obtained by analysing the input string with an online analyzer such for example json lint" << std::endl;
-            msg << "the value of the string that was attempted to parse is :" << std::endl << std::endl;
-            msg << json_string;
-            KRATOS_THROW_ERROR(std::invalid_argument, "error found in parsing the json_string, the value of the json string was: \n", msg.str());
-        }
+    /**
+     * @brief Default constructor.
+     * @brief It assigns null pointers to the member variables
+     */
+    Parameters();
 
-        mpvalue = (mpdoc.get());
+    /**
+     * @brief String constructor. It takes a string as input, which parses into a nlohmann::json class
+     * @param rJsonString The string to be parsed into a nlohmann::json class
+     */
+    Parameters(const std::string& rJsonString);
 
-    }
+    /**
+     * @brief File constructor. It takes a file stream as input, which parses into a nlohmann::json class
+     * @param rStringStream The stream to the JSON file
+     */
+    Parameters(std::ifstream& rStringStream);
 
-    /// Assignment operator.
-    Parameters& operator=(Parameters const& rOther)
-    {
-        mpvalue->CopyFrom(*(rOther.GetUnderlyingStorage()), mpdoc->GetAllocator());
-
-        return *this;
-    }
     /// Copy constructor.
-    Parameters(Parameters const& rOther)
-    {
-        mpdoc =  rOther.mpdoc;
-        mpvalue = rOther.mpvalue;
-    }
+    Parameters(Parameters const& rOther);
 
-    //generates a clone of the current document
-    Parameters Clone()
-    {
-        boost::shared_ptr<rapidjson::Document> pnew_cloned_doc =  boost::shared_ptr<rapidjson::Document>(new rapidjson::Document() );
-        rapidjson::ParseResult ok = pnew_cloned_doc->Parse<0>(this->WriteJsonString().c_str());
-        if( !ok )
-        {
-            std::stringstream msg;
-            msg << rapidjson::GetParseError_En(ok.Code()) << " offset of the error from the beginning of the string = " << ok.Offset() << std::endl;
-            msg << "a much more explicative error message can be obtained by analysing the input string " << std::endl;
-            msg << "with an online analyzer such for example json lint" << std::endl;
-            msg << "the value of the string that was attempted to parse is :" << std::endl << std::endl;
-            msg << this->WriteJsonString();
-            KRATOS_THROW_ERROR(std::invalid_argument, "error found in parsing the json_string, the value of the json string was: \n", msg.str());
-        }
-        return Parameters(pnew_cloned_doc.get(),pnew_cloned_doc);
-    }
+    /// Move constructor.
+    Parameters(Parameters&& rOther);
 
     /// Destructor.
-    virtual ~Parameters() {}
-
-    const std::string WriteJsonString() const
+    virtual ~Parameters()
     {
-        rapidjson::StringBuffer buffer;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-        mpvalue->Accept(writer);
-        return buffer.GetString();
+//         delete[] mpValue;
+//         mpRoot = nullptr;
     }
 
+    ///@}
+    ///@name Operators
+    ///@{
 
-    const  std::string PrettyPrintJsonString() const
-    {
-        rapidjson::StringBuffer buffer;
-        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-        mpvalue->Accept(writer);
-        return buffer.GetString();
-    }
+    /// Assignment operator.
+    Parameters& operator=(Parameters const& rOther);
 
-
-    //*******************************************************************************************************
-    Parameters GetValue(const std::string entry)
-    {
-        if(this->Has(entry) == false) KRATOS_THROW_ERROR(std::invalid_argument,"--------- ERROR : --------- getting a value that does not exist. entry string : ",entry);
-        rapidjson::Value* pvalue = &((*mpvalue)[entry.c_str()]);
-
-        return Parameters(pvalue, mpdoc);
-    }
-    Parameters operator[](const std::string entry)
-    {
-        return this->GetValue(entry);
-    }
-    void SetValue(const std::string entry, const Parameters& other_value)
-    {
-        if(this->Has(entry) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value must exist to be set. Use AddValue instead","");
-        Parameters tmp(&(*mpvalue)[entry.c_str()],mpdoc);
-        tmp.InternalSetValue(other_value);
-    }
-
-    void AddValue(const std::string entry, const Parameters& other_value)
-    {
-        if(this->Has(entry) == false)
-        {
-            rapidjson::Value tmp;
-            tmp.CopyFrom(*(other_value.GetUnderlyingStorage()), mpdoc->GetAllocator()); //this will be moved away
-            rapidjson::Value name(entry.c_str(), mpdoc->GetAllocator()); //rhis will be moved away
-            this->mpvalue->AddMember(name, tmp, mpdoc->GetAllocator());
-        }
-    }
-    Parameters AddEmptyValue(const std::string entry)
-    {
-        if(this->Has(entry) == false)
-        {
-            rapidjson::Value tmp;
-            rapidjson::Value name(entry.c_str(), mpdoc->GetAllocator()); //rhis will be moved away
-            this->mpvalue->AddMember(name, tmp, mpdoc->GetAllocator());
-        }
-        return this->GetValue(entry);
-    }
-
-    bool RemoveValue(const std::string entry)
-    {
-        return mpvalue->RemoveMember(entry.c_str());
-    }
-
-    //*******************************************************************************************************
-    bool Has(const std::string entry) const
-    {
-        return mpvalue->HasMember(entry.c_str());
-    }
-
-    bool IsNull() const
-    {
-        return mpvalue->IsNull();
-    }
-    bool IsNumber() const
-    {
-        return mpvalue->IsNumber();
-    }
-    bool IsDouble() const
-    {
-        return mpvalue->IsDouble();
-    }
-    bool IsInt() const
-    {
-        return mpvalue->IsInt();
-    }
-    bool IsBool() const
-    {
-        return mpvalue->IsBool();
-    }
-    bool IsString() const
-    {
-        return mpvalue->IsString();
-    }
-    bool IsArray() const
-    {
-        return mpvalue->IsArray();
-    }
-    bool IsSubParameter() const
-    {
-        return mpvalue->IsObject();
-    }
-
-    double GetDouble() const
-    {
-        if(mpvalue->IsNumber() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a number","");
-        return mpvalue->GetDouble();
-    }
-    int GetInt() const
-    {
-        if(mpvalue->IsNumber() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a number","");
-        return mpvalue->GetInt();
-    }
-    bool GetBool() const
-    {
-		if (mpvalue->IsBool() == false)
-		{
-			RecursivelyFindValue(*mpdoc, *mpvalue);
-			KRATOS_THROW_ERROR(std::invalid_argument, "argument must be a bool", "");
-		}
-        return mpvalue->GetBool();
-    }
-    std::string GetString() const
-    {
-        if(mpvalue->IsString() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a string","");
-        return mpvalue->GetString();
-    }
-
-    void SetDouble(const double value)
-    {
-        mpvalue->SetDouble(value);
-    }
-    void SetInt(const int value)
-    {
-        mpvalue->SetInt(value);
-    }
-    void SetBool(const bool value)
-    {
-        mpvalue->SetBool(value);
-    }
-    void SetString(const std::string value)
-    {
-        rapidjson::Value tmp(value.c_str(), mpdoc->GetAllocator());
-        *mpvalue = tmp;
-//         mpvalue->SetString(rapidjson::StringRef(value.c_str()));
-//        mpvalue->SetString(value.c_str(), value.length());
-    }
-
-
-    iterator begin() { return iterator(this->mpvalue->MemberBegin(), mpdoc);}
-
-    iterator end() { return iterator(this->mpvalue->MemberEnd(), mpdoc);}
-
-    const_iterator begin() const { return const_iterator(this->mpvalue->MemberBegin(), mpdoc);}
-
-    const_iterator end() const { return const_iterator(this->mpvalue->MemberEnd(), mpdoc);}
-
-    //*******************************************************************************************************
-    //methods for array
-    unsigned int size() const
-    {
-        if(mpvalue->IsArray() == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"size can only be queried if the value if of Array type","");
-        return mpvalue->Size();
-    }
-
-    Parameters GetArrayItem(unsigned int index)
-    {
-        if(mpvalue->IsArray() == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"GetArrayItem only makes sense if the value if of Array type","")
-            else
-            {
-                if(index >= mpvalue->Size())
-                    KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
-                    return Parameters(&(*mpvalue)[index],mpdoc);
-            }
-    }
-
-    void SetArrayItem(unsigned int index, const Parameters& other_array_item)
-    {
-        if(mpvalue->IsArray() == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"SetArrayItem only makes sense if the value if of Array type","")
-            else
-            {
-                if(index >= mpdoc->Size())
-                    KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
-#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
-                    (*mpvalue)[index] = rapidjson::Value(*other_array_item.GetUnderlyingStorage(), mpdoc->GetAllocator());
-#else
-                    (*mpvalue)[index].CopyFrom(*other_array_item.GetUnderlyingStorage(), mpdoc->GetAllocator());
-#endif
-            }
-    }
-    Parameters operator[](unsigned int index)
-    {
-        return this->GetArrayItem(index);
-    }
-
-    /**This function is designed to verify that the parameters under testing match the
-     * form prescribed by the defaults.
-     * If the parameters contain values that do not appear in the defaults, an error is thrown,
-     * whereas if a parameter is found in the defaults but not in the Parameters been tested,
-     * it is copied to the parameters.
-     *
-     * this version of the function only walks one level, without descending in the branches
+    /**
+     * @brief This metrod returns the Parameter corresponding to a given key
+     * @param rEntry The key identifier of the parameter
+     * @return The desired Parameter
      */
-    void ValidateAndAssignDefaults(Parameters& defaults)
-    {
-        KRATOS_TRY
+    Parameters operator[](const std::string& rEntry);
+
+    /**
+     * @brief This metrod returns the Parameter corresponding to a given key (const version)
+     * @param rEntry The key identifier of the parameter
+     * @return The desired Parameter
+     */
+    Parameters operator[](const std::string& rEntry) const;
+
+    /**
+     * @brief This method allows to acces to an array item with the operator []
+     * @param Index The index of the term of interest
+     * @return The desired Parameter
+     */
+    Parameters operator[](const IndexType Index);
+
+    /**
+     * @brief This method allows to acces to an array item with the operator [] (const version)
+     * @param Index The index of the term of interest
+     * @return The desired Parameter
+     */
+    Parameters operator[](const IndexType Index) const;
+
+    /**
+     * @brief This is the move operator
+     * @param rOther The othe parameter to compute the move
+     */
+    Parameters& operator=(Parameters&& rOther);
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Generates a clone of the current document
+     * @return A clone of the given Parameters
+     */
+    Parameters Clone();
+
+    /**
+     * @brief This method returns a string with the corresponding text to the equivalent *.json file
+     * @return The corresponding text
+     */
+    const std::string WriteJsonString() const;
+
+    /**
+     * @brief This method returns a string with the corresponding text to the equivalent *.json file (this version is prettier, and considers tabulations)
+     * @return The corresponding text
+     */
+    const std::string PrettyPrintJsonString() const;
+
+    /**
+     * @brief This method returns the Parameter corresponding to a certain entry
+     * @param rEntry The key identifier of the parameter
+     * @return The corresponding parameter
+     */
+    Parameters GetValue(const std::string& rEntry);
+
+    /**
+     * @brief This method returns the Parameter corresponding to a certain entry (const version)
+     * @param rEntry The key identifier of the parameter
+     * @return The corresponding parameter
+     */
+    Parameters GetValue(const std::string& rEntry) const;
+
+    /**
+     * @brief This method sets an existing parameter with a given parameter
+     * @param rEntry The key identifier of the parameter
+     * @param rOtherValue The value to set
+     */
+    void SetValue(
+        const std::string& rEntry,
+        const Parameters& rOtherValue
+        );
+
+    /**
+     * @brief This method sets a non-existing parameter with a given parameter
+     * @param rEntry The key identifier of the parameter
+     * @param rOtherValue The value to set
+     */
+    void AddValue(
+        const std::string& rEntry,
+        const Parameters& rOtherValue
+        );
+
+    /**
+     * @brief This method adds an empty parameter
+     * @param rEntry The key identifier of the parameter
+     */
+    Parameters AddEmptyValue(const std::string& rEntry);
+
+    /**
+     * @brief This method removes an entry of the Parameters given a certain key
+     * @param rEntry The key identifier of the parameter
+     * @return False if failed, true otherwise
+     */
+    bool RemoveValue(const std::string& rEntry);
+
+    /**
+     * @brief This method returns the items of the current parameter
+     * @return The items of the current Parameter
+     */
+    json_iteration_proxy items() noexcept;
+
+    /**
+     * @brief This method returns the items of the current parameter (const)
+     * @return The items of the current Parameter (const)
+     */
+    json_const_iteration_proxy items() const noexcept;
+
+    /**
+     * @brief This method checks if the Parameter contains a certain entry
+     * @param rEntry The key identifier of the parameter
+     * @return True if it contains, false otherwise
+     */
+    bool Has(const std::string& rEntry) const;
+
+    /**
+     * @brief This method checks if the parameter is a null
+     * @return True if it is null, false otherwise
+     */
+    bool IsNull() const;
+
+    /**
+     * @brief This method checks if the parameter is a number
+     * @return True if it is a number, false otherwise
+     */
+    bool IsNumber() const;
+
+    /**
+     * @brief This method checks if the parameter is a double
+     * @return True if it is a double, false otherwise
+     */
+    bool IsDouble() const;
+
+    /**
+     * @brief This method checks if the parameter is a integer
+     * @return True if it is a integer, false otherwise
+     */
+    bool IsInt() const;
+
+    /**
+     * @brief This method checks if the parameter is a boolean
+     * @return True if it is a boolean, false otherwise
+     */
+    bool IsBool() const;
+
+    /**
+     * @brief This method checks if the parameter is a string
+     * @return True if it is a string, false otherwise
+     */
+    bool IsString() const;
+
+    /**
+     * @brief This method checks if the parameter is an array
+     * @return True if it is an array, false otherwise
+     */
+    bool IsArray() const;
+
+    /**
+     * @brief This method checks if the parameter is a vector
+     * @return True if it is a vector, false otherwise
+     */
+    bool IsVector() const;
+
+    /**
+     * @brief This method checks if the parameter is a matrix
+     * @return True if it is a matrix, false otherwise
+     */
+    bool IsMatrix() const;
+
+    /**
+     * @brief This method checks if the parameter is a subparameter
+     * @return True if it is a suparameter, false otherwise
+     */
+    bool IsSubParameter() const;
+
+    /**
+     * @brief This method returns the double contained in the current Parameter
+     * @return The double value
+     */
+    double GetDouble() const;
+
+    /**
+     * @brief This method returns the integer contained in the current Parameter
+     * @return The integer value
+     */
+    int GetInt() const;
+
+    /**
+     * @brief This method returns the boolean contained in the current Parameter
+     * @return The boolean value
+     */
+    bool GetBool() const;
+
+    /**
+     * @brief This method returns the string contained in the current Parameter
+     * @return The string value
+     */
+    std::string GetString() const;
+
+    /**
+     * @brief This method returns the array of strings in the current Parameter
+     * @return The array of strings
+     */
+    std::vector<std::string> GetStringArray() const;
+
+    /**
+     * @brief This method returns the vector contained in the current Parameter
+     * @return The vector value
+     */
+    Vector GetVector() const;
+
+    /**
+     * @brief This method returns the matrix contained in the current Parameter
+     * @return The matrix value
+     */
+    Matrix GetMatrix() const;
+
+    /**
+     * @brief This method sets the double contained in the current Parameter
+     * @param Value The double value
+     */
+    void SetDouble(const double Value);
+
+    /**
+     * @brief This method sets the integer contained in the current Parameter
+     * @param Value The integer value
+     */
+    void SetInt(const int Value);
+
+    /**
+     * @brief This method sets the bool contained in the current Parameter
+     * @param Value The bool value
+     */
+    void SetBool(const bool Value);
+
+    /**
+     * @brief This method sets the string contained in the current Parameter
+     * @param rValue The string value
+     */
+    void SetString(const std::string& rValue);
+
+    /**
+     * @brief This method sets the vector contained in the current Parameter
+     * @param rValue The vector value
+     */
+    void SetVector(const Vector& rValue);
+
+    /**
+     * @brief This method sets the matrix contained in the current Parameter
+     * @param Value The matrix value
+     */
+    void SetMatrix(const Matrix& rValue);
+
+    /**
+     * @brief This method adds a new double Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param Value The double value
+     */
+    void AddDouble(
+        const std::string& rEntry,
+        const double Value
+        );
+
+    /**
+     * @brief This method adds a new integer Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param Value The integer value
+     */
+    void AddInt(
+        const std::string& rEntry,
+        const int Value
+        );
+
+    /**
+     * @brief This method adds a new bool Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param Value The bool value
+     */
+    void AddBool(
+        const std::string& rEntry,
+        const bool Value
+        );
+
+    /**
+     * @brief This method adds a new string Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param rValue The string value
+     */
+    void AddString(
+        const std::string& rEntry,
+        const std::string& rValue
+        );
+
+    /**
+     * @brief This method adds a new vector Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param rValue The vector value
+     */
+    void AddVector(
+        const std::string& rEntry,
+        const Vector& rValue
+        );
+
+    /**
+     * @brief This method adds a new matrix Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param Value The matrix value
+     */
+    void AddMatrix(
+        const std::string& rEntry,
+        const Matrix& rValue
+        );
+        
+    /**
+     * @brief This method sets the string array contained in the current Parameter
+     * @param Value The string array
+     */
+    void SetStringArray(const std::vector<std::string>& rValue);
+
+    /**
+     * @brief This returns the begin iterator
+     * @return The begin iterator
+     */
+    iterator begin();
+
+    /**
+     * @brief This returns the end iterator
+     * @return The end iterator
+     */
+    iterator end();
+
+    /**
+     * @brief This returns the constant begin iterator
+     * @return The constant begin iterator
+     */
+    const_iterator begin() const;
+
+    /**
+     * @brief This returns the constant end iterator
+     * @return The constant end iterator
+     */
+    const_iterator end() const;
+
+    /**
+     * @brief This method returns the total size of the current array parameter
+     * @return The size of the current array parameter
+     */
+    SizeType size() const;
+
+    /**
+     * @brief This method does a swap between two parameters
+     * @param rOther The othe parameter to compute the swap
+     */
+    void swap(Parameters& rOther) noexcept;
+
+    /**
+     * @brief This method resets the whole parameter (it assigns an empty parameter)
+     */
+    void Reset() noexcept;
+
+    /**
+     * @brief This method returns an array item given an index
+     * @param Index The index of the parameter to obtain
+     * @return The parameter corresponding to the given index
+     */
+    Parameters GetArrayItem(const IndexType Index);
+
+    /**
+     * @brief This method returns an array item given an index (const version)
+     * @param Index The index of the parameter to obtain
+     * @return The parameter corresponding to the given index
+     */
+    Parameters GetArrayItem(const IndexType Index) const;
+
+    /**
+     * @brief This method sets an array item given an index
+     * @param Index The index of the parameter to set
+     * @param rOtherArrayItem The parameter corresponding to the given index
+     */
+    void SetArrayItem(
+        const IndexType Index,
+        const Parameters& rOtherArrayItem
+        );
+
+    /**
+     * @brief This method add a new entry with no value assigned
+     * @param rEntry The key identifier of the parameter
+     */
+    void AddEmptyArray(const std::string& rEntry);
+
+    /**
+     * @brief This method appends into an array a double value
+     * @param Value The double value to append
+     */
+    void Append(const double Value);
+
+    /**
+     * @brief This method appends into an array a integer value
+     * @param Value The integer value to append
+     */
+    void Append(const int Value);
+
+    /**
+     * @brief This method appends into an array a boolean value
+     * @param Value The boolean value to append
+     */
+    void Append(const bool Value);
+
+    /**
+     * @brief This method appends into an array a string value
+     * @param rValue The string value to append
+     */
+    void Append(const std::string& rValue);
+
+    /**
+     * @brief This method appends into an array a vector value
+     * @param rValue The vector value to append
+     */
+    void Append(const Vector& rValue);
+
+    /**
+     * @brief This method appends into an array a matrix value
+     * @param rValue The matrix value to append
+     */
+    void Append(const Matrix& rValue);
+
+    /**
+     * @brief This method appends into an array a Parameter value
+     * @param rValue The Parameter value to append
+     */
+    void Append(const Parameters& rValue);
+
+    /**
+     * @brief This method looks in a recursive way in the json structure
+     * @param rBaseValue The value where to find
+     * @param rValueToFind The value to look
+     */
+    void RecursivelyFindValue(
+        const nlohmann::json& rBaseValue,
+        const nlohmann::json& rValueToFind
+        ) const;
+
+    /**
+     * @brief Checks if the names and values are the same, no importance to the order.
+     * @details Lists have to be ordered, though! Take into account that in Kratos some physical vectors are represented with a list.
+     * @param rParameters The parameters to be checked
+     * @return True if it has, false othersise
+     */
+    bool IsEquivalentTo(Parameters& rParameters);
+
+    /**
+     * @brief Checks if the names and the type of values are the same, no importance to the order.
+     * @details Lists have to be ordered, though! Take into account that in Kratos some physical vectors are represented with a list.
+     * @param rParameters The parameters to be checked
+     * @return True if it has, false othersise
+     */
+    bool HasSameKeysAndTypeOfValuesAs(Parameters& rParameters);
+
+    /**
+     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the rDefaultParameters.
+     * @details If the parameters contain values that do not appear in the rDefaultParameters, an error is thrown, whereas if a parameter is found in the rDefaultParameters but not in the Parameters been tested, it is copied to the parameters.
+     * This version of the function only walks one level, without descending in the branches
+     * @param rDefaultParameters Parameters of reference which we use to check
+     */
+    void ValidateAndAssignDefaults(const Parameters& rDefaultParameters);
+
+    /**
+     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the defaults.
+     * @details If the parameters contain values that do not appear in the defaults, an error is thrown, whereas if a parameter is found in the defaults but not in the Parameters been tested, it is copied to the parameters.
+     * This version walks and validates the entire json tree below the point at which the function is called
+     * @param rDefaultParameters Parameters of reference which we use to check
+     */
+    void RecursivelyValidateAndAssignDefaults(const Parameters& rDefaultParameters);
+
+    /**
+     * @brief This function is designed to verify that the parameters under testing contain at least all parameters prescribed by the rDefaultParameters.
+     * @details If a parameter is found in the rDefaultParameters but not in the Parameters been tested, it is copied to the parameters.
+     * This version of the function only walks one level, without descending in the branches
+     * @param rDefaultParameters Parameters of reference which we use to check
+     */
+    void AddMissingParameters(const Parameters& rDefaultParameters);
+
+    /**
+     * @brief This function is designed to verify that the parameters under testing contain at least all parameters prescribed by the rDefaultParameters.
+     * @details If a parameter is found in the rDefaultParameters but not in the Parameters been tested, it is copied to the parameters.
+     * This version walks and validates the entire json tree below the point at which the function is called
+     * @param rDefaultParameters Parameters of reference which we use to check
+     */
+    void RecursivelyAddMissingParameters(const Parameters& rDefaultParameters);
+
+    /**
+     * @brief This function is designed to verify that the all parameteters in the parameters under testing have a matching parameter prescribed by the rDefaultParameters.
+     * @details If the parameters contain values that do not appear in the defaults, an error is thrown.
+     * This version of the function only walks one level, without descending in the branches
+     * @param rDefaultParameters Parameters of reference which we use to check
+     */
+    void ValidateDefaults(const Parameters& rDefaultParameters) const;
+
+    /**
+     * @brief This function is designed to verify that the all parameteters in the parameters under testing have a matching parameter prescribed by the rDefaultParameters.
+     * @details If the parameters contain values that do not appear in the defaults, an error is thrown.
+     * This version walks and validates the entire json tree below the point at which the function is called
+     * @param rDefaultParameters Parameters of reference which we use to check
+     */
+    void RecursivelyValidateDefaults(const Parameters& rDefaultParameters) const;
 
 
-        //first verifies that all the enries in the current parameters
-        //have a correspondance in the defaults.
-        //if it is not the case throw an error
-        for (rapidjson::Value::ConstMemberIterator itr = this->mpvalue->MemberBegin(); itr != this->mpvalue->MemberEnd(); ++itr)
-        {
-            std::string item_name = itr->name.GetString();
+    ///@}
+    ///@name Access
+    ///@{
 
-            if(!defaults.Has(item_name) )
-            {
-                std::stringstream msg;
-                msg << "******************************************************************************************************" << std::endl;
-                msg << "the item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
-                msg << "******************************************************************************************************" << std::endl;
-                msg << "hence Validation fails" << std::endl;
-                msg << "parameters being validated are : " << std::endl;
-                msg << this->PrettyPrintJsonString() << std::endl;
-                msg << "defaults against which the current parameters are validated are :" << std::endl;
-                msg << defaults.PrettyPrintJsonString() << std::endl;
-                KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());
-            }
-
-            bool type_coincides = false;
-            rapidjson::Value* value_defaults = (defaults[item_name.c_str()]).GetUnderlyingStorage();
-            if(itr->value.IsInt() && value_defaults->IsNumber()) type_coincides = true;
-            if(itr->value.IsBool() && value_defaults->IsBool()) type_coincides = true;
-            if(itr->value.IsDouble() && value_defaults->IsDouble()) type_coincides = true;
-            if(itr->value.IsArray() && value_defaults->IsArray()) type_coincides = true;
-            if(itr->value.IsString() && value_defaults->IsString()) type_coincides = true;
-            if(itr->value.IsObject() && value_defaults->IsObject()) type_coincides = true;
-
-            if(type_coincides == false)
-            {
-                std::stringstream msg;
-                msg << "******************************************************************************************************" << std::endl;
-                msg << "the item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
-                msg << "******************************************************************************************************" << std::endl;
-                msg << "parameters being validated are : " << std::endl;
-                msg << this->PrettyPrintJsonString() << std::endl;
-                msg << "defaults against which the current parameters are validated are :" << std::endl;
-                msg << defaults.PrettyPrintJsonString() << std::endl;
-                KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());
-            }
-        }
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-
-        //now iterate over all the defaults. In the case a default value is not assigned in the current Parameters
-        //add an item copying its value
-        if(defaults.IsSubParameter())
-        {
-            for (rapidjson::Value::MemberIterator itr = defaults.mpvalue->MemberBegin(); itr != defaults.mpvalue->MemberEnd(); ++itr)
-            {
-                std::string item_name = itr->name.GetString();
-                if(!this->Has(item_name))
-                {
-                    rapidjson::Value* pvalue = &itr->value;
-
-                    this->AddValue(item_name, Parameters(pvalue, defaults.mpdoc));
-                }
-            }
-        }
-
-
-        KRATOS_CATCH("")
-    }
-
-    /**This function is designed to verify that the parameters under testing match the
-     * form prescribed by the defaults.
-     * If the parameters contain values that do not appear in the defaults, an error is thrown,
-     * whereas if a parameter is found in the defaults but not in the Parameters been tested,
-     * it is copied to the parameters.
-     *
-     * this version walks and validates the entire json tree below
-     * the point at which the function is called
-    */
-    void RecursivelyValidateAndAssignDefaults(Parameters& defaults)
-    {
-        KRATOS_TRY
-
-
-        //first verifies that all the enries in the current parameters
-        //have a correspondance in the defaults.
-        //if it is not the case throw an error
-        for (rapidjson::Value::ConstMemberIterator itr = this->mpvalue->MemberBegin(); itr != this->mpvalue->MemberEnd(); ++itr)
-        {
-            std::string item_name = itr->name.GetString();
-
-            if(!defaults.Has(item_name) )
-            {
-                std::stringstream msg;
-                msg << "the item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
-                msg << "hence Validation fails" << std::endl;
-                msg << "parameters being validated are : " << std::endl;
-                msg << this->PrettyPrintJsonString() << std::endl;
-                msg << "defaults against which the current parameters are validated are :" << std::endl;
-                msg << defaults.PrettyPrintJsonString() << std::endl;
-                KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());
-            }
-
-            bool type_coincides = false;
-            rapidjson::Value* value_defaults = (defaults[item_name.c_str()]).GetUnderlyingStorage();
-            if(itr->value.IsInt() && value_defaults->IsInt()) type_coincides = true;
-            if(itr->value.IsBool() && value_defaults->IsBool()) type_coincides = true;
-            if(itr->value.IsDouble() && value_defaults->IsDouble()) type_coincides = true;
-            if(itr->value.IsArray() && value_defaults->IsArray()) type_coincides = true;
-            if(itr->value.IsString() && value_defaults->IsString()) type_coincides = true;
-            if(itr->value.IsObject() && value_defaults->IsObject()) type_coincides = true;
-
-            if(type_coincides == false)
-            {
-                std::stringstream msg;
-                msg << "the item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
-                msg << "parameters being validated are : " << std::endl;
-                msg << this->PrettyPrintJsonString() << std::endl;
-                msg << "defaults against which the current parameters are validated are :" << std::endl;
-                msg << defaults.PrettyPrintJsonString() << std::endl;
-                KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());
-            }
-            //now walk the tree recursively
-            if(itr->value.IsObject())
-            {
-                Parameters subobject = (*this)[item_name];
-                Parameters defaults_subobject = defaults[item_name];
-                subobject.ValidateAndAssignDefaults(defaults_subobject);
-            }
-        }
-
-
-
-        //now iterate over all the defaults. In the case a default value is not assigned in the current Parameters
-        //add an item copying its value
-        if(defaults.IsSubParameter())
-        {
-            for (rapidjson::Value::MemberIterator itr = defaults.mpvalue->MemberBegin(); itr != defaults.mpvalue->MemberEnd(); ++itr)
-            {
-                std::string item_name = itr->name.GetString();
-                if(!this->Has(item_name))
-                {
-                    rapidjson::Value* pvalue = &itr->value;
-
-                    this->AddValue(item_name, Parameters(pvalue, defaults.mpdoc));
-                }
-
-                //now walk the tree recursively
-                if(itr->value.IsObject())
-                {
-                    Parameters subobject = (*this)[item_name];
-                    Parameters defaults_subobject = defaults[item_name];
-                    subobject.ValidateAndAssignDefaults(defaults_subobject);
-                }
-            }
-        }
-
-
-        KRATOS_CATCH("")
-    }
-
-	void RecursivelyFindValue(
-		const rapidjson::Value& rbase_value,
-		const rapidjson::Value& rvalue_to_find) const
-	{
-		for (rapidjson::Value::ConstMemberIterator itr = rbase_value.MemberBegin(); itr != rbase_value.MemberEnd(); ++itr)
-		{
-			if (&(itr->value) == &rvalue_to_find)
-			{
-				rapidjson::StringBuffer buffer;
-				rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-				mpvalue->Accept(writer);
-				std::cout << "base = " << buffer.GetString() << std::endl;
-				std::cout << "problematic var name " << itr->name.GetString() << " value " << itr->value.GetString() << std::endl;
-			}
-			else
-			{
-				if (itr->value.IsObject()) RecursivelyFindValue(itr->value, rvalue_to_find);
-				//TODO: it could be an array
-			}
-		}
-	}
-
-
-
+    ///@}
+    ///@name Input and output
+    ///@{
 
     /// Turn back information as a string.
     virtual std::string Info() const
@@ -566,32 +881,139 @@ public:
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {};
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+//         rOStream << "Parameters Object " << Info();
+    };
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
 
 private:
-  //ATTENTION: please DO NOT use this constructor. It assumes rapidjson and hence it should be considered as an implementation detail
-  Parameters(rapidjson::Value* pvalue, boost::shared_ptr<rapidjson::Document> pdoc): mpvalue(pvalue),mpdoc(pdoc)
-  {
-  }
+    ///@name Static Member Variables
+    ///@{
 
-    rapidjson::Value* mpvalue;
-    boost::shared_ptr<rapidjson::Document> mpdoc;
+    friend class Serializer;
 
-    //ATTENTION: please DO NOT use this method. It is a low level accessor, and may change in the future
-    rapidjson::Value* GetUnderlyingStorage() const
-    {
-        return mpvalue;
-    }
+    void save(Serializer& rSerializer) const;
 
-    void SetUnderlyingSotrage(rapidjson::Value* pNewValue){
-      mpvalue = pNewValue;
-    }
+    void load(Serializer& rSerializer);
 
-    void InternalSetValue(const Parameters& other_value)
-    {
-        mpvalue->CopyFrom(*(other_value.GetUnderlyingStorage()), mpdoc->GetAllocator());
-    }
-};
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    nlohmann::json* mpValue;                   /// This is where the json is actually stored
+    Kratos::shared_ptr<nlohmann::json> mpRoot; /// This is a shared pointer to the root structure (this is what allows us to acces in a tree structure to the JSON database)
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief Direct constructor. It takes as parameters the "member" variables of the Parameters class
+     * @param pValue The nlohmann::json class raw pointer
+     * @param pRoot A shared pointer to a nlohmann::json class
+     * @warning Please DO NOT use this constructor. It assumes nlohmann::json and hence it should be considered as an implementation detail
+     */
+    Parameters(nlohmann::json* pValue, Kratos::shared_ptr<nlohmann::json> pRoot);
+
+    /**
+     * @brief Direct constructor. It takes as parameters the "member" variables of the Parameters class
+     * @param itValue The nlohmann::json class iterator
+     * @param pRoot A shared pointer to a nlohmann::json class
+     * @warning Please DO NOT use this constructor. It assumes nlohmann::json and hence it should be considered as an implementation detail
+     */
+    Parameters(json_iterator itValue, nlohmann::json* pValue, Kratos::shared_ptr<nlohmann::json> pRoot);
+
+    /**
+     * @brief Direct constructor. It takes as parameters the "member" variables of the Parameters class
+     * @param itValue The nlohmann::json class iterator
+     * @param pRoot A shared pointer to a nlohmann::json class
+     * @warning Please DO NOT use this constructor. It assumes nlohmann::json and hence it should be considered as an implementation detail
+     */
+    Parameters(json_const_iterator itValue, nlohmann::json* pValue, Kratos::shared_ptr<nlohmann::json> pRoot);
+
+    /**
+     * @brief This method is created in order to access from the iterators to the database
+     * @return mpValue The database storage
+     * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
+     */
+    nlohmann::json* GetUnderlyingStorage();
+
+    /**
+     * @brief This method is created in order to access from the iterators to the database
+     * @return mpValue The database storage
+     * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
+     */
+    nlohmann::json* GetUnderlyingStorage() const;
+
+    /**
+     * @brief This method is created in order to set the database
+     * @param pNewValue The database storage
+     * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
+     */
+    void SetUnderlyingSotrage(nlohmann::json* pNewValue);
+
+    /**
+     * @brief This method is created in order to access from the iterators to the database
+     * @return mpValue The database storage
+     * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
+     */
+    Kratos::shared_ptr<nlohmann::json> GetUnderlyingRootStorage();
+
+    /**
+     * @brief This method is created in order to access from the iterators to the database
+     * @return mpValue The database storage
+     * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
+     */
+    Kratos::shared_ptr<nlohmann::json> GetUnderlyingRootStorage() const;
+
+    /**
+     * @brief This method is created in order to set the database
+     * @param pNewValue The database storage
+     * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
+     */
+    void SetUnderlyingRootStorage(Kratos::shared_ptr<nlohmann::json> pNewValue);
+    /**
+     * @brief This method sets the database from other Parameters
+     * @param rOtherValue The database to copy
+     * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
+     */
+    void InternalSetValue(const Parameters& rOtherValue);
+
+}; // Parameters class
 
 ///@}
 
@@ -602,7 +1024,6 @@ private:
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -624,10 +1045,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 ///@} addtogroup block
-
-
-
-
 
 }  // namespace Kratos.
 

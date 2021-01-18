@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -10,7 +10,7 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//    Co-authors:    Vicente Mataix Ferrándiz
+//    Co-authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH)
@@ -28,7 +28,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "custom_utilities/local_refine_geometry_mesh.hpp"
 #include "utilities/split_tetrahedra.h"
-#include "utilities/split_triangle.c"
+#include "utilities/split_triangle.h"
 
 namespace Kratos
 {
@@ -64,21 +64,19 @@ public:
 
     /// Destructor
     ~LocalRefineTetrahedraMesh()
-    {
-      
-    }
-    
+    = default;
+
     ///@}
     ///@name Operators
     ///@{
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
     * Insert the news nodes in the center of elements and interopolate the variables.
-    * @param geom: The curret geometry 
+    * @param geom: The curret geometry
     * @return model_part: The model part of the model (it is the input too)
     */
 
@@ -103,7 +101,7 @@ public:
 
         // Generate the new node
         Node < 3 > ::Pointer pnode = model_part.CreateNewNode(new_id, X, Y, Z);
-		
+
         unsigned int buffer_size = model_part.NodesBegin()->GetBufferSize();
         pnode->SetBufferSize(buffer_size);
 
@@ -117,7 +115,7 @@ public:
 
         for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
         {
-            Node < 3 > ::DofType& rDof = *iii;
+            Node < 3 > ::DofType& rDof = **iii;
             Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
 
             // The variables are left as free for the internal node
@@ -132,7 +130,7 @@ public:
             double* step_data2 = geom[1].SolutionStepData().Data(step);
             double* step_data3 = geom[2].SolutionStepData().Data(step);
             double* step_data4 = geom[3].SolutionStepData().Data(step);
-	    
+
             // Copying this data in the position of the vector we are interested in
             for (unsigned int j = 0; j < step_data_size; j++)
             {
@@ -148,10 +146,10 @@ public:
 
         return new_id;
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     /**
     * It erases the old elements and it creates the new ones
     * @param Coord: The coordinates of the element
@@ -159,13 +157,13 @@ public:
     * @param interpolate_internal_variables: A boolean that defines if it is necessary to interpolate the internal variables
     * @return this_model_part: The model part of the model (it is the input too)
     */
-    
+
     void EraseOldElementAndCreateNewElement(
             ModelPart& this_model_part,
             const compressed_matrix<int>& Coord,
             PointerVector< Element >& NewElements,
             bool interpolate_internal_variables
-    )
+    ) override
     {
 	ElementsArrayType& rElements = this_model_part.Elements();
 	ElementsArrayType::iterator it_begin = rElements.ptr_begin();
@@ -178,7 +176,7 @@ public:
 	int splitted_edges = 0;
 	int internal_node = 0;
 
-	ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+	const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 	int edge_ids[6];
 	int t[56];
 	std::vector<int> aux;
@@ -186,9 +184,9 @@ public:
         std::cout << "****************** REFINING MESH ******************" << std::endl;
         std::cout << "OLD NUMBER ELEMENTS: " << rElements.size() << std::endl;
 
-	for (unsigned int i = 0; i < 56; i++)
+	for (int & i : t)
 	{
-	    t[i] = -1;
+	    i = -1;
 	}
 
 	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
@@ -229,9 +227,9 @@ public:
 	  {
 	      to_be_deleted++;
 
-          WeakPointerVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
-          // We will use this flag to identify the element later, when operating on 
-          // SubModelParts. Note that fully refined elements already have this flag set 
+          GlobalPointersVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
+          // We will use this flag to identify the element later, when operating on
+          // SubModelParts. Note that fully refined elements already have this flag set
           // to true, but this is not the case for partially refined element, so we set it here.
           it->SetValue(SPLIT_ELEMENT,true);
           rChildElements.resize(0);
@@ -251,11 +249,11 @@ public:
 		      this_model_part.Nodes()(i2),
 		      this_model_part.Nodes()(i3)
 		  );
-		  
+
 		  // Generate new element by cloning the base one
 		  Element::Pointer p_element;
 		  p_element = it->Create(current_id, geom, it->pGetProperties());
-		  p_element->Initialize();
+		  p_element->Initialize(rCurrentProcessInfo);
 		  p_element->InitializeSolutionStep(rCurrentProcessInfo);
 		  p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -316,13 +314,13 @@ public:
                   if( iElem->GetValue(SPLIT_ELEMENT) )
                   {
                       to_be_deleted++;
-                      WeakPointerVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
+                      GlobalPointersVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
 
-                      for ( WeakPointerVector< Element >::ptr_iterator iChild = rChildElements.ptr_begin();
+                      for ( auto iChild = rChildElements.ptr_begin();
                               iChild != rChildElements.ptr_end(); iChild++ )
                       {
-                          NewElements.push_back( (*iChild).lock() );
-                      } 
+                          NewElements.push_back((*iChild)->shared_from_this());
+                      }
                   }
               }
 
@@ -354,11 +352,11 @@ public:
     * @param Coord: The coordinates of the nodes of the geometry
     * @return this_model_part: The model part of the model (it is the input too)
     */
-    
+
     void EraseOldConditionsAndCreateNew(
             ModelPart& this_model_part,
             const compressed_matrix<int>& Coord
-            )
+            ) override
     {
         KRATOS_TRY;
 
@@ -379,7 +377,7 @@ public:
             int  nint            = 0;
             array_1d<int, 6> aux;
 
-            ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+            const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 
             unsigned int current_id = (rConditions.end() - 1)->Id() + 1;
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
@@ -395,8 +393,8 @@ public:
 
                     if(create_condition==true)
                     {
-                        WeakPointerVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
-                        // We will use this flag to identify the condition later, when operating on 
+                        GlobalPointersVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
+                        // We will use this flag to identify the condition later, when operating on
                         // SubModelParts.
                         it->SetValue(SPLIT_ELEMENT,true);
                         rChildConditions.resize(0);
@@ -418,7 +416,7 @@ public:
                             // Generate new condition by cloning the base one
                             Condition::Pointer pcond;
                             pcond = it->Create(current_id, newgeom, it->pGetProperties());
-                            pcond ->Initialize();
+                            pcond ->Initialize(rCurrentProcessInfo);
                             pcond ->InitializeSolutionStep(rCurrentProcessInfo);
                             pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -447,7 +445,7 @@ public:
             this_model_part.Conditions().reserve(total_size);
 
             /// Add the new Conditions to the ModelPart
-            for (PointerVector< Condition >::ptr_iterator iCond = NewConditions.ptr_begin();
+            for (auto iCond = NewConditions.ptr_begin();
                     iCond != NewConditions.ptr_end(); iCond++)
             {
                 this_model_part.Conditions().push_back( *iCond );
@@ -478,13 +476,13 @@ public:
                         if( iCond->GetValue(SPLIT_ELEMENT) )
                         {
                             to_be_deleted++;
-                            WeakPointerVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
+                            GlobalPointersVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
 
-                            for ( WeakPointerVector< Condition >::ptr_iterator iChild = rChildConditions.ptr_begin();
+                            for ( auto iChild = rChildConditions.ptr_begin();
                                     iChild != rChildConditions.ptr_end(); iChild++ )
                             {
-                                NewConditions.push_back( (*iChild).lock() );
-                            } 
+                                NewConditions.push_back((*iChild)->shared_from_this());
+                            }
                         }
                     }
 
@@ -509,33 +507,33 @@ public:
         }
         KRATOS_CATCH("");
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     /**
-    * It calculates the new edges of the new tetrahedras, 
+    * It calculates the new edges of the new tetrahedras,
     * first it calculates the new edges correspondign to the lower face (as a triangle),
     * later it added to the upper face
     * @param geom: The tetrahedra element geometry
     * @param edge_ids: The ids of the edges
     * @return aux: The vector that includes the index of the new edges
     */
-    
+
     void CalculateEdges(
             Element::GeometryType& geom,
             const compressed_matrix<int>& Coord,
             int* edge_ids,
             std::vector<int> & aux
-            )
+            ) override
     {
       aux.resize(11, false);
-      
+
       int index_0 = geom[0].Id() - 1;
       int index_1 = geom[1].Id() - 1;
       int index_2 = geom[2].Id() - 1;
       int index_3 = geom[3].Id() - 1;
-        
+
       // Put the global ids in aux
       aux[0] = geom[0].Id();
       aux[1] = geom[1].Id();
@@ -603,7 +601,7 @@ public:
 	  {
 	    edge_ids[0] = 0;
 	  }
-	  else 
+	  else
 	  {
 	    edge_ids[0] = 1;
 	  }
@@ -615,11 +613,11 @@ public:
 
       // Edge 02
       if (aux[5] < 0)
-	  if (index_0 > index_2) 
+	  if (index_0 > index_2)
 	  {
 	    edge_ids[1] = 0;
 	  }
-	  else 
+	  else
 	  {
 	    edge_ids[1] = 2;
 	  }
@@ -631,11 +629,11 @@ public:
       // Edge 03
       if (aux[6] < 0)
       {
-	  if (index_0 > index_3) 
+	  if (index_0 > index_3)
 	  {
 	    edge_ids[2] = 0;
 	  }
-	  else 
+	  else
 	  {
 	    edge_ids[2] = 3;
 	  }
@@ -648,11 +646,11 @@ public:
       // Edge 12
       if (aux[7] < 0)
       {
-	  if (index_1 > index_2) 
+	  if (index_1 > index_2)
 	  {
 	    edge_ids[3] = 1;
 	  }
-	  else 
+	  else
 	  {
 	    edge_ids[3] = 2;
 	  }
@@ -664,11 +662,11 @@ public:
 
       // Edge 13
       if (aux[8] < 0)
-	  if (index_1 > index_3) 
+	  if (index_1 > index_3)
 	  {
 	    edge_ids[4] = 1;
 	  }
-	  else 
+	  else
 	  {
 	    edge_ids[4] = 3;
 	  }
@@ -680,11 +678,11 @@ public:
       // Edge 23
       if (aux[9] < 0)
       {
-	  if (index_2 > index_3) 
+	  if (index_2 > index_3)
 	  {
 	    edge_ids[5] = 2;
 	  }
-	  else 
+	  else
 	  {
 	    edge_ids[5] = 3;
 	  }
@@ -694,19 +692,19 @@ public:
 	  edge_ids[5] = 9;
       }
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     /**
-    * It calculates the new edges of the new triangles, 
+    * It calculates the new edges of the new triangles,
     * first it calculates the new edges correspondign to the lower face (as a triangle),
     * later it added to the upper face
     * @param geom: The prism element geometry
     * @param edge_ids: The ids of the edges
     * @return aux: The vector that includes the index of the new edges
     */
-    
+
     void  CalculateEdgesFaces(Element::GeometryType& geom,
 		      const compressed_matrix<int>& Coord,
 		      int*  edge_ids,
@@ -757,7 +755,7 @@ public:
 	    {
 	      edge_ids[0] = 0;
 	    }
-            else 
+            else
 	    {
 	      edge_ids[0] = 1;
 	    }
@@ -774,7 +772,7 @@ public:
 	    {
 	      edge_ids[1] = 1;
 	    }
-            else 
+            else
 	    {
 	      edge_ids[1] = 2;
 	    }
@@ -787,11 +785,11 @@ public:
         // Edge 20
         if (aux[5] < 0)
 	{
-            if (index_2 > index_0) 
+            if (index_2 > index_0)
 	    {
 	      edge_ids[2] = 2;
 	    }
-            else 
+            else
 	    {
 	      edge_ids[2] = 0;
 	    }
@@ -809,7 +807,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-   
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -817,7 +815,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-   
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -830,7 +828,7 @@ protected:
     ///@name Protected LifeCycle
     ///@{
     ///@}
-    
+
 private:
     ///@name Private static Member Variables
     ///@{
@@ -838,7 +836,7 @@ private:
     ///@}
     ///@name Private member Variables
     ///@{
-   
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -859,7 +857,7 @@ private:
     ///@name Private LifeCycle
     ///@{
     ///@}
- 
+
 };
 
 } // namespace Kratos.

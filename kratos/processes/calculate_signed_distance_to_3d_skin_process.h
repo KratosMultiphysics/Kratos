@@ -67,7 +67,7 @@ public:
         double& X() {return mCoordinates[0];}
         double& Y() {return mCoordinates[1];}
         double& Z() {return mCoordinates[2];}
-        double& Coordinate(int i) {return mCoordinates[i-1];}
+        double& operator[](int i) {return mCoordinates[i];}
         std::size_t& Id(){return mId;}
     };
 
@@ -83,7 +83,7 @@ public:
            MIN_LEVEL = 2    // this cannot be less than 2!!!
          };
 
-    typedef Point<3, double>                                PointType;  /// always the point 3D
+    typedef Point                                           PointType;  /// always the point 3D
     typedef std::vector<double>::iterator                   DistanceIteratorType;
     typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
     typedef ContainerType::value_type                       PointerType;
@@ -187,8 +187,8 @@ public:
 
     static  inline bool  IsIntersected(const Element::Pointer rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
     {
-        Point<3,double> low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
-        Point<3,double> high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
+        Point low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
+        Point high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
 
         KRATOS_THROW_ERROR(std::logic_error, "Not Implemented method", "")
                 //return HasIntersection(rObject->GetGeometry(), low_point, high_point);
@@ -274,7 +274,7 @@ public:
     typedef OctreeBinaryCell<ConfigurationType> CellType;
     typedef OctreeBinary<CellType> OctreeType;
     typedef ConfigurationType::cell_node_data_type CellNodeDataType;
-    typedef Point<3, double> PointType;  /// always the point 3D
+    typedef Point PointType;  /// always the point 3D
     typedef OctreeType::cell_type::object_container_type object_container_type;
     typedef struct{
         array_1d<double,3>  Coordinates;
@@ -298,7 +298,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~CalculateSignedDistanceTo3DSkinProcess()
+    ~CalculateSignedDistanceTo3DSkinProcess() override
     {
     }
 
@@ -320,7 +320,7 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    virtual void Execute() override
+    void Execute() override
     {
         KRATOS_TRY;
 
@@ -328,7 +328,8 @@ public:
 
         //DistanceFluidStructure();
 
-		CalculateDistanceToSkinProcess(mrFluidModelPart, mrBodyModelPart).Execute();
+		CalculateDistanceToSkinProcess<3> distance_process(mrFluidModelPart, mrBodyModelPart);
+        distance_process.Execute();
 
         //          ------------------------------------------------------------------
         //          GenerateNodes();
@@ -358,7 +359,7 @@ public:
     void MappingPressureToStructure(BinBasedFastPointLocator<3>& node_locator)
     {
         //loop over nodes and find the tetra in which it falls, than do interpolation
-        array_1d<double, 4 > N;
+        Vector N;
         const int max_results = 10000;
         BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
         const int n_structure_nodes = mrSkinModelPart.Nodes().size();
@@ -441,9 +442,9 @@ public:
                         int n_good_neighbors = 0;
                         double pos_pres = 0.0;
                         double neg_pres = 0.0;
-                        WeakPointerVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
+                        GlobalPointersVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
                         
-                        for (WeakPointerVector< Node < 3 > >::iterator j = neighours.begin(); j != neighours.end(); j++) {
+                        for (GlobalPointersVector< Node < 3 > >::iterator j = neighours.begin(); j != neighours.end(); j++) {
                             if (j->Is(VISITED)) {
                                 n_good_neighbors++;
                                 pos_pres += j->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
@@ -488,13 +489,13 @@ public:
 		    double pos_pressure=p_structure_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
 		    double neg_pressure=p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
                     
-                    WeakPointerVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
+                    GlobalPointersVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
 			
 	  	    if (neighours.size()>=1.0)
 			{			    
 			    double av_pos_pres=0.0;
 			    double av_neg_pres=0.0;
-			    for( WeakPointerVector< Node<3> >::iterator j = neighours.begin();
+			    for( GlobalPointersVector< Node<3> >::iterator j = neighours.begin();
 				        j != neighours.end(); j++)
 			    {
 				
@@ -540,7 +541,7 @@ public:
 
         //generate the points on the edges at the zero of the distance function
         //generate "father nodes", defined as the end nodes of the edge on which the local point is located
-        std::vector< Point<3> > edge_points;
+        std::vector< Point > edge_points;
         edge_points.reserve(4);
         array_1d<unsigned int, 4> positive_fathers,  negative_fathers;	//there are at most 4 cut edges
         unsigned int k=0;
@@ -558,7 +559,7 @@ public:
                     //generate point on edge by linear interpolation
                     double Ni = fabs(dj) / ( fabs(di) + fabs(dj) );
                     double Nj = 1.0 - Ni;
-                    Point<3> edge_point(Ni * geom[i] + Nj * geom[j]);
+                    Point edge_point(Ni * geom[i] + Nj * geom[j]);
                     edge_points.push_back(edge_point);
 
                     //store the id of the positive and negative fathers
@@ -582,9 +583,9 @@ public:
             Vector Nlocal(3);
 
             //form a triangle with the edge nodes
-            Triangle3D3< Point<3> > triangle(Point<3>::Pointer(new Point<3>(edge_points[0])), 
-					     Point<3>::Pointer(new Point<3>(edge_points[1])), 
-					     Point<3>::Pointer(new Point<3>(edge_points[2]))
+            Triangle3D3< Point > triangle(Point::Pointer(new Point(edge_points[0])), 
+					     Point::Pointer(new Point(edge_points[1])), 
+					     Point::Pointer(new Point(edge_points[2]))
 					     );
 
             array_1d<double,3> local_coords;
@@ -615,7 +616,7 @@ public:
             //define a vector oriented as x21
             array_1d<double,3> v1 = x21 / norm_2(x21);
 
-            boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+            BoundedMatrix<double,4,3> DN_DX;
             array_1d<double,4> msN;
             double Area;
             GeometryUtils::CalculateGeometryData( geom, DN_DX, msN, Area );
@@ -623,7 +624,8 @@ public:
             array_1d<double,3> n = prod(trans(DN_DX),distances);
             n /= norm_2(n);
 
-            array_1d<double,3> v2 = MathUtils<double>::CrossProduct(n,v1);
+            array_1d<double,3> v2;
+            MathUtils<double>::CrossProduct(v2,v1,n); // v2 = v1 x n
 
             array_1d<double,3> angles;
             angles[0] = 0.0; //angle between x21 and v1
@@ -657,11 +659,11 @@ public:
             }
 
             //form a quadrilateral with the edge nodes
-            Quadrilateral3D4< Point<3> > quad = Quadrilateral3D4< Point<3> >(
-			Point<3>::Pointer(new Point<3>(edge_points[0])),
-			Point<3>::Pointer(new Point<3>(edge_points[min_pos])),
-			Point<3>::Pointer(new Point<3>(edge_points[center_pos])), 
-			Point<3>::Pointer(new Point<3>(edge_points[max_pos]))
+            Quadrilateral3D4< Point > quad = Quadrilateral3D4< Point >(
+			Point::Pointer(new Point(edge_points[0])),
+			Point::Pointer(new Point(edge_points[min_pos])),
+			Point::Pointer(new Point(edge_points[center_pos])), 
+			Point::Pointer(new Point(edge_points[max_pos]))
 			);
 
             array_1d<double,3> local_coords;
@@ -693,7 +695,7 @@ public:
                                Node<3>& node)
     {
         //loop over nodes and find the tetra in which it falls, than do interpolation
-        array_1d<double, 4 > N;
+        Vector N;
         const int max_results = 10000;
         BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
         BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
@@ -768,7 +770,7 @@ public:
         Initialize();
 
         // Initialize index table that defines line Edges of fluid Element
-        bounded_matrix<unsigned int,6,2> TetEdgeIndexTable;
+        BoundedMatrix<unsigned int,6,2> TetEdgeIndexTable;
         SetIndexTable(TetEdgeIndexTable);
 
         // loop over all fluid Elements
@@ -781,7 +783,7 @@ public:
 
         ModelPart::ElementsContainerType& pElements = mrFluidModelPart.Elements();
 
-        vector<unsigned int> Element_partition;
+        DenseVector<unsigned int> Element_partition;
         CreatePartition(number_of_threads, pElements.size(), Element_partition);
 
 #pragma omp parallel for
@@ -846,7 +848,7 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void SetIndexTable( bounded_matrix<unsigned int,6,2>& TetEdgeIndexTable )
+    void SetIndexTable( BoundedMatrix<unsigned int,6,2>& TetEdgeIndexTable )
     {
         // Initialize index table to define line Edges of fluid Element
         TetEdgeIndexTable(0,0) = 0;
@@ -867,7 +869,7 @@ public:
     ///******************************************************************************************************************
 
     void CalcElementDistances( ModelPart::ElementsContainerType::iterator& i_fluidElement,
-                               bounded_matrix<unsigned int,6,2>            TetEdgeIndexTable )
+                               BoundedMatrix<unsigned int,6,2>            TetEdgeIndexTable )
     {
         std::vector<OctreeType::cell_type*> leaves;
         std::vector<TetEdgeStruct>          IntersectedTetEdges;
@@ -903,7 +905,7 @@ public:
                                     std::vector<OctreeType::cell_type*>&          leaves,
                                     std::vector<TetEdgeStruct>&                   IntersectedTetEdges,
                                     unsigned int&                                 NumberIntersectionsOnTetCorner,
-                                    bounded_matrix<unsigned int,6,2>              TetEdgeIndexTable,
+                                    BoundedMatrix<unsigned int,6,2>              TetEdgeIndexTable,
                                     int&                                          intersection_counter )
     {
         std::vector<unsigned int> IntersectingStructElemID;
@@ -1130,9 +1132,9 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void CalculateNormal3D( Point<3>&       Point1,
-                            Point<3>&       Point2,
-                            Point<3>&       Point3,
+    void CalculateNormal3D( Point&       Point1,
+                            Point&       Point2,
+                            Point&       Point3,
                             array_1d<double,3>&   rResultNormal )
     {
         array_1d<double,3> v1 = Point2 - Point1;
@@ -1219,7 +1221,7 @@ public:
     {
         Geometry< Node<3> >& rFluidGeom = i_fluid_Element->GetGeometry();
 
-        Point<3>  P1;
+        Point  P1;
         P1.Coordinates() = NodesOfApproximatedStructure[0].Coordinates;
 
         array_1d<double,3>&  Normal = NodesOfApproximatedStructure[0].StructElemNormal;
@@ -1240,7 +1242,7 @@ public:
     {
         Geometry< Node<3> >& rFluidGeom = i_fluid_Element->GetGeometry();
 
-        Point<3>  P1;
+        Point  P1;
         P1.Coordinates() = NodesOfApproximatedStructure[0].Coordinates;
 
         // Get normal at intersections, average them and check direction of distances
@@ -1281,9 +1283,9 @@ public:
     {
         Geometry< Node<3> >& rFluidGeom = i_fluid_Element->GetGeometry();
 
-        Point<3> P1;
-        Point<3> P2;
-        Point<3> P3;
+        Point P1;
+        Point P2;
+        Point P3;
 
         P1.Coordinates() = NodesOfApproximatedStructure[0].Coordinates;
         P2.Coordinates() = NodesOfApproximatedStructure[1].Coordinates;
@@ -1322,7 +1324,7 @@ public:
         unsigned int numberCutEdges = NodesOfApproximatedStructure.size();
 
         // Compute average of the intersection nodes which is a node on the plane we look for
-        Point<3> P_mean;
+        Point P_mean;
         for(unsigned int k=0; k<numberCutEdges; k++)
             for(unsigned int i=0; i<3; i++)
                 P_mean.Coordinates()[i] += NodesOfApproximatedStructure[k].Coordinates[i];
@@ -1438,9 +1440,9 @@ public:
        * @param ToPoint The point which distance is required
        * @return The distance between the point and the plane spanned by the 3D triangle
        */
-    double PointDistanceToPlane( Point<3>&            planeBasePoint,
+    double PointDistanceToPlane( Point&            planeBasePoint,
                                  array_1d<double, 3>& planeNormal,
-                                 Point<3>&            ToPoint)
+                                 Point&            ToPoint)
     {
         // calculate vector pointing from a node in the plane (e.g. triangle point 1) to the considered node ToPoint
         array_1d<double,3> planeToPointVec = ToPoint - planeBasePoint;
@@ -1552,7 +1554,7 @@ public:
                 Geometry< Node<3> >& geom = i_fluid_element->GetGeometry();
 
                 // generate the points on the edges at the zero of the distance function
-                std::vector< Point<3> > edge_points;
+                std::vector< Point > edge_points;
                 edge_points.reserve(4);
 
                 // loop over all 6 edges of the tetrahedra
@@ -1568,7 +1570,7 @@ public:
                             // generate point on edge by linear interpolation
                             double Ni = fabs(dj) / ( fabs(di) + fabs(dj) );
                             double Nj = 1.0 - Ni;
-                            Point<3> edge_point(Ni * geom[i] + Nj * geom[j]);
+                            Point edge_point(Ni * geom[i] + Nj * geom[j]);
                             edge_points.push_back(edge_point);
                         }
                     }
@@ -1586,7 +1588,7 @@ public:
                     //form a triangle
                     Triangle3D3< Node<3> > triangle(pnode1, pnode2, pnode3);
 
-                    Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+                    Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D");
                     Properties::Pointer properties = mrNewSkinModelPart.rProperties()(0);
                     Condition::Pointer p_condition = rReferenceCondition.Create(id_condition++, triangle, properties);
 
@@ -1604,7 +1606,7 @@ public:
                     //define a vector oriented as x21
                     array_1d<double,3> v1 = x21 / norm_2(x21);
 
-                    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+                    BoundedMatrix<double,4,3> DN_DX;
                     array_1d<double,4> msN;
                     double Area;
                     GeometryUtils::CalculateGeometryData( geom, DN_DX, msN, Area );
@@ -1612,7 +1614,8 @@ public:
                     array_1d<double,3> n = prod(trans(DN_DX),distances);
                     n /= norm_2(n);
 
-                    array_1d<double,3> v2 = MathUtils<double>::CrossProduct(n,v1);
+                    array_1d<double,3> v2;
+                    MathUtils<double>::CrossProduct(v2,v1,n); // v2 = v1 x n
 
                     array_1d<double,3> angles;
                     angles[0] = 0.0; //angle between x21 and v1
@@ -1656,7 +1659,7 @@ public:
                     Triangle3D3< Node<3> > triangle1(pnode1, pnode2, pnode3);
                     Triangle3D3< Node<3> > triangle2(pnode1, pnode3, pnode4);
 
-                    Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+                    Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D");
                  
                     Properties::Pointer properties = mrNewSkinModelPart.rProperties()(0);
 
@@ -1680,7 +1683,7 @@ public:
     {
         Timer::Start("Generating Octree");
         //std::cout << "Generating the Octree..." << std::endl;
-        boost::shared_ptr<OctreeType> temp_octree =  boost::shared_ptr<OctreeType>( new OctreeType() );
+        auto temp_octree =  Kratos::make_shared<OctreeType>();
         //OctreeType::Pointer temp_octree = OctreeType::Pointer(new OctreeType() );
         mpOctree.swap(temp_octree);
         
@@ -1689,7 +1692,7 @@ public:
         
         for (int i = 0 ; i < 3; i++)
         {
-            low[i] = high[i] = mrFluidModelPart.NodesBegin()->Coordinate(i+1);
+            low[i] = high[i] = mrFluidModelPart.NodesBegin()->Coordinates()[i];
         }
         
         // loop over all nodes in the bounding box
@@ -1697,10 +1700,11 @@ public:
             i_node != mrFluidModelPart.NodesEnd();
             i_node++)
         {
+            const array_1d<double,3>& r_coordinates = i_node->Coordinates();
             for (int i = 0 ; i < 3; i++)
             {
-                low[i]  = i_node->Coordinate(i+1) < low[i]  ? i_node->Coordinate(i+1) : low[i];
-                high[i] = i_node->Coordinate(i+1) > high[i] ? i_node->Coordinate(i+1) : high[i];
+                low[i]  = r_coordinates[i] < low[i]  ? r_coordinates[i] : low[i];
+                high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
             }
         }
         
@@ -1709,10 +1713,11 @@ public:
             i_node != mrSkinModelPart.NodesEnd();
             i_node++)
         {
+            const array_1d<double,3>& r_coordinates = i_node->Coordinates();
             for (int i = 0 ; i < 3; i++)
             {
-                low[i]  = i_node->Coordinate(i+1) < low[i]  ? i_node->Coordinate(i+1) : low[i];
-                high[i] = i_node->Coordinate(i+1) > high[i] ? i_node->Coordinate(i+1) : high[i];
+                low[i]  = r_coordinates[i] < low[i]  ? r_coordinates[i] : low[i];
+                high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
             }
         }
                 
@@ -1976,7 +1981,7 @@ public:
         //            KRATOS_WATCH(nodes_array.size())
         for (std::size_t i_node = 0; i_node < nodes_array.size() ; i_node++)
         {
-            double coord = nodes_array[i_node]->Coordinate(i_direction+1);
+            double coord = (*nodes_array[i_node])[i_direction];
             //             KRATOS_WATCH(intersections.size());
 
             int ray_color= 1;
@@ -2035,11 +2040,7 @@ public:
                 double cell_point[3];
                 mpOctree->CalculateCoordinates(keys,cell_point);
 
-                //                cell_point[0] = pCell->GetCoordinate(keys[0]);
-                //                cell_point[1] = pCell->GetCoordinate(keys[1]);
-                //                cell_point[2] = pCell->GetCoordinate(keys[2]);
-
-                double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point<3>(cell_point[0], cell_point[1], cell_point[2]));
+                double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point(cell_point[0], cell_point[1], cell_point[2]));
 
                 if(d < distance)
                     distance = d;
@@ -2396,7 +2397,7 @@ public:
             return -1;                 // do not deal with this case
 
 		double triangle_origin_distance = -inner_prod(n, rGeometry[0]);
-		Point<3> ray_point_1, ray_point_2;
+		Point ray_point_1, ray_point_2;
 		
 		for(int i = 0 ; i < 3 ; i++)
         {
@@ -2472,19 +2473,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "CalculateSignedDistanceTo3DSkinProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "CalculateSignedDistanceTo3DSkinProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -2501,7 +2502,7 @@ public:
 
         for(DistanceSpatialContainersConfigure::data_type::const_iterator i_node = mOctreeNodes.begin() ; i_node != mOctreeNodes.end() ; i_node++)
         {
-            rOStream << (*i_node)->Id() << "  " << (*i_node)->Coordinate(1) << "  " << (*i_node)->Coordinate(2) << "  " << (*i_node)->Coordinate(3) << std::endl;
+            rOStream << (*i_node)->Id() << "  " << (*i_node)->X() << "  " << (*i_node)->Y() << "  " << (*i_node)->Z() << std::endl;
             //mpOctree->Insert(temp_point);
         }
         std::cout << "Nodes written..." << std::endl;
@@ -2601,7 +2602,7 @@ private:
 
     DistanceSpatialContainersConfigure::data_type mOctreeNodes;
 
-    boost::shared_ptr<OctreeType> mpOctree;
+    Kratos::shared_ptr<OctreeType> mpOctree;
 
     static const double epsilon;
 
@@ -2770,7 +2771,7 @@ private:
     }
 
 
-    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, DenseVector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads + 1);
         int partition_size = number_of_rows / number_of_threads;

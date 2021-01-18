@@ -39,7 +39,7 @@ namespace backend {
 
 /// Enable std::complex as a value-type.
 template <typename T>
-struct is_builtin_vector< std::vector<std::complex<T> > > : boost::true_type {};
+struct is_builtin_vector< std::vector<std::complex<T> > > : std::true_type {};
 
 } // namespace backend
 
@@ -49,6 +49,12 @@ namespace math {
 template <class T>
 struct scalar_of< std::complex<T> > {
     typedef T type;
+};
+
+/// Replace scalar type in the complex type.
+template <class T, class S>
+struct replace_scalar<std::complex<T>, S> {
+    typedef std::complex<S> type;
 };
 
 /// Specialization of conjugate transpose for scalar complex arguments.

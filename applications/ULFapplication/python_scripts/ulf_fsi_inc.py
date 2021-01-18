@@ -1,12 +1,9 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+ #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
-from KratosMultiphysics.PFEMApplication import PfemUtils
-from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
-# Check that KratosMultiphysics was imported in the main script
-# CheckForPreviousImport()
 
 import time
 
@@ -110,16 +107,16 @@ class ULF_FSISolver:
         if(domain_size == 2):
             # self.Mesher = TriGenModeler()
             self.Mesher = TriGenPFEMModeler()
-            self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part, 9, 18)
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part, 9, 18)
+            self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part)
              # this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(fluid_model_part, 2, 10)
         elif (domain_size == 3):
             # improved mesher
             self.Mesher = TetGenPfemModeler()
             # self.Mesher = TetGenModeler()
-            self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part, 20, 30)
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part, 20, 30)
+            self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part)
             # this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(fluid_model_part, 3, 20)
 
@@ -131,6 +128,9 @@ class ULF_FSISolver:
         (self.fluid_neigh_finder).Execute();
         Hfinder = FindNodalHProcess(fluid_model_part);
         Hfinder.Execute();
+        self.ResetNodalHAtLonelyNodes()
+        #assigning average nodal h to lonely nodes
+        self.AssignHtoLonelyStructureNodes()
 
     #
     # delta time estimation based on the non-negativity of the jacobian
@@ -299,9 +299,9 @@ class ULF_FSISolver:
         h_factor = 0.2  # 5 #0.5
         # if (self.remeshing_flag==1.0):
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc", "Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc", "LineCondition2D2N", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
         elif (self.domain_size == 3):
-            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc", "Condition3D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc", "SurfaceCondition3D3N", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
 
             # remesh CHECK for 3D or 2D
         # calculating fluid neighbours before applying boundary conditions
@@ -328,7 +328,28 @@ class ULF_FSISolver:
         # self.node_erase_process.Execute()
         print("end of remesh fucntion")
 
+
     #
     #
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
+    #this function is included since at the findNodalHProcess of Kratos core assigns max value (1.7*e^309) to all nodes
+    #and then computes the correct value only for the nodes of elements. Thus lonely nodes remain with this enormous values
+    def ResetNodalHAtLonelyNodes(self):
+       for node in self.fluid_model_part.Nodes:
+          if (node.GetSolutionStepValue(NODAL_H)>100000000.0):
+            node.SetSolutionStepValue(NODAL_H,0,0.0)
+    ######################################################################
+    def AssignHtoLonelyStructureNodes(self):
+        nnodes=0
+        nodal_h=0.0
+        av_nodal_h=0.0
+        for node in self.fluid_model_part.Nodes:
+            if (node.GetSolutionStepValue(NODAL_H)!=0.0):
+               nnodes=nnodes+1;
+               nodal_h=nodal_h+node.GetSolutionStepValue(NODAL_H);
+
+        av_nodal_h=nodal_h/nnodes
+        for node in self.fluid_model_part.Nodes:
+           if (node.GetSolutionStepValue(IS_STRUCTURE)==1.0 and node.GetSolutionStepValue(IS_FLUID)==0.0):
+              node.SetSolutionStepValue(NODAL_H, av_nodal_h)

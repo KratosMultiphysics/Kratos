@@ -3,149 +3,111 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 # Import the mechanical solver base class
-import solid_mechanics_solver
+import KratosMultiphysics.SolidMechanicsApplication.solid_mechanics_monolithic_solver as BaseSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return ExplicitMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(custom_settings, Model):
+    return ExplicitMonolithicSolver(Model, custom_settings)
 
-class ExplicitMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
-    
-    ##constructor. the constructor shall only take care of storing the settings 
-    ##and the pointer to the main_model part. This is needed since at the point of constructing the 
-    ##model part is still not filled and the variables are not yet allocated
-    ##
-    ##real construction shall be delayed to the function "Initialize" which 
-    ##will be called once the model is already filled
-    def __init__(self, main_model_part, custom_settings): 
-        
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part    
-        
-        #TODO: remove unnecessary fields for the Explicit solver from the defaults
-        ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
+class ExplicitMonolithicSolver(BaseSolver.MonolithicSolver):
+    """The solid mechanics explicit dynamic solver.
+
+    This class creates the mechanical solvers for explicit dynamic analysis.
+
+    Public member variables:
+    dynamic_settings -- settings for the implicit dynamic solvers.
+
+    See solid_mechanics_monolithic_solver.py for more information.
+    """
+    def __init__(self, Model, custom_settings):
+
+        # Set defaults and validate custom settings.
+        ##TODO : solving_strategy_settings must be time_integration_settings (GiD interface changes needed)
+        explicit_solver_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "solid_mechanics_explicit_dynamic_solver",
-            "echo_level": 0,
-            "buffer_size": 2,
-            "solution_type": "Dynamic",
-            "time_integration_method": "Explicit",
-            "scheme_type": "CentralDifferences",
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "input_file_label": 0
-            },
-            "rotation_dofs": false,
-            "pressure_dofs": false,
-            "stabilization_factor": 1.0,
-            "reform_dofs_at_each_step": false,
-            "compute_reactions": true,
-            "move_mesh_flag": true,
-            "clear_storage": false,
-            "max_delta_time": 1.0e-5,
-            "fraction_delta_time": 0.9,
-            "time_step_prediction_level": 0,
-            "rayleigh_damping": false,
-            "linear_solver_settings":{
-                "solver_type": "SuperLUSolver",
-                "max_iteration": 500,
-                "tolerance": 1e-9,
-                "scaling": false,
-                "verbosity": 1
-            },
-            "bodies_list": [],
-            "problem_domain_sub_model_part_list": ["solid_model_part"],
-            "processes_sub_model_part_list": [""]
+           "solving_strategy_settings":{
+               "time_step_prediction_level": 0,
+               "max_delta_time": 1.0e-5,
+               "fraction_delta_time": 0.9,
+               "rayleigh_damping": false,
+               "rayleigh_alpha": 0.0,
+               "rayleigh_beta" : 0.0
+           }
+
         }
         """)
 
-        ##overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
-        
-        #construct the linear solver
-        import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        
-        print("Construction of Explicit Dynamics Mechanical Solver finished")
-   
+        # Validate and transfer settings
+        if( custom_settings.Has("solving_strategy_settings") ):
+            from KratosMultiphysics.SolidMechanicsApplication.json_settings_utility import JsonSettingsUtility
+            JsonSettingsUtility.TransferMatchingSettingsToDestination(custom_settings["solving_strategy_settings"], explicit_solver_settings["solving_strategy_settings"])
+        self.explicit_solver_settings = explicit_solver_settings["solving_strategy_settings"]
 
-    def Initialize(self):
+        # Validate the remaining settings in the base class.
+        if not custom_settings["solving_strategy_settings"].Has("integration_method"): # Override defaults in the base class.
+            custom_settings["solving_strategy_settings"].AddEmptyValue("integration_method")
+            custom_settings["solving_strategy_settings"]["integration_method"].SetString("CentralDifferences")
 
-        print("::[Mechanical Solver]:: -START-")
-        
-        # Get the solid computing model part
-        self.computing_model_part = self.GetComputingModelPart()
-        
-        # Solution scheme creation
-        mechanical_scheme = self._GetSolutionScheme(self.settings["max_delta_time"].GetDouble(), 
-                                                    self.settings["fraction_delta_time"].GetDouble(),
-                                                    self.settings["time_step_prediction_level"].GetInt(),
-                                                    self.settings["rayleigh_damping"].GetBool())
-        
-        # Mechanical solver creation
-        self._CreateMechanicalSolver(mechanical_scheme,
-                                     self.settings["compute_reactions"].GetBool(),
-                                     self.settings["reform_dofs_at_each_step"].GetBool(),
-                                     self.settings["move_mesh_flag"].GetBool())
+        # Construct the base solver.
+        super(ExplicitMonolithicSolver, self).__init__(Model, custom_settings)
 
-        # Set echo_level
-        self.mechanical_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
+        print("::[--Explicit_Solver--]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
 
-        # Set initialize flag
-        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
-            self.mechanical_solver.SetInitializePerformedFlag(True)
 
-        # Check if everything is assigned correctly
-        self.Check();
+    def GetVariables(self):
 
-        print("::[Mechanical Solver]:: -END- ")
-        
+        nodal_variables = super(ExplicitMonolithicSolver, self).GetVariables()
 
-    def AddVariables(self):
-        
-        solid_mechanics_solver.MechanicalSolver.AddVariables(self)
+        time_integration = self.settings["time_integration_settings"]["time_integration"].GetString()
+        # Add specific variables for the explicit time integration scheme
+        if(time_integration == "Explicit"):
+            nodal_variables = nodal_variables + ['NODAL_MASS','MIDDLE_VELOCITY','FORCE_RESIDUAL']
+            # Add specific variables for the explicit time integration scheme in rotations
+            #if(self.settings["time_integration_settings"]["integration_method"].GetString() == "ExplicitRotation"):
+            #    nodal_variables = nodal_variables + ['INERTIA_DYADIC','MOMENT_RESIDUAL','POSITION_MOMENTUM','ROTATION_MOMENTUM', 'RESIDUAL_LYAPUNOV', 'TANGENT_LYAPUNOV']
 
-        if self.settings["time_integration_method"].GetString() == "Explicit":
-            # Add specific variables for the explicit time integration scheme
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.MIDDLE_VELOCITY)
-
-                    
-        print("::[Mechanical Solver]:: Explicit Variables ADDED")
-
+        return nodal_variables
 
     #### Specific internal functions ####
-    def _GetSolutionScheme(self, max_delta_time, fraction_delta_time, time_step_prediction_level, rayleigh_damping):
+    def _create_solution_scheme(self):
 
-        if self.settings["scheme_type"].GetString() == "CentralDifferences":
+        integration_method   = self.settings["time_integration_settings"]["integration_method"].GetString()
 
-            mechanical_scheme = KratosSolid.ExplicitCentralDifferencesScheme(max_delta_time, 
-                                                                             fraction_delta_time, 
-                                                                             time_step_prediction_level, 
-                                                                             rayleigh_damping)
-        
+        options = KratosMultiphysics.Flags()
+        options.Set(KratosSolid.SolverLocalFlags.RAYLEIGH_DAMPING, self.settings["solving_strategy_settings"]["rayleigh_damping"].GetBool())
+
+        if(integration_method == "CentralDifferences"):
+            solution_scheme = KratosSolid.ExplicitCentralDifferencesScheme(options,
+                                                                             self.explicit_solver_settings["max_delta_time"].GetDouble(),
+                                                                             self.explicit_solver_settings["fraction_delta_time"].GetDouble(),
+                                                                             self.explicit_solver_settings["time_step_prediction_level"].GetDouble())
         else:
-            raise(self.settings["scheme_type"].GetString()," not implemented yet.")
-          
-        return mechanical_scheme
-        
-    def _CreateMechanicalSolver(self, mechanical_scheme, compute_reactions, reform_step_dofs, move_mesh_flag):
+            raise Exception("Unsupported integration_method: " + integration_method)
 
-        self.mechanical_solver = KratosSolid.ExplicitStrategy(self.computing_model_part, 
-                                                              mechanical_scheme, 
-                                                              self.linear_solver, 
-                                                              compute_reactions, 
-                                                              reform_step_dofs, 
-                                                              move_mesh_flag)
-
-        self.mechanical_solver.SetRebuildLevel(0) # 1 to recompute the mass matrix in each explicit step 
+        return solution_scheme
 
 
+    def _create_mechanical_solver(self):
+        mechanical_solver = self._create_explicit_strategy()
+        mechanical_solver.SetRebuildLevel(0) # 1 to recompute the mass matrix in each explicit step
+        mechanical_solver.Set(KratosSolid.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
+        return mechanical_solver
 
+
+    def _create_explicit_strategy(self):
+        solution_scheme = self._get_solution_scheme()
+        #linear_solver = self._get_linear_solver()
+
+        options = KratosMultiphysics.Flags()
+        options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.settings["solving_strategy_settings"]["compute_reactions"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
+
+        return KratosSolid.ExplicitStrategy(self.model_part, solution_scheme, options)
+
+
+        #return KratosSolid.ExplicitStrategy(self.model_part,
+        #                                    solution_scheme,
+        #                                    linear_solver,
+        #                                    self.settings["solving_strategy_settings"]["compute_reactions"].GetBool(),
+        #                                    self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool(),
+        #                                    self.settings["solving_strategy_settings"]["move_mesh_flag"].GetBool())

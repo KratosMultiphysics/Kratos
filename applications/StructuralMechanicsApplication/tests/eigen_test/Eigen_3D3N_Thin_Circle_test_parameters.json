@@ -1,89 +1,71 @@
 {
     "problem_data"             : {
         "problem_name"    : "Eigen_3D3N_Thin_Circle_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_eigensolver",
+        "solver_type"                        : "eigen_value",
+        "scheme_type"                        : "dynamic",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "echo_level"                         : 0,
-        "solution_type"                      : "Dynamic",
-        "analysis_type"                      : "Linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "eigen_test/Eigen_3D3N_Thin_Circle_test",
-            "input_file_label" : 0
+            "input_filename"   : "eigen_test/Eigen_3D3N_Thin_Circle_test"
+        },
+        "material_import_settings" :{
+            "materials_filename": "eigen_test/Eigen_3D3N_Thin_Circle_test_materials.json"
         },
         "eigensolver_settings":{
-            "solver_type": "FEAST",
-            "print_feast_output": false,
-            "perform_stochastic_estimate": false,
-            "solve_eigenvalue_problem": true,
-            "lambda_min": 0.0,
-            "lambda_max": 4.0e5,
-            "search_dimension": 15,
-            "linear_solver_settings":{
-                "solver_type": "skyline_lu"
-            }
-	},
-        "problem_domain_sub_model_part_list" : ["Parts_plate"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","ROTATION_support"],
+            "solver_type": "feast",
+            "symmetric": true,
+            "e_min": 0.0,
+            "e_max": 4.0e5,
+            "subspace_size": 15
+        },
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_support",
+            "model_part_name" : "Structure.DISPLACEMENT_support",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_support",
+            "model_part_name" : "Structure.ROTATION_support",
             "variable_name"   : "ROTATION",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : false,
+            "constrained"     : [false,false,false],
             "value"           : [0.0,0.0,0.0]
         }
     }],
     "loads_process_list"       : [],
     "list_other_processes" :[{
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
-        "python_module"   : "check_eigenvalues_process",
-        "help"                  : "First eigenfrequencies of a circular plate according to Leissa, A. (1993). Vibration of plates.",
-        "process_name"          : "CheckEigenvaluesProcess",
-        "Parameters"            : {
+        "kratos_module" : "StructuralMechanicsApplication",
+        "python_module" : "check_eigenvalues_process",
+        "help"          : "First eigenfrequencies of a circular plate according to Leissa, A. (1993). Vibration of plates.",
+        "process_name"  : "CheckEigenvaluesProcess",
+        "Parameters"    : {
             "model_part_name"  : "Structure",
-	    "variable_name"   : "EIGENVALUE_VECTOR",                                              
-            "reference_values": "[5870.389149394735, 46368.8484822989, 46368.848484378315, 156722.65667084238, 156722.65668679585, 211940.23752820952, 379353.4270953061, 379353.42713109404]"
+	        "variable_name"    : "EIGENVALUE_VECTOR",
+            "reference_values" : "[5870.389149394735, 46368.8484822989, 46368.848484378315, 156722.65667084238, 156722.65668679585, 211940.23752820952, 379353.4270953061, 379353.42713109404]"
         }
-    }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    }]}
 }

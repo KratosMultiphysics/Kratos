@@ -54,7 +54,7 @@ public:
     LinearElasticPlasticPlaneStress2DLaw();
 
 
-    LinearElasticPlasticPlaneStress2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    LinearElasticPlasticPlaneStress2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -72,12 +72,12 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Destructor.
      */
-    virtual ~LinearElasticPlasticPlaneStress2DLaw();
+    ~LinearElasticPlasticPlaneStress2DLaw() override;
 
     /**
      * Operators
@@ -91,7 +91,7 @@ public:
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
 
     /**
      * Input and output
@@ -99,15 +99,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    //virtual String Info() const override;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    //virtual void PrintInfo(std::ostream& rOStream) const override;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    //virtual void PrintData(std::ostream& rOStream) const override;
 
 protected:
 
@@ -133,8 +133,8 @@ protected:
 
 
     void CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,
-                                    const double& YoungModulus,
-                                    const double& PoissonCoefficient );
+                                       const double& YoungModulus,
+                                       const double& PoissonCoefficient ) override;
 
     ///@}
 
@@ -170,12 +170,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElasticPlasticPlaneStrain2DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElasticPlasticPlaneStrain2DLaw )
     }

@@ -1,15 +1,22 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
-//Create Variables 
+//Create Variables
 KRATOS_CREATE_VARIABLE( double, VELOCITY_COEFFICIENT )
 KRATOS_CREATE_VARIABLE( double, DT_PRESSURE_COEFFICIENT )
 
@@ -41,6 +48,8 @@ KRATOS_CREATE_VARIABLE(bool, IS_CONVERGED)
 
 KRATOS_CREATE_VARIABLE( Matrix, TOTAL_STRESS_TENSOR )
 
+KRATOS_CREATE_VARIABLE( Matrix, INITIAL_STRESS_TENSOR )
+
 KRATOS_CREATE_VARIABLE( double, STATE_VARIABLE )
 KRATOS_CREATE_VARIABLE( double, ARC_LENGTH_LAMBDA )
 KRATOS_CREATE_VARIABLE( double, ARC_LENGTH_RADIUS_FACTOR )
@@ -54,5 +63,14 @@ KRATOS_CREATE_VARIABLE( double, JOINT_WIDTH )
 
 KRATOS_CREATE_VARIABLE( bool, NODAL_SMOOTHING )
 KRATOS_CREATE_VARIABLE( Matrix, NODAL_CAUCHY_STRESS_TENSOR )
-KRATOS_CREATE_VARIABLE( double, NODAL_VON_MISES_STRESS )
+KRATOS_CREATE_VARIABLE( Matrix, EFFECTIVE_STRESS_TENSOR )
+KRATOS_CREATE_VARIABLE( Matrix, NODAL_EFFECTIVE_STRESS_TENSOR )
+KRATOS_CREATE_VARIABLE( double, NODAL_DAMAGE_VARIABLE )
+KRATOS_CREATE_VARIABLE( double, NODAL_JOINT_AREA )
+KRATOS_CREATE_VARIABLE( double, NODAL_JOINT_WIDTH )
+KRATOS_CREATE_VARIABLE( double, NODAL_JOINT_DAMAGE )
+
+KRATOS_CREATE_VARIABLE( double, SHEAR_FRACTURE_ENERGY )
+
+KRATOS_CREATE_VARIABLE( double, BIOT_COEFFICIENT )
 }

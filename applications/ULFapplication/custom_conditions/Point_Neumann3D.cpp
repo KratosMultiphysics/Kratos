@@ -104,6 +104,8 @@ namespace Kratos
 	//************************************************************************************
 	void PointNeumann3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
+
+	//KRATOS_WATCH("POINT NEUMANNNN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11")
 		//calculation flags
 	  //		bool CalculateStiffnessMatrixFlag = true;
 	  //bool CalculateResidualVectorFlag = true;
@@ -133,13 +135,42 @@ namespace Kratos
 			//calculate normal to element.(normal follows the cross rule)
 			array_1d<double,3> An,edge;
 			An = GetGeometry()[0].FastGetSolutionStepValue(NORMAL);
-
+			//KRATOS_WATCH(An)
 			double ext_pr = -1.0*GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
 
+
+			double temp=An[0]*ext_pr;
+			double temp1=An[1]*ext_pr;
+			double temp2=An[2]*ext_pr;
+
+//	KRATOS_WATCH("¿¿¿¿¿¿¿¿¿")
+			//KRATOS_WATCH(temp)
+			//KRATOS_WATCH(temp1)
+			//KRATOS_WATCH(temp2)
+			//KRATOS_WATCH("¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿/()(/)(/()/()/)(/)(/()¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿")
 			//add to RHS
 			rRightHandSideVector[0] = An[0]*ext_pr;
 			rRightHandSideVector[1] = An[1]*ext_pr;
 			rRightHandSideVector[2] = An[2]*ext_pr;
+
+			//KRATOS_WATCH("external_pressure contrib =============================================================================================")
+			//KRATOS_WATCH(rRightHandSideVector)
+			
+			//AND NOW WE ADD THE VISCOUS STRESS CONTRIBUTION
+			/*
+			const array_1d<double, 3 > &  s_x=GetGeometry()[0].FastGetSolutionStepValue(STRESSX);											   
+			const array_1d<double, 3 > &  s_y=GetGeometry()[0].FastGetSolutionStepValue(STRESSY);
+			const array_1d<double, 3 > &  s_z=GetGeometry()[0].FastGetSolutionStepValue(STRESSZ);
+			
+			rRightHandSideVector[0] += s_x[0]*An[0]+s_x[1]*An[1]+s_x[0]*An[2];
+			rRightHandSideVector[1] += s_y[0]*An[0]+s_y[1]*An[1]+s_y[0]*An[2];
+			rRightHandSideVector[2] += s_z[0]*An[0]+s_z[1]*An[1]+s_z[0]*An[2];
+			*/
+			//JUST TO CHECK THE DIRECTION
+			//GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY_X)=s_x[0]*An[0]+s_x[1]*An[1]+s_x[0]*An[2];
+			//GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY_Y)=s_y[0]*An[0]+s_y[1]*An[1]+s_y[0]*An[2];
+			//GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY_Z)=s_z[0]*An[0]+s_z[1]*An[1]+s_z[0]*An[2];
+
 
 
 

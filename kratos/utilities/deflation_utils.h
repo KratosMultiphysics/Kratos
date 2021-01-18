@@ -1,50 +1,15 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
-
-/* *********************************************************
- *
- *   Last Modified by:    $Author: pooyan $
- *   Date:                $Date: 2008-11-13 12:12:17 $
- *   Revision:            $Revision: 1.4 $
- *
- * ***********************************************************/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//                    
+//
 
 #if !defined(KRATOS_DEFLATION_UTILS )
 #define  KRATOS_DEFLATION_UTILS
@@ -53,7 +18,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* System includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-//#include "includes/ublas_interface.h"
+#include "includes/global_pointer_variables.h"
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#include "boost/numeric/ublas/matrix.hpp" // for the vector used here.
+#else
+#endif // KRATOS_USE_AMATRIX
 
 /* External includes */
 
@@ -161,14 +130,14 @@ public:
                 in!=rNodes.end(); in++)
         {
             index_i = (in)->Id()-1;
-            WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+            auto& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
             std::vector<int>& indices = index_list[index_i];
             indices.reserve(neighb_nodes.size()+1);
 
             //filling the first neighbours list
             indices.push_back(index_i);
-            for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+            for( auto i =	neighb_nodes.begin();
                     i != neighb_nodes.end(); i++)
             {
 

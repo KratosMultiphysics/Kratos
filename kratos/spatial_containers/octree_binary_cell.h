@@ -1,9 +1,13 @@
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: abel $
-//   Date:                $Date: 2013-05-27 16:48:42 $
-//   Revision:            $Revision: 1.23 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Abel
 //
 
 
@@ -109,7 +113,7 @@ namespace Kratos {
 
         /// Default constructor.
 
-        OctreeBinaryCell(char Level = ROOT_LEVEL) : level_(Level), children_(NULL), data_(NULL) {
+        explicit OctreeBinaryCell(char Level = ROOT_LEVEL) : level_(Level), children_(NULL), data_(NULL) {
             for (std::size_t i = 0; i < DIMENSION; i++)
                 min_key_[i] = 0;
         }

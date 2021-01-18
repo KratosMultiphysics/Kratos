@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -61,9 +61,8 @@ namespace Kratos
   It is intended to be used in combination with ASGS and VMS elements or their derived classes
   and the ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent time scheme, which supports
   slip conditions.
-  This condition will add a wall stress term to all nodes identified with IS_STRUCTURE!=0.0 (in the
-  non-historic database, that is, assigned using Node.SetValue()). This stress term is determined
-  according to the wall distance provided as Y_WALL.
+  This condition will add a wall stress term to all nodes identified with SLIP==true (in the
+  nodal flags). This stress term is determined according to the wall distance provided as Y_WALL.
   @see ASGS2D,ASGS3D,VMS,ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
  */
 template< unsigned int TDim, unsigned int TNumNodes = TDim >
@@ -74,7 +73,7 @@ public:
     ///@{
 
     /// Pointer definition of MonolithicWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(MonolithicWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MonolithicWallCondition);
 
     typedef Node < 3 > NodeType;
 
@@ -97,8 +96,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -155,7 +152,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~MonolithicWallCondition() {}
+    ~MonolithicWallCondition() override {}
 
 
     ///@}
@@ -180,32 +177,33 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Condition::Pointer(new MonolithicWallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Kratos::make_intrusive<MonolithicWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
-    virtual Condition::Pointer Create(IndexType NewId,
+
+    Condition::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
-                           PropertiesType::Pointer pProperties) const
+                           PropertiesType::Pointer pProperties) const override
     {
-        return boost::make_shared< MonolithicWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< MonolithicWallCondition >(NewId, pGeom, pProperties);
     }
-    
+
     /**
      * Clones the selected element variables, creating a new one
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    
-    virtual Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const
+
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
     {
         Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
-        
+
         pNewCondition->SetData(this->GetData());
         pNewCondition->SetFlags(this->GetFlags());
-        
+
         return pNewCondition;
     }
 
@@ -213,9 +211,9 @@ public:
     /** The actual local contributions are computed in the Damping functions
       @see CalculateLocalVelocityContribution
       */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -234,8 +232,8 @@ public:
     /** The actual local contributions are computed in the Damping functions
       @see DampingMatrix
       */
-    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -250,8 +248,8 @@ public:
     /** The actual local contributions are computed in the Damping functions
       @see CalculateLocalVelocityContribution
       */
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -264,8 +262,8 @@ public:
 
 
 
-    virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                            ProcessInfo& rCurrentProcessInfo)
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+                            const ProcessInfo& rCurrentProcessInfo) override
     {
         VectorType RHS;
         this->CalculateLocalVelocityContribution(rDampingMatrix,RHS,rCurrentProcessInfo);
@@ -273,19 +271,19 @@ public:
 
 
 
-    /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
+    /// Calculate wall stress term for all nodes with SLIP set.
     /**
       @param rDampingMatrix Left-hand side matrix
       @param rRightHandSideVector Right-hand side vector
       @param rCurrentProcessInfo ProcessInfo instance (unused)
       */
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
+    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Check that all data required by this condition is available and reasonable
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY;
 
@@ -297,29 +295,7 @@ public:
         }
         else
         {
-            // Check that all required variables have been registered
-            if(VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-            if(MESH_VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
-            if(ACCELERATION.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if the application was correctly registered.","");
-            if(PRESSURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-            if(DENSITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-            if(VISCOSITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-            if(IS_STRUCTURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
-            if(Y_WALL.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","");
-            if(EXTERNAL_PRESSURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.","");
-
-
                 // Checks on nodes
-
                 // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
                 for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
                 {
@@ -353,8 +329,8 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /// Returns a list of the element's Dofs
@@ -362,8 +338,8 @@ public:
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& ConditionDofList,
-                            ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ConditionDofList,
+                    const ProcessInfo& CurrentProcessInfo) const override;
 
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
@@ -371,8 +347,8 @@ public:
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetFirstDerivativesVector(Vector& Values,
-                                           int Step = 0)
+    void GetFirstDerivativesVector(Vector& Values,
+                                           int Step = 0) const override
     {
         const SizeType LocalSize = (TDim + 1) * TNumNodes;
         unsigned int LocalIndex = 0;
@@ -382,7 +358,7 @@ public:
 
         for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
         {
-            array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
+            const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
             for (unsigned int d = 0; d < TDim; ++d)
                 Values[LocalIndex++] = rVelocity[d];
             Values[LocalIndex++] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE, Step);
@@ -395,8 +371,8 @@ public:
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetSecondDerivativesVector(Vector& Values,
-                                            int Step = 0)
+    void GetSecondDerivativesVector(Vector& Values,
+                                            int Step = 0) const override
     {
         const SizeType LocalSize = (TDim + 1) * TNumNodes;
         unsigned int LocalIndex = 0;
@@ -406,7 +382,7 @@ public:
 
         for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
         {
-            array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
+            const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
             for (unsigned int d = 0; d < TDim; ++d)
                 Values[LocalIndex++] = rVelocity[d];
             Values[LocalIndex++] = 0.0; // No value on pressure positions
@@ -414,29 +390,29 @@ public:
     }
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                                              std::vector<array_1d<double, 3 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                                              std::vector<double>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                                              std::vector<array_1d<double, 6 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
                                              std::vector<Vector>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                              std::vector<Matrix>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -454,7 +430,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "MonolithicWallCondition" << TDim << "D";
@@ -462,13 +438,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MonolithicWallCondition";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -504,7 +480,7 @@ protected:
       */
     virtual void ApplyWallLaw(MatrixType& rLocalMatrix,
                       VectorType& rLocalVector,
-		      ProcessInfo& rCurrentProcessInfo)
+		              const ProcessInfo& rCurrentProcessInfo)
     {
         GeometryType& rGeometry = this->GetGeometry();
         const size_t BlockSize = TDim + 1;
@@ -517,7 +493,7 @@ protected:
         {
             const NodeType& rConstNode = rGeometry[itNode];
             const double y = rConstNode.GetValue(Y_WALL); // wall distance to use in stress calculation
-            if( y > 0.0 && rConstNode.GetValue(IS_STRUCTURE) != 0.0 )
+            if( y > 0.0 && rConstNode.Is(SLIP) )
             {
                 array_1d<double,3> Vel = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
                 const array_1d<double,3>& VelMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
@@ -627,12 +603,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
     }

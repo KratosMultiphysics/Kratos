@@ -1,47 +1,13 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:33 $
-//   Revision:            $Revision: 1.3 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
 
 
@@ -121,7 +87,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~FindConditionsNeighboursProcess()
+    ~FindConditionsNeighboursProcess() override
     {
     }
 
@@ -140,7 +106,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute() override
+    void Execute() override
     {
         NodesContainerType& rNodes = mr_model_part.Nodes();
         ConditionsContainerType& rConds = mr_model_part.Conditions();
@@ -150,13 +116,13 @@ public:
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
             (in->GetValue(NEIGHBOUR_CONDITIONS)).reserve(mavg_conds);
-            WeakPointerVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
+            GlobalPointersVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end() );
         }
         for(ConditionsContainerType::iterator ic = rConds.begin(); ic!=rConds.end(); ic++)
         {
             (ic->GetValue(NEIGHBOUR_CONDITIONS)).reserve(3);
-            WeakPointerVector<Condition >& rC = ic->GetValue(NEIGHBOUR_CONDITIONS);
+            GlobalPointersVector<Condition >& rC = ic->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end() );
         }
 
@@ -182,7 +148,7 @@ public:
                 Geometry<Node<3> >& geom = (ic)->GetGeometry();
                 //vector of the 3 faces around the given face
                 (ic->GetValue(NEIGHBOUR_CONDITIONS)).resize(3);
-                WeakPointerVector< Condition >& neighb_faces = ic->GetValue(NEIGHBOUR_CONDITIONS);
+                GlobalPointersVector< Condition >& neighb_faces = ic->GetValue(NEIGHBOUR_CONDITIONS);
                 //neighb_face is the vector containing pointers to the three faces around ic
                 //neighb_face[0] = neighbour face over edge 1-2 of element ic;
                 //neighb_face[1] = neighbour face over edge 2-0 of element ic;
@@ -200,13 +166,13 @@ public:
         NodesContainerType& rNodes = mr_model_part.Nodes();
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
-            WeakPointerVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
+            GlobalPointersVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end());
         }
         ConditionsContainerType& rConds = mr_model_part.Conditions();
         for(ConditionsContainerType::iterator ic = rConds.begin(); ic!=rConds.end(); ic++)
         {
-            WeakPointerVector<Condition >& rC = ic->GetValue(NEIGHBOUR_CONDITIONS);
+            GlobalPointersVector<Condition >& rC = ic->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end());
         }
 
@@ -227,19 +193,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "FindConditionsNeighboursProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "FindConditionsNeighboursProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -309,10 +275,10 @@ private:
     //******************************************************************************************
     //******************************************************************************************
     template< class TDataType > void  AddUniqueWeakPointer
-    (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
+    (GlobalPointersVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
     {
-        typename WeakPointerVector< TDataType >::iterator i = v.begin();
-        typename WeakPointerVector< TDataType >::iterator endit = v.end();
+        typename GlobalPointersVector< TDataType >::iterator i = v.begin();
+        typename GlobalPointersVector< TDataType >::iterator endit = v.end();
         while ( i != endit && (i)->Id() != (candidate.lock())->Id())
         {
             i++;
@@ -324,10 +290,10 @@ private:
 
     }
 
-    Condition::WeakPointer CheckForNeighbourFaces (unsigned int Id_1, unsigned int Id_2, WeakPointerVector< Condition >& neighbour_face, unsigned int face)
+    Condition::WeakPointer CheckForNeighbourFaces (unsigned int Id_1, unsigned int Id_2, GlobalPointersVector< Condition >& neighbour_face, unsigned int face)
     {
         //look for the faces around node Id_1
-        for( WeakPointerVector< Condition >::iterator i =neighbour_face.begin(); i != neighbour_face.end(); i++)
+        for( GlobalPointersVector< Condition >::iterator i =neighbour_face.begin(); i != neighbour_face.end(); i++)
         {
             //look for the nodes of the neighbour faces
             Geometry<Node<3> >& neigh_face_geometry = (i)->GetGeometry();

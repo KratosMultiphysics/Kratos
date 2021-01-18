@@ -12,28 +12,13 @@
 namespace Kratos
 {
 
-   /**
-    * Constructor.
-    */
-   FrictionLaw::FrictionLaw()
+   void FrictionLaw::InitializeSolutionStep()
    {
-      mPlasticSlip = 0.0;
-   }
-
-   /**
-    * Clone function (has to be implemented by any derived class)
-    * @return a pointer to a new instance of this constitutive law
-    * NOTE: implementation scheme:
-    *      ConstitutiveLaw::Pointer p_clone(new ConstitutiveLaw());
-    *      return p_clone;
-    */
-   FrictionLaw::Pointer FrictionLaw::Clone() const
-   {
-      KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for Clone", "");
    }
 
    void FrictionLaw::FinalizeSolutionStep()
    {
+      mDeltaPlasticSlip = mPlasticSlipNew - mPlasticSlip;
       mPlasticSlip = mPlasticSlipNew;
    }
 
@@ -42,57 +27,98 @@ namespace Kratos
     */
    bool FrictionLaw::EvaluateFrictionLaw( double& rTangentForce, const double& rNormalForce, FrictionLawVariables& rTangentVariables )
    {
-      double TangentStress = rTangentForce / rTangentVariables.Area;
-      double NormalStress = rNormalForce / rTangentVariables.Area;
+
+      mPlasticSlipNew = mPlasticSlip;
+      if ( rTangentVariables.FrictionCoefficient == 0 && rTangentVariables.Adhesion == 0)
+      {
+         rTangentForce = 0.0;
+         rTangentVariables.PlasticSlip = 0.0;
+         rTangentVariables.PlasticSlipOld = 0.0;
+         return true;
+      }
+      if ( rTangentVariables.TangentPenalty == 0) {
+         return false;
+      }
+
+      double TangentStress = rTangentForce; //  / rTangentVariables.Area;
+      double NormalStress = rNormalForce; // / rTangentVariables.Area;
+      if ( rTangentVariables.Area > 0.0) {
+         TangentStress = rTangentForce / rTangentVariables.Area;
+         NormalStress = rNormalForce / rTangentVariables.Area;
+      }
 
       bool Slip = false;
 
       if ( NormalStress < 0.0) {
          rTangentForce = 0.0;
-         return false;
-      }
-
-      double Gamma = rTangentVariables.PlasticSlipOld;
-
-      double ContactYield = EvaluateContactYield( TangentStress, NormalStress, Gamma, rTangentVariables);
-
-      if ( ContactYield < 1.0e-8)  // elasticPart
-      {
          return Slip;
       }
 
-      Slip = true;
 
-      int i = 0;
-      double Hardening, Derivative;
-      double DeltaGamma = 0, DeltaDeltaGamma = 0; 
-      double CurrentStress = TangentStress;
-      while ( i < 100)
+      if ( rTangentVariables.Implex && rTangentVariables.PlasticSlipOld == 0)
       {
-         i = i + 1;
-
-         Hardening = EvaluateHardening(NormalStress, Gamma + DeltaGamma, rTangentVariables);  // this is the derivative of the yield stress respect the plastic slip
-         Derivative = rTangentVariables.TangentPenalty - Hardening; // - some term due to the hardening law
-         DeltaDeltaGamma = ContactYield / Derivative;
-         DeltaGamma += DeltaDeltaGamma;
-
-         CurrentStress = TangentStress - rTangentVariables.TangentPenalty * DeltaGamma; 
-
-         ContactYield = EvaluateContactYield( CurrentStress, NormalStress,  Gamma+DeltaGamma, rTangentVariables);
-
-
-         if ( fabs( ContactYield) < 1e-8)
-            break;
-
-      }
-      if ( i > 90) {
-         std::cout << " THIS contact DID NOT CONVERGE " << std::endl;
-         std::cout << " TANGENT STRESS TRIAL " << TangentStress << " current tangent stress " << CurrentStress << " YIELD " << ContactYield << std::endl;
-         std::cout << " EffectiveNormal " << NormalStress << std::endl;
+         // oye tu això està malament,em servia per el primer pas però no m'agrada pq fa que res funcioni
+         /*rTangentForce = 0.0;
+         rTangentVariables.PlasticSlip = 0.0;
+         rTangentVariables.PlasticSlipOld = 0.0;
+         return Slip;*/
       }
 
-      rTangentForce = CurrentStress * rTangentVariables.Area;
-      rTangentVariables.PlasticSlip = Gamma + DeltaGamma;
+      double Gamma = rTangentVariables.PlasticSlipOld;
+      double ContactYield = EvaluateContactYield( TangentStress, NormalStress, Gamma, rTangentVariables);
+
+
+      if ( rTangentVariables.Implex) {
+         TangentStress -= rTangentVariables.TangentPenalty * mDeltaPlasticSlip;
+         rTangentForce = TangentStress * rTangentVariables.Area;
+         rTangentVariables.PlasticSlip = Gamma + mDeltaPlasticSlip;
+         Slip = true;
+      }
+      else {
+
+         if ( ContactYield < 1.0e-8)  // elasticPart
+         {
+            return Slip;
+         }
+
+         Slip = true;
+         int i = 0;
+         double Hardening, Derivative;
+         double DeltaGamma = 0, DeltaDeltaGamma = 0;
+         double CurrentStress = TangentStress;
+         while ( i < 100)
+         {
+            i = i + 1;
+
+            Hardening = EvaluateHardening(NormalStress, Gamma + DeltaGamma, rTangentVariables);  // this is the derivative of the yield stress respect the plastic slip
+            Derivative = rTangentVariables.TangentPenalty - Hardening; // - some term due to the hardening law
+            DeltaDeltaGamma = ContactYield / Derivative;
+            DeltaGamma += DeltaDeltaGamma;
+
+            CurrentStress = TangentStress - rTangentVariables.TangentPenalty * DeltaGamma;
+
+            ContactYield = EvaluateContactYield( CurrentStress, NormalStress,  Gamma+DeltaGamma, rTangentVariables);
+
+
+            if ( fabs( ContactYield) < 1e-8)
+               break;
+
+         }
+         if ( i > 90) {
+            std::cout << " THIS contact DID NOT CONVERGE " << std::endl;
+            std::cout << " TANGENT STRESS TRIAL " << TangentStress << " current tangent stress " << CurrentStress << " YIELD " << ContactYield << std::endl;
+            std::cout << " AREA " << rTangentVariables.Area << " tangent force trial " << rTangentForce << std::endl;
+            std::cout << " EffectiveNormal " << NormalStress << std::endl;
+            std::cout << " PENALTY " << rTangentVariables.TangentPenalty << std::endl;
+            std::cout << " gamma " << DeltaGamma << " , " << Derivative << std::endl;
+            std::cout << " gamma " << Gamma << std::endl;
+         }
+
+         rTangentForce = CurrentStress * rTangentVariables.Area;
+         rTangentVariables.PlasticSlip = Gamma + DeltaGamma;
+
+      }
+      mPlasticSlipNew = rTangentVariables.PlasticSlip;
 
       return Slip;
    }
@@ -100,8 +126,19 @@ namespace Kratos
    /**
     * Methods
     */
-   void FrictionLaw::EvaluateConstitutiveComponents( double& rNormalModulus, double & rTangentModulus, const double& rTangentForce, const double& rNormalForce, FrictionLawVariables& rTangentVariables) 
+   void FrictionLaw::EvaluateConstitutiveComponents( double& rNormalModulus, double & rTangentModulus, const double& rTangentForce, const double& rNormalForce, FrictionLawVariables& rTangentVariables)
    {
+      if ( rTangentVariables.FrictionCoefficient == 0 && rTangentVariables.Adhesion == 0)
+      {
+         rNormalModulus = 0.0;
+         rTangentModulus = 0.0;
+         return;
+      }
+      if ( rTangentVariables.TangentPenalty == 0) {
+         rNormalModulus = 0.0;
+         rTangentModulus = 0.0;
+         return;
+      }
 
       if ( rNormalForce < 0.0 || rTangentVariables.TangentPenalty < 1e-8) {
          rNormalModulus = 0.0;
@@ -109,23 +146,40 @@ namespace Kratos
          return;
       }
 
-      double NormalStress = rNormalForce / rTangentVariables.Area;
-      double TangentStress = rTangentForce / rTangentVariables.Area;
-      
+      double NormalStress = rNormalForce;
+      double TangentStress = rTangentForce;
+      if ( rTangentVariables.Area > 0.0) {
+         NormalStress /= rTangentVariables.Area;
+         TangentStress /= rTangentVariables.Area;
+      }
 
-      double Hardening = EvaluateHardening( NormalStress, rTangentVariables.PlasticSlip, rTangentVariables);
+      if ( rTangentVariables.Implex ) {
+         if ( mDeltaPlasticSlip == 0)
+         {
+            /*rNormalModulus = 0.0;
+            rTangentModulus = 0.0;
+            return;*/
+         }
+         rNormalModulus = 0.0;
+         rTangentModulus = 0.0;
+         if ( rTangentForce > 0.0) {
+            rTangentModulus = rTangentVariables.TangentPenalty * rTangentVariables.Area * mDeltaPlasticSlip /  rTangentForce;
+         }
+      } else {
+         double Hardening = EvaluateHardening( NormalStress, rTangentVariables.PlasticSlip, rTangentVariables);
 
-      double dF_dt, dF_dp;  // derivatives of the yield function respect the tangential and normal contact stresses.
-      EvaluateYieldDerivativeRespectStress( dF_dt, dF_dp, TangentStress, NormalStress, rTangentVariables.PlasticSlip, rTangentVariables);
+         double dF_dt, dF_dp;  // derivatives of the yield function respect the tangential and normal contact stresses.
+         EvaluateYieldDerivativeRespectStress( dF_dt, dF_dp, TangentStress, NormalStress, rTangentVariables.PlasticSlip, rTangentVariables);
 
-      //double Auxiliar = -rTangentVariables.TangentPenalty / (rTangentVariables.TangentPenalty *dF_dt - Hardening);
+         //double Auxiliar = -rTangentVariables.TangentPenalty / (rTangentVariables.TangentPenalty *dF_dt - Hardening);
 
-      //rNormalModulus = ( rTangentVariables.TangentPenalty / ( Hardening + rTangentVariables.TangentPenalty)) * dF_dp ;
-      rNormalModulus = ( rTangentVariables.TangentPenalty / ( Hardening + rTangentVariables.TangentPenalty)) * dF_dp ;
-      rTangentModulus = Hardening * rTangentVariables.TangentPenalty / (  Hardening + rTangentVariables.TangentPenalty );
+         //rNormalModulus = ( rTangentVariables.TangentPenalty / ( Hardening + rTangentVariables.TangentPenalty)) * dF_dp ;
+         rNormalModulus = ( rTangentVariables.TangentPenalty / ( Hardening + rTangentVariables.TangentPenalty)) * dF_dp ;
+         rTangentModulus = Hardening * rTangentVariables.TangentPenalty / (  Hardening + rTangentVariables.TangentPenalty );
+      }
 
    }
 
 
-} // namespace Kratos
-
+}
+// namespace Kratos

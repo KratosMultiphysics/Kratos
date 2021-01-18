@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -24,12 +24,12 @@
 
 // Project includes
 #include "containers/array_1d.h"
+#include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
-#include "boost/make_shared.hpp"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -107,7 +107,7 @@ public:
     ///@{
 
     /// Pointer definition of VMS
-    KRATOS_CLASS_POINTER_DEFINITION(VMS);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VMS);
 
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;
@@ -141,10 +141,8 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-
     typedef array_1d<double, TNumNodes> ShapeFunctionsType;
-    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
+    typedef BoundedMatrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
 
     ///@}
     ///@name Life Cycle
@@ -189,7 +187,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~VMS()
+    ~VMS() override
     {}
 
 
@@ -205,22 +203,22 @@ public:
     /// Create a new element of this type
     /**
      * Returns a pointer to a new VMS element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
-	return boost::make_shared< VMS<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive< VMS<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
-    
+
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
-                           PropertiesType::Pointer pProperties) const
+                           PropertiesType::Pointer pProperties) const override
     {
-        return boost::make_shared< VMS<TDim, TNumNodes> >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< VMS<TDim, TNumNodes> >(NewId, pGeom, pProperties);
     }
 
     /// Provides local contributions from body forces and OSS projection terms
@@ -229,13 +227,13 @@ public:
      * system that are either constant or computed explicitly (from the 'old'
      * iteration variables). In this case this means the body force terms and the
      * OSS projections, that are treated explicitly.
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix. Not used here, required for compatibility purposes only.
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info
+     * @param rLeftHandSideMatrix the elemental left hand side matrix. Not used here, required for compatibility purposes only.
+     * @param rRightHandSideVector the elemental right hand side
+     * @param rCurrentProcessInfo the current process info
      */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -254,8 +252,8 @@ public:
      * @param rLeftHandSideMatrix Local matrix, will be filled with zeros
      * @param rCurrentProcessInfo Process info instance
      */
-    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -275,8 +273,8 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance from the ModelPart. It is
      * expected to contain values for OSS_SWITCH, DYNAMIC_TAU and DELTA_TIME
      */
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -289,7 +287,7 @@ public:
         // Calculate this element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -300,7 +298,8 @@ public:
         this->AddMomentumRHS(rRightHandSideVector, Density, N, Area);
 
         // For OSS: Add projection of residuals to RHS
-        if (rCurrentProcessInfo[OSS_SWITCH] == 1)
+        const ProcessInfo& r_const_process_info = rCurrentProcessInfo;
+        if (r_const_process_info[OSS_SWITCH] == 1)
         {
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
@@ -324,7 +323,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -337,7 +336,7 @@ public:
         // Get the element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -352,7 +351,8 @@ public:
          These terms are not used in OSS, as they belong to the finite element
          space and cancel out with their projections.
          */
-        if (rCurrentProcessInfo[OSS_SWITCH] != 1)
+        const ProcessInfo& r_const_process_info = rCurrentProcessInfo;
+        if (r_const_process_info[OSS_SWITCH] != 1)
         {
             double ElemSize = this->ElementSize(Area);
             double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
@@ -379,9 +379,9 @@ public:
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
+    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -395,7 +395,7 @@ public:
         // Get this element's geometric properties
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -434,7 +434,7 @@ public:
         noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
     }
 
-    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override
     {
     }
 
@@ -451,9 +451,9 @@ public:
      * @param rCurrentProcessInfo Process info instance (will be checked for OSS_SWITCH)
      * @see MarkForRefinement for a use of the error ratio
      */
-    virtual void Calculate(const Variable<double>& rVariable,
+    void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == ERROR_RATIO)
         {
@@ -465,7 +465,7 @@ public:
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Carefully write results to nodal variables, to avoid parallelism problems
@@ -490,16 +490,16 @@ public:
      * @param Output Will be overwritten with the elemental momentum error
      * @param rCurrentProcessInfo Process info instance (unused)
      */
-    virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+    void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == ADVPROJ) // Compute residual projections for OSS
         {
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Calculate this element's fluid properties
@@ -511,7 +511,7 @@ public:
             this->GetAdvectiveVel(AdvVel, N);
 
             // Output containers
-            array_1d< double, 3 > ElementalMomRes(3, 0.0);
+            array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
             double ElementalMassRes(0);
 
             this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
@@ -540,7 +540,7 @@ public:
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Calculate this element's fluid properties
@@ -552,7 +552,7 @@ public:
             this->GetAdvectiveVel(AdvVel, N);
 
             // Output containers
-            array_1d< double, 3 > ElementalMomRes(3,0.0);
+            array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
             double ElementalMassRes(0.0);
 
             this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
@@ -607,30 +607,30 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList,
+                    const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
     /**
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0);
+    void GetFirstDerivativesVector(Vector& Values, int Step = 0) const override;
 
     /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
     /**
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0);
+    void GetSecondDerivativesVector(Vector& Values, int Step = 0) const override;
 
     /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
     /**
@@ -642,9 +642,9 @@ public:
      * @param Output Will be filled with the values of the variable on integrartion points
      * @param rCurrentProcessInfo Process info instance
      */
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Obtain a double elemental variable, evaluated on gauss points.
     /**
@@ -658,15 +658,15 @@ public:
      * @param Output Will be filled with the values of the variable on integrartion points
      * @param rCurrentProcessInfo Process info instance
      */
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU || rVariable == TAU)
         {
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             array_1d<double, 3 > AdvVel;
@@ -706,7 +706,7 @@ public:
         {
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             rValues.resize(1, false);
@@ -716,7 +716,7 @@ public:
         {
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             array_1d<double, 3 > AdvVel;
@@ -793,21 +793,21 @@ public:
     }
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
             std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     ///@}
@@ -827,7 +827,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
@@ -835,57 +835,25 @@ public:
         int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
         if(ErrorCode != 0) return ErrorCode;
 
-        // Check that all required variables have been registered
-        if(VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-        if(MESH_VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
-        if(ACCELERATION.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if the application was correctly registered.","");
-        if(PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-        if(DENSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-        if(VISCOSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-        if(OSS_SWITCH.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"OSS_SWITCH Key is 0. Check if the application was correctly registered.","");
-        if(DYNAMIC_TAU.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_TAU Key is 0. Check if the application was correctly registered.","");
-        if(DELTA_TIME.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check if the application was correctly registered.","");
-        if(ADVPROJ.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"ADVPROJ Key is 0. Check if the application was correctly registered.","");
-        if(DIVPROJ.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DIVPROJ Key is 0. Check if the application was correctly registered.","");
-        if(NODAL_AREA.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"NODAL_AREA Key is 0. Check if the application was correctly registered.","");
-        if(C_SMAGORINSKY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"C_SMAGORINSKY Key is 0. Check if the application was correctly registered.","");
-        if(ERROR_RATIO.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"ERROR_RATIO Key is 0. Check if the application was correctly registered.","");
-        // Additional variables, only required to print results:
-        // SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
-
         // Checks on nodes
 
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
-            if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing ACCELERATION variable on solution step data for node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-                    this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-                    this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
+            const auto &rNode = this->GetGeometry()[i];
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VISCOSITY,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,rNode);
+            // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
+
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
+            if (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+            KRATOS_CHECK_DOF_IN_NODE(PRESSURE,rNode);
         }
         // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
 
@@ -895,7 +863,7 @@ public:
             for (unsigned int i=0; i<this->GetGeometry().size(); ++i)
             {
                 if (this->GetGeometry()[i].Z() != 0.0)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"Node with non-zero Z coordinate found. Id: ",this->GetGeometry()[i].Id());
+                    KRATOS_ERROR << "Node " << this->GetGeometry()[i].Id() << "has non-zero Z coordinate." << std::endl;
             }
         }
 
@@ -914,7 +882,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "VMS #" << Id();
@@ -922,7 +890,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "VMS" << TDim << "D";
     }
@@ -1025,7 +993,7 @@ protected:
     {
         double Coef = Density * Weight;
 
-        array_1d<double, 3 > BodyForce(3, 0.0);
+        array_1d<double, 3 > BodyForce = ZeroVector(3);
         this->EvaluateInPoint(BodyForce, BODY_FORCE, rShapeFunc);
 
         // Add the results to the velocity components (Local Dofs are vx, vy, [vz,] p for each node)
@@ -1048,7 +1016,7 @@ protected:
                                     const double TauOne,
                                     const double TauTwo,
                                     const array_1d<double, TNumNodes>& rShapeFunc,
-                                    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                                    const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                                     const double Weight,
                                     const double DeltaTime = 1.0)
     {
@@ -1057,7 +1025,7 @@ protected:
         array_1d<double, TNumNodes> AGradN;
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
-        array_1d<double,3> MomProj(3,0.0);
+        array_1d<double,3> MomProj = ZeroVector(3);
         double DivProj = 0.0;
         this->EvaluateInPoint(MomProj,ADVPROJ,rShapeFunc);
         this->EvaluateInPoint(DivProj,DIVPROJ,rShapeFunc);
@@ -1082,8 +1050,8 @@ protected:
     /**
      * Adds the lumped mass matrix to an elemental LHS matrix. Note that the time factor
      * (typically 1/(k*Dt) ) is added by the scheme outside the element.
-     * @param rLHSMatrix: The local matrix where the result will be added
-     * @param Mass: The weight assigned to each node (typically Density * Area / NumNodes or Density*Volume / NumNodes)
+     * @param rLHSMatrix The local matrix where the result will be added
+     * @param Mass The weight assigned to each node (typically Density * Area / NumNodes or Density*Volume / NumNodes)
      */
     void CalculateLumpedMassMatrix(MatrixType& rLHSMatrix,
                                    const double Mass)
@@ -1152,7 +1120,7 @@ protected:
                           const array_1d<double, 3 > & rAdvVel,
                           const double TauOne,
                           const array_1d<double, TNumNodes>& rShapeFunc,
-                          const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                          const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                           const double Weight)
     {
         const unsigned int BlockSize = TDim + 1;
@@ -1198,7 +1166,7 @@ protected:
             const double TauOne,
             const double TauTwo,
             const array_1d< double, TNumNodes >& rShapeFunc,
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+            const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
             const double Weight)
     {
         const unsigned int BlockSize = TDim + 1;
@@ -1211,7 +1179,7 @@ protected:
         unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
         double K, G, PDivV, L, qF; // Temporary results
 
-        array_1d<double,3> BodyForce(3,0.0);
+        array_1d<double,3> BodyForce = ZeroVector(3);
         this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
         BodyForce *= Density;
 
@@ -1296,7 +1264,7 @@ protected:
                                            array_1d< double, 3 > & rElementalMomRes,
                                            double& rElementalMassRes,
                                            const array_1d< double, TNumNodes >& rShapeFunc,
-                                           const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                                           const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                                            const double Weight)
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
@@ -1335,7 +1303,7 @@ protected:
                          const double Density,
                          array_1d< double, 3 > & rElementalMomRes,
                          const array_1d< double, TNumNodes >& rShapeFunc,
-                         const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                         const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                          const double Weight)
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
@@ -1374,7 +1342,7 @@ protected:
                         const double Density,
                         array_1d< double, 3 > & rElementalMomRes,
                         const array_1d< double, TNumNodes >& rShapeFunc,
-                        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                        const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                         const double Weight)
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
@@ -1418,7 +1386,7 @@ protected:
      */
     virtual double EffectiveViscosity(double Density,
                                       const array_1d< double, TNumNodes > &rN,
-                                      const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > &rDN_DX,
+                                      const BoundedMatrix<double, TNumNodes, TDim > &rDN_DX,
                                       double ElemSize,
                                       const ProcessInfo &rProcessInfo)
     {
@@ -1448,15 +1416,15 @@ protected:
      * @param rDN_DX Shape function derivatives at the integration point.
      * @return GammaDot = (2SijSij)^0.5.
      */
-    double EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > &rDN_DX) const;
+    double EquivalentStrainRate(const BoundedMatrix<double, TNumNodes, TDim > &rDN_DX) const;
 
 
     /// Write the advective velocity evaluated at this point to an array
     /**
      * Writes the value of the advective velocity evaluated at a point inside
      * the element to an array_1d
-     * @param rAdvVel: Output array
-     * @param rShapeFunc: Shape functions evaluated at the point of interest
+     * @param rAdvVel Output array
+     * @param rShapeFunc Shape functions evaluated at the point of interest
      */
     virtual void GetAdvectiveVel(array_1d< double, 3 > & rAdvVel,
                                  const array_1d< double, TNumNodes >& rShapeFunc)
@@ -1472,9 +1440,9 @@ protected:
     /**
      * Writes the value of the advective velocity evaluated at a point inside
      * the element to an array_1d
-     * @param rAdvVel: Output array
-     * @param rShapeFunc: Shape functions evaluated at the point of interest
-     * @param Step: The time Step
+     * @param rAdvVel Output array
+     * @param rShapeFunc Shape functions evaluated at the point of interest
+     * @param Step The time Step
      */
     virtual void GetAdvectiveVel(array_1d< double, 3 > & rAdvVel,
                                  const array_1d< double, TNumNodes >& rShapeFunc,
@@ -1490,14 +1458,14 @@ protected:
     /// Write the convective operator evaluated at this point (for each nodal funciton) to an array
     /**
      * Evaluate the convective operator for each node's shape function at an arbitrary point
-     * @param rResult: Output vector
-     * @param rVelocity: Velocity evaluated at the integration point
-     * @param rShapeDeriv: Derivatives of shape functions evaluated at the integration point
+     * @param rResult Output vector
+     * @param rVelocity Velocity evaluated at the integration point
+     * @param rShapeDeriv Derivatives of shape functions evaluated at the integration point
      * @see GetAdvectiveVel provides rVelocity
      */
     void GetConvectionOperator(array_1d< double, TNumNodes >& rResult,
                                const array_1d< double, 3 > & rVelocity,
-                               const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
+                               const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv)
     {
         // Evaluate (and weight) the a * Grad(Ni) operator in the integration point, for each node i
         for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) // Loop over nodes
@@ -1514,10 +1482,10 @@ protected:
      * Evaluate a scalar variable in the point where the form functions take the
      * values given by rShapeFunc and write the result to rResult.
      * This is an auxiliary function used to compute values in integration points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
-     * @param Step: The time Step (Defaults to 0 = Current)
+     * @param rResult The double where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
+     * @param Step The time Step (Defaults to 0 = Current)
      */
     virtual void EvaluateInPoint(double& rResult,
                                  const Variable< double >& rVariable,
@@ -1536,9 +1504,9 @@ protected:
      * Evaluate a scalar variable in the point where the form functions take the
      * values given by rShapeFunc and write the result to rResult.
      * This is an auxiliary function used to compute values in integration points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
+     * @param rResult The double where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
      */
     virtual void EvaluateInPoint(array_1d< double, 3 > & rResult,
                                  const Variable< array_1d< double, 3 > >& rVariable,
@@ -1570,7 +1538,7 @@ protected:
      * @param Weight Effective viscosity, in dynamic units, weighted by the integration point area
      */
     virtual void AddViscousTerm(MatrixType& rDampingMatrix,
-                                const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                                const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                                 const double Weight);
 
     /// Adds the contribution of the viscous term to the momentum equation (alternate).
@@ -1585,18 +1553,18 @@ protected:
      * @param Weight Effective viscosity, in dynamic units, weighted by the integration point area
      */
     void AddBTransCB(MatrixType& rDampingMatrix,
-                     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                     const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                      const double Weight)
     {
-        boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes)/2, TDim*TNumNodes > B;
-        boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes)/2, (TDim*TNumNodes)/2 > C;
+        BoundedMatrix<double, (TDim * TNumNodes)/2, TDim*TNumNodes > B;
+        BoundedMatrix<double, (TDim * TNumNodes)/2, (TDim*TNumNodes)/2 > C;
         this->CalculateB(B,rShapeDeriv);
         this->CalculateC(C,Weight);
 
         const unsigned int BlockSize = TDim + 1;
         const unsigned int StrainSize = (TDim*TNumNodes)/2;
 
-        vector<unsigned int> aux(TDim*TNumNodes);
+        DenseVector<unsigned int> aux(TDim*TNumNodes);
         for(unsigned int i=0; i<TNumNodes; i++)
         {
             int base_index = TDim*i;
@@ -1627,7 +1595,7 @@ protected:
     }
 
     void ModulatedGradientDiffusion(MatrixType& rDampingMatrix,
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rDN_DX,
+            const BoundedMatrix<double, TNumNodes, TDim >& rDN_DX,
             const double Weight)
     {
         const GeometryType& rGeom = this->GetGeometry();
@@ -1643,7 +1611,7 @@ protected:
         }
 
         // Element lengths
-        array_1d<double,3> Delta(3,0.0);
+        array_1d<double,3> Delta;
         Delta[0] = std::fabs(rGeom[TNumNodes-1].X()-rGeom[0].X());
         Delta[1] = std::fabs(rGeom[TNumNodes-1].Y()-rGeom[0].Y());
         Delta[2] = std::fabs(rGeom[TNumNodes-1].Z()-rGeom[0].Z());
@@ -1716,7 +1684,7 @@ protected:
             }
         }
 
-    } 
+    }
 
     /// Calculate the strain rate matrix
     /**
@@ -1724,8 +1692,8 @@ protected:
      * @param rB Strain rate matrix
      * @param rShapeDeriv Nodal shape funcion derivatives
      */
-    void CalculateB( boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes) / 2, TDim * TNumNodes >& rB,
-                     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv);
+    void CalculateB( BoundedMatrix<double, (TDim * TNumNodes) / 2, TDim * TNumNodes >& rB,
+                     const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv);
 
     /// Calculate a matrix that provides the stress given the strain rate
     /**
@@ -1735,7 +1703,7 @@ protected:
      * @param rC Matrix representation of the stress tensor (output)
      * @param Viscosity Effective viscosity, in dynamic units, weighted by the integration point area
      */
-    virtual void CalculateC( boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes) / 2, (TDim * TNumNodes) / 2 >& rC,
+    virtual void CalculateC( BoundedMatrix<double, (TDim * TNumNodes) / 2, (TDim * TNumNodes) / 2 >& rC,
                              const double Viscosity);
 
     double ConsistentMassCoef(const double Area);
@@ -1746,7 +1714,7 @@ protected:
         // Get the element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -1761,7 +1729,7 @@ protected:
         this->GetAdvectiveVel(AdvVel, N);
 
         // Output container
-        array_1d< double, 3 > ElementalMomRes(3, 0.0);
+        array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
 
         // Calculate stabilization parameter. Note that to estimate the subscale velocity, the dynamic coefficient in TauOne is assumed zero.
         double TauOne;
@@ -1780,7 +1748,7 @@ protected:
 
         // Error estimation ( ||U'|| / ||Uh_gauss|| ), taking ||U'|| = TauOne ||MomRes||
         double ErrorRatio(0.0);//, UNorm(0.0);
-        //array_1d< double, 3 > UGauss(3, 0.0);
+        //array_1d< double, 3 > UGauss = ZeroVector(3);
         //this->EvaluateInPoint(UGauss,VELOCITY,N);
 
         for (unsigned int i = 0; i < TDim; ++i)
@@ -1826,12 +1794,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

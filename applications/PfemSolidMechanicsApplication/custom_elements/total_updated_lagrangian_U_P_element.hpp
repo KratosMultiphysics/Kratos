@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_P_element.hpp"
+#include "custom_elements/solid_elements/updated_lagrangian_U_P_element.hpp"
 
 
 namespace Kratos
@@ -42,7 +42,7 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D
  */
 
-class TotalUpdatedLagrangianUPElement
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) TotalUpdatedLagrangianUPElement
     : public UpdatedLagrangianUPElement
 {
 public:
@@ -57,6 +57,10 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef UpdatedLagrangianUPElement::ElementDataType ElementDataType;
 
     /// Counted pointer of TotalUpdatedLagrangianUPElement
     KRATOS_CLASS_POINTER_DEFINITION( TotalUpdatedLagrangianUPElement );
@@ -97,7 +101,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 
     /**
@@ -107,7 +111,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
     //************* STARTING - ENDING  METHODS
 
@@ -160,35 +164,35 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                            GeneralVariables& rVariables,
-                            double& rIntegrationWeight);
+                            ElementDataType& rVariables,
+                            double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                            GeneralVariables& rVariables,
+                            ElementDataType& rVariables,
                             Vector& rVolumeForce,
-                            double& rIntegrationWeight);
+                            double& rIntegrationWeight) override;
 
     /**
      * Initialize Element General Variables
      */
-    void InitializeGeneralVariables(GeneralVariables & rVariables, 
-				    const ProcessInfo& rCurrentProcessInfo);
+    void InitializeElementData(ElementDataType & rVariables, 
+				    const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Transform Element General Variables
      */
-    void TransformGeneralVariables(GeneralVariables & rVariables,
-				   const double& rPointNumber);
+    void TransformElementData(ElementDataType & rVariables,
+				   const double& rPointNumber) override;
 
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(GeneralVariables& rVariables,
-                             const double& rPointNumber);
+    void CalculateKinematics(ElementDataType& rVariables,
+                             const double& rPointNumber) override;
 
 
     /**
@@ -202,19 +206,19 @@ protected:
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( GeneralVariables& rVariables, 
-				 const double& rPointNumber );
+    void GetHistoricalVariables( ElementDataType& rVariables, 
+				 const double& rPointNumber ) override;
 
 
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
+    double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
     /**
      * Calculation of the DN_DX in the updated configuration
      */
-    void CalculatePushForwardDN_DX(GeneralVariables& rVariables);
+    void CalculatePushForwardDN_DX(ElementDataType& rVariables);
 
     ///@}
     ///@name Protected  Access
@@ -258,9 +262,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

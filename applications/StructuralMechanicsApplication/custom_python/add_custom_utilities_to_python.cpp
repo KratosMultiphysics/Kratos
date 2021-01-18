@@ -12,67 +12,65 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-
 #include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
 
 //Utilities
-#include "custom_utilities/sprism_neighbours.hpp"
-#include "custom_utilities/eigenvector_to_solution_step_variable_transfer_utility.hpp"
+#include "custom_utilities/rayleigh_damping_coefficients_utilities.h"
+#include "custom_utilities/explicit_integration_utilities.h"
+#include "custom_utilities/rve_periodicity_utility.h"
+#include "custom_utilities/project_vector_on_surface_utility.h"
+#include "custom_utilities/perturb_geometry_sparse_utility.h"
+#include "custom_utilities/perturb_geometry_subgrid_utility.h"
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-namespace Python
-{
+    namespace py = pybind11;
 
-inline
-void TransferEigenvector1(
-        EigenvectorToSolutionStepVariableTransferUtility& rThisUtil,
-        ModelPart& rModelPart,
-        int iEigenMode)
-{
-    rThisUtil.Transfer(rModelPart,iEigenMode);
-}
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-inline
-void TransferEigenvector2(
-        EigenvectorToSolutionStepVariableTransferUtility& rThisUtil,
-        ModelPart& rModelPart,
-        int iEigenMode,
-        int step)
-{
-    rThisUtil.Transfer(rModelPart,iEigenMode,step);
-}
+    // Base types
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverTypeSparse;
+    typedef LinearSolverTypeSparse::Pointer LinearSolverPointerTypeSparse;
 
-void  AddCustomUtilitiesToPython()
-{
-    using namespace boost::python;
+    typedef LinearSolver<LocalSpaceType, LocalSpaceType > LinearSolverTypeDense;
+    typedef LinearSolverTypeDense::Pointer LinearSolverPointerTypeDense;
 
-//     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-//     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-//     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    
-    class_<SprismNeighbours>("SprismNeighbours", init<ModelPart&>())
-    .def("Execute",&SprismNeighbours::Execute)
-    .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
-    ;
+    // RayleighDampingCoefficientsUtilities
+    m.def("ComputeDampingCoefficients",&RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients);
 
-    class_<EigenvectorToSolutionStepVariableTransferUtility>(
-                "EigenvectorToSolutionStepVariableTransferUtility")
-    .def("Transfer",TransferEigenvector1)
-    .def("Transfer",TransferEigenvector2)
-    ;
+    // ExplicitIntegrationUtilities
+    m.def("CalculateDeltaTime",&ExplicitIntegrationUtilities::CalculateDeltaTime);
 
+    py::class_<RVEPeriodicityUtility>(m,"RVEPeriodicityUtility")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, std::size_t>())
+        .def("AssignPeriodicity",&RVEPeriodicityUtility::AssignPeriodicity)
+        .def("Finalize",&RVEPeriodicityUtility::Finalize)
+        ;
+
+    py::class_<ProjectVectorOnSurfaceUtility>(m,"ProjectVectorOnSurfaceUtility")
+        .def_static("Execute",&ProjectVectorOnSurfaceUtility::Execute);
+
+    py::class_<PerturbGeometrySparseUtility, PerturbGeometrySparseUtility::Pointer>(m,"PerturbGeometrySparseUtility")
+        .def(py::init<ModelPart&,LinearSolverPointerTypeSparse, Parameters>())
+        .def("CreateRandomFieldVectors", &PerturbGeometrySparseUtility::CreateRandomFieldVectors)
+        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySparseUtility::ApplyRandomFieldVectorsToGeometry)
+        ;
+
+    py::class_<PerturbGeometrySubgridUtility, PerturbGeometrySubgridUtility::Pointer>(m,"PerturbGeometrySubgridUtility")
+        .def(py::init<ModelPart&, LinearSolverPointerTypeDense, Parameters>())
+        .def("CreateRandomFieldVectors", &PerturbGeometrySubgridUtility::CreateRandomFieldVectors)
+        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySubgridUtility::ApplyRandomFieldVectorsToGeometry)
+        ;
 }
 
 }  // namespace Python.
-
 } // Namespace Kratos
 

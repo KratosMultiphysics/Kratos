@@ -1,8 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.7 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Josep Maria Carbonell
 //
 //
 
@@ -22,7 +27,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLobattoIntegrationPoints1
+class QuadrilateralGaussLobattoIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints1);
@@ -32,7 +37,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 2> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 2> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -41,11 +46,13 @@ public:
         return 2;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0] = IntegrationPointType( -1.00 , 0.00, 1.00 );
-        msIntegrationPoints[1] = IntegrationPointType(  1.00 , 0.00, 1.00 );
-        return msIntegrationPoints;
+        static const IntegrationPointsArrayType s_integration_points{{
+            IntegrationPointType( -1.00 , 0.00, 1.00 ),
+            IntegrationPointType(  1.00 , 0.00, 1.00 )
+        }};
+        return s_integration_points;
     }
 
     std::string Info() const
@@ -54,15 +61,11 @@ public:
         buffer << "Quadrilateral Gauss-Lobatto integration 1 ";
         return buffer.str();
     }
-protected:
 
-private:
 
-    static IntegrationPointsArrayType msIntegrationPoints;
-    
 }; // Class QuadrilateralGaussLobattoIntegrationPoints1
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLobattoIntegrationPoints2
+class QuadrilateralGaussLobattoIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints2);
@@ -72,7 +75,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 4> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -81,14 +84,15 @@ public:
         return 4;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
-        // This is added to solve the problem of static initialization. Pooyan.
-        msIntegrationPoints[0] = IntegrationPointType( -1.00 , -1.00, 0.50 );
-        msIntegrationPoints[1] = IntegrationPointType(  1.00 , -1.00, 0.50 );
-        msIntegrationPoints[2] = IntegrationPointType(  1.00 ,  1.00, 0.50 );
-        msIntegrationPoints[3] = IntegrationPointType( -1.00 ,  1.00, 0.50 );
-        return msIntegrationPoints;
+        static const IntegrationPointsArrayType s_integration_points{{
+            IntegrationPointType( -1.00 , -1.00, 0.50 ),
+            IntegrationPointType(  1.00 , -1.00, 0.50 ),
+            IntegrationPointType(  1.00 ,  1.00, 0.50 ),
+            IntegrationPointType( -1.00 ,  1.00, 0.50 )
+        }};
+        return s_integration_points;
     }
 
     std::string Info() const
@@ -97,17 +101,13 @@ public:
         buffer << "Quadrilateral Gauss-Lobatto integration 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 }; // Class QuadrilateralGaussLobattoIntegrationPoints2
 
 
 
 }
 
-#endif // KRATOS_QUADRILATERAL_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED defined 
+#endif // KRATOS_QUADRILATERAL_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED defined
 
 

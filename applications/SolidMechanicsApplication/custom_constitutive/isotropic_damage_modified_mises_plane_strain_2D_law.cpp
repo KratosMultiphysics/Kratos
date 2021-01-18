@@ -8,10 +8,8 @@
 //
 
 // System includes
-#include <iostream>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/custom_flow_rules/isotropic_damage_flow_rule.hpp"
 #include "custom_constitutive/custom_yield_criteria/modified_mises_yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/modified_exponential_damage_hardening_law.hpp"
@@ -57,8 +55,7 @@ IsotropicDamageModifiedMisesPlaneStrain2DLaw::IsotropicDamageModifiedMisesPlaneS
 
 ConstitutiveLaw::Pointer IsotropicDamageModifiedMisesPlaneStrain2DLaw::Clone() const
 {
-    IsotropicDamageModifiedMisesPlaneStrain2DLaw::Pointer p_clone(new IsotropicDamageModifiedMisesPlaneStrain2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<IsotropicDamageModifiedMisesPlaneStrain2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -90,7 +87,7 @@ int IsotropicDamageModifiedMisesPlaneStrain2DLaw::Check(const Properties& rMater
         KRATOS_THROW_ERROR( std::invalid_argument,"RESIDUAL_STRENGTH has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
     if(SOFTENING_SLOPE.Key() == 0 || rMaterialProperties.Has( SOFTENING_SLOPE ) == false || rMaterialProperties[SOFTENING_SLOPE] < 0.0)
         KRATOS_THROW_ERROR( std::invalid_argument,"SOFTENING_SLOPE has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
-        
+
     return ierr;
 }
 

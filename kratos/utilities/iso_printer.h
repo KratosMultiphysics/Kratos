@@ -1,8 +1,13 @@
-
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: pbecker $
-//   Date:                $Date: 2010-05-12 $
-//   Revision:            $Revision: 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pablo Becker
 //
 //
 
@@ -43,14 +48,12 @@
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
 //#include "utilities/split_triangle.h"
-#include "utilities/split_triangle.c"
+#include "utilities/split_triangle.h"
 #include "utilities/split_tetrahedra.h"
 //#include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_3d_3.h"
 #include "utilities/geometry_utilities.h"
-//#include "processes/node_erase_process.h"
-//#include "custom_utilities/parallel_fill_communicator.h"
 // #include "spatial_containers/spatial_containers.h"
 
 
@@ -95,9 +98,9 @@ public:
     typedef ModelPart::NodesContainerType NodesArrayType;
     typedef ModelPart::ElementsContainerType ElementsArrayType;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    typedef boost::numeric::ublas::vector<Matrix> Matrix_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector> Vector_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
+    typedef DenseVector<Matrix> Matrix_Order_Tensor;
+    typedef DenseVector<Vector> Vector_Order_Tensor;
+    typedef DenseVector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
     typedef Node < 3 > PointType;
     typedef Node < 3 > ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
@@ -257,7 +260,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    
+
     //**********************************************************************************************************************
 
 
@@ -508,7 +511,7 @@ public:
 
 
 protected:
-    boost::numeric::ublas::vector<bool> m_used_nodes;
+    DenseVector<bool> m_used_nodes;
     ModelPart& mr_model_part;
 
 
@@ -520,6 +523,6 @@ protected:
 
 } // namespace Kratos.
 
-#endif // KRATOS_ISO_PRINTING_APP  defined 
+#endif // KRATOS_ISO_PRINTING_APP  defined
 
 

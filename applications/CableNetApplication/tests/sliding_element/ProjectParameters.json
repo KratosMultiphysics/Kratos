@@ -1,0 +1,93 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "se",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 6.0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Dynamic",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
+        "time_integration_method"            : "explicit",
+        "scheme_type"                        : "central_differences",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "sliding_element/FEM"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "sliding_element/StructuralMaterials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.0010
+        },
+        "rotation_dofs"                      : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_dirich",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },
+        {
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_dirichXY",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,false,true],
+                "value"           : [null,null,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process sets a vector variable value over a condition according to a given modulus an direction",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionToConditionProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Structure.PointLoad3D_Load_on_points_Auto1",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : "10000*t",
+                "direction"       : [1.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "kratos_module" : "KratosMultiphysics.CableNetApplication",
+            "python_module" : "edge_cable_element_process",
+            "process_name"  : "EdgeCableElementProcess",
+            "Parameters"    : {
+                "edge_sub_model_part_name"  : "Structure.EdgeCablePart1",
+                "node_id_order"             : [1,2,3,4],
+                "element_type"              : "cable",
+                "element_id"                : 5,
+                "property_id"               : 2
+            }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["DISPLACEMENT_X"],
+                "input_file_name"  : "sliding_element/sliding_node_results.json",
+                "model_part_name"  : "Structure.EdgeCablePart1",
+                "time_frequency"   : 0.1
+            }
+        }],
+        "list_other_processes"     : []
+    },
+    "output_processes" : {
+        "gid_output" : []
+    }
+}

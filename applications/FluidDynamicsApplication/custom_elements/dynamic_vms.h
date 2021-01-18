@@ -1,47 +1,13 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: jcotela $
-//   Date:                $Date: 2011-04-29 12:30:00 $
-//   Revision:            $Revision: 0.2 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Jordi Cotela
 //
 
 
@@ -143,7 +109,7 @@ public:
     ///@{
 
     /// Pointer definition of DynamicVMS
-    KRATOS_CLASS_POINTER_DEFINITION(DynamicVMS);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DynamicVMS);
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
@@ -199,7 +165,7 @@ public:
     DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties, const GeometryData::IntegrationMethod ThisIntegrationMethod);
 
     /// Destructor.
-    virtual ~DynamicVMS();
+    ~DynamicVMS() override;
 
     ///@}
     ///@name Operators
@@ -214,38 +180,49 @@ public:
     /**
      * Returns a pointer to a new DynamicVMS element, created using given input.
      * The new element will use the same number of integration points as the original.
-     * @param NewId: the ID of the new element.
-     * @param ThisNodes: the nodes of the new element.
-     * @param pProperties: the properties assigned to the new element.
+     * @param NewId the ID of the new element.
+     * @param ThisNodes the nodes of the new element.
+     * @param pProperties the properties assigned to the new element.
      * @return a Pointer to the new element.
      */
-    virtual Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                                    PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
+                                    PropertiesType::Pointer pProperties) const override;
+
+    /// Create a new element of this type.
+	/**
+	 @param NewId Index of the new element
+     @param pGeom A pointer to the geometry of the new element
+	 @param pProperties Pointer to the element's properties
+	 */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override;
 
     /// Initialize containters for subscales on integration points.
-    virtual void Initialize();
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief Prepare the element for a new solution step.
      * Update the values on the subscales and evaluate elemental shape functions.
      * @param rCurrentProcessInfo. ProcessInfo instance (unused).
      */
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Calculate a new value for the velocity subscale.
     /**
      * @param rCurrentProcessInfo ProcessInfo instance containig the time step as DELTA_TIME
      */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                       VectorType &rRightHandSideVector,
-                                      ProcessInfo &rCurrentProcessInfo);
+                                     const ProcessInfo &rCurrentProcessInfo) override;
 
 
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Computes the local contribution associated to 'new' velocity and pressure values
@@ -257,11 +234,11 @@ public:
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
+    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType &rMassMatrix, const ProcessInfo &rCurrentProcessInfo) override;
 
 
     /// Provides the global indices for each one of this element's local rows
@@ -271,68 +248,68 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList,
+                    const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
     /**
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
     /**
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
 //    virtual void Calculate(const Variable<double>& rVariable,
 //                           double& rOutput,
 //                           const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void Calculate(const Variable< array_1d<double,3> >& rVariable,
+    void Calculate(const Variable< array_1d<double,3> >& rVariable,
                            array_1d<double,3>& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo);
+                           const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
             std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
-    virtual void SetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo);
+    void SetValuesOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -341,7 +318,7 @@ public:
     /// Accessor to the integration method.
     /** GiDIO uses it to determine the number of Gauss Points on each element.
      */
-    virtual GeometryData::IntegrationMethod GetIntegrationMethod() const;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     ///@}
     ///@name Inquiry
@@ -353,12 +330,12 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const override;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override;
 
-    virtual void PrintData(std::ostream &rOStream) const;
+    void PrintData(std::ostream &rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -581,10 +558,10 @@ private:
     /// Default constructor
     DynamicVMS();
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
 
     ///@}

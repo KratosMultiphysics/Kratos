@@ -1,67 +1,31 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:33 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 //
-
 
 #if !defined(KRATOS_VARIABLE_H_INCLUDED )
 #define  KRATOS_VARIABLE_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "variable_data.h"
-
+#include "utilities/stl_vector_io.h"
 
 namespace Kratos
 {
@@ -85,13 +49,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Variable class contains all information needed to store and retrive data from a data container.
-/** Variable class contains all information needed to store and
-    retrive data from a data container.  It contains key value which
-    is needed for searching in data container. Also a zero value to
-    use as a default value in the container. Finally it has the type of
-    the Variable as its template parameter so the container can find it
-    in its relative part.
+/**
+ * @class Variable
+ * @brief Variable class contains all information needed to store and retrive data from a data container.
+ * @details Variable class contains all information needed to store and retrive data from a data container.  It contains key value which is needed for searching in data container. Also a zero value to use as a default value in the container. Finally it has the type of the Variable as its template parameter so the container can find it in its relative part.
+* @tparam TDataType The data type hold by the variable
+* @ingroup KratosCore
+* @author Pooyan Dadvand
 */
 template<class TDataType>
 class Variable : public VariableData
@@ -116,98 +80,270 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** Constructor with specific name and zero value */
-    Variable(const std::string& NewName, const TDataType Zero = TDataType())
-        : VariableData(NewName, sizeof(TDataType)), mZero(Zero)
+    /**
+     * @brief Constructor with specific name and zero value
+     * @param NewName The name to be assigned to the new variable
+     * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
+     * @param pTimeDerivativeVariable Pointer to the time derivative variable
+     */
+    explicit Variable(
+        const std::string& NewName,
+        const TDataType Zero = TDataType(),
+        const VariableType* pTimeDerivativeVariable = nullptr
+        )
+        : VariableData(NewName, sizeof(TDataType)),
+          mZero(Zero),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable)
+    {
+    }
+    /**
+     * @brief Constructor with specific name and zero value
+     * @param NewName The name to be assigned to the new variable
+     * @param pTimeDerivativeVariable Pointer to the time derivative variable
+     */
+    explicit Variable(
+        const std::string& NewName,
+        const VariableType* pTimeDerivativeVariable
+        )
+        : VariableData(NewName, sizeof(TDataType)),
+          mZero(TDataType()),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {
     }
 
-    /// Copy constructor.
-    Variable(const VariableType& rOtherVariable) : VariableData(rOtherVariable), mZero(rOtherVariable.mZero) {}
+    /**
+     * @brief Constructor for creating a component of other variable
+     * @param rNewName The name to be assigned to the compoenent
+     * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
+     */
+    template<typename TSourceVariableType>
+    explicit Variable(
+        const std::string& rNewName,
+        TSourceVariableType* pSourceVariable,
+        char ComponentIndex,
+        const TDataType Zero = TDataType()
+        )
+        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
+          mZero(Zero)
+    {
+    }
+
+    /**
+     * @brief Constructor for creating a component of other variable
+     * @param rNewName The name to be assigned to the compoenent
+     * @param pTimeDerivativeVariable Pointer to the time derivative variable
+     * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
+     */
+    template<typename TSourceVariableType>
+    explicit Variable(
+        const std::string& rNewName,
+        TSourceVariableType* pSourceVariable,
+        char ComponentIndex,
+        const VariableType* pTimeDerivativeVariable,
+        const TDataType Zero = TDataType()
+        )
+        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
+          mZero(Zero),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable)
+    {
+    }
+
+    /**
+     * Copy constructor.
+     * @brief Copy constructor.
+     * @param rOtherVariable The old variable to be copied
+     */
+    explicit Variable(const VariableType& rOtherVariable) :
+        VariableData(rOtherVariable),
+        mZero(rOtherVariable.mZero),
+        mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
+    {
+    }
 
     /// Destructor.
-    virtual ~Variable() {}
+    ~Variable() override {}
 
     ///@}
     ///@name Operators
     ///@{
-    
-    /// Assignment operator.
-    VariableType& operator=(const VariableType& rOtherVariable)
-    {
-        VariableData::operator=(rOtherVariable);
-        mZero = rOtherVariable.mZero;
-        return *this;
-    }
+
+    /**
+     * @brief Assignment operator, deleted to avoid misuse which can lead to memory problems
+     */
+    VariableType& operator=(const VariableType& rOtherVariable) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Clone creates a copy of the object using a copy constructor of the class.
+     * @details It is useful to avoid shallow copying of complex objects and also without actually having information about the variable type.
+     * @param pSource The pointer of the variable to be cloned
+     * @return A raw pointer of the variable
+     */
     void* Clone(const void* pSource) const override
     {
         return new TDataType(*static_cast<const TDataType* >(pSource) );
     }
 
+    /**
+     * @brief Copy is very similar to Clone except that it also the destination pointer also passed to it.
+     * @details It is a helpful method specially to create a copy of heterogeneous data arrays
+     * @param pSource The pointer of the variable to be copied
+     * @param pDestination The pointer of the destination variable
+     * @return A raw pointer of the variable
+     */
     void* Copy(const void* pSource, void* pDestination) const override
     {
         return new(pDestination) TDataType(*static_cast<const TDataType* >(pSource) );
     }
 
+    /**
+     * @brief Assign is very similar to Copy. It just differs in using an assignment operator besides the copy constructor. Copy creates a new object while
+     * @details Assign does the assignment for two existing objects.
+     * @param pSource The pointer of the value to be assigned
+     * @param pDestination The pointer of the destination value
+     */
     void Assign(const void* pSource, void* pDestination) const override
     {
         (*static_cast<TDataType* >(pDestination) ) = (*static_cast<const TDataType* >(pSource) );
     }
 
+    /**
+     * @brief AssignZero is a special case of Assign for which variable zero value used as source.
+     * @details This method is useful for initializing arrays or resetting values in memory.
+     * @param pDestination The pointer of the destination variable
+     */
     void AssignZero(void* pDestination) const override
     {
         //(*static_cast<TDataType* >(pDestination) ) = mZero;
         new (pDestination) TDataType(mZero);
     }
 
+    /**
+     * @brief Delete removes an object of variable type from memory.
+     * @details It calls a destructor of objects to prevent memory leak and frees the memory allocated for this object assuming that the object is allocated in heap.
+     * @param pSource The pointer of the variable to be deleted
+     */
     void Delete(void* pSource) const override
     {
         delete static_cast<TDataType* >(pSource);
     }
 
+    /**
+     * @brief Destruct eliminates an object maintaining the memory it is using.
+     * @details However, the unlike Delete it does nothing with the memory allocated to it.
+     * So it is very useful in case of reallocating a part of the memory.
+     * @param pSource The pointer of the variable to be destructed
+     */
     void Destruct(void* pSource) const override
     {
         static_cast<TDataType* >(pSource)->~TDataType();
     }
 
+    /**
+     * @brief Print is an auxiliary method to produce output of given variable knowing its address.
+     * @details For example writing an heterogenous container in an output stream can be done using this method. Point assumes that the streaming operator is defined for the variable type.
+     * @param pSource The pointer of the variable to be printed
+     * @param rOStream The stream used to print the information
+     */
     void Print(const void* pSource, std::ostream& rOStream) const override
     {
-        rOStream << Name() << " : " << *static_cast<const TDataType* >(pSource) ;
+        if(IsComponent()) {
+            rOStream << Name() << " component of " <<  GetSourceVariable().Name() << " variable : " <<  *static_cast<const TDataType* >(pSource) ;
+        }
+        else {
+            rOStream << Name() << " : " << *static_cast<const TDataType* >(pSource) ;
+        }
     }
 
-    virtual void Save(Serializer& rSerializer, void* pData) const override
+    /**
+     * @brief PrintData is an auxiliary method to produce output only the value of given variable knowing its address.
+     * @details For example writing an heterogenous container in an output stream can be done using this method. Point assumes that the streaming operator is defined for the variable type.
+     * @param pSource The pointer of the variable to be printed
+     * @param rOStream The stream used to print the information
+     */
+    void PrintData(const void* pSource, std::ostream& rOStream) const override
+    {
+        rOStream <<  *static_cast<const TDataType* >(pSource) ;
+    }
+
+    /**
+     * @brief The save operation which backups the data of the class
+     * @param rSerializer The serializer used to preserve the information
+     * @param pData A pointer to the data to be saved
+     */
+    void Save(Serializer& rSerializer, void* pData) const override
     {
         // I'm saving by the value, it can be done by the pointer to detect shared data. Pooyan.
         rSerializer.save("Data",*static_cast<TDataType* >(pData));
     }
 
-    virtual void Allocate(void** pData) const override
+    /**
+     * @brief This method allocates the data of the variable
+     * @param pData A pointer to the data to be allocated
+     */
+    void Allocate(void** pData) const override
     {
         *pData = new TDataType;
     }
 
-    virtual void Load(Serializer& rSerializer, void* pData) const override
+    /**
+     * @brief The load operation which restores the data of the class
+     * @param rSerializer The serializer used to preserve the information
+     * @param pData A pointer to the data to be loaded
+     */
+    void Load(Serializer& rSerializer, void* pData) const override
     {
         rSerializer.load("Data",*static_cast<TDataType* >(pData));
     }
 
+    /**
+     * @brief This method returns the variable type
+     * @return The type of the variable
+     */
     static const VariableType& StaticObject()
     {
-        return msStaticObject;
+        const static Variable<TDataType> static_object("NONE");
+        return static_object;
+    }
+
+    TDataType& GetValue(void* pSource) const
+    {
+        return GetValueByIndex(static_cast<TDataType*>(pSource),GetComponentIndex());
+    }
+
+    const TDataType& GetValue(const void* pSource) const
+    {
+        return GetValueByIndex(static_cast<TDataType*>(pSource),GetComponentIndex());
     }
 
     ///@}
     ///@name Access
     ///@{
 
+    /**
+     * @brief This method returns the time derivative variable
+     * @return The reference of the time derivative variable (if any)
+     */
+    const VariableType& GetTimeDerivative() const
+    {
+        KRATOS_DEBUG_ERROR_IF(mpTimeDerivativeVariable == nullptr) << "Time derivative for Variable \"" << Name() << "\" was not assigned" << std::endl;
+        return *mpTimeDerivativeVariable;
+    }
+
+    /**
+     * @brief This method returns the zero value of the variable type
+     * @return The zero value of the corresponding variable
+     */
     const TDataType& Zero() const
     {
         return mZero;
+    }
+
+    const void* pZero() const override {
+       return &mZero;
     }
 
     ///@}
@@ -219,23 +355,35 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-    virtual std::string Info() const override
+    /**
+     * Turn back information as a string.
+     */
+    std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << Name() << " variable";
+        buffer << Name() << " variable" <<" #" << static_cast<unsigned int>(Key());
+        if(IsComponent()){
+            buffer << Name() << " variable #" << static_cast<unsigned int>(Key()) << " component " << GetComponentIndex() << " of " <<  GetSourceVariable().Name();
+        }
+        else {
+            buffer << Name() << " variable #" << static_cast<unsigned int>(Key());
+        }
         return buffer.str();
     }
 
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    /**
+     * Print information about this object.
+     * @param rOStream The stream used to print the information
+     */
+    void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Name() << " variable";
+        rOStream << Info();
     }
 
     /// Print object's data.
-//       virtual void PrintData(std::ostream& rOStream) const;
-
+    void PrintData(std::ostream& rOStream) const override{
+        VariableData::PrintData(rOStream);
+    }
 
     ///@}
     ///@name Friends
@@ -258,7 +406,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
- 
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -285,13 +433,15 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static const VariableType msStaticObject;
+    static const VariableType msStaticObject;               /// Definition of the static variable
 
     ///@}
     ///@name Member Variables
     ///@{
 
-    TDataType mZero;
+    TDataType mZero;                                        /// The zero type contains the null value of the current variable type
+
+    const VariableType* mpTimeDerivativeVariable = nullptr; /// Definition of the pointer to the variable for the time derivative
 
     ///@}
     ///@name Private Operators
@@ -302,22 +452,47 @@ private:
     ///@name Private Operations
     ///@{
 
+    /// This is the default function for getting a value by index considering continuous memory indexing
+    /** It is templated so one can create specialized version of this for types with different structure
+    **/
+    template<typename TValueType>
+    TDataType& GetValueByIndex(TValueType* pValue, std::size_t index) const
+    {
+        return *static_cast<TDataType*>(pValue + index);
+    }
+
+    template<typename TValueType>
+    const TDataType& GetValueByIndex(const TValueType* pValue, std::size_t index) const
+    {
+        return *static_cast<const TDataType*>(pValue + index);
+    }
+
     ///@}
     ///@name Serialization
     ///@{
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    /**
+     * The save operation which copies the database of the class
+     * @param rSerializer The serializer used to preserve the information
+     */
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, VariableData );
         rSerializer.save("Zero",mZero);
+        rSerializer.save("TimeDerivativeVariable",mpTimeDerivativeVariable);
     }
 
-    virtual void load(Serializer& rSerializer) override
+    /**
+     * The load operation which restores the database of the class
+     * @param rSerializer The serializer used to preserve the information
+     */
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, VariableData );
         rSerializer.load("Zero",mZero);
+        rSerializer.load("TimeDerivativeVariable",mpTimeDerivativeVariable);
     }
 
     ///@}
@@ -343,9 +518,6 @@ private:
 }; // Class Variable
 
 ///@}
-
-template<class TDataType>
-const Variable<TDataType> Variable<TDataType>::msStaticObject("NONE");
 
 ///@name Type Definitions
 ///@{
@@ -373,9 +545,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
 
-#endif // KRATOS_VARIABLE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_VARIABLE_H_INCLUDED  defined

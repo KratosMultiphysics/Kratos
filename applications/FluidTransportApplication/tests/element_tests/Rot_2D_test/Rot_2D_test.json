@@ -1,0 +1,120 @@
+{
+    "problem_data": {
+        "problem_name":         "element_tests/Rot_2D_test/Rot_2D_test",
+        "start_time":           0.0,
+        "end_time":             0.0001,
+        "echo_level":           0,
+        "parallel_type":        "OpenMP",
+        "number_of_threads":    8
+    },
+    "solver_settings": {
+        "solver_type":                        "fluid_transport_solver",
+        "model_part_name":                    "FluidTransportDomain",
+        "domain_size":                        2,
+        "start_time":                         0.0,
+        "time_step":                          0.00001,
+        "model_import_settings":              {
+            "input_type":       "mdpa",
+            "input_filename":   "element_tests/Rot_2D_test/Rot_2D_test"
+        },
+        "buffer_size":                        3,
+        "echo_level":                         0,
+        "clear_storage":                      false,
+        "compute_reactions":                  false,
+        "move_mesh_flag":                     false,
+        "block_builder":                      true,
+        "solution_type":                      "Transient",
+        "scheme_type":                        "Implicit",
+        "newmark_theta":                      0.8,
+        "strategy_type":                      "Newton-Raphson",
+        "convergence_criterion":              "And_criterion",
+        "displacement_relative_tolerance":    1.0E-4,
+        "displacement_absolute_tolerance":    1.0E-9,
+        "residual_relative_tolerance":        1.0E-4,
+        "residual_absolute_tolerance":        1.0E-9,
+        "max_iteration":                      15,
+        "linear_solver_settings":             {
+            "solver_type":   "ExternalSolversApplication.super_lu"
+        },
+        "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
+        "processes_sub_model_part_list":      ["Velocity-auto-1","Phi_Value-auto-2","Phi_Value-auto-1"]
+    },
+    "constraints_process_list": [{
+        "python_module": "apply_vector_constraint_function_process",
+        "kratos_module": "KratosMultiphysics.FluidTransportApplication",
+        "process_name":  "ApplyVectorConstraintFunctionProcess",
+        "Parameters":    {
+            "model_part_name": "FluidTransportDomain.Velocity-auto-1",
+            "variable_name":   "VELOCITY",
+            "active":          [true,true,false],
+            "is_fixed":        [false,false,false],
+            "value":           [10000.0,0.0,0.0],
+            "table":           [0,0,0]
+        }
+    },{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.FluidTransportApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name":      "FluidTransportDomain.Phi_Value-auto-2",
+            "variable_name":        "PHI_THETA",
+            "is_fixed":             true,
+            "value":                100.0,
+            "table":                0
+        }
+    },{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.FluidTransportApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name":      "FluidTransportDomain.Phi_Value-auto-1",
+            "variable_name":        "PHI_THETA",
+            "is_fixed":             true,
+            "value":                0.0,
+            "table":                0
+        }
+    },{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.FluidTransportApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name":      "FluidTransportDomain.Phi_Value-auto-2",
+            "variable_name":        "TEMPERATURE",
+            "value":                100.0,
+            "table":                0
+        }
+    },{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.FluidTransportApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name":      "FluidTransportDomain.Phi_Value-auto-1",
+            "variable_name":        "TEMPERATURE",
+            "value":                0.0,
+            "table":                0
+        }
+    }],
+    "loads_process_list":       [],
+    "auxiliar_process_list" : [{
+        "python_module" : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "FromJsonCheckResultProcess",
+        "Parameters"    : {
+            "check_variables"     : ["TEMPERATURE"],
+            "input_file_name"     : "element_tests/Rot_2D_test/Rot_2D_test_results.json",
+            "model_part_name"      : "FluidTransportDomain.Body_Part-auto-1",
+            "time_frequency"       : 0.00001
+        }
+    }],
+    "_json_output_process"  : [{
+        "python_module" : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "JsonOutputProcess",
+        "Parameters"    : {
+            "output_variables"     : ["TEMPERATURE"],
+            "output_file_name"     : "element_tests/Rot_2D_test/Rot_2D_test_results.json",
+            "model_part_name"      : "FluidTransportDomain.Body_Part-auto-1",
+            "time_frequency"       : 0.00001
+        }
+    }]
+}

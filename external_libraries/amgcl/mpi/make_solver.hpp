@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,44 +31,52 @@ THE SOFTWARE.
  * \brief  Iterative solver wrapper for distributed linear systmes.
  */
 
+#include <iostream>
+
 #include <boost/property_tree/ptree.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <mpi.h>
 
 #include <amgcl/util.hpp>
 #include <amgcl/mpi/inner_product.hpp>
+#include <amgcl/mpi/distributed_matrix.hpp>
 
 namespace amgcl {
 namespace mpi {
 
 template <
     class Precond,
-    template <class, class> class IterativeSolver
+    class IterativeSolver
     >
-class make_solver {
+class make_solver : public amgcl::detail::non_copyable {
+    static_assert(
+            backend::backends_compatible<
+                typename IterativeSolver::backend_type,
+                typename Precond::backend_type
+            >::value,
+            "Backends for preconditioner and iterative solver should be compatible"
+            );
     public:
-        typedef typename Precond::backend_type backend_type;
-        typedef typename Precond::matrix matrix;
+        typedef typename IterativeSolver::backend_type backend_type;
+        typedef amgcl::mpi::distributed_matrix<typename Precond::backend_type> matrix;
         typedef typename backend_type::value_type value_type;
         typedef typename backend_type::params backend_params;
         typedef typename backend::builtin<value_type>::matrix build_matrix;
         typedef typename math::scalar_of<value_type>::type scalar_type;
 
-        typedef IterativeSolver<backend_type, mpi::inner_product> Solver;
-
-
         struct params {
             typename Precond::params precond; ///< Preconditioner parameters.
-            typename Solver::params  solver;  ///< Iterative solver parameters.
+            typename IterativeSolver::params  solver;  ///< Iterative solver parameters.
 
             params() {}
 
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, precond),
                   AMGCL_PARAMS_IMPORT_CHILD(p, solver)
             {
-                AMGCL_PARAMS_CHECK(p, (precond)(solver));
+                check_params(p, {"precond", "solver"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path = "") const
@@ -76,11 +84,12 @@ class make_solver {
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, precond);
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, solver);
             }
+#endif
         } prm;
 
         template <class Matrix>
         make_solver(
-                MPI_Comm comm, const Matrix &A,
+                communicator comm, const Matrix &A,
                 const params &prm = params(),
                 const backend_params &bprm = backend_params()
                 ) :
@@ -90,7 +99,31 @@ class make_solver {
         {}
 
         make_solver(
-                MPI_Comm comm, boost::shared_ptr<build_matrix> A,
+                communicator comm, std::shared_ptr<matrix> A,
+                const params &prm = params(),
+                const backend_params &bprm = backend_params()
+                ) :
+            prm(prm), n(A->loc_rows()),
+            P(comm, A, prm.precond, bprm),
+            S(n, prm.solver, bprm, mpi::inner_product(comm))
+        {
+        }
+
+        template <class Backend>
+        make_solver(
+                communicator comm, std::shared_ptr<distributed_matrix<Backend>> A,
+                const params &prm = params(),
+                const backend_params &bprm = backend_params()
+                ) :
+            prm(prm), n(A->loc_rows()),
+            P(comm, std::make_shared<matrix>(*A), prm.precond, bprm),
+            S(n, prm.solver, bprm, mpi::inner_product(comm))
+        {
+            A->move_to_backend(bprm);
+        }
+
+        make_solver(
+                communicator comm, std::shared_ptr<build_matrix> A,
                 const params &prm = params(),
                 const backend_params &bprm = backend_params()
                 ) :
@@ -100,42 +133,19 @@ class make_solver {
         {}
 
         template <class Matrix, class Vec1, class Vec2>
-        boost::tuple<size_t, scalar_type> operator()(
-                Matrix  const &A,
-                Vec1    const &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2          &x
-#else
-                Vec2          &&x
-#endif
-                ) const
+        std::tuple<size_t, scalar_type> operator()(
+                const Matrix &A, const Vec1 &rhs, Vec2 &&x) const
         {
             return S(A, P, rhs, x);
         }
 
         template <class Vec1, class Vec2>
-        boost::tuple<size_t, scalar_type> operator()(
-                Vec1    const &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2          &x
-#else
-                Vec2          &&x
-#endif
-                ) const
-        {
+        std::tuple<size_t, scalar_type> operator()(const Vec1 &rhs, Vec2 &&x) const {
             return S(P, rhs, x);
         }
 
         template <class Vec1, class Vec2>
-        void apply(
-                const Vec1 &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2       &x
-#else
-                Vec2       &&x
-#endif
-                ) const
-        {
+        void apply(const Vec1 &rhs, Vec2 &&x) const {
             backend::clear(x);
             (*this)(rhs, x);
         }
@@ -144,26 +154,36 @@ class make_solver {
             return P;
         }
 
-        const Solver& solver() const {
+        const IterativeSolver& solver() const {
             return S;
+        }
+
+        std::shared_ptr<matrix> system_matrix_ptr() const {
+            return P.system_matrix_ptr();
         }
 
         const matrix& system_matrix() const {
             return P.system_matrix();
         }
 
+#ifndef AMGCL_NO_BOOST
         void get_params(boost::property_tree::ptree &p) const {
             prm.get(p);
         }
+#endif
 
         size_t size() const {
             return n;
+        }
+
+        friend std::ostream& operator<<(std::ostream &os, const make_solver &M) {
+            return os << M.S << std::endl << M.P;
         }
     private:
         size_t n;
 
         Precond P;
-        Solver  S;
+        IterativeSolver  S;
 };
 
 } // namespace mpi

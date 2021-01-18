@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,8 +33,7 @@ THE SOFTWARE.
 
 #include <cmath>
 
-#include <boost/static_assert.hpp>
-#include <boost/type_traits.hpp>
+#include <type_traits>
 
 #include <amgcl/value_type/interface.hpp>
 #include <amgcl/util.hpp>
@@ -72,7 +71,7 @@ namespace backend {
  * That is, a solver in SBackend may be used together with a preconditioner in PBackend.
  */
 template <class SBackend, class PBackend>
-struct backends_compatible : boost::is_same<SBackend, PBackend> {};
+struct backends_compatible : std::is_same<SBackend, PBackend> {};
 
 /// Metafunction that returns value type of a matrix or a vector type.
 template <class T, class Enable = void>
@@ -84,14 +83,40 @@ struct value_type {
 /** \note Used in rows() */
 template <class Matrix, class Enable = void>
 struct rows_impl {
-    typedef typename Matrix::ROWS_NOT_IMPLEMENTED type;
+    static size_t get(const Matrix &A) {
+        return A.rows();
+    }
 };
 
 /// Implementation for function returning the number of columns in a matrix.
 /** \note Used in cols() */
 template <class Matrix, class Enable = void>
 struct cols_impl {
-    typedef typename Matrix::COLS_NOT_IMPLEMENTED type;
+    static size_t get(const Matrix &A) {
+        return A.cols();
+    }
+};
+
+/// Implementation for function returning number of bytes allocated for a matrix/vector.
+/** \note Used in bytes() */
+template <class T, class Enable = void>
+struct bytes_impl {
+
+    // Use bytes() method when available.
+    template <class U>
+    static auto get_impl(const U &t, int) -> decltype(t.bytes()) {
+        return t.bytes();
+    }
+
+    // Fallback to zero.
+    template <class U>
+    static size_t get_impl(const U&, ...) {
+        return 0;
+    }
+
+    static size_t get(const T &t) {
+        return get_impl(t, 0);
+    }
 };
 
 template <class Matrix, class Enable = void>
@@ -113,7 +138,9 @@ struct val_data_impl {
 /** \note Used in nonzeros() */
 template <class Matrix, class Enable = void>
 struct nonzeros_impl {
-    typedef typename Matrix::NONZEROS_NOT_IMPLEMENTED type;
+    static size_t get(const Matrix &A) {
+        return A.nonzeros();
+    }
 };
 
 /// Implementation for function returning the number of nonzeros in a matrix row.
@@ -130,7 +157,7 @@ struct row_nonzeros_impl {
  */
 template <class Matrix, class Enable = void>
 struct row_iterator {
-    typedef typename Matrix::ROW_ITERATOR_NOT_IMPLEMENTED type;
+    typedef typename Matrix::row_iterator type;
 };
 
 /// Implementation for function returning row iterator for a matrix.
@@ -141,7 +168,10 @@ struct row_iterator {
  */
 template <class Matrix, class Enable = void>
 struct row_begin_impl {
-    typedef typename Matrix::ROW_BEGIN_NOT_IMPLEMENTED type;
+    static typename row_iterator<Matrix>::type
+    get(const Matrix &A, size_t row) {
+        return A.row_begin(row);
+    }
 };
 
 /// Implementation for matrix-vector product.
@@ -172,13 +202,6 @@ struct copy_impl {
     typedef typename Vector1::COPY_NOT_IMPLEMENTED type;
 };
 
-/// Implementation for copying data to backend.
-/** \note Used in copy_to_backend() */
-template <class Vector, class Enable = void>
-struct copy_to_backend_impl {
-    typedef typename Vector::COPY_TO_BACKEND_NOT_IMPLEMENTED type;
-};
-
 /// Implementation for inner product.
 /** \note Used in inner_product() */
 template <class Vector1, class Vector2, class Enable = void>
@@ -207,6 +230,12 @@ struct vmul_impl {
     typedef typename Vector1::VMUL_NOT_IMPLEMENTED type;
 };
 
+/// Reinterpret the vector as containing the given value type
+template <class T, class Vector, class Enable = void>
+struct reinterpret_impl {
+    typedef typename T::REINTERPRET_NOT_IMPLEMENTED type;
+};
+
 /** @} */
 
 /// Returns the number of rows in a matrix.
@@ -219,6 +248,12 @@ size_t rows(const Matrix &matrix) {
 template <class Matrix>
 size_t cols(const Matrix &matrix) {
     return cols_impl<Matrix>::get(matrix);
+}
+
+/// Returns number of bytes allocated for the container (matrix / vector)
+template <class T>
+size_t bytes(const T &t) {
+    return bytes_impl<T>::get(t);
 }
 
 template <class Matrix>
@@ -270,7 +305,9 @@ void spmv(
         Beta beta,
         Vector2 &y)
 {
+    AMGCL_TIC("spmv");
     spmv_impl<Alpha, Matrix, Vector1, Beta, Vector2>::apply(alpha, A, x, beta, y);
+    AMGCL_TOC("spmv");
 }
 
 /// Computes residual error.
@@ -280,28 +317,27 @@ void spmv(
 template <class Matrix, class Vector1, class Vector2, class Vector3>
 void residual(const Vector1 &rhs, const Matrix &A, const Vector2 &x, Vector3 &r)
 {
+    AMGCL_TIC("residual");
     residual_impl<Matrix, Vector1, Vector2, Vector3>::apply(rhs, A, x, r);
+    AMGCL_TOC("residual");
 }
 
 /// Zeros out a vector.
 template <class Vector>
 void clear(Vector &x)
 {
+    AMGCL_TIC("clear");
     clear_impl<Vector>::apply(x);
+    AMGCL_TOC("clear");
 }
 
 /// Vector copy.
 template <class Vector1, class Vector2>
 void copy(const Vector1 &x, Vector2 &y)
 {
+    AMGCL_TIC("copy");
     copy_impl<Vector1, Vector2>::apply(x, y);
-}
-
-/// Copy data to backend.
-template <class Vector>
-void copy_to_backend(const std::vector<typename value_type<Vector>::type> &data, Vector &x)
-{
-    copy_to_backend_impl<Vector>::apply(data, x);
+    AMGCL_TOC("copy");
 }
 
 /// Computes inner product of two vectors.
@@ -311,7 +347,15 @@ typename math::inner_product_impl<
     >::return_type
 inner_product(const Vector1 &x, const Vector2 &y)
 {
-    return inner_product_impl<Vector1, Vector2>::get(x, y);
+    typedef typename math::inner_product_impl<
+        typename value_type<Vector1>::type
+        >::return_type result_type;
+
+    AMGCL_TIC("inner_product");
+    result_type p = inner_product_impl<Vector1, Vector2>::get(x, y);
+    AMGCL_TOC("inner_product");
+
+    return p;
 }
 
 /// Computes linear combination of two vectors.
@@ -320,7 +364,9 @@ inner_product(const Vector1 &x, const Vector2 &y)
  */
 template <class A, class Vector1, class B, class Vector2>
 void axpby(A a, Vector1 const &x, B b, Vector2 &y) {
+    AMGCL_TIC("axpby");
     axpby_impl<A, Vector1, B, Vector2>::apply(a, x, b, y);
+    AMGCL_TOC("axpby");
 }
 
 /// Computes linear combination of three vectors.
@@ -329,7 +375,9 @@ void axpby(A a, Vector1 const &x, B b, Vector2 &y) {
  */
 template <class A, class Vector1, class B, class Vector2, class C, class Vector3>
 void axpbypcz(A a, Vector1 const &x, B b, Vector2 const &y, C c, Vector3 &z) {
+    AMGCL_TIC("axpbypcz");
     axpbypcz_impl<A, Vector1, B, Vector2, C, Vector3>::apply(a, x, b, y, c, z);
+    AMGCL_TOC("axpbypcz");
 }
 
 /// Computes element-wize vector product.
@@ -339,16 +387,25 @@ void axpbypcz(A a, Vector1 const &x, B b, Vector2 const &y, C c, Vector3 &z) {
 template <class Alpha, class Vector1, class Vector2, class Beta, class Vector3>
 void vmul(Alpha alpha, const Vector1 &x, const Vector2 &y, Beta beta, Vector3 &z)
 {
+    AMGCL_TIC("vmul");
     vmul_impl<Alpha, Vector1, Vector2, Beta, Vector3>::apply(alpha, x, y, beta, z);
+    AMGCL_TOC("vmul");
+}
+
+/// Reinterpret the vector as containing the given value type
+template <class T, class Vector>
+typename reinterpret_impl<T, typename std::decay<Vector>::type>::return_type
+reinterpret(Vector &&x) {
+    return reinterpret_impl<T, typename std::decay<Vector>::type>::get(std::forward<Vector>(x));
 }
 
 /// Is the relaxation supported by the backend?
 template <class Backend, template <class> class Relaxation, class Enable = void>
-struct relaxation_is_supported : boost::true_type {};
+struct relaxation_is_supported : std::true_type {};
 
 /// Is the coarsening supported by the backend?
-template <class Backend, class Coarsening, class Enable = void>
-struct coarsening_is_supported : boost::true_type {};
+template <class Backend, template <class> class Coarsening, class Enable = void>
+struct coarsening_is_supported : std::true_type {};
 
 /// Linear combination of vectors
 /**
@@ -357,7 +414,6 @@ struct coarsening_is_supported : boost::true_type {};
 template <class Coefs, class Vecs, class Coef, class Vec>
 void lin_comb(size_t n, const Coefs &c, const Vecs &v, const Coef &alpha, Vec &y) {
     axpby(c[0], *v[0], alpha, y);
-
     size_t i = 1;
     for(; i + 1 < n; i += 2)
         axpbypcz(c[i], *v[i], c[i+1], *v[i+1], math::identity<Coef>(), y);

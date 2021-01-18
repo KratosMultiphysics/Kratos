@@ -5,28 +5,19 @@
 //                   Multi-Physics
 //
 //  License:          BSD License
-//  Original author:  Josep Maria Carbonell
-//  comming from      SolidMechanicsApplication
-//
-//  Co-author:        Vicente Mataix Ferrándiz
+//  Main authors:  Josep Maria Carbonell
+//                 Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_NEWMARK_DISPLACEMENT_SCHEME )
-#define  KRATOS_RESIDUAL_BASED_NEWMARK_DISPLACEMENT_SCHEME 
+#define  KRATOS_RESIDUAL_BASED_NEWMARK_DISPLACEMENT_SCHEME
 
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "solving_strategies/schemes/scheme.h"
-#include "includes/variables.h"
-#include "containers/array_1d.h"
-#include "includes/element.h"
-#include "residual_based_bossak_displacement_scheme.hpp"
+#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 
 namespace Kratos
 {
@@ -45,11 +36,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Newmark integration scheme (for dynamic problems)
+/**
+ * @class ResidualBasedNewmarkDisplacementScheme
+ * @ingroup KratosCore
+ * @brief Bossak integration scheme (for dynamic problems) for displacements
+ * @details This is a dynamic implicit scheme based of the Newmark algorithm for displacements
+ * @author Josep Maria Carbonell
+ * @author Vicente Mataix Ferrandiz
  */
-
 template<class TSparseSpace,  class TDenseSpace >
-class ResidualBasedNewmarkDisplacementScheme: public ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>
+class ResidualBasedNewmarkDisplacementScheme
+    : public ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>
 {
 public:
     ///@name Type Definitions
@@ -57,6 +54,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewmarkDisplacementScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                                        BaseType;
+
+    typedef ResidualBasedNewmarkDisplacementScheme<TSparseSpace, TDenseSpace>      ClassType;
 
     typedef typename BaseType::TDataType                                           TDataType;
 
@@ -75,40 +74,80 @@ public:
     typedef ModelPart::ElementsContainerType                               ElementsArrayType;
 
     typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
-    
+
     typedef typename BaseType::Pointer                                       BaseTypePointer;
-  
+
     typedef ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>  DerivedBaseType;
-    
-    typedef typename BaseType::LocalSystemComponents               LocalSystemComponentsType;
 
     ///@}
     ///@name Life Cycle
     ///@{
-    ResidualBasedNewmarkDisplacementScheme()
+
+    /**
+     * @brief Constructor. The Newmark method (parameters)
+     * @param ThisParameters Dummy parameters
+     */
+    explicit ResidualBasedNewmarkDisplacementScheme(Parameters ThisParameters)
+        :DerivedBaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
+
+    /**
+     * @brief Default constructor. The Newmark method
+     */
+    explicit ResidualBasedNewmarkDisplacementScheme()
       :DerivedBaseType(0.0)
     {
     }
 
     /** Copy Constructor.
      */
-    ResidualBasedNewmarkDisplacementScheme(ResidualBasedNewmarkDisplacementScheme& rOther)
+    explicit ResidualBasedNewmarkDisplacementScheme(ResidualBasedNewmarkDisplacementScheme& rOther)
       :DerivedBaseType(rOther)
     {
     }
 
     /**
-     * Clone 
+     * Clone
      */
-    virtual BaseTypePointer Clone() override
+    BaseTypePointer Clone() override
     {
-      return BaseTypePointer( new ResidualBasedNewmarkDisplacementScheme(*this) );
+        return BaseTypePointer( new ResidualBasedNewmarkDisplacementScheme(*this) );
     }
-    
+
     /** Destructor.
      */
-    virtual ~ResidualBasedNewmarkDisplacementScheme
-    () {}
+    ~ResidualBasedNewmarkDisplacementScheme
+    () override {}
+
+        /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "newmark_scheme"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = DerivedBaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "newmark_scheme";
+    }
 
     ///@}
     ///@name Operators
@@ -118,6 +157,15 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -125,11 +173,29 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
-    
+
     ///@}
     ///@name Input and output
     ///@{
-    
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedNewmarkDisplacementScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -138,7 +204,7 @@ protected:
     ///@}
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected  Variables
     ///@{
@@ -151,7 +217,7 @@ protected:
     ///@name Protected Operations*
     ///@{
     ///@{
-    
+
     ///@}
     ///@name Protected  Access
     ///@{

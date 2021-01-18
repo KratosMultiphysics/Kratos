@@ -1,47 +1,15 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:32 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//                    
 //
 
 
@@ -98,7 +66,7 @@ namespace Kratos
     deleting.
  */
 template<class TDataType,
-         class TPointerType = boost::shared_ptr<TDataType>,
+         class TPointerType = typename TDataType::Pointer,
          class TContainerType = std::vector<TPointerType> >
 class PointerVector
 {
@@ -111,7 +79,7 @@ public:
 
     /// data type stores in this container.
     typedef TDataType data_type;
-    typedef TPointerType value_type;
+    typedef TDataType value_type;
     typedef TPointerType pointer;
     typedef const TPointerType const_pointer;
     typedef TDataType& reference;
@@ -145,24 +113,16 @@ public:
 
     PointerVector(const PointerVector& rOther) :  mData(rOther.mData) {}
 
-    PointerVector(const TContainerType& rContainer) :  mData(rContainer)
+    explicit PointerVector(const TContainerType& rContainer) :  mData(rContainer)
     {
     }
 
-    PointerVector(std::size_t NewSize) :  mData(NewSize)
+    explicit PointerVector(std::size_t NewSize) :  mData(NewSize)
     {
     }
-/*
-    template<class TOtherDataType>
-    PointerVector(std::size_t NewSize, TOtherDataType const& Value) :  mData(NewSize)
-    {
-        for(size_type i = 0 ; i < NewSize ; i++)
-            mData[i] = pointer(new TOtherDataType(Value));
-    }*/
 
     /// Destructor.
     virtual ~PointerVector() {}
-
 
     ///@}
     ///@name Operators
@@ -312,17 +272,6 @@ public:
         mData.push_back(x);
     }
 
-//     template<class TOtherDataType>
-//     void push_back(TOtherDataType const& x)
-//     {
-//         push_back(TPointerType(new TOtherDataType(x)));
-//     }
-/*
-    template<class TOtherDataType>
-    iterator insert(iterator Position, const TOtherDataType& rData)
-    {
-        return iterator(mData.insert(Position, TPointerType(new TOtherDataType(rData))));
-    }*/
 
     iterator insert(iterator Position, const TPointerType pData)
     {
@@ -352,7 +301,12 @@ public:
         mData.clear();
     }
 
-    void reserve(int dim)
+    void resize(size_type dim)
+    {
+        mData.resize(dim);
+    }
+
+    void reserve(size_type dim)
     {
         mData.reserve(dim);
     }
@@ -377,8 +331,6 @@ public:
     {
         return mData;
     }
-
-
 
     ///@}
     ///@name Inquiry
@@ -413,12 +365,6 @@ public:
     {
         std::copy(begin(), end(), std::ostream_iterator<TDataType>(rOStream, "\n "));
     }
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
 
     ///@}
 

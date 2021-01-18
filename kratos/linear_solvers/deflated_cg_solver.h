@@ -113,7 +113,7 @@ public:
     }
     
     DeflatedCGSolver(Parameters settings,
-                    typename TPreconditionerType::Pointer pNewPreconditioner = boost::make_shared<TPreconditionerType>()
+                    typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()
                    ): BaseType ()
 
     {
@@ -150,7 +150,7 @@ public:
 
     /// Destructor.
 
-    virtual ~DeflatedCGSolver()
+    ~DeflatedCGSolver() override
     {
     }
 
@@ -227,7 +227,7 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Deflated Conjugate gradient linear solver with " << BaseType::GetPreconditioner()->Info();
@@ -236,14 +236,14 @@ public:
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
 
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
     }

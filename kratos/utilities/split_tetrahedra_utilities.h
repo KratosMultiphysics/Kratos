@@ -1,57 +1,18 @@
-/*
-==============================================================================
-KratosIncompressibleFluidApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: antonia $
-//   Date:                $Date: 2009-01-13 16:40:58 $
-//   Revision:            $Revision: 1.24 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                    
 //
-
 
 #if !defined(KRATOS_SPLIT_TETRAHEDRA_UTILITIES_INCLUDED )
 #define  KRATOS_SPLIT_TETRAHEDRA_UTILITIES_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -61,11 +22,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 #include "utilities/split_tetrahedra.h"
-
 
 namespace Kratos
 {
@@ -128,7 +87,7 @@ public:
         // The divided part length from second node of edge respect to the edge length
         array_1d<double, n_edges> edge_division_j = ZeroVector(n_edges); // The 0 is for no split
 
-        bounded_matrix<double, 8, 3 > aux_coordinates; //8 is the max number of nodes and aux_nodes
+        BoundedMatrix<double, 8, 3 > aux_coordinates; //8 is the max number of nodes and aux_nodes
         for (unsigned int i = 0; i < 4; i++)
             for (unsigned int j = 0; j < 3; j++)
                 aux_coordinates(i, j) = rPoints(i, j);
@@ -138,7 +97,7 @@ public:
 
         int split_edge[] = {0, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1};
         int new_node_id = 4;
-        bounded_matrix<double, 4, 4 > length = ZeroMatrix(4, 4);
+        BoundedMatrix<double, 4, 4 > length = ZeroMatrix(4, 4);
 
         int n_negative_distance_nodes = 0;
         int n_positive_distance_nodes = 0;
@@ -433,7 +392,7 @@ public:
 private:
 
     //compute 1 gauss point per subtetra
-    static double ComputeSubTetraVolumeAndCenter(const bounded_matrix<double, 3, 8 > & aux_coordinates,
+    static double ComputeSubTetraVolumeAndCenter(const BoundedMatrix<double, 3, 8 > & aux_coordinates,
                                                  array_1d<double, 3 > & center_position,
                                                  const int i0, const int i1, const int i2, const int i3)
     {
@@ -463,7 +422,7 @@ private:
 
 
     //compute 4 gauss point per subtetra
-    static double ComputeSubTetraVolumeAndGaussPoints(const bounded_matrix<double, 3, 8 > & aux_coordinates,
+    static double ComputeSubTetraVolumeAndGaussPoints(const BoundedMatrix<double, 3, 8 > & aux_coordinates,
                                                       Vector& volumes,
                                                       std::vector< array_1d<double, 3 > >& center_position,
                                                       const int i0, const int i1, const int i2, const int i3)

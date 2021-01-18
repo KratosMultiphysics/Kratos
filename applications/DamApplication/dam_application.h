@@ -24,11 +24,13 @@
 #include "custom_conditions/free_surface_condition.hpp"
 #include "custom_conditions/infinite_domain_condition.hpp"
 #include "custom_conditions/UP_condition.hpp"
+#include "custom_conditions/added_mass_condition.hpp"
 
 //Elements
 #include "custom_elements/wave_equation_element.hpp"
 #include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
 #include "custom_elements/small_displacement_interface_element.hpp"
+#include "custom_elements/small_displacement_element.hpp"
 
 //Constitutive Laws
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
@@ -55,10 +57,15 @@
 #include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
 
+#include "custom_constitutive/joint_cohesion_driven_3D_law.hpp"
+#include "custom_constitutive/joint_cohesion_driven_2D_law.hpp"
+#include "custom_constitutive/joint_stress_driven_3D_law.hpp"
+#include "custom_constitutive/joint_stress_driven_2D_law.hpp"
+
 namespace Kratos
 {
 
-class KratosDamApplication : public KratosApplication
+class KRATOS_API(DAM_APPLICATION) KratosDamApplication : public KratosApplication
 {
 
 public:
@@ -72,23 +79,23 @@ public:
     virtual ~KratosDamApplication(){}
 
 
-    virtual void Register();
+    void Register() override;
 
     // Turn back information as a string
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosDamApplication";
     }
 
     // Print information about this object
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     // Print object's data
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in my application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -127,6 +134,21 @@ const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicEle
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D20N;
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D27N;
 
+//small displacement
+const SmallDisplacementElement mSmallDisplacementElement2D3N;
+const SmallDisplacementElement mSmallDisplacementElement2D4N;
+const SmallDisplacementElement mSmallDisplacementElement2D6N;
+const SmallDisplacementElement mSmallDisplacementElement2D8N;
+const SmallDisplacementElement mSmallDisplacementElement2D9N;
+
+const SmallDisplacementElement mSmallDisplacementElement3D4N;
+const SmallDisplacementElement mSmallDisplacementElement3D6N;
+const SmallDisplacementElement mSmallDisplacementElement3D8N;
+const SmallDisplacementElement mSmallDisplacementElement3D10N;
+const SmallDisplacementElement mSmallDisplacementElement3D15N;
+const SmallDisplacementElement mSmallDisplacementElement3D20N;
+const SmallDisplacementElement mSmallDisplacementElement3D27N;
+
 const FreeSurfaceCondition<2,2> mFreeSurfaceCondition2D2N;
 const FreeSurfaceCondition<3,3> mFreeSurfaceCondition3D3N;
 const FreeSurfaceCondition<3,4> mFreeSurfaceCondition3D4N;
@@ -138,6 +160,10 @@ const InfiniteDomainCondition<3,4> mInfiniteDomainCondition3D4N;
 const UPCondition<2,2> mUPCondition2D2N;
 const UPCondition<3,3> mUPCondition3D3N;
 const UPCondition<3,4> mUPCondition3D4N;
+
+const AddedMassCondition<2,2> mAddedMassCondition2D2N;
+const AddedMassCondition<3,3> mAddedMassCondition3D3N;
+const AddedMassCondition<3,4> mAddedMassCondition3D4N;
 
 const ThermalLinearElastic3DLaw mThermalLinearElastic3DLaw;
 const ThermalLinearElastic2DPlaneStrain mThermalLinearElastic2DPlaneStrain;
@@ -162,6 +188,11 @@ const ThermalSimoJuNonlocalDamagePlaneStress2DLaw mThermalSimoJuNonlocalDamagePl
 const ThermalModifiedMisesNonlocalDamage3DLaw mThermalModifiedMisesNonlocalDamage3DLaw;
 const ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw mThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw;
 const ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw mThermalModifiedMisesNonlocalDamagePlaneStress2DLaw;
+
+const JointCohesionDriven3DLaw mJointCohesionDriven3DLaw;
+const JointCohesionDriven2DLaw mJointCohesionDriven2DLaw;
+const JointStressDriven3DLaw mJointStressDriven3DLaw;
+const JointStressDriven2DLaw mJointStressDriven2DLaw;
 
 // Assignment operator.
 KratosDamApplication& operator=(KratosDamApplication const& rOther);

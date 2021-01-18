@@ -88,7 +88,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~FractionalStepSettingsPeriodic(){}
+    ~FractionalStepSettingsPeriodic() override{}
 
     ///@}
     ///@name Operators
@@ -103,10 +103,10 @@ public:
     ///@name Access
     ///@{
 
-    virtual void SetStrategy(StrategyLabel const& rStrategyLabel,
+    void SetStrategy(StrategyLabel const& rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
                              const double Tolerance,
-                             const unsigned int MaxIter)
+                             const unsigned int MaxIter) override
     {
         KRATOS_TRY;
 
@@ -145,8 +145,13 @@ public:
             }
 
             // Strategy
-            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >(
+                rModelPart,
+                pScheme,
+                pBuildAndSolver,
+                CalculateReactions,
+                ReformDofSet,
+                CalculateNormDxFlag));
 
         }
         else if ( rStrategyLabel == BaseType::Pressure )
@@ -157,8 +162,13 @@ public:
             SchemePointerType pScheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
             // Strategy
-            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >(
+                rModelPart,
+                pScheme,
+                pBuildAndSolver,
+                CalculateReactions,
+                ReformDofSet,
+                CalculateNormDxFlag));
         }
         else
         {
@@ -174,10 +184,10 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
+    void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
                                     typename TLinearSolver::Pointer pLinearSolver,
                                     const double Tolerance,
-                                    const unsigned int MaxIter)
+                                    const unsigned int MaxIter) override
     {
         KRATOS_TRY;
 
@@ -201,7 +211,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual void SetTurbulenceModel(ProcessPointerType pTurbulenceModel)
+    void SetTurbulenceModel(ProcessPointerType pTurbulenceModel) override
     {
         BaseType::SetTurbulenceModel(pTurbulenceModel);
     }
@@ -215,7 +225,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "FractionalStepSettingsPeriodic" ;
@@ -223,10 +233,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "FractionalStepSettingsPeriodic";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "FractionalStepSettingsPeriodic";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}

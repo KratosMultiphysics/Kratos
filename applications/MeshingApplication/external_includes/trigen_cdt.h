@@ -17,16 +17,14 @@
 #include <iostream>
 #include <stdlib.h>
 
-#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
-#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
+// External includes
 #include "triangle.h"
-#endif
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 
 
@@ -75,10 +73,10 @@ public:
     ///@{
 
     /// Default constructor.
-    TriGenCDT() {} //
+    TriGenCDT() = default; //
 
     /// Destructor.
-    virtual ~TriGenCDT() {}
+    virtual ~TriGenCDT() = default;
 
 
     ///@}
@@ -303,28 +301,28 @@ private:
     void clean_triangulateio( triangulateio& tr )
     {
 
-        tr.pointlist                  = (REAL*) NULL;
-        tr.pointattributelist         = (REAL*) NULL;
-        tr.pointmarkerlist            = (int*) NULL;
+        tr.pointlist                  = (REAL*) nullptr;
+        tr.pointattributelist         = (REAL*) nullptr;
+        tr.pointmarkerlist            = (int*) nullptr;
         tr.numberofpoints             = 0;
         tr.numberofpointattributes    = 0;
-        tr.trianglelist               = (int*) NULL;
-        tr.triangleattributelist      = (REAL*) NULL;
-        tr.trianglearealist           = (REAL*) NULL;
-        tr.neighborlist               = (int*) NULL;
+        tr.trianglelist               = (int*) nullptr;
+        tr.triangleattributelist      = (REAL*) nullptr;
+        tr.trianglearealist           = (REAL*) nullptr;
+        tr.neighborlist               = (int*) nullptr;
         tr.numberoftriangles          = 0;
         tr.numberofcorners            = 3;
         tr.numberoftriangleattributes = 0;
-        tr.segmentlist                = (int*) NULL;
-        tr.segmentmarkerlist          = (int*) NULL;
+        tr.segmentlist                = (int*) nullptr;
+        tr.segmentmarkerlist          = (int*) nullptr;
         tr.numberofsegments           = 0;
-        tr.holelist                   = (REAL*) NULL;
+        tr.holelist                   = (REAL*) nullptr;
         tr.numberofholes              = 0;
-        tr.regionlist                 = (REAL*) NULL;
+        tr.regionlist                 = (REAL*) nullptr;
         tr.numberofregions            = 0;
-        tr.edgelist                   = (int*) NULL;
-        tr.edgemarkerlist             = (int*) NULL;
-        tr.normlist                   = (REAL*) NULL;
+        tr.edgelist                   = (int*) nullptr;
+        tr.edgemarkerlist             = (int*) nullptr;
+        tr.normlist                   = (REAL*) nullptr;
         tr.numberofedges              = 0;
 
     };
@@ -391,6 +389,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIGEN_CDT_H_INCLUDED  defined 
+#endif // KRATOS_TRIGEN_CDT_H_INCLUDED  defined
 
 

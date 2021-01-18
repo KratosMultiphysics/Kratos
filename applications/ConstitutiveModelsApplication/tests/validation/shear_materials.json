@@ -1,0 +1,43 @@
+{
+    "material_models_list":[{
+        "python_module"   : "assign_materials_process",
+        "kratos_module"   : "ConstitutiveModelsApplication",
+        "help"            : "This process creates a material and assigns its properties",
+        "process_name"    : "AssignMaterialsProcess",
+	"Parameters"      : {
+	    "model_part_name" : "MaterialDomain",
+	    "properties_id"   : 0,
+            "material_name"   : "steel",
+	    "constitutive_law": {
+                "name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw.VonMisesNeoHookeanPlasticityModel"
+            },
+	    "variables": {
+		"C10": 3.84615384615384615385e10,
+	        "YOUNG_MODULUS": 206.9e7,
+		"POISSON_RATIO": 0.29,
+		"YIELD_STRESS": 4.5E2,
+		"ISOTROPIC_HARDENING_MODULUS": 0.0,
+		"KINEMATIC_HARDENING_MODULUS": 1.2924e2,
+		"HARDENING_EXPONENT": 16.93,
+		"REFERENCE_HARDENING_MODULUS": 450,
+		"INFINITY_HARDENING_MODULUS": 715
+            },
+	    "tables": {
+		"table1": {
+	            "input_variable"  : "KratosMultiphysics.TEMPERATURE",
+	            "output_variable" : "KratosMultiphysics.YOUNG_MODULUS",
+	            "data": [
+			[0.0, 200e9],
+			[200.0, 200e9]
+		    ]
+		},
+		"table2": {
+		    "table_file_name" : "young_modulus[K].csv"
+		}
+	    },
+ 	    "echo_level" : 0
+         }
+      }
+    ]
+
+}

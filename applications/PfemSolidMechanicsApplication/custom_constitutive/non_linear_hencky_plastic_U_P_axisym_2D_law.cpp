@@ -8,13 +8,10 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/non_linear_hencky_plastic_U_P_axisym_2D_law.hpp"
 
 #include "pfem_solid_mechanics_application_variables.h"
@@ -108,6 +105,8 @@ Matrix NonLinearHenckyElasticPlasticUPAxisym2DLaw::SetConstitutiveMatrixToApprop
          }
      }
 
+     double det =  MathUtils<double>::Det( mElasticLeftCauchyGreen);
+     mElasticLeftCauchyGreen /= pow( det, 1/3);
      return Result;
 
 }
@@ -126,7 +125,7 @@ void NonLinearHenckyElasticPlasticUPAxisym2DLaw::GetLawFeatures(Features& rFeatu
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
+
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
 

@@ -1,44 +1,83 @@
-import os
+from contact_structural_mechanics_test_factory import ContactStructuralMechanicsTestFactory as TestFactory
 
-# Import Kratos
-from KratosMultiphysics import *
+class ALMTaylorPatchDynamicTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/taylor_patch_dynamic_test"
 
-# Import KratosUnittest
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-import Kratos_Execute_Solid_Test as Execute_Test
+class ALMMeshMovingMatchingTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/mesh_moving_matching_test"
 
-# This utiltiy will control the execution scope in case we need to acces files or we depend
-# on specific relative locations of the files.
+class ALMMeshMovingNotMatchingTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test"
 
-# TODO: Should we move this to KratosUnittest?
-class controlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
+class ALMIroningTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/ironing_test"
 
-    def __enter__(self):
-        os.chdir(self.scope)
+class ALMIroningDieTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/ironing_die_test"
 
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
+class LargeDisplacementPatchTestHexa(TestFactory):
+    file_name = "mesh_tying_test/3D_contact_patch_test_large_disp_hexa"
 
+class MeshTyingValidationTest(TestFactory):
+    file_name = "mesh_tying_test/mesh_tying_validation_test"
 
-class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
+class ALMLargeDisplacementPatchTestTetra(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_tetra"
 
-    def setUp(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            # Initialize GiD  I/O
-            parameter_file = open(self.file_name + "_parameters.json", 'r')
-            ProjectParameters = Parameters(parameter_file.read())
+class ALMLargeDisplacementPatchTestHexa(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_hexa"
 
-            # Creating the model part
-            self.test = Execute_Test.Kratos_Execute_Test(ProjectParameters)
+class ALMMultiLayerContactTest(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_multi_contact_test"
 
-    def test_execution(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.Solve()
+class ALMSelfContactContactTest(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/self_contact_test"
 
-    def tearDown(self):
-        pass
+class ExplicitPenaltyThreeDSimplestPatchMatchingTestContact(TestFactory):
+    file_name = "penalty_frictionless_contact_test_3D/explicit_3D_contact_simplest_patch_matching_test"
+
+class ComponentsALMTaylorPatchDynamicTestContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/taylor_patch_dynamic_test"
+
+class ComponentsALMMeshMovingMatchingTestContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/mesh_moving_matching_test"
+
+class ComponentsALMMeshMovingNotMatchingTestContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test"
+
+class ComponentsALMLargeDisplacementPatchTestTetra(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_tetra"
+
+class ComponentsALMLargeDisplacementPatchTestHexa(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_hexa"
+
+class ComponentsALMMultiLayerContactTest(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_3D/3D_multi_contact_test"
+
+class ComponentsALMSelfContactContactTest(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_3D/self_contact_test"
+
+class ALMTaylorPatchFrictionalTestContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/taylor_patch_test"
+
+class ALMMeshMovingMatchingTestFrictionalPureSlipContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/mesh_moving_matching_test"
+
+class ALMMeshMovingNotMatchingTestFrictionalPureSlipContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/mesh_moving_notmatching_test"
+
+class ALMHertzTestFrictionalContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/hertz_complete_test"
+
+class ALMBlockTestFrictionalContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_3D/friction_block_test"
+
+class MultiLayerContactTest(TestFactory):
+    file_name = "mpc_contact_tests/3D_multi_contact_test"

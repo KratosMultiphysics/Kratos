@@ -41,7 +41,7 @@ public:
     ///@{
 
     // Pointer types for HerschelBulkleyFluid
-    KRATOS_CLASS_POINTER_DEFINITION(HerschelBulkleyFluid);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HerschelBulkleyFluid);
 
     /// Node type (default is: Node<3>)
     typedef Node <3> NodeType;
@@ -69,8 +69,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
@@ -122,7 +120,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~HerschelBulkleyFluid()
+    ~HerschelBulkleyFluid() override
     {}
 
     ///@}
@@ -138,35 +136,30 @@ public:
     /// Create a new element of this type.
     /**
      * Returns a pointer to a new element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
-        return Element::Pointer(new HerschelBulkleyFluid<TBaseElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+        return Kratos::make_intrusive<HerschelBulkleyFluid<TBaseElement> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
-
-
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    /// Create a new element of this type.
+	/**
+	 @param NewId Index of the new element
+     @param pGeom A pointer to the geometry of the new element
+	 @param pProperties Pointer to the element's properties
+	 */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
     {
-        KRATOS_TRY;
-
-        int Error = 0;
-
-        // Check that any required model parameters are defined
-
-
-        // Call the underlying element's check routine
-        Error = TBaseElement::Check(rCurrentProcessInfo);
-
-        return Error;
-
-        KRATOS_CATCH("");
+        return Kratos::make_intrusive< HerschelBulkleyFluid<TBaseElement> >(NewId,pGeom,pProperties);
     }
 
     ///@}
@@ -184,7 +177,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "HerschelBulkleyFluid " ;
@@ -193,14 +186,14 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "HerschelBulkleyFluid ";
         TBaseElement::PrintInfo(rOStream);
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -245,11 +238,11 @@ protected:
      * @param rProcessInfo ProcessInfo instance passed from the ModelPart, containing additional data
      * @return The effective viscosity, in dynamic units (Pa*s or equivalent).
      */
-    virtual double EffectiveViscosity(double Density,
+    double EffectiveViscosity(double Density,
                                       const TShapeFunctionValues &rN,
                                       const TShapeFunctionGradients &rDN_DX,
                                       double ElemSize,
-                                      const ProcessInfo &rProcessInfo)
+                                      const ProcessInfo &rProcessInfo) override
     {
         double GammaDot = this->EquivalentStrainRate(rDN_DX);
 
@@ -309,12 +302,12 @@ protected:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TBaseElement );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TBaseElement );
     }

@@ -1,53 +1,15 @@
-/*
-==============================================================================
-KratosTestApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2010
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  sKRATOS_WATCH(disp);hall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:31 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pablo Becker
 //
 //
-
 
 #if !defined(KRATOS_CONVECT_PARTICLES_UTILITIES_INCLUDED )
 #define  KRATOS_CONVECT_PARTICLES_UTILITIES_INCLUDED
@@ -61,7 +23,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <algorithm>
 
 // External includes
-
+#ifdef _OPENMP
+#include "omp.h"
+#endif
 
 // Project includes
 #include "includes/define.h"
@@ -72,18 +36,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/timer.h"
-#include "processes/node_erase_process.h"
 #include "utilities/binbased_fast_point_locator.h"
-
-
-#include <boost/timer.hpp>
 #include "utilities/timer.h"
-
-#ifdef _OPENMP
-#include "omp.h"
-#endif
-
-
 
 namespace Kratos
 {
@@ -119,7 +73,7 @@ public:
         //do movement
         array_1d<double, 3 > veulerian;
         array_1d<double, 3 > acc_particle;
-        array_1d<double, TDim + 1 > N;
+        Vector N(TDim + 1);
         const int max_results = rModelPart.Nodes().size();
 
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
@@ -139,6 +93,7 @@ public:
             Element::Pointer pelement;
             bool is_found = false;
 
+            array_1d<double, 3> aux_point_local_coordinates;
 
             while(substep++ < subdivisions)
             {
@@ -150,7 +105,9 @@ public:
 
                 if(substep > 1 ) //first check if it falls within the same element
                 {
-                    is_found = mpSearchStructure->CalculatePosition(pelement->GetGeometry(), current_position[0], current_position[1], current_position[2], N);
+                    Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                    is_found = geom.IsInside(current_position, aux_point_local_coordinates, 1.0e-5);
+                    geom.ShapeFunctionsValues(N, aux_point_local_coordinates);
 
                     if(is_found == false)
                         is_found = mpSearchStructure->FindPointOnMesh(current_position, N, pelement, result_begin, max_results);
@@ -208,7 +165,7 @@ public:
 
         //do movement
         array_1d<double, 3 > v1,v2,v3,v4,vtot,x;
-        array_1d<double, TDim + 1 > N;
+        Vector N(TDim + 1);
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
@@ -289,7 +246,7 @@ public:
 
             iparticle->FastGetSolutionStepValue(DISPLACEMENT) = x - iparticle->GetInitialPosition();
             noalias(pparticle->Coordinates()) = x;
-            
+
             end_of_particle:  (iparticle)->Set(TO_ERASE, true);
         }
 

@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:                  KratosDamApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:           February 2017 $
@@ -37,9 +37,9 @@ ThermalSimoJuNonlocalDamagePlaneStress2DLaw::~ThermalSimoJuNonlocalDamagePlaneSt
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int ThermalSimoJuNonlocalDamagePlaneStress2DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
+int ThermalSimoJuNonlocalDamagePlaneStress2DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
 {
-    int ierr = ThermalNonlocalDamage3DLaw::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
+    int ierr = ThermalNonlocalDamage3DLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
     if(DAMAGE_THRESHOLD.Key() == 0 || rMaterialProperties.Has( DAMAGE_THRESHOLD ) == false || rMaterialProperties[DAMAGE_THRESHOLD] <= 0.0)
@@ -65,7 +65,7 @@ ConstitutiveLaw::Pointer ThermalSimoJuNonlocalDamagePlaneStress2DLaw::Clone() co
 void ThermalSimoJuNonlocalDamagePlaneStress2DLaw::CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry )
 {
     //rCharacteristicSize is the diameter of a circle with the same area as the element
-    rCharacteristicSize = sqrt(4.0*DomainGeometry.Area()/KRATOS_M_PI);
+    rCharacteristicSize = sqrt(4.0*DomainGeometry.Area()/Globals::Pi);
 }
 
 } // Namespace Kratos

@@ -1,11 +1,16 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: pooyan $
-//   Date:                $Date: 2006-11-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
 //
 //
-
 
 #if !defined(KRATOS_FLAGS_H_INCLUDED )
 #define  KRATOS_FLAGS_H_INCLUDED
@@ -22,8 +27,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/serializer.h"
-
 
 namespace Kratos
 {
@@ -50,7 +53,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class Flags
+class Serializer;
+class KRATOS_API(KRATOS_CORE) Flags
 {
 public:
     ///@name Type Definitions
@@ -182,19 +186,9 @@ public:
     ///@name Operations
     ///@{
 
-    void Set(Flags ThisFlag)
-    {
-        mIsDefined |= ThisFlag.mIsDefined;
-        mFlags &= (~ThisFlag.mIsDefined); // First reseting the flag value to zero
-        mFlags |= ThisFlag.mFlags;
-    }
+    void Set(Flags ThisFlag);
 
-    void Set(Flags ThisFlag, bool Value)
-    {
-        mIsDefined |= ThisFlag.mIsDefined;
-        mFlags &= (~ThisFlag.mIsDefined); // First reseting the flag value to zero
-        mFlags |= (ThisFlag.mFlags * BlockType(Value)) | ((ThisFlag.mIsDefined ^ ThisFlag.mFlags) * BlockType(!Value));
-    }
+    void Set(Flags ThisFlag, bool Value);
 
     void Reset(Flags ThisFlag)
     {
@@ -237,18 +231,33 @@ public:
         mFlags &= ~(BlockType(1) << Position);
     }
 
- 
+
     void Clear()
     {
         mIsDefined = BlockType();
         mFlags = BlockType();
     }
 
+    Flags AsFalse() const
+    {
+        Flags this_flag_false(*this);
+        this_flag_false.mFlags = !((*this).mFlags);
+        return this_flag_false;
+    }
 
     ///@}
     ///@name Access
     ///@{
 
+    static const Flags AllDefined()
+    {
+        return Flags(~0,0);
+    }
+
+    static const Flags AllTrue()
+    {
+        return Flags(~0,~0);
+    }
 
     ///@}
     ///@name Inquiry
@@ -323,47 +332,17 @@ public:
     ///@{
 
 
-    friend bool operator==(const Flags& Left, const Flags& Right )
-    {
-        return (Left.mFlags == Right.mFlags);
-    }
+    friend bool KRATOS_API(KRATOS_CORE) operator==(const Flags& Left, const Flags& Right );
 
-    friend bool operator!=(const Flags& Left, const Flags& Right )
-    {
-        return (Left.mFlags != Right.mFlags);
-    }
+    friend bool KRATOS_API(KRATOS_CORE) operator!=(const Flags& Left, const Flags& Right );
 
-    friend Flags operator|(const Flags& Left, const Flags& Right )
-    {
-        Flags results(Left);
-        results |= Right;
-        return results;
-    }
+    friend Flags KRATOS_API(KRATOS_CORE) operator|(const Flags& Left, const Flags& Right );
 
-    friend Flags operator&(const Flags& Left, const Flags& Right )
-    {
-        // This looks like copy paste error but the idea is to
-        // define the & operator like the or one.
-        Flags results(Left);
-        results |= Right;
-        return results;
-    }
+    friend Flags KRATOS_API(KRATOS_CORE) operator&(const Flags& Left, const Flags& Right );
 
-    const Flags& operator|=(const Flags& Other )
-    {
-        mIsDefined |= Other.mIsDefined;
-        mFlags |= Other.mFlags;
-        return *this;
-    }
+    const Flags& operator|=(const Flags& Other );
 
-    const Flags& operator&=(const Flags& Other )
-    {
-        // This looks like copy paste error but the idea is to
-        // define the & operator like the or one.
-        mIsDefined |= Other.mIsDefined;
-        mFlags |= Other.mFlags;
-        return *this;
-    }
+    const Flags& operator&=(const Flags& Other );
 
     ///@}
 
@@ -426,22 +405,25 @@ private:
     ///@name Private Operations
     ///@{
 
+    friend class MPIDataCommunicator;
+
+    BlockType GetDefined() const;
+
+    void SetDefined(const BlockType& rDefined);
+
+    BlockType GetFlags() const;
+
+    void SetFlags(const BlockType& rValues);
+
     ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        rSerializer.save("IsDefined",  mIsDefined);
-        rSerializer.save("Flags",  mFlags);
-    }
+    virtual void save(Serializer& rSerializer) const;
 
-    virtual void load(Serializer& rSerializer)
-    {
-        rSerializer.load("IsDefined",  mIsDefined);
-        rSerializer.load("Flags",  mFlags);
-    }
+    virtual void load(Serializer& rSerializer);
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -451,6 +433,13 @@ private:
     ///@name Private Inquiry
     ///@{
 
+    ///@}
+    ///@name Private LifeCycle
+    ///@{
+
+    Flags(BlockType DefinedFlags, BlockType SetFlags):
+        mIsDefined(DefinedFlags), mFlags(SetFlags)
+    {}
 
     ///@}
     ///@name Un accessible methods
@@ -494,6 +483,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FLAGS_H_INCLUDED  defined 
-
-
+#endif // KRATOS_FLAGS_H_INCLUDED  defined

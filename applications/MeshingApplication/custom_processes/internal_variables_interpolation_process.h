@@ -1,4 +1,3 @@
-#include <omp.h>
 // KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
 //        | |\/| |  _| \___ \| |_| || ||  \| | |  _
@@ -8,7 +7,7 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_INTERNAL_VARIABLES_INTERPOLATION_PROCESS )
@@ -17,13 +16,15 @@
 // System includes
 
 // External includes
-#include <omp.h>
 
 // Project includes
-#include "meshing_application.h"
+#include "utilities/openmp_utils.h"
+#include "meshing_application_variables.h"
+#include "processes/process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "includes/kratos_components.h"
+#include "custom_includes/gauss_point_item.h"
 // Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
 // Include the trees
@@ -39,14 +40,23 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    /// Definition of node type
+    typedef Node<3> NodeType;
+
+    /// Definition of the geometry type with given NodeType
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Type definitions for the tree
+    typedef GaussPointItem                                        PointType;
+    typedef PointType::Pointer                             PointTypePointer;
+    typedef std::vector<PointTypePointer>                       PointVector;
+    typedef PointVector::iterator                             PointIterator;
+    typedef std::vector<double>                              DistanceVector;
+    typedef DistanceVector::iterator                       DistanceIterator;
+
 ///@}
 ///@name  Enum's
 ///@{
-
-    #if !defined(INTERPOLATION_TYPES)
-    #define INTERPOLATION_TYPES
-        enum InterpolationTypes {CPT = 0, LST = 1, SFT = 2};
-    #endif
 
 ///@}
 ///@name  Functions
@@ -56,201 +66,29 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Custom Gauss Point container to be used by the search
+/**
+ * @class InternalVariablesInterpolationProcess
+ * @ingroup MeshingApplication
+ * @brief This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
+ * @details The process employs the projection.h from MeshingApplication, which works internally using a kd-tree
+ * @author Vicente Mataix Ferrandiz
  */
-class GaussPointItem
-    : public Point<3>
-{
-public:
-
-    ///@name Type Definitions
-    ///@{
-    /// Counted pointer of GaussPointItem
-    KRATOS_CLASS_POINTER_DEFINITION( GaussPointItem );
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructors
-    GaussPointItem():
-        Point<3>()
-    {
-    }
-
-    GaussPointItem(const array_1d<double, 3> Coords):
-        Point<3>(Coords)
-    {
-    }
-
-    GaussPointItem(
-        const array_1d<double, 3> Coords,
-        ConstitutiveLaw::Pointer pConstitutiveLaw,
-        const double Weight
-        ):Point<3>(Coords),
-          mpConstitutiveLaw(pConstitutiveLaw),
-          mWeight(Weight)
-    {
-    }
-
-    ///Copy constructor  (not really required)
-    GaussPointItem(const GaussPointItem& GP):
-        Point<3>(GP),
-        mpConstitutiveLaw(GP.mpConstitutiveLaw),
-        mWeight(GP.mWeight)
-    {
-    }
-
-    /// Destructor.
-    ~GaussPointItem(){}
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /**
-     * Returns the point
-     * @return The point
-     */
-
-    Point<3> GetPoint()
-    {
-        Point<3> Point(this->Coordinates());
-
-        return Point;
-    }
-
-    /**
-     * Set the point
-     * @param The point
-     */
-
-    void SetPoint(const Point<3> Point)
-    {
-        this->Coordinates() = Point.Coordinates();
-    }
-
-    /**
-     * Sets the Constitutive Law associated to the point
-     * @param pConstitutiveLaw: The pointer to the Constitutive Law
-     */
-
-    void SetConstitutiveLaw(ConstitutiveLaw::Pointer pConstitutiveLaw)
-    {
-        mpConstitutiveLaw = pConstitutiveLaw;
-    }
-
-    /**
-     * Returns the Constitutive Law associated to the point
-     * @return mpConstitutiveLaw: The pointer to the Constitutive Law associated to the point
-     */
-
-    ConstitutiveLaw::Pointer GetConstitutiveLaw()
-    {
-        return mpConstitutiveLaw;
-    }
-
-    /**
-     * Returns the integration weigth associated to the point
-     * @return mWeight: The pointer to the Constitutive Law associated to the point
-     */
-
-    double GetWeight()
-    {
-        return mWeight;
-    }
-
-    /**
-     * Sets the integration weigth associated to the point
-     * @param Weight: The integration weight
-     */
-
-    void SetWeight(double Weight)
-    {
-        mWeight = Weight;
-    }
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ConstitutiveLaw::Pointer mpConstitutiveLaw; // The constitutive law pointer
-    double mWeight;                             // The integration weight of the GP
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
-}; // Class GaussPointItem
-
-/** \brief InternalVariablesInterpolationProcess
- * This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
- * The process employs the projection.h from MeshingApplication, which works internally using a kd-tree
- */
-
-class InternalVariablesInterpolationProcess
+class KRATOS_API(MESHING_APPLICATION) InternalVariablesInterpolationProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    /// KDtree definitions
+    typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
+    typedef Tree< KDTreePartition<BucketType> > KDTree;
+
+    /// Definitions for the variables
+    typedef Variable<double>             DoubleVarType;
+    typedef Variable<array_1d<double, 3>> ArrayVarType;
+    typedef Variable<Vector>             VectorVarType;
+    typedef Variable<Matrix>             MatrixVarType;
 
     // General type definitions
     typedef ModelPart::NodesContainerType                    NodesArrayType;
@@ -259,20 +97,21 @@ public:
     typedef Node<3>                                                NodeType;
     typedef Geometry<NodeType>                                 GeometryType;
 
-    // Type definitions for the tree
-    typedef GaussPointItem                                        PointType;
-    typedef PointType::Pointer                             PointTypePointer;
-    typedef std::vector<PointTypePointer>                       PointVector;
-    typedef PointVector::iterator                             PointIterator;
-    typedef std::vector<double>                              DistanceVector;
-    typedef DistanceVector::iterator                       DistanceIterator;
-
-    // KDtree definitions
-    typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > KDTree;
-
     /// Pointer definition of InternalVariablesInterpolationProcess
     KRATOS_CLASS_POINTER_DEFINITION( InternalVariablesInterpolationProcess );
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    /**
+     * @brief This enum it used to list the different types of interpolations available
+     */
+    enum class InterpolationTypes {
+        CLOSEST_POINT_TRANSFER = 0, /// Closest Point Transfer. It transfer the values from the closest GP
+        LEAST_SQUARE_TRANSFER = 1, /// Least-Square projection Transfer. It transfers from the closest GP from the old mesh
+        SHAPE_FUNCTION_TRANSFER = 2  /// Shape Function Transfer. It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
+        };
 
     ///@}
     ///@name Life Cycle
@@ -281,54 +120,19 @@ public:
     // Class Constructor
 
     /**
-     * The constructor of the search utility uses the following inputs:
-     * @param rOriginMainModelPart: The model part from where interpolate values
-     * @param rDestinationMainModelPart: The model part where we want to interpolate the values
-     * @param ThisParameters: The parameters containing all the information needed
+     * @brief The constructor of the search utility uses the following inputs:
+     * @param rOriginMainModelPart The model part from where interpolate values
+     * @param rDestinationMainModelPart The model part where we want to interpolate the values
+     * @param ThisParameters The parameters containing all the information needed
      */
 
     InternalVariablesInterpolationProcess(
         ModelPart& rOriginMainModelPart,
         ModelPart& rDestinationMainModelPart,
         Parameters ThisParameters =  Parameters(R"({})")
-        )
-    :mrOriginMainModelPart(rOriginMainModelPart),
-     mrDestinationMainModelPart(rDestinationMainModelPart),
-     mDimension(rDestinationMainModelPart.GetProcessInfo()[DOMAIN_SIZE])
-     {
-        Parameters DefaultParameters = Parameters(R"(
-            {
-                "allocation_size"                      : 1000,
-                "bucket_size"                          : 4,
-                "search_factor"                        : 2,
-                "interpolation_type"                   : "LST",
-                "internal_variable_interpolation_list" :[]
-            })" );
+        );
 
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-
-        mAllocationSize = ThisParameters["allocation_size"].GetInt();
-        mBucketSize = ThisParameters["bucket_size"].GetInt();
-        mSearchFactor = ThisParameters["search_factor"].GetDouble();
-        mThisInterpolationType = ConvertInter(ThisParameters["interpolation_type"].GetString());
-
-        if (ThisParameters["internal_variable_interpolation_list"].IsArray() == true)
-        {
-            auto VariableArrayList = ThisParameters["internal_variable_interpolation_list"];
-
-            for (unsigned int iVar = 0; iVar < VariableArrayList.size(); iVar++)
-            {
-                mInternalVariableList.push_back(KratosComponents<Variable<double>>::Get(VariableArrayList[iVar].GetString()));
-            }
-        }
-        else
-        {
-            std::cout << "WARNING:: No variables to interpolate, look that internal_variable_interpolation_list is correctly defined in your parameters" << std::endl;
-            mInternalVariableList.clear();
-        }
-     }
-
-    virtual ~InternalVariablesInterpolationProcess(){};
+    ~InternalVariablesInterpolationProcess() override= default;
 
     ///@}
     ///@name Operators
@@ -344,30 +148,19 @@ public:
     ///@{
 
     /**
-     * We execute the search relative to the old and new model part
+     * @brief We execute the search relative to the old and new model part
+     * @details There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
+     * - CLOSEST_POINT_TRANSFER: Closest Point Transfer. It transfer the values from the closest GP
+     * - LEAST_SQUARE_TRANSFER: Least-Square projection Transfer. It transfers from the closest GP from the old mesh
+     * - SHAPE_FUNCTION_TRANSFER: Shape Function Transfer. It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
+     * @note SFT THIS DOESN'T WORK, AND REQUIRES EXTRA STORE
      */
+    void Execute() override;
 
-    virtual void Execute()
-    {
-        /** NOTE: There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
-         * CPT: Closest point transfer. It transfer the values from the closest GP
-         * LST: Least-square projection transfer. It transfers from the closest GP from the old mesh
-         * SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the sahpe functions all the time (NOTE: THIS DOESN"T WORK, AND REQUIRES EXTRA STORE)
-         */
-
-        if (mThisInterpolationType == CPT && mInternalVariableList.size() > 0)
-        {
-            InterpolateGaussPointsCPT();
-        }
-        else if (mThisInterpolationType == LST && mInternalVariableList.size() > 0)
-        {
-            InterpolateGaussPointsLST();
-        }
-        else if (mThisInterpolationType == SFT && mInternalVariableList.size() > 0)
-        {
-            InterpolateGaussPointsSFT();
-        }
-    }
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -384,7 +177,7 @@ public:
     /************************************ GET INFO *************************************/
     /***********************************************************************************/
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "InternalVariablesInterpolationProcess";
     }
@@ -392,7 +185,7 @@ public:
     /************************************ PRINT INFO ***********************************/
     /***********************************************************************************/
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
@@ -444,21 +237,21 @@ private:
     ///@{
 
     // The model parts
-    ModelPart& mrOriginMainModelPart;                    // The origin model part
-    ModelPart& mrDestinationMainModelPart;               // The destination model part
-    const unsigned int mDimension;                       // Dimension size of the space
+    ModelPart& mrOriginMainModelPart;                    /// The origin model part
+    ModelPart& mrDestinationMainModelPart;               /// The destination model part
+    const unsigned int mDimension;                       /// Dimension size of the space
 
     // The allocation parameters
-    unsigned int mAllocationSize;                  // Allocation size for the vectors and max number of potential results
-    unsigned int mBucketSize;                      // Bucket size for kd-tree
+    unsigned int mAllocationSize;                   /// Allocation size for the vectors and max number of potential results
+    unsigned int mBucketSize;                       /// Bucket size for kd-tree
 
     // The seatch variables
-    double mSearchFactor;                          // The search factor to be considered
-    PointVector mPointListOrigin;                        // A list that contents the all the gauss points from the origin modelpart
+    double mSearchFactor;                           /// The search factor to be considered
+    PointVector mPointListOrigin;                   /// A list that contents the all the gauss points from the origin modelpart
 
     // Variables to interpolate
-    std::vector<Variable<double>> mInternalVariableList; // The list of variables to interpolate
-    InterpolationTypes mThisInterpolationType;           // The interpolation type considered
+    std::vector<std::string> mInternalVariableList; /// The list of internal variables to interpolate
+    InterpolationTypes mThisInterpolationType;      /// The interpolation type considered
 
     ///@}
     ///@name Private Operators
@@ -469,537 +262,418 @@ private:
     ///@{
 
     /**
-     * This function creates a lists of gauss points ready for the search
-     * @param ThisModelPart: The model part to consider
+     * @brief This function creates a lists of gauss points ready for the search
+     * @param ThisModelPart The model part to consider
      */
 
-    PointVector CreateGaussPointList(ModelPart& ThisModelPart)
+    PointVector CreateGaussPointList(ModelPart& ThisModelPart);
+
+    /**
+     * @brief This method interpolate the values of the GP using the Closest Point Transfer method
+     */
+
+    void InterpolateGaussPointsClosestPointTransfer();
+
+    /**
+     * @brief This method interpolate the values of the GP using the Least-Square projection Transfer method
+     */
+
+    void InterpolateGaussPointsLeastSquareTransfer();
+
+    /**
+     * @brief This method interpolate the values of the GP using the Shape Function Transfer method
+     */
+
+    void InterpolateGaussPointsShapeFunctionTransfer();
+
+    /**
+     * @brief This method computes the total number of variables to been interpolated
+     * @return The total number of variables to be interpolated
+     */
+    std::size_t ComputeTotalNumberOfVariables();
+
+    /**
+     * @brief This method saves the values on the gauss point object
+     * @param rThisVar The variable to transfer
+     * @param pPointOrigin The pointer to the current GP
+     * @param itElemOrigin The origin element iterator to save on the auxiliar point
+     * @param GaussPointId The index of te current GaussPoint computed
+     * @param rCurrentProcessInfo The process info
+     */
+    template<class TVarType>
+    inline void SaveValuesOnGaussPoint(
+        const Variable<TVarType>& rThisVar,
+        PointTypePointer pPointOrigin,
+        ElementsArrayType::iterator itElemOrigin,
+        const IndexType GaussPointId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
     {
-        PointVector ThisPointVector;
+        std::vector<TVarType> values;
+        itElemOrigin->CalculateOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        pPointOrigin->SetValue(rThisVar, values[GaussPointId]);
+    }
 
-        GeometryData::IntegrationMethod ThisIntegrationMethod;
+    /**
+     * @brief Simply gets a origin value from a CL and it sets on the destination CL
+     * @param rThisVar The variable to transfer
+     * @param pOriginConstitutiveLaw The CL on the original mesh
+     * @param pDestinationConstitutiveLaw The Cl on the destination mesh
+     * @param rCurrentProcessInfo The process info
+     */
+    template<class TVarType>
+    inline void GetAndSetDirectVariableOnConstitutiveLaw(
+        const Variable<TVarType>& rThisVar,
+        ConstitutiveLaw::Pointer pOriginConstitutiveLaw,
+        ConstitutiveLaw::Pointer pDestinationConstitutiveLaw,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        TVarType origin_value;
+        origin_value = pOriginConstitutiveLaw->GetValue(rThisVar, origin_value);
 
-        // Iterate in the elements
-        ElementsArrayType& pElements = ThisModelPart.Elements();
-        int numElements = ThisModelPart.NumberOfElements();
+        pDestinationConstitutiveLaw->SetValue(rThisVar, origin_value, rCurrentProcessInfo);
+    }
 
-        const ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
+    /**
+     * @brief This method sets the value directly on the elementusing the value from the closest gauss point from the old mesh
+     * @param rThisVar The variable to transfer
+     * @param pPointOrigin The pointer to the current GP
+     * @param itElemDestination The destination element iterato where to set the values
+     * @param GaussPointId The index of te current GaussPoint computed
+     * @param rCurrentProcessInfo The process info
+     */
+    template<class TVarType>
+    inline void GetAndSetDirectVariableOnElements(
+        const Variable<TVarType>& rThisVar,
+        PointTypePointer pPointOrigin,
+        ElementsArrayType::iterator itElemDestination,
+        const IndexType GaussPointId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        std::vector<TVarType> values;
+        itElemDestination->CalculateOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        TVarType aux_value;
+        values[GaussPointId] = pPointOrigin->GetValue(rThisVar, aux_value);
+        itElemDestination->SetValuesOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+    }
 
-        // Creating a buffer for parallel vector fill
-        const unsigned int NumThreads = omp_get_max_threads();
-        std::vector<PointVector> PointsBuffers(NumThreads);
+    /**
+     * @brief Gets a origin value from near points and it sets on the destination CL using a weighted proportion
+     * @param rThisVar The variable to transfer
+     * @param NumberOfPointsFound The number of points found during the search
+     * @param PointsFound The list of points found
+     * @param PointDistances The distances of the points found
+     * @param CharacteristicLenght The characteristic length of the problem
+     * @param pDestinationConstitutiveLaw The Cl on the destination mesh
+     * @param rCurrentProcessInfo The process info
+     */
+    template<class TVarType>
+    inline void GetAndSetWeightedVariableOnConstitutiveLaw(
+        const Variable<TVarType>& rThisVar,
+        const std::size_t NumberOfPointsFound,
+        PointVector& PointsFound,
+        const std::vector<double>& PointDistances,
+        const double CharacteristicLenght,
+        ConstitutiveLaw::Pointer pDestinationConstitutiveLaw,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        TVarType weighting_function_numerator = rThisVar.Zero();
+        double weighting_function_denominator = 0.0;
+        TVarType origin_value;
 
-        #pragma omp parallel
-        {
-            const unsigned int Id = omp_get_thread_num();
+        for (std::size_t i_point_found = 0; i_point_found < NumberOfPointsFound; ++i_point_found) {
+            PointTypePointer p_gp_origin = PointsFound[i_point_found];
 
-            #pragma omp for
-            for(int i = 0; i < numElements; i++)
-            {
-                auto itElem = pElements.begin() + i;
+            const double distance = PointDistances[i_point_found];
 
-                // Getting the geometry
-                Element::GeometryType& rThisGeometry = itElem->GetGeometry();
+            origin_value = (p_gp_origin->GetConstitutiveLaw())->GetValue(rThisVar, origin_value);
 
-                // Getting the integration points
-                ThisIntegrationMethod = itElem->GetIntegrationMethod();
-                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
-                const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
+            const double ponderated_weight = p_gp_origin->GetWeight() * std::exp( -4.0 * distance * distance /std::pow(CharacteristicLenght, 2));
 
-                // Computing the Jacobian
-                Vector VectorDetJ(IntegrationPointsNumber);
-                rThisGeometry.DeterminantOfJacobian(VectorDetJ,ThisIntegrationMethod);
-
-                // Getting the CL
-                std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
-                itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
-
-                for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
-                {
-                    const array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
-
-                    // We compute the corresponding weight
-                    const double Weight = VectorDetJ[iGaussPoint] * IntegrationPoints[iGaussPoint].Weight();
-
-                    // We compute the global coordinates
-                    array_1d<double, 3> GlobalCoordinates;
-                    GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
-
-                    // We create the respective GP
-                    PointTypePointer pPoint = PointTypePointer(new PointType(GlobalCoordinates, ConstitutiveLawVector[iGaussPoint], Weight));
-                    (PointsBuffers[Id]).push_back(pPoint);
-                }
-            }
-
-            // Combine buffers together
-            #pragma omp single
-            {
-                for( auto& PointsBuffer : PointsBuffers)
-                {
-                    std::move(PointsBuffer.begin(),PointsBuffer.end(),back_inserter(ThisPointVector));
-                }
-            }
+            weighting_function_numerator   += ponderated_weight * origin_value;
+            weighting_function_denominator += ponderated_weight;
         }
 
-        return ThisPointVector;
+        const TVarType destination_value = weighting_function_numerator/weighting_function_denominator;
+
+        pDestinationConstitutiveLaw->SetValue(rThisVar, destination_value, rCurrentProcessInfo);
     }
 
     /**
-     * This method interpolate the values of the GP using the CPT method
+     * @brief Gets a origin value from near points and it sets on the destination CL using a weighted proportion
+     * @param rThisVar The variable to transfer
+     * @param NumberOfPointsFound The number of points found during the search
+     * @param PointsFound The list of points found
+     * @param PointDistances The distances of the points found
+     * @param CharacteristicLenght The characteristic length of the problem
+     * @param itElemDestination The destination element iterato where to set the values
+     * @param GaussPointId The index of te current GaussPoint computed
+     * @param rCurrentProcessInfo The process info
      */
-
-    void InterpolateGaussPointsCPT()
+    template<class TVarType>
+    inline void GetAndSetWeightedVariableOnElements(
+        const Variable<TVarType>& rThisVar,
+        const std::size_t NumberOfPointsFound,
+        PointVector& PointsFound,
+        const std::vector<double>& PointDistances,
+        const double CharacteristicLenght,
+        ElementsArrayType::iterator itElemDestination,
+        const IndexType GaussPointId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
     {
-        // We Initialize the process info
-        const ProcessInfo& CurrentProcessInfo = mrDestinationMainModelPart.GetProcessInfo();
+        TVarType weighting_function_numerator = rThisVar.Zero();
+        double weighting_function_denominator = 0.0;
+        TVarType origin_value;
 
-        // We update the list of points
-        mPointListOrigin.clear();
-        mPointListOrigin = CreateGaussPointList(mrOriginMainModelPart);
+        for (std::size_t i_point_found = 0; i_point_found < NumberOfPointsFound; ++i_point_found) {
+            PointTypePointer p_gp_origin = PointsFound[i_point_found];
 
-        //#pragma omp parallel firstprivate(mPointListOrigin)
-        //{
-            // We initialize the intergration method
-            GeometryData::IntegrationMethod ThisIntegrationMethod;
+            const double distance = PointDistances[i_point_found];
 
-            // Create a tree
-            // It will use a copy of mNodeList (a std::vector which contains pointers)
-            // Copying the list is required because the tree will reorder it for efficiency
-            KDTree TreePoints(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize);
+            origin_value = p_gp_origin->GetValue(rThisVar, origin_value);
 
-            // Iterate over the destination elements
-            ElementsArrayType& pElements = mrDestinationMainModelPart.Elements();
-            auto numElements = pElements.end() - pElements.begin();
+            const double ponderated_weight = p_gp_origin->GetWeight() * std::exp( -4.0 * distance * distance /std::pow(CharacteristicLenght, 2));
 
-            //#pragma omp for
-            for(int i = 0; i < numElements; i++)
-            {
-                auto itElem = pElements.begin() + i;
+            weighting_function_numerator   += ponderated_weight * origin_value;
+            weighting_function_denominator += ponderated_weight;
+        }
 
-                // Getting the geometry
-                Element::GeometryType& rThisGeometry = itElem->GetGeometry();
+        const TVarType destination_value = weighting_function_numerator/weighting_function_denominator;
 
-                // Getting the integration points
-                ThisIntegrationMethod = itElem->GetIntegrationMethod();
-                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
-                const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
-
-                // Getting the CL
-                std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
-                itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
-
-                for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
-                {
-                    // We compute the global coordinates
-                    const array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
-                    array_1d<double, 3> GlobalCoordinates;
-                    GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
-
-                    PointTypePointer pGPOrigin = TreePoints.SearchNearestPoint(GlobalCoordinates);
-
-                    for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
-                    {
-                        Variable<double> ThisVar = mInternalVariableList[iVar];
-
-                        double OriginValue;
-                        OriginValue = (pGPOrigin->GetConstitutiveLaw())->GetValue(ThisVar, OriginValue);
-
-                        (ConstitutiveLawVector[iGaussPoint])->SetValue(ThisVar, OriginValue, CurrentProcessInfo);
-                    }
-                }
-            }
-        //}
+        std::vector<TVarType> values;
+        itElemDestination->CalculateOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        values[GaussPointId] = destination_value;
+        itElemDestination->SetValuesOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
 
     /**
-     * This method interpolate the values of the GP using the LST method
+     * @brief This method interpolates and add values from  the CL using shape functions
+     * @param rThisGeometry The geometry of the element
+     * @param rThisVar The variable to transfer
+     * @param N The shape function used
+     * @param pConstitutiveLaw The CL on the original mesh
+     * @param Weight The integration weight
      */
-
-    void InterpolateGaussPointsLST()
+    template<class TVarType>
+    inline void InterpolateAddVariableOnConstitutiveLaw(
+        GeometryType& rThisGeometry,
+        const Variable<TVarType>& rThisVar,
+        const Vector& N,
+        ConstitutiveLaw::Pointer& pConstitutiveLaw,
+        const double Weight
+        )
     {
-        // We Initialize the process info
-        const ProcessInfo& CurrentProcessInfo = mrDestinationMainModelPart.GetProcessInfo();
+        TVarType origin_value;
+        origin_value = pConstitutiveLaw->GetValue(rThisVar, origin_value);
 
-        // We update the list of points
-        mPointListOrigin.clear();
-        mPointListOrigin = CreateGaussPointList(mrOriginMainModelPart);
-
-        //#pragma omp parallel firstprivate(mPointListOrigin)
-        //{
-            // We initialize the intergration method
-            GeometryData::IntegrationMethod ThisIntegrationMethod;
-
-            // Initialize values
-            PointVector PointsFound(mAllocationSize);
-            std::vector<double> PointsDistances(mAllocationSize);
-            unsigned int NumberPointsFound = 0;
-
-            // Create a tree
-            // It will use a copy of mNodeList (a std::vector which contains pointers)
-            // Copying the list is required because the tree will reorder it for efficiency
-            KDTree TreePoints(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize);
-
-            // Iterate over the destination elements
-            ElementsArrayType& pElements = mrDestinationMainModelPart.Elements();
-            auto numElements = pElements.end() - pElements.begin();
-
-            //#pragma omp for
-            for(int i = 0; i < numElements; i++)
-            {
-                auto itElem = pElements.begin() + i;
-
-                // Getting the geometry
-                Element::GeometryType& rThisGeometry = itElem->GetGeometry();
-
-                // Getting the integration points
-                ThisIntegrationMethod = itElem->GetIntegrationMethod();
-                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
-                const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
-
-                // Getting the CL
-                std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
-                itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
-
-                // Computing the radius
-                const double Radius = mSearchFactor *  (mDimension == 2 ? std::sqrt(rThisGeometry.Area()) : std::cbrt(rThisGeometry.Volume()));
-
-                // We get the NODAL_H vector
-                Vector NodalHVector(rThisGeometry.size());
-                for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
-                {
-                    if ( rThisGeometry[iNode].SolutionStepsDataHas( NODAL_H ) == false )
-                    {
-                        KRATOS_ERROR << "NODAL_H is not defined in the node ID: " << rThisGeometry[iNode].Id() << std::endl;
-                    }
-
-                    NodalHVector[iNode] = rThisGeometry[iNode].FastGetSolutionStepValue(NODAL_H);
-                }
-
-                for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
-                {
-                    // We compute the global coordinates
-                    const array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
-                    array_1d<double, 3> GlobalCoordinates;
-                    GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
-
-                    // We compute the pondered characteristic length
-                    Vector N( rThisGeometry.size() );
-                    rThisGeometry.ShapeFunctionsValues( N, LocalCoordinates );
-                    const double CharacteristicLength = inner_prod(N, NodalHVector);
-
-                    NumberPointsFound = TreePoints.SearchInRadius(GlobalCoordinates, Radius, PointsFound.begin(), PointsDistances.begin(), mAllocationSize);
-
-                    if (NumberPointsFound > 0)
-                    {
-                        for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
-                        {
-                            Variable<double> ThisVar = mInternalVariableList[iVar];
-
-                            double WeightingFunctionNumerator   = 0.0;
-                            double WeightingFunctionDenominator = 0.0;
-                            double OriginValue;
-
-                            for (unsigned int iPointFound = 0; iPointFound < NumberPointsFound; iPointFound++)
-                            {
-                                PointTypePointer pGPOrigin = PointsFound[iPointFound];
-
-                                const double Distance = PointsDistances[iPointFound];
-
-                                OriginValue = (pGPOrigin->GetConstitutiveLaw())->GetValue(ThisVar, OriginValue);
-
-                                const double PonderatedWeight = pGPOrigin->GetWeight() * std::exp( -4.0 * Distance * Distance /(CharacteristicLength * CharacteristicLength));
-
-                                WeightingFunctionNumerator   += PonderatedWeight * OriginValue;
-                                WeightingFunctionDenominator += PonderatedWeight;
-                            }
-
-                            const double DestinationValue = WeightingFunctionNumerator/WeightingFunctionDenominator;
-
-                            (ConstitutiveLawVector[iGaussPoint])->SetValue(ThisVar, DestinationValue, CurrentProcessInfo);
-                        }
-                    }
-                    else
-                    {
-                        std::cout << "WARNING:: It wasn't impossible to find any Gauss Point from where interpolate the internal variables" << std::endl;
-                    }
-                }
-            }
-        //}
+        // We sum all the contributions
+        for (unsigned int i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+            #pragma omp critical
+            rThisGeometry[i_node].GetValue(rThisVar) += N[i_node] * origin_value * Weight;
+        }
     }
 
     /**
-     * This method interpolate the values of the GP using the SFT method
+     * @brief This method interpolates and add values from the element using shape functions
+     * @param rThisGeometry The geometry of the element
+     * @param rThisVar The variable to transfer
+     * @param N The shape function used
+     * @param itElemOrigin The origin element iterator to save on the auxiliar point
+     * @param GaussPointId The index of te current GaussPoint computed
+     * @param Weight The integration weight
+     * @param rCurrentProcessInfo The process info
      */
-
-    void InterpolateGaussPointsSFT()
+    template<class TVarType>
+    inline void InterpolateAddVariableOnElement(
+        GeometryType& rThisGeometry,
+        const Variable<TVarType>& rThisVar,
+        const Vector& N,
+        ElementsArrayType::iterator itElemOrigin,
+        const IndexType GaussPointId,
+        const double Weight,
+        const ProcessInfo& rCurrentProcessInfo
+        )
     {
-        // Initialize some values
-        GeometryData::IntegrationMethod ThisIntegrationMethod;
+        std::vector<TVarType> origin_values;
+        itElemOrigin->CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
 
-        // Iterate in the nodes to initialize the values
-        NodesArrayType& pNode = mrOriginMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        // We sum all the contributions
+        for (unsigned int i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+            #pragma omp critical
+            rThisGeometry[i_node].GetValue(rThisVar) += N[i_node] * origin_values[GaussPointId] * Weight;
+        }
+    }
+
+    /**
+     * @brief This method ponderates a value by the total integration weight
+     * @param rThisGeometry The geometry of the element
+     * @param rThisVar The variable to transfer
+     * @param TotalWeight The total integration weight
+     */
+    template<class TVarType>
+    inline void PonderateVariable(
+        GeometryType& rThisGeometry,
+        const Variable<TVarType>& rThisVar,
+        const double TotalWeight
+        )
+    {
+        for (unsigned int i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+            #pragma omp critical
+            rThisGeometry[i_node].GetValue(rThisVar) /= TotalWeight;
+        }
+    }
+
+    /**
+     * @brief This method interpolates using shape functions and the values from the elemental nodes
+     * @param rThisVar The variable to transfer
+     * @param N The shape function used
+     * @param pNode The pointer to teh current node
+     * @param pElement The pointer to teh current element
+     */
+    template<class TVarType>
+    inline void InterpolateToNode(
+        const Variable<TVarType>& rThisVar,
+        const Vector& N,
+        NodeType::Pointer pNode,
+        Element::Pointer pElement
+        )
+    {
+        // An auxiliar value
+        TVarType aux_value = rThisVar.Zero();
+
+        // Interpolate with shape function
+        const std::size_t number_nodes = pElement->GetGeometry().size();
+        for (std::size_t i_node = 0; i_node < number_nodes; ++i_node)
+            aux_value += N[i_node] * pElement->GetGeometry()[i_node].GetValue(rThisVar);
+
+        pNode->SetValue(rThisVar, aux_value);
+    }
+
+    /**
+     * @brief Gets a origin value from near points and it sets on the destination CL using a weighted proportion
+     * @param rThisGeometry The geometry of the element
+     * @param rThisVar The variable to transfer
+     * @param N The shape function used
+     * @param pDestinationConstitutiveLaw The Cl on the destination mesh
+     * @param rCurrentProcessInfo The process info
+     */
+    template<class TVarType>
+    inline void SetInterpolatedValueOnConstitutiveLaw(
+        GeometryType& rThisGeometry,
+        const Variable<TVarType>& rThisVar,
+        const Vector& N,
+        ConstitutiveLaw::Pointer pDestinationConstitutiveLaw,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        // An auxiliar value
+        TVarType destination_value = rThisVar.Zero();
+
+        // Interpolate with shape function
+        const std::size_t number_nodes = rThisGeometry.size();
+        for (std::size_t i_node = 0; i_node < number_nodes; ++i_node)
+            destination_value += N[i_node] * rThisGeometry[i_node].GetValue(rThisVar);
+
+        pDestinationConstitutiveLaw->SetValue(rThisVar, destination_value, rCurrentProcessInfo);
+    }
+
+    /**
+     * @brief Gets a origin value from near points and it sets on the destination CL using a weighted proportion
+     * @param rThisGeometry The geometry of the element
+     * @param rThisVar The variable to transfer
+     * @param N The shape function used
+     * @param itElemDestination The destination element iterato where to set the values
+     * @param GaussPointId The index of te current GaussPoint computed
+     * @param rCurrentProcessInfo The process info
+     */
+    template<class TVarType>
+    inline void SetInterpolatedValueOnElement(
+        GeometryType& rThisGeometry,
+        const Variable<TVarType>& rThisVar,
+        const Vector& N,
+        ElementsArrayType::iterator itElemDestination,
+        const IndexType GaussPointId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        // An auxiliar value
+        TVarType destination_value = rThisVar.Zero();
+
+        // Interpolate with shape function
+        const std::size_t number_nodes = rThisGeometry.size();
+        for (std::size_t i_node = 0; i_node < number_nodes; ++i_node)
+            destination_value += N[i_node] * rThisGeometry[i_node].GetValue(rThisVar);
+
+        std::vector<TVarType> values;
+        itElemDestination->CalculateOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        values[GaussPointId] = destination_value;
+        itElemDestination->SetValuesOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+    }
+
+    /**
+     * @brief This method interpolates values to all the nodes from the old to the new mesh
+     * @tparam TDim The dimension
+     */
+    template<std::size_t TDim>
+    void InterpolateToNodes()
+    {
+        // We create the locator
+        BinBasedFastPointLocator<TDim> point_locator(mrOriginMainModelPart);
+        point_locator.UpdateSearchDatabase();
+
+        // Iterate over nodes
+        NodesArrayType& r_nodes_array = mrDestinationMainModelPart.Nodes();
+        const int num_nodes = static_cast<int>(r_nodes_array.size());
+        const auto it_node_begin = r_nodes_array.begin();
+
+        // Auxiliar
+        Vector N;
+        Element::Pointer p_element;
 
         /* Nodes */
-        #pragma omp parallel for
-        for(int i = 0; i < numNodes; i++)
-        {
-            auto itNode = pNode.begin() + i;
+        #pragma omp parallel for firstprivate(point_locator, N, p_element)
+        for(int i = 0; i < num_nodes; ++i) {
+            auto it_node = it_node_begin + i;
 
-            for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
-            {
-                Variable<double> ThisVar = mInternalVariableList[iVar];
+            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            if (!old_entity) {
+                const bool found = point_locator.FindPointOnMeshSimplified(it_node->Coordinates(), N, p_element, mAllocationSize);
 
-                itNode->SetValue(ThisVar, 0.0);
-            }
-        }
-
-        // Iterate in the elements to ponderate the values
-        ElementsArrayType& pElementsOrigin = mrOriginMainModelPart.Elements();
-        auto numElements = pElementsOrigin.end() - pElementsOrigin.begin();
-
-        const ProcessInfo& OriginProcessInfo = mrOriginMainModelPart.GetProcessInfo();
-
-        /* Elements */
-        #pragma omp parallel for
-        for(int i = 0; i < numElements; i++)
-        {
-            auto itElem = pElementsOrigin.begin() + i;
-
-            // Getting the geometry
-            Element::GeometryType& rThisGeometry = itElem->GetGeometry();
-
-            // Getting the integration points
-            ThisIntegrationMethod = itElem->GetIntegrationMethod();
-            const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
-            const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
-
-            // Computing the Jacobian
-            Vector VectorDetJ(IntegrationPointsNumber);
-            rThisGeometry.DeterminantOfJacobian(VectorDetJ,ThisIntegrationMethod);
-
-            // Getting the CL
-            std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
-            itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,OriginProcessInfo);
-
-            // We initialize the total weigth
-            double TotalWeight = 0.0;
-
-            for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
-            {
-                array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
-
-                // We compute the corresponding weight
-                const double Weight = VectorDetJ[iGaussPoint] * IntegrationPoints[iGaussPoint].Weight();
-                TotalWeight += Weight;
-
-                // We compute the pondered characteristic length
-                Vector N( rThisGeometry.size() );
-                rThisGeometry.ShapeFunctionsValues( N, LocalCoordinates );
-
-                // We compute the global coordinates
-                array_1d<double, 3> GlobalCoordinates;
-                GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
-
-                for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
-                {
-                    Variable<double> ThisVar = mInternalVariableList[iVar];
-
-                    double OriginValue;
-                    OriginValue = ConstitutiveLawVector[iGaussPoint]->GetValue(ThisVar, OriginValue);
-
-                    // We sum all the contributions
-                    for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
-                    {
-                        #pragma omp atomic
-                        rThisGeometry[iNode].GetValue(ThisVar) += N[iNode] * OriginValue * Weight;
-                    }
-                }
-            }
-
-            // We divide by the total weight
-            for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
-            {
-                Variable<double> ThisVar = mInternalVariableList[iVar];
-
-                for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
-                {
-                    #pragma omp critical
-                    rThisGeometry[iNode].GetValue(ThisVar) /= TotalWeight;
-                }
-            }
-        }
-
-        // We interpolate to the new nodes
-        if (mDimension == 2)
-        {
-            // We create the locator
-            BinBasedFastPointLocator<2> PointLocator = BinBasedFastPointLocator<2>(mrOriginMainModelPart);
-            PointLocator.UpdateSearchDatabase();
-
-            // Iterate in the nodes
-            NodesArrayType& pNode = mrDestinationMainModelPart.Nodes();
-            auto numNodes = pNode.end() - pNode.begin();
-
-            /* Nodes */
-            #pragma omp parallel for
-            for(int i = 0; i < numNodes; i++)
-            {
-                auto itNode = pNode.begin() + i;
-
-                Vector N;
-                Element::Pointer pElement;
-
-                const bool found = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), N, pElement, mAllocationSize);
-
-                if (found == false)
-                {
-                    std::cout << "WARNING: GP not found (interpolation not posible)" << std::endl;
-                    std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << std::endl;
-                }
-                else
-                {
-                    for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
-                    {
-                        Variable<double> ThisVar = mInternalVariableList[iVar];
-
-                        Vector Values(pElement->GetGeometry().size());
-
-                        for (unsigned int iNode = 0; iNode < pElement->GetGeometry().size(); iNode++)
-                        {
-                            Values[iNode] = pElement->GetGeometry()[iNode].GetValue(ThisVar);
+                if (!found) {
+                    KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" <<  "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
+                } else {
+                    for (auto& variable_name : mInternalVariableList) {
+                        if (KratosComponents<DoubleVarType>::Has(variable_name)) {
+                            const DoubleVarType& this_var = KratosComponents<DoubleVarType>::Get(variable_name);
+                            InterpolateToNode(this_var, N, (*it_node.base()), p_element);
+                        } else if (KratosComponents<ArrayVarType>::Has(variable_name)) {
+                            const ArrayVarType& this_var = KratosComponents<ArrayVarType>::Get(variable_name);
+                            InterpolateToNode(this_var, N, (*it_node.base()), p_element);
+                        } else if (KratosComponents<VectorVarType>::Has(variable_name)) {
+                            const VectorVarType& this_var = KratosComponents<VectorVarType>::Get(variable_name);
+                            InterpolateToNode(this_var, N, (*it_node.base()), p_element);
+                        } else if (KratosComponents<MatrixVarType>::Has(variable_name)) {
+                            const MatrixVarType& this_var = KratosComponents<MatrixVarType>::Get(variable_name);
+                            InterpolateToNode(this_var, N, (*it_node.base()), p_element);
+                        } else {
+                            KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: " << variable_name << " is not registered as any type of compatible variable: DOUBLE or ARRAY_1D or VECTOR or Matrix" << std::endl;
                         }
-
-                        itNode->GetValue(ThisVar) = inner_prod(Values, N);
                     }
-                }
-            }
-        }
-        else
-        {
-            // We create the locator
-            BinBasedFastPointLocator<3> PointLocator = BinBasedFastPointLocator<3>(mrOriginMainModelPart);
-            PointLocator.UpdateSearchDatabase();
-
-            // Iterate in the nodes
-            NodesArrayType& pNode = mrDestinationMainModelPart.Nodes();
-            auto numNodes = pNode.end() - pNode.begin();
-
-            /* Nodes */
-            #pragma omp parallel for
-            for(int i = 0; i < numNodes; i++)
-            {
-                auto itNode = pNode.begin() + i;
-
-                Vector N;
-                Element::Pointer pElement;
-
-                const bool found = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), N, pElement, mAllocationSize);
-
-                if (found == false)
-                {
-                    std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
-                    std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
-                }
-                else
-                {
-                    for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
-                    {
-                        Variable<double> ThisVar = mInternalVariableList[iVar];
-
-                        Vector Values(pElement->GetGeometry().size());
-
-                        for (unsigned int iNode = 0; iNode < pElement->GetGeometry().size(); iNode++)
-                        {
-                            Values[iNode] = pElement->GetGeometry()[iNode].GetValue(ThisVar);
-                        }
-
-                        itNode->GetValue(ThisVar) = inner_prod(Values, N);
-                    }
-                }
-            }
-        }
-
-        // Finally we interpolate to the new GP
-        ElementsArrayType& pElementsDestination = mrDestinationMainModelPart.Elements();
-        numElements = pElementsDestination.end() - pElementsDestination.begin();
-
-        const ProcessInfo& DestinationProcessInfo = mrOriginMainModelPart.GetProcessInfo();
-
-        /* Elements */
-        #pragma omp parallel for
-        for(int i = 0; i < numElements; i++)
-        {
-            auto itElem = pElementsDestination.begin() + i;
-
-            // Getting the geometry
-            Element::GeometryType& rThisGeometry = itElem->GetGeometry();
-
-            // Getting the integration points
-            ThisIntegrationMethod = itElem->GetIntegrationMethod();
-            const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
-            const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
-
-            // Getting the CL
-            std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
-            itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,DestinationProcessInfo);
-
-            for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
-            {
-                array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
-
-                // We compute the pondered characteristic length
-                Vector N( rThisGeometry.size() );
-                rThisGeometry.ShapeFunctionsValues( N, LocalCoordinates );
-
-                // We compute the global coordinates
-                array_1d<double, 3> GlobalCoordinates;
-                GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
-
-                Vector Values(rThisGeometry.size() );
-
-                for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
-                {
-                    Variable<double> ThisVar = mInternalVariableList[iVar];
-
-                    for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
-                    {
-                        Values[iNode] = rThisGeometry[iNode].GetValue(ThisVar);
-                    }
-
-                    const double DestinationValue = inner_prod(Values, N);
-
-                    ConstitutiveLawVector[iGaussPoint]->SetValue(ThisVar, DestinationValue, DestinationProcessInfo);
                 }
             }
         }
     }
 
     /**
-     * This converts the interpolation string to an enum
-     * @param str: The string that you want to comvert in the equivalent enum
+     * @brief This converts the interpolation string to an enum
+     * @param Str The string that you want to comvert in the equivalent enum
      * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
      */
-
-    InterpolationTypes ConvertInter(const std::string& str)
-    {
-        if(str == "CPT")
-        {
-            return CPT;
-        }
-        else if(str == "LST")
-        {
-            return LST;
-        }
-        else if(str == "SFT")
-        {
-            return SFT;
-        }
-        else
-        {
-            return LST;
-        }
-    }
+    InterpolationTypes ConvertInter(const std::string& Str);
 
     ///@}
     ///@name Private  Access

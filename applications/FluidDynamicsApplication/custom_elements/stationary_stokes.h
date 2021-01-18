@@ -91,7 +91,7 @@ public:
     ///@{
 
     /// Pointer definition of StationaryStokes
-    KRATOS_CLASS_POINTER_DEFINITION(StationaryStokes);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StationaryStokes);
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
@@ -122,7 +122,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~StationaryStokes()
+    ~StationaryStokes() override
     {}
 
     ///@}
@@ -135,15 +135,24 @@ public:
     ///@{
 
     /// Create a new StationaryStokes element and return a pointer to it
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties)  const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties)  const override;
+
+
+    /// Create a new element of this type.
+	/**
+	 @param NewId Index of the new element
+     @param pGeom A pointer to the geometry of the new element
+	 @param pProperties Pointer to the element's properties
+	 */
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /// Check that all required data containers are properly initialized and registered in Kratos
     /** @return 0 if no errors are detected.
       */
-    virtual int Check(const ProcessInfo &rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Calculate Shape function derivatives and Jacobian at each integration point
-    virtual void Initialize();
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Evaluate the elemental contribution to the problem.
     /**
@@ -151,21 +160,21 @@ public:
      * @param rRightHandSideVector Elemental right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containg the element
      */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         MatrixType TmpLHS;
         this->CalculateLocalSystem(TmpLHS,rRightHandSideVector,rCurrentProcessInfo);
     }
 
     /// Fill given array with containing the element's degrees of freedom
-    virtual void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Fill given vector with the linear system row index for the element's degrees of freedom
-    virtual void EquationIdVector(Element::EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(Element::EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    virtual void GetFirstDerivativesVector(Vector &rValues, int Step = 0);
+    void GetFirstDerivativesVector(Vector &rValues, int Step = 0) const override;
 
     ///@}
     ///@name Access
@@ -182,7 +191,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "StationaryStokes" << this->GetGeometry().WorkingSpaceDimension() << "D #" << Id();
@@ -190,7 +199,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "StationaryStokes" << this->GetGeometry().WorkingSpaceDimension() << "D #" << Id() << std::endl;
         rOStream << "Number of Nodes: " << this->GetGeometry().PointsNumber() << std::endl;
@@ -198,7 +207,7 @@ public:
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         this->PrintInfo(rOStream);
         rOStream << "Geometry Data: " << std::endl;
@@ -253,7 +262,7 @@ protected:
 
     template< class TVariableType >
     void EvaluateInPoint(TVariableType& rResult,
-                         const Kratos::Variable<TVariableType> Var,
+                         const Kratos::Variable<TVariableType>& Var,
                          const ShapeFunctionsType& rShapeFunc,
                          GeometryType& rGeom)
     {
@@ -312,7 +321,7 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_TRY;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
@@ -345,7 +354,7 @@ private:
         KRATOS_CATCH("");
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_TRY;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,Element);

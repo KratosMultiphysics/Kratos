@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ namespace backend {
 
 /// Enable Eigen matrix as a value-type.
 template <typename T, int N, int M>
-struct is_builtin_vector< std::vector<Eigen::Matrix<T, N, M> > > : boost::true_type {};
+struct is_builtin_vector< std::vector<Eigen::Matrix<T, N, M> > > : std::true_type {};
 
 } // namespace backend
 
@@ -53,6 +53,12 @@ struct scalar_of< Eigen::Matrix<T, N, M> > {
     typedef typename math::scalar_of<T>::type type;
 };
 
+/// Replace scalar type in the static matrix
+template <class T, int N, int M, class S>
+struct replace_scalar< Eigen::Matrix<T, N, M>, S> {
+    typedef Eigen::Matrix<S, N, M> type;
+};
+
 /// RHS type corresponding to a non-scalar type.
 template <class T, int N>
 struct rhs_of< Eigen::Matrix<T, N, N> > {
@@ -61,15 +67,15 @@ struct rhs_of< Eigen::Matrix<T, N, N> > {
 
 /// Whether the value type is a statically sized matrix.
 template <class T, int N, int M>
-struct is_static_matrix< Eigen::Matrix<T, N, M> > : boost::true_type {};
+struct is_static_matrix< Eigen::Matrix<T, N, M> > : std::true_type {};
 
 /// Number of rows for statically sized matrix types.
 template <class T, int N, int M>
-struct static_rows< Eigen::Matrix<T, N, M> > : boost::integral_constant<int, N> {};
+struct static_rows< Eigen::Matrix<T, N, M> > : std::integral_constant<int, N> {};
 
 /// Number of columns for statically sized matrix types.
 template <class T, int N, int M>
-struct static_cols< Eigen::Matrix<T, N, M> > : boost::integral_constant<int, M> {};
+struct static_cols< Eigen::Matrix<T, N, M> > : std::integral_constant<int, M> {};
 
 /// Specialization of conjugate transpose for eigen matrices.
 template <typename T, int N, int M>
@@ -158,26 +164,6 @@ struct inverse_impl< Eigen::Matrix<T, N, N> >
 };
 
 } // namespace math
-
-namespace relaxation {
-template <class Backend> struct spai1;
-} //namespace relaxation
-
-namespace backend {
-
-template <class Backend>
-struct relaxation_is_supported<
-    Backend, relaxation::spai1,
-    typename boost::enable_if<
-        typename boost::is_base_of<
-            Eigen::MatrixBase<typename Backend::value_type>,
-            typename Backend::value_type
-            >::type
-        >::type
-    > : boost::false_type
-{};
-
-} // namespace backend
 } // namespace amgcl
 
 namespace Eigen {

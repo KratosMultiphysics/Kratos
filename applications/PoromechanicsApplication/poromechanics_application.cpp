@@ -1,9 +1,16 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:            January 2016 $
-//   Revision:            $Revision:                 1.0 $
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 // Project includes
 #include "includes/define.h"
@@ -38,7 +45,8 @@
 namespace Kratos
 {
 
-KratosPoromechanicsApplication::KratosPoromechanicsApplication():
+KratosPoromechanicsApplication::KratosPoromechanicsApplication()
+    : KratosApplication("PoromechanicsApplication"),
 
     mUPwSmallStrainElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType(3)))),
     mUPwSmallStrainElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
@@ -57,7 +65,7 @@ KratosPoromechanicsApplication::KratosPoromechanicsApplication():
     mUPwSmallStrainFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
     mUPwSmallStrainFICElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
     mUPwSmallStrainFICElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
-    
+
     mSmallStrainUPwDiffOrderElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType(6)))),
     mSmallStrainUPwDiffOrderElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
     mSmallStrainUPwDiffOrderElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType(9)))),
@@ -99,21 +107,19 @@ KratosPoromechanicsApplication::KratosPoromechanicsApplication():
     mSurfaceNormalFluidFluxDiffOrderCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Condition::GeometryType::PointsArrayType(6)))),
     mSurfaceNormalFluidFluxDiffOrderCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Condition::GeometryType::PointsArrayType(8)))),
     mSurfaceNormalFluidFluxDiffOrderCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType(9))))
-    
+
     {}
- 	
+
 void KratosPoromechanicsApplication::Register()
 {
-    //Calling base class register to register Kratos components
-    KratosApplication::Register();
-    std::cout << "Initializing KratosPoromechanicsApplication... " << std::endl;
- 
-    //Register Elements    
+    KRATOS_INFO("") << "Initializing KratosPoromechanicsApplication... " << std::endl;
+
+    //Register Elements
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D3N", mUPwSmallStrainElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D4N", mUPwSmallStrainElement2D4N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement3D4N", mUPwSmallStrainElement3D4N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement3D8N", mUPwSmallStrainElement3D8N )
-    
+
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement2D4N", mUPwSmallStrainInterfaceElement2D4N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement3D6N", mUPwSmallStrainInterfaceElement3D6N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement3D8N", mUPwSmallStrainInterfaceElement3D8N )
@@ -121,19 +127,19 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement2D4N", mUPwSmallStrainLinkInterfaceElement2D4N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement3D6N", mUPwSmallStrainLinkInterfaceElement3D6N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement3D8N", mUPwSmallStrainLinkInterfaceElement3D8N )
-    
+
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement2D3N", mUPwSmallStrainFICElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement2D4N", mUPwSmallStrainFICElement2D4N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement3D4N", mUPwSmallStrainFICElement3D4N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement3D8N", mUPwSmallStrainFICElement3D8N )
-    
+
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement2D6N", mSmallStrainUPwDiffOrderElement2D6N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement2D8N", mSmallStrainUPwDiffOrderElement2D8N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement2D9N", mSmallStrainUPwDiffOrderElement2D9N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement3D10N", mSmallStrainUPwDiffOrderElement3D10N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement3D20N", mSmallStrainUPwDiffOrderElement3D20N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement3D27N", mSmallStrainUPwDiffOrderElement3D27N )
-    
+
     //Register Conditions
     KRATOS_REGISTER_CONDITION( "UPwForceCondition2D1N", mUPwForceCondition2D1N )
     KRATOS_REGISTER_CONDITION( "UPwForceCondition3D1N", mUPwForceCondition3D1N )
@@ -146,16 +152,16 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition2D2N", mUPwNormalFluxCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition3D3N", mUPwNormalFluxCondition3D3N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition3D4N", mUPwNormalFluxCondition3D4N )
-    
+
     KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxInterfaceCondition2D2N", mUPwNormalFluxInterfaceCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxInterfaceCondition3D4N", mUPwNormalFluxInterfaceCondition3D4N )
-    
+
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxFICCondition2D2N", mUPwNormalFluxFICCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxFICCondition3D3N", mUPwNormalFluxFICCondition3D3N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxFICCondition3D4N", mUPwNormalFluxFICCondition3D4N )
-    
+
     KRATOS_REGISTER_CONDITION( "LineLoadDiffOrderCondition2D3N", mLineLoadDiffOrderCondition2D3N )
     KRATOS_REGISTER_CONDITION( "LineNormalLoadDiffOrderCondition2D3N", mLineNormalLoadDiffOrderCondition2D3N )
     KRATOS_REGISTER_CONDITION( "LineNormalFluidFluxDiffOrderCondition2D3N", mLineNormalFluidFluxDiffOrderCondition2D3N )
@@ -171,28 +177,46 @@ void KratosPoromechanicsApplication::Register()
 
 
     //Register Constitutive Laws
-    Serializer::Register("BilinearCohesive3DLaw",mBilinearCohesive3DLaw);
-    Serializer::Register("BilinearCohesive2DLaw",mBilinearCohesive2DLaw);
-    
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw",mBilinearCohesive3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw",mBilinearCohesive2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ExponentialCohesive3DLaw",mExponentialCohesive3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ExponentialCohesive2DLaw",mExponentialCohesive2DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticSolid3DLaw", mLinearElastic3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrainSolid2DLaw", mLinearElasticPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStressSolid2DLaw", mLinearElasticPlaneStress2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticSolid3DLaw", mHyperElastic3DLaw);
+
+    Serializer::Register("IsotropicDamageFlowRule", mIsotropicDamageFlowRule);
     Serializer::Register( "LocalDamageFlowRule", mLocalDamageFlowRule );
     Serializer::Register( "NonlocalDamageFlowRule", mNonlocalDamageFlowRule );
 
-    Serializer::Register("SimoJuLocalDamage3DLaw",mSimoJuLocalDamage3DLaw);
-    Serializer::Register("SimoJuLocalDamagePlaneStrain2DLaw",mSimoJuLocalDamagePlaneStrain2DLaw);
-    Serializer::Register("SimoJuLocalDamagePlaneStress2DLaw",mSimoJuLocalDamagePlaneStress2DLaw);
+    Serializer::Register("SimoJuYieldCriterion", mSimoJuYieldCriterion);
+    Serializer::Register("ModifiedMisesYieldCriterion", mModifiedMisesYieldCriterion);
 
-    Serializer::Register("SimoJuNonlocalDamage3DLaw",mSimoJuNonlocalDamage3DLaw);
-    Serializer::Register("SimoJuNonlocalDamagePlaneStrain2DLaw",mSimoJuNonlocalDamagePlaneStrain2DLaw);
-    Serializer::Register("SimoJuNonlocalDamagePlaneStress2DLaw",mSimoJuNonlocalDamagePlaneStress2DLaw);
+    Serializer::Register("ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw);
+    Serializer::Register("ModifiedExponentialDamageHardeningLaw", mModifiedExponentialDamageHardeningLaw);
 
-    Serializer::Register("ModifiedMisesNonlocalDamage3DLaw",mModifiedMisesNonlocalDamage3DLaw);
-    Serializer::Register("ModifiedMisesNonlocalDamagePlaneStrain2DLaw",mModifiedMisesNonlocalDamagePlaneStrain2DLaw);
-    Serializer::Register("ModifiedMisesNonlocalDamagePlaneStress2DLaw",mModifiedMisesNonlocalDamagePlaneStress2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuLocalDamage3DLaw",mSimoJuLocalDamage3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuLocalDamagePlaneStrain2DLaw",mSimoJuLocalDamagePlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuLocalDamagePlaneStress2DLaw",mSimoJuLocalDamagePlaneStress2DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuNonlocalDamage3DLaw",mSimoJuNonlocalDamage3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuNonlocalDamagePlaneStrain2DLaw",mSimoJuNonlocalDamagePlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuNonlocalDamagePlaneStress2DLaw",mSimoJuNonlocalDamagePlaneStress2DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ModifiedMisesNonlocalDamage3DLaw",mModifiedMisesNonlocalDamage3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ModifiedMisesNonlocalDamagePlaneStrain2DLaw",mModifiedMisesNonlocalDamagePlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ModifiedMisesNonlocalDamagePlaneStress2DLaw",mModifiedMisesNonlocalDamagePlaneStress2DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HistoryLinearElastic3DLaw",mHistoryLinearElastic3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HistoryLinearElasticPlaneStrain2DLaw",mHistoryLinearElasticPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HistoryLinearElasticPlaneStress2DLaw",mHistoryLinearElasticPlaneStress2DLaw);
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DT_PRESSURE_COEFFICIENT )
-    
+
     KRATOS_REGISTER_VARIABLE( DT_WATER_PRESSURE )
     KRATOS_REGISTER_VARIABLE( NORMAL_FLUID_FLUX )
 
@@ -216,11 +240,13 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( LOCAL_PERMEABILITY_MATRIX )
 
     KRATOS_REGISTER_VARIABLE( CRITICAL_DISPLACEMENT )
-    
+
     KRATOS_REGISTER_VARIABLE( IS_CONVERGED )
-    
+
     KRATOS_REGISTER_VARIABLE( TOTAL_STRESS_TENSOR )
-    
+
+    KRATOS_REGISTER_VARIABLE( INITIAL_STRESS_TENSOR )
+
     KRATOS_REGISTER_VARIABLE( STATE_VARIABLE )
     KRATOS_REGISTER_VARIABLE( ARC_LENGTH_LAMBDA )
     KRATOS_REGISTER_VARIABLE( ARC_LENGTH_RADIUS_FACTOR )
@@ -229,12 +255,21 @@ void KratosPoromechanicsApplication::Register()
 
     KRATOS_REGISTER_VARIABLE( LOCAL_EQUIVALENT_STRAIN )
     KRATOS_REGISTER_VARIABLE( NONLOCAL_EQUIVALENT_STRAIN )
-    
+
     KRATOS_REGISTER_VARIABLE( JOINT_WIDTH )
 
     KRATOS_REGISTER_VARIABLE( NODAL_SMOOTHING )
     KRATOS_REGISTER_VARIABLE( NODAL_CAUCHY_STRESS_TENSOR )
-    KRATOS_REGISTER_VARIABLE( NODAL_VON_MISES_STRESS )
+    KRATOS_REGISTER_VARIABLE( EFFECTIVE_STRESS_TENSOR )
+    KRATOS_REGISTER_VARIABLE( NODAL_EFFECTIVE_STRESS_TENSOR )
+    KRATOS_REGISTER_VARIABLE( NODAL_DAMAGE_VARIABLE )
+    KRATOS_REGISTER_VARIABLE( NODAL_JOINT_AREA )
+    KRATOS_REGISTER_VARIABLE( NODAL_JOINT_WIDTH )
+    KRATOS_REGISTER_VARIABLE( NODAL_JOINT_DAMAGE )
+
+    KRATOS_REGISTER_VARIABLE( SHEAR_FRACTURE_ENERGY )
+
+    KRATOS_REGISTER_VARIABLE( BIOT_COEFFICIENT )
 }
 
 }// namespace Kratos.

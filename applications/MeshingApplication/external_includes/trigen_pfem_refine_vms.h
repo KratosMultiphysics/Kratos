@@ -1,39 +1,33 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2009-01-22 17:13:57 $
-//   Revision:            $Revision: 1.5 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
-
 
 #if !defined(KRATOS_TRIGEN_PFEM_MODELER_VMS_H_INCLUDED )
 #define  KRATOS_TRIGEN_PFEM_MODELER_VMS_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-#include <stdlib.h>
 
-#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
-#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
+// External includes
 #include "triangle.h"
-#endif
-
-#include <boost/timer.hpp>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/global_pointer_variables.h"
+#include "utilities/timer.h"
 #include "geometries/triangle_2d_3.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "processes/node_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
 #include "trigen_pfem_refine.h"
-
-
 
 namespace Kratos
 {
@@ -95,7 +89,7 @@ public:
     //mpNodeEraseProcess(NULL){} //dimension = number of nodes
 
     /// Destructor.
-    virtual ~TriGenPFEMModelerVMS() {}
+    ~TriGenPFEMModelerVMS() override = default;
 
 
     ///@}
@@ -129,7 +123,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
 
         KRATOS_WATCH("Trigen PFEM Refining Mesher")
-        boost::timer auxiliary;
+        const auto inital_time = std::chrono::steady_clock::now();
 
 
 //clearing elements
@@ -205,11 +199,10 @@ public:
             in_mid.pointlist[base] = (nodes_begin + i)->X();
             in_mid.pointlist[base+1] = (nodes_begin + i)->Y();
 
-            Node<3>::DofsContainerType& node_dofs = (nodes_begin + i)->GetDofs();
-            for(Node<3>::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
+            auto& node_dofs = (nodes_begin + i)->GetDofs();
+            for(auto iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
             {
-                iii->SetId(i+1);
-//                                    iii->Id() = i+1;
+                (**iii).SetEquationId(i+1);
             }
         }
         //in_mid.numberoftriangles = ThisModelPart.Elements().size();
@@ -223,7 +216,7 @@ public:
         char options1[] = "Pne";
         triangulate(options1, &in_mid, &out_mid, &vorout_mid);
         //print out the mesh generation time
-        std::cout<<"mesh generation time = "<<auxiliary.elapsed();
+        std::cout<<"mesh generation time = " << Timer::ElapsedSeconds(inital_time) << std::endl;
         //number of newly generated triangles
         unsigned int el_number=out_mid.numberoftriangles;
 
@@ -381,7 +374,7 @@ public:
                 //generating the dofs
                 for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
                 {
-                    Node<3>::DofType& rDof = *iii;
+                    Node<3>::DofType& rDof = **iii;
                     Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
                     (p_new_dof)->FreeDof();
@@ -459,7 +452,7 @@ public:
                 );
 
                 //check if inside and eventually interpolate
-                for( PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
+                for( auto it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
                 {
                     bool is_inside = false;
                     is_inside = CalculatePosition(x1[0], x1[1],
@@ -480,12 +473,12 @@ public:
         ThisModelPart.Elements().clear();
 
         //set the coordinates to the original value
-        for( PointVector::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); it++)
+        for(auto & list_of_new_node : list_of_new_nodes)
         {
-            const array_1d<double,3>& disp = (*it)->FastGetSolutionStepValue(DISPLACEMENT);
-            (*it)->X0() = (*it)->X() - disp[0];
-            (*it)->Y0() = (*it)->Y() - disp[1];
-            (*it)->Z0() = 0.0;
+            const array_1d<double,3>& disp = list_of_new_node->FastGetSolutionStepValue(DISPLACEMENT);
+            list_of_new_node->X0() = list_of_new_node->X() - disp[0];
+            list_of_new_node->Y0() = list_of_new_node->Y() - disp[1];
+            list_of_new_node->Z0() = 0.0;
         }
         //cleaning unnecessary data
         //in2.deinitialize();
@@ -534,12 +527,12 @@ public:
             int base = ( iii->Id() - 1 )*3;
 
             (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
-            WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+            GlobalPointersVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
             for(int i = 0; i<3; i++)
             {
                 int index = out2.neighborlist[base+i];
                 if(index > 0)
-                    neighb(i) = *((el_begin + index-1).base());
+                    neighb(i) = GlobalPointer<Element>(&*(el_begin + index-1));
                 else
                     neighb(i) = Element::WeakPointer();
             }
@@ -575,16 +568,16 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {}
+    void PrintInfo(std::ostream& rOStream) const override {}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -680,7 +673,7 @@ private:
                 {
                     //look if we are already erasing any of the other nodes
                     double erased_nodes = 0;
-                    for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+                    for(auto i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
                         erased_nodes += in->Is(TO_ERASE);
 
                     if( erased_nodes < 1) //we cancel the node if no other nodes are being erased
@@ -693,7 +686,7 @@ private:
                     //with IS_BOUNDARY=1 which are closer than 0.2*nodal_h from our we remove the node we are considering
                     unsigned int k = 0;
                     unsigned int counter = 0;
-                    for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+                    for(auto i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
                     {
                         if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY,1)==1.0 && res_distances[k] < 0.2*radius && res_distances[k] > 0.0 )
                         {
@@ -796,7 +789,7 @@ private:
                         preserved_list1[el] = true;
                         number_of_preserved_elems += 1;
 // 							}
-                    }  
+                    }
                 }
                 else //internal triangle --- should be ALWAYS preserved
                 {
@@ -1157,47 +1150,47 @@ private:
 
     void initialize_triangulateio( triangulateio& tr )
     {
-        tr.pointlist                  = (REAL*) NULL;
-        tr.pointattributelist         = (REAL*) NULL;
-        tr.pointmarkerlist            = (int*) NULL;
+        tr.pointlist                  = (REAL*) nullptr;
+        tr.pointattributelist         = (REAL*) nullptr;
+        tr.pointmarkerlist            = (int*) nullptr;
         tr.numberofpoints             = 0;
         tr.numberofpointattributes    = 0;
-        tr.trianglelist               = (int*) NULL;
-        tr.triangleattributelist      = (REAL*) NULL;
-        tr.trianglearealist           = (REAL*) NULL;
-        tr.neighborlist               = (int*) NULL;
+        tr.trianglelist               = (int*) nullptr;
+        tr.triangleattributelist      = (REAL*) nullptr;
+        tr.trianglearealist           = (REAL*) nullptr;
+        tr.neighborlist               = (int*) nullptr;
         tr.numberoftriangles          = 0;
         tr.numberofcorners            = 3;
         tr.numberoftriangleattributes = 0;
-        tr.segmentlist                = (int*) NULL;
-        tr.segmentmarkerlist          = (int*) NULL;
+        tr.segmentlist                = (int*) nullptr;
+        tr.segmentmarkerlist          = (int*) nullptr;
         tr.numberofsegments           = 0;
-        tr.holelist                   = (REAL*) NULL;
+        tr.holelist                   = (REAL*) nullptr;
         tr.numberofholes              = 0;
-        tr.regionlist                 = (REAL*) NULL;
+        tr.regionlist                 = (REAL*) nullptr;
         tr.numberofregions            = 0;
-        tr.edgelist                   = (int*) NULL;
-        tr.edgemarkerlist             = (int*) NULL;
-        tr.normlist                   = (REAL*) NULL;
+        tr.edgelist                   = (int*) nullptr;
+        tr.edgemarkerlist             = (int*) nullptr;
+        tr.normlist                   = (REAL*) nullptr;
         tr.numberofedges              = 0;
     };
 
     void clean_triangulateio( triangulateio& tr )
     {
-        if(tr.pointlist != NULL) free(tr.pointlist );
-        if(tr.pointattributelist != NULL) free(tr.pointattributelist );
-        if(tr.pointmarkerlist != NULL) free(tr.pointmarkerlist   );
-        if(tr.trianglelist != NULL) free(tr.trianglelist  );
-        if(tr.triangleattributelist != NULL) free(tr.triangleattributelist );
-        if(tr.trianglearealist != NULL) free(tr.trianglearealist );
-        if(tr.neighborlist != NULL) free(tr.neighborlist   );
-        if(tr.segmentlist != NULL) free(tr.segmentlist    );
-        if(tr.segmentmarkerlist != NULL) free(tr.segmentmarkerlist   );
-        if(tr.holelist != NULL) free(tr.holelist      );
-        if(tr.regionlist != NULL) free(tr.regionlist  );
-        if(tr.edgelist != NULL) free(tr.edgelist   );
-        if(tr.edgemarkerlist != NULL) free(tr.edgemarkerlist   );
-        if(tr.normlist != NULL) free(tr.normlist  );
+        if(tr.pointlist != nullptr) free(tr.pointlist );
+        if(tr.pointattributelist != nullptr) free(tr.pointattributelist );
+        if(tr.pointmarkerlist != nullptr) free(tr.pointmarkerlist   );
+        if(tr.trianglelist != nullptr) free(tr.trianglelist  );
+        if(tr.triangleattributelist != nullptr) free(tr.triangleattributelist );
+        if(tr.trianglearealist != nullptr) free(tr.trianglearealist );
+        if(tr.neighborlist != nullptr) free(tr.neighborlist   );
+        if(tr.segmentlist != nullptr) free(tr.segmentlist    );
+        if(tr.segmentmarkerlist != nullptr) free(tr.segmentmarkerlist   );
+        if(tr.holelist != nullptr) free(tr.holelist      );
+        if(tr.regionlist != nullptr) free(tr.regionlist  );
+        if(tr.edgelist != nullptr) free(tr.edgelist   );
+        if(tr.edgemarkerlist != nullptr) free(tr.edgemarkerlist   );
+        if(tr.normlist != nullptr) free(tr.normlist  );
     };
     ///@}
     ///@name Private Operations
@@ -1256,7 +1249,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIGEN_PFEM_MODELER_VMS_H_INCLUDED  defined 
-
-
-
+#endif // KRATOS_TRIGEN_PFEM_MODELER_VMS_H_INCLUDED  defined

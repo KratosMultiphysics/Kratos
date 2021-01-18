@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,10 +34,8 @@ THE SOFTWARE.
 #include <algorithm>
 #include <numeric>
 
-#include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <tuple>
+#include <memory>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/coarsening/detail/scaled_galerkin.hpp>
@@ -51,6 +49,8 @@ namespace coarsening {
  * \ingroup coarsening
  * \sa \cite Stuben1999
  */
+
+template <class Backend>
 struct ruge_stuben {
     /// Coarsening parameters.
     struct params {
@@ -81,12 +81,13 @@ struct ruge_stuben {
 
         params() : eps_strong(0.25f), do_trunc(true), eps_trunc(0.2f) {}
 
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, eps_strong),
               AMGCL_PARAMS_IMPORT_VALUE(p, do_trunc),
               AMGCL_PARAMS_IMPORT_VALUE(p, eps_trunc)
         {
-            AMGCL_PARAMS_CHECK(p, (eps_strong)(do_trunc)(eps_trunc));
+            check_params(p, {"eps_strong", "do_trunc", "eps_trunc"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
@@ -94,13 +95,15 @@ struct ruge_stuben {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, do_trunc);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, eps_trunc);
         }
-    };
+#endif
+    } prm;
+
+    ruge_stuben(const params &prm = params()) : prm(prm) {}
 
     /// \copydoc amgcl::coarsening::aggregation::transfer_operators
     template <class Matrix>
-    static boost::tuple< boost::shared_ptr<Matrix>, boost::shared_ptr<Matrix> >
-    transfer_operators(const Matrix &A, const params &prm)
-    {
+    std::tuple< std::shared_ptr<Matrix>, std::shared_ptr<Matrix> >
+    transfer_operators(const Matrix &A) const {
         typedef typename backend::value_type<Matrix>::type Val;
         typedef typename math::scalar_of<Val>::type        Scalar;
 
@@ -113,18 +116,20 @@ struct ruge_stuben {
         std::vector<char> cf(n, 'U');
         backend::crs<char, ptrdiff_t, ptrdiff_t> S;
 
-        TIC("C/F split");
+        AMGCL_TIC("C/F split");
         connect(A, prm.eps_strong, S, cf);
         cfsplit(A, S, cf);
-        TOC("C/F split");
+        AMGCL_TOC("C/F split");
 
-        TIC("interpolation");
+        AMGCL_TIC("interpolation");
         size_t nc = 0;
         std::vector<ptrdiff_t> cidx(n);
         for(size_t i = 0; i < n; ++i)
             if (cf[i] == 'C') cidx[i] = static_cast<ptrdiff_t>(nc++);
 
-        boost::shared_ptr<Matrix> P = boost::make_shared<Matrix>();
+        if (!nc) throw error::empty_level();
+
+        auto P = std::make_shared<Matrix>();
         P->set_size(n, nc, true);
 
         std::vector<Val> Amin, Amax;
@@ -167,8 +172,7 @@ struct ruge_stuben {
             }
         }
 
-        std::partial_sum(P->ptr, P->ptr + n + 1, P->ptr);
-        P->set_nonzeros(P->ptr[n]);
+        P->set_nonzeros(P->scan_row_sizes());
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
@@ -230,28 +234,22 @@ struct ruge_stuben {
                 Val  v = A.val[j];
 
                 if (!S.val[j] || cf[c] != 'C') continue;
-                if (prm.do_trunc && Amin[i] < v && v < Amax[i]) continue;
+                if (prm.do_trunc && Amin[i] <= v && v <= Amax[i]) continue;
 
                 P->col[row_head] = cidx[c];
                 P->val[row_head] = (v < zero ? alpha : beta) * v;
                 ++row_head;
             }
         }
-        TOC("interpolation");
+        AMGCL_TOC("interpolation");
 
-        return boost::make_tuple(P, transpose(*P));
+        return std::make_tuple(P, transpose(*P));
     }
 
     /// \copydoc amgcl::coarsening::aggregation::coarse_operator
     template <class Matrix>
-    static boost::shared_ptr<Matrix>
-    coarse_operator(
-            const Matrix &A,
-            const Matrix &P,
-            const Matrix &R,
-            const params&
-            )
-    {
+    std::shared_ptr<Matrix>
+    coarse_operator(const Matrix &A, const Matrix &P, const Matrix &R) const {
         return detail::galerkin(A, P, R);
     }
 
@@ -270,9 +268,6 @@ struct ruge_stuben {
                 std::vector<char>                  &cf
                 )
         {
-            typedef backend::crs<Val, Col, Ptr>                  matrix;
-            typedef typename backend::row_iterator<matrix>::type row_iterator;
-
             typedef typename math::scalar_of<Val>::type Scalar;
 
             const size_t n   = rows(A);
@@ -286,9 +281,11 @@ struct ruge_stuben {
 
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
+                S.ptr[i+1] = 0;
+
                 Val a_min = math::zero<Val>();
 
-                for(row_iterator a = row_begin(A, i); a; ++a)
+                for(auto a = row_begin(A, i); a; ++a)
                     if (a.col() != i) a_min = std::min(a_min, a.value());
 
                 if (math::norm(a_min) < eps) {
@@ -300,16 +297,13 @@ struct ruge_stuben {
 
                 for(Ptr j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j)
                     S.val[j] = (A.col[j] != i && A.val[j] < a_min);
-
-                S.ptr[i+1] = 0;
             }
 
             // Transposition of S:
             for(size_t i = 0; i < nnz; ++i)
                 if (S.val[i]) ++( S.ptr[ A.col[i] + 1] );
 
-            std::partial_sum(S.ptr, S.ptr + n + 1, S.ptr);
-
+            S.scan_row_sizes();
             S.col = new Col[S.ptr[n]];
 
             for(size_t i = 0; i < n; ++i)
@@ -450,12 +444,10 @@ template <class Backend>
 struct coarsening_is_supported<
     Backend,
     coarsening::ruge_stuben,
-    typename boost::disable_if<
-            typename boost::is_arithmetic<
-                typename backend::value_type<Backend>::type
-            >::type
+    typename std::enable_if<
+        !std::is_arithmetic<typename backend::value_type<Backend>::type>::value
         >::type
-    > : boost::false_type
+    > : std::false_type
 {};
 
 } // namespace backend

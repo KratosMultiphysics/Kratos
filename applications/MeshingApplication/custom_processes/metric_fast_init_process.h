@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_METRIC_FAST_INIT_PROCESS)
@@ -19,7 +19,7 @@
 
 // Project includes
 #include "processes/process.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "includes/model_part.h"
 
 namespace Kratos
@@ -31,6 +31,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    /// The size type definition
+    typedef std::size_t SizeType;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -39,12 +42,15 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-/// Short class definition.
-// This process initializes the variables related with the ALM
-/** Detail class definition.
-*/
-template<unsigned int TDim>
-class MetricFastInit
+/**
+ * @class MetricFastInit
+ * @ingroup MeshingApplication
+ * @brief This process initializes the variables related with the ALM
+ * @author Vicente Mataix Ferrandiz
+ * @todo Replace with VariableUtils() when updated for nonhistorical
+ */
+template<SizeType TDim>
+class KRATOS_API(MESHING_APPLICATION) MetricFastInit
     : public Process
 {
 public:
@@ -60,22 +66,18 @@ public:
     typedef ModelPart::NodesContainerType              NodesArrayType;
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
 
+    /// The type of array considered for the tensor
+    typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MetricFastInit( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart)
-    {
-        KRATOS_TRY;
-
-        KRATOS_CATCH("");
-    }
+    MetricFastInit( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart){}
 
     /// Destructor.
-    virtual ~MetricFastInit()
-    {
-    }
+    ~MetricFastInit() override = default;
 
     ///@}
     ///@name Access
@@ -106,29 +108,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute() override
-    {
-        KRATOS_TRY;
-
-        constexpr unsigned int size = TDim == 2  ? 3: 6;
-
-        const array_1d<double, size> zerovector(size, 0.0);
-
-        // We iterate over the node
-        NodesArrayType& pNodes = mrThisModelPart.Nodes();
-        int numNodes = mrThisModelPart.NumberOfNodes();
-
-        #pragma omp parallel for firstprivate(zerovector)
-        for(int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNodes.begin() + i;
-
-            // The metric
-            itNode->SetValue(MMG_METRIC, zerovector);
-        }
-
-        KRATOS_CATCH("");
-    }
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -145,19 +125,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "MetricFastInit";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MetricFastInit";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -213,6 +193,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
     ModelPart& mrThisModelPart;
 
     ///@}

@@ -10,7 +10,7 @@ namespace Kratos {
  */
 template<>
 void FSWernerWengleWallCondition<2, 2>::EquationIdVector(
-		EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+		EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const 
 {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
 	{
@@ -55,7 +55,7 @@ void FSWernerWengleWallCondition<2, 2>::EquationIdVector(
  */
 template<>
 void FSWernerWengleWallCondition<3, 3>::EquationIdVector(
-		EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+		EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const 
 {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
 	{
@@ -102,7 +102,7 @@ void FSWernerWengleWallCondition<3, 3>::EquationIdVector(
  */
 template<>
 void FSWernerWengleWallCondition<2, 2>::GetDofList(
-		DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+		DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const 
 {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
 	{
@@ -149,7 +149,7 @@ void FSWernerWengleWallCondition<2, 2>::GetDofList(
  */
 template<>
 void FSWernerWengleWallCondition<3, 3>::GetDofList(
-		DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+		DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const 
 {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
 	{
@@ -284,7 +284,7 @@ void FSWernerWengleWallCondition<2, 2>::CalculateWallParameters(
         ElementPointerType pElem = pGetElement();
         const array_1d<double, 3>& Normal = this->GetValue(NORMAL);
         GeometryType& rElemGeom = pElem->GetGeometry();
-        const GeometriesArrayType& edges = rElemGeom.Edges();
+        const GeometriesArrayType& edges = rElemGeom.GenerateEdges();
         const array_1d<double, 3>& center = this->GetGeometry().Center();
 
         rWallHeight = 0.0;
@@ -356,7 +356,7 @@ void FSWernerWengleWallCondition<3, 3>::CalculateWallParameters(
 	MatrixType M(3, 3), InvM(3, 3);
 	ElementPointerType pElem = pGetElement();
 	const array_1d<double, 3>& Normal = this->GetValue(NORMAL);
-	const GeometriesArrayType& rElemFaces = pElem->GetGeometry().Faces();
+	const GeometriesArrayType& rElemFaces = pElem->GetGeometry().GenerateFaces();
 	const array_1d<double, 3>& center = this->GetGeometry().Center();
 
 	rWallHeight = 0.0;
