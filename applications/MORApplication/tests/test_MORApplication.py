@@ -9,6 +9,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from generalTests import KratosMORGeneralTests
 from test_mor_utilities import TestMORUtilities
 from test_irka_strategies import TestIrkaStrategies
+from test_acoustic_elements import TestAcousticElements
+from test_acoustic_conditions import TestAcousticConditions
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -29,6 +31,8 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMORUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestIrkaStrategies]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAcousticElements]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAcousticConditions]))
 
     # Create a test suit with the selected tests
     nightSuite = suites['nightly']
