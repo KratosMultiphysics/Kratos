@@ -1266,10 +1266,6 @@ namespace Kratos
     constitutive_law_values.SetStressVector(rElementalVariables.UpdatedDeviatoricCauchyStress);
     constitutive_law_values.SetConstitutiveMatrix(rElementalVariables.ConstitutiveMatrix);
 
-    // Temporary workaround, to be updated
-    auto r_geometry = this->GetGeometry();
-    r_geometry[0].SetValue(THETA_MOMENTUM, 0.5);
-
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
 
     rElementalVariables.UpdatedTotalCauchyStress[0] =
