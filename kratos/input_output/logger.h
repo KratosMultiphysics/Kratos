@@ -123,7 +123,7 @@ namespace Kratos
       ///@name Access
       ///@{
 
-    std::string const& GetCurrentMessage() {
+    std::string const& GetCurrentMessage() const {
       return mCurrentMessage.GetMessage();
         }
 
