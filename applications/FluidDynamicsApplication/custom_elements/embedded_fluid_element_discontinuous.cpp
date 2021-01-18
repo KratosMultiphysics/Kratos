@@ -13,6 +13,8 @@
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
+#include "modified_shape_functions/triangle_2d_3_ausas_incised_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_ausas_incised_shape_functions.h"
 
 namespace Kratos {
 
@@ -161,7 +163,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     {
         // Check if user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES, then use Ausas incised shape functions
         if(data.NumExtraIntersectedEdges > 0) {
-            // Add Boundary
+            // TODO: Add Boundary
         }
         else {
             // Add penalty
@@ -286,15 +288,13 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
     }
 
     // Number of intersected edges
-    if (!rData.ElementalEdgeDistances.empty()) {
-        for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
-            if (rData.ElementalEdgeDistances[i] > 0.0) {
-                rData.NumIntersectedEdges++;
-            }
+    for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
+        if (rData.ElementalEdgeDistances[i] > 0.0) {
+            rData.NumIntersectedEdges++;
         }
     }
 
-    // Number of edges cut by extrapolated geometry
+    // Number of edges cut by extrapolated geometry, if given
     if (!rData.ElementalExtraEdgeDistances.empty()) {
         for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
             if (rData.ElementalExtraEdgeDistances[i] > 0.0) {
@@ -304,12 +304,12 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
     }
 
     if (rData.IsCut()) {
-        this->DefineCutGeometryData(rData);
+        this->DefineModifiedGeometryData(rData);
     }
     // Check if user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES, then use Ausas incised shape functions
     else if (rData.NumExtraIntersectedEdges > 0) {
-        KRATOS_WATCH(rData.NumExtraIntersectedEdges);
-        //this->DefineIncisedGeometryData(rData);
+        KRATOS_WATCH(rData.NumExtraIntersectedEdges); //TODO remove
+        this->DefineModifiedGeometryData(rData, true);
     } else {
         this->DefineStandardGeometryData(rData);
     }
@@ -324,15 +324,26 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineStandardGeometryData
 }
 
 template <class TBaseElement>
-void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineModifiedGeometryData(EmbeddedDiscontinuousElementData& rData, const bool isIncised) const
 {
-    // Auxiliary distance vector for the element subdivision utility
-    Vector elemental_distances = rData.ElementalDistances;
-
-    ModifiedShapeFunctions::Pointer p_calculator =
-        EmbeddedDiscontinuousInternals::GetShapeFunctionCalculator<EmbeddedDiscontinuousElementData::Dim, EmbeddedDiscontinuousElementData::NumNodes>(
-            *this,
-            elemental_distances);
+    ModifiedShapeFunctions::Pointer p_calculator;
+    if (isIncised) {
+        // Auxiliary nodal and edge distance vectors for the element subdivision utility
+        Vector extrapolated_elemental_distances = rData.ElementalDistances; //TODO calculate extrapolated elemental distances
+        Vector extrapolated_edge_distances = rData.ElementalExtraEdgeDistances;
+        p_calculator =
+            EmbeddedDiscontinuousInternals::GetIncisedShapeFunctionCalculator<EmbeddedDiscontinuousElementData::Dim, EmbeddedDiscontinuousElementData::NumNodes>(
+                *this,
+                extrapolated_elemental_distances,
+                extrapolated_edge_distances);
+    } else {
+        // Auxiliary distance vector for the element subdivision utility
+        Vector elemental_distances = rData.ElementalDistances;
+        p_calculator =
+            EmbeddedDiscontinuousInternals::GetShapeFunctionCalculator<EmbeddedDiscontinuousElementData::Dim, EmbeddedDiscontinuousElementData::NumNodes>(
+                *this,
+                elemental_distances);
+    }
 
     // Positive side volume
     p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
@@ -1205,6 +1216,22 @@ ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<3, 4>(
     const Vector& rElementalDistances)
 {
     return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement.pGetGeometry(), rElementalDistances));
+}
+
+template <>
+ModifiedShapeFunctions::Pointer GetIncisedShapeFunctionCalculator<2, 3>(const Element& rElement,
+    const Vector& rExtrapolatedElementalDistances, const Vector& rExtrapolatedEdgeDistances)
+{
+    return ModifiedShapeFunctions::Pointer(new Triangle2D3AusasIncisedShapeFunctions(rElement.pGetGeometry(),
+            rExtrapolatedElementalDistances, rExtrapolatedEdgeDistances));
+}
+
+template <>
+ModifiedShapeFunctions::Pointer GetIncisedShapeFunctionCalculator<3, 4>(const Element& rElement,
+    const Vector& rExtrapolatedElementalDistances, const Vector& rExtrapolatedEdgeDistances)
+{
+    return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4AusasIncisedShapeFunctions(rElement.pGetGeometry(),
+            rExtrapolatedElementalDistances, rExtrapolatedEdgeDistances));
 }
 
 }
