@@ -77,9 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite
         Matrix& r_permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
         r_permeability = ZeroMatrix(Dim, Dim);
         for (unsigned int d = 0; d < Dim; ++d){
-            for (unsigned int e = 0; e < Dim; ++e){
-                r_permeability(d,e) = 1.0e+30;
-            }
+            r_permeability(d,d) = 1.0e+30;
         }
     }
 

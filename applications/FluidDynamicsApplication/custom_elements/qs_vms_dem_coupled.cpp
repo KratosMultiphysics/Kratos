@@ -13,6 +13,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/dem_variables.h"
 #include "includes/checks.h"
+#include "utilities/math_utils.h"
 
 // Aplication includes
 #include "qs_vms_dem_coupled.h"
@@ -284,15 +285,14 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
 
             for (unsigned int d = 0; d < Dim; ++d) // iterate over dimensions for velocity Dofs in this node combination
             {
-                double K = 0.0;
+                double K = weight * tau_one(d,d) * AGradN[i] * rData.N[j];;
                 double RSigmaU;
                 for (unsigned int e = 0; e < Dim; ++e){
-                    RSigmaU = tau_one(d,e) * sigma(d,e) * rData.N[i] * AGradN[j];
-                    K = weight * tau_one(d,e) * AGradN[i] * rData.N[j];
+                    RSigmaU = tau_one(d,d) * sigma(d,e) * rData.N[i] * AGradN[j];
                     rMassMatrix(row+d, col+e) += weight * RSigmaU;
-                    rMassMatrix(row+Dim,col+d) += weight * tau_one(d,e) * (fluid_fraction * rData.DN_DX(i,d) * rData.N[j]);
                 }
                 rMassMatrix(row+d, col+d) += K;
+                rMassMatrix(row+Dim,col+d) += weight * tau_one(d,d) * (fluid_fraction * rData.DN_DX(i,d) * rData.N[j]);
             }
         }
     }
@@ -390,22 +390,20 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
                 double GAlphaR = 0.0;
                 double RSigmaG = 0.0;
-                double GAlphaA = 0.0;
-                double AG = 0.0;
-                double AA = 0.0;
+                double GAlphaA = tau_one(d,d) * AGradN[j] * (fluid_fraction * rData.DN_DX(i,d));;
+                double AG = tau_one(d,d) * AGradN[i] * rData.DN_DX(j,d);
+                G += tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,d);
+                double AA = rData.Weight * tau_one(d,d) * AGradN[j] * AGradN[i]; // Stabilization: u*grad(v) * tau_one * u*grad(u);
+
                 for (unsigned int e = 0; e < Dim; e++){ // Stabilization: Div(v) * tau_two * Div(u)
                     RSigma = rData.N[i] * sigma(d,e) * rData.N[j];
-                    ASigma = tau_one(d,e) * AGradN[i] * sigma(d,e) * rData.N[j];
-                    RRSigma = tau_one(d,e) * sigma(d,e) * rData.N[i] * sigma(d,e) * rData.N[j];
-                    RSigmaA = tau_one(d,e) * sigma(d,e) * rData.N[i] * AGradN[j];
+                    ASigma = tau_one(d,d) * AGradN[i] * sigma(d,e) * rData.N[j];
+                    RRSigma = tau_one(d,d) * sigma(d,e) * rData.N[i] * sigma(d,e) * rData.N[j];
+                    RSigmaA = tau_one(d,d) * sigma(d,e) * rData.N[i] * AGradN[j];
                     DAlphaD = tau_two * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,e);
                     DU = tau_two * rData.DN_DX(i,d) * fluid_fraction_gradient[e] * rData.N[j];
-                    GAlphaR += tau_one(d,e) * fluid_fraction * rData.DN_DX(i,d) * sigma(d,e) * rData.N[j];
-                    RSigmaG += tau_one(d,e) * sigma(d,e) * rData.N[i] * rData.DN_DX(j,d);
-                    GAlphaA += tau_one(d,e) * AGradN[j] * (fluid_fraction * rData.DN_DX(i,d));
-                    AG += tau_one(d,e) * AGradN[i] * rData.DN_DX(j,d);
-                    G += tau_one(d,e) * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,d);
-                    AA = rData.Weight * tau_one(d,e) * AGradN[j] * AGradN[i]; // Stabilization: u*grad(v) * tau_one * u*grad(u)
+                    GAlphaR += tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * sigma(d,e) * rData.N[j];
+                    RSigmaG += tau_one(d,d) * sigma(d,e) * rData.N[i] * rData.DN_DX(j,d);
                     LHS(row+d,col+e) += rData.Weight * (DAlphaD + DU + RSigma + ASigma + RRSigma + RSigmaA);
                 }
 
@@ -414,8 +412,8 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                 LHS(row+d,col+Dim) += rData.Weight * (AG - P + RSigmaG);
 
             }
-        // Write q-p term
-        LHS(row+Dim,col+Dim) += rData.Weight * G;
+            // Write q-p term
+            LHS(row+Dim,col+Dim) += rData.Weight * G;
 
         }
 
@@ -424,11 +422,9 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
         for (unsigned int d = 0; d < Dim; ++d)
         {
             rLocalRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
-            for (unsigned int e = 0; e < Dim; ++e){
-                rLocalRHS[row+d] += rData.Weight * tau_one(d,e) * AGradN[i] * (body_force[d] - momentum_projection[d]); // A_F: ( a * Grad(v) ) * tau_one * (Density * BodyForce)
-                QAlphaFplusGAlphaF += tau_one(d,e) * (body_force[d] - momentum_projection[d]) * fluid_fraction * rData.DN_DX(i,d);
-            }
+            rLocalRHS[row+d] += rData.Weight * tau_one(d,d) * AGradN[i] * (body_force[d] - momentum_projection[d]); // A_F: ( a * Grad(v) ) * tau_one * (Density * BodyForce)
             rLocalRHS[row+d] -= rData.Weight * tau_two * rData.DN_DX(i,d) * (mass_projection + mass_source - fluid_fraction_rate);
+            QAlphaFplusGAlphaF += tau_one(d,d) * (body_force[d] - momentum_projection[d]) * fluid_fraction * rData.DN_DX(i,d);
         }
         rLocalRHS[row+Dim] += rData.Weight * (QAlphaFplusGAlphaF + rData.N[i] * (mass_source - fluid_fraction_rate));
     }
@@ -484,8 +480,11 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
     const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
     Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     Matrix inv_permeability = ZeroMatrix(Dim, Dim);
+    Matrix non_diag_tau_one = ZeroMatrix(Dim, Dim);
     Matrix inv_tau = ZeroMatrix(Dim, Dim);
     Matrix I = IdentityMatrix(Dim, Dim);
+    Matrix eigen_values_matrix, eigen_vectors_matrix;
+    Matrix inv_eigen_matrix = ZeroMatrix(Dim, Dim);
 
     this->InverseMatrix(permeability, inv_permeability);
 
@@ -496,8 +495,14 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
 
     inv_tau = (c1 * viscosity / (h*h) + density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / h )) * I + viscosity * inv_permeability;
 
-    this->InverseMatrix(inv_tau, TauOne);
+    this->InverseMatrix(inv_tau, non_diag_tau_one);
 
+    MathUtils<double>::GaussSeidelEigenSystem<Matrix, Matrix>(non_diag_tau_one, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+
+    this->InverseMatrix(eigen_vectors_matrix, inv_eigen_matrix);
+
+    Matrix inv_PTau = prod(inv_eigen_matrix, non_diag_tau_one);
+    TauOne = prod(inv_PTau, eigen_vectors_matrix);
     TauTwo = viscosity + c2 * density * velocity_norm * h / c1;
 }
 
@@ -516,8 +521,7 @@ void QSVMSDEMCoupled<TElementData>::InverseMatrix(
         adj_matrix(1,1) += r_matrix(0,0);
     }
     else if (Dim == 3){
-        det_matrix = r_matrix(0,0) * r_matrix(1,1) * r_matrix(2,2) + r_matrix(0,1) * r_matrix(1,2) * r_matrix(2,1) + r_matrix(1,0) * r_matrix(2,1) * r_matrix(1,2) -
-                     r_matrix(1,2) * r_matrix(2,2) * r_matrix(2,1) - r_matrix(0,1) * r_matrix(1,0) * r_matrix(2,2) - r_matrix(0,0) * r_matrix(1,2) * r_matrix(2,1);
+        det_matrix = r_matrix(0,0) * r_matrix(1,1) * r_matrix(2,2) + r_matrix(0,1) * r_matrix(1,2) * r_matrix(2,1) + r_matrix(1,0) * r_matrix(2,1) * r_matrix(1,2) - r_matrix(1,2) * r_matrix(2,2) * r_matrix(2,1) - r_matrix(0,1) * r_matrix(1,0) * r_matrix(2,2) - r_matrix(0,0) * r_matrix(1,2) * r_matrix(2,1);
         adj_matrix(0,0) += r_matrix(1,1) * r_matrix(2,2) - r_matrix(1,2) * r_matrix(2,1);
         adj_matrix(0,1) -= r_matrix(1,0) * r_matrix(2,2) - r_matrix(1,2) * r_matrix(2,0);
         adj_matrix(0,2) += r_matrix(1,0) * r_matrix(2,1) - r_matrix(1,1) * r_matrix(2,0);
