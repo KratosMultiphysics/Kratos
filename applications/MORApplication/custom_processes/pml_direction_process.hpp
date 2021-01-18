@@ -68,31 +68,14 @@ public:
     typedef Geometry<NodeType> GeometryType;
 
     typedef std::vector<NodeTypePointer> NodeVector;
+
     typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
+
     typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
 
-    // typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
     typedef typename TDenseSpace::MatrixType TDenseMatrixType;
 
     typedef typename TDenseSpace::MatrixPointerType TDenseMatrixPointerType;
-
-    // typedef typename BaseType::TSchemeType TSchemeType;
-
-    // typedef typename BaseType::DofsArrayType DofsArrayType;
-
-    // typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
-    // typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
-    // typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-    // typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-    // typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-
-    // typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-
-    // typedef typename ComplexSparseSpaceType::MatrixType TSolutionMatrixType;
 
 
     /// Pointer definition of MonolithicMappingProcess
@@ -148,14 +131,6 @@ public:
         mpSolvingStrategy->SetEchoLevel(0);
 
 
-
-        // mpK = TSparseSpace::CreateEmptyMatrixPointer();
-
-        // mpRHS = TSparseSpace::CreateEmptyVectorPointer();
-        // mpDx = TSparseSpace::CreateEmptyVectorPointer();
-
-
-
         //TODO: check flag DO_EXPENSIVE_CHECKS
         mpSolvingStrategy->Check();
 
@@ -173,14 +148,6 @@ public:
     void operator()(){
         Execute();
     }
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-    ///@name Operators
-    ///@{
 
     ///@}
     ///@name Operations
@@ -217,13 +184,6 @@ public:
 
 
         mpSolvingStrategy->Solve();
-
-        //  for ( ModelPart::NodesContainerType::iterator it_node = rPMLNodes.begin();
-        //         it_node != rPMLNodes.end() ; ++it_node)
-        // {
-        //     std::cout<<" Potential "<< it_node->FastGetSolutionStepValue(PRESSURE) <<std::endl;
-        // }
-
 
         typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> GradientType;
         GradientType process = GradientType(mrModelPartPML, PRESSURE, ABSORBTION_VECTOR, NODAL_AREA, false);
@@ -327,24 +287,8 @@ public:
 
 
         }
-
-
-
-
-
-
         KRATOS_CATCH("")
     }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -367,133 +311,15 @@ public:
     {
     }
 
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
     ///@}
     ///@name Member Variables
     ///@{
     ModelPart& mrModelPartPML;
     ModelPart& mrModelPartInterface;
     ModelPart& mrModelPartBoundary;
-
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
-    // TSystemVectorPointerType mpRHS; /// The RHS vector
-    // TSystemVectorPointerType mpDx; /// The solution vector
-    // TSystemMatrixPointerType mpK; /// The stiffness matrix (real part)
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@na
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-/// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   MonolithicMappingProcess& rThis);
-//
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const MonolithicMappingProcess& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-// }
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-/// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   MonolithicMappingProcess& rThis);
-//
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const MonolithicMappingProcess& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-// }
 
 };
 

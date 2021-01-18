@@ -184,12 +184,6 @@ public:
         rOStream << "Acoustic PML Element #" << Id() << "\n";
     }
 
-    // // Print object's data.
-    // void PrintData(std::ostream& rOStream) const override
-    // {
-    //     pGetGeometry()->PrintData(rOStream);
-    // }
-
     void EquationIdVector(
             EquationIdVectorType& rResult,
             ProcessInfo& rCurrentProcessInfo) override;
@@ -202,73 +196,7 @@ public:
 
 
 protected:
-    // //* //@name Protected static Member Variables
-    // ///@{
-    // struct KinematicVariables
-    // {
-    //     Vector  N;
-    //     Matrix  B;
-    //     double  detF;
-    //     Matrix  F;
-    //     double  detJ0;
-    //     Matrix  J0;
-    //     Matrix  InvJ0;
-    //     Matrix  DN_DX;
-    //     Vector Displacements;
-
-    //     /**
-    //      * The default constructor
-    //      * @param NumberOfNodes The number of nodes in the element
-    //      */
-    //     KinematicVariables(const SizeType NumberOfNodes, const SizeType Dimension)
-    //     {
-    //         detF = 1.0;
-    //         detJ0 = 1.0;
-    //         N = ZeroVector(NumberOfNodes);//@name Protected static Member Variables
-    // ///@{
-    // struct KinematicVariables
-    // {
-    //     Vector  N;
-    //     Matrix  B;
-    //     double  detF;
-    //     Matrix  F;
-    //     double  detJ0;
-    //     Matrix  J0;
-    //     Matrix  InvJ0;
-    //     Matrix  DN_DX;
-    //     Vector Displacements;
-
-    //     /**
-    //      * The default constructor
-    //      * @param NumberOfNodes The number of nodes in the element
-    //      */
-    //     KinematicVariables(const SizeType NumberOfNodes, const SizeType Dimension)
-    //     {
-    //         detF = 1.0;
-    //         detJ0 = 1.0;
-    //         N = ZeroVector(NumberOfNodes);
-    //         B = ZeroMatrix(Dimension * NumberOfNodes);
-    //         F = IdentityMatrix(Dimension);
-    //         DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
-    //         J0 = ZeroMatrix(Dimension, Dimension);
-    //         InvJ0 = ZeroMatrix(Dimension, Dimension);
-    //         Displacements = ZeroVector(Dimension * NumberOfNodes);
-    //     }
-    // };
-    // ///@}
-    // ///@name Protected member Variables
-    // ///@{
-
-    // IntegrationMethod mThisIntegrationMethod;
-
-    // ///@}
-    // ///@name Protected Operators
-    // ///@{
-
-    // AcousticElement() : Element()
-    // {
-    // }
-
+    
     // ///@}
     // ///@name Protected Operations
     // ///@{
@@ -288,103 +216,10 @@ protected:
       VectorType& rRightHandSideVector,
       ProcessInfo& rCurrentProcessInfo) override;
 
-
-
-    // void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
-
-    // void SetIntegrationMethod(const IntegrationMethod& ThisIntegrationMethod)
-    // {
-    //      mThisIntegrationMethod = ThisIntegrationMethod;
-    // }
-    //         J0 = ZeroMatrix(Dimension, Dimension);
-    //         InvJ0 = ZeroMatrix(Dimension, Dimension);
-    //         Displacements = ZeroVector(Dimension * NumberOfNodes);
-    //     }
-    // };
-    // ///@}
-    // ///@name Protected member Variables
-    // ///@{
-
-    // IntegrationMethod mThisIntegrationMethod;
-
-    // ///@}
-    // ///@name Protected Operators
-    // ///@{
-
-    // AcousticElement() : Element()
-    // {
-    // }
-
-    // ///@}
-    // ///@name Protected Operations
-    // ///@{
-
-    // void CalculateLeftHandSide(
-    // MatrixType& rLeftHandSideMatrix,
-    // ProcessInfo& rCurrentProcessInfo) override;
-
-    // void CalculateRightHandSide(
-    //   VectorType& rRightHandSideVector,
-    //   ProcessInfo& rCurrentProcessInfo) override;
-
-    // void CalculateLocalSystem(
-    //   MatrixType& rLeftHandSideMatrix,
-    //   VectorType& rRightHandSideVector,
-    //   ProcessInfo& rCurrentProcessInfo) override;
-
-    // void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
-    // void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
-
-    // void SetIntegrationMethod(const IntegrationMethod& ThisIntegrationMethod)
-    // {
-    //      mThisIntegrationMethod = ThisIntegrationMethod;
-    // } */
-
-    // double CalculateDerivativesOnReferenceConfiguration(
-    //     Matrix& rJ0,
-    //     Matrix& rInvJ0,
-    //     Matrix& rDN_DX,
-    //     const IndexType PointNumber,
-    //     IntegrationMethod ThisIntegrationMethod) const;
-
-    // void CalculateKinematicVariables(
-    //     KinematicVariables& rThisKinematicVariables,
-    //     const IndexType PointNumber,
-    //     const GeometryType::IntegrationMethod& rIntegrationMethod
-    //     );
-    // AcousticPMLElement& operator=(const AcousticPMLElement& rOther);
-    // /// Copy constructor.
-    // AcousticPMLElement(const AcousticPMLElement& rOther); Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  AcSizeType
-    ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
-    // A private default constructor necessary for serialization
-
-    //void save(Serializer& rSerializer) const override;
-    //void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{
@@ -396,21 +231,8 @@ protected:
 
     }
 
-    /// Assignment operator.
-    //AcousticPMLElement& operator=(const AcousticPMLElement& rOther);
-    /// Copy constructor.
-    //AcousticPMLElement(const AcousticPMLElement& rOther);
-    ///@}
-
 }; // Class AcousticElement
 
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name Input and output
-///@{
-///@}
 
 } // namespace Kratos.
-#endif  // KRATOS_ACOUSTIC_ELEMENT_H_INCLUDED  defined
+#endif
