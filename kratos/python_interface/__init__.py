@@ -1,7 +1,10 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
+import re
 import sys
 from . import kratos_globals
+
+if sys.version_info < (3, 5):
+    raise Exception("Kratos only supports Python version 3.5 and above")
 
 class KratosPaths(object):
     kratos_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -15,9 +18,6 @@ class KratosPaths(object):
 sys.path.append(KratosPaths.kratos_libs)
 from Kratos import *
 
-# adding the scripts in "kratos/python_scripts" such that they are treated as a regular python-module
-__path__.append(KratosPaths.kratos_scripts)
-
 def __ModuleInitDetail():
     """
     Configure the parallel environment.
@@ -25,6 +25,8 @@ def __ModuleInitDetail():
     and the parallel DataCommunicator are initialized when the Kernel is built.
     It is defined as a function to avoid polluting the Kratos namespace with local variables.
     """
+
+    # Detect if MPI is used
     mpi_detected = (                         # Probing the environment to see if this is an MPI run
         "OMPI_COMM_WORLD_SIZE" in os.environ # OpenMPI implementation detected
         or "PMI_SIZE" in os.environ          # Intel MPI detected
@@ -33,6 +35,7 @@ def __ModuleInitDetail():
     mpi_requested = "--using-mpi" in sys.argv[1:] # Forcing MPI initialization through command-line flag
 
     using_mpi = False
+
     if mpi_detected or mpi_requested:
         from KratosMultiphysics.kratos_utilities import IsMPIAvailable
         if IsMPIAvailable():
@@ -56,32 +59,34 @@ def __ModuleInitDetail():
                 ]
                 Logger.PrintWarning("KRATOS INITIALIZATION WARNING:", "".join(msg))
 
+    # Try to detect kratos library version
+    try:
+        kre = re.compile('Kratos\.([^\d]+)(\d+).+')
+        kratos_version_info = [(kre.match(f))[2] for f in os.listdir(KratosPaths.kratos_libs) if kre.match(f)][0]
+
+        if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.minor != int(kratos_version_info[1]):
+            print("Warning: Kratos is running with python {}.{} but was compiled with python {}.{}. Please ensure the versions match.".format(
+                sys.version_info.major, sys.version_info.minor, 
+                kratos_version_info[0], kratos_version_info[1]
+            ))
+    except:
+        print("Warning: Could not determine python version used to build kratos.")
+
     return kratos_globals.KratosGlobalsImpl(Kernel(using_mpi), KratosPaths.kratos_applications)
 
 KratosGlobals = __ModuleInitDetail()
 
 def _ImportApplicationAsModule(application, application_name, application_folder, mod_path):
     Kernel = KratosGlobals.Kernel
-    applications_root = KratosGlobals.ApplicationsRoot
-
     Logger.PrintInfo("", "Importing    " + application_name)
-
-    # adding the scripts in "APP_NAME/python_scripts" such that they are treated as a regular python-module
-    application_path = os.path.join(applications_root, application_folder)
-    python_path = os.path.join(application_path, 'python_scripts')
-    mod_path.append(python_path)
+    Logger.PrintWarning('DEPRECATION-Warning', 'For importing "{}": "_ImportApplicationAsModule" is deprecated, please use "_ImportApplication"'.format(application_name))
 
     # Add application to kernel
     Kernel.ImportApplication(application)
 
-def _ImportApplicationAsModuleCustomFolder(application, application_name, application_folder, mod_path):
+def _ImportApplication(application, application_name):
     Kernel = KratosGlobals.Kernel
-
     Logger.PrintInfo("", "Importing    " + application_name)
-
-    # adding the scripts in "APP_NAME/python_scripts" such that they are treated as a regular python-module
-    python_path = os.path.join(application_folder, 'python_scripts')
-    mod_path.append(python_path)
 
     # Add application to kernel
     Kernel.ImportApplication(application)

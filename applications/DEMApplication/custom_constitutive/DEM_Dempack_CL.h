@@ -30,7 +30,7 @@ namespace Kratos {
 
         virtual void Initialize(SphericContinuumParticle* owner_sphere) override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         ~DEM_Dempack() {
         }
@@ -88,8 +88,6 @@ namespace Kratos {
                 int i_neighbour_count,
                 int time_steps,
                 bool& sliding,
-                int search_control,
-                DenseVector<int>& search_control_vector,
                 double &equiv_visco_damp_coeff_normal,
                 double &equiv_visco_damp_coeff_tangential,
                 double LocalRelVel[3],
@@ -104,7 +102,8 @@ namespace Kratos {
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
-                int time_steps) override;
+                int time_steps,
+            const ProcessInfo& r_process_info) override;
 
 
         virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],
@@ -123,8 +122,6 @@ namespace Kratos {
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
                 bool& sliding,
-                int search_control,
-                DenseVector<int>& search_control_vector,
                 const ProcessInfo& r_process_info) override;
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,

@@ -50,7 +50,11 @@ class DamFixTemperatureConditionProcess : public Process
                 "variable_name"   : "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed"        : false,
                 "value"           : 0.0,
-                "table"           : 0
+                "table"           : 0,
+                "interval":[
+                0.0,
+                0.0
+                ]
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -91,7 +95,7 @@ class DamFixTemperatureConditionProcess : public Process
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         if (nnodes != 0)
@@ -122,7 +126,7 @@ class DamFixTemperatureConditionProcess : public Process
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         // Getting the values of table in case that it exist
         if (mTableId != 0)
@@ -162,7 +166,7 @@ class DamFixTemperatureConditionProcess : public Process
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 

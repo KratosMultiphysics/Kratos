@@ -21,8 +21,6 @@
         "material_import_settings"           : {
             "materials_filename" : "material.json"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_structure"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","PointLoad3D_load_point", "Parts_structure"],
         "rotation_dofs"                      : false
     },
     "processes": {
@@ -57,7 +55,7 @@
             }
         }]
     },
-    "output_processes" : {
+    "_output_processes" : {
         "gid_output" : [{
             "python_module" : "gid_output_process",
             "kratos_module" : "KratosMultiphysics",

@@ -39,7 +39,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_D_Bentonite_Colloid::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_D_Bentonite_Colloid::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         KRATOS_INFO("DEM") << "Assigning DEM_D_Bentonite_Colloid to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
@@ -142,7 +142,7 @@ namespace Kratos {
     // DEM-FEM INTERACTION //
     /////////////////////////
 
-    void DEM_D_Bentonite_Colloid::CalculateForcesWithFEM(ProcessInfo& r_process_info,
+    void DEM_D_Bentonite_Colloid::CalculateForcesWithFEM(const ProcessInfo& r_process_info,
                                                          const double OldLocalContactForce[3],
                                                          double LocalElasticContactForce[3],
                                                          double LocalDeltDisp[3],

@@ -1,0 +1,463 @@
+Begin Properties 0
+End Properties
+
+Begin Nodes
+	1	15	0	0
+	2	15	10	0
+	3	5	0	0
+	5	15	20	0
+	9	-15	0	0
+	10	15	30	0
+	12	-15	10.2308	0
+	14	-15	20.4615	0
+	16	15	40	0
+	18	-15	30.6923	0
+	20	3.22724	46.6667	0
+	21	15	50	0
+	22	-15	40.9231	0
+	25	-15	51.1538	0
+	26	15	60	0
+	29	-15	61.3846	0
+	30	15	70	0
+	33	-15	71.6154	0
+	34	15	80	0
+	36	3.58152	85.2602	0
+	37	-15	81.8462	0
+	38	15	90	0
+	41	-15	92.0769	0
+	42	15	100	0
+	45	-15	102.308	0
+	46	15	110	0
+	48	3.58179	114.44	0
+	49	-15	112.538	0
+	50	15	120	0
+	53	-15	122.769	0
+	54	15	130	0
+	55	-6.77276	128.25	0
+	57	-15	133	0
+	58	-6.77276	137.75	0
+	59	15	140	0
+	61	-15	142.5	0
+	63	15	150	0
+	65	-15	152	0
+	67	15	160	0
+	69	-15	161.5	0
+	71	15	170	0
+	73	-15	171	0
+	75	15	180	0
+	77	-15	180.5	0
+	78	15	190	0
+	79	5	190	0
+	80	-5	190	0
+	81	-15	190	0
+End Nodes
+
+Begin Elements	SmallDisplacementElement2D3N
+	1	0	81	77	80	
+	20	0	55	58	57	
+	99	0	3	1	2	
+	103	0	46	50	48	
+	110	0	34	38	36	
+	112	0	16	21	20	
+End Elements
+
+Begin Conditions	PointLoadCondition2D1N
+	1	0	81	
+End Conditions
+
+Begin Conditions	LineLoadCondition2D2N
+	2	0	81	80	
+	3	0	80	79	
+	4	0	79	78	
+	5	0	78	75	
+	6	0	75	71	
+	7	0	71	67	
+	8	0	67	63	
+	9	0	63	59	
+	10	0	59	54	
+	11	0	54	50	
+	12	0	50	46	
+	13	0	46	42	
+	14	0	42	38	
+	15	0	38	34	
+	16	0	34	30	
+	17	0	30	26	
+	18	0	26	21	
+	19	0	21	16	
+	20	0	16	10	
+	21	0	10	5	
+	22	0	5	2	
+	23	0	2	1	
+	24	0	9	12	
+	25	0	12	14	
+	26	0	14	18	
+	27	0	18	22	
+	28	0	22	25	
+	29	0	25	29	
+	30	0	29	33	
+	31	0	33	37	
+	32	0	37	41	
+	33	0	41	45	
+	34	0	45	49	
+	35	0	49	53	
+	36	0	53	57	
+	37	0	57	61	
+	38	0	61	65	
+	39	0	65	69	
+	40	0	69	73	
+	41	0	73	77	
+	42	0	77	81	
+	43	0	57	61	
+	44	0	61	65	
+	45	0	65	69	
+	46	0	69	73	
+	47	0	73	77	
+	48	0	77	81	
+End Conditions
+
+Begin SubModelPart	VISUALIZE_HROM
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		1
+		2
+		5
+		9
+		10
+		12
+		14
+		16
+		18
+		21
+		22
+		25
+		26
+		29
+		30
+		33
+		34
+		37
+		38
+		41
+		42
+		45
+		46
+		49
+		50
+		53
+		54
+		57
+		59
+		61
+		63
+		65
+		67
+		69
+		71
+		73
+		75
+		77
+		78
+		79
+		80
+		81
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+		1
+		2
+		3
+		4
+		5
+		6
+		7
+		8
+		9
+		10
+		11
+		12
+		13
+		14
+		15
+		16
+		17
+		18
+		19
+		20
+		21
+		22
+		23
+		24
+		25
+		26
+		27
+		28
+		29
+		30
+		31
+		32
+		33
+		34
+		35
+		36
+		37
+		38
+		39
+		40
+		41
+		42
+		43
+		44
+		45
+		46
+		47
+		48
+	End SubModelPartConditions
+End SubModelPart	
+
+Begin SubModelPart	COMPUTE_HROM
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		1
+		2
+		3
+		5
+		16
+		20
+		21
+		25
+		29
+		30
+		34
+		36
+		38
+		45
+		46
+		48
+		49
+		50
+		53
+		54
+		55
+		57
+		58
+		59
+		61
+		63
+		65
+		67
+		69
+		71
+		73
+		75
+		77
+		78
+		79
+		80
+		81
+	End SubModelPartNodes
+	Begin SubModelPartElements
+		1
+		20
+		99
+		103
+		110
+		112
+	End SubModelPartElements
+	Begin SubModelPartConditions
+		2
+		4
+		5
+		6
+		8
+		10
+		12
+		16
+		19
+		22
+		29
+		34
+		36
+		40
+		41
+		42
+		43
+		45
+		1
+	End SubModelPartConditions
+	Begin SubModelPart	DISPLACEMENT_Ground
+		Begin SubModelPartData
+		End SubModelPartData
+		Begin SubModelPartTables
+		End SubModelPartTables
+		Begin SubModelPartNodes
+			1
+			3
+		End SubModelPartNodes
+		Begin SubModelPartElements
+		End SubModelPartElements
+		Begin SubModelPartConditions
+		End SubModelPartConditions
+	End SubModelPart	
+
+	Begin SubModelPart	Parts_Structure
+		Begin SubModelPartData
+		End SubModelPartData
+		Begin SubModelPartTables
+		End SubModelPartTables
+		Begin SubModelPartNodes
+			1
+			2
+			3
+			5
+			16
+			20
+			21
+			25
+			29
+			30
+			34
+			36
+			38
+			45
+			46
+			48
+			49
+			50
+			53
+			54
+			55
+			57
+			58
+			59
+			61
+			63
+			65
+			67
+			69
+			71
+			73
+			75
+			77
+			78
+			79
+			80
+			81
+		End SubModelPartNodes
+		Begin SubModelPartElements
+			1
+			20
+			99
+			103
+			110
+			112
+		End SubModelPartElements
+		Begin SubModelPartConditions
+		End SubModelPartConditions
+	End SubModelPart	
+
+	Begin SubModelPart	PointLoad2D_Load_on_points_Auto1
+		Begin SubModelPartData
+		End SubModelPartData
+		Begin SubModelPartTables
+		End SubModelPartTables
+		Begin SubModelPartNodes
+			81
+		End SubModelPartNodes
+		Begin SubModelPartElements
+		End SubModelPartElements
+		Begin SubModelPartConditions
+			1
+		End SubModelPartConditions
+	End SubModelPart	
+
+	Begin SubModelPart	LineLoad2D_Load_on_lines_Auto1
+		Begin SubModelPartData
+		End SubModelPartData
+		Begin SubModelPartTables
+		End SubModelPartTables
+		Begin SubModelPartNodes
+			57
+			61
+			65
+			69
+			73
+			77
+			81
+		End SubModelPartNodes
+		Begin SubModelPartElements
+		End SubModelPartElements
+		Begin SubModelPartConditions
+			43
+			45
+		End SubModelPartConditions
+	End SubModelPart	
+
+	Begin SubModelPart	LineLoad2D_InterfaceStructure
+		Begin SubModelPartData
+		End SubModelPartData
+		Begin SubModelPartTables
+		End SubModelPartTables
+		Begin SubModelPartNodes
+			1
+			2
+			5
+			16
+			21
+			25
+			29
+			30
+			34
+			38
+			45
+			46
+			49
+			50
+			53
+			54
+			57
+			59
+			61
+			63
+			65
+			67
+			69
+			71
+			73
+			75
+			77
+			78
+			79
+			80
+			81
+		End SubModelPartNodes
+		Begin SubModelPartElements
+		End SubModelPartElements
+		Begin SubModelPartConditions
+			2
+			4
+			5
+			6
+			8
+			10
+			12
+			16
+			19
+			22
+			29
+			34
+			36
+			40
+			41
+			42
+		End SubModelPartConditions
+	End SubModelPart	
+
+End SubModelPart	
+

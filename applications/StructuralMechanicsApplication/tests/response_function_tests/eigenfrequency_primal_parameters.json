@@ -30,8 +30,6 @@
             "tolerance": 1e-8,
             "echo_level": 0
         },
-        "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
-        "processes_sub_model_part_list"      : ["support"],
         "rotation_dofs"                      : true
     },
     "processes" : {

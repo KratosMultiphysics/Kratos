@@ -59,12 +59,38 @@ enum WriteConditionsFlag {WriteConditions, WriteElementsOnly, WriteConditionsOnl
 enum MultiFileFlag {SingleFile, MultipleFiles};
 
 
+class KRATOS_API(KRATOS_CORE) GidIOBase : public IO {
+
+protected:
+    /**
+     * Counter of live GidIO instances
+     * (to ensure GiD_PostInit and GiD_PostDone are properly called)
+     */
+    int data;
+
+    // Private constructor so that no objects can be created.
+    GidIOBase() {
+        data = 0;
+    }
+
+public:
+    static GidIOBase& GetInstance();
+
+    int GetData();
+    void SetData(int data);
+
+private:
+    static void Create();
+
+    static GidIOBase* mpInstance;
+};
+
 /**
  * This class defines an interface to the GiDPost library
  * in order to provide GiD compliant I/O functionality
  */
 template<class TGaussPointContainer = GidGaussPointsContainer, class TMeshContainer = GidMeshContainer>
-class GidIO : public IO
+class KRATOS_API(KRATOS_CORE) GidIO : public GidIOBase
 {
 public:
     ///pointer definition of GidIO
@@ -100,11 +126,13 @@ public:
         SetUpMeshContainers();
         SetUpGaussPointContainers();
 
-        if (msLiveInstances == 0)
-        {
+        GidIOBase & gid_io_base = GidIOBase::GetInstance();
+
+        if (gid_io_base.GetData() == 0) {
           GiD_PostInit();
         }
-        msLiveInstances += 1;
+
+        gid_io_base.SetData(gid_io_base.GetData() + 1);
     }
 
     ///Destructor.
@@ -118,9 +146,11 @@ public:
             mResultFileOpen = false;
         }
 
-        msLiveInstances -= 1;
-        if (msLiveInstances == 0)
-        {
+        GidIOBase & gid_io_base = GidIOBase::GetInstance();
+
+        gid_io_base.SetData(gid_io_base.GetData() - 1);
+
+        if (gid_io_base.GetData() == 0) {
           GiD_PostDone();
         }
     }
@@ -1243,8 +1273,8 @@ public:
         GiD_fBeginElements( mMeshFile );
 
         // DEM variables
-        Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
-        Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
+        const Variable<int>& particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
+        const Variable<double>& radius = KratosComponents<Variable<double>>::Get("RADIUS");
 
         for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                 element_iterator != rThisMesh.ElementsEnd();
@@ -1291,8 +1321,8 @@ public:
         double nz = 1.0;
 
         // DEM variables
-        Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
-        Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
+        const Variable<int>& particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
+        const Variable<double>& radius = KratosComponents<Variable<double>>::Get("RADIUS");
 
         for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
@@ -1334,8 +1364,7 @@ public:
         GiD_fBeginElements( mMeshFile );
 
         // DEM variables
-        Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
-        Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
+        const Variable<int>& particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
 
         for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                 element_iterator != rThisMesh.ElementsEnd();
@@ -1578,13 +1607,6 @@ protected:
     bool mResultFileOpen;
 
 private:
-
-    /**
-     * Counter of live GidIO instances
-     * (to ensure GiD_PostInit and GiD_PostDone are properly called)
-     */
-    static int msLiveInstances;
-
     /**
      * assignment operator
      */
@@ -1646,9 +1668,6 @@ inline std::ostream& operator << (std::ostream& rOStream, const GidIO<>& rThis)
     rThis.PrintData(rOStream);
     return rOStream;
 }
-
-template< class TGaussPointContainer, class TMeshContainer >
-int GidIO<TGaussPointContainer,TMeshContainer>::msLiveInstances = 0;
 
 }// namespace Kratos.
 

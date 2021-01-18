@@ -203,7 +203,7 @@ void SolidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo&
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void SolidElement::GetValuesVector( Vector& rValues, int Step )
+void SolidElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -229,7 +229,7 @@ void SolidElement::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void SolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void SolidElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -253,7 +253,7 @@ void SolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void SolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void SolidElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -278,7 +278,7 @@ void SolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void SolidElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void SolidElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -291,7 +291,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<double>& rVariabl
 //*********************************SET VECTOR VALUE***********************************
 //************************************************************************************
 
-void SolidElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+void SolidElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -307,7 +307,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariabl
 //************************************************************************************
 
 
-void SolidElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+void SolidElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -323,7 +323,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariabl
 //********************************SET CONSTITUTIVE VALUE******************************
 //************************************************************************************
 
-void SolidElement::SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+void SolidElement::SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
         std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -599,7 +599,7 @@ void SolidElement::TransformElementData(ElementDataType& rVariables, const doubl
 //************************************************************************************
 //************************************************************************************
 
-SolidElement::SizeType SolidElement::GetDofsSize()
+SolidElement::SizeType SolidElement::GetDofsSize() const
 {
   KRATOS_TRY
 
@@ -1392,7 +1392,7 @@ void SolidElement::InitializeExplicitContributions()
 
 void SolidElement::AddExplicitContribution(const VectorType& rRHSVector,
                                            const Variable<VectorType>& rRHSVariable,
-                                           Variable<array_1d<double,3> >& rDestinationVariable,
+                                           const Variable<array_1d<double,3> >& rDestinationVariable,
                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

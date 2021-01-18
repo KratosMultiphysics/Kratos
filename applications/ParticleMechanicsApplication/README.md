@@ -94,3 +94,7 @@ The Particle Mechanics Application is OPEN SOURCE. The main code and program str
 * **Veronika Singer** - *Developer* - [veronika.singer@tum.de](mailto:veronika.singer@tum.de)
 * **Tobias Teschemacher** - *Developer* - [tobias.teschemacher@tum.de ](mailto:tobias.teschemacher@tum.de )
 * **Peter Wilson** - *Developer* - [peter.wilson@uq.edu.au ](mailto:peter.wilson@uq.edu.au )
+
+## FAQs
+
+Check [here](https://github.com/KratosMultiphysics/Kratos/blob/MPM/linear_implicit/applications/ParticleMechanicsApplication/FAQs.md) for some FAQs.

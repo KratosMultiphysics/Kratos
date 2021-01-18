@@ -3,7 +3,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics as KM
 from KratosMultiphysics import kratos_utilities
 from KratosMultiphysics import * # TODO remove
-
+# Other imports
+from  KratosMultiphysics.deprecation_management import DeprecationManager
 import os
 
 def Factory(settings, Model):
@@ -31,7 +32,7 @@ class GiDOutputProcess(KM.Process):
             },
             "file_label": "time",
             "output_control_type": "step",
-            "output_frequency": 1.0,
+            "output_interval": 1.0,
             "flush_after_output": false,
             "body_output": true,
             "node_output": false,
@@ -98,7 +99,9 @@ class GiDOutputProcess(KM.Process):
         if param is None:
             param = self.defaults
         else:
-            # Note: this only validadtes the first level of the JSON tree.
+            # Warning: we may be changing the parameters object here:
+            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
+            # Note: this only validates the first level of the JSON tree.
             # I'm not going for recursive validation because some branches may
             # not exist and I don't want the validator assinging defaults there.
             param.ValidateAndAssignDefaults(self.defaults)
@@ -126,6 +129,27 @@ class GiDOutputProcess(KM.Process):
         self.step_count = 0
         self.printed_step_count = 0
         self.next_output = 0.0
+
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
+
+        if settings.Has('result_file_configuration'):
+            sub_settings_where_var_is = settings['result_file_configuration']
+            old_name = 'output_frequency'
+            new_name = 'output_interval'
+
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
+
+        if settings.Has('result_file_configuration'):
+            sub_settings_where_var_is = settings['result_file_configuration']
+            old_name = 'write_properties_id'
+            new_name = 'write_ids'
+
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
 
     def ExecuteInitialize(self):
         result_file_configuration = self.param["result_file_configuration"]
@@ -185,7 +209,8 @@ class GiDOutputProcess(KM.Process):
             msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
             raise Exception(msg)
 
-        self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.output_interval = result_file_configuration["output_interval"].GetDouble()
+
         self.flush_after_output = result_file_configuration["flush_after_output"].GetBool()
 
         # get .post.lst files
@@ -281,13 +306,13 @@ class GiDOutputProcess(KM.Process):
             self.__write_step_to_list(label)
 
         # Schedule next output
-        if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
+        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
             if self.output_control_is_time:
                 while self.__get_pretty_time(self.next_output) <= time:
-                    self.next_output += self.output_frequency
+                    self.next_output += self.output_interval
             else:
                 while self.next_output <= self.step_count:
-                    self.next_output += self.output_frequency
+                    self.next_output += self.output_interval
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
@@ -18,6 +16,12 @@ conv_signal_file_name = os.path.join(communication_folder, "EMPIRE_convergence_s
 
 class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        # to silence prints
+        KratosCoSim.EMPIRE_API.EMPIRE_API_SetEchoLevel(0)
+        KratosCoSim.EMPIRE_API.EMPIRE_API_PrintTiming(False)
+
     def setUp(self):
         # delete and recreate communication folder to avoid leftover files
         kratos_utils.DeleteDirectoryIfExisting(communication_folder)
@@ -28,6 +32,7 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
 
     def test_unused_fcts(self):
+        # to make sure theses fcts still exist in case a solver still calls them
         KratosCoSim.EMPIRE_API.EMPIRE_API_Connect("dummy.xml")
         KratosCoSim.EMPIRE_API.EMPIRE_API_Disconnect()
         KratosCoSim.EMPIRE_API.EMPIRE_API_getUserDefinedText("dummy_element")
@@ -320,13 +325,13 @@ def FillModelPart(model_part):
         node.SetSolutionStepValue(KM.ROTATION, GetROTATIONValue(node_id))
 
 def GetSignalFileName(signal_name):
-    return os.path.join(communication_folder, "EMPIRE_signal_" + signal_name + ".dat") # this is hardcoded in C++
+    return communication_folder + "/EMPIRE_signal_" + signal_name + ".dat" # this is hardcoded in C++
 
 def GetDataFieldFileName(data_field_name):
-    return os.path.join(communication_folder, "EMPIRE_datafield_" + data_field_name + ".dat") # this is hardcoded in C++
+    return communication_folder + "/EMPIRE_datafield_" + data_field_name + ".dat" # this is hardcoded in C++
 
 def GetMeshFileName(mesh_name):
-    return os.path.join(communication_folder, "EMPIRE_mesh_" + mesh_name + ".vtk") # this is hardcoded in C++
+    return communication_folder + "/EMPIRE_mesh_" + mesh_name + ".vtk" # this is hardcoded in C++
 
 
 if __name__ == '__main__':

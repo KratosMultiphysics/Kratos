@@ -12,7 +12,10 @@ class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
         default_parameters = KratosMultiphysics.Parameters(r'''{
-            "model_part_name": "please specify the model part that contains the surface nodes"
+            "model_part_name": "please specify the model part that contains the surface nodes",
+            "moment_reference_point" : [0.0,0.0,0.0],
+            "far_field_model_part_name": "",
+            "is_infinite_wing": false
         }''')
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -20,10 +23,20 @@ class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
         self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
         self.resultant_force=KratosMultiphysics.Vector(3)
 
+
+        far_field_model_part_name = settings["far_field_model_part_name"].GetString()
+        self.compute_far_field_forces = far_field_model_part_name != ""
+        if self.compute_far_field_forces :
+            self.far_field_model_part = Model[far_field_model_part_name]
+
+        self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
+        self.moment_reference_point = settings["moment_reference_point"].GetVector()
+        self.is_infinite_wing = settings["is_infinite_wing"].GetBool()
+
         if not self.reference_area > 0.0:
             raise Exception('The reference area should be larger than 0.')
 
-    def ExecuteFinalizeSolutionStep(self):
+    def _ComputeLiftFromPressure(self):
         if (self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)==2):
             CPFApp.ComputeEmbeddedLiftProcess2D(self.fluid_model_part,self.resultant_force).Execute()
         elif (self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)==3):
@@ -41,4 +54,12 @@ class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT, self.lift_coefficient)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
 
-        # TODO Add call to ComputeLiftProcess PotentialJumpLift and FarFieldLift
+    def _ComputeMomentFromPressure(self):
+        # TODO Add implementation for embedded bodies
+        pass
+
+    def _GetTrailingEdgeNode(self):
+        for node in self.fluid_model_part.GetSubModelPart("trailing_edge_sub_model_part").Nodes:
+            self.te = node
+            break
+

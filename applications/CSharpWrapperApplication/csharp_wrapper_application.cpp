@@ -36,8 +36,6 @@ KratosCSharpWrapperApplication::KratosCSharpWrapperApplication():
 
 void KratosCSharpWrapperApplication::Register()
 {
-    // Calling base class register to register Kratos components
-    KratosApplication::Register();
     KRATOS_INFO("") << "Initializing KratosCSharpWrapperApplication... " << std::endl;
 }
 

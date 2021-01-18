@@ -339,7 +339,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
      *  @see ParallelEnvironment.
      *  @return a unique pointer to the new DataCommunicator.
      */
-    virtual DataCommunicator::UniquePointer Clone() const
+    static DataCommunicator::UniquePointer Create()
     {
         return Kratos::make_unique<DataCommunicator>();
     }
@@ -391,12 +391,26 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return rLocalValue;
     }
 
+    virtual bool AndReduce(
+        const bool Value,
+        const int Root) const
+    {
+        return Value;
+    }
+
     virtual Kratos::Flags AndReduce(
         const Kratos::Flags Values,
         const Kratos::Flags Mask,
         const int Root) const
     {
         return Values;
+    }
+
+    virtual bool OrReduce(
+        const bool Value,
+        const int Root) const
+    {
+        return Value;
     }
 
     virtual Kratos::Flags OrReduce(
@@ -439,10 +453,19 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return rLocalValue;
     }
 
+    virtual bool AndReduceAll(const bool Value) const
+    {
+        return Value;
+    }
 
     virtual Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
     {
         return Values;
+    }
+
+    virtual bool OrReduceAll(const bool Value) const
+    {
+        return Value;
     }
 
     virtual Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
@@ -585,6 +608,24 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
 
     /// Check whether this DataCommunicator is aware of parallelism.
     virtual bool IsDistributed() const
+    {
+        return false;
+    }
+
+    /// Check whether this DataCommunicator involves the current rank.
+    /** In MPI, if the rank is not involved in communication, the communicator
+     *  is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     */
+    virtual bool IsDefinedOnThisRank() const
+    {
+        return true;
+    }
+
+    /// Check whether this DataCommunicator is MPI_COMM_NULL.
+    /** In MPI, if the rank is not involved in communication, the communicator
+     *  is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     */
+    virtual bool IsNullOnThisRank() const
     {
         return false;
     }

@@ -18,7 +18,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
-#include "custom_utilities/element_size_calculator.h"
+#include "utilities/element_size_calculator.h"
 
 namespace Kratos
 {
@@ -52,6 +52,24 @@ NewtonianTwoFluid3DLaw::~NewtonianTwoFluid3DLaw() {}
 
 std::string NewtonianTwoFluid3DLaw::Info() const {
     return "NewtonianTwoFluid3DLaw";
+}
+
+int NewtonianTwoFluid3DLaw::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    for (unsigned int i = 0; i < rElementGeometry.size(); i++) {
+        const Node<3>& rNode = rElementGeometry[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DYNAMIC_VISCOSITY,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY,rNode);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,rNode);
+        KRATOS_ERROR_IF(rNode.GetSolutionStepValue(DYNAMIC_VISCOSITY) <= 0.0)
+            << "DYNAMIC_VISCOSITY was not correctly assigned to the nodes for Constitutive Law.\n";
+        KRATOS_ERROR_IF(rNode.GetSolutionStepValue(DENSITY) <= 0.0)
+            << "DENSITY was not correctly assigned to the nodes for Constitutive Law.\n";
+    }
+    return 0;
 }
 
 
@@ -104,7 +122,7 @@ void NewtonianTwoFluid3DLaw::EvaluateInPoint(double& rResult,
 
 
 double NewtonianTwoFluid3DLaw::EquivalentStrainRate(ConstitutiveLaw::Parameters& rParameters) const {
-    
+
     const Vector& S = rParameters.GetStrainVector();
 
     // Norm of symetric gradient (cross terms don't get the 2)

@@ -20,7 +20,7 @@
         },
         "analysis_type"                      : "non_linear",
         "time_integration_method"            : "implicit",
-        "scheme_type"                        : "newmark",
+        "scheme_type"                        : "bdf2",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "shell_test/Shell_Q4_Thin_linear_dynamic_test"
@@ -35,8 +35,6 @@
         "residual_relative_tolerance"        : 1e-9,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 500,
-        "problem_domain_sub_model_part_list" : ["Parts_surface"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_edge","DISPLACEMENT_sample","ROTATION_edge","SurfaceLoad3D_surface"],
         "rotation_dofs"                      : true
     },
     "processes" : {
@@ -47,7 +45,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_edge",
+            "model_part_name" : "Structure.DISPLACEMENT_edge",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0]
@@ -59,7 +57,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_sample",
+            "model_part_name" : "Structure.DISPLACEMENT_sample",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,false,false],
             "value"           : [0.0,0.0,0.0]
@@ -71,7 +69,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_edge",
+            "model_part_name" : "Structure.ROTATION_edge",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0]
@@ -83,7 +81,7 @@
         "process_name"  : "AssignVectorByDirectionToConditionsProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfaceLoad3D_surface",
+            "model_part_name" : "Structure.SurfaceLoad3D_surface",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 0.25,
             "direction"       : [0.0,0.0,-1.0],
@@ -99,7 +97,7 @@
         "Parameters"    : {
             "check_variables"  : ["DISPLACEMENT_Z"],
             "input_file_name"  : "shell_test/Shell_Q4_Thin_linear_dynamic_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_sample",
+            "model_part_name"  : "Structure.DISPLACEMENT_sample",
             "time_frequency"   : 0.001
         }
     }
@@ -113,7 +111,7 @@
         "Parameters"    : {
             "output_variables" : ["DISPLACEMENT_Z"],
             "output_file_name" : "shell_test/Shell_Q4_Thin_linear_dynamic_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_sample",
+            "model_part_name"  : "Structure.DISPLACEMENT_sample",
             "time_frequency"   : 0.001
         }
     }

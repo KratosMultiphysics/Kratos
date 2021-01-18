@@ -36,7 +36,6 @@
 //#include "containers/bucket.h"
 //#include "containers/kd_tree.h"
 //#include "external_includes/trigen_refine.h"
-#include "includes/legacy_structural_app_vars.h"
 namespace Kratos
 {
 

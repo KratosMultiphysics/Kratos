@@ -15,6 +15,7 @@
 
 // Project includes
 #include "includes/serializer.h"
+#include "includes/checks.h"
 
 // Application includes
 #include "utilities/math_utils.h"
@@ -50,10 +51,6 @@ public:
 
     /// Destructor
     ~HistoryLinearElastic3DLaw() override {}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

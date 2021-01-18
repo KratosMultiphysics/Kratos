@@ -29,8 +29,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_Surface"],
-        "processes_sub_model_part_list"      : ["GENERIC_ref_node","DISPLACEMENT_Dirichlet","DISPLACEMENT_XZ_sym","DISPLACEMENT_YZ_sym","ROTATION_XZ_sym","ROTATION_YZ_sym","SurfaceLoad3D_Surface"],
         "rotation_dofs"                      : true
     },
     "processes" : {
@@ -41,7 +39,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Dirichlet",
+            "model_part_name" : "Structure.DISPLACEMENT_Dirichlet",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0],
@@ -54,7 +52,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_XZ_sym",
+            "model_part_name" : "Structure.DISPLACEMENT_XZ_sym",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,true,false],
             "value"           : [0.0,0.0,0.0],
@@ -67,7 +65,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_YZ_sym",
+            "model_part_name" : "Structure.DISPLACEMENT_YZ_sym",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,false],
             "value"           : [0.0,0.0,0.0],
@@ -80,7 +78,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_XZ_sym",
+            "model_part_name" : "Structure.ROTATION_XZ_sym",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0],
@@ -93,7 +91,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_YZ_sym",
+            "model_part_name" : "Structure.ROTATION_YZ_sym",
             "variable_name"   : "ROTATION",
             "constrained"     : [false,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -109,7 +107,7 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfaceLoad3D_Surface",
+            "model_part_name" : "Structure.SurfaceLoad3D_Surface",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 90.0,
             "direction"       : [0.0,0.0,-1],
@@ -125,7 +123,7 @@
         "Parameters"            : {
             "check_variables"  : ["DISPLACEMENT_Z"],
             "input_file_name"  : "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
+            "model_part_name"  : "Structure.GENERIC_ref_node",
             "time_frequency"   : 0.01
         }
     }]
@@ -159,7 +157,7 @@
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_Z"],
             "output_file_name" : "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
+            "model_part_name"  : "Structure.GENERIC_ref_node",
             "time_frequency"   : 0.01
         }
     }]

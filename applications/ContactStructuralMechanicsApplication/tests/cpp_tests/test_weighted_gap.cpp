@@ -19,6 +19,7 @@
 #include "contact_structural_mechanics_application_variables.h"
 // #include "includes/gid_io.h"
 #include "utilities/variable_utils.h"
+#include "utilities/normal_calculation_utils.h"
 #include "processes/simple_mortar_mapper_process.h"
 
 namespace Kratos
@@ -56,7 +57,7 @@ namespace Kratos
             const double MoveMesh = 0.0
             )
         {
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
 
             rModelPart.CreateSubModelPart("SlaveModelPart");
             ModelPart& r_slave_model_part = rModelPart.GetSubModelPart("SlaveModelPart");
@@ -82,7 +83,7 @@ namespace Kratos
             p_node_2->Set(ACTIVE, true);
 
             id_cond++;
-            Condition::Pointer pcond0 = rModelPart.CreateNewCondition("Condition2D2N", id_cond, {{1, 2}}, p_cond_prop);
+            Condition::Pointer pcond0 = rModelPart.CreateNewCondition("LineCondition2D2N", id_cond, {{1, 2}}, p_cond_prop);
             r_slave_model_part.AddCondition(pcond0);
             pcond0->Set(SLAVE, true);
             pcond0->Set(MASTER, false);
@@ -112,7 +113,7 @@ namespace Kratos
 
             id_cond++;
             this_set.AddId(id_cond);
-            Condition::Pointer pcond1 = r_masterModelPart.CreateNewCondition("Condition2D2N", id_cond, {{3, 4}}, p_cond_prop);
+            Condition::Pointer pcond1 = r_masterModelPart.CreateNewCondition("LineCondition2D2N", id_cond, {{3, 4}}, p_cond_prop);
             r_masterModelPart.AddCondition(pcond1);
             pcond1->Set(SLAVE, false);
             pcond1->Set(MASTER, true);
@@ -120,14 +121,14 @@ namespace Kratos
 
             id_cond++;
             this_set.AddId(id_cond);
-            Condition::Pointer pcond2 = r_masterModelPart.CreateNewCondition("Condition2D2N", id_cond, {{4, 5}}, p_cond_prop);
+            Condition::Pointer pcond2 = r_masterModelPart.CreateNewCondition("LineCondition2D2N", id_cond, {{4, 5}}, p_cond_prop);
             r_masterModelPart.AddCondition(pcond2);
             pcond2->Set(SLAVE, false);
             pcond2->Set(MASTER, true);
             master_conds.push_back(pcond2);
 
             // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart);
+            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -149,17 +150,18 @@ namespace Kratos
                     // We activate the condition and initialize it
                     p_auxiliar_condition->Set(ACTIVE, true);
                     p_auxiliar_condition->Set(SLAVE, true);
-                    p_auxiliar_condition->Initialize();
+                    p_auxiliar_condition->Initialize(r_process_info);
                     p_auxiliar_condition->InitializeSolutionStep(r_process_info);
                 }
             }
 
             // Pre move mesh NODAL_AREA
             VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart.Nodes());
-            Vector aux_vector;
+            const Vector aux_vector;
+            const auto& r_var = NODAL_VOLUME;
             for (auto& r_cond : rModelPart.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, NODAL_VOLUME, r_process_info);
+                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, r_var, r_process_info);
                 }
             }
 
@@ -179,7 +181,7 @@ namespace Kratos
             const double MoveMesh = 0.0
             )
         {
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
 
             rModelPart.CreateSubModelPart("SlaveModelPart");
             ModelPart& r_slave_model_part = rModelPart.GetSubModelPart("SlaveModelPart");
@@ -282,7 +284,7 @@ namespace Kratos
             master_conds.push_back(pcond2);
 
             // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart);
+            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -304,17 +306,18 @@ namespace Kratos
                     // We activate the condition and initialize it
                     p_auxiliar_condition->Set(ACTIVE, true);
                     p_auxiliar_condition->Set(SLAVE, true);
-                    p_auxiliar_condition->Initialize();
+                    p_auxiliar_condition->Initialize(r_process_info);
                     p_auxiliar_condition->InitializeSolutionStep(r_process_info);
                 }
             }
 
             // Pre move mesh NODAL_AREA
             VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart.Nodes());
-            Vector aux_vector;
+            const Vector aux_vector;
+            const auto& r_var = NODAL_VOLUME;
             for (auto& r_cond : rModelPart.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, NODAL_VOLUME, r_process_info);
+                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, r_var, r_process_info);
                 }
             }
 
@@ -334,7 +337,7 @@ namespace Kratos
             const double MoveMesh = 0.0
             )
         {
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
 
             rModelPart.CreateSubModelPart("SlaveModelPart");
             ModelPart& r_slave_model_part = rModelPart.GetSubModelPart("SlaveModelPart");
@@ -476,7 +479,7 @@ namespace Kratos
             master_conds.push_back(pcond5);
 
             // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart);
+            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -527,17 +530,18 @@ namespace Kratos
                     // We activate the condition and initialize it
                     p_auxiliar_condition->Set(ACTIVE, true);
                     p_auxiliar_condition->Set(SLAVE, true);
-                    p_auxiliar_condition->Initialize();
+                    p_auxiliar_condition->Initialize(r_process_info);
                     p_auxiliar_condition->InitializeSolutionStep(r_process_info);
                 }
             }
 
             // Pre move mesh NODAL_AREA
             VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart.Nodes());
-            Vector aux_vector;
+            const Vector aux_vector;
+            const auto& r_var = NODAL_VOLUME;
             for (auto& r_cond : rModelPart.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, NODAL_VOLUME, r_process_info);
+                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, r_var, r_process_info);
                 }
             }
 
@@ -597,7 +601,7 @@ namespace Kratos
             for (std::size_t i = 0; i < NumberOfDivisions; i++) {
                 id_cond++;
                 const std::size_t ref_id = (2 * i)+1;
-                Condition::Pointer p_cond = rModelPart.CreateNewCondition("Condition3D4N", id_cond, {{ref_id, ref_id + 1, ref_id + 3, ref_id + 2}}, p_cond_prop_0);
+                Condition::Pointer p_cond = rModelPart.CreateNewCondition("SurfaceCondition3D4N", id_cond, {{ref_id, ref_id + 1, ref_id + 3, ref_id + 2}}, p_cond_prop_0);
                 r_slave_model_part.AddCondition(p_cond);
                 p_cond->Set(SLAVE, true);
                 p_cond->Set(MASTER, false);
@@ -657,7 +661,7 @@ namespace Kratos
                 id_cond++;
                 this_set.AddId(id_cond);
                 const std::size_t ref_id = (2 * (i + NumberOfDivisions + 1)+1);
-                Condition::Pointer p_cond = rModelPart.CreateNewCondition("Condition3D4N", id_cond, {{ref_id +2, ref_id + 3, ref_id + 1, ref_id}}, p_cond_prop_1);
+                Condition::Pointer p_cond = rModelPart.CreateNewCondition("SurfaceCondition3D4N", id_cond, {{ref_id +2, ref_id + 3, ref_id + 1, ref_id}}, p_cond_prop_1);
                 r_master_model_part.AddCondition(p_cond);
                 p_cond->Set(SLAVE, false);
                 p_cond->Set(MASTER, true);
@@ -665,7 +669,7 @@ namespace Kratos
             }
 
             // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart);
+            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -704,7 +708,7 @@ namespace Kratos
             }
 
             // We set the database
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
             ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
             for (auto p_slave_cond : slave_conds) {
                 for (auto p_master_cond : master_conds) {
@@ -717,17 +721,18 @@ namespace Kratos
                     // We activate the condition and initialize it
                     p_auxiliar_condition->Set(SLAVE, true);
                     p_auxiliar_condition->Set(ACTIVE, true);
-                    p_auxiliar_condition->Initialize();
+                    p_auxiliar_condition->Initialize(r_process_info);
                     p_auxiliar_condition->InitializeSolutionStep(r_process_info);
                 }
             }
 
             // Pre move mesh NODAL_AREA
             VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart.Nodes());
-            Vector aux_vector;
+            const Vector aux_vector;
+            const auto& r_var = NODAL_VOLUME;
             for (auto& r_cond : rModelPart.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, NODAL_VOLUME, r_process_info);
+                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, r_var, r_process_info);
                 }
             }
 
@@ -798,11 +803,12 @@ namespace Kratos
             CreateNewProblem3D(r_model_part, number_of_divisions, lenght, radius, angle, slope);
 
             // We compute the explicit contribution
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -855,12 +861,13 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -908,12 +915,13 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -964,12 +972,13 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -1020,13 +1029,14 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -1077,13 +1087,14 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -1141,12 +1152,13 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -1204,13 +1216,14 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -1272,13 +1285,14 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -1333,11 +1347,12 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
-                r_cond.AddExplicitContribution(r_process_info);
-                r_cond.FinalizeSolutionStep(r_process_info);
+                r_cond.AddExplicitContribution(r_const_process_info);
+                r_cond.FinalizeSolutionStep(r_const_process_info);
             }
 
 //             // DEBUG
@@ -1388,12 +1403,13 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 r_cond.Set(MODIFIED, true);
-                r_cond.AddExplicitContribution(r_process_info);
-                r_cond.FinalizeSolutionStep(r_process_info);
+                r_cond.AddExplicitContribution(r_const_process_info);
+                r_cond.FinalizeSolutionStep(r_const_process_info);
             }
 
 //             // DEBUG

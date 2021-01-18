@@ -60,7 +60,11 @@ class DamUpliftCircularConditionLoadProcess : public Process
                 "Height_drain"                                          : 0.0,
                 "Distance"                                              : 0.0,
                 "Effectiveness"                                         : 0.0,
-                "table"                                                 : 0
+                "table"                                                 : 0,
+                "interval":[
+                0.0,
+                0.0
+                ]
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -126,7 +130,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
         KRATOS_TRY;
 
         //Defining necessary variables
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         array_1d<double, 3> auxiliar_vector;
 
@@ -243,7 +247,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
         KRATOS_TRY;
 
         //Defining necessary variables
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         array_1d<double, 3> auxiliar_vector;
 

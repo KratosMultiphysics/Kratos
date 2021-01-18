@@ -42,9 +42,9 @@ def GetListOfAvailableApplications():
     """
     kratos_path = GetKratosMultiphysicsPath()
 
-    apps = [
+    apps = sorted([
         f.split('.')[0] for f in os.listdir(kratos_path) if re.match(r'.*Application*', f)
-    ]
+    ])
 
     return apps
 
@@ -55,30 +55,17 @@ def IsMPIAvailable():
 
     return "mpi" in os.listdir(kratos_path)
 
-def IsApplicationAvailable(application_name):
-    """Returns whether an application is available
-    """
-    warn_msg = '"IsApplicationAvailable" is deprecated, please use "CheckIfApplicationsAvailable" instead'
-    IssueDeprecationWarning('kratos_utilities', warn_msg)
-    return CheckIfApplicationsAvailable(application_name)
-
-def AreApplicationsAvailable(list_application_names):
-    """Returns whether several applications are available
-    """
-    warn_msg = '"AreApplicationsAvailable" is deprecated, please use "CheckIfApplicationsAvailable" instead'
-    IssueDeprecationWarning('kratos_utilities', warn_msg)
-    return CheckIfApplicationsAvailable(*list_application_names)
-
 def CheckIfApplicationsAvailable(*application_names):
     """Returns whether the inquired applications are available
     """
     available_apps = GetListOfAvailableApplications()
+    return all(app_name in available_apps for app_name in application_names)
 
-    for app_name in application_names:
-        if app_name not in available_apps:
-            return False
-
-    return True
+def GetNotAvailableApplications(*application_names):
+    """Returns a list of applications that are not available out of a provided list of applications
+    """
+    available_apps = GetListOfAvailableApplications()
+    return list(filter(lambda app_name: app_name not in available_apps, application_names))
 
 def GenerateVariableListFromInput(param):
     """ Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel

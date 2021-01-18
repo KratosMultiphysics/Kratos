@@ -218,22 +218,22 @@ public:
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
 
@@ -245,7 +245,7 @@ public:
      * interface to the constitutive law!
      * Note, that these functions expect a std::vector of values for the
      * specified variable type that contains a value for each integration point!
-     * SetValueOnIntegrationPoints: set the values for given Variable.
+     * SetValuesOnIntegrationPoints: set the values for given Variable.
      * GetValueOnIntegrationPoints: get the values for given Variable.
      */
 
@@ -253,12 +253,12 @@ public:
     /**
      * Set a Vector Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Set a Matrix Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     //GET:
     /**
@@ -359,7 +359,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable,
-				 Variable<array_1d<double,3> >& rDestinationVariable,
+				 const Variable<array_1d<double,3> >& rDestinationVariable,
 				 const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -472,7 +472,7 @@ private:
     void InitializeChildren();
 
     //check problem type definition and if coincides return active true
-    bool IsActive(ConditionIterator iChildCondition, const ProcessInfo& rCurrentProcessInfo);
+    bool IsActive(const Condition& rChildCondition, const ProcessInfo& rCurrentProcessInfo) const;
 
     //set specific data value to condition children
     template<class TVariableType> void SetValueToChildren(const TVariableType& rThisVariable){

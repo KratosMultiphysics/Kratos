@@ -187,7 +187,7 @@ void FluidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo&
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void FluidElement::GetValuesVector( Vector& rValues, int Step )
+void FluidElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     KRATOS_ERROR << " calling the default method GetValuesVector for a fluid element " << std::endl;
 }
@@ -196,7 +196,7 @@ void FluidElement::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void FluidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void FluidElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_ERROR << " calling the default method GetFirstDerivativesVector for a fluid element " << std::endl;
 }
@@ -204,7 +204,7 @@ void FluidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void FluidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void FluidElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_ERROR << " calling the default method GetSecondDerivativesVector for a fluid element " << std::endl;
 }
@@ -212,7 +212,7 @@ void FluidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void FluidElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void FluidElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -225,7 +225,7 @@ void FluidElement::SetValueOnIntegrationPoints( const Variable<double>& rVariabl
 //*********************************SET VECTOR VALUE***********************************
 //************************************************************************************
 
-void FluidElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+void FluidElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -241,7 +241,7 @@ void FluidElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariabl
 //************************************************************************************
 
 
-void FluidElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+void FluidElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -257,7 +257,7 @@ void FluidElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariabl
 //********************************SET CONSTITUTIVE VALUE******************************
 //************************************************************************************
 
-void FluidElement::SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+void FluidElement::SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
         std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -532,7 +532,7 @@ void FluidElement::TransformElementData(ElementDataType& rVariables, const doubl
 //************************************************************************************
 //************************************************************************************
 
-unsigned int FluidElement::GetDofsSize()
+unsigned int FluidElement::GetDofsSize() const
 {
   KRATOS_ERROR << " calling the default method GetDofsSize for a fluid element " << std::endl;
 }
@@ -1319,7 +1319,7 @@ void FluidElement::InitializeExplicitContributions()
 
 void FluidElement::AddExplicitContribution(const VectorType& rRHSVector,
                                            const Variable<VectorType>& rRHSVariable,
-                                           Variable<array_1d<double,3> >& rDestinationVariable,
+                                           const Variable<array_1d<double,3> >& rDestinationVariable,
                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -2389,7 +2389,7 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
 //************************************************************************************
 //************************************************************************************
 
-int FluidElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int FluidElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

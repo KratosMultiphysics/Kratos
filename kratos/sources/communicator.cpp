@@ -93,6 +93,21 @@ int Communicator::TotalProcesses() const
     return mrDataCommunicator.Size();
 }
 
+Communicator::SizeType Communicator::GlobalNumberOfNodes() const
+{
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfNodes()));
+}
+
+Communicator::SizeType Communicator::GlobalNumberOfElements() const
+{
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfElements()));
+}
+
+Communicator::SizeType Communicator::GlobalNumberOfConditions() const
+{
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfConditions()));
+}
+
 Communicator::SizeType Communicator::GetNumberOfColors() const
 {
     return mNumberOfColors;
@@ -111,6 +126,22 @@ void Communicator::SetNumberOfColors(SizeType NewNumberOfColors)
     mInterfaceMeshes.clear();
 
     for (IndexType i = 0; i < mNumberOfColors; i++)
+    {
+        mLocalMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mGhostMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mInterfaceMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+    }
+}
+
+void Communicator::AddColors(SizeType NumberOfAddedColors)
+{
+    if (NumberOfAddedColors < 1)
+        return;
+
+    mNumberOfColors += NumberOfAddedColors;
+    MeshType mesh;
+
+    for (IndexType i = 0; i < NumberOfAddedColors; i++)
     {
         mLocalMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
         mGhostMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
@@ -302,65 +333,6 @@ const DataCommunicator& Communicator::GetDataCommunicator() const
 }
 
 // Public Operatrions /////////////////////////////////////////////////////////
-
-void Communicator::Barrier() const
-{
-    mrDataCommunicator.Barrier();
-}
-
-bool Communicator::SumAll(int& rValue) const
-{
-    rValue = mrDataCommunicator.SumAll(rValue);
-    return true;
-}
-
-bool Communicator::SumAll(double& rValue) const
-{
-    rValue = mrDataCommunicator.SumAll(rValue);
-    return true;
-}
-
-bool Communicator::SumAll(array_1d<double, 3>& rValue) const
-{
-    rValue = mrDataCommunicator.SumAll(rValue);
-    return true;
-}
-
-bool Communicator::MinAll(int& rValue) const
-{
-    rValue = mrDataCommunicator.MinAll(rValue);
-    return true;
-}
-
-bool Communicator::MinAll(double& rValue) const
-{
-    rValue = mrDataCommunicator.MinAll(rValue);
-    return true;
-}
-
-bool Communicator::MaxAll(int& rValue) const
-{
-    rValue = mrDataCommunicator.MaxAll(rValue);
-    return true;
-}
-
-bool Communicator::MaxAll(double& rValue) const
-{
-    rValue = mrDataCommunicator.MaxAll(rValue);
-    return true;
-}
-
-bool Communicator::ScanSum(const double& send_partial, double& receive_accumulated) const
-{
-    receive_accumulated = mrDataCommunicator.ScanSum(send_partial);
-    return true;
-}
-
-bool Communicator::ScanSum(const int& send_partial, int& receive_accumulated) const
-{
-    receive_accumulated = mrDataCommunicator.ScanSum(send_partial);
-    return true;
-}
 
 bool Communicator::SynchronizeNodalSolutionStepsData()
 {
@@ -637,17 +609,14 @@ void Communicator::PrintInfo(std::ostream& rOStream) const
     rOStream << Info();
 }
 
-void Communicator::PrintData(std::ostream& rOStream) const
+void Communicator::PrintData(std::ostream& rOStream, std::string const& rPrefixString) const
 {
-    for (IndexType i = 0; i < mLocalMeshes.size(); i++)
-    {
-        rOStream << "    Local Mesh " << i << " : " << std::endl;
-        LocalMesh(i).PrintData(rOStream);
-        rOStream << "    Ghost Mesh " << i << " : " << std::endl;
-        GhostMesh(i).PrintData(rOStream);
-        rOStream << "    Interface Mesh " << i << " : " << std::endl;
-        InterfaceMesh(i).PrintData(rOStream);
-    }
+    rOStream << rPrefixString << "    Local Mesh " << " : " << std::endl;
+    mpLocalMesh->PrintData(rOStream, rPrefixString + "    ");
+    rOStream << rPrefixString << "    Ghost Mesh " << " : " << std::endl;
+    mpGhostMesh->PrintData(rOStream, rPrefixString + "    ");
+    rOStream << rPrefixString << "    Interface Mesh " << " : " << std::endl;
+    mpInterfaceMesh->PrintData(rOStream, rPrefixString + "    ");
 }
 
 } // namespace Kratos

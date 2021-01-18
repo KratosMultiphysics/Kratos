@@ -13,7 +13,7 @@ namespace Kratos {
     }
 
     std::string DEMContinuumConstitutiveLaw::GetTypeOfLaw() {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::GetTypeOfLaw) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::GetTypeOfLaw) shouldn't be accessed, use derived class instead"<<std::endl;
         std::string type_of_law = "";
         return type_of_law;
     }
@@ -21,40 +21,56 @@ namespace Kratos {
     void DEMContinuumConstitutiveLaw::Initialize(SphericContinuumParticle* owner_sphere) {
     }
 
-    void DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEMContinuumConstitutiveLaw to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);
     }
 
     void DEMContinuumConstitutiveLaw::Check(Properties::Pointer pProp) const {
-        if(!pProp->Has(FRICTION)) {
-            KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable FRICTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
-            KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(FRICTION) = 0.0;
+        if(!pProp->Has(STATIC_FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
+                KRATOS_WARNING("DEM")<<std::endl;
+                KRATOS_WARNING("DEM")<<"WARNING: Variable STATIC_FRICTION or FRICTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+                KRATOS_WARNING("DEM")<<std::endl;
+                pProp->GetValue(STATIC_FRICTION) = 0.0;
+            }
+            else {
+                pProp->GetValue(STATIC_FRICTION) = pProp->GetValue(FRICTION);
+            }
+        }
+        if(!pProp->Has(DYNAMIC_FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
+                KRATOS_WARNING("DEM")<<std::endl;
+                KRATOS_WARNING("DEM")<<"WARNING: Variable DYNAMIC_FRICTION or FRICTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+                KRATOS_WARNING("DEM")<<std::endl;
+                pProp->GetValue(DYNAMIC_FRICTION) = 0.0;
+            }
+            else {
+                pProp->GetValue(DYNAMIC_FRICTION) = pProp->GetValue(FRICTION);
+            }
         }
         if(!pProp->Has(YOUNG_MODULUS)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable YOUNG_MODULUS should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable YOUNG_MODULUS should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(YOUNG_MODULUS) = 0.0;
         }
         if(!pProp->Has(POISSON_RATIO)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable POISSON_RATIO should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable POISSON_RATIO should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(POISSON_RATIO) = 0.0;
         }
         if(!pProp->Has(DAMPING_GAMMA)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable DAMPING_GAMMA should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable DAMPING_GAMMA should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(DAMPING_GAMMA) = 0.0;
         }
         if(!pProp->Has(COEFFICIENT_OF_RESTITUTION)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable COEFFICIENT_OF_RESTITUTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable COEFFICIENT_OF_RESTITUTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(COEFFICIENT_OF_RESTITUTION) = 0.0;
         }
@@ -99,7 +115,7 @@ namespace Kratos {
                                                                        double ViscoLocalRotationalMoment[3],
                                                                        double equiv_poisson,
                                                                        double indentation) {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::ComputeParticleRotationalMoments) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::ComputeParticleRotationalMoments) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
     void DEMContinuumConstitutiveLaw::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area, BoundedMatrix<double, 3, 3>* mSymmStressTensor,
@@ -110,9 +126,7 @@ namespace Kratos {
     double DEMContinuumConstitutiveLaw::LocalMaxSearchDistance(const int i,
                                           SphericContinuumParticle* element1,
                                           SphericContinuumParticle* element2) {
-
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::LocalMaxSearchDistance) should not be called.","")
-
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::LocalMaxSearchDistance) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
     double DEMContinuumConstitutiveLaw::LocalPeriod(const int i, SphericContinuumParticle* element1,

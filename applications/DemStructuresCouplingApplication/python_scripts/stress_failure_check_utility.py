@@ -1,7 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 
-class StressFailureCheckUtility(object):
+class StressFailureCheckUtility():
     def __init__(self, model_part, test_number):
 
         if not test_number:
@@ -11,7 +11,7 @@ class StressFailureCheckUtility(object):
 
         if test_number == 1: # CTW16
             minimum_radius = 0.00381
-            maximum_radius = 0.00501
+            maximum_radius = 0.01381 #0.00501
         elif test_number == 2: # CTW10
             minimum_radius = 0.0127
             maximum_radius = 0.0139

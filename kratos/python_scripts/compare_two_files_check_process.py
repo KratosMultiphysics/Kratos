@@ -84,6 +84,9 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         """
 
         KratosMultiphysics.DataCommunicator.GetDefault().Barrier()
+        ## only do the check in ranks zero, otherwise this can experience in race condition
+        if (KratosMultiphysics.DataCommunicator.GetDefault().Rank() != 0):
+            return
 
         if (self.comparison_type == "deterministic"):
             value = filecmp.cmp(self.reference_file_name, self.output_file_name)
@@ -96,6 +99,8 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             self.__ComparePostResFile()
         elif (self.comparison_type == "dat_file"):
             self.__CompareDatFile()
+        elif (self.comparison_type == "csv_file"):
+            self.__CompareCSVFile()
         elif (self.comparison_type == "dat_file_variables_time_history"):
             self.__CompareDatFileVariablesTimeHistory()
         elif (self.comparison_type == "vtk"):
@@ -226,7 +231,21 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         lines_ref, lines_out = self.__CompareDatFileComments(lines_ref, lines_out)
 
         # assert values are equal up to given tolerance
-        self.__CompareDatFileResults(lines_ref, lines_out)
+        self.__CompareDelimittedFileResults(lines_ref, lines_out, None)
+
+    def __CompareCSVFile(self):
+        """This function compares files with tabular data.
+        => *.csv
+        Lines starting with "#" are comments and therefore compared for equality
+        Other lines are compared to be almost equal with the specified tolerance
+        """
+        lines_ref, lines_out = self.__GetFileLines()
+
+        # assert headers are the same
+        lines_ref, lines_out = self.__CompareDatFileComments(lines_ref, lines_out)
+
+        # assert values are equal up to given tolerance
+        self.__CompareDelimittedFileResults(lines_ref, lines_out, ",")
 
     def __CompareDatFileVariablesTimeHistory(self):
         """This function compares files with tabular data.
@@ -269,12 +288,12 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
 
         return lines_ref, lines_out
 
-    def __CompareDatFileResults(self, lines_ref, lines_out):
+    def __CompareDelimittedFileResults(self, lines_ref, lines_out, delimiter):
         """This function compares the data of files with tabular data
         The comment lines were removed beforehand
         """
         for line_ref, line_out in zip(lines_ref, lines_out):
-            for v1, v2 in zip(line_ref.split(), line_out.split()):
+            for v1, v2 in zip(line_ref.split(delimiter), line_out.split(delimiter)):
                 self.__CheckCloseValues(float(v1), float(v2))
 
     def __CompareDatFileResultsWithLocation(self, lines_ref, lines_out, variable_names):

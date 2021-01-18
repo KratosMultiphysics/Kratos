@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -47,6 +46,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
         c1 = 200.0
         c4 = 1.0
         # Solve the problem
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         while time <= end_time:
             time = time + dt
             step = step + 1
@@ -121,6 +121,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y, 0, - A * omega**2 * cos(omega*time))
 
         # Solve the problem
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         while time <= end_time:
             time = time + dt
             step = step + 1
@@ -332,9 +333,23 @@ def create_solver(mp, scheme_name):
     elif scheme_name == "pseudo_static":
         scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme(StructuralMechanicsApplication.RAYLEIGH_BETA)
     elif scheme_name == "backward_euler":
-        scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(1)
+        bdf_parameters = KratosMultiphysics.Parameters(""" {
+            "domain_size"           : 3,
+            "integration_order"     : 1,
+            "solution_variables"    : ["DISPLACEMENT"]
+        } """)
+        bdf_parameters["domain_size"].SetInt(mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(1, bdf_parameters)
+        #scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(1)
     elif scheme_name == "bdf2":
-        scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(2)
+        bdf_parameters = KratosMultiphysics.Parameters(""" {
+            "domain_size"           : 3,
+            "integration_order"     : 2,
+            "solution_variables"    : ["DISPLACEMENT"]
+        } """)
+        bdf_parameters["domain_size"].SetInt(mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(2, bdf_parameters)
+        #scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(2)
     elif scheme_name == "explicit":
         dynamic_settings = KratosMultiphysics.Parameters("""
         {
@@ -375,7 +390,6 @@ def create_solver(mp, scheme_name):
         convergence_criterion.SetEchoLevel(0)
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,

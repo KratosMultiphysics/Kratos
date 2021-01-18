@@ -74,10 +74,6 @@ public:
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    typedef Variable<array_1d<double, 3>> VariableWithComponentsType;
-
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
-
     typedef Variable<double> VariableType;
 
     /*@} */
@@ -129,9 +125,13 @@ public:
             new TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(
                 Communicator, guess_row_size, pNewLinearSolver));
 
-        mstrategy = typename BaseType::Pointer(
-            new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-                *mpmesh_model_part, pscheme, pNewLinearSolver, aux_var_build, m_compute_reactions, m_reform_dof_set_at_each_step, calculate_norm_dx_flag));
+        mstrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
+            *mpmesh_model_part,
+            pscheme,
+            aux_var_build,
+            m_compute_reactions,
+            m_reform_dof_set_at_each_step,
+            calculate_norm_dx_flag));
 
         mstrategy->SetEchoLevel(m_echo_level);
 
@@ -200,8 +200,6 @@ public:
 
         }
 
-        MoveMesh();
-
         // clearing the system if needed
         if (m_reform_dof_set_at_each_step == true)
             mstrategy->Clear();
@@ -209,19 +207,6 @@ public:
         return 0.0;
 
         KRATOS_CATCH("")
-    }
-
-    void MoveMesh() override
-    {
-
-        for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
-             i != BaseType::GetModelPart().NodesEnd();
-             ++i)
-        {
-            (i)->X() = (i)->X0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_X);
-            (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Y);
-            (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Z);
-        }
     }
 
     /*@} */

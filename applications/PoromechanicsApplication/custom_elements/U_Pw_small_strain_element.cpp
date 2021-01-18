@@ -34,7 +34,7 @@ Element::Pointer UPwSmallStrainElement<TDim,TNumNodes>::Create(IndexType NewId, 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
+int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -100,7 +100,7 @@ int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentPro
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void UPwSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
@@ -126,6 +126,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(Process
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); //Note: this is for nonlocal damage
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
     ConstitutiveParameters.SetStressVector(StressVector);
@@ -151,7 +152,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(Process
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     this->InitializeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -159,7 +160,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeNonLinearIteration(ProcessIn
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -194,6 +195,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( ProcessInfo& r
     ConstitutiveParameters.SetDeterminantF(detF);
     ConstitutiveParameters.SetDeformationGradientF(F);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     if(rCurrentProcessInfo[NODAL_SMOOTHING] == true)
     {
@@ -311,7 +313,7 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& StressContain
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
-        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
@@ -373,7 +375,7 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& StressContain
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
-        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
@@ -425,7 +427,7 @@ void UPwSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& StressContain
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
-        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
@@ -477,7 +479,7 @@ void UPwSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& StressContain
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
-        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
@@ -520,6 +522,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         double detF = 1.0;
         ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
         ConstitutiveParameters.SetStressVector(StressVector);
         ConstitutiveParameters.SetStrainVector(StrainVector);
@@ -610,7 +613,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
 {
     KRATOS_TRY
 
-    if(rVariable == CAUCHY_STRESS_TENSOR)
+    if(rVariable == EFFECTIVE_STRESS_TENSOR)
     {
         //Defining necessary variables
         const GeometryType& Geom = this->GetGeometry();
@@ -636,6 +639,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         double detF = 1.0;
         ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
         ConstitutiveParameters.SetStressVector(StressVector);
         ConstitutiveParameters.SetStrainVector(StrainVector);
@@ -703,9 +707,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         {
             PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
         }
-        const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
-        const double BulkModulus = Prop[YOUNG_MODULUS]/(3.0*(1.0-2.0*Prop[POISSON_RATIO]));
-        const double BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
+        const double BiotCoefficient = Prop[BIOT_COEFFICIENT];
 
         //Create constitutive law parameters:
         Vector StrainVector(VoigtSize);
@@ -717,6 +719,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         double detF = 1.0;
         ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
         ConstitutiveParameters.SetStressVector(StressVector);
         ConstitutiveParameters.SetStrainVector(StrainVector);
@@ -876,6 +879,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandS
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Element variables
     ElementVariables Variables;
@@ -932,6 +936,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHand
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Element variables
     ElementVariables Variables;
@@ -974,11 +979,10 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(ElementVa
     //Properties variables
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
-    const double BulkModulus = Prop[YOUNG_MODULUS]/(3.0*(1.0-2.0*Prop[POISSON_RATIO]));
     rVariables.DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
     rVariables.FluidDensity = Prop[DENSITY_WATER];
     rVariables.Density = Porosity*rVariables.FluidDensity + (1.0-Porosity)*Prop[DENSITY_SOLID];
-    rVariables.BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
+    rVariables.BiotCoefficient = Prop[BIOT_COEFFICIENT];
     rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
     PoroElementUtilities::CalculatePermeabilityMatrix(rVariables.PermeabilityMatrix,Prop);
 

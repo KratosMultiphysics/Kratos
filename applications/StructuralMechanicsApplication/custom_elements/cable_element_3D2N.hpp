@@ -77,17 +77,27 @@ public:
     ) const override;
 
     BoundedMatrix<double,msLocalSize,msLocalSize>
-    CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo) override;
+    CreateElementStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function updates the internal normal force w.r.t. the current deformations
      * @param rinternalForces The current updated internal forces
      */
     void UpdateInternalForces(BoundedVector<double,msLocalSize>& rinternalForces) override;
+
+
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable, std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
     // boolean for the cable --> does not resist to compression

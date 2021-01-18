@@ -17,7 +17,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_Dempack_torque::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_Dempack_torque::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_Dempack_torque to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }

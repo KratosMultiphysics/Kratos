@@ -3,7 +3,8 @@ Begin ModelPartData
 End ModelPartData
 
 Begin Properties 1
-FRICTION 0.05
+STATIC_FRICTION 0.05
+DYNAMIC_FRICTION 0.05
 WALL_COHESION 0.0
 COMPUTE_WEAR 0
 SEVERITY_OF_WEAR 0.001
@@ -14,13 +15,12 @@ POISSON_RATIO 0.25
 End Properties
 
 Begin Nodes
-14 -3 1 1
-15 -3 -1 1
-16 -3 0 -1
+14 -1 1 0
+15 -1 -1 0
 End Nodes
 
-Begin Conditions RigidFace3D3N
-12 1 14 15 16
+Begin Conditions RigidEdge2D2N
+12 1 14 15
 End Conditions
 
 
@@ -46,7 +46,6 @@ Begin SubModelPart 1 // DEM-FEM-Wall. Group name: disc
   Begin SubModelPartNodes
   14
   15
-  16
   End SubModelPartNodes
 End SubModelPart
 

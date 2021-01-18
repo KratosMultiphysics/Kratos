@@ -134,7 +134,7 @@ public:
         mPreconditionerParameterList = Teuchos::ParameterList();
         const std::string preconditioner_type = settings["preconditioner_type"].GetString();
         if (preconditioner_type == "diagonal" || preconditioner_type == "DiagonalPreconditioner") {
-            mIFPreconditionerType = "None";
+            mIFPreconditionerType = "AZ_none";
         } else if (preconditioner_type == "ilu0" || preconditioner_type == "ILU0") {
             mIFPreconditionerType = "ILU";
             mPreconditionerParameterList.set("fact: drop tolerance", 1e-9);

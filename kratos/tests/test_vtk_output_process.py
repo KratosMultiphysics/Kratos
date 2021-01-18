@@ -266,9 +266,9 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
             "model_part_name"                    : "Main",
             "file_format"                        : "ascii",
             "output_precision"                   : 8,
-            "output_frequency"                   : 2,
+            "output_interval"                    : 2,
             "output_sub_model_parts"             : true,
-            "folder_name"                        : "test_vtk_output",
+            "output_path"                        : "test_vtk_output",
             "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
             "nodal_flags"                        : ["BOUNDARY"],
             "element_data_value_variables"       : ["DETERMINANT"],
@@ -299,13 +299,13 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
             vtk_output_process.PrintOutput()
 
             Check(os.path.join("test_vtk_output","Main_0_" + str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + setup, "Main_0_"+str(step)+".vtk"), file_format)
+                os.path.join("auxiliar_files_for_python_unittest", "vtk_output_process_ref_files", file_format + setup, "Main_0_"+str(step)+".vtk"), file_format)
 
             Check(os.path.join("test_vtk_output","Main_FixedEdgeNodes_0_" + str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + setup, "Main_FixedEdgeNodes_0_"+str(step)+".vtk"), file_format)
+                os.path.join("auxiliar_files_for_python_unittest", "vtk_output_process_ref_files", file_format + setup, "Main_FixedEdgeNodes_0_"+str(step)+".vtk"), file_format)
 
             Check(os.path.join("test_vtk_output","Main_MovingNodes_0_"+str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + setup, "Main_MovingNodes_0_"+str(step)+".vtk"), file_format)
+                os.path.join("auxiliar_files_for_python_unittest", "vtk_output_process_ref_files", file_format + setup, "Main_MovingNodes_0_"+str(step)+".vtk"), file_format)
 
 
 if __name__ == '__main__':

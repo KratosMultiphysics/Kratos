@@ -22,18 +22,34 @@ namespace Kratos {
     void DEMDiscontinuumConstitutiveLaw::Initialize(const ProcessInfo& r_process_info) {
     }
 
-    void DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         //if (verbose) KRATOS_INFO("DEM") << "Assigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);
     }
 
     void DEMDiscontinuumConstitutiveLaw::Check(Properties::Pointer pProp) const {
-        if(!pProp->Has(FRICTION)) {
-            KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable FRICTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
-            KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(FRICTION) = 0.0;
+        if(!pProp->Has(STATIC_FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
+                KRATOS_WARNING("DEM")<<std::endl;
+                KRATOS_WARNING("DEM")<<"WARNING: Variable STATIC_FRICTION or FRICTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+                KRATOS_WARNING("DEM")<<std::endl;
+                pProp->GetValue(STATIC_FRICTION) = 0.0;
+            }
+            else {
+                pProp->GetValue(STATIC_FRICTION) = pProp->GetValue(FRICTION);
+            }
+        }
+        if(!pProp->Has(DYNAMIC_FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
+                KRATOS_WARNING("DEM")<<std::endl;
+                KRATOS_WARNING("DEM")<<"WARNING: Variable DYNAMIC_FRICTION or FRICTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+                KRATOS_WARNING("DEM")<<std::endl;
+                pProp->GetValue(DYNAMIC_FRICTION) = 0.0;
+            }
+            else {
+                pProp->GetValue(DYNAMIC_FRICTION) = pProp->GetValue(FRICTION);
+            }
         }
         if(!pProp->Has(YOUNG_MODULUS)) {
             KRATOS_WARNING("DEM")<<std::endl;
@@ -56,7 +72,7 @@ namespace Kratos {
     }
 
     std::string DEMDiscontinuumConstitutiveLaw::GetTypeOfLaw() {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::GetTypeOfLaw) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::GetTypeOfLaw) shouldn't be accessed, use derived class instead"<<std::endl;
         std::string type_of_law = "";
         return type_of_law;
     }
@@ -122,7 +138,7 @@ namespace Kratos {
         // calculation of damping gamma
         const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
         const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-        const double friction_coeff = element1->GetProperties()[FRICTION];
+        const double friction_coeff = element1->GetProperties()[STATIC_FRICTION];
         const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
         const double viscous_damping_coeff     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn);
         double rescaled_damping = viscous_damping_coeff/(2*equiv_mass);
@@ -131,11 +147,11 @@ namespace Kratos {
     }
 
     void DEMDiscontinuumConstitutiveLaw::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta) {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContact) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::InitializeContact) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
     void DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::InitializeContactWithFEM) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
     void DEMDiscontinuumConstitutiveLaw::GetContactStiffness(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta, double& kn,double& kt){
@@ -147,19 +163,19 @@ namespace Kratos {
     }
 
     void DEMDiscontinuumConstitutiveLaw::CalculateForces(const ProcessInfo& r_process_info,
-                                                         const double OldLocalContactForce[3],
-                                                         double LocalElasticContactForce[3],
-                                                         double LocalDeltDisp[3],
-                                                         double LocalRelVel[3],
-                                                         double indentation,
-                                                         double previous_indentation,
-                                                         double ViscoDampingLocalContactForce[3],
-                                                         double& cohesive_force,
-                                                         SphericParticle* element1,
-                                                         SphericParticle* element2,
-                                                         bool& sliding, double LocalCoordSystem[3][3]) {
+                                                        const double OldLocalContactForce[3],
+                                                        double LocalElasticContactForce[3],
+                                                        double LocalDeltDisp[3],
+                                                        double LocalRelVel[3],
+                                                        double indentation,
+                                                        double previous_indentation,
+                                                        double ViscoDampingLocalContactForce[3],
+                                                        double& cohesive_force,
+                                                        SphericParticle* element1,
+                                                        SphericParticle* element2,
+                                                        bool& sliding, double LocalCoordSystem[3][3]) {
 
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateForces) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateForces) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
     void DEMDiscontinuumConstitutiveLaw::CalculateElasticEnergy(double& normal_elastic_energy,
@@ -171,7 +187,7 @@ namespace Kratos {
 
     }
 
-    void DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM(ProcessInfo& r_process_info,
+    void DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM(const ProcessInfo& r_process_info,
                                                                 const double OldLocalContactForce[3],
                                                                 double LocalElasticContactForce[3],
                                                                 double LocalDeltDisp[3],
@@ -184,12 +200,12 @@ namespace Kratos {
                                                                 Condition* const wall,
                                                                 bool& sliding) {
 
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateForcesWithFEM) shouldn't be accessed, use derived class instead"<<std::endl;
 
     }
 
     double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(const double indentation) {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForce) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateNormalForce) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
 
@@ -203,12 +219,12 @@ namespace Kratos {
     }
 
     double DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForce) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateCohesiveNormalForce) shouldn't be accessed, use derived class instead"<<std::endl;
         return 0.0;
     }
 
     double DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation){
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM) shouldn't be accessed, use derived class instead"<<std::endl;
         return 0.0;
     }
 

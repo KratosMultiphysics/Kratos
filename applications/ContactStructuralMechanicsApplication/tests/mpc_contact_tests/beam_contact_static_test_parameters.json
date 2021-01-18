@@ -22,7 +22,6 @@
         "time_stepping"                      : {
             "time_step" : 0.01
         },
-        "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
@@ -140,7 +139,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "vigas_contacto_static",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
@@ -171,7 +170,7 @@
             "process_name"  : "VtkOutputProcess",
             "help"          : "This process writes postprocessing files for Paraview",
             "Parameters"    : {
-                "model_part_name"                    : "Structure.computing_domain",
+                "model_part_name"                    : "Structure",
                 "output_control_type"                : "step",
                 "output_frequency"                   : 1,
                 "file_format"                        : "ascii",

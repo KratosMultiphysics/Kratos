@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
 import json
@@ -126,8 +126,8 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         # Add variables for the solid conditions
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.FORCE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosStructural.POINT_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.FORCE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         # Add volume acceleration
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
@@ -212,7 +212,7 @@ class DamThermoMechanicSolver(object):
     def Initialize(self):
 
         # Set ProcessInfo variables
-        self.main_model_part.ProcessInfo.SetValue(KratosConvDiff.THETA, self.settings["thermal_solver_settings"]["theta_scheme"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA, self.settings["thermal_solver_settings"]["theta_scheme"].GetDouble())
 
         # Get the computing model parts
         self.thermal_computing_model_part = self.GetComputingThermalModelPart()
@@ -233,7 +233,6 @@ class DamThermoMechanicSolver(object):
         # Solver creation
         self.Thermal_Solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.thermal_computing_model_part,
                                                                              thermal_scheme,
-                                                                             self.thermal_linear_solver,
                                                                              thermal_builder_and_solver,
                                                                              self.settings["thermal_solver_settings"]["compute_reactions"].GetBool(),
                                                                              self.settings["thermal_solver_settings"]["reform_dofs_at_each_step"].GetBool(),
@@ -452,7 +451,6 @@ class DamThermoMechanicSolver(object):
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["mechanical_solver_settings"]["search_neighbours_step"])
                 solver = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.mechanical_computing_model_part,
                                                                                scheme,
-                                                                               self.mechanical_linear_solver,
                                                                                convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -464,7 +462,6 @@ class DamThermoMechanicSolver(object):
                 self.main_model_part.ProcessInfo.SetValue(KratosPoro.IS_CONVERGED, True)
                 solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.mechanical_computing_model_part,
                                                                                     scheme,
-                                                                                    self.mechanical_linear_solver,
                                                                                     convergence_criterion,
                                                                                     builder_and_solver,
                                                                                     max_iters,

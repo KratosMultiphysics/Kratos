@@ -61,6 +61,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     // MPC Contact related variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, REACTION_CHECK_STIFFNESS_FACTOR )                       // The reaction factor to be considered on the tension check
     /* Mortar contact */
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSIDER_TESSELLATION )                                 // If we consider tesellation when doing the mortar segmentation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INNER_LOOP_ITERATION )                                  // The number of loops in the simplified semi-smooth inner iteration
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUXILIAR_COORDINATES )               // Auxiliar coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DELTA_COORDINATES )                  // Delta coordinates used to map
@@ -79,6 +80,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ACTIVE_SET_COMPUTED )                                   // To know if the active set has been computed
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ACTIVE_SET_CONVERGED )                                  // To know if the active set has converged
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SLIP_SET_CONVERGED )                                    // To know if the slip set has converged
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, OPERATOR_THRESHOLD )                                    // Consider objetive/non-objetive formulation threshold
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SLIP_AUGMENTATION_COEFFICIENT )                         // Coefficient to improve the slip computation convergence (augmented part related)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DYNAMIC_FACTOR )                                        // The factor considered for dynamic problems (in order to take intro account the gap evolution)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_MULTIPLIER_CONTACT_PRESSURE )                  // The lagrange multiplier for normal contact pressure
@@ -89,6 +91,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ADAPT_PENALTY )                                         // To set if the penalty is recalculated or not
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAX_GAP_FACTOR )                                        // The factor between the nodal H and the max gap considered to recalculate the penalty
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAX_GAP_THRESHOLD )                                     // The gap considered as threshold to rescale penalty
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TYING_VARIABLE )                                        // The variable name for the mesh tying
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRESCA_FRICTION_THRESHOLD )                             // The threshold value for Tresca frictional contact
 }
 

@@ -25,6 +25,8 @@ namespace Kratos
 
   //Create Variables
 
+
+
   //geometrical definition
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( OFFSET )
   KRATOS_CREATE_VARIABLE(double, SHRINK_FACTOR )
@@ -37,6 +39,7 @@ namespace Kratos
 
   //boundary definition
   KRATOS_CREATE_VARIABLE(int,                                 RIGID_WALL )
+  KRATOS_CREATE_VARIABLE( int, PROPERTY_ID )
 
   //custom neighbor and masters
   KRATOS_CREATE_VARIABLE(GlobalPointer<Node<3>>,                    MASTER_NODE )

@@ -862,7 +862,7 @@ Begin Elements Element2D4N// GUI group identifier: grid
       400          0         72         89         91         74
 End Elements
 
-Begin Conditions Condition2D2N// GUI group identifier: coupling_interface
+Begin Conditions LineCondition2D2N// GUI group identifier: coupling_interface
     1 0 439 440
     2 0 440 442
     3 0 442 443

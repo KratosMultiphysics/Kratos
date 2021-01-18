@@ -10,17 +10,13 @@ def GetFilePath(fileName):
 
 class TestConditionNumber(KratosUnittest.TestCase):
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_condition_number(self):
-        try:
-            import KratosMultiphysics.ExternalSolversApplication
-        except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-
         space = KratosMultiphysics.UblasSparseSpace()
 
         # Read the matrices
         K = KratosMultiphysics.CompressedMatrix()
-        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath("auxiliar_files_for_python_unnitest/sparse_matrix_files/A.mm"),K)
+        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath("auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm"),K)
 
         # Construct the solver
         settings_max = KratosMultiphysics.Parameters("""
@@ -31,7 +27,7 @@ class TestConditionNumber(KratosUnittest.TestCase):
             "required_eigen_number"   : 1,
             "verbosity"               : 0,
             "linear_solver_settings"  : {
-                "solver_type"             : "SuperLUSolver",
+                "solver_type"             : "LinearSolversApplication.sparse_lu",
                 "max_iteration"           : 500,
                 "tolerance"               : 1e-9,
                 "scaling"                 : false,
@@ -48,7 +44,7 @@ class TestConditionNumber(KratosUnittest.TestCase):
             "required_eigen_number"   : 1,
             "verbosity"               : 0,
             "linear_solver_settings"  : {
-                "solver_type"             : "SuperLUSolver",
+                "solver_type"             : "LinearSolversApplication.sparse_lu",
                 "max_iteration"           : 500,
                 "tolerance"               : 1e-9,
                 "scaling"                 : false,

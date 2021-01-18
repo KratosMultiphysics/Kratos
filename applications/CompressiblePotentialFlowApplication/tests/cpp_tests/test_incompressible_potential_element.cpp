@@ -130,11 +130,12 @@ namespace Kratos {
       Vector RHS = ZeroVector(3);
       Matrix LHS = ZeroMatrix(3, 3);
 
-      pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+      pElement->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      std::array<double, 3> reference({0.5, 0.0, -0.5});
+      std::array<double, 3> reference{0.5, 0.0, -0.5};
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
         KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
@@ -160,11 +161,12 @@ namespace Kratos {
       Vector RHS = ZeroVector(6);
       Matrix LHS = ZeroMatrix(6, 6);
 
-      pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+      pElement->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      std::array<double, 6> reference({0.5, 0.0, 0.0, 0.0, 0.0, -0.5});
+      std::array<double, 6> reference{0.5, 0.0, 0.0, 0.0, 0.0, -0.5};
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
         KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
@@ -195,11 +197,12 @@ namespace Kratos {
       Vector RHS = ZeroVector(3);
       Matrix LHS = ZeroMatrix(3, 3);
 
-      pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+      pElement->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      std::array<double, 3> reference({0.125, 0.0, -0.125});
+      std::array<double, 3> reference{0.125, 0.0, -0.125};
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
         KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
@@ -223,13 +226,14 @@ namespace Kratos {
         pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
 
       Element::DofsVectorType ElementalDofList;
-      pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
+      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+      pElement->GetDofList(ElementalDofList, r_current_process_info);
 
       for (int i = 0; i < 3; i++)
         ElementalDofList[i]->SetEquationId(i);
 
       Element::EquationIdVectorType EquationIdVector;
-      pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
+      pElement->EquationIdVector(EquationIdVector, r_current_process_info);
 
       // Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
@@ -259,13 +263,14 @@ namespace Kratos {
       }
 
       Element::DofsVectorType ElementalDofList;
-      pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
+      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+      pElement->GetDofList(ElementalDofList, r_current_process_info);
 
       for (int i = 0; i < 6; i++)
         ElementalDofList[i]->SetEquationId(i);
 
       Element::EquationIdVectorType EquationIdVector;
-      pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
+      pElement->EquationIdVector(EquationIdVector, r_current_process_info);
 
       //Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
@@ -288,7 +293,7 @@ namespace Kratos {
 
       const auto returned_distances = PotentialFlowUtilities::GetWakeDistances<2, 3>(*pElement);
 
-      std::array<double, 3> reference({1.0, -1.0, -1.0});
+      std::array<double, 3> reference{1.0, -1.0, -1.0};
 
       for (unsigned int i = 0; i < returned_distances.size(); i++) {
         KRATOS_CHECK_NEAR(returned_distances(i), reference[i], 1e-7);
@@ -308,7 +313,7 @@ namespace Kratos {
 
       auto potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*pElement);
 
-      std::array<double, 3> reference({1.0, 2.0, 3.0});
+      std::array<double, 3> reference{1.0, 2.0, 3.0};
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
         KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
@@ -332,7 +337,7 @@ namespace Kratos {
       array_1d<double, 3> potentials =
           PotentialFlowUtilities::GetPotentialOnUpperWakeElement<2, 3>(*pElement, distances);
 
-      std::array<double, 3> reference({1.0, 2.0, 3.0});
+      std::array<double, 3> reference{1.0, 2.0, 3.0};
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
         KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
@@ -356,7 +361,7 @@ namespace Kratos {
       array_1d<double, 3> potentials =
           PotentialFlowUtilities::GetPotentialOnLowerWakeElement<2, 3>(*pElement, distances);
 
-      std::array<double, 3> reference({6.0, 7.0, 8.0});
+      std::array<double, 3> reference{6.0, 7.0, 8.0};
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
         KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
@@ -380,7 +385,7 @@ namespace Kratos {
       BoundedVector<double, 2 * 3> potentials =
           PotentialFlowUtilities::GetPotentialOnWakeElement<2, 3>(*pElement, distances);
 
-      std::array<double, 6> reference({1.0, 2.0, 3.0, 6.0, 7.0, 8.0});
+      std::array<double, 6> reference{1.0, 2.0, 3.0, 6.0, 7.0, 8.0};
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
         KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
@@ -400,7 +405,7 @@ namespace Kratos {
 
       auto velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<2,3>(*pElement);
 
-      std::array<double, 2> reference({1.0, 1.0});
+      std::array<double, 2> reference{1.0, 1.0};
 
       for (unsigned int i = 0; i < velocity.size(); i++) {
         KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
@@ -424,7 +429,7 @@ namespace Kratos {
 
       auto velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<2, 3>(*pElement);
 
-      std::array<double, 2> reference({1.0, 1.0});
+      std::array<double, 2> reference{1.0, 1.0};
 
       for (unsigned int i = 0; i < velocity.size(); i++) {
         KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
@@ -448,7 +453,7 @@ namespace Kratos {
 
       auto velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<2, 3>(*pElement);
 
-      std::array<double, 2> reference({1.0, 1.0});
+      std::array<double, 2> reference{1.0, 1.0};
 
       for (unsigned int i = 0; i < velocity.size(); i++) {
         KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
@@ -468,7 +473,7 @@ namespace Kratos {
 
       auto velocity = PotentialFlowUtilities::ComputeVelocity<2,3>(*pElement);
 
-      std::array<double, 2> reference({1.0, 1.0});
+      std::array<double, 2> reference{1.0, 1.0};
 
       for (unsigned int i = 0; i < velocity.size(); i++) {
         KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
@@ -486,7 +491,8 @@ namespace Kratos {
 
       AssignPotentialsToNormalElement(pElement);
 
-      double pressure_coefficient = PotentialFlowUtilities::ComputeIncompressiblePressureCoefficient<2,3>(*pElement, model_part.GetProcessInfo());
+      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+      double pressure_coefficient = PotentialFlowUtilities::ComputeIncompressiblePressureCoefficient<2,3>(*pElement, r_current_process_info);
 
       KRATOS_CHECK_NEAR(pressure_coefficient, 0.98, 1e-7);
     }

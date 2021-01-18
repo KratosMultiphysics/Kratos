@@ -22,23 +22,15 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/node.h"
 #include "utilities/geometry_utilities.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "includes/variables.h"
-#include "spatial_containers/spatial_containers.h"
 #include "utilities/timer.h"
 #include "utilities/binbased_fast_point_locator.h"
-
-
-#include <boost/timer.hpp>
-#include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
-
 
 namespace Kratos
 {
@@ -75,6 +67,11 @@ public:
         PointerVector< Element > elem_backward( rModelPart.Nodes().size());
         std::vector< Vector > Ns( rModelPart.Nodes().size());
         std::vector< bool > found( rModelPart.Nodes().size());
+
+        // Allocate non-historical variables
+        for (auto &r_node : rModelPart.Nodes()) {
+            r_node.SetValue(rVar, 0.0);
+        }
 
         //FIRST LOOP: estimate rVar(n+1)
         #pragma omp parallel for firstprivate(results,N,N_valid)
@@ -328,5 +325,3 @@ private:
 } // namespace Kratos.
 
 #endif // KRATOS_BFECC_CONVECTION_INCLUDED  defined
-
-

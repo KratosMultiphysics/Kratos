@@ -32,7 +32,7 @@
             "time_step"           : 0.01
         },
         "linear_solver_settings" : {
-            "solver_type" : "ExternalSolversApplication.super_lu",
+            "solver_type" : "LinearSolversApplication.sparse_lu",
             "smoother_type" : "damped_jacobi",
             "krylov_type" : "lgmres",
             "coarsening_type" : "aggregation",
@@ -55,7 +55,7 @@
         	"kratos_module" : "KratosMultiphysics",
         	"process_name"  : "AssignVectorByDirectionProcess",
         	"Parameters"    : {
-            	"model_part_name" : "Parts_Fluid",
+            	"model_part_name" : "FluidModelPart.Parts_Fluid",
             	"variable_name"   : "BODY_FORCE",
             	"modulus"         : 9.81,
             	"constrained"     : false,
@@ -67,7 +67,7 @@
         	"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         	"process_name"  : "ApplyDistanceModificationProcess",
         	"Parameters"    : {
-            	"model_part_name"                        : "Parts_Fluid",
+            	"model_part_name"                        : "FluidModelPart.Parts_Fluid",
             	"distance_threshold"                     : 0.001,
             	"check_at_each_time_step"                : false,
             	"avoid_almost_empty_elements"            : true,

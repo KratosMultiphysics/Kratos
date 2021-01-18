@@ -1,0 +1,140 @@
+{
+    "problem_data": {
+        "problem_name": "Structure_Static_2D_HyperReduced",
+        "parallel_type": "OpenMP",
+        "echo_level": 1,
+        "start_time": 0.0,
+        "end_time": 1.0
+    },
+    "solver_settings": {
+        "solver_type": "Static",
+        "model_part_name": "Structure",
+        "domain_size": 2,
+        "echo_level": 0,
+        "analysis_type": "linear",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "Structure_Static_2D_HyperReduced"
+        },
+        "material_import_settings": {
+            "materials_filename": "StructuralMaterialsHROM.json"
+        },
+        "time_stepping": {
+            "time_step": 1.1
+        },
+        "line_search": false,
+        "convergence_criterion": "residual_criterion",
+        "displacement_relative_tolerance": 0.0001,
+        "displacement_absolute_tolerance": 1e-9,
+        "residual_relative_tolerance": 0.0001,
+        "residual_absolute_tolerance": 1e-9,
+        "max_iteration": 10,
+        "rotation_dofs": false
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "Parameters": {
+                    "model_part_name": "Structure.COMPUTE_HROM.DISPLACEMENT_Ground",
+                    "variable_name": "DISPLACEMENT",
+                    "constrained": [true,true,true],
+                    "value": [0.0,0.0,0.0],
+                    "interval": [0.0,"End"]
+                }
+            }
+        ],
+        "loads_process_list": [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.COMPUTE_HROM.PointLoad2D_Load_on_points_Auto1",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : 50.0,
+                "direction"       : [1.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.COMPUTE_HROM.LineLoad2D_InterfaceStructure",
+                "variable_name"   : "LINE_LOAD",
+                "modulus"         : 50.0,
+                "direction"       : [1,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.COMPUTE_HROM.LineLoad2D_Load_on_lines_Auto1",
+                "variable_name"   : "LINE_LOAD",
+                "modulus"         : 50.0,
+                "direction"       : [1.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes": []
+    },
+    "output_processes": {
+        "gid_output": [
+            {
+                "python_module": "gid_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "GiDOutputProcess",
+                "help": "This process writes postprocessing files for GiD",
+                "Parameters": {
+                    "model_part_name": "Structure",
+                    "output_name": "FinalBeamStep2",
+                    "postprocess_parameters": {
+                        "result_file_configuration": {
+                            "gidpost_flags": {
+                                "GiDPostMode": "GiD_PostBinary",
+                                "WriteDeformedMeshFlag": "WriteDeformed",
+                                "WriteConditionsFlag": "WriteConditions",
+                                "MultiFileFlag": "SingleFile"
+                            },
+                            "file_label": "step",
+                            "output_control_type": "step",
+                            "output_frequency": 1,
+                            "body_output": true,
+                            "node_output": false,
+                            "skin_output": false,
+                            "plane_output": [],
+                            "nodal_results": ["DISPLACEMENT","REACTION"],
+                            "gauss_point_results": ["VON_MISES_STRESS"]
+                        },
+                        "point_data_configuration": []
+                    }
+                }
+            }
+        ],
+        "vtk_output": [
+            {
+                "python_module": "vtk_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "VtkOutputProcess",
+                "help": "This process writes postprocessing files for Paraview",
+                "Parameters": {
+                    "model_part_name": "Structure",
+                    "output_control_type": "step",
+                    "output_frequency": 1,
+                    "file_format": "ascii",
+                    "output_precision": 7,
+                    "output_sub_model_parts": true,
+                    "folder_name": "vtk_output",
+                    "save_output_files_in_folder": true,
+                    "nodal_solution_step_data_variables": ["DISPLACEMENT","REACTION"],
+                    "nodal_data_value_variables": [],
+                    "element_data_value_variables": [],
+                    "condition_data_value_variables": []
+                }
+            }
+        ]
+    }
+}

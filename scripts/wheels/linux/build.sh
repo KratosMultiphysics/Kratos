@@ -1,55 +1,129 @@
 #!/bin/bash
+PYTHONS=("35" "36" "37" "38")
+export KRATOS_VERSION="7.0.3"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+export KRATOS_ROOT="/workspace/kratos/Kratos"
+WHEEL_ROOT="/workspace/wheel"
+WHEEL_OUT="/workspace/out"
+CORE_LIB_DIR="/workspace/coreLibs"
 
-PYTHONS=("35" "36" "37")
+setup_wheel_dir () {
+    cd $KRATOS_ROOT
+    mkdir $WHEEL_ROOT
+    cp scripts/wheels/setup.py ${WHEEL_ROOT}/setup.py
+    mkdir ${WHEEL_ROOT}/KratosMultiphysics
+    mkdir ${WHEEL_ROOT}/KratosMultiphysics/.libs
+}
 
-for PYTHON in  "${PYTHONS[@]}"
-do
-	echo starting build for python${PYTHON}
+build_core_wheel () {
+    setup_wheel_dir
+    cd $KRATOS_ROOT
+    
+    cp bin/Release/KratosMultiphysics/* ${WHEEL_ROOT}/KratosMultiphysics
+    cp scripts/wheels/linux/KratosMultiphysics.json ${WHEEL_ROOT}/wheel.json
+    cp scripts/wheels/__init__.py ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
+    
+    cd $WHEEL_ROOT
+    $PYTHON_LOCATION setup.py bdist_wheel
+    cd ${WHEEL_ROOT}/dist
+    auditwheel repair *.whl
+    
+    mkdir $CORE_LIB_DIR
+    unzip -j wheelhouse/KratosMultiphysics* 'KratosMultiphysics/.libs/*' -d $CORE_LIB_DIR
+    
+    cp wheelhouse/* $WHEEL_OUT
+    cd
+    rm -r $WHEEL_ROOT
+}
 
-	cd /workspace/kratos/Kratos
+optimize_wheel(){
+    cd ${WHEEL_ROOT}/dist/wheelhouse
+    ARCHIVE_NAME=$(ls .)
+    mkdir tmp
+    unzip ${ARCHIVE_NAME} -d tmp
+    rm $ARCHIVE_NAME
+    
+    for LIBRARY in $(ls tmp/KratosMultiphysics/.libs)
+    do
+        if [ -f "${CORE_LIB_DIR}/${LIBRARY}" ] || grep -Fxq $(echo $LIBRARY | cut -f1 -d"-") "${WHEEL_ROOT}/excluded.txt" ; then
+            echo "removing ${LIBRARY} - already present in dependent wheel."
+            rm tmp/KratosMultiphysics/.libs/${LIBRARY}
+            sed -i "/${LIBRARY}/d" tmp/*.dist-info/RECORD
+        fi
+    done
+    cd tmp
+    zip -r ../${ARCHIVE_NAME} ./*
+    cd ..
+    rm -r tmp
+}
+
+build_application_wheel () {
+    setup_wheel_dir
+    cp ${KRATOS_ROOT}/scripts/wheels/linux/applications/${1} ${WHEEL_ROOT}/wheel.json
+    cd $WHEEL_ROOT
+    $PYTHON_LOCATION setup.py bdist_wheel
+    cd dist
+    auditwheel repair *.whl
+    
+    optimize_wheel
+    cp ${WHEEL_ROOT}/dist/wheelhouse/* ${WHEEL_OUT}
+    
+    cd
+    rm -r $WHEEL_ROOT
+}
+
+build_kratos_all_wheel () {
+    setup_wheel_dir
+    cp ${KRATOS_ROOT}/scripts/wheels/linux/KratosMultiphysics-all.json ${WHEEL_ROOT}/wheel.json
+    cp ${KRATOS_ROOT}/scripts/wheels/linux/setup_kratos_all.py ${WHEEL_ROOT}/setup.py
+    cd ${WHEEL_ROOT}
+    $PYTHON_LOCATION setup.py bdist_wheel
+    cp dist/* ${WHEEL_OUT}
+
+    cd
+    rm -r $WHEEL_ROOT
+}
+
+build () {
+	cd $KRATOS_ROOT
 	git clean -ffxd
 
-	PYTHON_LOCATION=/opt/python/cp${PYTHON}-cp${PYTHON}m/bin/python
+	PYTHON_LOCATION=$1
 
-	cd cmake_build
 	cp /workspace/kratos/Kratos/scripts/wheels/linux/configure.sh ./configure.sh
 	chmod +x configure.sh
 	./configure.sh $PYTHON_LOCATION
 
-	make -j$1
-	make install
+	cmake --build "${KRATOS_ROOT}/build/Release" --target install -- -j$2
+}
 
-	cd /workspace/kratos/Kratos
+
+for PYTHON_VERSION in  "${PYTHONS[@]}"
+do
+    PYTHON_TMP=$(ls /opt/python | grep $PYTHON_VERSION | cut -d "-" -f 2)
+    export PYTHON=${PYTHON_TMP#cp}
+    echo starting build for python${PYTHON}
+	PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
+    build $PYTHON_LOCATION $1
+	
+	
+	cd $KRATOS_ROOT
 	export HASH=$(git show -s --format=%h) #used in version number
-	export LD_LIBRARY_PATH=$(pwd)/libs:$BASE_LD_LIBRARY_PATH
+	export LD_LIBRARY_PATH=${KRATOS_ROOT}/bin/Release/libs:$BASE_LD_LIBRARY_PATH
 	echo $LD_LIBRARY_PATH
 
-	mkdir /workspace/wheel
-	cp -r /workspace/kratos/Kratos/KratosMultiphysics /workspace/wheel
-	mkdir /workspace/wheel/KratosMultiphysics/.libs
-	cp /workspace/kratos/Kratos/libs/Kratos* /workspace/wheel/KratosMultiphysics/.libs
+    build_core_wheel
 
-	cp /workspace/kratos/Kratos/scripts/wheels/linux/setup.py /workspace/wheel/setup.py
-	cp /workspace/kratos/Kratos/scripts/wheels/linux/README.md /workspace/wheel/README.md
-	cp /workspace/kratos/Kratos/scripts/wheels/linux/__init__.py /workspace/wheel/KratosMultiphysics/__init__.py
+    for APPLICATION in $(ls ${KRATOS_ROOT}/scripts/wheels/linux/applications)
+    do
+        build_application_wheel $APPLICATION
+    done
 
+    build_kratos_all_wheel
 
-	cd /workspace/wheel
+	echo finished build for python${PYTHON_VERSION}
 
-	$PYTHON_LOCATION setup.py bdist_wheel
-	cd dist
-	ls
-	auditwheel repair *.whl
-	mv wheelhouse/*manylinux2010_x86_64.whl /workspace/out
-
-	echo finished build for python${PYTHON}
-	echo cleaning up
-
-	#cleanup
-	cd /workspace
-	rm -rf /workspace/wheel
 	export LD_LIBRARY_PATH=$BASE_LD_LIBRARY_PATH
 
 done

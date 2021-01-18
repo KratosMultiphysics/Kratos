@@ -199,17 +199,17 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
   /**
    * Sets on rValues the nodal displacements
    */
-  void GetValuesVector(Vector& rValues, int Step = 0) override;
+  void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
   /**
    * Sets on rValues the nodal velocities
    */
-  void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+  void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
   /**
    * Sets on rValues the nodal accelerations
    */
-  void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+  void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
   //on integration points:
@@ -220,7 +220,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
    * interface to the constitutive law!
    * Note, that these functions expect a std::vector of values for the
    * specified variable type that contains a value for each integration point!
-   * SetValueOnIntegrationPoints: set the values for given Variable.
+   * SetValuesOnIntegrationPoints: set the values for given Variable.
    * GetValueOnIntegrationPoints: get the values for given Variable.
    */
 
@@ -228,17 +228,17 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
   /**
    * Set a double  Value on the Element Constitutive Law
    */
-  void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Set a Vector Value on the Element Constitutive Law
    */
-  void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Set a Matrix Value on the Element Constitutive Law
    */
-  void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
   //GET:

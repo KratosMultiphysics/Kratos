@@ -31,8 +31,7 @@ class TestVectorInterface(KratosUnittest.TestCase):
             self.assertEqual(it,1.0)
 
         b -= a
-        for i in range(len(b)):
-            self.assertEqual(b[i], d[i])
+        self.assertVectorAlmostEqual(b, d)
 
     def test_list_construction(self):
         a = Vector([1,2,3])
@@ -152,6 +151,7 @@ class TestVectorInterface(KratosUnittest.TestCase):
         a[2] = 3.0
         self.assertEqual(6.0,a.norm_1())
         self.assertEqual(math.sqrt(14.0),a.norm_2())
+        self.assertEqual(3.0,a.norm_inf())
 
     def test_truediv(self):
         a = Vector(3)

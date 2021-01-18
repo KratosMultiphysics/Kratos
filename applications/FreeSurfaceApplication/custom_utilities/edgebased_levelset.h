@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Antonia Larese
@@ -33,6 +33,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/deprecated_variables.h"
+#include "includes/global_pointer_variables.h"
 #include "includes/node.h"
 #include "includes/cfd_variables.h"
 //#include "geometries/geometry.h"
@@ -89,7 +90,7 @@ public:
     {
         for (ModelPart::NodesContainerType::iterator it=mr_model_part.NodesBegin(); it!=mr_model_part.NodesEnd(); it++)
             it->FastGetSolutionStepValue (VISCOSITY) = viscosity;
-	
+
 	mMolecularViscosity = viscosity;
 
         for(unsigned int i = 0; i<TDim; i++)
@@ -610,7 +611,7 @@ public:
             const array_1d<double, TDim>& U_i = mvel_n1[i_node];
 //                 const double& p_i = mPn1[i_node];
             const double& eps_i = mEps[i_node];
-	    
+
 	    /*convective velocity == fluid velocity (not darcy velocity)*/
             a_i /= eps_i;
 
@@ -639,8 +640,8 @@ public:
 //            for(unsigned int comp = 0; comp < TDim; comp++)
 //                {a_j[comp] -= str_v_j[comp];}
 
-// // 	        ****************************************rel_vel_modifications_e		
-		
+// // 	        ****************************************rel_vel_modifications_e
+
                 CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 
                 edge_ij.Add_ConvectiveContribution(pi_i, a_i, U_i, a_j, U_j);
@@ -737,7 +738,7 @@ public:
 // 		    //const double& d_i = mD[i_node];
                 const double lindarcy_i = mA[i_node];
                 const double nonlindarcy_i = mB[i_node];
-		
+
 		const array_1d<double, TDim>& str_v_i = mStrVel[i_node];
 		array_1d<double, TDim> rel_vel_i;
 
@@ -762,7 +763,7 @@ public:
 //                    {a_i[comp] -= str_v_i[comp];}
 
 //     // 	    ****************************************rel_vel_modifications_e
-// 		
+//
                 //double& h_i = mHmin[i_node];
 
 
@@ -798,7 +799,7 @@ public:
                     const double& p_j = pressure[j_neighbour];
                     const double& eps_j = mEps[j_neighbour];
 //                             const double& beta_j = mBeta[j_neighbour];
-                
+
                 /*convective velocity == fluid velocity (not darcy velocity)*/
                     a_j /= eps_j;
 		/*convective front velocity == fluid velocity - structural velocity*/
@@ -807,8 +808,8 @@ public:
 //                for(unsigned int comp = 0; comp < TDim; comp++)
 //                    {a_j[comp] -= str_v_j[comp];}
 
-//	          ****************************************/*rel_vel_modifications*/_e	    
-		    
+//	          ****************************************/*rel_vel_modifications*/_e
+
                     CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 
                     edge_ij.Sub_ConvectiveContribution(rhs_i, a_i, U_i, a_j, U_j);
@@ -877,7 +878,7 @@ public:
         KRATOS_TRY
 
         typedef Node < 3 > PointType;
-        typedef PointerVector<PointType > PointVector;
+        typedef GlobalPointersVector<PointType > PointVector;
         typedef PointVector::iterator PointIterator;
 
         //reset is visited flag
@@ -925,7 +926,7 @@ public:
                 if (jjj->FastGetSolutionStepValue(DISTANCE) >= 0 &&
                         jjj->GetValue(IS_VISITED) == 0.0)
                 {
-                    layers[1].push_back(Node < 3 > ::Pointer(*(jjj.base())));
+                    layers[1].push_back(Node<3>::WeakPointer(*jjj.base()));
                     jjj->GetValue(IS_VISITED) = 2.0;
                 }
             }
@@ -1059,7 +1060,7 @@ public:
 
         //loop over all nodes
 //            double rho_inv = 1.0 / mRho;
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for (int i_node = 0; i_node < n_nodes; i_node++)
         {
 
@@ -1529,7 +1530,7 @@ public:
 
 
         typedef Node < 3 > PointType;
-        typedef PointerVector<PointType > PointVector;
+        typedef GlobalPointersVector<PointType > PointVector;
         typedef PointVector::iterator PointIterator;
 
         mr_matrix_container.FillScalarFromDatabase(DISTANCE, mdistances,mr_model_part.Nodes());
@@ -1625,7 +1626,7 @@ public:
                     if (jjj->FastGetSolutionStepValue(DISTANCE) >= 0 &&
                             jjj->GetValue(IS_VISITED) == 0.0)
                     {
-                        layers[il + 1].push_back(Node < 3 > ::Pointer(*(jjj.base())));
+                        layers[il + 1].push_back(Node<3>::WeakPointer(*jjj.base()));
                         jjj->GetValue(IS_VISITED) = double(il + 2.0);
                     }
                 }
@@ -1662,7 +1663,7 @@ public:
             else //case in which there is not a layer of nodes completely internal
             {
                 array_1d<double,3>& pproj = iii->FastGetSolutionStepValue(PRESS_PROJ);
-                for(unsigned int i=0; i<TDim; i++) 
+                for(unsigned int i=0; i<TDim; i++)
 					pproj[i] = mRho*mBodyForce[i];
 //                noalias(iii->FastGetSolutionStepValue(PRESS_PROJ)) = mRho*mBodyForce;
 
@@ -2070,7 +2071,7 @@ public:
                         is_inlet_or_outlet = true;
             }
             //slip condition
-            if (is_inlet_or_outlet) //the opposite of the loop before                
+            if (is_inlet_or_outlet) //the opposite of the loop before
 				for (unsigned int if_node = 0; if_node < TDim; if_node++)
                 {
                     unsigned int i_node = static_cast<unsigned int> (face_geometry[if_node].FastGetSolutionStepValue(AUX_INDEX));
@@ -2712,9 +2713,9 @@ public:
 //            for(unsigned int comp = 0; comp < TDim; comp++)
  //               {rel_vel_i[comp] = v_i[comp] - str_v_i[comp];}
 //	    double rel_vel_norm = norm_2(rel_vel_i);
-	    
 
-	    
+
+
 //// 			double porosity_coefficient = ComputePorosityCoefficient(mViscosity, vel_norm, eps_i, d_i);
   //          double porosity_coefficient = ComputePorosityCoefficient(rel_vel_norm, eps_i, lindarcy_i, nonlindarcy_i);
             /*KRATOS_WATCH("porosity_coefficient -----------  Timestep")
@@ -3720,7 +3721,7 @@ private:
             const double d = diag_stiffness[i_node];
             const array_1d<double, TDim>& origin_vec1 = origin1[i_node];
             const array_1d<double, TDim>& origin_value = origin[i_node];
-	    
+
             for (unsigned int comp = 0; comp < TDim; comp++)
                 dest[comp] = value / (m + value*d) * ( m/value * origin_vec1[comp] +  origin_value[comp] );
         }

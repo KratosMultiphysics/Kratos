@@ -21,6 +21,7 @@
 #include "custom_utilities/contact_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/normal_calculation_utils.h"
 #include "custom_processes/aalm_adapt_penalty_value_process.h"
 #include "custom_processes/compute_dynamic_factor_process.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -300,7 +301,7 @@ public:
     {
         // Update normal of the conditions
         ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
-        MortarUtilities::ComputeNodesMeanNormalModelPart(r_contact_model_part);
+        NormalCalculationUtils().CalculateUnitNormals<Condition>(r_contact_model_part, true);
         const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
         if (frictional_problem) {
             const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
@@ -408,7 +409,7 @@ protected:
     virtual void ResetWeightedGap(ModelPart& rModelPart)
     {
         NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+        VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
     }
 
     ///@}
@@ -450,7 +451,7 @@ private:
     {
         // Compute normal and tangent
         ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
-        MortarUtilities::ComputeNodesMeanNormalModelPart(r_contact_model_part);
+        NormalCalculationUtils().CalculateUnitNormals<Condition>(r_contact_model_part, true);
 
         // Iterate over the computing conditions
         ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
@@ -496,17 +497,10 @@ private:
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::COMPUTE_DYNAMIC_FACTOR(Kratos::Flags::Create(0));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_COMPUTE_DYNAMIC_FACTOR(Kratos::Flags::Create(0, false));
-template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::IO_DEBUG(Kratos::Flags::Create(1));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_IO_DEBUG(Kratos::Flags::Create(1, false));
-template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(2));
-template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PURE_SLIP(Kratos::Flags::Create(2, false));
 
 }  // namespace Kratos
 
 #endif /* KRATOS_BASE_MORTAR_CRITERIA_H  defined */
-

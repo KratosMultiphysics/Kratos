@@ -36,7 +36,16 @@
 #include "custom_processes/fix_free_velocity_on_nodes_process.h"
 #include "custom_processes/remove_alone_DEM_elements_process.h"
 #include "custom_processes/update_flag_no_remesh_femdem_boundary_process.h"
-
+#include "custom_processes/compute_initial_volume_process.h"
+#include "custom_processes/update_pressure_volume_process.h"
+#include "custom_processes/generate_initial_skin_DEM_process.h"
+#include "custom_processes/transfer_entities_between_model_parts_process.hpp"
+#include "custom_processes/fix_scalar_dof_process.hpp"
+#include "custom_processes/free_scalar_dof_process.hpp"
+#include "custom_processes/assign_scalar_variable_to_entities_process.hpp"
+#include "custom_processes/assign_vector_variable_to_conditions_process.hpp"
+#include "custom_processes/assign_vector_field_to_entities_process.hpp"
+#include "custom_processes/assign_scalar_field_to_entities_process.hpp"
 
 namespace Kratos
 {
@@ -47,6 +56,47 @@ void AddCustomProcessesToPython(pybind11::module &m)
     using namespace pybind11;
 
     typedef Process ProcessBaseType;
+    typedef std::vector<Flags>  FlagsContainer;
+
+  class_<AssignScalarVariableToEntitiesProcess, AssignScalarVariableToEntitiesProcess::Pointer, Process>(m,"AssignScalarToEntitiesProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init<ModelPart&, Parameters&>())
+      .def("Execute", &AssignScalarVariableToEntitiesProcess::Execute);
+      
+  class_<AssignScalarFieldToEntitiesProcess, AssignScalarFieldToEntitiesProcess::Pointer, AssignScalarVariableToEntitiesProcess>(m,"AssignScalarFieldToEntitiesProcess")
+      .def(init<ModelPart&, pybind11::object&, const std::string, const bool, Parameters>())
+      .def(init< ModelPart&, pybind11::object&, const std::string, const bool, Parameters& >())
+      .def("Execute", &AssignScalarFieldToEntitiesProcess::Execute);
+
+  class_<AssignVectorFieldToEntitiesProcess, AssignVectorFieldToEntitiesProcess::Pointer, AssignScalarFieldToEntitiesProcess>(m,"AssignVectorFieldToEntitiesProcess")
+      .def(init<ModelPart&, pybind11::object&,const std::string,const bool, Parameters>())
+      .def(init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters& >())
+      .def("Execute", &AssignVectorFieldToEntitiesProcess::Execute);
+
+  class_<AssignVectorVariableToConditionsProcess, AssignVectorVariableToConditionsProcess::Pointer, AssignScalarVariableToEntitiesProcess>(m,"AssignVectorToConditionsProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init< ModelPart&, Parameters& >())
+      .def(init<ModelPart&, const Variable<array_1d<double,3> >&, array_1d<double,3>&>())
+      .def("Execute", &AssignVectorVariableToConditionsProcess::Execute);
+
+
+
+  class_<FixScalarDofProcess, FixScalarDofProcess::Pointer, Process>(m,"FixScalarDofProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init<ModelPart&, Parameters&>())
+      .def(init<ModelPart&, const Variable<double>&>())
+      .def(init<ModelPart&, const Variable<int>&>())
+      .def(init<ModelPart&, const Variable<bool>&>())
+      .def("Execute", &FixScalarDofProcess::Execute);
+
+
+  class_<FreeScalarDofProcess, FreeScalarDofProcess::Pointer, Process>(m,"FreeScalarDofProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init<ModelPart&, Parameters&>())
+      .def(init<ModelPart&, const Variable<double>&>())
+      .def(init<ModelPart&, const Variable<int>&>())
+      .def(init<ModelPart&, const Variable<bool>&>())
+      .def("Execute", &FreeScalarDofProcess::Execute);
 
     // Stress extrapolation to Nodes
     class_<StressToNodesProcess, StressToNodesProcess::Pointer, Process>(m, "StressToNodesProcess")
@@ -98,11 +148,11 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def("Execute", &GenerateDemProcess::Execute);
 
     class_<UpdateDemKinematicsProcess, UpdateDemKinematicsProcess::Pointer, Process>(m, "UpdateDemKinematicsProcess")
-        .def(init<ModelPart &, ModelPart &>())
+        .def(init<ModelPart &>())
         .def("Execute", &UpdateDemKinematicsProcess::Execute);
 
     class_<TransferNodalForcesToFem, TransferNodalForcesToFem::Pointer, Process>(m, "TransferNodalForcesToFem")
-        .def(init<ModelPart &, ModelPart &>())
+        .def(init<ModelPart &, bool>())
         .def("Execute", &TransferNodalForcesToFem::Execute);
 
     class_<ComputeSandProduction, ComputeSandProduction::Pointer, Process>(m, "ComputeSandProduction")
@@ -136,6 +186,24 @@ void AddCustomProcessesToPython(pybind11::module &m)
     class_<UpdateFlagNoRemeshFemDemBoundaryProcess, UpdateFlagNoRemeshFemDemBoundaryProcess::Pointer, Process>(m, "UpdateFlagNoRemeshFemDemBoundaryProcess")
         .def(init<ModelPart &>())
         .def("Execute", &UpdateFlagNoRemeshFemDemBoundaryProcess::Execute);
+
+    class_<ComputeInitialVolumeProcess, ComputeInitialVolumeProcess::Pointer, Process>(m, "ComputeInitialVolumeProcess")
+        .def(init<ModelPart &>())
+        .def("Execute", &ComputeInitialVolumeProcess::Execute);
+
+    class_<UpdatePressureVolumeProcess, UpdatePressureVolumeProcess::Pointer, Process>(m, "UpdatePressureVolumeProcess")
+        .def(init<ModelPart &>())
+        .def("Execute", &UpdatePressureVolumeProcess::Execute);
+
+    class_<GenerateInitialSkinDEMProcess, GenerateInitialSkinDEMProcess::Pointer, Process>(m, "GenerateInitialSkinDEMProcess")
+        .def(init<ModelPart &, ModelPart &>())
+        .def("Execute", &GenerateInitialSkinDEMProcess::Execute);
+
+    class_<TransferEntitiesBetweenModelPartsProcess, TransferEntitiesBetweenModelPartsProcess::Pointer, Process>(m,"TransferEntitiesProcess")
+        .def(init<ModelPart&, ModelPart&, const std::string>())
+        .def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&>())
+        .def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&, const FlagsContainer& >())
+        .def("Execute", &TransferEntitiesBetweenModelPartsProcess::Execute);
 }
 } // namespace Python.
 } // Namespace Kratos

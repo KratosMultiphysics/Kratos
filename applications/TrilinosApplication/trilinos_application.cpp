@@ -22,9 +22,6 @@ namespace Kratos
 {
 void KratosTrilinosApplication::Register()
 {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
-
     KRATOS_INFO("") << "    KRATOS  _____     _ _ _\n"
                     << "           |_   _| __(_) (_)_ __   ___  ___\n"
                     << "             | || '__| | | | '_ \\ / _ \\/ __|\n"

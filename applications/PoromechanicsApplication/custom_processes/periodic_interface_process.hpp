@@ -11,7 +11,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp" //from SolidMechanics
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "utilities/math_utils.h"
 
 #include "poromechanics_application_variables.h"
@@ -117,8 +117,8 @@ public:
             Condition::GeometryType& rGeom = itCond->GetGeometry();
 
             Matrix NodalStressMatrix(mDimension,mDimension);
-            noalias(NodalStressMatrix) = 0.5 * ( rGeom[0].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)
-                                                + rGeom[1].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) );
+            noalias(NodalStressMatrix) = 0.5 * ( rGeom[0].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)
+                                                + rGeom[1].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR) );
             Vector PrincipalStresses(mDimension);
             if(mDimension == 2)
             {

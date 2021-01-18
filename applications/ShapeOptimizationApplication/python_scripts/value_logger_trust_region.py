@@ -79,8 +79,8 @@ class ValueLoggerTrustRegion( ValueLogger ):
 
             objective_id = self.objectives[0]["identifier"].GetString()
             row.append(" {:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
-            row.append("{:>12f}".format(self.history["abs_change_objective"][self.current_index]))
-            row.append("{:>12f}".format(self.history["rel_change_objective"][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["abs_change_objective"][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["rel_change_objective"][self.current_index]))
 
             for itr in range(self.constraints.size()):
                 constraint_id = self.constraints[itr]["identifier"].GetString()

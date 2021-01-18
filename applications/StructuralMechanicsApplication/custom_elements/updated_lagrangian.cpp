@@ -66,33 +66,36 @@ UpdatedLagrangian::~UpdatedLagrangian()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::Initialize( )
+void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    BaseSolidElement::Initialize();
+    BaseSolidElement::Initialize(rCurrentProcessInfo);
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    const SizeType integration_points_number = integration_points.size();
+        const SizeType integration_points_number = integration_points.size();
 
-    if ( mDetF0.size() !=  integration_points_number)
-        mDetF0.resize( integration_points_number );
-    if ( mF0.size() !=  integration_points_number)
-        mF0.resize( integration_points_number );
+        if ( mDetF0.size() !=  integration_points_number)
+            mDetF0.resize( integration_points_number );
+        if ( mF0.size() !=  integration_points_number)
+            mF0.resize( integration_points_number );
 
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
-    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
-        mDetF0[point_number] = 1.0;
-        mF0[point_number] = IdentityMatrix(dimension);
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            mDetF0[point_number] = 1.0;
+            mF0[point_number] = IdentityMatrix(dimension);
+        }
+
+        mF0Computed = false;
     }
-
-    mF0Computed = false;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseSolidElement::InitializeSolutionStep(rCurrentProcessInfo);
 
@@ -102,7 +105,7 @@ void UpdatedLagrangian::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangian::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     // Create and initialize element variables:
     const SizeType number_of_nodes = GetGeometry().size();
@@ -491,7 +494,7 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::SetValueOnIntegrationPoints(
+void UpdatedLagrangian::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -504,14 +507,14 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(
             mDetF0[point_number] = rValues[point_number];
         }
     } else {
-        BaseSolidElement::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        BaseSolidElement::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::SetValueOnIntegrationPoints(
+void UpdatedLagrangian::SetValuesOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -523,47 +526,10 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number )
             mF0[point_number] = rValues[point_number];
     } else {
-        BaseSolidElement::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        BaseSolidElement::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-void UpdatedLagrangian::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void UpdatedLagrangian::GetValueOnIntegrationPoints(
-    const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-int UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    int ier = BaseSolidElement::Check(rCurrentProcessInfo);
-
-    return ier;
-
-    KRATOS_CATCH( "" );
-}
 
 /***********************************************************************************/
 /***********************************************************************************/

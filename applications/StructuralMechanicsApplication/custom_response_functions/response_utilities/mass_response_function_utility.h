@@ -142,7 +142,7 @@ public:
 		const std::size_t domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
 		// Start process to identify element neighbors for every node
-		FindNodalNeighboursProcess neighorFinder = FindNodalNeighboursProcess(mrModelPart, 10, 10);
+		FindNodalNeighboursProcess neighorFinder(mrModelPart);
 		neighorFinder.Execute();
 
 		for(auto& node_i : mrModelPart.Nodes())

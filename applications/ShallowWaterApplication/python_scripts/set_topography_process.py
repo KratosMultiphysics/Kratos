@@ -26,6 +26,7 @@ class SetTopographyProcess(KM.Process):
         settings.AddEmptyValue("variable_name").SetString("TOPOGRAPHY")
 
         self.model_part = Model[settings["model_part_name"].GetString()]
+        self.depends_on_time = settings["value"].GetString().find('t') != -1
 
         from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
         self.process = AssignScalarVariableProcess(Model, settings)
@@ -33,3 +34,7 @@ class SetTopographyProcess(KM.Process):
     def ExecuteInitialize(self):
         self.process.ExecuteInitializeSolutionStep()
         SW.ShallowWaterUtilities().FlipScalarVariable(SW.TOPOGRAPHY, SW.BATHYMETRY, self.model_part)
+
+    def ExecuteInitializeSolutionStep(self):
+        if self.depends_on_time:
+            self.ExecuteInitialize()

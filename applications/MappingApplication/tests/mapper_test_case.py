@@ -18,10 +18,6 @@ class MapperTestCase(KratosUnittest.TestCase):
     """
     @classmethod
     def setUpModelParts(cls, mdpa_file_name_origin, mdpa_file_name_destination):
-        cls.current_model = KM.Model()
-        cls.model_part_origin = cls.current_model.CreateModelPart("origin")
-        cls.model_part_destination = cls.current_model.CreateModelPart("destination")
-
         cls.input_file_origin      = GetFilePath(mdpa_file_name_origin)
         cls.input_file_destination = GetFilePath(mdpa_file_name_destination)
 
@@ -126,12 +122,15 @@ def OutputReferenceSolution(model_part, variable, file_name):
     KM.Logger.PrintWarning('BladeMappingTests', 'Writing reference solution for ModelPart "{}"; Variable "{}"; FileName "{}"'.format(full_model_part_name, variable.Name(), file_name))
 
     output_parameters = KM.Parameters("""{
-        "output_variables"     : [\"""" + variable.Name() + """\"],
-        "output_file_name"     : \"""" + file_name + ".json" + """\",
-        "model_part_name"      : \"""" + full_model_part_name + """\",
-        "time_frequency"       : 0.00,
-        "use_node_coordinates" : true
+        "output_variables"     : [],
+        "output_file_name"     : "",
+        "model_part_name"      : "",
+        "time_frequency"       : 0.00
     }""")
+
+    output_parameters["output_variables"].Append(variable.Name())
+    output_parameters["output_file_name"].SetString(file_name + ".json")
+    output_parameters["model_part_name"].SetString(full_model_part_name)
 
     output_proc = json_output_process.JsonOutputProcess(model_part.GetModel(), output_parameters)
     output_proc.ExecuteInitialize()
@@ -145,16 +144,20 @@ def CheckHistoricalNonUniformValues(model_part, variable, file_name, output_refe
         full_model_part_name = GetFullModelPartName(model_part)
 
         check_parameters = KM.Parameters("""{
-            "check_variables"           : [\"""" + variable.Name() + """\"],
-            "input_file_name"           : \"""" + file_name + ".json" + """\",
-            "model_part_name"           : \"""" + full_model_part_name + """\",
+            "check_variables"           : [],
+            "input_file_name"           : "",
+            "model_part_name"           : "",
             "tolerance"                 : 1e-6,
             "relative_tolerance"        : 1e-9,
             "time_frequency"            : 0.00,
-            "use_node_coordinates"      : true,
             "check_only_local_entities" : true
         }""")
         # TODO check all entities, requires some syncronization though!
+
+        check_parameters["check_variables"].Append(variable.Name())
+        check_parameters["input_file_name"].SetString(file_name + ".json")
+        check_parameters["model_part_name"].SetString(full_model_part_name)
+
         check_proc = from_json_check_result_process.FromJsonCheckResultProcess(model_part.GetModel(), check_parameters)
         check_proc.ExecuteInitialize()
         check_proc.ExecuteFinalizeSolutionStep()

@@ -32,7 +32,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/levelset_convection_process_mesh")).ReadModelPart(model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/levelset_convection_process_mesh")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
 
         for node in model_part.Nodes:
@@ -61,8 +61,8 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             max_distance = max(max_distance, d)
             min_distance = min(min_distance, d)
 
-        self.assertAlmostEqual(max_distance, 0.7904255118014996)
-        self.assertAlmostEqual(min_distance,-0.11710292469993094)
+        self.assertAlmostEqual(max_distance, 0.733304104543163)
+        self.assertAlmostEqual(min_distance,-0.06371359024393097)
 
 
 if __name__ == '__main__':

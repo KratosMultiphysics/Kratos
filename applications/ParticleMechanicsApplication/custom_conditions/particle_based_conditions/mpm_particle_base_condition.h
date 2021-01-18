@@ -93,14 +93,19 @@ public:
 
     // Constructor void
     MPMParticleBaseCondition()
+        : m_area(1.0)
     {};
 
     // Constructor using an array of nodes
-    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
+    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry )
+        : Condition(NewId,pGeometry)
+        , m_area(1.0)
     {};
 
     // Constructor using an array of nodes with properties
-    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
+    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+        : Condition(NewId,pGeometry,pProperties)
+        , m_area(1.0)
     {};
 
     // Destructor
@@ -123,8 +128,8 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -133,8 +138,8 @@ public:
      */
     void GetDofList(
         DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -144,7 +149,7 @@ public:
     void GetValuesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * Sets on rValues the nodal velocities
@@ -154,7 +159,7 @@ public:
     void GetFirstDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * Sets on rValues the nodal accelerations
@@ -164,7 +169,7 @@ public:
     void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * This function provides a more general interface to the element.
@@ -218,7 +223,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Check if Rotational Dof existant
@@ -244,9 +249,30 @@ public:
     }
 
     ///@}
-    ///@name Access
+    ///@name Access Get Values
     ///@{
 
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
+    ///@name Access Set Values
+    ///@{
+
+    void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > > rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -269,6 +295,12 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    array_1d<double, 3> m_xg;
+    array_1d<double, 3> m_acceleration;
+    array_1d<double, 3> m_velocity;
+    array_1d<double, 3> m_normal;
+    double m_area;
 
     ///@}
     ///@name Protected Operators
@@ -332,7 +364,6 @@ private:
     ///@{
 
 
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -360,11 +391,22 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        rSerializer.save("xg",m_xg);
+        rSerializer.save("acceleration",m_acceleration);
+        rSerializer.save("velocity",m_velocity);
+        rSerializer.save("normal",m_normal);
+        rSerializer.save("area",m_area);
+
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        rSerializer.load("xg",m_xg);
+        rSerializer.load("acceleration",m_acceleration);
+        rSerializer.load("velocity",m_velocity);
+        rSerializer.load("normal",m_normal);
+        rSerializer.load("area",m_area);
     }
 
 }; // class MPMParticleBaseCondition.

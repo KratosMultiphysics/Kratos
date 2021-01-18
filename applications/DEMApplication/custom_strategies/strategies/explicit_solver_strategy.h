@@ -98,7 +98,7 @@ namespace Kratos {
         typedef PropertiesContainerType::iterator PropertiesIterator;
         typedef DiscreteParticleConfigure<3> ElementConfigureType;
         typedef RigidFaceGeometricalObjectConfigure<3> RigidFaceGeometricalConfigureType;
-        typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3ul> > > ComponentOf3ComponentsVariableType;
+        typedef Variable<double> ComponentOf3ComponentsVariableType;
 
         /// Pointer definition of ExplicitSolverStrategy
         KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverStrategy);
@@ -129,24 +129,19 @@ namespace Kratos {
             mSafetyFactor = safety_factor;
 
             mpDem_model_part = &(*(settings.r_model_part));
-            if (mpDem_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.r_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpDem_model_part == NULL) << "Undefined settings.r_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             mpContact_model_part = &(*(settings.contact_model_part));
-            if (mpContact_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.contact_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpContact_model_part == NULL) << "Undefined settings.contact_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             mpFem_model_part = &(*(settings.fem_model_part));
-            if (mpFem_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.fem_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpFem_model_part == NULL) << "Undefined settings.fem_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             mpCluster_model_part = &(*(settings.cluster_model_part));
-            if (mpCluster_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.cluster_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpCluster_model_part == NULL) << "Undefined settings.cluster_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             mpInlet_model_part = &(*(settings.inlet_model_part));
-            if (mpInlet_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.inlet_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpInlet_model_part == NULL) << "Undefined settings.inlet_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             if(mParameters["RemoveBallsInitiallyTouchingWalls"].GetBool()) mRemoveBallsInitiallyTouchingWallsOption = true;
             else mRemoveBallsInitiallyTouchingWallsOption = false;
@@ -191,9 +186,9 @@ namespace Kratos {
 
             #pragma omp parallel for
             for (int k = 0; k < (int)pElements.size(); k++){
-              ElementsArrayType::iterator particle_pointer_it = pElements.ptr_begin() + k;
-              T* spheric_particle = dynamic_cast<T*>(&(*particle_pointer_it));
-              rCustomListOfParticles[k] = spheric_particle;
+                ElementsArrayType::iterator particle_pointer_it = pElements.ptr_begin() + k;
+                T* spheric_particle = dynamic_cast<T*>(&(*particle_pointer_it));
+                rCustomListOfParticles[k] = spheric_particle;
             }
             return;
             KRATOS_CATCH("")
@@ -254,7 +249,7 @@ namespace Kratos {
         virtual void SearchRigidFaceNeighbours();
         void CheckHierarchyWithCurrentNeighbours();
         /* This should work only with one iteration, but it with mpi does not */
-        void CalculateInitialMaxIndentations(ProcessInfo& r_process_info);
+        void CalculateInitialMaxIndentations(const ProcessInfo& r_process_info);
         void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
         void PrepareElementsForPrinting();
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);

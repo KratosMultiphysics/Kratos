@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from functools import reduce
 
 import math
@@ -14,10 +13,10 @@ import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_materia
 class MaterialTest(DEM_material_test_script.MaterialTest):
 
   def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
-      super(MaterialTest,self).__init__(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
+      super().__init__(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
 
   def Initialize(self):
-      super(MaterialTest,self).Initialize()
+      super().Initialize()
 
   def Flush(self,a):
       pass
@@ -133,14 +132,14 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
 
       if(math.fabs(self.total_check)!=2):
 
-        print(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
+        Logger.PrintInfo(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
 
   def MeasureForcesAndPressure(self):
 
     dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
     #if(mpi.rank == 0 ):
-    self.strain += -100*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
+    self.strain += -100.0*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
 
     if( self.parameters.TestType =="BTS"):
 
@@ -156,7 +155,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
         total_force_bts = reduce(lambda x, y: x + y, total_force_bts_gather)
 
         self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.parameters.SpecimenLength*self.parameters.SpecimenDiameter*1e6)
-        self.strain_bts += -100*2*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenDiameter
+        self.strain_bts += -100.0*2*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenDiameter
 
     else:
 
@@ -204,15 +203,15 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
 
   def PrintGraph(self,step):
       if(mpi.rank == 0 ):
-          super(MaterialTest,self).PrintGraph(step)
+          super().PrintGraph(step)
 
   def PrintChart(self):
       if(mpi.rank == 0 ):
-          super(MaterialTest,self).PrintChart()
+          super().PrintChart()
 
   def FinalizeGraphs(self):
       if(mpi.rank == 0):
-          super(MaterialTest,self).FinalizeGraphs()
+          super().FinalizeGraphs()
 
   def MeasureRadialStrain(self):
 

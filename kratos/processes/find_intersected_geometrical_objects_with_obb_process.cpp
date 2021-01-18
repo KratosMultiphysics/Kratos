@@ -461,9 +461,9 @@ void FindIntersectedGeometricalObjectsWithOBBProcess::CreateDebugOBB3D(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters FindIntersectedGeometricalObjectsWithOBBProcess::GetDefaultParameters()
+const Parameters FindIntersectedGeometricalObjectsWithOBBProcess::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "intersected_model_part_name"  : "",
         "intersecting_model_part_name" : "",

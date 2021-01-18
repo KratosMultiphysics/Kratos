@@ -371,17 +371,17 @@ public:
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     //on integration points:
     /**
@@ -391,7 +391,7 @@ public:
      * interface to the constitutive law!
      * Note, that these functions expect a std::vector of values for the
      * specified variable type that contains a value for each integration point!
-     * SetValueOnIntegrationPoints: set the values for given Variable.
+     * SetValuesOnIntegrationPoints: set the values for given Variable.
      * GetValueOnIntegrationPoints: get the values for given Variable.
      */
 
@@ -523,7 +523,7 @@ public:
      * @param rDestinationVariable: variable in the database to which the rRHSVector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
      */
-    void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
+    void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, const Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
 
     //on integration points:
     /**
@@ -642,7 +642,7 @@ protected:
     /**
      * Get element size from the dofs
      */
-    virtual unsigned int GetDofsSize();
+    virtual unsigned int GetDofsSize() const;
 
     /**
      * Initialize System Matrices

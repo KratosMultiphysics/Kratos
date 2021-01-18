@@ -29,7 +29,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_Dempack::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_Dempack::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_Dempack to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
@@ -79,10 +79,10 @@ namespace Kratos {
 
         if (&element1_props == &element2_props) {
              mDamageMaxDisplacementFactor = element1_props[DAMAGE_FACTOR];
-             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6;
+             mTensionLimit = element1_props[CONTACT_SIGMA_MIN];
         } else {
             mDamageMaxDisplacementFactor = 0.5*(element1_props[DAMAGE_FACTOR] + element2_props[DAMAGE_FACTOR]);
-            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
+            mTensionLimit = 0.5*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
         }
 
         const double Ntstr_el = mTensionLimit * calculation_area;
@@ -151,8 +151,6 @@ namespace Kratos {
                                     int i_neighbour_count,
                                     int time_steps,
                                     bool& sliding,
-                                    int search_control,
-                                    DenseVector<int>& search_control_vector,
                                     double &equiv_visco_damp_coeff_normal,
                                     double &equiv_visco_damp_coeff_tangential,
                                     double LocalRelVel[3],
@@ -169,7 +167,8 @@ namespace Kratos {
                 element1,
                 element2,
                 i_neighbour_count,
-                time_steps);
+                time_steps,
+                r_process_info);
 
         CalculateTangentialForces(OldLocalElasticContactForce,
                 LocalElasticContactForce,
@@ -187,8 +186,6 @@ namespace Kratos {
                 element2,
                 i_neighbour_count,
                 sliding,
-                search_control,
-                search_control_vector,
                 r_process_info);
 
         CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
@@ -218,7 +215,8 @@ namespace Kratos {
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
             int i_neighbour_count,
-            int time_steps) {
+            int time_steps,
+            const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
 
@@ -243,25 +241,25 @@ namespace Kratos {
              mN1 = element1_props[SLOPE_FRACTION_N1];
              mN2 = element1_props[SLOPE_FRACTION_N2];
              mN3 = element1_props[SLOPE_FRACTION_N3];
-             mC1 = element1_props[SLOPE_LIMIT_COEFF_C1]*1e6;
-             mC2 = element1_props[SLOPE_LIMIT_COEFF_C2]*1e6;
-             mC3 = element1_props[SLOPE_LIMIT_COEFF_C3]*1e6;
+             mC1 = element1_props[SLOPE_LIMIT_COEFF_C1];
+             mC2 = element1_props[SLOPE_LIMIT_COEFF_C2];
+             mC3 = element1_props[SLOPE_LIMIT_COEFF_C3];
              mYoungPlastic = element1_props[YOUNG_MODULUS_PLASTIC];
-             mPlasticityLimit = element1_props[PLASTIC_YIELD_STRESS]*1e6;
+             mPlasticityLimit = element1_props[PLASTIC_YIELD_STRESS];
              mDamageMaxDisplacementFactor = element1_props[DAMAGE_FACTOR];
-             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6; //N/m2
+             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]; //N/m2
         } else {
 
             mN1 = 0.5*(element1_props[SLOPE_FRACTION_N1] + element2_props[SLOPE_FRACTION_N1] );
             mN2 = 0.5*(element1_props[SLOPE_FRACTION_N2] + element2_props[SLOPE_FRACTION_N2] );
             mN3 = 0.5*(element1_props[SLOPE_FRACTION_N3] + element2_props[SLOPE_FRACTION_N3] );
-            mC1 = 0.5*1e6*(element1_props[SLOPE_LIMIT_COEFF_C1] + element2_props[SLOPE_LIMIT_COEFF_C1]);
-            mC2 = 0.5*1e6*(element1_props[SLOPE_LIMIT_COEFF_C2] + element2_props[SLOPE_LIMIT_COEFF_C2]);
-            mC3 = 0.5*1e6*(element1_props[SLOPE_LIMIT_COEFF_C3] + element2_props[SLOPE_LIMIT_COEFF_C3]);
+            mC1 = 0.5*(element1_props[SLOPE_LIMIT_COEFF_C1] + element2_props[SLOPE_LIMIT_COEFF_C1]);
+            mC2 = 0.5*(element1_props[SLOPE_LIMIT_COEFF_C2] + element2_props[SLOPE_LIMIT_COEFF_C2]);
+            mC3 = 0.5*(element1_props[SLOPE_LIMIT_COEFF_C3] + element2_props[SLOPE_LIMIT_COEFF_C3]);
             mYoungPlastic = 0.5*(element1_props[YOUNG_MODULUS_PLASTIC] + element2_props[YOUNG_MODULUS_PLASTIC]);
-            mPlasticityLimit = 0.5*1e6*(element1_props[PLASTIC_YIELD_STRESS] + element2_props[PLASTIC_YIELD_STRESS]);
+            mPlasticityLimit = 0.5*(element1_props[PLASTIC_YIELD_STRESS] + element2_props[PLASTIC_YIELD_STRESS]);
             mDamageMaxDisplacementFactor = 0.5*(element1_props[DAMAGE_FACTOR] + element2_props[DAMAGE_FACTOR]);
-            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
+            mTensionLimit = 0.5*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
         }
 
         const double kn_b = kn_el / mN1;
@@ -391,8 +389,6 @@ namespace Kratos {
                                                 SphericContinuumParticle* element2,
                                                 int i_neighbour_count,
                                                 bool& sliding,
-                                                int search_control,
-                                                DenseVector<int>& search_control_vector,
                                                 const ProcessInfo& r_process_info) {
 
 
@@ -410,15 +406,15 @@ namespace Kratos {
 
         if (&element1_props == &element2_props) {
 
-            mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6;
-            mTauZero = element1_props[CONTACT_TAU_ZERO]*1e6;
+            mTensionLimit = element1_props[CONTACT_SIGMA_MIN];
+            mTauZero = element1_props[CONTACT_TAU_ZERO];
             mInternalFriccion = element1_props[CONTACT_INTERNAL_FRICC];
             mShearEnergyCoef = element1_props[SHEAR_ENERGY_COEF];
         }
         else{
 
-            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
-            mTauZero = 0.5*1e6*(element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
+            mTensionLimit = 0.5*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
+            mTauZero = 0.5*(element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
             mInternalFriccion = 0.5*(element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
             mShearEnergyCoef = 0.5*(element1_props[SHEAR_ENERGY_COEF] + element2_props[SHEAR_ENERGY_COEF]);
         }
@@ -490,11 +486,7 @@ namespace Kratos {
                 if (failure_criterion_state > 1.0) failure_criterion_state = 1.0;
             }
         }
-        if (search_control == 0) {
-            if (failure_type != 0) {
-                search_control_vector[OpenMPUtils::ThisThread()] = 1;
-            }
-        }
+
     KRATOS_CATCH("")
     }
 

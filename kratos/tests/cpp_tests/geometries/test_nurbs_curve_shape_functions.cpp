@@ -20,7 +20,6 @@
 #include "includes/ublas_interface.h"
 #include "testing/testing.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
-// #include "geometries/nurbs_curve_geometry.h"
 
 #include "tests/cpp_tests/geometries/test_geometry.h"
 

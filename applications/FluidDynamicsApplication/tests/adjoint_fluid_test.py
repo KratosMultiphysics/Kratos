@@ -1,7 +1,6 @@
 import KratosMultiphysics as km
 
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis
@@ -10,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 
 import os
 
-@UnitTest.skipUnless(hdf5_is_available, "HDF5Application is not available")
+@UnitTest.skipIfApplicationsNotAvailable("HDF5Application")
 class AdjointFluidTest(UnitTest.TestCase):
 
     def setUp(self):
@@ -80,7 +79,7 @@ class AdjointFluidTest(UnitTest.TestCase):
                                 },
                                 "file_label"          : "time",
                                 "output_control_type" : "step",
-                                "output_frequency"    : 1,
+                                "output_interval"     : 1,
                                 "body_output"         : true,
                                 "node_output"         : false,
                                 "skin_output"         : false,

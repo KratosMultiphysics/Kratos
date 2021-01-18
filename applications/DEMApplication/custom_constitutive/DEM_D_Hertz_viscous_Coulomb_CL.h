@@ -23,7 +23,7 @@ namespace Kratos {
 
         ~DEM_D_Hertz_viscous_Coulomb() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         void Check(Properties::Pointer pProp) const override;
 
@@ -48,7 +48,7 @@ namespace Kratos {
                              SphericParticle* element2,
                              bool& sliding, double LocalCoordSystem[3][3]) override;
 
-        void CalculateForcesWithFEM(ProcessInfo& r_process_info,
+        void CalculateForcesWithFEM(const ProcessInfo& r_process_info,
                                     const double OldLocalElasticContactForce[3],
                                     double LocalElasticContactForce[3],
                                     double LocalDeltDisp[3],

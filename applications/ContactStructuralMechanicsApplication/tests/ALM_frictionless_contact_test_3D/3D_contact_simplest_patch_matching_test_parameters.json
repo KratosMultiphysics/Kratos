@@ -29,7 +29,6 @@
         "time_stepping"                      : {
             "time_step" : 0.5
         },
-        "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
@@ -105,7 +104,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {

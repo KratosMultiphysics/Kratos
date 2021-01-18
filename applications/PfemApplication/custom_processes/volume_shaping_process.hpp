@@ -724,7 +724,7 @@ class VolumeShapingProcess : public Process
 
     double TotalVolumeLoss = 0;
 
-    Variable<double> VolumeLossVariable = KratosComponents< Variable<double> >::Get(mVariableName);
+    const Variable<double>& VolumeLossVariable = KratosComponents< Variable<double> >::Get(mVariableName);
 
     double ArchardCoefficient = 0;
     if( mProperties.Has(WEAR_COEFFICIENT) && mProperties.Has(INDENTATION_HARDNESS) ){

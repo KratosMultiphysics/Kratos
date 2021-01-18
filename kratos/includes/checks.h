@@ -11,7 +11,14 @@
 //
 //
 
+// System includes
 #include <cstring>
+#include <limits>
+#include <cmath> // std::abs for double
+
+// External includes
+
+// Project includes
 #include "includes/exception.h"
 
 #if !defined(KRATOS_CHECKS_H_INCLUDED )
@@ -21,31 +28,31 @@
 ///@{
 ///@name macros
 ///@{
-#define KRATOS_CHECK(IsTrue) if(!(IsTrue)) KRATOS_ERROR << "Check failed because " << #IsTrue << " is not true"
-#define KRATOS_CHECK_IS_FALSE(IsFalse) if(IsFalse) KRATOS_ERROR  << "Check failed because " << #IsFalse << " is not false"
+#define KRATOS_CHECK(IsTrue) if(!(IsTrue)) KRATOS_ERROR << "Check failed because " << #IsTrue << " is not true" << std::endl;
+#define KRATOS_CHECK_IS_FALSE(IsFalse) if(IsFalse) KRATOS_ERROR  << "Check failed because " << #IsFalse << " is not false" << std::endl;
 
 #define KRATOS_CHECK_EQUAL(a,b) if(!((a) == (b))) KRATOS_ERROR << "Check failed because " << #a << " is not equal to " << #b
 #define KRATOS_CHECK_NOT_EQUAL(a,b) if((a) == (b)) KRATOS_ERROR << "Check failed because " << #a << " is equal to " << #b
 
-#define KRATOS_CHECK_STRING_EQUAL(a,b) if(a.compare(b) != 0) KRATOS_ERROR << "Check failed because \"" << a << "\" is not equal to \"" << b << "\""
-#define KRATOS_CHECK_STRING_NOT_EQUAL(a,b) if(a.compare(b) == 0) KRATOS_ERROR << "Check failed because \"" << a << "\" is equal to \"" << b << "\""
+#define KRATOS_CHECK_STRING_EQUAL(a,b) if(a.compare(b) != 0) KRATOS_ERROR << "Check failed because \"" << a << "\" is not equal to \"" << b << "\"" << std::endl;
+#define KRATOS_CHECK_STRING_NOT_EQUAL(a,b) if(a.compare(b) == 0) KRATOS_ERROR << "Check failed because \"" << a << "\" is equal to \"" << b << "\"" << std::endl;
 
-#define KRATOS_CHECK_C_STRING_EQUAL(a,b) if((strcmp(a,b) != 0)) KRATOS_ERROR << "Check failed because \"" << a << "\" is not equal to \"" << b << "\""
-#define KRATOS_CHECK_C_STRING_NOT_EQUAL(a,b) if((strcmp(a,b) == 0)) KRATOS_ERROR << "Check failed because \"" << a << "\" is equal to \"" << b << "\""
+#define KRATOS_CHECK_C_STRING_EQUAL(a,b) if((strcmp(a,b) != 0)) KRATOS_ERROR << "Check failed because \"" << a << "\" is not equal to \"" << b << "\"" << std::endl;
+#define KRATOS_CHECK_C_STRING_NOT_EQUAL(a,b) if((strcmp(a,b) == 0)) KRATOS_ERROR << "Check failed because \"" << a << "\" is equal to \"" << b << "\"" << std::endl;
 
-#define KRATOS_CHECK_LESS(a,b) if(!(a < b)) KRATOS_ERROR << "Check failed because " << #a << " is greater than or equal to " << #b
-#define KRATOS_CHECK_LESS_EQUAL(a,b) if(a > b) KRATOS_ERROR << "Check failed because " << #a << " is greater than " << #b
+#define KRATOS_CHECK_LESS(a,b) if(!(a < b)) KRATOS_ERROR << "Check failed because " << #a << " is greater than or equal to " << #b << std::endl;
+#define KRATOS_CHECK_LESS_EQUAL(a,b) if(a > b) KRATOS_ERROR << "Check failed because " << #a << " is greater than " << #b << std::endl;
 
 #define KRATOS_CHECK_GREATER(a,b) if(!(a > b)) KRATOS_ERROR << "Check failed because " << #a << " is less than or equal to " << #b
 #define KRATOS_CHECK_GREATER_EQUAL(a,b) if(a < b) KRATOS_ERROR  << "Check failed because " << #a << " is less than " << #b
 
 #define KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString) if (TheString.find(SubString) == std::string::npos ) \
-KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given string"
+KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given string" << std::endl;
 
 #define KRATOS_CHECK_NEAR(a,b, tolerance) if(std::abs(a - b) > tolerance) KRATOS_ERROR << "Check failed because " << #a << " = " << a << \
 " is not near to " << #b << " = " << b << " within the tolerance " << tolerance
 #define KRATOS_CHECK_RELATIVE_NEAR(a,b, tolerance) if(std::abs(b) > std::numeric_limits<double>::epsilon()) { KRATOS_ERROR_IF(std::abs((a - b)/b) > tolerance) << "Check failed because " << #a << " = " << a << \
-" is not near to " << #b << " = " << b << " within the relative tolerance " << tolerance } else {KRATOS_CHECK_NEAR(a,b,tolerance);}
+" is not near to " << #b << " = " << b << " within the relative tolerance " << tolerance << std::endl; } else {KRATOS_CHECK_NEAR(a,b,tolerance);}
 #define KRATOS_CHECK_DOUBLE_EQUAL(a,b) KRATOS_CHECK_NEAR(a,b,std::numeric_limits<double>::epsilon())
 
 #define KRATOS_CHECK_VECTOR_NEAR(a, b, tolerance) {                        \
@@ -161,12 +168,15 @@ try {                                                                           
             << "Got:" << std::endl << e.what() << std::endl;                            \
 }
 
-#define KRATOS_CHECK_VARIABLE_KEY(TheVariable)                               \
-    KRATOS_ERROR_IF(TheVariable.Key() == 0)                                  \
-        << TheVariable.Name() << " Key is 0." << std::endl                   \
-        << "Check that Kratos variables have been correctly registered and " \
-           "all required applications have been imported."                   \
-        << std::endl;
+// this macro is to be removed, as it is no longer required to check the keys of Variables (are now assigned at compiletime)
+#if defined(_MSC_VER)
+#define KRATOS_CHECK_VARIABLE_KEY(TheVariable) \
+    __pragma(message("\"'KRATOS_CHECK_VARIABLE_KEY' macro is no longer needed and can be safely removed\""));
+#else
+#define KRATOS_CHECK_VARIABLE_KEY(TheVariable) \
+    _Pragma ("message( \"'KRATOS_CHECK_VARIABLE_KEY' macro is no longer needed and can be safely removed\")"); \
+    TheVariable.Key(); // adding dummy usage to avoid unused variable warnings
+#endif
 
 #define KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)                          \
     KRATOS_ERROR_IF_NOT(TheNode.SolutionStepsDataHas(TheVariable))                         \

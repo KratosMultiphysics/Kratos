@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -6,16 +5,14 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
 
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
-using_pykratos = UsingPyKratos()
-
 import os, subprocess
 
 class TestFLOWerCoupling(KratosUnittest.TestCase):
     '''TODO add description
     '''
 
-    def test_dummy_external_solver(self):
+    def test_dummy_flower_solver(self):
+        self.skipTestIfApplicationsNotAvailable("MappingApplication")
         self._createTest("FLOWer_coupling", "cosim", "dummy_flower_solver")
         self._runTest()
 
@@ -28,17 +25,16 @@ class TestFLOWerCoupling(KratosUnittest.TestCase):
         with open(full_parameter_file_name, 'r') as parameter_file:
             self.cosim_parameters = KM.Parameters(parameter_file.read())
 
-        if not using_pykratos:
-            # To avoid many prints
-            echo_level = self.cosim_parameters["problem_data"]["echo_level"].GetInt()
-            if (echo_level == 0):
-                KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
-            else:
-                KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
+        # To avoid many prints
+        echo_level = self.cosim_parameters["problem_data"]["echo_level"].GetInt()
+        if (echo_level == 0):
+            KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
+        else:
+            KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
 
     def _runTest(self):
         p = subprocess.Popen(
-            ["python3", "../python_scripts/helpers/dummy_flower_solver.py", self.ext_parameter_file_name],
+            ["python3", os.path.join(self.problem_dir_name,"dummy_flower_solver.py"), self.ext_parameter_file_name],
             cwd=os.path.dirname(os.path.abspath(__file__)))
 
         CoSimulationAnalysis(self.cosim_parameters).Run()

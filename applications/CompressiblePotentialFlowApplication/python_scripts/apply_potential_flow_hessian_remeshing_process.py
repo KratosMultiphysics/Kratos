@@ -64,7 +64,7 @@ class ApplyPotentialFlowHessianRemeshingProcess(KratosMultiphysics.Process):
 
     def __ComputeNodalVelocity(self):
 
-        nodal_velocity_process = CPFApp.ComputeNodalPotentialFlowVelocityProcess(self.main_model_part)
+        nodal_velocity_process = CPFApp.ComputeNodalValueProcess(self.main_model_part, ["VELOCITY"])
         nodal_velocity_process.Execute()
 
     def __ComputeHessianMetric(self):

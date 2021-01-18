@@ -47,7 +47,8 @@ std::vector<int> MPIColoringUtilities::ComputeRecvList(
     }
     auto local_recv = rComm.Scatterv(recv_list, global_rank );
 
-    std::unique(local_recv.begin(), local_recv.end());
+    auto last = std::unique(local_recv.begin(), local_recv.end());
+    local_recv.erase(last, local_recv.end());
 
     return local_recv;
 }

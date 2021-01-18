@@ -1,9 +1,7 @@
-"""This module contains the available structural response functions and their base class"""
-from __future__ import print_function, absolute_import, division
-
 # importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics import Parameters, Logger
+from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
@@ -24,48 +22,7 @@ def _GetModelPart(model, solver_settings):
     return model_part
 
 # ==============================================================================
-class ResponseFunctionBase(object):
-    """The base class for structural response functions. Each response function
-    is able to calculate its response value and gradient.
-    All the necessary steps have to be implemented, like e.g. initializing,
-    solving of primal (and adjoint) analysis ...
-    """
-
-    def RunCalculation(self, calculate_gradient):
-        self.Initialize()
-        self.InitializeSolutionStep()
-        self.CalculateValue()
-        if calculate_gradient:
-            self.CalculateGradient()
-        self.FinalizeSolutionStep()
-        self.Finalize()
-
-    def Initialize(self):
-        pass
-
-    def InitializeSolutionStep(self):
-        pass
-
-    def CalculateValue(self):
-        raise NotImplementedError("CalculateValue needs to be implemented by the derived class")
-
-    def CalculateGradient(self):
-        raise NotImplementedError("CalculateGradient needs to be implemented by the derived class")
-
-    def FinalizeSolutionStep(self):
-        pass
-
-    def Finalize(self):
-        pass
-
-    def GetValue(self):
-        raise NotImplementedError("GetValue needs to be implemented by the derived class")
-
-    def GetShapeGradient(self):
-        raise NotImplementedError("GetShapeGradient needs to be implemented by the derived class")
-
-# ==============================================================================
-class StrainEnergyResponseFunction(ResponseFunctionBase):
+class StrainEnergyResponseFunction(ResponseFunctionInterface):
     """Linear strain energy response function. It triggers the primal analysis and
     uses the primal analysis results to calculate response value and gradient.
 
@@ -127,10 +84,12 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
     def GetValue(self):
         return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
 
-    def GetShapeGradient(self):
+    def GetNodalGradient(self, variable):
+        if variable != KratosMultiphysics.SHAPE_SENSITIVITY:
+            raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         gradient = {}
         for node in self.primal_model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
+            gradient[node.Id] = node.GetSolutionStepValue(variable)
         return gradient
 
 # ==============================================================================
@@ -180,7 +139,7 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
         self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(self.primal_model_part, response_settings)
 
 # ==============================================================================
-class MassResponseFunction(ResponseFunctionBase):
+class MassResponseFunction(ResponseFunctionInterface):
     """Mass response function. It reads the materials for the model part and
     calculates response value and gradient.
 
@@ -246,14 +205,16 @@ class MassResponseFunction(ResponseFunctionBase):
     def GetValue(self):
         return self.model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
 
-    def GetShapeGradient(self):
+    def GetNodalGradient(self, variable):
+        if variable != KratosMultiphysics.SHAPE_SENSITIVITY:
+            raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         gradient = {}
         for node in self.model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
+            gradient[node.Id] = node.GetSolutionStepValue(variable)
         return gradient
 
 # ==============================================================================
-class AdjointResponseFunction(ResponseFunctionBase):
+class AdjointResponseFunction(ResponseFunctionInterface):
     """Linear static adjoint strain energy response function.
     - runs the primal analysis (writes the primal results to an .h5 file)
     - reads the primal results from the .h5 file into the adjoint model part
@@ -276,6 +237,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
         self.primal_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
 
         self.primal_analysis = StructuralMechanicsAnalysis(model, primal_parameters)
+
+        self.primal_data_transfer_with_python = self.response_settings["primal_data_transfer_with_python"].GetBool()
 
         # Create the adjoint solver
         adjoint_parameters = self._GetAdjointParameters()
@@ -324,10 +287,12 @@ class AdjointResponseFunction(ResponseFunctionBase):
     def GetValue(self):
         return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
 
-    def GetShapeGradient(self):
+    def GetNodalGradient(self, variable):
+        if variable != KratosMultiphysics.SHAPE_SENSITIVITY:
+            raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         gradient = {}
         for node in self.adjoint_model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
+            gradient[node.Id] = node.GetSolutionStepValue(variable)
         return gradient
 
     def Finalize(self):
@@ -352,8 +317,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
             adjoint_node.Y = primal_node.Y
             adjoint_node.Z = primal_node.Z
 
-        # Put primal solution on adjoint model - for "auto" setting, else it has to be done by the user e.g. using hdf5 process
-        if self.response_settings["adjoint_settings"].GetString() == "auto":
+        # Put primal solution on adjoint model
+        if self.primal_data_transfer_with_python:
             Logger.PrintInfo(self._GetLabel(), "Transfer primal state to adjoint model part.")
             variable_utils = KratosMultiphysics.VariableUtils()
             for variable in self.primal_state_variables:
@@ -366,6 +331,9 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
         if adjoint_settings == "auto":
             Logger.PrintInfo(self._GetLabel(), "Automatic set up adjoint parameters for response:", self.identifier)
+
+            if not self.primal_data_transfer_with_python:
+                raise Exception("Auto setup of adjoint parameters does only support primal data transfer with python.")
 
             with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
                 primal_parameters = Parameters( parameter_file.read() )
@@ -401,9 +369,13 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
             if solver_settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part":
                 solver_settings["model_import_settings"]["input_type"].SetString("mdpa")
-                solver_settings["model_import_settings"].AddEmptyValue("input_filename")
-                model_part_name = solver_settings["model_part_name"].GetString()
-                solver_settings["model_import_settings"]["input_filename"].SetString(model_part_name)
+                if solver_settings["model_import_settings"].Has("input_filename"):
+                    file_name = solver_settings["model_import_settings"]["input_filename"].GetString()
+                else:
+                    Logger.PrintWarning(self._GetLabel(), "Automatic adjoint settings creator assumes the model_part_name as input_filename.")
+                    solver_settings["model_import_settings"].AddEmptyValue("input_filename")
+                    file_name = solver_settings["model_part_name"].GetString()
+                solver_settings["model_import_settings"]["input_filename"].SetString(file_name)
 
             # Dirichlet conditions: change variables
             for i in range(0,primal_parameters["processes"]["constraints_process_list"].size()):

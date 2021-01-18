@@ -32,6 +32,7 @@
 #include "custom_processes/refine_elements_in_edges_mesher_process.hpp"
 #include "custom_processes/refine_conditions_mesher_process.hpp"
 #include "custom_processes/remove_nodes_mesher_process.hpp"
+#include "custom_processes/transfer_between_model_parts_process.hpp"
 
 // MiddleMeshing processes
 #include "custom_processes/refine_elements_on_size_mesher_process.hpp"
@@ -53,6 +54,7 @@ namespace Python
 typedef Process::Pointer                           ProcessPointer;
 typedef MesherProcess::Pointer               MesherProcessPointer;
 typedef std::vector<MesherProcessPointer>  MesherProcessContainer;
+typedef std::vector<Flags> FlagsContainer;
 
 void Push_Back_Process( MesherProcessContainer& ThisProcessContainer,
                         MesherProcessPointer ThisProcess )
@@ -109,6 +111,13 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def("ExecuteInitialize", &SettleModelStructureProcess::ExecuteInitialize)
       .def("ExecuteFinalize", &SettleModelStructureProcess::ExecuteFinalize)
       ;
+
+    //**********TRANSFER BETWEEN MODEL PARTS*********//
+    py::class_<TransferBetweenModelPartsProcess, TransferBetweenModelPartsProcess::Pointer, Process>(m, "TransferEntitiesProcess")
+        .def(py::init<ModelPart &, ModelPart &, const std::string>())
+        .def(py::init<ModelPart &, ModelPart &, const std::string, const FlagsContainer &>())
+        .def(py::init<ModelPart &, ModelPart &, const std::string, const FlagsContainer &, const FlagsContainer &>())
+        .def("Execute", &TransferBetweenModelPartsProcess::Execute);
 
 
   //**********MESHER PROCESSES*********//

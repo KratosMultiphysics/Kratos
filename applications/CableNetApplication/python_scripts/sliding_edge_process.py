@@ -14,10 +14,10 @@ class SlidingEdgeProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "constraint_name"           : "LinearMasterSlaveConstraint",
+            "constraint_name"               : "LinearMasterSlaveConstraint",
             "master_sub_model_part_name"    : "master_connect",
             "slave_sub_model_part_name"     : "slave_connect",
-            "model_name"                    : "Structure",
+            "computing_model_part"          : "Structure",
             "variable_names"                : ["DISPLACEMENT_Y","DISPLACEMENT_Z"],
             "reform_every_step"             : true,
             "debug_info"                    : true,
@@ -28,10 +28,8 @@ class SlidingEdgeProcess(KratosMultiphysics.Process):
         default_settings.ValidateAndAssignDefaults(settings)
 
         # The computing model part
-        self.computing_model_part = Model["Structure"].GetSubModelPart("computing_domain")
-        self.master_model_part = Model["Structure"].GetSubModelPart(settings["master_sub_model_part_name"].GetString())
-
-
+        computing_model_part =  Model["Structure"]
+        self.master_model_part = model_part_name.GetSubModelPart(settings["master_sub_model_part_name"].GetString())
 
         self.sliding_edge_process = CableNetApplication.SlidingEdgeProcess(Model[settings["model_name"].GetString()], settings)
 
@@ -39,8 +37,7 @@ class SlidingEdgeProcess(KratosMultiphysics.Process):
 
     def ExecuteInitializeSolutionStep(self):
         self.sliding_edge_process.ExecuteInitializeSolutionStep()
-        for constraint in self.master_model_part.MasterSlaveConstraints:
-            self.computing_model_part.AddMasterSlaveConstraint(constraint)
+
 
     def ExecuteFinalizeSolutionStep(self):
         self.sliding_edge_process.ExecuteFinalizeSolutionStep()

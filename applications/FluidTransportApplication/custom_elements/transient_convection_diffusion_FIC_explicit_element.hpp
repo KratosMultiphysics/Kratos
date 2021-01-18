@@ -21,7 +21,7 @@
 #include "custom_elements/transient_convection_diffusion_FIC_element.hpp"
 #include "includes/convection_diffusion_settings.h"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/element_size_calculator.h"
+#include "utilities/element_size_calculator.h"
 
 #include "fluid_transport_application_variables.h"
 

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -89,6 +88,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         kratos_utils.DeleteFileIfExisting("Structure_EigenResults_15_0.post.msh")
         kratos_utils.DeleteFileIfExisting("Structure_EigenResults_15_0.post.res") # usually this is deleted by the check process but not if it fails
 
+    @KratosUnittest.skipIf(os.name=="nt", "Due to problems with the ASCI output for GiD, this test is skipped under Windows")
     def test_PostprocessEigenvaluesProcess_GiD(self):
         # here the minimum settings are specified to test the default values!
         settings_eigen_process = KratosMultiphysics.Parameters("""{
@@ -105,7 +105,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
             "remove_output_file"    : true,
             "comparison_type"       : "post_res_file"
         }
-        """ % (GetFilePath("eigen_postprocess_ref_files/test_postprocess_eigenvalues_process.post.res.ref"), "EigenResults/Structure_EigenResults_15_0.post.res"))
+        """ % (GetFilePath("eigen_postprocess_ref_files/test_postprocess_eigenvalues_process.post.res.ref").replace("\\", "\\\\"), "EigenResults/Structure_EigenResults_15_0.post.res"))
 
         test_model = KratosMultiphysics.Model()
         ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, test_model)
@@ -135,7 +135,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
                 "remove_output_file"    : true,
                 "comparison_type"       : "vtk"
             }
-            """ % (GetFilePath("eigen_postprocess_ref_files/Structure_EigenResults_15_{}.vtk.ref".format(i)), "EigenResults/Structure_EigenResults_15_{}.vtk".format(i)))
+            """ % (GetFilePath("eigen_postprocess_ref_files/Structure_EigenResults_15_{}.vtk.ref".format(i)).replace("\\", "\\\\"), "EigenResults/Structure_EigenResults_15_{}.vtk".format(i)))
             CompareTwoFilesCheckProcess(settings_check_process).Execute()
 
 

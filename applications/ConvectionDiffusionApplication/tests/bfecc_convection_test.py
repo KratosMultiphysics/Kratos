@@ -41,7 +41,7 @@ class BFECCConvectionTest(UnitTest.TestCase):
 
             mesh_parameters = KratosMultiphysics.Parameters("{}")
             mesh_parameters.AddEmptyValue("element_name").SetString("Element2D3N")
-            mesh_parameters.AddEmptyValue("condition_name").SetString("Condition2D2N")
+            mesh_parameters.AddEmptyValue("condition_name").SetString("LineCondition2D2N")
             mesh_parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
             mesh_parameters.AddEmptyValue("number_of_divisions").SetInt(self.mesh_divisions)
 

@@ -1,16 +1,13 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
-using_pykratos = UsingPyKratos()
-
 # The expected definitions are here to make the handling of the
 # multiline-stings easier (no need to deal with indentation)
 coupling_interface_data_str = '''CouplingInterfaceData:
+	Name: "default"
+	SolverWrapper: "default_solver"
 	ModelPart: "mp_4_test"
 	IsDistributed: False
 	Variable: "DISPLACEMENT" (Vector with dimension: 2)
@@ -59,13 +56,12 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             elem.SetValue(KM.DENSITY, ElementScalarValue(elem_id))
             elem.SetValue(KM.FORCE, ElementVectorValue(elem_id))
 
-        if not using_pykratos: # pyKratos does not have Conditions
-            for i in range(num_conds):
-                cond_id = i+1
-                cond = self.mp.CreateNewCondition("LineCondition2D2N", cond_id, [1,2], props)
+        for i in range(num_conds):
+            cond_id = i+1
+            cond = self.mp.CreateNewCondition("LineCondition2D2N", cond_id, [1,2], props)
 
-                cond.SetValue(KM.YOUNG_MODULUS, ConditionScalarValue(cond_id))
-                cond.SetValue(KM.ROTATION, ConditionVectorValue(cond_id))
+            cond.SetValue(KM.YOUNG_MODULUS, ConditionScalarValue(cond_id))
+            cond.SetValue(KM.ROTATION, ConditionVectorValue(cond_id))
 
         self.mp[KM.NODAL_MASS] = model_part_scalar_value
         self.mp[KM.TORQUE] = model_part_vector_value
@@ -111,6 +107,64 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         coupling_data.Initialize()
         self.assertMultiLineEqual(str(coupling_data), coupling_interface_data_str)
 
+    def test_without_initialization(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "DISPLACEMENT",
+            "dimension"       : 2
+        }""")
+
+        coupling_data = CouplingInterfaceData(settings, self.model)
+        # coupling_data.Initialize() # intentially commented to raise error
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            self.assertMultiLineEqual(str(coupling_data), coupling_interface_data_str)
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.PrintInfo()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.GetModelPart()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.IsDistributed()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.Size()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.GetBufferSize()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.GetData()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.SetData([])
+
+    def test_unallowed_names(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "PRESSURE"
+        }""")
+
+        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+            CouplingInterfaceData(settings, self.model, "")
+
+        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+            CouplingInterfaceData(settings, self.model, "aaa.bbbb")
+
+        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+            CouplingInterfaceData(settings, self.model, "aaa bbb")
+
+
+    def test_var_does_not_exist(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "var_that_hopefully_none_will_ever_create_otherwise_this_test_will_be_wrong"
+        }""")
+
+        with self.assertRaisesRegex(Exception, 'does not exist!'):
+            CouplingInterfaceData(settings, self.model)
+
     def test_wrong_input_dim_scalar(self):
         settings = KM.Parameters("""{
             "model_part_name" : "mp_4_test",
@@ -138,7 +192,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "variable_name"   : "EXTERNAL_FORCES_VECTOR"
         }""")
 
-        exp_error = 'The input for "variable" "EXTERNAL_FORCES_VECTOR" is of variable type "Vector" which is not allowed, only the following variable types are allowed:\nBool, Integer, Unsigned Integer, Double, Component, Array'
+        exp_error = 'The input for "variable" "EXTERNAL_FORCES_VECTOR" is of variable type "Vector" which is not allowed, only the following variable types are allowed:\nBool, Integer, Unsigned Integer, Double, Array'
 
         with self.assertRaisesRegex(Exception, exp_error):
             CouplingInterfaceData(settings, self.model)
@@ -216,10 +270,33 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "variable_name"   : "FORCE_X"
         }""")
 
-        exp_error = '"FORCE" is missing as SolutionStepVariable in ModelPart "mp_4_test"'
+        exp_error = '"FORCE_X" is missing as SolutionStepVariable in ModelPart "mp_4_test"'
 
         coupling_data = CouplingInterfaceData(settings, self.model)
         with self.assertRaisesRegex(Exception, exp_error):
+            coupling_data.Initialize()
+
+    def test_wrong_input_missing_solutionstepvar_double(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "TEMPERATURE"
+        }""")
+
+        exp_error = '"TEMPERATURE" is missing as SolutionStepVariable in ModelPart "mp_4_test"'
+
+        coupling_data = CouplingInterfaceData(settings, self.model)
+        with self.assertRaisesRegex(Exception, exp_error):
+            coupling_data.Initialize()
+
+    def test_non_existing_model_part(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "something",
+            "variable_name"   : "PRESSURE",
+            "location"        : "node_non_historical"
+        }""")
+
+        coupling_data = CouplingInterfaceData(settings, self.model)
+        with self.assertRaisesRegex(Exception, "The specified ModelPart is not in the Model, only the following ModelParts are available:"):
             coupling_data.Initialize()
 
     def test_GetHistoricalVariableDict(self):
@@ -364,8 +441,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         self.__CheckSetGetData(set_data_vec, coupling_data_vec)
 
     def test_GetSetConditionalData(self):
-        if using_pykratos:
-            self.skipTest("This test cannot be run with pyKratos!")
         settings_scal = KM.Parameters("""{
             "model_part_name" : "mp_4_test",
             "location"        : "condition",

@@ -109,9 +109,6 @@ namespace Kratos
 
   void KratosPfemSolidMechanicsApplication::Register()
   {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
-
     std::stringstream banner;
 
     banner << "            ___  __           ___      _ _    _           \n"

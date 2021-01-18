@@ -67,7 +67,8 @@
                 "python_module" : "compute_embedded_lift_process",
                 "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
                 "Parameters"    : {
-                    "model_part_name" : "MainModelPart.Parts_Parts_Auto1"
+                    "model_part_name" : "MainModelPart.Parts_Parts_Auto1",
+                    "far_field_model_part_name" : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1"
                 }
             }],
         "list_other_processes" :[{

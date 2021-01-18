@@ -20,8 +20,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 #include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
@@ -40,6 +38,7 @@ namespace Kratos
    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MESH_RHS);
 
    KRATOS_DEFINE_VARIABLE(int, LAPLACIAN_DIRECTION);
+   KRATOS_DEFINE_VARIABLE(double, MESH_POISSON_RATIO);
 
 } // namespace Kratos
 

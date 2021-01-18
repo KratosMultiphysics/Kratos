@@ -81,7 +81,8 @@ public:
                                bool ReformDofSetAtEachStep = false,
                                bool ComputeReactions = false,
                                bool CalculateMeshVelocities = true,
-                               int EchoLevel = 0)
+                               int EchoLevel = 0,
+                               const double PoissonRatio = 0.3)
       : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part) {
     KRATOS_TRY
 
@@ -100,17 +101,20 @@ public:
     mpmesh_model_part = MoveMeshUtilities::GenerateMeshPart(
         BaseType::GetModelPart(), element_type);
 
+    mpmesh_model_part->pGetProperties(0)->GetValue(MESH_POISSON_RATIO) = PoissonRatio;
+
     mpbulider_and_solver = typename TBuilderAndSolverType::Pointer(
         new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace,
                                                TLinearSolver>(
             pNewLinearSolver));
 
-    mstrategy = typename BaseType::Pointer(
-        new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,
-                                        TLinearSolver>(
-            *mpmesh_model_part, pscheme, pNewLinearSolver, mpbulider_and_solver,
-            mcompute_reactions, mreform_dof_set_at_each_step,
-            calculate_norm_dx_flag));
+    mstrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,TLinearSolver>(
+        *mpmesh_model_part,
+        pscheme,
+        mpbulider_and_solver,
+        mcompute_reactions,
+        mreform_dof_set_at_each_step,
+        calculate_norm_dx_flag));
 
     mstrategy->SetEchoLevel(mecho_level);
 
@@ -134,9 +138,6 @@ public:
 
     // Solve for the mesh movement
     mstrategy->Solve();
-
-    MoveMeshUtilities::MoveMesh(
-        mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     // Clearing the system if needed
     if (mreform_dof_set_at_each_step == true)

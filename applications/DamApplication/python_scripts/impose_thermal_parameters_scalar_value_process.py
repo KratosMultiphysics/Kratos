@@ -21,7 +21,6 @@ class ImposeThemalParametersScalarValueProcess(Process):
 
             thermal_density = Parameters("{}")
             thermal_density.AddValue("model_part_name", settings["model_part_name"])
-            thermal_density.AddEmptyValue("is_fixed").SetBool(True)
             thermal_density.AddValue("value", settings["ThermalDensity"])
             thermal_density.AddEmptyValue("variable_name").SetString("DENSITY")
 
@@ -31,7 +30,6 @@ class ImposeThemalParametersScalarValueProcess(Process):
 
             conductivity = Parameters("{}")
             conductivity.AddValue("model_part_name", settings["model_part_name"])
-            conductivity.AddEmptyValue("is_fixed").SetBool(True)
             conductivity.AddValue("value", settings["Conductivity"])
             conductivity.AddEmptyValue("variable_name").SetString("CONDUCTIVITY")
 
@@ -41,7 +39,6 @@ class ImposeThemalParametersScalarValueProcess(Process):
 
             specific_heat = Parameters("{}")
             specific_heat.AddValue("model_part_name", settings["model_part_name"])
-            specific_heat.AddEmptyValue("is_fixed").SetBool(True)
             specific_heat.AddValue("value", settings["SpecificHeat"])
             specific_heat.AddEmptyValue("variable_name").SetString("SPECIFIC_HEAT")
 

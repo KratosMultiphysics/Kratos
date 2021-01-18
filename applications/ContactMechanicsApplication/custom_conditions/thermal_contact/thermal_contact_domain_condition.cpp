@@ -136,7 +136,7 @@ void ThermalContactDomainCondition::EquationIdVector( EquationIdVectorType& rRes
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::GetValuesVector( Vector& rValues, int Step )
+void ThermalContactDomainCondition::GetValuesVector( Vector& rValues, int Step ) const
 {
   const unsigned int number_of_nodes = GetGeometry().size();
   unsigned int MatSize = number_of_nodes;
@@ -154,7 +154,7 @@ void ThermalContactDomainCondition::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+void ThermalContactDomainCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
   const unsigned int number_of_nodes = GetGeometry().size();
   unsigned int MatSize = number_of_nodes;
@@ -172,7 +172,7 @@ void ThermalContactDomainCondition::GetFirstDerivativesVector( Vector& rValues, 
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+void ThermalContactDomainCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
   const unsigned int number_of_nodes = GetGeometry().size();
   unsigned int MatSize = number_of_nodes;
@@ -189,7 +189,7 @@ void ThermalContactDomainCondition::GetSecondDerivativesVector( Vector& rValues,
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void ThermalContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
                                                                  std::vector<double>& rValues,
                                                                  const ProcessInfo& rCurrentProcessInfo )
 {
@@ -199,7 +199,7 @@ void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<
 //*********************************SET VECTOR VALUE***********************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+void ThermalContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
                                                                  std::vector<Vector>& rValues,
                                                                  const ProcessInfo& rCurrentProcessInfo )
 {
@@ -210,7 +210,7 @@ void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<
 //*********************************SET MATRIX VALUE***********************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+void ThermalContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
                                                                  std::vector<Matrix>& rValues,
                                                                  const ProcessInfo& rCurrentProcessInfo )
 {

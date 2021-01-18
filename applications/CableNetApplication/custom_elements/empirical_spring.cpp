@@ -16,11 +16,11 @@
 
 // Project includes
 #include "custom_elements/empirical_spring.hpp"
-#include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
 #include "cable_net_application_variables.h"
 #include "includes/checks.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "includes/variables.h"
 
 
 namespace Kratos {
@@ -53,7 +53,7 @@ EmpiricalSpringElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
 EmpiricalSpringElement3D2N::~EmpiricalSpringElement3D2N() {}
 
 void EmpiricalSpringElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                                  const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if (rResult.size() != msLocalSize) {
@@ -70,7 +70,7 @@ void EmpiricalSpringElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
     }
 }
 void EmpiricalSpringElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                            const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if (rElementalDofList.size() != msLocalSize) {
@@ -90,7 +90,7 @@ void EmpiricalSpringElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
 BoundedMatrix<double, EmpiricalSpringElement3D2N::msLocalSize,
 EmpiricalSpringElement3D2N::msLocalSize>
 EmpiricalSpringElement3D2N::CreateElementStiffnessMatrix(
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     BoundedMatrix<double, msLocalSize, msLocalSize> stiffness_matrix =
         ZeroMatrix(msLocalSize, msLocalSize);
@@ -99,8 +99,8 @@ EmpiricalSpringElement3D2N::CreateElementStiffnessMatrix(
     const double current_spring_stiffness = EvaluatePolynomialFirstDerivative(polynomial);
 
     stiffness_matrix(0,0) = current_spring_stiffness;
-    stiffness_matrix(0,msDimension) = current_spring_stiffness;
-    stiffness_matrix(msDimension,0) = current_spring_stiffness;
+    stiffness_matrix(0,msDimension) = -current_spring_stiffness;
+    stiffness_matrix(msDimension,0) = -current_spring_stiffness;
     stiffness_matrix(msDimension,msDimension) = current_spring_stiffness;
     GlobalizeMatrix(stiffness_matrix);
     return stiffness_matrix;
@@ -128,9 +128,8 @@ double EmpiricalSpringElement3D2N::EvaluatePolynomialFirstDerivative(const Vecto
 }
 
 
-void EmpiricalSpringElement3D2N::GetValuesVector(Vector& rValues, int Step)
+void EmpiricalSpringElement3D2N::GetValuesVector(Vector& rValues, int Step) const
 {
-
     KRATOS_TRY
     if (rValues.size() != msLocalSize) {
         rValues.resize(msLocalSize, false);
@@ -148,7 +147,7 @@ void EmpiricalSpringElement3D2N::GetValuesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void EmpiricalSpringElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
+void EmpiricalSpringElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -168,7 +167,7 @@ void EmpiricalSpringElement3D2N::GetFirstDerivativesVector(Vector& rValues, int 
     KRATOS_CATCH("")
 }
 
-void EmpiricalSpringElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
+void EmpiricalSpringElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -190,8 +189,8 @@ void EmpiricalSpringElement3D2N::GetSecondDerivativesVector(Vector& rValues, int
 }
 
 void EmpiricalSpringElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+                                                      VectorType& rRightHandSideVector,
+                                                      const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
@@ -200,7 +199,7 @@ void EmpiricalSpringElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideM
 }
 
 void EmpiricalSpringElement3D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -220,7 +219,7 @@ void EmpiricalSpringElement3D2N::CalculateRightHandSide(
 }
 
 void EmpiricalSpringElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY;
@@ -232,7 +231,7 @@ void EmpiricalSpringElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSide
     KRATOS_CATCH("")
 }
 
-int EmpiricalSpringElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+int EmpiricalSpringElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();
@@ -250,7 +249,7 @@ int EmpiricalSpringElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        NodeType& rnode = GetGeometry()[i];
+        const NodeType& rnode = GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, rnode);
 
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode);
@@ -416,13 +415,15 @@ void EmpiricalSpringElement3D2N::WriteTransformationCoordinates(
 }
 
 
-void EmpiricalSpringElement3D2N::CalculateLumpedMassVector(VectorType& rMassVector)
+void EmpiricalSpringElement3D2N::CalculateLumpedMassVector(
+    VectorType& rLumpedMassVector,
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     // Clear matrix
-    if (rMassVector.size() != msLocalSize) {
-        rMassVector.resize(msLocalSize, false);
+    if (rLumpedMassVector.size() != msLocalSize) {
+        rLumpedMassVector.resize(msLocalSize, false);
     }
 
     const double A = GetProperties()[CROSS_AREA];
@@ -435,7 +436,7 @@ void EmpiricalSpringElement3D2N::CalculateLumpedMassVector(VectorType& rMassVect
         for (int j = 0; j < msDimension; ++j) {
             int index = i * msDimension + j;
 
-            rMassVector[index] = total_mass * 0.50;
+            rLumpedMassVector[index] = total_mass * 0.50;
         }
     }
 
@@ -445,14 +446,14 @@ void EmpiricalSpringElement3D2N::CalculateLumpedMassVector(VectorType& rMassVect
 
 void EmpiricalSpringElement3D2N::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
 )
 {
     KRATOS_TRY
 
     // Compute lumped mass matrix
     VectorType temp_vector(msLocalSize);
-    CalculateLumpedMassVector(temp_vector);
+    CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
 
     // Clear matrix
     if (rMassMatrix.size1() != msLocalSize || rMassMatrix.size2() != msLocalSize) {
@@ -469,7 +470,7 @@ void EmpiricalSpringElement3D2N::CalculateMassMatrix(
 }
 
 void EmpiricalSpringElement3D2N::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,
@@ -482,7 +483,7 @@ void EmpiricalSpringElement3D2N::CalculateDampingMatrix(
 void EmpiricalSpringElement3D2N::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
 )
 {
@@ -492,7 +493,7 @@ void EmpiricalSpringElement3D2N::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         VectorType element_mass_vector(msLocalSize);
-        CalculateLumpedMassVector(element_mass_vector);
+        CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
 
         for (SizeType i = 0; i < msNumberOfNodes; ++i) {
             double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
@@ -508,7 +509,7 @@ void EmpiricalSpringElement3D2N::AddExplicitContribution(
 
 void EmpiricalSpringElement3D2N::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
 )
 {
@@ -537,7 +538,7 @@ void EmpiricalSpringElement3D2N::AddExplicitContribution(
 
         // Getting the vector mass
         VectorType mass_vector(msLocalSize);
-        CalculateLumpedMassVector(mass_vector);
+        CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
 
         for (int i = 0; i < msNumberOfNodes; ++i) {
             double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);

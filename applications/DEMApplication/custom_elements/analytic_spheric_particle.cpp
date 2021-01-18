@@ -138,7 +138,7 @@ void AnalyticSphericParticle::ClearImpactMemberVariables()
         mCollidingFaceTangentialVelocities[i] = 0.0;
         mCollidingFaceSecondTangentialVelocities[i] = 0.0;
         //mCollidingFaceCollisionTypes[i] = "f";
-        
+
     }
 }
 
@@ -168,37 +168,37 @@ void AnalyticSphericParticle::ClearNeighbours(BaseBufferType & data_buffer)
 
 
 void AnalyticSphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
-                                                       const ProcessInfo& r_process_info,
-                                                       double LocalElasticContactForce[3],
-                                                       double DeltDisp[3],
-                                                       double LocalDeltDisp[3],
-                                                       double RelVel[3],
-                                                       const double indentation,
-                                                       double ViscoDampingLocalContactForce[3],
-                                                       double& cohesive_force,
-                                                       SphericParticle* p_neighbour_element,
-                                                       bool& sliding,
-                                                       double LocalCoordSystem[3][3],
-                                                       double OldLocalCoordSystem[3][3],
-                                                       array_1d<double, 3>& neighbour_elastic_contact_force)
+                                                                            const ProcessInfo& r_process_info,
+                                                                            double LocalElasticContactForce[3],
+                                                                            double DeltDisp[3],
+                                                                            double LocalDeltDisp[3],
+                                                                            double RelVel[3],
+                                                                            const double indentation,
+                                                                            double ViscoDampingLocalContactForce[3],
+                                                                            double& cohesive_force,
+                                                                            SphericParticle* p_neighbour_element,
+                                                                            bool& sliding,
+                                                                            double LocalCoordSystem[3][3],
+                                                                            double OldLocalCoordSystem[3][3],
+                                                                            array_1d<double, 3>& neighbour_elastic_contact_force)
 {
     SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(data_buffer,
-                                                                      r_process_info,
-                                                                      LocalElasticContactForce,
-                                                                      DeltDisp,
-                                                                      LocalDeltDisp,
-                                                                      RelVel,
-                                                                      indentation,
-                                                                      ViscoDampingLocalContactForce,
-                                                                      cohesive_force,
-                                                                      p_neighbour_element,   // ALREADY INCLUDED IN DATABUFFER
-                                                                      sliding,
-                                                                      LocalCoordSystem,
-                                                                      OldLocalCoordSystem,
-                                                                      neighbour_elastic_contact_force);
+                                                                    r_process_info,
+                                                                    LocalElasticContactForce,
+                                                                    DeltDisp,
+                                                                    LocalDeltDisp,
+                                                                    RelVel,
+                                                                    indentation,
+                                                                    ViscoDampingLocalContactForce,
+                                                                    cohesive_force,
+                                                                    p_neighbour_element,   // ALREADY INCLUDED IN DATABUFFER
+                                                                    sliding,
+                                                                    LocalCoordSystem,
+                                                                    OldLocalCoordSystem,
+                                                                    neighbour_elastic_contact_force);
 
     const auto id = data_buffer.mpOtherParticle->Id();
-    
+
     if (IsNewNeighbour(id) && mNumberOfCollidingSpheres < mMaxCollidingSpheres){
         RecordNewImpact(data_buffer);
     }
@@ -208,43 +208,41 @@ void AnalyticSphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(S
 }
 
 void AnalyticSphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
-                                                         array_1d<double, 3>& r_elastic_force,
-                                                         array_1d<double, 3>& r_contact_force,
-                                                         double& RollingResistance,
-                                                         array_1d<double, 3>& rigid_element_force,
-                                                         ProcessInfo& r_process_info,                                                        
-                                                         int search_control)
+                                                                array_1d<double, 3>& r_elastic_force,
+                                                                array_1d<double, 3>& r_contact_force,
+                                                                double& RollingResistance,
+                                                                array_1d<double, 3>& rigid_element_force,
+                                                                const ProcessInfo& r_process_info)
 
 {
 
-    SphericParticle::ComputeBallToRigidFaceContactForce(data_buffer, 
-                                        r_elastic_force, 
-                                        r_contact_force, 
-                                        RollingResistance, 
-                                        rigid_element_force, 
-                                        r_process_info, 
-                                        search_control);
+    SphericParticle::ComputeBallToRigidFaceContactForce(data_buffer,
+                                        r_elastic_force,
+                                        r_contact_force,
+                                        RollingResistance,
+                                        rigid_element_force,
+                                        r_process_info);
 
-    
+
     //const auto face_id = data_buffer.mNeighbourRigidFaces->Id(); //definir neighbor wall id
 
     std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
-        
+
     for (unsigned int i = 0; i < rNeighbours.size(); i++) {
-        DEMWall* p_wall = rNeighbours[i];        
+        DEMWall* p_wall = rNeighbours[i];
         if(p_wall == NULL) continue;
         if(p_wall->IsPhantom()){
             p_wall->CheckSide(this);
             continue;
-        }    
+        }
         int p_wall_id;
-        p_wall_id = p_wall->Id();    
+        p_wall_id = p_wall->Id();
         if (IsNewFaceNeighbour(p_wall_id) && mNumberOfCollidingSpheresWithFaces < mMaxCollidingFaceSpheres){
-           
+
             RecordNewFaceImpact(data_buffer);
         }
         PushBackIdToContactingFaceNeighbours(data_buffer, int(p_wall_id));
-    }      
+    }
 }
 
 
@@ -258,7 +256,7 @@ bool AnalyticSphericParticle::IsNewNeighbour(const int neighbour_id)
 {
    bool const already_in_contact = std::find(mContactingFaceNeighbourIds.begin(), mContactingFaceNeighbourIds.end(), p_wall_id) != mContactingFaceNeighbourIds.end();
    return !already_in_contact;
-} 
+}
 
 void AnalyticSphericParticle::RecordNewImpact(BaseBufferType & data_buffer)
 {
@@ -266,7 +264,7 @@ void AnalyticSphericParticle::RecordNewImpact(BaseBufferType & data_buffer)
     mCollidingRadii[mNumberOfCollidingSpheres] = data_buffer.mOtherRadius;
     mCollidingNormalVelocities[mNumberOfCollidingSpheres] = data_buffer.mLocalRelVel[2];
     mCollidingTangentialVelocities[mNumberOfCollidingSpheres] = std::sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]);
-    
+
     /*
     double mass = GetMass();
     double other_mass = data_buffer.mpOtherParticle->GetMass();
@@ -281,7 +279,7 @@ void AnalyticSphericParticle::RecordNewImpact(BaseBufferType & data_buffer)
     double p1 = mass * v_pre;
     double p2 = other_mass * other_v_pre;
     double q1 = mass * v_pre * v_pre;
-    double q2 = other_mass * other_v_pre * other_v_pre; 
+    double q2 = other_mass * other_v_pre * other_v_pre;
 
     double a = (p1*p2)/other_mass;
     double b = mass/other_mass;
@@ -301,7 +299,7 @@ void AnalyticSphericParticle::RecordNewImpact(BaseBufferType & data_buffer)
 
     mCollidingFaceNormalVelocities[mNumberOfCollidingSpheresWithFaces] = data_buffer.mLocalRelVel[2];
     mCollidingFaceTangentialVelocities[mNumberOfCollidingSpheresWithFaces] = std::sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]);
-    ++mNumberOfCollidingSpheresWithFaces;   
+    ++mNumberOfCollidingSpheresWithFaces;
 
 
     // //char impact_type = data_buffer.mImpactType;  WORK IN PROGRESS
@@ -309,13 +307,13 @@ void AnalyticSphericParticle::RecordNewImpact(BaseBufferType & data_buffer)
     // {
     //     mCollidingFaceNormalVelocities[mNumberOfCollidingSpheresWithFaces] = data_buffer.mLocalRelVel[2];
     //     mCollidingFaceTangentialVelocities[mNumberOfCollidingSpheresWithFaces] = std::sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]);
-    //     ++mNumberOfCollidingSpheresWithFaces;        
+    //     ++mNumberOfCollidingSpheresWithFaces;
     // }
     // else if (impact_type == "e"){ // investigate correct components
     //     // mCollidingEdgeNormalVelocities[mNumberOfCollidingSpheresWithEdges] = data_buffer.mLocalRelVel[2];
     //     // mCollidingEdgeVelocitiesAlongEdge[mNumberOfCollidingSpheresWithEdges] = data_buffer.mLocalRelVel[0];
     //     // mCollidingEdgeVelocitiesTransverseToEdge[mNumberOfCollidingSpheresWithEdges] = data_buffer.mLocalRelVel[1];
-    //     // ++mNumberOfCollidingSpheresWithEdges; 
+    //     // ++mNumberOfCollidingSpheresWithEdges;
     // }
     // else if (impact_type == "v"){
 
@@ -325,7 +323,7 @@ void AnalyticSphericParticle::RecordNewImpact(BaseBufferType & data_buffer)
     // } // To-Do kratos error
 
 
-}  
+}
 
 void AnalyticSphericParticle::FinalizeForceComputation(BaseType::ParticleDataBuffer & data_buffer)
 {

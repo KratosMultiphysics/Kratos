@@ -52,9 +52,9 @@ namespace Testing {
     {
         Properties::Pointer p_cond_prop = Kratos::make_shared<Properties>();
         rTestModelPart.AddProperties(p_cond_prop, 0);
-        rTestModelPart.CreateNewCondition("Condition2D2N", 1, {{1,2}}, p_cond_prop);
-        rTestModelPart.CreateNewCondition("Condition2D2N", 2, {{2,3}}, p_cond_prop);
-        rTestModelPart.CreateNewCondition("Condition2D2N", 3, {{3,4}}, p_cond_prop);
+        rTestModelPart.CreateNewCondition("LineCondition2D2N", 1, {{1,2}}, p_cond_prop);
+        rTestModelPart.CreateNewCondition("LineCondition2D2N", 2, {{2,3}}, p_cond_prop);
+        rTestModelPart.CreateNewCondition("LineCondition2D2N", 3, {{3,4}}, p_cond_prop);
     }
 
     void SetTestDoubleValues(ModelPart &rTestModelPart)
@@ -93,9 +93,9 @@ namespace Testing {
         std::vector<ModelPart::IndexType> cond_nodes_1 = {1,2};
         std::vector<ModelPart::IndexType> cond_nodes_2 = {2,3};
         std::vector<ModelPart::IndexType> cond_nodes_3 = {3,4};
-        rTestSkinModelPart.CreateNewCondition("Condition2D2N", 1, cond_nodes_1, p_properties_1);
-        rTestSkinModelPart.CreateNewCondition("Condition2D2N", 2, cond_nodes_2, p_properties_1);
-        rTestSkinModelPart.CreateNewCondition("Condition2D2N", 3, cond_nodes_3, p_properties_1);
+        rTestSkinModelPart.CreateNewCondition("LineCondition2D2N", 1, cond_nodes_1, p_properties_1);
+        rTestSkinModelPart.CreateNewCondition("LineCondition2D2N", 2, cond_nodes_2, p_properties_1);
+        rTestSkinModelPart.CreateNewCondition("LineCondition2D2N", 3, cond_nodes_3, p_properties_1);
     }
 
     /**
@@ -465,6 +465,7 @@ namespace Testing {
         // Set the model part containing the origin skin
         Model model;
         ModelPart &r_skin_model_part = model.CreateModelPart("OriginModelPart");
+        r_skin_model_part.AddNodalSolutionStepVariable(PRESSURE);
         r_skin_model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
         GenerateTestSkinModelPart(r_skin_model_part);
 
@@ -495,6 +496,11 @@ namespace Testing {
         partitioned_fsi_utilities.EmbeddedPressureToPositiveFacePressureInterpolator(
             r_background_model_part,
             r_skin_model_part);
+
+        // Copy the obtained values from PRESSURE to POSITIVE_FACE_PRESSURE
+        for (auto &r_node : r_skin_model_part.Nodes()) {
+            r_node.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = r_node.FastGetSolutionStepValue(PRESSURE);
+        }
 
         // Check results
         unsigned int i = 0;

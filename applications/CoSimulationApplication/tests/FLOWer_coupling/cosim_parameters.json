@@ -10,7 +10,7 @@
     "solver_settings" :
     {
         "type" : "coupled_solvers.gauss_seidel_weak",
-        "echo_level" : 3,
+        "echo_level" : 0,
         "coupling_sequence":
         [
             {
@@ -62,7 +62,7 @@
             "external_solver":
             {
                 "type" : "solver_wrappers.external.flower_wrapper",
-                "echo_level" : 3,
+                "echo_level" : 0,
                 "solver_wrapper_settings" : {
                     "model_parts_read" : {
                         "Fluid_copy" : "generic_mdpa_files/Mok_CFD"

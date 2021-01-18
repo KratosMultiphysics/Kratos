@@ -143,6 +143,14 @@ public:
             rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient);
     }
 
+    void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
+                                           const Matrix& rResidualGradient,
+                                           Vector& rResponseGradient,
+                                           const ProcessInfo& rProcessInfo) override
+    {
+        rResponseGradient.clear();
+    }
+
     void CalculateSecondDerivativesGradient(const Element& rAdjointElement,
                                             const Matrix& rResidualGradient,
                                             Vector& rResponseGradient,
@@ -164,6 +172,18 @@ public:
             rSensitivityMatrix, rAdjointElement.GetGeometry().Points(), rSensitivityGradient);
 
         KRATOS_CATCH("");
+    }
+
+    void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                     const Variable<array_1d<double, 3>>& rVariable,
+                                     const Matrix& rSensitivityMatrix,
+                                     Vector& rSensitivityGradient,
+                                     const ProcessInfo& rProcessInfo) override
+    {
+        if (rSensitivityGradient.size() != rSensitivityMatrix.size1())
+            rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
+
+        rSensitivityGradient.clear();
     }
 
     double CalculateValue(ModelPart& rModelPart) override

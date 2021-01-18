@@ -31,7 +31,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_ExponentialHC::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_ExponentialHC::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_ExponentialHC to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
@@ -45,7 +45,8 @@ namespace Kratos {
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
             int i_neighbour_count,
-            int time_steps) {
+            int time_steps,
+            const ProcessInfo& r_process_info) {
 
         int &mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
 
@@ -58,14 +59,14 @@ namespace Kratos {
 
 
              mDamageMaxDisplacementFactor = element1_props[DAMAGE_FACTOR];
-             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6; //N/m2
+             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]; //N/m2
         }
 
         else{
 
 
             mDamageMaxDisplacementFactor = 0.5*(element1_props[DAMAGE_FACTOR] + element2_props[DAMAGE_FACTOR]);
-            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
+            mTensionLimit = 0.5*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
         }
 
         mGamma1 = 0.2;

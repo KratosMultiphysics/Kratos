@@ -19,6 +19,7 @@
 #include "move_mesh_utilities.h"
 #include "containers/model.h"
 #include "includes/mesh_moving_variables.h" // TODO remove after mesh-vel-comp-functions are removed
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 namespace MoveMeshUtilities {
@@ -44,18 +45,12 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
 
 //******************************************************************************
 //******************************************************************************
-void MoveMesh(const ModelPart::NodesContainerType& rNodes) {
+void MoveMesh(ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
-    const int num_nodes = rNodes.size();
-    const auto nodes_begin = rNodes.begin();
-
-    #pragma omp parallel for
-    for (int i=0; i<num_nodes; i++) {
-        const auto it_node  = nodes_begin + i;
-        noalias(it_node->Coordinates()) = it_node->GetInitialPosition()
-            + it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-    }
+    block_for_each(rNodes, [](Node<3>& rNode ){
+        noalias(rNode.Coordinates()) = rNode.GetInitialPosition() + rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
+    });
 
     KRATOS_CATCH("");
 }
@@ -78,17 +73,45 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
   const Element &r_reference_element =
       KratosComponents<Element>::Get(rElementName);
 
+
+  // create a new property for the mesh motion
+  Properties::Pointer p_mesh_motion_property = pmesh_model_part->CreateNewProperties(0);
+
   for (int i = 0; i < (int)rModelPart.Elements().size(); i++) {
     ModelPart::ElementsContainerType::iterator it =
         rModelPart.ElementsBegin() + i;
     Element::Pointer p_element = r_reference_element.Create(
-        it->Id(), it->pGetGeometry(), it->pGetProperties());
+        it->Id(), it->pGetGeometry(), p_mesh_motion_property);
     rmesh_elements.push_back(p_element);
   }
 
   return std::move(pmesh_model_part);
 
   KRATOS_CATCH("");
+}
+
+void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
+                                                 const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
+{
+    KRATOS_TRY;
+
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        if (rNode.Has(rVariableToSuperImpose)) {
+            rNode.GetSolutionStepValue(rVariable,0) += rNode.GetValue(rVariableToSuperImpose);
+        }
+    });
+
+  KRATOS_CATCH("");
+}
+
+void SuperImposeMeshDisplacement(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
+{
+  SuperImposeVariables(rModelPart, MESH_DISPLACEMENT, rVariableToSuperImpose);
+}
+
+void SuperImposeMeshVelocity(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
+{
+  SuperImposeVariables(rModelPart, MESH_VELOCITY, rVariableToSuperImpose);
 }
 
 } // namespace Move Mesh Utilities.

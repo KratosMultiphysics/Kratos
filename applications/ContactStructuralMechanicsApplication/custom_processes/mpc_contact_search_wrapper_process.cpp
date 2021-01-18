@@ -22,11 +22,12 @@ namespace Kratos
 {
 MPCContactSearchWrapperProcess::MPCContactSearchWrapperProcess(
     ModelPart& rMainModelPart,
-    Parameters ThisParameters
+    Parameters ThisParameters,
+    Properties::Pointer pPairedProperties
     )
 {
     // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     // The dimensions
@@ -57,17 +58,17 @@ MPCContactSearchWrapperProcess::MPCContactSearchWrapperProcess(
     // Creating the mapper
     if (dimension == 2) {
         // 2D
-        mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<2, 2>>(rMainModelPart, ThisParameters);
+        mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<2, 2>>(rMainModelPart, ThisParameters, pPairedProperties);
     } else {
         // 3D
         if (size_1 == 3 && size_2 == 3) {
-            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 3>>(rMainModelPart, ThisParameters);
+            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 3>>(rMainModelPart, ThisParameters, pPairedProperties);
         } else if (size_1 == 4 && size_2 == 4) {
-            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 4>>(rMainModelPart, ThisParameters);
+            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 4>>(rMainModelPart, ThisParameters, pPairedProperties);
         } else if (size_1 == 4 && size_2 == 3) {
-            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 3, 4>>(rMainModelPart, ThisParameters);
+            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 3, 4>>(rMainModelPart, ThisParameters, pPairedProperties);
         } else if (size_1 == 3 && size_2 == 4) {
-            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 4, 3>>(rMainModelPart, ThisParameters);
+            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 4, 3>>(rMainModelPart, ThisParameters, pPairedProperties);
         }
     }
 }
@@ -75,9 +76,9 @@ MPCContactSearchWrapperProcess::MPCContactSearchWrapperProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters MPCContactSearchWrapperProcess::GetDefaultParameters()
+const Parameters MPCContactSearchWrapperProcess::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "simple_search"                        : false,
         "allocation_size"                      : 1000,

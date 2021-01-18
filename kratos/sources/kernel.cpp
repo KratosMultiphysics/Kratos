@@ -24,9 +24,19 @@
 #include "utilities/openmp_utils.h"
 
 namespace Kratos {
+
+Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
+                std::string("KratosMultiphysics"))) {
+    Initialize();
+}
+
 Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
                 std::string("KratosMultiphysics"))) {
     mIsDistributedRun = IsDistributedRun;
+    Initialize();
+}
+
+void Kernel::Initialize() {
     KRATOS_INFO("") << " |  /           |\n"
                     << " ' /   __| _` | __|  _ \\   __|\n"
                     << " . \\  |   (   | |   (   |\\__ \\\n"
@@ -75,11 +85,17 @@ void Kernel::PrintData(std::ostream& rOStream) const {
     rOStream << "Variables:" << std::endl;
     KratosComponents<VariableData>().PrintData(rOStream);
     rOStream << std::endl;
+    rOStream << "Geometries:" << std::endl;
+    KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
+    rOStream << std::endl;
     rOStream << "Elements:" << std::endl;
     KratosComponents<Element>().PrintData(rOStream);
     rOStream << std::endl;
     rOStream << "Conditions:" << std::endl;
     KratosComponents<Condition>().PrintData(rOStream);
+    rOStream << std::endl;
+    rOStream << "Modelers:" << std::endl;
+    KratosComponents<Modeler>().PrintData(rOStream);
 
     rOStream << "Loaded applications:" << std::endl;
 

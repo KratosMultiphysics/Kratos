@@ -69,8 +69,8 @@ namespace Kratos
             condition_nodes_1[2] = p_node_6;
             Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
-            Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
-            Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);
+            Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_cond_prop);
+            Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_cond_prop);
 
             // This will copy all
             FastTransferBetweenModelPartsProcess process = FastTransferBetweenModelPartsProcess(destination_model_part, origin_model_part, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL);
@@ -129,8 +129,8 @@ namespace Kratos
             condition_nodes_1[2] = p_node_6;
             Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
-            Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
-            Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);
+            Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_cond_prop);
+            Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_cond_prop);
 
             // Setting flags
             // SLAVE
@@ -211,8 +211,8 @@ namespace Kratos
             condition_nodes_1[2] = p_node_6;
             Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
-            Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
-            Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);
+            Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_cond_prop);
+            Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_cond_prop);
 
             // This will copy all
             FastTransferBetweenModelPartsProcess process = FastTransferBetweenModelPartsProcess(destination_model_part, origin_model_part, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, Flags(), true);
@@ -271,8 +271,8 @@ namespace Kratos
             condition_nodes_1[2] = p_node_6;
             Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
             
-            Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
-            Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);
+            Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_cond_prop);
+            Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_cond_prop);
             
             // Setting flags
             // SLAVE

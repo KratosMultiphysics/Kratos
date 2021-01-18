@@ -18,8 +18,10 @@
 #include "custom_elements/cylinder_continuum_particle.h"
 #include "custom_elements/spheric_particle.h"
 #include "custom_elements/spheric_continuum_particle.h"
+#include "custom_elements/polyhedron_skin_spheric_particle.h"
 #include "custom_elements/nanoparticle.h"
 #include "custom_elements/analytic_spheric_particle.h"
+#include "custom_elements/beam_particle.h"
 #include "custom_elements/ice_continuum_particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
 #include "custom_elements/cluster3D.h"
@@ -90,7 +92,9 @@ private:
     const NanoParticle mNanoParticle3D;
     const AnalyticSphericParticle mAnalyticSphericParticle3D;
     const SphericContinuumParticle mSphericContinuumParticle3D;
+    const PolyhedronSkinSphericParticle mPolyhedronSkinSphericParticle3D;
     const IceContinuumParticle mIceContinuumParticle3D;
+    const BeamParticle mBeamParticle3D;
     const ThermalSphericParticle<SphericContinuumParticle> mThermalSphericContinuumParticle3D;
     const ThermalSphericParticle<SphericParticle> mThermalSphericParticle3D;
     const SinteringSphericContinuumParticle mSinteringSphericContinuumParticle3D;
@@ -102,7 +106,7 @@ private:
     const RigidFace3D  mRigidFace3D3N;
     const RigidFace3D  mRigidFace3D4N;
     const AnalyticRigidFace3D  mAnalyticRigidFace3D3N;
-    const RigidEdge3D  mRigidEdge3D2N;
+    const RigidEdge2D  mRigidEdge2D2N;
     const RigidBodyElement3D mRigidBodyElement3D;
     const ShipElement3D mShipElement3D;
     const ContactInfoSphericParticle mContactInfoSphericParticle3D;

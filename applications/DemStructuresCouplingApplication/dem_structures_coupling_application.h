@@ -17,6 +17,7 @@
 #include "includes/variables.h"
 
 /* CONDITIONS */
+#include "custom_conditions/line_load_from_DEM_condition_2d.h"
 #include "custom_conditions/surface_load_from_DEM_condition_3d.h"
 
 namespace Kratos {
@@ -63,6 +64,9 @@ namespace Kratos {
         protected:
 
         private:
+
+            // Line load from DEM
+            const LineLoadFromDEMCondition2D<2> mLineLoadFromDEMCondition2D2N;
 
             // Surface load from DEM
             const SurfaceLoadFromDEMCondition3D mSurfaceLoadFromDEMCondition3D3N;

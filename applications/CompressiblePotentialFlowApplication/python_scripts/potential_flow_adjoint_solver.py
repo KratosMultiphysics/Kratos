@@ -36,7 +36,8 @@ class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "",
-            "gradient_mode": ""
+            "gradient_mode": "",
+            "stabilization_factor": 0.0
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
@@ -74,7 +75,7 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
 
-        KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction finished")
 
     def AddVariables(self):
         super(PotentialFlowAdjointSolver, self).AddVariables()
@@ -83,50 +84,67 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
 
-        KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables ADDED")
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.ADJOINT_VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
-        self._ComputeNodalNeighbours()
+        # Call base solver Initialize() to calculate the nodal neighbours and initialize the strategy
+        super(PotentialFlowAdjointSolver, self).Initialize()
 
-        """Perform initialization after adding nodal variables and dofs to the main model part. """
-        if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
-            self.response_function = KCPFApp.AdjointLiftJumpCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
-        else:
-            raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
+        # Initialize the response function and the sensitivity builder
+        self._GetResponseFunction().Initialize()
+        self._GetSensitivityBuilder().Initialize()
 
-        self.sensitivity_builder=KratosMultiphysics.SensitivityBuilder(self.sensitivity_settings,self.main_model_part, self.response_function)
-        self.sensitivity_builder.Initialize()
-
-        scheme = KratosMultiphysics.ResidualBasedAdjointStaticScheme(self.response_function)
-
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
-            self.main_model_part,
-            scheme,
-            self.linear_solver,
-            builder_and_solver,
-            self.settings["compute_reactions"].GetBool(),
-            self.settings["reform_dofs_at_each_step"].GetBool(),
-            self.settings["calculate_solution_norm"].GetBool(),
-            self.settings["move_mesh_flag"].GetBool())
-
-        self.solver.SetEchoLevel(self.settings["echo_level"].GetInt())
-        self.solver.Check()
-
-        self.response_function.Initialize()
-
-        KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Finished initialization.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Finished initialization.")
 
     def InitializeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).InitializeSolutionStep()
-        self.response_function.InitializeSolutionStep()
+        self._GetResponseFunction().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).FinalizeSolutionStep()
-        self.response_function.FinalizeSolutionStep()
-        self.sensitivity_builder.UpdateSensitivities()
+        self._GetResponseFunction().FinalizeSolutionStep()
+        self._GetSensitivityBuilder().UpdateSensitivities()
 
+    @classmethod
+    def _GetStrategyType(self):
+        strategy_type = "linear"
+        return strategy_type
+
+    def _CreateScheme(self):
+        # Fake scheme creation to do the solution update
+        response_function = self._GetResponseFunction()
+        scheme = KratosMultiphysics.ResidualBasedAdjointStaticScheme(response_function)
+        return scheme
+
+    def _GetResponseFunction(self):
+        if not hasattr(self, '_response_function'):
+            self._response_function = self.__CreateResponseFunction()
+        return self._response_function
+
+    def __CreateResponseFunction(self):
+        computing_model_part = self.GetComputingModelPart()
+        if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
+            response_function = KCPFApp.AdjointLiftJumpCoordinatesResponseFunction(
+                computing_model_part,
+                self.response_function_settings)
+        else:
+            raise Exception("Invalid response_type: " + self.response_function_settings["response_type"].GetString())
+        return response_function
+
+    def _GetSensitivityBuilder(self):
+        if not hasattr(self, '_sensitivity_builder'):
+            self._sensitivity_builder = self.__CreateSensitivityBuilder()
+        return self._sensitivity_builder
+
+    def __CreateSensitivityBuilder(self):
+        computing_model_part = self.GetComputingModelPart()
+        response_function = self._GetResponseFunction()
+        sensitivity_builder = KratosMultiphysics.SensitivityBuilder(
+            self.sensitivity_settings,
+            computing_model_part,
+            response_function)
+        return sensitivity_builder

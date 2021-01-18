@@ -46,7 +46,7 @@ namespace Kratos
  * @details This class derives from the linear elastic case on 3D
  * @author Riccardo Rossi
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStress 
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStress
     : public ElasticIsotropic3D
 {
 public:
@@ -55,26 +55,26 @@ public:
 
     /// The process info definition
     typedef ProcessInfo      ProcessInfoType;
-    
+
     /// The base class ConstitutiveLaw type definition
     typedef ConstitutiveLaw       CLBaseType;
-    
+
     /// The base class ElasticIsotropic3D type definition
     typedef ElasticIsotropic3D      BaseType;
 
     // Adding the respective using to avoid overload conflicts
     using BaseType::Has;
     using BaseType::GetValue;
-    
+
     /// The size type definition
     typedef std::size_t             SizeType;
-    
+
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 2;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 3;
-    
+
     /// Counted pointer of LinearPlaneStress
     KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStress );
 

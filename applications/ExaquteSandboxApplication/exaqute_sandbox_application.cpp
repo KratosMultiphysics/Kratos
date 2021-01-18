@@ -30,12 +30,14 @@ KratosExaquteSandboxApplication::KratosExaquteSandboxApplication():
 
 void KratosExaquteSandboxApplication::Register()
 {
-     // calling base class register to register Kratos components
-     KratosApplication::Register();
      KRATOS_INFO("") << "Initializing KratosExaquteSandboxApplication..." << std::endl;
 
-  KRATOS_REGISTER_VARIABLE( DIVERGENCE_WEIGHTED )
+  KRATOS_REGISTER_VARIABLE( AVERAGED_DIVERGENCE )
+  KRATOS_REGISTER_VARIABLE( DIVERGENCE )
   KRATOS_REGISTER_VARIABLE( VELOCITY_H1_SEMINORM )
+  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VELOCITY_NOISE )
+  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AVERAGED_VELOCITY )
+  KRATOS_REGISTER_VARIABLE( AVERAGED_PRESSURE )
 
 }
 }  // namespace Kratos.

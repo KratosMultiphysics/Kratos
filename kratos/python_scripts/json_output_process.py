@@ -124,14 +124,14 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     else:
                         value = node.GetValue(variable)
 
-                    if variable_type == "Double" or variable_type == "Component":
+                    if variable_type == "Double":
                         if not self.resultant_solution:
                             data[node_identifier][variable_name] = []
                         else:
                             if count == 0:
                                 data["RESULTANT"][variable_name] = []
                     elif variable_type == "Array":
-                        if KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component":
+                        if KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double":
                             if not self.resultant_solution:
                                 data[node_identifier][variable_name + "_X"] = []
                                 data[node_identifier][variable_name + "_Y"] = []
@@ -177,7 +177,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
                     gauss_point_number = len(value)
 
-                    if variable_type == "Double" or variable_type == "Component":
+                    if variable_type == "Double":
                         if not self.resultant_solution:
                             data["ELEMENT_" + str(elem.Id)][variable_name] = {}
                             for gp in range(gauss_point_number):
@@ -188,7 +188,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                 for gp in range(gauss_point_number):
                                     data["RESULTANT"][variable_name][str(gp)] = []
                     elif variable_type == "Array":
-                        if KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component":
+                        if KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double":
                             if not self.resultant_solution:
                                 data["ELEMENT_" + str(elem.Id)][variable_name + "_X"] = {}
                                 data["ELEMENT_" + str(elem.Id)][variable_name + "_Y"] = {}
@@ -263,7 +263,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                         else:
                             value = node.GetValue(variable)
 
-                        if variable_type == "Double" or variable_type == "Component":
+                        if variable_type == "Double":
                             if not self.resultant_solution:
                                 data[node_identifier][variable_name].append(value)
                             else:
@@ -272,7 +272,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                 else:
                                     data["RESULTANT"][variable_name][-1] += value
                         elif variable_type == "Array":
-                            if KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component":
+                            if KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double":
                                 if not self.resultant_solution:
                                     data[node_identifier][variable_name + "_X"].append(value[0])
                                     data[node_identifier][variable_name + "_Y"].append(value[1])
@@ -325,7 +325,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
                         gauss_point_number = len(value)
 
-                        if variable_type == "Double" or variable_type == "Component":
+                        if variable_type == "Double":
                             if not self.resultant_solution:
                                 for gp in range(gauss_point_number):
                                     data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)].append(value[gp])
@@ -337,7 +337,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                     for gp in range(gauss_point_number):
                                         data["RESULTANT"][variable_name][str(gp)][-1] += value[gp]
                         elif variable_type == "Array":
-                            if KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component":
+                            if KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double":
                                 if not self.resultant_solution:
                                     for gp in range(gauss_point_number):
                                         data["ELEMENT_" + str(elem.Id)][variable_name + "_X"][str(gp)].append(value[gp][0])

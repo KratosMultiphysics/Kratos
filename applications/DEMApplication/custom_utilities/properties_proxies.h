@@ -47,9 +47,13 @@ namespace Kratos {
         double* pGetRollingFrictionWithWalls();
         void    SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls);
 
-        double  GetTgOfFrictionAngle();
-        double* pGetTgOfFrictionAngle();
-        void    SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle);
+        double  GetTgOfStaticFrictionAngle();
+        double* pGetTgOfStaticFrictionAngle();
+        void    SetTgOfStaticFrictionAngleFromProperties(double* tg_of_static_friction_angle);
+
+        double  GetTgOfDynamicFrictionAngle();
+        double* pGetTgOfDynamicFrictionAngle();
+        void    SetTgOfDynamicFrictionAngleFromProperties(double* tg_of_dynamic_friction_angle);
 
         double  GetCoefficientOfRestitution();
         double* pGetCoefficientOfRestitution();
@@ -70,6 +74,10 @@ namespace Kratos {
         double  GetParticleCohesion();
         double* pGetParticleCohesion();
         void    SetParticleCohesionFromProperties(double* particle_cohesion);
+
+        double  GetParticleInitialCohesion();
+        double* pGetParticleInitialCohesion();
+        void    SetParticleInitialCohesionFromProperties(double* particle_initial_cohesion);
 
         double  GetAmountOfCohesionFromStress();
         double* pGetAmountOfCohesionFromStress();
@@ -99,10 +107,6 @@ namespace Kratos {
         double* pGetLevelOfFouling();
         void    SetLevelOfFoulingFromProperties(double* level_of_fouling);
 
-        double  GetContactSigmaMin();
-        double* pGetContactSigmaMin();
-        void    SetContactSigmaMinFromProperties(double* contact_sigma_min);
-
         double  GetContactTauZero();
         double* pGetContactTauZero();
         void    SetContactTauZeroFromProperties(double* contact_tau_zero);
@@ -120,12 +124,14 @@ namespace Kratos {
         double* mPoisson;
         double* mRollingFriction;
         double* mRollingFrictionWithWalls;
-        double* mTgOfFrictionAngle;
+        double* mTgOfStaticFrictionAngle;
+        double* mTgOfDynamicFrictionAngle;
         double* mCoefficientOfRestitution;
         double* mLnOfRestitCoeff;
         double* mDensity;
         int*    mParticleMaterial;
         double* mParticleCohesion;
+        double* mParticleInitialCohesion;
         double* mAmountOfCohesionFromStress;
         double* mParticleKNormal;
         double* mParticleKTangential;
@@ -139,9 +145,9 @@ namespace Kratos {
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const;
+        void save(Serializer& rSerializer) const;
 
-        virtual void load(Serializer& rSerializer);
+        void load(Serializer& rSerializer);
     }; // class PropertiesProxy
 
 

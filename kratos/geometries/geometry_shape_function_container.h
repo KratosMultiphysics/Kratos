@@ -146,7 +146,7 @@ public:
         if (ThisShapeFunctionsDerivatives.size() > 1)
         {
             ShapeFunctionsDerivativesIntegrationPointArrayType derivatives_array(ThisShapeFunctionsDerivatives.size() - 1);
-            for (int i = 1; i < ThisShapeFunctionsDerivatives.size(); ++i)
+            for (IndexType i = 1; i < ThisShapeFunctionsDerivatives.size(); ++i)
             {
                 ShapeFunctionsDerivativesType DN_De_i_array(1);
                 DN_De_i_array[0] = ThisShapeFunctionsDerivatives[i];
@@ -161,6 +161,7 @@ public:
         : mIntegrationPoints({})
         , mShapeFunctionsValues({})
         , mShapeFunctionsLocalGradients({})
+        , mShapeFunctionsDerivatives({})
     {
     }
 
@@ -173,6 +174,7 @@ public:
         , mIntegrationPoints(rOther.mIntegrationPoints)
         , mShapeFunctionsValues( rOther.mShapeFunctionsValues )
         , mShapeFunctionsLocalGradients( rOther.mShapeFunctionsLocalGradients )
+        , mShapeFunctionsDerivatives( rOther.mShapeFunctionsDerivatives )
     {
     }
 
@@ -190,6 +192,7 @@ public:
         mIntegrationPoints = rOther.mIntegrationPoints;
         mShapeFunctionsValues = rOther.mShapeFunctionsValues;
         mShapeFunctionsLocalGradients = rOther.mShapeFunctionsLocalGradients;
+        mShapeFunctionsDerivatives = rOther.mShapeFunctionsDerivatives;
 
         return *this;
     }
@@ -322,8 +325,8 @@ public:
     *                       2D: du^3, du^2dv, dudv^2, dv^3 (size2 = 4)
     */
     const Matrix& ShapeFunctionDerivatives(
-        IndexType IntegrationPointIndex,
         IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const
     {
         /* Shape function values are stored within a Matrix, however, only one row
@@ -337,10 +340,12 @@ public:
             return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
         }
 
-        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex].size() > (DerivativeOrderIndex - 2))
-            << "Not enough derivatives within geometry_shape_function_container." << std::endl;
+        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2].size() < IntegrationPointIndex)
+            << "Not enough integration points within geometry_shape_function_container. Geometry_shape_function_container has "
+            << mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2].size()
+            << " integration points. Called integration point index: " << IntegrationPointIndex << std::endl;
 
-        return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2];
+        return mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2][IntegrationPointIndex];
     }
 
     /*
@@ -373,7 +378,7 @@ public:
         if (DerivativeOrderIndex == 1)
             return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex](ShapeFunctionIndex, DerivativeOrderRowIndex);
         
-        return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2](ShapeFunctionIndex, DerivativeOrderRowIndex);
+        return mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2][IntegrationPointIndex](ShapeFunctionIndex, DerivativeOrderRowIndex);
     }
 
     ///@}

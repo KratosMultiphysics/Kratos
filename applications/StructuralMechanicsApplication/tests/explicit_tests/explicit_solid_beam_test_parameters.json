@@ -32,8 +32,6 @@
         "linear_solver_settings"             : {
             "solver_type"         : "amgcl"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","SelfWeight2D_Self_weight_Auto1"],
         "rotation_dofs"                      : false
     },
     "processes"        : {
@@ -55,6 +53,7 @@
             "Parameters"    : {
                 "model_part_name" : "Structure.SelfWeight2D_Self_weight_Auto1",
                 "variable_name"   : "VOLUME_ACCELERATION",
+                "constrained"     : false,
                 "modulus"         : 9.81,
                 "direction"       : [0.0,-1.0,0.0],
                 "interval"        : [0.0,"End"]
@@ -66,7 +65,7 @@
             "kratos_module"   : "KratosMultiphysics",
             "process_name"          : "CheckValueProcess",
             "Parameters"            : {
-                    "model_part_name" : "Check_ModelPart",
+                    "model_part_name" : "Structure.Check_ModelPart",
                     "variable_name"   : "DISPLACEMENT_Y",
                     "interval"        : [0.0, "End"],
                     "value"           : "-3.28e-5*(1.0 - cos((3.14159/0.0049)*(t - 1.0e-6)))",

@@ -27,11 +27,11 @@ namespace Kratos
 
 void MPMParticleBaseCondition::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo )
+    const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     if (rResult.size() != dimension * number_of_nodes)
@@ -67,12 +67,12 @@ void MPMParticleBaseCondition::EquationIdVector(
 //***********************************************************************
 void MPMParticleBaseCondition::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension =  r_geometry.WorkingSpaceDimension();
     rElementalDofList.resize(0);
@@ -104,9 +104,9 @@ void MPMParticleBaseCondition::GetDofList(
 void MPMParticleBaseCondition::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;
@@ -133,9 +133,9 @@ void MPMParticleBaseCondition::GetValuesVector(
 void MPMParticleBaseCondition::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;
@@ -162,9 +162,9 @@ void MPMParticleBaseCondition::GetFirstDerivativesVector(
 void MPMParticleBaseCondition::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;
@@ -253,7 +253,7 @@ void MPMParticleBaseCondition::CalculateAll(
 //***********************************************************************
 //***********************************************************************
 
-int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);
@@ -374,12 +374,93 @@ Matrix& MPMParticleBaseCondition::CalculateCurrentDisp(Matrix & rCurrentDisp, co
     KRATOS_CATCH( "" )
 }
 
+void MPMParticleBaseCondition::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MPC_AREA) {
+        rValues[0] = m_area;
+    }
+    else {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void MPMParticleBaseCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_COORD || rVariable == MPC_COORD) {
+        rValues[0] = m_xg;
+    }
+    else if (rVariable == MPC_VELOCITY) {
+        rValues[0] = m_velocity;
+    }
+    else if (rVariable == MPC_ACCELERATION) {
+        rValues[0] = m_acceleration;
+    }
+    else if (rVariable == MPC_NORMAL ) {
+        rValues[0] = m_normal;
+    }
+    else {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void MPMParticleBaseCondition::SetValuesOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo) {
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MPC_AREA) {
+        m_area = rValues[0];
+    }
+    else {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void MPMParticleBaseCondition::SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > > rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_COORD || rVariable == MPC_COORD) {
+        m_xg = rValues[0];
+    }
+    else if (rVariable == MPC_VELOCITY) {
+        m_velocity = rValues[0];
+    }
+    else if (rVariable == MPC_ACCELERATION) {
+        m_acceleration = rValues[0];
+    }
+    else if (rVariable == MPC_NORMAL) {
+        m_normal = rValues[0];
+    }
+    else {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
 //***********************************************************************
 //***********************************************************************
 
 double MPMParticleBaseCondition::GetIntegrationWeight()
 {
-    return this->GetValue(MPC_AREA);
+    return m_area;
 }
 
 } // Namespace Kratos

@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
 import json
@@ -101,8 +101,8 @@ class DamMechanicalSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         # Add variables for the solid conditions
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.FORCE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosStructural.POINT_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.FORCE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         # Add volume acceleration
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
@@ -351,7 +351,6 @@ class DamMechanicalSolver(object):
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["mechanical_solver_settings"]["search_neighbours_step"])
                 solver = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.main_model_part,
                                                                                scheme,
-                                                                               self.linear_solver,
                                                                                convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -363,7 +362,6 @@ class DamMechanicalSolver(object):
                 self.main_model_part.ProcessInfo.SetValue(KratosPoro.IS_CONVERGED, True)
                 solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.main_model_part,
                                                                                scheme,
-                                                                               self.linear_solver,
                                                                                convergence_criterion,
                                                                                builder_and_solver,
                                                                                max_iters,

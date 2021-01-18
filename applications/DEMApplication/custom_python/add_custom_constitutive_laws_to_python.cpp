@@ -31,12 +31,18 @@
 #include "../custom_constitutive/DEM_KDEM_CL.h"
 #include "../custom_constitutive/DEM_KDEM_soft_torque_CL.h"
 #include "../custom_constitutive/DEM_KDEM_soft_torque_with_noise_CL.h"
+#include "../custom_constitutive/DEM_KDEM_with_damage_CL.h"
+#include "../custom_constitutive/DEM_KDEM_with_damage_parallel_bond_CL.h"
+#include "../custom_constitutive/DEM_KDEM_with_damage_parallel_bond_bilinear_CL.h"
+#include "../custom_constitutive/DEM_KDEM_with_damage_parallel_bond_capped_CL.h"
+#include "../custom_constitutive/DEM_KDEM_with_damage_parallel_bond_2D_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.h"
 #include "../custom_constitutive/DEM_KDEM_CamClay_CL.h"
 #include "../custom_constitutive/dem_kdem_fissured_rock_cl.h"
 #include "../custom_constitutive/DEM_sintering_continuum_CL.h"
 #include "../custom_constitutive/DEM_KDEM_fabric_CL.h"
+#include "../custom_constitutive/DEM_beam_constitutive_law.h"
 #include "../custom_constitutive/DEM_ExponentialHC_CL.h"
 #include "../custom_constitutive/DEM_Dempack_torque_CL.h"
 #include "../custom_constitutive/DEM_Dempack_dev_CL.h"
@@ -129,7 +135,6 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
     py::class_<DEM_D_Linear_HighStiffness, DEM_D_Linear_HighStiffness::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_HighStiffness")
         .def(py::init<>())
         ;
-    // DEM Continuum Constitutive Laws:
 
     // DEM Continuum Constitutive Laws:
 
@@ -177,6 +182,26 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
+    py::class_<DEM_KDEM_with_damage, DEM_KDEM_with_damage::Pointer, DEM_KDEM_soft_torque>(m, "DEM_KDEM_with_damage")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_KDEM_with_damage_parallel_bond, DEM_KDEM_with_damage_parallel_bond::Pointer, DEM_KDEM_with_damage>(m, "DEM_KDEM_with_damage_parallel_bond")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_KDEM_with_damage_parallel_bond_bilinear, DEM_KDEM_with_damage_parallel_bond_bilinear::Pointer, DEM_KDEM_with_damage_parallel_bond>(m, "DEM_KDEM_with_damage_parallel_bond_bilinear")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_KDEM_with_damage_parallel_bond_capped, DEM_KDEM_with_damage_parallel_bond_capped::Pointer, DEM_KDEM_with_damage_parallel_bond>(m, "DEM_KDEM_with_damage_parallel_bond_capped")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_KDEM_with_damage_parallel_bond_2D, DEM_KDEM_with_damage_parallel_bond_2D::Pointer, DEM_KDEM_with_damage_parallel_bond>(m, "DEM_KDEM_with_damage_parallel_bond_2D")
+        .def(py::init<>())
+        ;
+
     py::class_<DEM_sintering_continuum, DEM_sintering_continuum::Pointer, DEM_KDEM>(m, "DEM_sintering_continuum")
         .def(py::init<>())
         ;
@@ -211,6 +236,20 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
     py::class_<DEM_ExponentialHC, DEM_ExponentialHC::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_ExponentialHC")
         .def(py::init<>())
+        ;
+
+    // DEM Beam Constitutive Laws:
+
+    py::class_<DEMBeamConstitutiveLaw, DEMBeamConstitutiveLaw::Pointer>(m, "DEMBeamConstitutiveLaw")
+        .def(py::init<>())
+        .def("Clone", &DEMBeamConstitutiveLaw::Clone)
+        .def("SetConstitutiveLawInProperties", &DEMBeamConstitutiveLaw::SetConstitutiveLawInProperties)
+        .def("GetTypeOfLaw", &DEMBeamConstitutiveLaw::GetTypeOfLaw)
+        .def("CheckRequirementsOfStressTensor", &DEMBeamConstitutiveLaw::CheckRequirementsOfStressTensor)
+        ;
+
+    py::class_<Variable<DEMBeamConstitutiveLaw::Pointer>, Variable<DEMBeamConstitutiveLaw::Pointer>::Pointer>(m, "DEMBeamConstitutiveLawPointerVariable")
+        .def("__str__", PrintObject<Variable<DEMBeamConstitutiveLaw::Pointer>>)
         ;
 }
 

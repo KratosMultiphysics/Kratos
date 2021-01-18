@@ -1,0 +1,76 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "fourpoint",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "solver_type"                     : "formfinding",
+        "model_part_name"                 : "Structure",
+        "domain_size"                     : 3,
+        "echo_level"                      : 0,
+        "analysis_type"                   : "non_linear",
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "formfinding_test/Formfinding_Four_Point_Membrane_With_Cable_test"
+        },
+        "material_import_settings"        : {
+            "materials_filename" : "formfinding_test/Formfinding_Four_Point_Membrane_With_Cable_test_materials.json"
+        },
+        "time_stepping"                   : {
+            "time_step" : 1.1
+        },
+        "line_search"                     : false,
+        "convergence_criterion"           : "residual_criterion",
+        "displacement_relative_tolerance" : 1e-6,
+        "displacement_absolute_tolerance" : 1e-6,
+        "residual_relative_tolerance"     : 1e-6,
+        "residual_absolute_tolerance"     : 1e-6,
+        "max_iteration"                   : 40,
+        "rotation_dofs"                   : false,
+        "printing_format"                 : "none",
+        "write_formfound_geometry_file"   : false,
+        "projection_settings": {
+            "model_part_name"  : "Structure",
+            "echo_level"       : 1,
+            "projection_type"  : "planar",
+            "global_direction" : [1.0,0,0],
+            "variable_name"    : "LOCAL_PRESTRESS_AXIS_1",
+            "method_specific_settings" : { },
+            "check_local_space_dimension" : false
+        }
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_dirichlet",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [],
+        "list_other_processes"     : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["DISPLACEMENT"],
+                "historical_value" : false,
+                "input_file_name"  : "formfinding_test/Formfinding_Four_Point_Membrane_With_Cable_test_results.json",
+                "model_part_name"  : "Structure.check_results",
+                "time_frequency"   : 0.90
+            }
+        }]
+    },
+    "output_processes" : {
+        "gid_output" : [],
+        "vtk_output" : []
+    }
+}

@@ -50,13 +50,13 @@ int ModelPartWrapper::getNodesCount() {
 int *ModelPartWrapper::getTriangles() {
     auto &r_conditions_array = mModelPart.GetSubModelPart(SKIN_SUBMODEL_PART_NAME).Conditions();
     const auto it_condition_begin = r_conditions_array.begin();
-    int *triangles = new int[mTrianglesCount];
+    int *triangles = new int[mTrianglesCount * 3];
     for (int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
         auto it_condition = it_condition_begin + i;
         auto geometry = it_condition->GetGeometry();
 
         for (int j = 0; j < 3; j++) {
-            triangles[3 * i + j] = geometry.GetPoint(j).Id();
+            triangles[3 * i + j] = idTranslator.getSurfaceId(geometry.GetPoint(j).Id());
         }
     }
     return triangles;
@@ -383,22 +383,6 @@ IdTranslator *ModelPartWrapper::getIdTranslator() {
 }
 
 double *ModelPartWrapper::getNodalVariable1d(Kratos::Variable<double> &variable) {
-    auto *values = new double[mNodesCount];
-
-    auto &rSkinModelPart = mModelPart.GetSubModelPart(SKIN_SUBMODEL_PART_NAME);
-    auto &rNodesArray = rSkinModelPart.Nodes();
-    const auto nodeBegin = rNodesArray.begin();
-#pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
-        auto it_node = nodeBegin + i;
-        int current_node_id = idTranslator.getSurfaceId(it_node->Id());
-        values[current_node_id] = it_node->FastGetSolutionStepValue(variable);
-    }
-    return values;
-}
-
-double *ModelPartWrapper::getNodalVariableComponent(
-        Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > &variable) {
     auto *values = new double[mNodesCount];
 
     auto &rSkinModelPart = mModelPart.GetSubModelPart(SKIN_SUBMODEL_PART_NAME);

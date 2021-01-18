@@ -18,16 +18,12 @@ try:
     import cPickle as pickle
     have_pickle_module = True
 except ImportError:
-    if sys.version_info > (3, 0):
-        try:
-            import pickle
-            have_pickle_module = True
-        except ImportError:
-            have_pickle_module = False
-            pickle_message = "No pickle module found"
-    else:
+    try:
+        import pickle
+        have_pickle_module = True
+    except ImportError:
         have_pickle_module = False
-        pickle_message = "No valid pickle module found"
+        pickle_message = "No pickle module found"
 
 def executeComputeArea_Task(pickled_model):
     # Unpickling model
@@ -80,7 +76,7 @@ class TestMPISerializer(UnitTest.TestCase):
             },
             "echo_level" : 0
         }""")
-        mdpa_name = GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_mpi_serializer")
+        mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_serializer")
         importer_settings["model_import_settings"]["input_filename"].SetString(mdpa_name)
 
         model_part_import_util = distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part_to_read, importer_settings)

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import sys
 import time as timer
 import os
@@ -15,7 +13,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as Structural
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 from KratosMultiphysics.DemStructuresCouplingApplication import dem_structures_coupling_gid_output
 
-class Algorithm(object):
+class Algorithm():
 
     def __init__(self):
         self.model = Kratos.Model()
@@ -54,9 +52,6 @@ class Algorithm(object):
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.SHEAR_STRESS)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.NON_DIMENSIONAL_VOLUME_WEAR)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.IMPACT_WEAR)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.TARGET_STRESS)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.REACTION_STRESS)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.LOADING_VELOCITY)
 
     def Run(self):
         self.Initialize()
@@ -88,7 +83,7 @@ class Algorithm(object):
                             mixed_mp
                             )
 
-        structures_nodal_results = ["VOLUME_ACCELERATION","DEM_SURFACE_LOAD","REACTION","TARGET_STRESS","REACTION_STRESS","LOADING_VELOCITY"]
+        structures_nodal_results = ["VOLUME_ACCELERATION","DEM_SURFACE_LOAD","REACTION"]
         dem_nodal_results = ["IS_STICKY", "DEM_STRESS_TENSOR"]
         clusters_nodal_results = []
         rigid_faces_nodal_results = []
@@ -108,15 +103,18 @@ class Algorithm(object):
         skin_detection_parameters = Kratos.Parameters("""
         {
             "name_auxiliar_model_part"              : "DetectedByProcessSkinModelPart",
-            "name_auxiliar_condition"               : "SurfaceLoadFromDEMCondition",
             "list_model_parts_to_assign_conditions" : []
         }
         """)
 
         computing_model_part = self.structural_solution._GetSolver().GetComputingModelPart()
         if (computing_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] == 2):
+            skin_detection_parameters.AddEmptyValue("name_auxiliar_condition")
+            skin_detection_parameters["name_auxiliar_condition"].SetString('LineLoadFromDEMCondition')
             self.structure_skin_detector = Kratos.SkinDetectionProcess2D(computing_model_part, skin_detection_parameters)
         elif (computing_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] == 3):
+            skin_detection_parameters.AddEmptyValue("name_auxiliar_condition")
+            skin_detection_parameters["name_auxiliar_condition"].SetString('SurfaceLoadFromDEMCondition')
             self.structure_skin_detector = Kratos.SkinDetectionProcess3D(computing_model_part, skin_detection_parameters)
         else:
             print("No dimensions detected for the structures problem. Exiting.")
@@ -127,14 +125,15 @@ class Algorithm(object):
     def _TransferStructuresSkinToDem(self):
         self.structural_mp = self.structural_solution._GetSolver().GetComputingModelPart()
         self.skin_mp = self.structural_mp.GetSubModelPart("DetectedByProcessSkinModelPart")
-        dem_walls_mp = self.dem_solution.rigid_face_model_part
+        dem_walls_mp = self.dem_solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
         max_prop_id = 0
         for prop in dem_walls_mp.Properties:
             if prop.Id > max_prop_id:
                 max_prop_id = prop.Id
         props = Kratos.Properties(max_prop_id + 1)
         # NOTE: this should be more general
-        props[Dem.FRICTION] = -0.5773502691896257
+        props[Dem.STATIC_FRICTION] = 0.2
+        props[Dem.DYNAMIC_FRICTION] = 0.2
         props[Dem.WALL_COHESION] = 0.0
         props[Dem.COMPUTE_WEAR] = False
         props[Dem.SEVERITY_OF_WEAR] = 0.001
@@ -183,6 +182,8 @@ class Algorithm(object):
 
                 self.dem_solution.InitializeSolutionStep()
 
+                self.dem_solution._GetSolver().Predict()
+
                 DemFem.InterpolateStructuralSolutionForDEM().InterpolateStructuralSolution(self.structural_mp, self.Dt_structural, self.structural_solution.time, self.dem_solution._GetSolver().dt, self.dem_solution.time)
 
                 self.dem_solution.SolverSolve()
@@ -190,9 +191,6 @@ class Algorithm(object):
                 self.dem_solution.FinalizeSolutionStep()
 
                 DemFem.ComputeDEMFaceLoadUtility().CalculateDEMFaceLoads(self.skin_mp, self.dem_solution._GetSolver().dt, self.Dt_structural)
-
-                self.dem_solution.DEMFEMProcedures.MoveAllMeshes(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution._GetSolver().dt)
-                #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 
                 #### PRINTING GRAPHS ####
                 os.chdir(self.dem_solution.graphs_path)
@@ -216,8 +214,6 @@ class Algorithm(object):
                     self.dem_solution.PrintResultsForGid(self.dem_solution.time)
                     self.dem_solution.demio.PrintMultifileLists(self.dem_solution.time, self.dem_solution.post_path)
                     self.dem_solution.time_old_print = self.dem_solution.time
-
-                self.dem_solution.FinalizeTimeStep(self.dem_solution.time)
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 

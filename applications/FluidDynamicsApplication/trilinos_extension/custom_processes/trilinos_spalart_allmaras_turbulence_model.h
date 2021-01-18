@@ -159,9 +159,9 @@ public:
 
         std::string ConditionName;
         if (BaseSpAlType::mdomain_size == 2)
-            ConditionName = std::string("Condition2D");
+            ConditionName = std::string("LineCondition2D2N");
         else
-            ConditionName = std::string("Condition3D");
+            ConditionName = std::string("SurfaceCondition3D3N");
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(ConditionName);
 
         for (ModelPart::ConditionsContainerType::iterator iii = BaseSpAlType::mr_model_part.ConditionsBegin(); iii != BaseSpAlType::mr_model_part.ConditionsEnd(); iii++)
@@ -202,7 +202,7 @@ public:
         bool CalculateReactions = false;
         bool MoveMesh = false;
 
-        BaseSpAlType::mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(BaseSpAlType::mrSpalartModelPart,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
+        BaseSpAlType::mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(BaseSpAlType::mrSpalartModelPart,pScheme,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
         BaseSpAlType::mpSolutionStrategy->SetEchoLevel(0);
         BaseSpAlType::mpSolutionStrategy->Check();
 

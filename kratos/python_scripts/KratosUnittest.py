@@ -1,5 +1,5 @@
-from __future__ import print_function, absolute_import, division
-from KratosMultiphysics import Logger
+from KratosMultiphysics import Logger, DataCommunicator
+from KratosMultiphysics.kratos_utilities import GetNotAvailableApplications
 
 from unittest import * # needed to make all functions available to the tests using this file
 from unittest.util import safe_repr
@@ -8,6 +8,7 @@ from contextlib import contextmanager
 import getopt
 import sys
 import os
+from time import time
 
 
 class TestLoader(TestLoader):
@@ -24,15 +25,21 @@ class TestLoader(TestLoader):
         return allTests
 
 
+test_timing_results = {}
+
 class TestCase(TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        if (sys.version_info < (3, 2)):
-            cls.assertRaisesRegex = cls.assertRaisesRegexp
-
     def run(self, result=None):
-        super(TestCase,self).run(result)
+        start_time = time()
+        super().run(result)
+        time_needed = time()-start_time
+        test_timing_results[time_needed] = str(self)
+
+    def skipTestIfApplicationsNotAvailable(self, *application_names):
+        '''Skips the test if required applications are not available'''
+        required_but_not_available_apps = GetNotAvailableApplications(*application_names)
+        if len(required_but_not_available_apps) > 0:
+            self.skipTest('Required Applications are missing: "{}"'.format('", "'.join(required_but_not_available_apps)))
 
     def assertEqualTolerance(self, first, second, tolerance, msg=None):
         ''' Fails if first and second have a difference greater than
@@ -46,7 +53,7 @@ class TestCase(TestCase):
         absolute and relative difference
 
         If the two objects compare equal then they will automatically
-        compare relative almost equal. ''' 
+        compare relative almost equal. '''
 
         if first == second:
             # shortcut
@@ -67,16 +74,41 @@ class TestCase(TestCase):
         raise self.failureException(msg)
 
     def assertVectorAlmostEqual(self, vector1, vector2, prec=7):
-        self.assertEqual(matrix1.Size1(), matrix2.Size1())
-        for i in range(matrix1.Size1()):
-            self.assertAlmostEqual(vector1[i], vector2[i], prec)
+        def GetErrMsg(mismatch_idx):
+            err_msg  = '\nCheck failed because vector arguments are not equal in component {}'.format(mismatch_idx)
+            err_msg += '\nVector 1:\n{}\nVector 2:\n{}'.format(vector1, vector2)
+            yield err_msg
+
+        self.assertEqual(len(vector1), len(vector2), msg="\nCheck failed because vector arguments do not have the same size")
+        for i, (v1, v2) in enumerate(zip(vector1, vector2)):
+            self.assertAlmostEqual(v1, v2, prec, msg=GetErrMsg(i))
 
     def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
-        self.assertEqual(matrix1.Size1(), matrix2.Size1())
-        self.assertEqual(matrix1.Size2(), matrix2.Size2())
+        def GetDimErrMsg():
+            err_msg  = '\nCheck failed because matrix arguments do not have the same dimensions:\n'
+            err_msg += 'First argument has dimensions ({},{}), '.format(matrix1.Size1(), matrix1.Size2())
+            err_msg += 'Second argument has dimensions ({},{})'.format(matrix2.Size1(), matrix2.Size2())
+            yield err_msg
+
+        def GetValErrMsg(idx_1, idx_2):
+            err_msg  = '\nCheck failed because matrix arguments are not equal in component ({},{})'.format(idx_1, idx_2)
+            err_msg += '\nMatrix 1:\n{}\nMatrix 2:\n{}'.format(matrix1, matrix2)
+            yield err_msg
+
+        dimensions_match = (matrix1.Size1() == matrix2.Size1() and matrix1.Size2() == matrix2.Size2())
+        self.assertTrue(dimensions_match, msg=GetDimErrMsg())
+
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
-                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
+                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg=GetValErrMsg(i,j))
+
+
+def skipIfApplicationsNotAvailable(*application_names):
+    '''Skips the test if required applications are not available'''
+    required_but_not_available_apps = GetNotAvailableApplications(*application_names)
+    reason_for_skip = 'Required Applications are missing: "{}"'.format('", "'.join(required_but_not_available_apps))
+    return skipIf(len(required_but_not_available_apps) > 0, reason_for_skip)
+
 
 @contextmanager
 def SupressConsoleOutput():
@@ -140,16 +172,18 @@ def runTests(tests):
 
     verbosity = 1
     level = 'all'
+    print_timings = False
     is_mpi = False
 
     # Parse Commandline
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            'hv:l:', [
+            'hv:l:t', [
                 'help',
                 'verbose=',
                 'level=',
+                'timing',
                 'using-mpi'
             ])
     except getopt.GetoptError as err:
@@ -177,6 +211,8 @@ def runTests(tests):
                 sys.exit()
         elif o in ('--using-mpi'):
             is_mpi = True
+        elif o in ('-t', '--timing'):
+            print_timings = True
         else:
             assert False, 'unhandled option'
 
@@ -189,6 +225,10 @@ def runTests(tests):
             file=sys.stderr)
     else:
         result = not TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level]).wasSuccessful()
+        if DataCommunicator.GetDefault().Rank() == 0 and print_timings:
+            print("Test Execution Times:")
+            for test_time, test_name in sorted(test_timing_results.items(), reverse=True):
+                print(test_name, " {0:.{1}f} [sec]".format(test_time,2))
         sys.exit(result)
 
 

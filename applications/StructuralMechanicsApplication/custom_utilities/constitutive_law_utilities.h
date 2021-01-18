@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+
 #include "includes/ublas_interface.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
@@ -82,6 +83,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
 
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, VoigtSize, VoigtSize> BoundedMatrixVoigtType;
+
     /// Node type definition
     typedef Node<3> NodeType;
 
@@ -107,11 +111,18 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @brief This method computes the first invariant from a given stress vector
      * @param rStressVector The stress vector on Voigt notation
      * @param rI1 The first invariant
+     * @tparam TVector The themplate for the vector class
      */
+    template<class TVector>
     static void CalculateI1Invariant(
-        const BoundedVectorType& rStressVector,
+        const TVector& rStressVector,
         double& rI1
-        );
+        )
+    {
+        rI1 = rStressVector[0];
+        for (IndexType i = 1; i < Dimension; ++i)
+            rI1 += rStressVector[i];
+    }
 
     /**
      * @brief This method computes the second invariant from a given stress vector
@@ -141,13 +152,34 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param I1 The first invariant
      * @param rDeviator The deviator of the stress
      * @param rJ2 The second invariant of J
+     * @tparam TVector The themplate for the vector class
      */
+    template<class TVector>
     static void CalculateJ2Invariant(
-        const BoundedVectorType& rStressVector,
+        const TVector& rStressVector,
         const double I1,
         BoundedVectorType& rDeviator,
         double& rJ2
-        );
+        )
+    {
+        if (Dimension == 3) {
+            rDeviator = rStressVector;
+            const double p_mean = I1 / 3.0;
+            for (IndexType i = 0; i < Dimension; ++i)
+                rDeviator[i] -= p_mean;
+            rJ2 = 0.0;
+            for (IndexType i = 0; i < Dimension; ++i)
+                rJ2 += 0.5 * std::pow(rDeviator[i], 2);
+            for (IndexType i = Dimension; i < 6; ++i)
+                rJ2 += std::pow(rDeviator[i], 2);
+        } else {
+            rDeviator = rStressVector;
+            const double p_mean = I1 / 3.0;
+            for (IndexType i = 0; i < Dimension; ++i)
+                rDeviator[i] -= p_mean;
+            rJ2 = 0.5 * (std::pow(rDeviator[0], 2.0) + std::pow(rDeviator[1], 2.0) + std::pow(p_mean, 2.0)) + std::pow(rDeviator[2], 2.0);
+        }
+    }
 
     /**
      * @brief This method computes the third invariant of J
@@ -399,7 +431,80 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         const MatrixType& rRe
         );
 
-  private:
+    /**
+     * @brief This computes the rotation matrix for the 1st Euler angle
+     * http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static void CalculateRotationOperatorEuler1(
+        const double EulerAngle1,
+        BoundedMatrix<double, 3, 3> &rRotationOperator
+    );
+
+    /**
+     * @brief This computes the rotation matrix for the 2nd Euler angle
+     * http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static void CalculateRotationOperatorEuler2(
+        const double EulerAngle2,
+        BoundedMatrix<double, 3, 3> &rRotationOperator
+    );
+
+    /**
+     * @brief This computes the rotation matrix for the 3rd Euler angle
+     * http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static void CalculateRotationOperatorEuler3(
+        const double EulerAngle3,
+        BoundedMatrix<double, 3, 3> &rRotationOperator
+    );
+
+    /**
+     * @brief This computes the total rotation matrix
+     * rotates from local to global coordinates.
+     * The so-called "x convention" is used.
+     * Order of the rotations:
+     *    1. The first rotation PHI around the Z-axis
+     *    2. The second rotation THETA around the X'-axis
+     *    3. The third rotation HI around the former Z'-axis
+     * more info: http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static void CalculateRotationOperator(
+        const double EulerAngle1, // phi
+        const double EulerAngle2, // theta
+        const double EulerAngle3, // hi
+        BoundedMatrix<double, 3, 3> &rRotationOperator
+    );
+
+    /**
+     * @brief This converts the
+     * 3x3 rotation matrix to the 6x6
+     * Cook et al., "Concepts and applications
+     * of finite element analysis"
+     */
+    static void CalculateRotationOperatorVoigt(
+        const BoundedMatrixType &rOldOperator,
+        BoundedMatrixVoigtType &rNewOperator
+    );
+
+    /**
+     * @brief This method the uniaxial equivalent stress for Von Mises
+     * @param rStressVector The stress vector S = C:E
+     * @return The VM equivalent stress
+     * @tparam TVector The themplate for the vector class
+     */
+    template<class TVector>
+    static double CalculateVonMisesEquivalentStress(const TVector& rStressVector)
+    {
+        double I1, J2;
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
+
+        ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rStressVector, I1);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
+
+        return std::sqrt(3.0 * J2);
+    }
+
+private:
 
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos

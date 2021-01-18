@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -8,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
+
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -51,6 +50,20 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             time = time + delta_time
             mp.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             mp.CloneTimeStep(time)
+
+    def _ResetDisplacementAndPosition(self,mp):
+        zero = KratosMultiphysics.Vector(3)
+        zero[0] = 0.0
+        zero[1] = 0.0
+        zero[2] = 0.0
+
+        for node in mp.Nodes:
+            node.X = node.X0
+            node.Y = node.Y0
+            node.Z = node.Z0
+
+            for step in range(mp.GetBufferSize()):
+                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,step,zero)
 
     def _apply_BCs(self,mp,A,b):
         for node in mp.Nodes:
@@ -100,39 +113,24 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         return A,b
 
-    def _solve(self,mp):
-
-        #define a minimal newton raphson solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
-        convergence_criterion.SetEchoLevel(0)
-
-        max_iters = 20
-        compute_reactions = True
-        reform_step_dofs = True
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                        scheme,
-                                                                        linear_solver,
-                                                                        convergence_criterion,
-                                                                        builder_and_solver,
-                                                                        max_iters,
-                                                                        compute_reactions,
-                                                                        reform_step_dofs,
-                                                                        move_mesh_flag)
-        strategy.SetEchoLevel(0)
-
+    def _solve(self,mp, builder_type, linearize_on_previous_iteration):
+        strategy = self._create_strategy(mp, builder_type, linearize_on_previous_iteration)
         strategy.Check()
         strategy.Solve()
 
-    def _create_strategy(self, mp):
-        #define a minimal newton raphson solver
+    def _create_strategy(self, mp, builder_type, linearize_on_previous_iteration):
+        # Define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        if(builder_type == "elimination_builder"):
+            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        elif(builder_type == "block_builder"):
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        else:
+            raise Exception("builder_type unknown")
+        # Define a minimal newton raphson solver
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
+        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-10,1e-20)
         convergence_criterion.SetEchoLevel(0)
 
         #max_iters = 1
@@ -142,7 +140,6 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,
@@ -150,6 +147,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
                                                                         reform_step_dofs,
                                                                         move_mesh_flag)
         strategy.SetEchoLevel(0)
+        strategy.SetUseOldStiffnessInFirstIterationFlag(linearize_on_previous_iteration)
 
         return strategy
 
@@ -258,7 +256,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
                 for i in range(len(reference_stress)):
                     self.assertTrue((abs((reference_stress[i] - stress[i])/stress[i]) < 1.0e-4))
 
-    def test_compare_TL_UL_2D_triangle(self):
+    def _compare_TL_UL_2D_triangle(self, builder_and_type, linearize_on_old_iteration):
         dim = 2
 
         bc_nodes = [1, 2]
@@ -291,7 +289,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         # Create Element and condition
         tl_elem = tl_mp.CreateNewElement("TotalLagrangianElement2D4N", 1, [1,2,3,4], tl_mp.GetProperties()[1])
-        tl_load = tl_mp.CreateSubModelPart("LoadCondtions")
+        tl_load = tl_mp.CreateSubModelPart("LoadConditions")
         tl_load.AddNodes(load_nodes)
         tl_cond = tl_mp.CreateNewCondition("LineLoadCondition2D2N", 1, load_nodes, tl_mp.GetProperties()[1])
 
@@ -340,8 +338,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         delta_time = ul_mp.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         time = ul_mp.ProcessInfo[KratosMultiphysics.TIME]
 
-        tl_strategy = self._create_strategy(tl_mp)
-        ul_strategy = self._create_strategy(ul_mp)
+        tl_strategy = self._create_strategy(tl_mp, builder_and_type, linearize_on_old_iteration)
+
+        ul_strategy = self._create_strategy(ul_mp, builder_and_type, linearize_on_old_iteration)
 
         for iter in range(1, 4):
 
@@ -376,23 +375,40 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
                 ul_dx = ul_mp.Nodes[i].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
                 ul_dy = ul_mp.Nodes[i].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
 
-                if (ul_dx > 0.0):
-                    self.assertLess((tl_dx - ul_dx) / ul_dx, 1.0e-3)
-                if (ul_dy > 0.0):
-                    self.assertLess((tl_dy - ul_dy) / ul_dy, 1.0e-3)
+                if(abs(tl_dx) > 1e-20):
+                    self.assertLess(abs(tl_dx - ul_dx) / abs(tl_dx), 1.0e-10)
+                if(abs(tl_dy) > 1e-20):
+                    self.assertLess(abs(tl_dy - ul_dy) / abs(tl_dy), 1.0e-10)
 
             # Compare matrices
             for i in range(ul_lhs.Size1()):
                 for j in range(ul_lhs.Size2()):
-                    self.assertLess((ul_lhs[i, j] - tl_lhs[i, j]) / tl_lhs[i, j], 1.0e-3)
+                    self.assertLess(abs(ul_lhs[i, j] - tl_lhs[i, j]) / abs(tl_lhs[i, j]), 1.0e-10)
 
         #self.__post_process(tl_mp)
         #self.__post_process(ul_mp)
 
-    def test_TL_2D_triangle(self):
+    def test_compare_TL_UL_2D_triangle_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._compare_TL_UL_2D_triangle(builder_type, linearize_on_old_iteration )
+
+    def test_compare_TL_UL_2D_triangle_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._compare_TL_UL_2D_triangle(builder_type, linearize_on_old_iteration )
+
+    def test_compare_TL_UL_2D_triangle_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._compare_TL_UL_2D_triangle(builder_type, linearize_on_old_iteration )
+
+
+    def _TL_2D_triangle(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
         dim = 2
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -419,17 +435,35 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         A,b = self._define_movement(dim)
 
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
-
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
         #self.__post_process(mp)
 
-    def test_TL_2D_quadrilateral(self):
+    def test_TL_2D_triangle_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._TL_2D_triangle(builder_type, linearize_on_old_iteration,6 )
+
+    def test_TL_2D_triangle_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._TL_2D_triangle(builder_type, linearize_on_old_iteration,2 )
+
+    def test_TL_2D_triangle_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._TL_2D_triangle(builder_type, linearize_on_old_iteration,6 )
+
+
+    def _TL_2D_quadrilateral(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
         dim = 2
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -460,17 +494,35 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         A,b = self._define_movement(dim)
 
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
-
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
         #self.__post_process(mp)
 
-    def test_TL_3D_tetra(self):
+    def test_TL_2D_quadrilateral_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._TL_2D_quadrilateral(builder_type, linearize_on_old_iteration,6 )
+
+    def test_TL_2D_quadrilateral_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._TL_2D_quadrilateral(builder_type, linearize_on_old_iteration,2 )
+
+    def test_TL_2D_quadrilateral_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._TL_2D_quadrilateral(builder_type, linearize_on_old_iteration,6 )
+
+
+    def _TL_3D_tetra(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -503,17 +555,34 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         A,b = self._define_movement(dim)
 
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
-
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
         #self.__post_process(mp)
 
-    def test_TL_3D_prism(self):
+    def test_TL_3D_tetra_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._TL_3D_tetra(builder_type, linearize_on_old_iteration,10 )
+
+    def test_TL_3D_tetra_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._TL_3D_tetra(builder_type, linearize_on_old_iteration,2 )
+
+    def test_TL_3D_tetra_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._TL_3D_tetra(builder_type, linearize_on_old_iteration,10 )
+
+    def _TL_3D_prism(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -554,17 +623,35 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         A,b = self._define_movement(dim)
 
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
 
         #self.__post_process(mp)
 
-    def test_TL_3D_hexa(self):
+    def test_TL_3D_prism_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._TL_3D_prism(builder_type, linearize_on_old_iteration,7 )
+
+    def test_TL_3D_prism_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._TL_3D_prism(builder_type, linearize_on_old_iteration,2 )
+
+    def test_TL_3D_prism_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._TL_3D_prism(builder_type, linearize_on_old_iteration,7 )
+
+    def _TL_3D_hexa(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -606,17 +693,35 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         A,b = self._define_movement(dim)
 
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
-
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
         #self.__post_process(mp)
 
-    def test_UL_2D_triangle(self):
+    def test_TL_3D_hexa_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._TL_3D_hexa(builder_type, linearize_on_old_iteration,8 )
+
+    def test_TL_3D_hexa_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._TL_3D_hexa(builder_type, linearize_on_old_iteration,2 )
+
+    def test_TL_3D_hexa_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._TL_3D_hexa(builder_type, linearize_on_old_iteration,8 )
+
+
+    def _UL_2D_triangle(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
         dim = 2
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -644,17 +749,35 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         A,b = self._define_movement(dim)
 
         self._set_buffer(mp)
+
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
-
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
         #self.__post_process(mp)
 
-    def test_UL_2D_quadrilateral(self):
+    def test_UL_2D_triangle_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,13 )
+
+    def test_UL_2D_triangle_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,2 )
+
+    def test_UL_2D_triangle_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,13 )
+
+    def _UL_2D_quadrilateral(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
         dim = 2
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -686,17 +809,34 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         A,b = self._define_movement(dim)
 
         self._set_buffer(mp)
+
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
 
-        #self.__post_process(mp)
+    def test_UL_2D_quadrilateral_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._UL_2D_quadrilateral(builder_type, linearize_on_old_iteration, 11 )
 
-    def test_UL_3D_hexa(self):
+    def test_UL_2D_quadrilateral_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._UL_2D_quadrilateral(builder_type, linearize_on_old_iteration, 2 )
+
+    def test_UL_2D_quadrilateral_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._UL_2D_quadrilateral(builder_type, linearize_on_old_iteration,11 )
+
+    def _UL_3D_hexa(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -737,14 +877,31 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.CreateNewElement("UpdatedLagrangianElement3D8N", 7,[11,12,10,3,14,16,13,6], mp.GetProperties()[1])
 
         A,b = self._define_movement(dim)
+        A *= 0.25 #@Vicente, i need to do this for this specific test. It shouldn't be needed ...
 
         self._set_buffer(mp)
+
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
 
-        #self.__post_process(mp)
+    def test_UL_3D_hexa_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._UL_3D_hexa(builder_type, linearize_on_old_iteration,11 )
+
+    def test_UL_3D_hexa_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._UL_3D_hexa(builder_type, linearize_on_old_iteration,2 )
+
+    def test_UL_3D_hexa_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._UL_3D_hexa(builder_type, linearize_on_old_iteration,11 )
 
     def __post_process(self, main_model_part):
         from gid_output_process import GiDOutputProcess

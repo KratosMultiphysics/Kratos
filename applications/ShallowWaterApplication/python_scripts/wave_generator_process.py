@@ -45,6 +45,7 @@ class WaveGeneratorProcess(KM.Process):
         self.interval = KM.IntervalUtility(settings)
         self.formulation = self.__formulation[settings["formulation"].GetString()]
         self.variables = self.__variables[settings["variables"].GetString()]
+        self.fix_dofs = True
 
         # Definition of pi number
         import math
@@ -60,7 +61,7 @@ class WaveGeneratorProcess(KM.Process):
         free_surface_parameters.AddEmptyValue("period").SetDouble(wave_period)
         free_surface_parameters.AddEmptyValue("phase_shift").SetDouble(0.0)
         free_surface_parameters.AddEmptyValue("vertical_shift").SetDouble(0.0)
-        
+
         velocity_parameters = KM.Parameters("""{}""")
         velocity_parameters.AddEmptyValue("amplitude").SetDouble(math.pi * wave_height / wave_period)
         velocity_parameters.AddEmptyValue("period").SetDouble(wave_period)
@@ -73,34 +74,41 @@ class WaveGeneratorProcess(KM.Process):
         self.free_surface_process = SW.ApplySinusoidalFunctionToScalar(self.model_part, SW.FREE_SURFACE_ELEVATION, free_surface_parameters)
         self.velocity_process = SW.ApplySinusoidalFunctionToVector(self.model_part, KM.VELOCITY, velocity_parameters)
 
+        KM.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KM.DOMAIN_SIZE])
+        SW.ShallowWaterUtilities().NormalizeVector(self.model_part, KM.NORMAL)
+
     def ExecuteInitializeSolutionStep(self):
         if self._IsInInterval():
+            set_free_surface = self.variables == SW.Variables.FREE_SURFACE_VARIABLE or self.variables == SW.Variables.FREE_SURFACE_AND_VELOCITY
+            set_velocity = self.variables == SW.Variables.VELOCITY_VARIABLE or self.variables == SW.Variables.FREE_SURFACE_AND_VELOCITY
+
             # Set the free surface if needed
-            if self.variables == SW.Variables.FREE_SURFACE_VARIABLE or self.variables == SW.Variables.FREE_SURFACE_AND_VELOCITY:
+            if set_free_surface:
                 self.free_surface_process.ExecuteInitializeSolutionStep()
             
             # Set the velocity if needed
-            if self.variables == SW.Variables.VELOCITY_VARIABLE or self.variables == SW.Variables.FREE_SURFACE_AND_VELOCITY:
+            if set_velocity:
                 self.velocity_process.ExecuteInitializeSolutionStep()
             
             # Compute the free surface
             SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.model_part)
 
             # Compute the momentum if needed
-            if self.formulation == SW.Formulation.CONSERVED_VARIABLES:
+            if self.formulation == SW.Formulation.CONSERVED_VARIABLES and set_velocity:
                 SW.ShallowWaterUtilities().ComputeMomentum(self.model_part)
 
             # Fix the free surface if needed
-            if self.variables == SW.Variables.FREE_SURFACE_VARIABLE or self.variables == SW.Variables.FREE_SURFACE_AND_VELOCITY:
+            if self.fix_dofs and self.variables == set_free_surface:
                 KM.VariableUtils().ApplyFixity(SW.HEIGHT, True, self.model_part.Nodes)
             
             # Fix the velocity or the momentum if needed
-            if self.variables == SW.Variables.VELOCITY_VARIABLE or self.variables == SW.Variables.FREE_SURFACE_AND_VELOCITY:
+            if self.fix_dofs and self.variables == set_velocity:
                 if self.formulation == SW.Formulation.REDUCED_VARIABLES:
-                    KM.VariableUtils().ApplyFixity(KM.VELOCITY, True, self.model_part.Nodes)
-                if self.formulation == SW.Formulation.CONSERVED_VARIABLEs:
-                    KM.VariableUtils().ApplyFixity(KM.MOMENTUM, True, self.model_part.Nodes)
-
+                    KM.VariableUtils().ApplyFixity(KM.VELOCITY_X, True, self.model_part.Nodes)
+                    KM.VariableUtils().ApplyFixity(KM.VELOCITY_Y, True, self.model_part.Nodes)
+                if self.formulation == SW.Formulation.CONSERVED_VARIABLES:
+                    KM.VariableUtils().ApplyFixity(KM.MOMENTUM_X, True, self.model_part.Nodes)
+                    KM.VariableUtils().ApplyFixity(KM.MOMENTUM_Y, True, self.model_part.Nodes)
 
     def _IsInInterval(self):
         """ Returns if we are inside the time interval or not """
