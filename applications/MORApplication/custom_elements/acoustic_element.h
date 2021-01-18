@@ -1,9 +1,10 @@
 // KRATOS
 //
-//  License:		 BSD License
-//					 license: ../../license.txt
+//  License:		BSD License
+//					license: ../../license.txt
 //
-//  Main authors:
+//  Main authors:   Elias Schwaiger
+//                  Quirin Aumann
 //
 //
 
@@ -19,7 +20,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "mor_application_variables.h"
+#include "includes/variables.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -61,7 +63,7 @@ public:
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-    
+
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
 
@@ -151,7 +153,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo The current process info instance
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -178,7 +180,7 @@ public:
         rOStream << "Acoustic Element #" << Id() << "\n";
     }
 
-    
+
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
@@ -195,45 +197,17 @@ public:
 
     void Initialize() override;
 
-    
+
 protected:
     ///@name Protected static Member Variables
     ///@{
-    struct KinematicVariables
-    {
-        Vector  N;
-        Matrix  B;
-        double  detF;
-        Matrix  F;
-        double  detJ0;
-        Matrix  J0;
-        Matrix  InvJ0;
-        Matrix  DN_DX;
-        Vector Displacements;
 
-        /**
-         * The default constructor
-         * @param NumberOfNodes The number of nodes in the element
-         */
-        KinematicVariables(const SizeType NumberOfNodes, const SizeType Dimension)
-        {
-            detF = 1.0;
-            detJ0 = 1.0;
-            N = ZeroVector(NumberOfNodes);
-            B = ZeroMatrix(Dimension * NumberOfNodes);
-            F = IdentityMatrix(Dimension);
-            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
-            J0 = ZeroMatrix(Dimension, Dimension);
-            InvJ0 = ZeroMatrix(Dimension, Dimension);
-            Displacements = ZeroVector(Dimension * NumberOfNodes);
-        }
-    };
     ///@}
     ///@name Protected member Variables
     ///@{
 
     IntegrationMethod mThisIntegrationMethod;
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -247,41 +221,27 @@ protected:
     ///@{
 
     void CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo) override;
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
-      VectorType& rRightHandSideVector,
-      ProcessInfo& rCurrentProcessInfo) override;
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(
-      MatrixType& rLeftHandSideMatrix,
-      VectorType& rRightHandSideVector,
-      ProcessInfo& rCurrentProcessInfo) override;
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-    
+
     void SetIntegrationMethod(const IntegrationMethod& ThisIntegrationMethod)
     {
          mThisIntegrationMethod = ThisIntegrationMethod;
     }
-
-    // double CalculateDerivativesOnReferenceConfiguration(
-    //     Matrix& rJ0,
-    //     Matrix& rInvJ0,
-    //     Matrix& rDN_DX,
-    //     const IndexType PointNumber,
-    //     IntegrationMethod ThisIntegrationMethod) const;
-    
-    // void CalculateKinematicVariables(
-    //     KinematicVariables& rThisKinematicVariables,
-    //     const IndexType PointNumber,
-    //     const GeometryType::IntegrationMethod& rIntegrationMethod
-    //     );
-
 
     ///@}
     ///@name Protected  Access
@@ -321,9 +281,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    // void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    // void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{
