@@ -296,6 +296,16 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Returns the polynomial degree of the parent geometry
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpGeometryParent->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
     ///@name Coordinates
     ///@{
 
