@@ -157,7 +157,17 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
         AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
         AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
         AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+    } else if ( data.IsIncised() )
+    {
+        // Check if user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES, then use Ausas incised shape functions
+        if(data.NumExtraIntersectedEdges > 0) {
+            // Add Boundary
+        }
+        else {
+            // Add penalty
+        }
     }
+
 }
 
 template <class TBaseElement>
@@ -275,8 +285,31 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
         }
     }
 
-    if (rData.IsCut()){
+    // Number of intersected edges
+    if (!rData.ElementalEdgeDistances.empty()) {
+        for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
+            if (rData.ElementalEdgeDistances[i] > 0.0) {
+                rData.NumIntersectedEdges++;
+            }
+        }
+    }
+
+    // Number of edges cut by extrapolated geometry
+    if (!rData.ElementalExtraEdgeDistances.empty()) {
+        for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
+            if (rData.ElementalExtraEdgeDistances[i] > 0.0) {
+                rData.NumExtraIntersectedEdges++;
+            }
+        }
+    }
+
+    if (rData.IsCut()) {
         this->DefineCutGeometryData(rData);
+    }
+    // Check if user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES, then use Ausas incised shape functions
+    else if (rData.NumExtraIntersectedEdges > 0) {
+        KRATOS_WATCH(rData.NumExtraIntersectedEdges);
+        //this->DefineIncisedGeometryData(rData);
     } else {
         this->DefineStandardGeometryData(rData);
     }

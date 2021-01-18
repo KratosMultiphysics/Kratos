@@ -48,8 +48,9 @@ constexpr static unsigned int NumEdges = (TFluidData::NumNodes == 3) ? 3 : 6;
 double SlipLength;
 double PenaltyCoefficient;
 
-Vector ElementalEdgeDistances;
 NodalScalarData ElementalDistances;
+Vector ElementalEdgeDistances;
+Vector ElementalExtraEdgeDistances;
 
 Matrix PositiveSideN;
 Matrix NegativeSideN;
@@ -94,10 +95,12 @@ void Initialize(
     TFluidData::Initialize(rElement, rProcessInfo);
     this->FillFromElementData(ElementalDistances, ELEMENTAL_DISTANCES, rElement);
     this->FillFromElementData(ElementalEdgeDistances, ELEMENTAL_EDGE_DISTANCES, rElement);
+    this->FillFromElementData(ElementalExtraEdgeDistances, ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, rElement);
 
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
     NumIntersectedEdges = 0;
+    NumExtraIntersectedEdges = 0;
 }
 
 /**
