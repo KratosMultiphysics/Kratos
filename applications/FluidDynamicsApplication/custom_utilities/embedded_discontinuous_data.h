@@ -38,6 +38,9 @@ using NodalVectorData = typename TFluidData::NodalVectorData;
 typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 typedef std::vector< Vector > InterfaceNormalsType;
 
+/// Number of edges of the element (simplex elements are assumed)
+constexpr static unsigned int NumEdges = (TFluidData::NumNodes == 3) ? 3 : 6;
+
 ///@}
 ///@name Public Members
 ///@{
@@ -45,6 +48,7 @@ typedef std::vector< Vector > InterfaceNormalsType;
 double SlipLength;
 double PenaltyCoefficient;
 
+Vector ElementalEdgeDistances;
 NodalScalarData ElementalDistances;
 
 Matrix PositiveSideN;
@@ -68,6 +72,8 @@ std::vector< size_t > NegativeIndices;
 
 size_t NumPositiveNodes;
 size_t NumNegativeNodes;
+size_t NumIntersectedEdges;
+size_t NumExtraIntersectedEdges;
 
 ///@}
 ///@name Public Operations
@@ -87,9 +93,11 @@ void Initialize(
 {
     TFluidData::Initialize(rElement, rProcessInfo);
     this->FillFromElementData(ElementalDistances, ELEMENTAL_DISTANCES, rElement);
+    this->FillFromElementData(ElementalEdgeDistances, ELEMENTAL_EDGE_DISTANCES, rElement);
 
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
+    NumIntersectedEdges = 0;
 }
 
 /**
@@ -129,6 +137,26 @@ static int Check(
 bool IsCut()
 {
     return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
+}
+
+/**
+ * @brief Checks if the current element is partially intersected (incised)
+ * Checks if the current element is partially intersected by checking the number of (extrapolated) intersected edges
+ * @return true if the element is incised
+ * @return false if the element is not incised
+ */
+bool IsIncised()
+{
+    // extrapolated edge distances are only calculated if element is incised
+    // case in which three edges are intersected and element is only incised is also considered
+    if (NumExtraIntersectedEdges > 0) {
+        return true;
+    }
+    // needed if user doesn't provide flag to calculate extrapolated edge distances at all
+    if ( (NumIntersectedEdges > 0) && (NumIntersectedEdges < TFluidData::Dim) ) {
+        return true;
+    }
+    return false;
 }
 
 ///@}
