@@ -87,8 +87,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        // Check and set number of elements and check dimension
-        KRATOS_ERROR_IF(mrModelPart.NumberOfNodes() == 0) << "The number of nodes in the domain is zero. The power sums statistic cannot be applied."<< std::endl;
+        // Check and set number of nodes
+        KRATOS_ERROR_IF(mrModelPart.GetCommunicator().GlobalNumberOfNodes() == 0) << "The number of nodes in the domain is zero. The power sums statistic cannot be applied."<< std::endl;
         const unsigned int number_nodes = mrModelPart.NumberOfNodes();
 
         // Extract informations

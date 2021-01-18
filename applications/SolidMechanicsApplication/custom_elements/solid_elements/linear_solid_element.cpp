@@ -190,7 +190,7 @@ void LinearSolidElement::EquationIdVector( EquationIdVectorType& rResult, Proces
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void LinearSolidElement::GetValuesVector( Vector& rValues, int Step )
+void LinearSolidElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     const SizeType number_of_nodes  = GetGeometry().size();
@@ -216,7 +216,7 @@ void LinearSolidElement::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void LinearSolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void LinearSolidElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
     const SizeType number_of_nodes  = GetGeometry().size();
@@ -240,7 +240,7 @@ void LinearSolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void LinearSolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void LinearSolidElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
     const SizeType number_of_nodes  = GetGeometry().size();

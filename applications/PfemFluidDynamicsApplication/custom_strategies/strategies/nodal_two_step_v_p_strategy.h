@@ -254,7 +254,8 @@ namespace Kratos
 			// bool continuityAlreadyConverged=false;
 
 			unsigned int maxNonLinearIterations = mMaxPressureIter;
-			std::cout << "\n                   Solve with nodally_integrated_two_step_vp strategy at t=" << currentTime << "s" << std::endl;
+
+			KRATOS_INFO("\n                  Solve with nodally_integrated_two_step_vp strategy at t=") << currentTime << "s" << std::endl;
 
 			if (timeIntervalChanged == true && currentTime > 10 * timeInterval)
 			{
@@ -361,7 +362,6 @@ namespace Kratos
 		void Initialize() override
 		{
 
-			std::cout << "                                 Initialize in nodal_two_step_v_p_strategy" << std::endl;
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			unsigned int sizeStrains = 3 * (dimension - 1);
@@ -1557,7 +1557,7 @@ namespace Kratos
 			// Check convergence
 			if (it == maxIt - 1)
 			{
-				std::cout << "         iteration(" << it << ") Final Velocity error: " << DvErrorNorm << std::endl;
+				KRATOS_INFO("Iteration") << it << "  Final Velocity error: " << DvErrorNorm << std::endl;
 				fixedTimeStep = this->FixTimeStepMomentum(DvErrorNorm);
 			}
 			else if (it > iterationForCheck)
@@ -1628,12 +1628,12 @@ namespace Kratos
 			// Check convergence
 			if (it == maxIt - 1)
 			{
-				std::cout << "                  iteration(" << it << ") Final Pressure error: " << DpErrorNorm << std::endl;
+				KRATOS_INFO("Iteration") << it << "  Final Pressure error: " << DpErrorNorm << std::endl;
 				ConvergedContinuity = this->FixTimeStepContinuity(DpErrorNorm);
 			}
 			else
 			{
-				std::cout << "                             iteration(" << it << ") Pressure error: " << DpErrorNorm << std::endl;
+				KRATOS_INFO("Iteration") << it << "  Pressure error: " << DpErrorNorm << std::endl;
 			}
 
 			// ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();

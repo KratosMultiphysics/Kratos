@@ -260,10 +260,6 @@ int AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNo
     int ierr = BaseType::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(VECTOR_LAGRANGE_MULTIPLIER)
-    KRATOS_CHECK_VARIABLE_KEY(WEIGHTED_SLIP)
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     const GeometryType& r_current_slave = this->GetParentGeometry();
     for ( IndexType i = 0; i < TNumNodes; ++i ) {

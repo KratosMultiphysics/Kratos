@@ -798,18 +798,6 @@ class GenericConstitutiveLawIntegratorPlasticity
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        // Checking is registered
-        KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
-        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
-        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_TENSION);
-        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
-        KRATOS_CHECK_VARIABLE_KEY(HARDENING_CURVE);
-        KRATOS_CHECK_VARIABLE_KEY(MAXIMUM_STRESS);
-        KRATOS_CHECK_VARIABLE_KEY(MAXIMUM_STRESS_POSITION);
-        KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
-        KRATOS_CHECK_VARIABLE_KEY(CURVE_FITTING_PARAMETERS);
-        KRATOS_CHECK_VARIABLE_KEY(PLASTIC_STRAIN_INDICATORS);
-
         // Checking is defined
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "HARDENING_CURVE is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(HARDENING_CURVE)) << "HARDENING_CURVE is not a defined value" << std::endl;

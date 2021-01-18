@@ -15,6 +15,7 @@
 #include "includes/checks.h"
 
 #include "custom_utilities/qsvms_data.h"
+#include "custom_utilities/qsvms_dem_coupled_data.h"
 //#include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
@@ -183,10 +184,6 @@ int DVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
-
-    // Output variables (for Calculate() functions)
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_PRESSURE);
 
     return out;
 }
@@ -867,5 +864,11 @@ void DVMS<TElementData>::load(Serializer& rSerializer)
 
 template class DVMS< QSVMSData<2,3> >;
 template class DVMS< QSVMSData<3,4> >;
+
+template class DVMS< QSVMSDEMCoupledData<2,3> >;
+template class DVMS< QSVMSDEMCoupledData<3,4> >;
+
+template class DVMS< QSVMSDEMCoupledData<2,4> >;
+template class DVMS< QSVMSDEMCoupledData<3,8> >;
 
 } // namespace Kratos

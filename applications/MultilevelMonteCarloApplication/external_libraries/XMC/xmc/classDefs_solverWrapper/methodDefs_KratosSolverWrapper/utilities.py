@@ -68,30 +68,30 @@ class UnfolderManager(object):
         return list_unfolded
 
     @ExaquteTask(aux_qoi_array_contributions={Type: COLLECTION_IN, Depth: 2},returns='OUTPUT_QUANTITIES')
-    def PostprocessContributionsPerInstance(self,aux_qoi_array_contributions,number_qoi,number_combined_qoi):
+    def PostprocessContributionsPerInstance(self,aux_qoi_array_contributions,number_moment_estimator,number_combined_moment_estimator):
         """
         Task method summing multiple contribution of a specific realization and calling UnfoldNValues.
 
         Inputs:
         - self: an instance of the class.
         - aux_qoi_array_contributions: original list of values with multiple contributions.
-        - number_qoi: number of quantities of interest.
-        - number_combined_qoi: number of combined quantities of interest.
+        - number_moment_estimator: number of quantities of interest.
+        - number_combined_moment_estimator: number of combined quantities of interest.
         """
 
-        aux_qoi_array = [[] for _ in range (0,number_qoi+number_combined_qoi)] # to store each qoi
+        aux_qoi_array = [[] for _ in range (0,number_moment_estimator+number_combined_moment_estimator)] # to store each qoi
         # append components to aux array
         for qoi_list in aux_qoi_array_contributions:
-            for qoi_counter in range (0,number_qoi+number_combined_qoi):
+            for qoi_counter in range (0,number_moment_estimator+number_combined_moment_estimator):
                 aux_qoi_array[qoi_counter].append(qoi_list[qoi_counter])
-        assert(len(aux_qoi_array)==number_qoi+number_combined_qoi)
+        assert(len(aux_qoi_array)==number_moment_estimator+number_combined_moment_estimator)
         qoi_list = []
         # expected value for steady state / time averaged qoi
-        for qoi_counter in range (0,number_qoi):
+        for qoi_counter in range (0,number_moment_estimator):
             qoi_value = np.mean(aux_qoi_array[qoi_counter])
             qoi_list.append(qoi_value)
         # time power sums sum for time series qoi
-        for combined_ps_counter in range (number_qoi,number_qoi+number_combined_qoi):
+        for combined_ps_counter in range (number_moment_estimator,number_moment_estimator+number_combined_moment_estimator):
             S1 = 0 ; S2 = 0 ; S3 = 0 ; S4 = 0 ; S5 = 0 ; S6 = 0 ; S7 = 0 ; S8 = 0 ; S9 = 0 ; S10 = 0 ; contributions = 0
             for i in range (0,len(aux_qoi_array[combined_ps_counter])):
                 S1 = S1 + aux_qoi_array[combined_ps_counter][i][0][0]
