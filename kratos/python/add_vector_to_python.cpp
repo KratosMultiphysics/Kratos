@@ -24,6 +24,7 @@
 #include "includes/ublas_complex_interface.h"
 #include "containers/array_1d.h"
 #include "python/add_vector_to_python.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {

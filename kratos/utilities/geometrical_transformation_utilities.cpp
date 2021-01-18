@@ -17,6 +17,7 @@
 
 // Project includes
 #include "utilities/geometrical_transformation_utilities.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {

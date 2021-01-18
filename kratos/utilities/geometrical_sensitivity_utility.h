@@ -21,6 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
+#include "input_output/logger.h"
 
 // Application includes
 
