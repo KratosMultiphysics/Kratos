@@ -14,6 +14,7 @@
 #include <sstream>
 
 #include "includes/exception.h"
+#include "input_output/logger.h"
 
 
 namespace Kratos
@@ -115,6 +116,14 @@ namespace Kratos
 	Exception& Exception::operator << (CodeLocation const& TheLocation)
 	{
 		add_to_call_stack(TheLocation);
+
+		return *this;
+	}
+
+
+	Exception& Exception::operator << (Logger const& TheLogger)
+	{
+		append_message(TheLogger.GetCurrentMessage());
 
 		return *this;
 	}

@@ -28,8 +28,12 @@
 #include "includes/code_location.h"
 #include "utilities/stl_vector_io.h"
 
+
 namespace Kratos
 {
+
+class Logger;
+
 ///@addtogroup KratosCore
 ///@{
 
@@ -78,6 +82,9 @@ public:
 
     /// Code Location stream function to add callers to call stack
     Exception& operator << (CodeLocation const& TheLocation);
+
+    /// Logger stream function to add callers to call stack
+    Exception& operator << (Logger const& TheLogger);
 
     /// string stream function
     template<class StreamValueType>
@@ -158,11 +165,11 @@ private:
 ///@name Kratos Macros
 ///@{
 
-#define KRATOS_ERROR throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION)
+#define KRATOS_ERROR throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION) << Logger("Error") 
 
-#define KRATOS_ERROR_IF(conditional) if(conditional) throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION)
+#define KRATOS_ERROR_IF(conditional) if(conditional) throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION) << Logger("Error")
 
-#define KRATOS_ERROR_IF_NOT(conditional) if(!(conditional)) throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION)
+#define KRATOS_ERROR_IF_NOT(conditional) if(!(conditional)) throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION) << Logger("Error") 
 
 #ifdef KRATOS_DEBUG
 #define KRATOS_DEBUG_ERROR KRATOS_ERROR
