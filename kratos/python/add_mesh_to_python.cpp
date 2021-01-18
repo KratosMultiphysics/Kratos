@@ -109,26 +109,6 @@ void ConditionCalculateLocalSystemStandard( Condition& dummy,
     dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
-void ConditionCalculateMassMatrixStandard( Condition& dummy,
-                                                Matrix& rMassMatrix,
-                                                ProcessInfo& rCurrentProcessInfo)
-{
-    dummy.CalculateMassMatrix(rMassMatrix,rCurrentProcessInfo);
-}
-
-void ConditionCalculateDampingMatrixStandard( Condition& dummy,
-                                                Matrix& rDampingMatrix,
-                                                ProcessInfo& rCurrentProcessInfo)
-{
-    dummy.CalculateDampingMatrix(rDampingMatrix,rCurrentProcessInfo);
-}
-
-void ConditionInitialize(Condition& dummy,
-                       const ProcessInfo& rCurrentProcessInfo)
-{
-    dummy.Initialize(rCurrentProcessInfo);
-}
-
 py::list GetNodesFromCondition( Condition& dummy )
 {
     pybind11::list nodes_list;
