@@ -177,9 +177,9 @@ protected:
 
     void FillFromElementData(double& rData, const Variable<double>& rVariable, const Element& rElement);
 
-    void FillFromElementData(NodalScalarData& rData, const Variable<Vector>& rVariable, const Element& rElement);
-
     void FillFromElementData(Vector& rData, const Variable<Vector>& rVariable, const Element& rElement);
+
+    void FillFromElementData(NodalScalarData& rData, const Variable<Vector>& rVariable, const Element& rElement);
 
     void FillFromProperties(double& rData, const Variable<double>& rVariable, const Properties& rProperties);
 

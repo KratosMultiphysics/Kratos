@@ -162,7 +162,7 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromElemen
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromElementData(
-    NodalScalarData& rData,
+    Vector& rData,
     const Variable<Vector>& rVariable,
     const Element& rElement)
 {
@@ -171,7 +171,7 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromElemen
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromElementData(
-    Vector& rData,
+    NodalScalarData& rData,
     const Variable<Vector>& rVariable,
     const Element& rElement)
 {

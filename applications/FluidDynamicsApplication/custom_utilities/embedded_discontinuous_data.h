@@ -47,7 +47,6 @@ constexpr static unsigned int NumEdges = (TFluidData::NumNodes == 3) ? 3 : 6;
 
 double SlipLength;
 double PenaltyCoefficient;
-
 NodalScalarData ElementalDistances;
 Vector ElementalEdgeDistances;
 Vector ElementalExtraEdgeDistances;
