@@ -54,7 +54,7 @@ namespace Kratos {
             return *this;
         }
 
-        virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override {
+        virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& r_process_info) override {
             if (rRightHandSideVector.size() != 0)
                 rRightHandSideVector.resize(0, false);
         }
@@ -64,12 +64,12 @@ namespace Kratos {
                 rResult.resize(0, false);
         }
 
-        virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) override {
+        virtual void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& r_process_info) override {
             if (rMassMatrix.size1() != 0)
                 rMassMatrix.resize(0, 0, false);
         }
 
-        virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) override {
+        virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& r_process_info) override {
             if (rDampingMatrix.size1() != 0)
                 rDampingMatrix.resize(0, 0, false);
         }

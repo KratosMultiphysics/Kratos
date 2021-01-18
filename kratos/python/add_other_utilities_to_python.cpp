@@ -50,6 +50,7 @@
 #include "utilities/properties_utilities.h"
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/file_name_data_collector.h"
+#include "utilities/sensitivity_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -481,10 +482,18 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     //sensitivity builder
     py::class_<SensitivityBuilder>(m, "SensitivityBuilder")
         .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
+        .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer, SensitivityBuilderScheme::Pointer>())
         .def("Initialize", &SensitivityBuilder::Initialize)
+        .def("InitializeSolutionStep", &SensitivityBuilder::InitializeSolutionStep)
         .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities)
-        .def("AssignConditionDerivativesToNodes", &SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
-        .def("AssignElementDerivativesToNodes", &SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
+        .def("FinalizeSolutionStep", &SensitivityBuilder::FinalizeSolutionStep)
+        .def("Finalize", &SensitivityBuilder::Finalize)
+        ;
+
+    //Sensitivity utilities
+    py::class_<SensitivityUtilities>(m,"SensitivityUtilities")
+        .def_static("AssignConditionDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
+        .def_static("AssignElementDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
         ;
 
     //OpenMP utilities

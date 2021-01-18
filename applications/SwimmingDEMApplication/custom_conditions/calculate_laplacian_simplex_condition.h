@@ -188,7 +188,7 @@ public:
       */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -208,7 +208,7 @@ public:
     /** The actual local contributions are computed in the Damping functions
       @see DampingMatrix
       */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -223,7 +223,7 @@ public:
     /** The actual local contributions are computed in the Damping functions
       @see CalculateLocalVelocityContribution
       */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
 //        const unsigned int BlockSize = TDim;
 //        const SizeType LocalSize = BlockSize * TNumNodes;

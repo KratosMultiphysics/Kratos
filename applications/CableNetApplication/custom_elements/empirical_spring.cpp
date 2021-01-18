@@ -415,13 +415,15 @@ void EmpiricalSpringElement3D2N::WriteTransformationCoordinates(
 }
 
 
-void EmpiricalSpringElement3D2N::CalculateLumpedMassVector(VectorType& rMassVector)
+void EmpiricalSpringElement3D2N::CalculateLumpedMassVector(
+    VectorType& rLumpedMassVector,
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     // Clear matrix
-    if (rMassVector.size() != msLocalSize) {
-        rMassVector.resize(msLocalSize, false);
+    if (rLumpedMassVector.size() != msLocalSize) {
+        rLumpedMassVector.resize(msLocalSize, false);
     }
 
     const double A = GetProperties()[CROSS_AREA];
@@ -434,7 +436,7 @@ void EmpiricalSpringElement3D2N::CalculateLumpedMassVector(VectorType& rMassVect
         for (int j = 0; j < msDimension; ++j) {
             int index = i * msDimension + j;
 
-            rMassVector[index] = total_mass * 0.50;
+            rLumpedMassVector[index] = total_mass * 0.50;
         }
     }
 
@@ -451,7 +453,7 @@ void EmpiricalSpringElement3D2N::CalculateMassMatrix(
 
     // Compute lumped mass matrix
     VectorType temp_vector(msLocalSize);
-    CalculateLumpedMassVector(temp_vector);
+    CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
 
     // Clear matrix
     if (rMassMatrix.size1() != msLocalSize || rMassMatrix.size2() != msLocalSize) {
@@ -491,7 +493,7 @@ void EmpiricalSpringElement3D2N::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         VectorType element_mass_vector(msLocalSize);
-        CalculateLumpedMassVector(element_mass_vector);
+        CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
 
         for (SizeType i = 0; i < msNumberOfNodes; ++i) {
             double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
@@ -536,7 +538,7 @@ void EmpiricalSpringElement3D2N::AddExplicitContribution(
 
         // Getting the vector mass
         VectorType mass_vector(msLocalSize);
-        CalculateLumpedMassVector(mass_vector);
+        CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
 
         for (int i = 0; i < msNumberOfNodes; ++i) {
             double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);

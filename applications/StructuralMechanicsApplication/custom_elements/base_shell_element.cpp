@@ -187,62 +187,64 @@ void BaseShellElement::ResetConstitutiveLaw()
 
 void BaseShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    const auto& r_geom = GetGeometry();
-    const auto& r_props = GetProperties();
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        const auto& r_geom = GetGeometry();
+        const auto& r_props = GetProperties();
 
-    const SizeType num_gps = GetNumberOfGPs();
+        const SizeType num_gps = GetNumberOfGPs();
 
-    if (mSections.size() != num_gps) {
-        const Matrix& r_shape_fct_values =
-            r_geom.ShapeFunctionsValues(GetIntegrationMethod());
+        if (mSections.size() != num_gps) {
+            const Matrix& r_shape_fct_values =
+                r_geom.ShapeFunctionsValues(GetIntegrationMethod());
 
-        ShellCrossSection::Pointer p_ref_section;
+            ShellCrossSection::Pointer p_ref_section;
 
-        if (ShellUtilities::IsOrthotropic(r_props)) {
-            // make new instance of shell cross section
-            p_ref_section = Kratos::make_shared<ShellCrossSection>();
+            if (ShellUtilities::IsOrthotropic(r_props)) {
+                // make new instance of shell cross section
+                p_ref_section = Kratos::make_shared<ShellCrossSection>();
 
-            // Parse material properties for each layer
-            p_ref_section->ParseOrthotropicPropertyMatrix(r_props);
-        } else {
-            p_ref_section = Kratos::make_shared<ShellCrossSection>();
-            const IndexType ply_index = 0;
-            const SizeType num_points = 5;
-            p_ref_section->BeginStack();
-            p_ref_section->AddPly(ply_index, num_points, r_props);
-            p_ref_section->EndStack();
+                // Parse material properties for each layer
+                p_ref_section->ParseOrthotropicPropertyMatrix(r_props);
+            } else {
+                p_ref_section = Kratos::make_shared<ShellCrossSection>();
+                const IndexType ply_index = 0;
+                const SizeType num_points = 5;
+                p_ref_section->BeginStack();
+                p_ref_section->AddPly(ply_index, num_points, r_props);
+                p_ref_section->EndStack();
+            }
+
+            mSections.clear();
+            for (SizeType i = 0; i < num_gps; ++i) {
+                ShellCrossSection::Pointer p_section_clone = p_ref_section->Clone();
+                p_section_clone->SetSectionBehavior(GetSectionBehavior());
+                p_section_clone->InitializeCrossSection(r_props, r_geom, row(r_shape_fct_values, i));
+                mSections.push_back(p_section_clone);
+            }
         }
 
-        mSections.clear();
-        for (SizeType i = 0; i < num_gps; ++i) {
-            ShellCrossSection::Pointer p_section_clone = p_ref_section->Clone();
-            p_section_clone->SetSectionBehavior(GetSectionBehavior());
-            p_section_clone->InitializeCrossSection(r_props, r_geom, row(r_shape_fct_values, i));
-            mSections.push_back(p_section_clone);
+        if (this->Has(LOCAL_MATERIAL_AXIS_1)) {
+            // calculate the angle between the prescribed direction and the local axis 1
+            // this is currently required in teh derived classes TODO refactor
+
+            std::vector<array_1d<double, 3>> local_axes_1;
+            std::vector<array_1d<double, 3>> local_axes_2;
+            this->CalculateOnIntegrationPoints(LOCAL_AXIS_1, local_axes_1 , rCurrentProcessInfo);
+            this->CalculateOnIntegrationPoints(LOCAL_AXIS_2, local_axes_2 , rCurrentProcessInfo);
+
+            const array_1d<double, 3> prescribed_direcition = this->GetValue(LOCAL_MATERIAL_AXIS_1);
+
+            double mat_orientation_angle = MathUtils<double>::VectorsAngle(local_axes_1[0], prescribed_direcition);
+
+            // make sure the angle is positively defined according to right hand rule
+            if (inner_prod(local_axes_2[0], prescribed_direcition) < 0.0) {
+                // mat_orientation_angle is currently negative, flip to positive definition
+                mat_orientation_angle *= -1.0;
+            }
+
+            this->SetValue(MATERIAL_ORIENTATION_ANGLE, mat_orientation_angle);
         }
-    }
-
-    if (this->Has(LOCAL_MATERIAL_AXIS_1)) {
-        // calculate the angle between the prescribed direction and the local axis 1
-        // this is currently required in teh derived classes TODO refactor
-
-        std::vector<array_1d<double, 3>> local_axes_1;
-		std::vector<array_1d<double, 3>> local_axes_2;
-        ProcessInfo tmp_process_info; // TODO refactor once Initialize gets ProcessInfo
-		this->CalculateOnIntegrationPoints(LOCAL_AXIS_1, local_axes_1 , tmp_process_info);
-		this->CalculateOnIntegrationPoints(LOCAL_AXIS_2, local_axes_2 , tmp_process_info);
-
-        const array_1d<double, 3> prescribed_direcition = this->GetValue(LOCAL_MATERIAL_AXIS_1);
-
-        double mat_orientation_angle = MathUtils<double>::VectorsAngle(local_axes_1[0], prescribed_direcition);
-
-        // make sure the angle is positively defined according to right hand rule
-        if (inner_prod(local_axes_2[0], prescribed_direcition) < 0.0) {
-            // mat_orientation_angle is currently negative, flip to positive definition
-            mat_orientation_angle *= -1.0;
-        }
-
-        this->SetValue(MATERIAL_ORIENTATION_ANGLE, mat_orientation_angle);
     }
 }
 

@@ -298,6 +298,7 @@ protected:
         double dt_inv;
         double stab_factor;
         double shock_stab_factor;
+        double rel_dry_height;
         double gravity;
 
         double height;
@@ -347,6 +348,10 @@ protected:
         MatrixType& rLHS,
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
+
+    virtual void AddDesingularizationTerm(
+        MatrixType& rLHS,
+        const ElementData& rData);
 
     void ComputeMassMatrix(
         BoundedMatrix<double,9,9>& rMatrix,
@@ -405,6 +410,8 @@ protected:
         const array_1d<double,3>& rVeector);
 
     double StabilizationParameter(const ElementData& rData);
+
+    double WetFraction(double Height, double Epsilon);
 
     array_1d<double,3> CharacteristicLength(const ElementData& rData);
 
