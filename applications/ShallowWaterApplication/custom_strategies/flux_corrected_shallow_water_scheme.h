@@ -119,7 +119,7 @@ public:
      * @details This is intended to be called just once when the strategy is initialized
      * @param rModelPart The model part of the problem to solve
      */
-    virtual void Initialize(ModelPart& rModelPart) override
+    void Initialize(ModelPart& rModelPart) override
     {
         // Memory allocation
         const IndexType num_threads = OpenMPUtils::GetNumThreads();
@@ -132,6 +132,12 @@ public:
             r_node.SetValue(POSITIVE_RATIO, 0.0);
             r_node.SetValue(NEGATIVE_RATIO, 0.0);
         });
+        block_for_each(rModelPart.Elements(), [&](Element& r_elem){
+            r_elem.SetValue(CUMULATIVE_CORRECTIONS, ZeroVector(3*r_elem.GetGeometry().size()));
+        });
+        block_for_each(rModelPart.Conditions(), [&](Condition& r_cond){
+            r_cond.SetValue(CUMULATIVE_CORRECTIONS, ZeroVector(3*r_cond.GetGeometry().size()));
+        });
 
         // Initialization and execution of nodal neighbours search
         const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
@@ -139,6 +145,30 @@ public:
 
         // Finalization of initialize
         SWBaseType::Initialize(rModelPart);
+    }
+
+    /**
+     * @brief It initializes the cumulative corrections variable
+     * @param rModelPart The model of the problem to solve
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        SWBaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        block_for_each(rModelPart.Elements(), [&](Element& r_elem){
+            r_elem.GetValue(CUMULATIVE_CORRECTIONS) = ZeroVector(3*r_elem.GetGeometry().size());
+        });
+        block_for_each(rModelPart.Conditions(), [&](Condition& r_cond){
+            r_cond.GetValue(CUMULATIVE_CORRECTIONS) = ZeroVector(3*r_cond.GetGeometry().size());
+        });
     }
 
     /**
@@ -170,7 +200,7 @@ public:
         });
 
         block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
-            LimitAntiFluxes(r_node);
+            ComputeLimiters(r_node);
         });
     }
 
@@ -212,7 +242,7 @@ public:
 
         AddDynamicsToRHS(rRHS_Contribution, mrD[t], mMl[t], mrUn0[t], mrDotUn0[t]);
     
-        AddFluxCorrection<Element>(
+        AddFluxCorrection(
             rCurrentElement,
             rLHS_Contribution,
             rRHS_Contribution,
@@ -262,7 +292,7 @@ public:
 
         AddDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
 
-        AddFluxCorrection<Element>(
+        AddFluxCorrection(
             rCurrentElement,
             rRHS_Contribution,
             mrMc[t],
@@ -315,7 +345,7 @@ public:
 
         AddDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
 
-        AddFluxCorrection<Condition>(
+        AddFluxCorrection(
             rCurrentCondition,
             rLHS_Contribution,
             rRHS_Contribution,
@@ -365,7 +395,7 @@ public:
 
         AddDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
 
-        AddFluxCorrection<Condition>(
+        AddFluxCorrection(
             rCurrentCondition,
             rRHS_Contribution,
             mrMc[t],
@@ -524,7 +554,7 @@ protected:
         }
     }
 
-    void LimitAntiFluxes(NodeType& rNode)
+    void ComputeLimiters(NodeType& rNode)
     {
         const auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
 
@@ -571,18 +601,23 @@ protected:
         const LocalSystemVectorType& rU,
         const LocalSystemVectorType& rDotU)
     {
-        // Construction of the element contribution of anti-fluxes
-        auto aec = prod(rD, rU) + prod(rMl - rMc, rDotU);
+        if (rMc.size1() != 0) {
+            // Construction of the incremental element contribution of anti-fluxes
+            auto& cum = rEntity.GetValue(CUMULATIVE_CORRECTIONS);
+            auto aec = prod(rD, rU) + prod(rMl - rMc, rDotU);
+            auto delta = aec - cum;
 
-        // Getting the most restrictive limiter
-        double c = 1.0;
-        for (auto& r_node : rEntity.GetGeometry())
-        {
-            c = std::min({c, r_node.GetValue(POSITIVE_RATIO), r_node.GetValue(NEGATIVE_RATIO)});
+            // Getting the most restrictive limiter
+            double c = 1.0;
+            for (auto& r_node : rEntity.GetGeometry())
+            {
+                c = std::min({c, r_node.GetValue(POSITIVE_RATIO), r_node.GetValue(NEGATIVE_RATIO)});
+            }
+
+            // Adding the limited anti-diffusion
+            cum += c * delta;
+            rRHS += cum;
         }
-
-        // Adding the limited anti-diffusion
-        rRHS += c * aec;
     }
 
     template<class EntityType>
@@ -596,19 +631,7 @@ protected:
         const LocalSystemVectorType& rU,
         const LocalSystemVectorType& rDotU)
     {
-        // Construction of the element contribution of anti-fluxes
-        auto aec = prod(rD, rU) + prod(rMl - rMc, rDotU);
-
-        // Getting the most restrictive limiter
-        double c = 1.0;
-        for (auto& r_node : rEntity.GetGeometry())
-        {
-            c = std::min({c, r_node.GetValue(POSITIVE_RATIO), r_node.GetValue(NEGATIVE_RATIO)});
-        }
-
-        // Adding the limited anti-diffusion
-        rLHS += c * (BDFBaseType::mBDF[0]*(rMc - rMl) - rD);
-        rRHS += c * aec;
+        AddFluxCorrection(rEntity, rRHS, rMc, rMl, rD, rU, rDotU);
     }
 
     void ComputeLumpedMassMatrix(

@@ -60,15 +60,12 @@ namespace Testing
             rElementalDofList[0] = GetGeometry()[0].pGetDof(TEMPERATURE);
         }
 
-        void CalculateMassMatrix(
-            MatrixType& rMassMatrix,
-            const ProcessInfo& rCurrentProcessInfo) override
+        void CalculateLumpedMassVector(
+            VectorType& rLumpedMassVector,
+            const ProcessInfo& rCurrentProcessInfo) const override
         {
-            if (rMassMatrix.size1() != 1 || rMassMatrix.size2() != 1) {
-                rMassMatrix.resize(1, 1, false);
-            }
-
-            rMassMatrix(0,0) = 1.0;
+            rLumpedMassVector = VectorType(1);
+            rLumpedMassVector(0) = 1.0;
         }
 
         void AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo) override
