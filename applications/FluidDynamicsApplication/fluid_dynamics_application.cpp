@@ -354,6 +354,8 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HerschelBulkley3DLaw", mHerschelBulkley3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian2DLaw", mNewtonian2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian3DLaw", mNewtonian3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("CompressibleNewtonian2DLaw", mCompressibleNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("CompressibleNewtonian3DLaw", mCompressibleNewtonian3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTwoFluid2DLaw", mNewtonianTwoFluid2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTwoFluid3DLaw", mNewtonianTwoFluid3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTemperatureDependent2DLaw", mNewtonianTemperatureDependent2DLaw);
