@@ -1200,7 +1200,7 @@ namespace Kratos
 
     // Temporary workaround, to be updated
     auto r_geometry = this->GetGeometry();
-    r_geometry[0].SetValue(THETA_MOMENTUM, 0.5);
+    //r_geometry[0].SetValue(THETA_MOMENTUM, 0.5);
 
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
 
