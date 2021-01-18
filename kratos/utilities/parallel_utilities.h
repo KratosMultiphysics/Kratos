@@ -48,9 +48,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ParallelUtilities() = delete;
-
     ///@}
     ///@name Operations
     ///@{
@@ -77,19 +74,30 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    static ParallelUtilities* mpInstance;
     static int msNumThreads; // number of threads used in Kratos
 
     ///@}
     ///@name Private Operations
     ///@{
 
+    /// Default constructor.
+    ParallelUtilities() = default;
+
+    static void Create();
+
     /** @brief Initializes the number of threads to be used.
      * @return number of threads
      */
     static int InitializeNumberOfThreads();
-
     ///@}
 
+    ///@name Private Access
+    ///@{
+
+    static ParallelUtilities& GetInstance();
+
+    ///@}
 }; // Class ParallelUtilities
 
 
