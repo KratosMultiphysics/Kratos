@@ -464,8 +464,8 @@ public:
         GlobalCoordinates(gp3, p3);
         GlobalCoordinates(gp4, p4);
 
-        rKnotLengthness[0] = (norm_2(p1 - p2) + norm_2(p3 - p4)) / 2;
-        rKnotLengthness[1] = (norm_2(p1 - p3) + norm_2(p2 - p4)) / 2;
+        rKnotLengthness[0] = (norm_2(gp1 - gp2) + norm_2(gp3 - gp4)) / 2;
+        rKnotLengthness[1] = (norm_2(gp1 - gp4) + norm_2(gp2 - gp3)) / 2;
         rKnotLengthness[2] = 0;
     }
 
