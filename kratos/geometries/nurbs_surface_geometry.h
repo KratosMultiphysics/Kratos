@@ -449,15 +449,19 @@ public:
         CoordinatesArrayType gp1, gp2, gp3, gp4;
         p1[0] = mKnotsU[SpanU];
         p1[1] = mKnotsV[SpanV];
+        p1[2] = 0;
 
         p2[0] = mKnotsU[SpanU + 1];
         p2[1] = mKnotsV[SpanV];
+        p2[2] = 0;
 
         p3[0] = mKnotsU[SpanU + 1];
         p3[1] = mKnotsV[SpanV + 1];
+        p3[2] = 0;
 
         p4[0] = mKnotsU[SpanU];
         p4[1] = mKnotsV[SpanV + 1];
+        p4[2] = 0;
 
         GlobalCoordinates(gp1, p1);
         GlobalCoordinates(gp2, p2);
