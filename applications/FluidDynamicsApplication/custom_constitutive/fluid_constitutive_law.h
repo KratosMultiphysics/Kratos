@@ -146,6 +146,22 @@ protected:
      *  @param[out] rC Resulting constitutive matrix.
      */
     void NewtonianConstitutiveMatrix2D(double EffectiveViscosity, Matrix& rC);
+    
+    /// Helper function to write the constitutive matrix using an effective viscosity (2D version).
+    /** It returns a matrix with the same structure as for a Newtonian fluid, using the given viscosity.
+     *  @param[in] DynamicViscosity Equivalent viscosity for the fluid (dynamic units -- Pa s -- assumed).
+     *  @param[in] BulkViscosity  Equivalent viscosity for the fluid (dynamic units -- Pa s -- assumed).
+     *  @param[out] rC Resulting constitutive matrix.
+     */
+    void NewtonianConstitutiveMatrix2D(double BulkViscosity, double DynamicViscosity, Matrix& rC);
+    
+    /// Helper function to write the constitutive matrix using an effective viscosity (3D version).
+    /** It returns a matrix with the same structure as for a Newtonian fluid, using the given viscosity.
+     *  @param[in] BulkViscosity Equivalent viscosity for the fluid (dynamic units -- Pa s -- assumed).
+     *  @param[in] DynamicViscosity Equivalent viscosity for the fluid (dynamic units -- Pa s -- assumed).
+     *  @param[out] rC Resulting constitutive matrix.
+     */
+    void NewtonianConstitutiveMatrix3D(double BulkViscosity, double DynamicViscosity, Matrix& rC);
 
     /// Helper function to write the constitutive matrix using an effective viscosity (3D version).
     /** It returns a matrix with the same structure as for a Newtonian fluid, using the given viscosity.
@@ -153,7 +169,7 @@ protected:
      *  @param[out] rC Resulting constitutive matrix.
      */
     void NewtonianConstitutiveMatrix3D(double EffectiveViscosity, Matrix& rC);
-
+    
     ///@}
     ///@name Protected  Access
     ///@{
