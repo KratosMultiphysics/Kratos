@@ -47,7 +47,7 @@ void ComputeLaplacianSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rEleme
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int ComputeLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

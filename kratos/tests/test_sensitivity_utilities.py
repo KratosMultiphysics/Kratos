@@ -62,7 +62,7 @@ def CalculateCommonEntityMap(nodes, entity_neighbour_map, nodal_neighbour_map):
     return common_entity_map
 
 
-class TestSensitivityBuilderTwoDimSymmetricalSquare(KratosUnittest.TestCase):
+class TestSensitivityUtilitiesTwoDimSymmetricalSquare(KratosUnittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.current_model = KratosMultiphysics.Model()
@@ -91,7 +91,7 @@ class TestSensitivityBuilderTwoDimSymmetricalSquare(KratosUnittest.TestCase):
 
         self.__InitializeAssignEntityDerivativesToNodesValues(self.model_part.Elements, 3)
 
-        KratosMultiphysics.SensitivityBuilder.AssignElementDerivativesToNodes(
+        KratosMultiphysics.SensitivityUtilities.AssignElementDerivativesToNodes(
             self.model_part,
             self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
             KratosMultiphysics.NORMAL_SHAPE_DERIVATIVE,
@@ -112,7 +112,7 @@ class TestSensitivityBuilderTwoDimSymmetricalSquare(KratosUnittest.TestCase):
 
         self.__InitializeAssignEntityDerivativesToNodesValues(self.model_part.Conditions, 2)
 
-        KratosMultiphysics.SensitivityBuilder.AssignConditionDerivativesToNodes(
+        KratosMultiphysics.SensitivityUtilities.AssignConditionDerivativesToNodes(
             self.model_part,
             self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
             KratosMultiphysics.NORMAL_SHAPE_DERIVATIVE,

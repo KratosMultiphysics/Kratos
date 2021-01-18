@@ -256,10 +256,10 @@ void MonolithicDEMCoupled<3>::GetSecondDerivativesVector(Vector& Values, int Ste
 }
 
 /**
- * @see MonolithicDEMCoupled::GetValueOnIntegrationPoints
+ * @see MonolithicDEMCoupled::CalculateOnIntegrationPoints
  */
 template <>
-void MonolithicDEMCoupled<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+void MonolithicDEMCoupled<2>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -343,10 +343,10 @@ void MonolithicDEMCoupled<2>::GetValueOnIntegrationPoints( const Variable<array_
 }
 
 /**
- * @see MonolithicDEMCoupled::GetValueOnIntegrationPoints
+ * @see MonolithicDEMCoupled::CalculateOnIntegrationPoints
  */
 template <>
-void MonolithicDEMCoupled<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+void MonolithicDEMCoupled<3>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -497,7 +497,7 @@ double MonolithicDEMCoupled<3,4>::ElementSize(const double Volume)
 template <>
 double MonolithicDEMCoupled<2,3>::FilterWidth()
 {
-    double FilterWidth = GeometryUtils::CalculateVolume2D(this->GetGeometry());
+    double FilterWidth = this->GetGeometry().Volume();
     return 2.0 * FilterWidth;
 }
 
@@ -509,7 +509,7 @@ template <>
 double MonolithicDEMCoupled<3,4>::FilterWidth()
 {
     const double TwoThirds = 2.0 / 3.0;
-    double FilterWidth = GeometryUtils::CalculateVolume3D(this->GetGeometry());
+    double FilterWidth = this->GetGeometry().Volume();
     FilterWidth *= 6.0;
     return pow(FilterWidth, TwoThirds);
 }

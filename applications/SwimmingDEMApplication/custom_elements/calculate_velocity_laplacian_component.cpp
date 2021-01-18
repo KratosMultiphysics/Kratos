@@ -7,7 +7,7 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                  const ProcessInfo& rCurrentProcessInfo)
 {
     const int current_component = rCurrentProcessInfo[CURRENT_COMPONENT];
 
@@ -97,7 +97,7 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::GetDofList(DofsV
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -141,7 +141,7 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::AddConsistentMas
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int LocalSize = TNumNodes;
 
