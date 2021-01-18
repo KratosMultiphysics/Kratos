@@ -30,8 +30,7 @@
 #include "includes/define.h"
 #include "containers/variable.h"
 #include "includes/kratos_components.h"
-#include "includes/exception.h"
-
+#include "input_output/logger.h"
 #ifdef KRATOS_DEBUG
 #include "utilities/openmp_utils.h"
 #endif

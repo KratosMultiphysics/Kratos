@@ -22,8 +22,7 @@
 #include <array>
 
 // Project includes
-#include "includes/exception.h"
-
+#include "input_output/logger.h"
 namespace Kratos
 {
   ///@addtogroup KratosCore

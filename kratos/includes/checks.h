@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/exception.h"
+#include "input_output/logger.h"
 
 #if !defined(KRATOS_CHECKS_H_INCLUDED )
 #define  KRATOS_CHECKS_H_INCLUDED
