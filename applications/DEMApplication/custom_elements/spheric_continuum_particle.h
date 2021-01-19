@@ -103,6 +103,62 @@ namespace Kratos
         virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) override;
         virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual bool OverlappedParticleRemoval();
+
+        virtual void ComputeContactArea(double other_radius, Vector& cont_ini_neigh_area, int i, double& calculation_area);
+        virtual void ComputeElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area, int i, SphericContinuumParticle* neighbour_iterator);
+        virtual void CalculateIntactOrBrokenBondForces (const ProcessInfo& r_process_info,
+                                                            double OldLocalElasticContactForce[3],
+                                                            double LocalElasticContactForce[3],
+                                                            double LocalElasticExtraContactForce[3],
+                                                            double LocalCoordSystem[3][3],
+                                                            double LocalDeltDisp[3],
+                                                            const double kn_el,
+                                                            const double kt_el,
+                                                            double& contact_sigma,
+                                                            double& contact_tau,
+                                                            double& failure_criterion_state,
+                                                            double equiv_young,
+                                                            double equiv_shear,
+                                                            double indentation,
+                                                            double calculation_area,
+                                                            double& acumulated_damage,
+                                                            SphericContinuumParticle* neighbour_iterator,
+                                                            int i,
+                                                            int time_steps,
+                                                            bool& sliding,
+                                                            int search_control,
+                                                            vector<int>& search_control_vector,
+                                                            double &equiv_visco_damp_coeff_normal,
+                                                            double &equiv_visco_damp_coeff_tangential,
+                                                            double LocalRelVel[3],
+                                                            double ViscoDampingLocalContactForce[3]);
+
+        virtual void CalculateNoBondForces (const ProcessInfo& r_process_info,
+                                            double OldLocalElasticContactForce[3],
+                                            double LocalElasticContactForce[3],
+                                            double LocalElasticExtraContactForce[3],
+                                            double LocalCoordSystem[3][3],
+                                            double LocalDeltDisp[3],
+                                            const double kn_el,
+                                            const double kt_el,
+                                            double& contact_sigma,
+                                            double& contact_tau,
+                                            double& failure_criterion_state,
+                                            double equiv_young,
+                                            double equiv_shear,
+                                            double indentation,
+                                            double calculation_area,
+                                            double& acumulated_damage,
+                                            SphericContinuumParticle* neighbour_iterator,
+                                            int i,
+                                            int time_steps,
+                                            bool& sliding,
+                                            double &equiv_visco_damp_coeff_normal,
+                                            double &equiv_visco_damp_coeff_tangential,
+                                            double LocalRelVel[3],
+                                            double ViscoDampingLocalContactForce[3],
+                                            double& cohesive_force);
+
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual void CalculateOnContinuumContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3],
                                                 double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);

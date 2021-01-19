@@ -74,15 +74,21 @@ namespace Kratos {
                 continuum_ini_size++;
 
             } else {
+
                 DiscontinuumInitialNeighborsIds.push_back(neighbour_iterator->Id());
+                if(initial_delta > 0.0) {
                 DiscontinuumInitialNeighborsDeltas.push_back(initial_delta);
+                }
+                else {
+                    DiscontinuumInitialNeighborsDeltas.push_back(0.0);
+                }
                 DiscontinuumInitialNeighborsElements.push_back(neighbour_iterator);
                 discontinuum_ini_size++;
             }
         }
 
         mContinuumInitialNeighborsSize = continuum_ini_size;
-        mInitialNeighborsSize = neighbours_size;
+        mInitialNeighborsSize = continuum_ini_size + discontinuum_ini_size;
 
         for (unsigned int j = 0; j < continuum_ini_size; j++) {
             mNeighbourElements[j] = ContinuumInitialNeighborsElements[j];
@@ -201,6 +207,120 @@ namespace Kratos {
         double effectiveVolumeRadius = effectiveVolumeRadiusSum / cont_ini_neighbours_size;
 
         return effectiveVolumeRadius;
+    }
+
+
+    /*void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {
+
+    KRATOS_TRY
+
+    SphericParticle::InitializeSolutionStep(r_process_info);
+
+    for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+        DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], mArrayOfDeltaDisplacements[i]);
+    }
+
+    KRATOS_CATCH("")
+    }*/
+
+    void SphericContinuumParticle::ComputeContactArea(double other_radius, Vector& cont_ini_neigh_area, int i, double& calculation_area) {
+        if (i < (int)mContinuumInitialNeighborsSize) {
+            mContinuumConstitutiveLawArray[i]->GetContactArea(GetRadius(), other_radius, cont_ini_neigh_area, i, calculation_area); //some Constitutive Laws get a value, some others calculate the value.
+        }
+    }
+
+    void SphericContinuumParticle::ComputeElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area, int i, SphericContinuumParticle* neighbour_iterator) {
+        if (i < (int)mContinuumInitialNeighborsSize) {
+             mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area, this, neighbour_iterator);
+        }
+    }
+
+    void SphericContinuumParticle::CalculateIntactOrBrokenBondForces (const ProcessInfo& r_process_info,
+                                                            double OldLocalElasticContactForce[3],
+                                                            double LocalElasticContactForce[3],
+                                                            double LocalElasticExtraContactForce[3],
+                                                            double LocalCoordSystem[3][3],
+                                                            double LocalDeltDisp[3],
+                                                            const double kn_el,
+                                                            const double kt_el,
+                                                            double& contact_sigma,
+                                                            double& contact_tau,
+                                                            double& failure_criterion_state,
+                                                            double equiv_young,
+                                                            double equiv_shear,
+                                                            double indentation,
+                                                            double calculation_area,
+                                                            double& acumulated_damage,
+                                                            SphericContinuumParticle* neighbour_iterator,
+                                                            int i,
+                                                            int time_steps,
+                                                            bool& sliding,
+                                                            int search_control,
+                                                            vector<int>& search_control_vector,
+                                                            double &equiv_visco_damp_coeff_normal,
+                                                            double &equiv_visco_damp_coeff_tangential,
+                                                            double LocalRelVel[3],
+                                                            double ViscoDampingLocalContactForce[3]) {
+
+
+        mContinuumConstitutiveLawArray[i]->CalculateForces(r_process_info,
+                                                        OldLocalElasticContactForce,
+                                                        LocalElasticContactForce,
+                                                        LocalElasticExtraContactForce,
+                                                        LocalCoordSystem,
+                                                        LocalDeltDisp,
+                                                        kn_el,
+                                                        kt_el,
+                                                        contact_sigma,
+                                                        contact_tau,
+                                                        failure_criterion_state,
+                                                        equiv_young,
+                                                        equiv_shear,
+                                                        indentation,
+                                                        calculation_area,
+                                                        acumulated_damage,
+                                                        this,
+                                                        neighbour_iterator,
+                                                        i,
+                                                        time_steps,
+                                                        sliding,
+                                                        equiv_visco_damp_coeff_normal,
+                                                        equiv_visco_damp_coeff_tangential,
+                                                        LocalRelVel,
+                                                        ViscoDampingLocalContactForce);
+    }
+
+    void SphericContinuumParticle::CalculateNoBondForces(const ProcessInfo& r_process_info,
+                                                        double OldLocalElasticContactForce[3],
+                                                        double LocalElasticContactForce[3],
+                                                        double LocalElasticExtraContactForce[3],
+                                                        double LocalCoordSystem[3][3],
+                                                        double LocalDeltDisp[3],
+                                                        const double kn_el,
+                                                        const double kt_el,
+                                                        double& contact_sigma,
+                                                        double& contact_tau,
+                                                        double& failure_criterion_state,
+                                                        double equiv_young,
+                                                        double equiv_shear,
+                                                        double indentation,
+                                                        double calculation_area,
+                                                        double& acumulated_damage,
+                                                        SphericContinuumParticle* neighbour_iterator,
+                                                        int i,
+                                                        int time_steps,
+                                                        bool& sliding,
+                                                        double &equiv_visco_damp_coeff_normal,
+                                                        double &equiv_visco_damp_coeff_tangential,
+                                                        double LocalRelVel[3],
+                                                        double ViscoDampingLocalContactForce[3],
+                                                        double& cohesive_force) {
+
+        const double previous_indentation = indentation + LocalDeltDisp[2];
+        mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce,
+                LocalDeltDisp, LocalRelVel, indentation, previous_indentation,
+                ViscoDampingLocalContactForce, cohesive_force, this, neighbour_iterator, sliding, LocalCoordSystem);
+
     }
 
     void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
@@ -346,11 +466,33 @@ namespace Kratos {
                                                                 ViscoDampingLocalContactForce);
 
             } else if (indentation > 0.0) {
-                const double previous_indentation = indentation + LocalDeltDisp[2];
-                mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce,
-                        LocalDeltDisp, LocalRelVel, indentation, previous_indentation,
-                        ViscoDampingLocalContactForce, cohesive_force, this, data_buffer.mpOtherParticle, sliding, data_buffer.mLocalCoordSystem);
-            } else { //Not bonded and no idata_buffer.mpOtherParticlendentation
+                CalculateNoBondForces(r_process_info,
+                                        OldLocalElasticContactForce,
+                                        LocalElasticContactForce,
+                                        LocalElasticExtraContactForce,
+                                        data_buffer.mLocalCoordSystem,
+                                        LocalDeltDisp,
+                                        kn_el,
+                                        kt_el,
+                                        contact_sigma,
+                                        contact_tau,
+                                        failure_criterion_state,
+                                        equiv_young,
+                                        equiv_shear,
+                                        indentation,
+                                        calculation_area,
+                                        acumulated_damage,
+                                        neighbour_iterator,
+                                        i,
+                                        r_process_info[TIME_STEPS],
+                                        sliding,
+                                        equiv_visco_damp_coeff_normal,
+                                        equiv_visco_damp_coeff_tangential,
+                                        LocalRelVel,
+                                        ViscoDampingLocalContactForce,
+                                        cohesive_force);
+
+            } else { //Not bonded and no indentation
                 LocalElasticContactForce[0] = 0.0;      LocalElasticContactForce[1] = 0.0;      LocalElasticContactForce[2] = 0.0;
                 ViscoDampingLocalContactForce[0] = 0.0; ViscoDampingLocalContactForce[1] = 0.0; ViscoDampingLocalContactForce[2] = 0.0;
                 cohesive_force= 0.0;

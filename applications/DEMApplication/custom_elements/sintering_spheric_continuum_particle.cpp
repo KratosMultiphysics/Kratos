@@ -16,6 +16,7 @@
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "utilities/openmp_utils.h"
 #include "DEM_application_variables.h"
+#include "../custom_constitutive/DEM_KDEM_CL.h"
 
 
 //......................
@@ -25,15 +26,16 @@ namespace Kratos
 {
 	void SinteringSphericContinuumParticle::Initialize(const ProcessInfo& r_process_info) {
             KRATOS_TRY
-            ThermalSphericParticle<SphericContinuumParticle>::Initialize(r_process_info);
+            BaseClass::Initialize(r_process_info);
             mSinteringDisplacement = 0;
             mSinteringDrivingForce = 0;
+            mpGenericContinuumConstitutiveLaw = new DEM_KDEM();
             KRATOS_CATCH("")
 	}
 
         void SinteringSphericContinuumParticle::InitializeSolutionStep(const ProcessInfo& r_process_info) {
             KRATOS_TRY
-			ThermalSphericParticle<SphericContinuumParticle>::InitializeSolutionStep(r_process_info);
+            BaseClass::InitializeSolutionStep(r_process_info);
             const double temperature = GetTemperature();
             const double sintering_start_temp = GetProperties()[SINTERING_START_TEMPERATURE];
 
@@ -41,6 +43,80 @@ namespace Kratos
             else                                    { this->Set(DEMFlags::IS_SINTERING, false); }
             KRATOS_CATCH("")
         }
+
+        void SinteringSphericContinuumParticle::ComputeContactArea(double other_radius, Vector& cont_ini_neigh_area, int i, double& calculation_area) {
+            //if (i < (int)mContinuumInitialNeighborsSize) {
+             //   mContinuumConstitutiveLawArray[i]->GetContactArea(GetRadius(), other_radius, cont_ini_neigh_area, i, calculation_area); //some Constitutive Laws get a value, some others calculate the value.
+            //}
+            //else {
+                mpGenericContinuumConstitutiveLaw->GetContactArea(GetRadius(), other_radius, cont_ini_neigh_area, i, calculation_area); //some Constitutive Laws get a value, some others calculate the value.
+            //}
+        }
+
+        void SinteringSphericContinuumParticle::ComputeElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area, int i, SphericContinuumParticle* neighbour_iterator) {
+            //if (i < (int)mContinuumInitialNeighborsSize) {
+            //    mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area, this, neighbour_iterator);
+            //}
+            //else {
+                mpGenericContinuumConstitutiveLaw->CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area, this, neighbour_iterator);
+            //}
+        }
+
+
+        void SinteringSphericContinuumParticle::CalculateNoBondForces (const ProcessInfo& r_process_info,
+                                    double OldLocalElasticContactForce[3],
+                                    double LocalElasticContactForce[3],
+                                    double LocalElasticExtraContactForce[3],
+                                    double LocalCoordSystem[3][3],
+                                    double LocalDeltDisp[3],
+                                    const double kn_el,
+                                    const double kt_el,
+                                    double& contact_sigma,
+                                    double& contact_tau,
+                                    double& failure_criterion_state,
+                                    double equiv_young,
+                                    double equiv_shear,
+                                    double indentation,
+                                    double calculation_area,
+                                    double& acumulated_damage,
+                                    SphericContinuumParticle* neighbour_iterator,
+                                    int i,
+                                    int time_steps,
+                                    bool& sliding,
+                                    double &equiv_visco_damp_coeff_normal,
+                                    double &equiv_visco_damp_coeff_tangential,
+                                    double LocalRelVel[3],
+                                    double ViscoDampingLocalContactForce[3],
+                                    double& cohesive_force) {
+
+            mpGenericContinuumConstitutiveLaw->CalculateForces(r_process_info,
+                                                                OldLocalElasticContactForce,
+                                                                LocalElasticContactForce,
+                                                                LocalElasticExtraContactForce,
+                                                                LocalCoordSystem,
+                                                                LocalDeltDisp,
+                                                                kn_el,
+                                                                kt_el,
+                                                                contact_sigma,
+                                                                contact_tau,
+                                                                failure_criterion_state,
+                                                                equiv_young,
+                                                                equiv_shear,
+                                                                indentation,
+                                                                calculation_area,
+                                                                acumulated_damage,
+                                                                this,
+                                                                neighbour_iterator,
+                                                                i,
+                                                                time_steps,
+                                                                sliding,
+                                                                equiv_visco_damp_coeff_normal,
+                                                                equiv_visco_damp_coeff_tangential,
+                                                                LocalRelVel,
+                                                                ViscoDampingLocalContactForce);
+
+        }
+
 
 	void SinteringSphericContinuumParticle::UpdateContinuumNeighboursVector(const ProcessInfo& r_process_info) {
             KRATOS_TRY
@@ -163,8 +239,8 @@ namespace Kratos
             KRATOS_CATCH("")
 	};
 
-
-	void SinteringSphericContinuumParticle::SetInitialSinteringSphereContacts(const ProcessInfo& r_process_info)
+         /*
+	void SinteringSphericContinuumParticle::SetInitialSinteringSphereContacts(ProcessInfo& r_process_info)
 	{
 		std::vector<SphericContinuumParticle*> ContinuumInitialNeighborsElements;
 		std::vector<SphericContinuumParticle*> DiscontinuumInitialNeighborsElements;
@@ -223,10 +299,11 @@ namespace Kratos
 		}
 
 	CreateContinuumConstitutiveLaws(); //// Reorder????
-	}//SetInitialSinteringSphereContacts
+	}//SetInitialSinteringSphereContacts    */
 
 	void SinteringSphericContinuumParticle::InitializeForceComputation(const ProcessInfo& r_process_info)
 	{
+            BaseClass::InitializeForceComputation(r_process_info);
                 if (this->Is(DEMFlags::IS_SINTERING))
                 {
                         UpdateContinuumNeighboursVector(r_process_info);
@@ -235,9 +312,10 @@ namespace Kratos
                 }
 	}
 
-        void SinteringSphericContinuumParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {
-            other_ball_to_ball_forces[2] = -this->mSinteringDrivingForce;
-        }
+        /*void SinteringSphericContinuumParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {
+            BaseClass::ComputeOtherBallToBallForces(other_ball_to_ball_forces);
+            other_ball_to_ball_forces[2] += -this->mSinteringDrivingForce;
+        }*/
 
         /*double SinteringSphericContinuumParticle::GetInitialDelta(int index) {
             return 0.0;
@@ -245,6 +323,11 @@ namespace Kratos
 
         void SinteringSphericContinuumParticle::ComputeContactArea(const double rmin, double indentation, double& calculation_area) { //TODO: add "thermal" word to this function
                 double actual_neck_radius;
+                if (indentation <= 0.0) {
+                    calculation_area = 0.0;
+                    return;
+                }
+
                 if (this->Is(DEMFlags::IS_SINTERING)) {
                         indentation = -indentation;
                         double geo_a = rmin;

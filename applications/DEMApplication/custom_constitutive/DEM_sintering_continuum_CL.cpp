@@ -90,8 +90,8 @@ namespace Kratos {
 			//double large_visco_coeff = element1->GetProperties()[LARGE_VISCOSITY_COEFFICIENT];
 			//double thermal_alpha = element1->GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
 			double pre_Dgb = element1->GetProperties()[PRE_EXP_DIFFUSION_COEFFICIENT];
-			double gb_width = element1->GetProperties()[GB_WIDTH];
-			double enth_activ = element1->GetProperties()[ENTHAPLY_ACTIVATION];
+			double gb_width = element1->GetProperties()[GRAIN_BOUNDARY_WIDTH];
+			double enth_activ = element1->GetProperties()[ENTHALPY_ACTIVATION];
 			double temperature_element1 = element1->GetGeometry()[0].GetSolutionStepValue(TEMPERATURE);
 			double temperature_element2 = element2->GetGeometry()[0].GetSolutionStepValue(TEMPERATURE);
 			double temperature = (temperature_element1 + temperature_element2) / 2;
