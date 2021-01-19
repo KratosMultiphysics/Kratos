@@ -6,10 +6,7 @@ import KratosMultiphysics
 from KratosMultiphysics.MultilevelMonteCarloApplication.tools import ParametersWrapper
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable, IsMPIAvailable
 if KratosMultiphysics.IsDistributedRun():
-    if not IsMPIAvailable():
-        raise Exception("[MultilevelMonteCarloApplication]: KratosMultiphysics MPI core is not available, but it is required since runnning with MPI.")
-    else:
-        import KratosMultiphysics.mpi
+    import KratosMultiphysics.mpi
 if CheckIfApplicationsAvailable("MeshingApplication"):
     import KratosMultiphysics.MeshingApplication
 if CheckIfApplicationsAvailable("ExaquteSandboxApplication"):
