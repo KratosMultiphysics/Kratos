@@ -97,6 +97,14 @@ public:
         bool HasAttribute(std::string const& AttributeName) const {
             return (mAttributes.find(AttributeName) != mAttributes.end());
         }
+
+        std::string const& GetAttribute(std::string const& AttributeName) const {
+            auto i_attribute = mAttributes.find(AttributeName);
+            KRATOS_DEBUG_ERROR_IF(i_attribute == mAttributes.end()) << "The attribute \"" << AttributeName << "\" was not found in this block" << std::endl;
+
+            return i_attribute->second;
+        }
+
     };
 
     /// Pointer definition of XmlIO
