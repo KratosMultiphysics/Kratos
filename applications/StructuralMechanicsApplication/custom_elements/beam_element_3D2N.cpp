@@ -513,15 +513,14 @@ Vector BeamElement3D2N::LocalDeformations() const
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
 
-    local_deformations[0] = l-L;
+    //local_deformations[0] = l-L;
+    local_deformations[0] = (std::pow(l,2.0)-std::pow(L,2.0)) / (l+L);  //Crisfield
 
     Matrix reference_co_rot_matrix = CalculateInitialLocalCS();
     Matrix current_co_rot_matrix = CoRotatingCS();
 
 
     Matrix local_rot_node_1 = prod(mGlobalRotationNode1,reference_co_rot_matrix);
-
-
     local_rot_node_1 = prod(trans(current_co_rot_matrix),local_rot_node_1);
 
     Matrix local_rot_node_2 = prod(mGlobalRotationNode2,reference_co_rot_matrix);
@@ -969,8 +968,25 @@ void BeamElement3D2N::CalculateConsistentMassMatrix(
     rMassMatrix(11,11) = 0.0095238095238095455*A*std::pow(L, 3)*rho;
 
 
+
+
+    Matrix reference_co_rot_matrix = CalculateInitialLocalCS();
+    Matrix local_rot_node_1 = prod(mGlobalRotationNode1,reference_co_rot_matrix);
+    Matrix local_rot_node_2 = prod(mGlobalRotationNode2,reference_co_rot_matrix);
+
+    Matrix current_co_rotating_rotation_matrix = ZeroMatrix(msElementSize);
+
+    project(current_co_rotating_rotation_matrix, range(0,3),range(0,3)) += local_rot_node_1;
+    project(current_co_rotating_rotation_matrix, range(3,6),range(3,6)) += local_rot_node_1;
+    project(current_co_rotating_rotation_matrix, range(6,9),range(6,9)) += local_rot_node_2;
+    project(current_co_rotating_rotation_matrix, range(9,12),range(9,12)) += local_rot_node_2;
+
+
     // rotate the consistent mass matrix
-    Matrix current_co_rotating_rotation_matrix = EMatrix();
+    /* Matrix current_co_rotating_rotation_matrix = EMatrix(); */
+
+
+
     rMassMatrix = prod(rMassMatrix,trans(current_co_rotating_rotation_matrix));
     rMassMatrix = prod(current_co_rotating_rotation_matrix,rMassMatrix);
     KRATOS_CATCH("")
@@ -1052,7 +1068,7 @@ BoundedVector<double, BeamElement3D2N::msElementSize> BeamElement3D2N::Calculate
         ZeroVector(msElementSize);
 
     const double A = GetProperties()[CROSS_AREA];
-    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double l = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
     // calculating equivalent line load
@@ -1071,9 +1087,9 @@ BoundedVector<double, BeamElement3D2N::msElementSize> BeamElement3D2N::Calculate
         }
     }
 
-    // adding the nodal moments
+    /* // adding the nodal moments
     CalculateAndAddWorkEquivalentNodalForcesLineLoad(equivalent_line_load,
-            body_forces_global, l);
+            body_forces_global, l); */
 
     // return the total ForceVector
     return body_forces_global;
