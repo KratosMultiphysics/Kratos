@@ -26,7 +26,7 @@ namespace Kratos
 GenericFunctionUtility::GenericFunctionUtility(
     const std::string& rFunctionBody,
     Parameters LocalSystem
-    ) : mFunctionBody(StringUtilities::ReplaceAllSubstrings(rFunctionBody, "**", "^")) // Correcting function from python style to exprtk
+    ) : mFunctionBody(StringUtilities::ReplaceAllSubstrings(rFunctionBody, "**", "^")) // Correcting function from python style to muparser
 {
     // Defining namespace
     mNameSpace.insert(std::pair<std::string, double>("x", 0.0));
