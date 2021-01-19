@@ -81,21 +81,16 @@ int ParallelUtilities::InitializeNumberOfThreads()
         // "KRATOS_NUM_THREADS" is in the environment
         // giving highest priority to this variable
         num_threads = std::atoi( env_kratos );
-        KRATOS_DETAIL("Kernel") << "Using \"KRATOS_NUM_THREADS\" for getting the number of threads: " << num_threads << std::endl;
     } else if (env_omp) {
         // "KRATOS_NUM_THREADS" is not in the environment,
         // checking if "OMP_NUM_THREADS" is
         num_threads = std::atoi( env_omp );
-        KRATOS_DETAIL("Kernel") << "Using \"OMP_NUM_THREADS\" for getting the number of threads: " << num_threads << std::endl;
     } else {
         // if neither "KRATOS_NUM_THREADS" not "OMP_NUM_THREADS"
         // is in the environment, then check the C++ thread function
         // NOTE: this can return 0 in some systems!
         num_threads = std::thread::hardware_concurrency();
-        KRATOS_DETAIL("Kernel") << "Using \"std::thread::hardware_concurrency\" for getting the number of threads: " << num_threads << std::endl;
     }
-
-    KRATOS_WARNING_IF("ParallelUtilities", num_threads < 1) << "The number of threads could not be determined correctly, which means that Kratos runs in serial / without shared memory parallelism.\nPlease set \"KRATOS_NUM_THREADS\" as environment variable with a value > 0" << std::endl;
 
     num_threads = std::max(1, num_threads);
 
