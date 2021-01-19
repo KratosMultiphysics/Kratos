@@ -74,17 +74,14 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static ParallelUtilities* mpInstance;
-    static int msNumThreads; // number of threads used in Kratos
+    static int* mspNumThreads;
 
     ///@}
     ///@name Private Operations
     ///@{
 
     /// Default constructor.
-    ParallelUtilities() = default;
-
-    static void Create();
+    ParallelUtilities() = delete;
 
     /** @brief Initializes the number of threads to be used.
      * @return number of threads
@@ -95,7 +92,7 @@ private:
     ///@name Private Access
     ///@{
 
-    static ParallelUtilities& GetInstance();
+    static int& GetNumberOfThreads();
 
     ///@}
 }; // Class ParallelUtilities
