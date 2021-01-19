@@ -1189,6 +1189,26 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void BaseSolidElement::CalculateOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const SizeType integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != integration_points_number) {
+            rValues.resize(integration_points_number);
+        }
+        for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
+            rValues[point_number] = mConstitutiveLawVector[point_number];
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<bool>& rVariable,
     std::vector<bool>& rValues,
@@ -1326,27 +1346,6 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
         }
     } else {
         KRATOS_WARNING("BaseSolidElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
-    }
-}
-
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-        const Variable<ConstitutiveLaw::Pointer>& rVariable,
-        std::vector<ConstitutiveLaw::Pointer>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-{
-    if (rVariable == CONSTITUTIVE_LAW) {
-        const SizeType integration_points_number = mConstitutiveLawVector.size();
-        if (rValues.size() != integration_points_number) {
-            rValues.resize(integration_points_number);
-        }
-        for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
-            rValues[point_number] = mConstitutiveLawVector[point_number];
-        }
     }
 }
 
