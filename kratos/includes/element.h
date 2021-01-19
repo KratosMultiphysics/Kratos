@@ -256,12 +256,9 @@ public:
     virtual void EquationIdVector(EquationIdVectorType& rResult,
                                   const ProcessInfo& rCurrentProcessInfo) const
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        const_cast<Element*>(this)->EquationIdVector(rResult, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rResult.size() != 0) {
-        //     rResult.resize(0);
-        // }
+        if (rResult.size() != 0) {
+            rResult.resize(0);
+        }
     }
 
     /**
@@ -272,12 +269,9 @@ public:
     virtual void GetDofList(DofsVectorType& rElementalDofList,
                             const ProcessInfo& rCurrentProcessInfo) const
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        const_cast<Element*>(this)->GetDofList(rElementalDofList, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rElementalDofList.size() != 0) {
-        //     rElementalDofList.resize(0);
-        // }
+        if (rElementalDofList.size() != 0) {
+            rElementalDofList.resize(0);
+        }
     }
 
     /**
@@ -344,9 +338,6 @@ public:
      */
     virtual void Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        Initialize();
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     /**
@@ -371,9 +362,6 @@ public:
      */
     virtual void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        InitializeSolutionStep(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     /**
@@ -381,9 +369,6 @@ public:
      */
     virtual void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        InitializeNonLinearIteration(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     /**
@@ -391,9 +376,6 @@ public:
      */
     virtual void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        FinalizeNonLinearIteration(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     /**
@@ -401,9 +383,6 @@ public:
      */
     virtual void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        FinalizeSolutionStep(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     /**
@@ -425,15 +404,12 @@ public:
                                       VectorType& rRightHandSideVector,
                                       const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rLeftHandSideMatrix.size1() != 0) {
-        //     rLeftHandSideMatrix.resize(0, 0, false);
-        // }
-        // if (rRightHandSideVector.size() != 0) {
-        //     rRightHandSideVector.resize(0, false);
-        // }
+        if (rLeftHandSideMatrix.size1() != 0) {
+            rLeftHandSideMatrix.resize(0, 0, false);
+        }
+        if (rRightHandSideVector.size() != 0) {
+            rRightHandSideVector.resize(0, false);
+        }
     }
 
     /**
@@ -445,12 +421,9 @@ public:
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        CalculateLeftHandSide(rLeftHandSideMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rLeftHandSideMatrix.size1() != 0) {
-        //     rLeftHandSideMatrix.resize(0, 0, false);
-        // }
+        if (rLeftHandSideMatrix.size1() != 0) {
+            rLeftHandSideMatrix.resize(0, 0, false);
+        }
     }
 
     /**
@@ -462,12 +435,9 @@ public:
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        CalculateRightHandSide(rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rRightHandSideVector.size() != 0) {
-        //     rRightHandSideVector.resize(0, false);
-        // }
+        if (rRightHandSideVector.size() != 0) {
+            rRightHandSideVector.resize(0, false);
+        }
     }
 
     /**
@@ -478,7 +448,6 @@ public:
      * CalculateFirstDerivativesContributions,
      * CalculateFirstDerivativesLHS, CalculateFirstDerivativesRHS methods are : OPTIONAL
      */
-
 
     /**
      * this is called during the assembling process in order
@@ -491,15 +460,12 @@ public:
                                                         VectorType& rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        CalculateFirstDerivativesContributions(rLeftHandSideMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rLeftHandSideMatrix.size1() != 0) {
-        //     rLeftHandSideMatrix.resize(0, 0, false);
-        // }
-        // if (rRightHandSideVector.size() != 0) {
-        //     rRightHandSideVector.resize(0, false);
-        // }
+        if (rLeftHandSideMatrix.size1() != 0) {
+            rLeftHandSideMatrix.resize(0, 0, false);
+        }
+        if (rRightHandSideVector.size() != 0) {
+            rRightHandSideVector.resize(0, false);
+        }
     }
 
     /**
@@ -511,12 +477,9 @@ public:
     virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
                                               const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        CalculateFirstDerivativesLHS(rLeftHandSideMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rLeftHandSideMatrix.size1() != 0) {
-        //     rLeftHandSideMatrix.resize(0, 0, false);
-        // }
+        if (rLeftHandSideMatrix.size1() != 0) {
+            rLeftHandSideMatrix.resize(0, 0, false);
+        }
     }
 
     /**
@@ -528,14 +491,9 @@ public:
     virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
                                               const ProcessInfo& rCurrentProcessInfo)
     {
-
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        CalculateFirstDerivativesRHS(rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-
-        // if (rRightHandSideVector.size() != 0) {
-        //     rRightHandSideVector.resize(0, false);
-        // }
+        if (rRightHandSideVector.size() != 0) {
+            rRightHandSideVector.resize(0, false);
+        }
     }
 
     /**
@@ -559,15 +517,12 @@ public:
                                                          VectorType& rRightHandSideVector,
                                                          const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        CalculateSecondDerivativesContributions(rLeftHandSideMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rLeftHandSideMatrix.size1() != 0) {
-        //     rLeftHandSideMatrix.resize(0, 0, false);
-        // }
-        // if (rRightHandSideVector.size() != 0) {
-        //     rRightHandSideVector.resize(0, false);
-        // }
+        if (rLeftHandSideMatrix.size1() != 0) {
+            rLeftHandSideMatrix.resize(0, 0, false);
+        }
+        if (rRightHandSideVector.size() != 0) {
+            rRightHandSideVector.resize(0, false);
+        }
     }
 
     /**
@@ -579,12 +534,9 @@ public:
     virtual void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
                                                const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        CalculateSecondDerivativesLHS(rLeftHandSideMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rLeftHandSideMatrix.size1() != 0) {
-        //     rLeftHandSideMatrix.resize(0, 0, false);
-        // }
+        if (rLeftHandSideMatrix.size1() != 0) {
+            rLeftHandSideMatrix.resize(0, 0, false);
+        }
     }
 
     /**
@@ -596,12 +548,9 @@ public:
     virtual void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
                                                const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        CalculateSecondDerivativesRHS(rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rRightHandSideVector.size() != 0) {
-        //     rRightHandSideVector.resize(0, false);
-        // }
+        if (rRightHandSideVector.size() != 0) {
+            rRightHandSideVector.resize(0, false);
+        }
     }
 
     /**
@@ -618,12 +567,9 @@ public:
      */
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        CalculateMassMatrix(rMassMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rMassMatrix.size1() != 0) {
-        //     rMassMatrix.resize(0, 0, false);
-        // }
+        if (rMassMatrix.size1() != 0) {
+            rMassMatrix.resize(0, 0, false);
+        }
     }
 
     /**
@@ -634,12 +580,9 @@ public:
      */
     virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        CalculateDampingMatrix(rDampingMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rDampingMatrix.size1() != 0) {
-        //     rDampingMatrix.resize(0, 0, false);
-        // }
+        if (rDampingMatrix.size1() != 0) {
+            rDampingMatrix.resize(0, 0, false);
+        }
     }
 
     /**
@@ -676,9 +619,6 @@ public:
      */
     virtual void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        AddExplicitContribution(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     /**
@@ -778,72 +718,48 @@ public:
                           std::vector<bool>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                           std::vector<int>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                           std::vector<double>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                           std::vector< array_1d<double, 3 > >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                           std::vector< array_1d<double, 6 > >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
                           std::vector< Vector >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
                           std::vector< Matrix >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                          std::vector<ConstitutiveLaw::Pointer>& rOutput,
                          const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     /**
@@ -937,13 +853,9 @@ public:
      */
     virtual void MassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        MassMatrix(rMassMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-
-        // if (rMassMatrix.size1() != 0) {
-        //     rMassMatrix.resize(0, 0, false);
-        // }
+        if (rMassMatrix.size1() != 0) {
+            rMassMatrix.resize(0, 0, false);
+        }
     }
 
     /**
@@ -955,9 +867,6 @@ public:
     virtual void AddMassMatrix(MatrixType& rLeftHandSideMatrix,
                                double coeff, const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        AddMassMatrix(rLeftHandSideMatrix, coeff, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     /**
@@ -968,12 +877,9 @@ public:
      */
     virtual void DampMatrix(MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        DampMatrix(rDampMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rDampMatrix.size1() != 0) {
-        //     rDampMatrix.resize(0, 0, false);
-        // }
+        if (rDampMatrix.size1() != 0) {
+            rDampMatrix.resize(0, 0, false);
+        }
     }
 
     /**
@@ -983,9 +889,6 @@ public:
     virtual void AddInertiaForces(VectorType& rRightHandSideVector, double coeff,
                                   const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        AddInertiaForces(rRightHandSideVector, coeff, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     /**
@@ -997,12 +900,9 @@ public:
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        CalculateLocalVelocityContribution(rDampingMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // if (rDampingMatrix.size1() != 0) {
-        //     rDampingMatrix.resize(0, 0, false);
-        // }
+        if (rDampingMatrix.size1() != 0) {
+            rDampingMatrix.resize(0, 0, false);
+        }
     }
 
     /**
@@ -1026,7 +926,6 @@ public:
         if (rOutput.size1() != 0)
             rOutput.resize(0, 0, false);
     }
-
 
     //METHODS TO BE CLEANED: DEPRECATED end
 
