@@ -58,6 +58,18 @@ void ParallelEnvironment::SetUpMPIEnvironment(EnvironmentManager::Pointer pEnvir
     env.SetUpMPIEnvironmentDetail(std::move(pEnvironmentManager));
 }
 
+void ParallelEnvironment::RegisterFillCommunicatorFactory(std::function<FillCommunicator::Pointer(ModelPart&)> FillCommunicatorFactory)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.RegisterFillCommunicatorFactoryDetail(FillCommunicatorFactory);
+}
+
+FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicator(ModelPart& rModelPart)
+{
+    ParallelEnvironment& env = GetInstance();
+    return env.mFillCommunicatorFactory(rModelPart);
+}
+
 void ParallelEnvironment::RegisterDataCommunicator(
     const std::string& Name,
     DataCommunicator::UniquePointer pPrototype,
@@ -120,6 +132,7 @@ void ParallelEnvironment::PrintData(std::ostream &rOStream)
 ParallelEnvironment::ParallelEnvironment()
 {
     RegisterDataCommunicatorDetail("Serial", DataCommunicator::Create(), MakeDefault);
+    RegisterFillCommunicatorFactoryDetail([&](ModelPart& rModelPart)->FillCommunicator::Pointer{return FillCommunicator::Pointer(new FillCommunicator(rModelPart));});
 }
 
 ParallelEnvironment::~ParallelEnvironment()
@@ -178,6 +191,11 @@ void ParallelEnvironment::SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer 
     << "Trying to configure run for MPI twice. This should not be happening!" << std::endl;
 
     mpEnvironmentManager = std::move(pEnvironmentManager);
+}
+
+void ParallelEnvironment::RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&)> FillCommunicatorFactory)
+{
+    mFillCommunicatorFactory = FillCommunicatorFactory;
 }
 
 void ParallelEnvironment::RegisterDataCommunicatorDetail(
