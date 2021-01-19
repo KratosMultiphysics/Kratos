@@ -109,7 +109,6 @@ namespace Kratos
     protected:
        //thermal sphere neighbor information
 
-        double mTemperature;
         double mConductiveHeatFlux;
         double mThermalConductivity;
         double mSpecificHeat;
