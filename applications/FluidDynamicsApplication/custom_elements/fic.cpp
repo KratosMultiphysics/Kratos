@@ -98,9 +98,6 @@ int FIC<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
-    // Extra variables
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-
     const auto& r_geom = this->GetGeometry();
     for(unsigned int i=0; i<NumNodes; ++i)
     {

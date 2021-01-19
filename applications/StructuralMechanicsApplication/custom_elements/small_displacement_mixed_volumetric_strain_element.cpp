@@ -153,21 +153,24 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize(const ProcessInfo
 {
     KRATOS_TRY
 
-    // Integration method initialization
-    mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-    const auto& r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        // Integration method initialization
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    // Constitutive Law Vector initialisation
-    if (mConstitutiveLawVector.size() != r_integration_points.size()) {
-        mConstitutiveLawVector.resize(r_integration_points.size());
+        // Constitutive Law Vector initialisation
+        if (mConstitutiveLawVector.size() != r_integration_points.size()) {
+            mConstitutiveLawVector.resize(r_integration_points.size());
+        }
+
+        // Initialize material
+        InitializeMaterial();
+
+        // Calculate the and save the anisotropy transformation tensor
+        CalculateAnisotropyTensor(rCurrentProcessInfo);
+        CalculateInverseAnisotropyTensor();
     }
-
-    // Initialize material
-    InitializeMaterial();
-
-    // Calculate the and save the anisotropy transformation tensor
-    CalculateAnisotropyTensor(rCurrentProcessInfo);
-    CalculateInverseAnisotropyTensor();
 
     KRATOS_CATCH( "" )
 }
@@ -1030,9 +1033,6 @@ int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCu
 
     // Base check
     check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
-
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(VOLUMETRIC_STRAIN)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     const auto& r_geometry = this->GetGeometry();

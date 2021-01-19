@@ -31,7 +31,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         # The CoSimulation runs at the SMALLEST Timestep.
         # The solver with the smallest timestep will dictate the CoSimulation.
         # The solver(s) with the larger timesteps will be called only at times that match their time
-        advanced_time = 0
+        advanced_time = current_time
         self.departing_time = current_time # the time we are departing from - this is used to sync everything
 
         if self.is_initial_step:
@@ -47,50 +47,60 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             self.__InitializeFetiMethod()
         else:
             for solver_name, solver in self.solver_wrappers.items():
-                if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
-                    solver_time = solver.AdvanceInTime(current_time)
+                if self.SolverSolvesAtThisTime(solver_name):
+                    solver_time = solver.AdvanceInTime(self.departing_time)
                     if self._solver_origin_dest_dict[solver_name] == CoSim.FetiSolverIndexType.Destination:
                         advanced_time = solver_time #only advance global time finely
 
-        return advanced_time
+        if advanced_time == current_time:
+            raise Exception("No solvers advanced any timestep.")
+        else:
+            return advanced_time
 
-    def SolverSolvesAtThisTime(self, current_time, solver_name):
+    def SolverSolvesAtThisTime(self, solver_name):
         solver_delta_time = self._solver_delta_times[solver_name]
         # the following only works if timesteps are multiple of each other
-        return (current_time % solver_delta_time) < 1E-12
+        time_error = (self.departing_time % solver_delta_time)
+        if time_error < 1E-12 or abs(time_error - solver_delta_time) < 1E-12:
+            return True
+        else:
+            return False
 
     def InitializeSolutionStep(self):
         for solver_name, solver in self.solver_wrappers.items():
-            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+            if self.SolverSolvesAtThisTime(solver_name):
                 solver.InitializeSolutionStep()
 
-        for coupling_op in self.coupling_operations_dict.values():
-            coupling_op.InitializeSolutionStep()
+        for coupling_op_name, coupling_op in self.coupling_operations_dict.items():
+            if self.__CouplingOpActsNow(coupling_op_name):
+                coupling_op.InitializeSolutionStep()
 
     def Predict(self):
         for solver_name, solver in self.solver_wrappers.items():
-            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+            if self.SolverSolvesAtThisTime(solver_name):
                 solver.Predict()
 
     def FinalizeSolutionStep(self):
         for solver_name, solver in self.solver_wrappers.items():
-            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+            if self.SolverSolvesAtThisTime(solver_name):
                 solver.FinalizeSolutionStep()
 
-        for coupling_op in self.coupling_operations_dict.values():
-            coupling_op.FinalizeSolutionStep()
+        for coupling_op_name, coupling_op in self.coupling_operations_dict.items():
+            if self.__CouplingOpActsNow(coupling_op_name):
+                coupling_op.FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
         for solver_name, solver in self.solver_wrappers.items():
-            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+            if self.SolverSolvesAtThisTime(solver_name):
                 solver.OutputSolutionStep()
 
     def SolveSolutionStep(self):
-        for coupling_op in self.coupling_operations_dict.values():
-            coupling_op.InitializeCouplingIteration()
+        for coupling_op_name, coupling_op in self.coupling_operations_dict.items():
+            if self.__CouplingOpActsNow(coupling_op_name):
+                coupling_op.InitializeCouplingIteration()
 
         for solver_name, solver in self.solver_wrappers.items():
-            if self.SolverSolvesAtThisTime(self.departing_time, solver_name):
+            if self.SolverSolvesAtThisTime(solver_name):
                 #self._SynchronizeInputData(solver_name) @phil not needed since corrections are applied within the feti cpp
                 solver.SolveSolutionStep()
                 #self._SynchronizeOutputData(solver_name) @phil not needed since corrections are applied within the feti cpp
@@ -98,8 +108,9 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         self.feti_coupling.EquilibrateDomains()
 
-        for coupling_op in self.coupling_operations_dict.values():
-            coupling_op.FinalizeCouplingIteration()
+        for coupling_op_name, coupling_op in self.coupling_operations_dict.items():
+            if self.__CouplingOpActsNow(coupling_op_name):
+                coupling_op.FinalizeCouplingIteration()
 
         return True
 
@@ -143,6 +154,12 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             self.modelpart_interface_destination_from_mapper,
             self.settings)
 
+        # set the mapper
+        if mapper_type == "coupling_geometry":
+            self.feti_coupling.SetMappingMatrix(self.mapper.GetMappingMatrix())
+        else:
+            raise Exception("Dynamic coupled solver currently only compatible with the coupling_geometry mapper.")
+
         # The origin and destination interfaces from the mapper submitted above are both
         # stored within the origin modelpart. Now we submit the 'original' origin and destination
         # interface model parts stored on the origin and destination models to get access to the
@@ -155,14 +172,11 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         linear_solver = self._CreateLinearSolver()
         self.feti_coupling.SetLinearSolver(linear_solver)
 
-        # set the mapper
-        if mapper_type == "coupling_geometry":
-            self.feti_coupling.SetMappingMatrix(self.mapper.GetMappingMatrix())
-        else:
-            raise Exception("Dynamic coupled solver currently only compatible with the coupling_geometry mapper.")
-
         # Set origin initial velocities
         self.feti_coupling.SetOriginInitialKinematics()
+
+        # Create output-solver relation dict to ensure mixed timestep ouput is handled properly
+        self.__CreateOutputSolverDict()
 
     def __CreateSolverOriginDestDict(self):
         self._solver_origin_dest_dict = {}
@@ -221,6 +235,23 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             solver_type = str(solver._ClassName())
             if solver_type not in compatible_solver_wrappers:
                 raise Exception("The coupled solver '" + solver_type + "' is not yet compatible with the FETI coupling")
+
+    def __CreateOutputSolverDict(self):
+        # This function links each coupling output entry with a solver (if applicable)
+        # This means we can now apply SolverSolvesAtThisTime() to the coupling output
+        self.output_solver_dict = {}
+        for coupling_op_name in self.coupling_operations_dict.keys():
+            coupling_op_type = self.settings["coupling_operations"][coupling_op_name]["type"].GetString()
+            if coupling_op_type == "coupling_output":
+                coupling_output_solver_name = self.settings["coupling_operations"][coupling_op_name]["solver"].GetString()
+                self.output_solver_dict[coupling_op_name] = coupling_output_solver_name
+
+    def __CouplingOpActsNow(self,couplingOpName):
+        if couplingOpName in self.output_solver_dict:
+            solver_name = self.output_solver_dict[couplingOpName]
+            return self.SolverSolvesAtThisTime(solver_name)
+        else:
+            return True #only restrict coupling operations for outputs
 
     @classmethod
     def _GetDefaultParameters(cls):
