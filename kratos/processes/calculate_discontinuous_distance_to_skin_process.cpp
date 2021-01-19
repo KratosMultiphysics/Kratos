@@ -103,6 +103,7 @@ namespace Kratos
 				rElement.SetValue(ELEMENTAL_DISTANCES,init_dist_vect);
 				rElement.SetValue(ELEMENTAL_EDGE_DISTANCES, init_edge_dist_vect);
 				rElement.SetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, init_edge_dist_vect);
+				rElement.SetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED,init_dist_vect);
 			});
 		} else {
 			block_for_each(mrVolumePart.Elements(), [&](Element& rElement){

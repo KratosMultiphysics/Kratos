@@ -49,7 +49,8 @@ double SlipLength;
 double PenaltyCoefficient;
 NodalScalarData ElementalDistances;
 Vector ElementalEdgeDistances;
-Vector ElementalExtraEdgeDistances;
+Vector ElementalExtrapolatedEdgeDistances;
+NodalScalarData ElementalDistancesWithExtrapolated;
 
 Matrix PositiveSideN;
 Matrix NegativeSideN;
@@ -94,7 +95,8 @@ void Initialize(
     TFluidData::Initialize(rElement, rProcessInfo);
     this->FillFromElementData(ElementalDistances, ELEMENTAL_DISTANCES, rElement);
     this->FillFromElementData(ElementalEdgeDistances, ELEMENTAL_EDGE_DISTANCES, rElement);
-    this->FillFromElementData(ElementalExtraEdgeDistances, ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, rElement);
+    this->FillFromElementData(ElementalExtrapolatedEdgeDistances, ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, rElement);
+    this->FillFromElementData(ElementalDistancesWithExtrapolated, ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED, rElement);
 
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;

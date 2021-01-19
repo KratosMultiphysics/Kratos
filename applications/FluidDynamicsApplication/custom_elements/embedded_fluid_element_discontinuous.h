@@ -512,7 +512,7 @@ ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator(
 template <size_t TDim, size_t TNumNodes>
 ModifiedShapeFunctions::Pointer GetIncisedShapeFunctionCalculator(
     const Element &rElement,
-    const Vector &rExtrapolatedElementalDistances,
+    const Vector &rElementalDistancesWithExtrapolated,
     const Vector &rExtrapolatedEdgeDistances);
 }
 

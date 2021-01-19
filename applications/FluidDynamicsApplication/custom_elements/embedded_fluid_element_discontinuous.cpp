@@ -295,9 +295,9 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
     }
 
     // Number of edges cut by extrapolated geometry, if given
-    if (!rData.ElementalExtraEdgeDistances.empty()) {
+    if (!rData.ElementalExtrapolatedEdgeDistances.empty()) {
         for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
-            if (rData.ElementalExtraEdgeDistances[i] > 0.0) {
+            if (rData.ElementalExtrapolatedEdgeDistances[i] > 0.0) {
                 rData.NumExtraIntersectedEdges++;
             }
         }
@@ -328,13 +328,13 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineModifiedGeometryData
 {
     ModifiedShapeFunctions::Pointer p_calculator;
     if (isIncised) {
-        // Auxiliary nodal and edge distance vectors for the element subdivision utility
-        Vector extrapolated_elemental_distances = rData.ElementalDistances; //TODO calculate extrapolated elemental distances
-        Vector extrapolated_edge_distances = rData.ElementalExtraEdgeDistances;
+        // Auxiliary elemental and edge distance vectors of extrapolated intersecting geometry for the element subdivision utility
+        Vector elemental_distances_with_extrapolated = rData.ElementalDistancesWithExtrapolated;
+        Vector extrapolated_edge_distances = rData.ElementalExtrapolatedEdgeDistances;
         p_calculator =
             EmbeddedDiscontinuousInternals::GetIncisedShapeFunctionCalculator<EmbeddedDiscontinuousElementData::Dim, EmbeddedDiscontinuousElementData::NumNodes>(
                 *this,
-                extrapolated_elemental_distances,
+                elemental_distances_with_extrapolated,
                 extrapolated_edge_distances);
     } else {
         // Auxiliary distance vector for the element subdivision utility
@@ -1220,18 +1220,18 @@ ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<3, 4>(
 
 template <>
 ModifiedShapeFunctions::Pointer GetIncisedShapeFunctionCalculator<2, 3>(const Element& rElement,
-    const Vector& rExtrapolatedElementalDistances, const Vector& rExtrapolatedEdgeDistances)
+    const Vector& rElementalDistancesWithExtrapolated, const Vector& rExtrapolatedEdgeDistances)
 {
     return ModifiedShapeFunctions::Pointer(new Triangle2D3AusasIncisedShapeFunctions(rElement.pGetGeometry(),
-            rExtrapolatedElementalDistances, rExtrapolatedEdgeDistances));
+            rElementalDistancesWithExtrapolated, rExtrapolatedEdgeDistances));
 }
 
 template <>
 ModifiedShapeFunctions::Pointer GetIncisedShapeFunctionCalculator<3, 4>(const Element& rElement,
-    const Vector& rExtrapolatedElementalDistances, const Vector& rExtrapolatedEdgeDistances)
+    const Vector& rElementalDistancesWithExtrapolated, const Vector& rExtrapolatedEdgeDistances)
 {
     return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4AusasIncisedShapeFunctions(rElement.pGetGeometry(),
-            rExtrapolatedElementalDistances, rExtrapolatedEdgeDistances));
+            rElementalDistancesWithExtrapolated, rExtrapolatedEdgeDistances));
 }
 
 }
