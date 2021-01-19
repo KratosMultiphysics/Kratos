@@ -17,9 +17,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "containers/model.h"
 #include "utilities/function_parser_utility.h"
-#include "utilities/cpp_tests_utilities.h"
 
 namespace Kratos {
 namespace Testing {
