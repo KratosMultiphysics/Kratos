@@ -109,12 +109,6 @@ void ConditionCalculateLocalSystemStandard( Condition& dummy,
     dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
-void ConditionInitialize(Condition& dummy,
-                       const ProcessInfo& rCurrentProcessInfo)
-{
-    dummy.Initialize(rCurrentProcessInfo);
-}
-
 py::list GetNodesFromCondition( Condition& dummy )
 {
     pybind11::list nodes_list;
@@ -255,24 +249,30 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
     dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
-void ElementCalculateLocalSystem1(Element& dummy,
-        Matrix& rLeftHandSideMatrix,
-        Vector& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType>
+void EntityCalculateLocalSystem(
+    TEntityType& dummy,
+    Matrix& rLeftHandSideMatrix,
+    Vector& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
-void ElementCalculateMassMatrix(Element& dummy,
-                                Matrix& rMassMatrix,
-                                const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType>
+void EntityCalculateMassMatrix(
+    TEntityType& dummy,
+    Matrix& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
 }
 
-void ElementCalculateDampingMatrix(Element& dummy,
-                                   Matrix& rDampingMatrix,
-                                   const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType>
+void EntityCalculateDampingMatrix(
+    TEntityType& dummy,
+    Matrix& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
 }
@@ -284,76 +284,84 @@ void ElementCalculateLumpedMassVector(Element& dummy,
     dummy.CalculateLumpedMassVector(rMassVector, rCurrentProcessInfo);
 }
 
-void ElementCalculateFirstDerivativesLHS(Element& dummy,
-                                         Matrix& rLeftHandSideMatrix,
-                                         const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType>
+void EntityCalculateFirstDerivativesLHS(
+    TEntityType& dummy,
+    Matrix& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateFirstDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
 }
 
-void ElementCalculateSecondDerivativesLHS(Element& dummy,
-                                          Matrix& rLeftHandSideMatrix,
-                                          const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType>
+void EntityCalculateSecondDerivativesLHS(
+    TEntityType& dummy,
+    Matrix& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateSecondDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
 }
 
-void ElementCalculateLocalVelocityContribution(Element& dummy,
-                                               Matrix& rDampingMatrix,
-                                               Vector& rRightHandSideVector,
-                                               const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType>
+void EntityCalculateLocalVelocityContribution(
+    TEntityType& dummy,
+    Matrix& rDampingMatrix,
+    Vector& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateLocalVelocityContribution(rDampingMatrix, rRightHandSideVector, rCurrentProcessInfo);
 }
 
-void ElementInitialize(Element& dummy,
-                       const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType>
+void EntityInitialize(
+    TEntityType& dummy,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.Initialize(rCurrentProcessInfo);
 }
 
-template<class TDataType>
-void ElementCalculateSensitivityMatrix(Element& dummy,
-        const Variable<TDataType>& rDesignVariable,
-        Matrix& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType, class TDataType>
+void EntityCalculateSensitivityMatrix(
+    TEntityType& dummy,
+    const Variable<TDataType>& rDesignVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateSensitivityMatrix(rDesignVariable,rOutput,rCurrentProcessInfo);
 }
 
-void ElementGetFirstDerivativesVector1(const Element& dummy,
-        Vector& rOutput)
+template<class TEntityType>
+void EntityGetFirstDerivativesVector1(
+    const TEntityType& dummy,
+    Vector& rOutput)
 {
     dummy.GetFirstDerivativesVector(rOutput,0);
 }
 
-void ElementGetFirstDerivativesVector2(const Element& dummy,
-        Vector& rOutput,
-        int step)
+template<class TEntityType>
+void EntityGetFirstDerivativesVector2(
+    const TEntityType& dummy,
+    Vector& rOutput,
+    int step)
 {
     dummy.GetFirstDerivativesVector(rOutput,step);
 }
 
-void ElementGetSecondDerivativesVector1(const Element& dummy,
-        Vector& rOutput)
+template<class TEntityType>
+void EntityGetSecondDerivativesVector1(
+    const TEntityType& dummy,
+    Vector& rOutput)
 {
     dummy.GetSecondDerivativesVector(rOutput,0);
 }
 
-void ElementGetSecondDerivativesVector2(const Element& dummy,
-        Vector& rOutput,
-        int step)
+template<class TEntityType>
+void EntityGetSecondDerivativesVector2(
+    const TEntityType& dummy,
+    Vector& rOutput,
+    int step)
 {
     dummy.GetSecondDerivativesVector(rOutput,step);
-}
-
-template<class TDataType>
-void ConditionCalculateSensitivityMatrix(Condition& dummy,
-        const Variable<TDataType>& rDesignVariable,
-        Matrix& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    dummy.CalculateSensitivityMatrix(rDesignVariable,rOutput,rCurrentProcessInfo);
 }
 
 void  AddMeshToPython(pybind11::module& m)
@@ -473,19 +481,19 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Calculate", &ElementCalculateInterface<array_1d<double,3> >)
     .def("Calculate", &ElementCalculateInterface<Vector >)
     .def("Calculate", &ElementCalculateInterface<Matrix >)
-    .def("CalculateMassMatrix", &ElementCalculateMassMatrix)
-    .def("CalculateDampingMatrix", &ElementCalculateDampingMatrix)
     .def("CalculateLumpedMassVector", &ElementCalculateLumpedMassVector)
-    .def("CalculateLocalSystem", &ElementCalculateLocalSystem1)
-    .def("CalculateFirstDerivativesLHS", &ElementCalculateFirstDerivativesLHS)
-    .def("CalculateSecondDerivativesLHS", &ElementCalculateSecondDerivativesLHS)
-    .def("CalculateLocalVelocityContribution", &ElementCalculateLocalVelocityContribution)
-    .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector1)
-    .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector2)
-    .def("GetSecondDerivativesVector", &ElementGetSecondDerivativesVector1)
-    .def("GetSecondDerivativesVector", &ElementGetSecondDerivativesVector2)
-    .def("CalculateSensitivityMatrix", &ElementCalculateSensitivityMatrix<double>)
-    .def("CalculateSensitivityMatrix", &ElementCalculateSensitivityMatrix<array_1d<double,3> >)
+    .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Element>)
+    .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Element>)
+    .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Element>)
+    .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Element>)
+    .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Element>)
+    .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Element>)
+    .def("GetFirstDerivativesVector", &EntityGetFirstDerivativesVector1<Element>)
+    .def("GetFirstDerivativesVector", &EntityGetFirstDerivativesVector2<Element>)
+    .def("GetSecondDerivativesVector", &EntityGetSecondDerivativesVector1<Element>)
+    .def("GetSecondDerivativesVector", &EntityGetSecondDerivativesVector2<Element>)
+    .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Element, double>)
+    .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Element, array_1d<double,3>>)
 
 //     .def(VariableIndexingPython<Element, Variable<int> >())
 //     .def(VariableIndexingPython<Element, Variable<double> >())
@@ -497,7 +505,7 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<vector<double> > >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<DenseMatrix<double> > >())
-    .def("Initialize", &ElementInitialize)
+    .def("Initialize", &EntityInitialize<Element>)
     //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
     .def("__str__", PrintObject<Element>)
     ;
@@ -593,8 +601,6 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
-    .def("CalculateSensitivityMatrix", &ConditionCalculateSensitivityMatrix<double>)
-    .def("CalculateSensitivityMatrix", &ConditionCalculateSensitivityMatrix<array_1d<double,3> >)
 
 //     .def(VariableIndexingPython<Condition, Variable<int> >())
 //     .def(VariableIndexingPython<Condition, Variable<double> >())
@@ -608,8 +614,19 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<DenseMatrix<double> > >())
 
 
-    .def("Initialize", &ConditionInitialize)
-    .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
+    .def("Initialize", &EntityInitialize<Condition>)
+    .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Condition>)
+    .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Condition>)
+    .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Condition>)
+    .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Condition>)
+    .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Condition>)
+    .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Condition>)
+    .def("GetFirstDerivativesVector", &EntityGetFirstDerivativesVector1<Condition>)
+    .def("GetFirstDerivativesVector", &EntityGetFirstDerivativesVector2<Condition>)
+    .def("GetSecondDerivativesVector", &EntityGetSecondDerivativesVector1<Condition>)
+    .def("GetSecondDerivativesVector", &EntityGetSecondDerivativesVector2<Condition>)
+    .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Condition, double>)
+    .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Condition, array_1d<double,3>>)
     .def("Info", &Condition::Info)
     .def("__str__", PrintObject<Condition>)
     ;

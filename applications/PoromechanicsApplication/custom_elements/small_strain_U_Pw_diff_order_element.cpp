@@ -791,7 +791,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number );
 
-    if ( rVariable == CAUCHY_STRESS_TENSOR )
+    if ( rVariable == EFFECTIVE_STRESS_TENSOR )
     {
         std::vector<Vector> StressVector;
 
@@ -1003,9 +1003,8 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties (ElementalVariables& r
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    double BulkModulus = GetProperties()[YOUNG_MODULUS]/(3.0*(1.0-2.0*GetProperties()[POISSON_RATIO]));
     double BulkModulusSolid = GetProperties()[BULK_MODULUS_SOLID];
-    rVariables.BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
+    rVariables.BiotCoefficient = GetProperties()[BIOT_COEFFICIENT];
     double Porosity = GetProperties()[POROSITY];
     rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/GetProperties()[BULK_MODULUS_FLUID];
     rVariables.DynamicViscosity = GetProperties()[DYNAMIC_VISCOSITY];

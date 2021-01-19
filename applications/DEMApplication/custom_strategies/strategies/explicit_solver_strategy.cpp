@@ -1806,7 +1806,7 @@ namespace Kratos {
         KRATOS_CATCH("")
         }//CheckHierarchyWithCurrentNeighbours
 
-    void ExplicitSolverStrategy::CalculateInitialMaxIndentations(ProcessInfo& r_process_info) {
+    void ExplicitSolverStrategy::CalculateInitialMaxIndentations(const ProcessInfo& r_process_info) {
         KRATOS_TRY
         std::vector<double> indentations_list, indentations_list_ghost;
         indentations_list.resize(mListOfSphericParticles.size());

@@ -26,6 +26,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -708,9 +709,10 @@ protected:
 
     /**
      * @brief Set the Up Lumped Mass Vector object
-     * This method sets up the lumped mass matrix used in the explicit update.
+     * This method sets up the lumped mass vector used in the explicit update.
      * Note that it requires that the equation ids. are already set and the
-     * implementation of the mass contributions to be done in the element level.
+     * implementation of the mass contributions to be done in the element level
+     * in the CalculateLumpedMassVector method.
      * @param rModelPart The model part to compute
      */
     virtual void SetUpLumpedMassVector(const ModelPart &rModelPart)
@@ -724,48 +726,24 @@ protected:
         mpLumpedMassVector = TSystemVectorPointerType(new TSystemVectorType(GetDofSet().size()));
         TDenseSpace::SetToZero(*mpLumpedMassVector);
 
-        // Loop the elements to get the mass matrix
+        // Loop the elements to get the lumped mass vector
         LocalSystemVectorType elem_mass_vector;
-        LocalSystemMatrixType elem_mass_matrix;
+        std::vector<std::size_t> elem_equation_id;
         const auto &r_elements_array = rModelPart.Elements();
         const auto &r_process_info = rModelPart.GetProcessInfo();
         const int n_elems = static_cast<int>(r_elements_array.size());
 
-#pragma omp for private(elem_mass_vector, elem_mass_matrix) schedule(guided, 512) nowait
+#pragma omp for private(elem_mass_vector) schedule(guided, 512) nowait
         for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
             const auto it_elem = r_elements_array.begin() + i_elem;
-            auto& r_geom = it_elem->GetGeometry();
 
             // Calculate the elemental lumped mass vector
-            it_elem->CalculateMassMatrix(elem_mass_matrix, r_process_info);
-            const SizeType n_dofs_elem = elem_mass_matrix.size2();
-            if (elem_mass_vector.size() != n_dofs_elem) {
-                TDenseSpace::Resize(elem_mass_vector, n_dofs_elem);
-            }
-            for (IndexType i = 0; i < elem_mass_matrix.size1(); ++i) {
-                elem_mass_vector(i) = 0.0;
-                for (IndexType j = 0; j < elem_mass_matrix.size2(); ++j) {
-                    elem_mass_vector(i) += elem_mass_matrix(i,j);
-                }
-            }
+            it_elem->CalculateLumpedMassVector(elem_mass_vector, r_process_info);
+            it_elem->EquationIdVector(elem_equation_id, r_process_info);
 
-            // Set it in the global lumped mass vector
-            const SizeType n_nodes = r_geom.PointsNumber();
-            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-                const auto& r_node_dofs = r_geom[i_node].GetDofs();
-                const SizeType n_dofs = r_node_dofs.size();
-                for (int i_dof = 0; i_dof < static_cast<int>(n_dofs); ++i_dof) {
-                    const SizeType eq_id = r_node_dofs[i_dof]->EquationId();
-                    const double aux_mass = elem_mass_vector(i_node * n_dofs + i_dof);
-// NOTE THAT THIS IS A BOTTLENECK--> WE ASSUME THAT WE WILL NOT USE THE SPACES IN HERE
-// #pragma omp critical
-//                     {
-//                     const double mass_value = TDenseSpace::GetValue(*mpLumpedMassVector, eq_id);
-//                     TDenseSpace::SetValue(*mpLumpedMassVector, eq_id, aux_mass + mass_value);
-//                     }
-#pragma omp atomic
-                    (*mpLumpedMassVector)[eq_id] += aux_mass;
-                }
+            // Update value of lumped mass vector
+            for (IndexType i = 0; i < elem_equation_id.size(); ++i) {
+                AtomicAdd((*mpLumpedMassVector)[elem_equation_id[i]], elem_mass_vector(i));
             }
         }
 

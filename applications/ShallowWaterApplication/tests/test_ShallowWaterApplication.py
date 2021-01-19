@@ -1,5 +1,5 @@
 # import Kratos
-import KratosMultiphysics
+import KratosMultiphysics as KM
 
 ## cpp TESTS
 import run_cpp_unit_tests
@@ -53,5 +53,6 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
+    KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     run_cpp_unit_tests.run()
     KratosUnittest.runTests(AssembleTestSuites())
