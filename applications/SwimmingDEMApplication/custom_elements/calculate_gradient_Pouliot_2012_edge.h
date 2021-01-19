@@ -174,7 +174,7 @@ public:
     /// Calculate the element's local contribution to the system for the current step.
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Provides the global indices for each one of this element's local rows
     /**
@@ -209,7 +209,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     ///@}
@@ -269,9 +269,9 @@ protected:
     ///@name Protected  Access
     ///@{
     ///
-    virtual void AddPouliot2012LHS(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    virtual void AddPouliot2012LHS(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void AddPouliot2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo);
+    virtual void AddPouliot2012RHS(VectorType& F, const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Protected Inquiry
