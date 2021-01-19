@@ -43,6 +43,9 @@ KRATOS_TEST_CASE_IN_SUITE(ReadXMLDocumentBlock, KratosCoreFastSuite)
         KRATOS_CHECK(current_block_info.HasAttribute("type"));
         KRATOS_CHECK(current_block_info.HasAttribute("version"));
         KRATOS_CHECK(current_block_info.HasAttribute("byte_order"));
+        KRATOS_CHECK(current_block_info.GetAttribute("type")=="RectilinearGrid");
+        KRATOS_CHECK(current_block_info.GetAttribute("version")=="0.1 ");
+        KRATOS_CHECK(current_block_info.GetAttribute("byte_order")=="LittleEndian");
     });
 
     xml_io.Read();
