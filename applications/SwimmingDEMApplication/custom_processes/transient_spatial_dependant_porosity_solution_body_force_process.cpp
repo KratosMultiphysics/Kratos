@@ -151,6 +151,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::ExecuteFinalizeS
 void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyForceAndPorosityField()
 {
     const double time = mrModelPart.GetProcessInfo()[TIME];
+    const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double delta_alpha = mDeltaAlpha;
     const double omega = mOmega;
     const double L = mLength;
@@ -162,6 +163,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
     const double x20 = mX2Origin;
     const double c_min = (1 - squeeze_amplitude);
     const double R = (c_min * L/2) / n_safety;
+    Matrix inv_permeability = ZeroMatrix(dim,dim);
 
     const double c = (1 + squeeze_amplitude * std::sin(omega * time));
 
@@ -187,7 +189,15 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
         double& r_u1 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_X);
         double& r_u2 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_Y);
 
+        Matrix& permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
+
         if (std::pow(c * (x1 - x10), 2) + std::pow(((x2 - x20) / c), 2) < std::pow(R, 2)){
+
+            for (unsigned int d = 0; d < dim; ++d){
+                for (unsigned int e = 0; e < dim; ++e){
+                    permeability(d,d) = 1.0e+30;
+                }
+            }
 
             r_alpha = -delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1;
 
@@ -229,6 +239,12 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
 
             du212 = 100*std::pow(x2,2)*(2*x2 - 2)*(-200*std::pow(x1,2) - 400*x1*(2*x1 - 2) - 200*std::pow((1 - x1),2))*std::exp(-time)*std::cos(Globals::Pi*time)/(-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1) + 200*x2*std::pow((1 - x2),2)*(-200*std::pow(x1,2) - 400*x1*(2*x1 - 2) - 200*std::pow((1 - x1),2))*std::exp(-time)*std::cos(Globals::Pi*time)/(-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1) - 100*delta_alpha*std::pow(x2,2)*std::pow((1 - x2),2)*(2*x2 - 2*x20)*(-200*std::pow(x1,2) - 400*x1*(2*x1 - 2) - 200*std::pow((1 - x1),2))*std::exp(-time)*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))))*std::cos(Globals::Pi*time)/(std::pow(R,2)*std::pow((-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)*std::pow((1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))),2)) - 100*delta_alpha*std::pow(x2,2)*(2*x1 - 2*x10)*(2*x2 - 2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)*(-100*std::pow(x1,2)*(2*x1 - 2) - 200*x1*std::pow((1 - x1),2))*std::exp(-time)*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))))*std::cos(Globals::Pi*time)/(std::pow(R,2)*std::pow((-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1),2)*std::pow((1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))),2)) - 200*delta_alpha*x2*std::pow((1 - x2),2)*(2*x1 - 2*x10)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)*(-100*std::pow(x1,2)*(2*x1 - 2) - 200*x1*std::pow((1 - x1),2))*std::exp(-time)*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))))*std::cos(Globals::Pi*time)/(std::pow(R,2)*std::pow((-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1),2)*std::pow((1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))),2)) + 200*std::pow(delta_alpha,2)*std::pow(x2,2)*std::pow((1 - x2),2)*(2*x1 - 2*x10)*(2*x2 - 2*x20)*(-100*std::pow(x1,2)*(2*x1 - 2) - 200*x1*std::pow((1 - x1),2))*std::exp(-time)*std::exp(2 - 2/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))))*std::cos(Globals::Pi*time)/(std::pow(R,4)*std::pow((-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1),3)*std::pow((1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))),4)) - 200*delta_alpha*std::pow(x2,2)*std::pow((1 - x2),2)*(2*x1 - 2*x10)*(2*x2 - 2*x20)*(-100*std::pow(x1,2)*(2*x1 - 2) - 200*x1*std::pow((1 - x1),2))*std::exp(-time)*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))))*std::cos(Globals::Pi*time)/(std::pow(R,4)*std::pow((-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1),2)*std::pow((1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))),3)) + 100*delta_alpha*std::pow(x2,2)*std::pow((1 - x2),2)*(2*x1 - 2*x10)*(2*x2 - 2*x20)*(-100*std::pow(x1,2)*(2*x1 - 2) - 200*x1*std::pow((1 - x1),2))*std::exp(-time)*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))))*std::cos(Globals::Pi*time)/(std::pow(R,4)*std::pow((-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1),2)*std::pow((1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))),4));
         }else{
+
+            for (unsigned int d = 0; d < dim; ++d){
+                for (unsigned int e = 0; e < dim; ++e){
+                    permeability(d,d) = 1.0e+30;
+                }
+            }
 
             r_u1 = 100.0*std::pow(x1,2)*std::pow((1 - x1),2)*(100*std::pow(x2,2)*(2*x2 - 2) + 200*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time);
 
@@ -272,6 +288,10 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
 
         }
 
+        this->InverseMatrix(permeability, inv_permeability, dim);
+
+        Matrix sigma = nu * inv_permeability;
+
         const double convective1 = r_u1 * du11 + r_u2 * du12;
         const double convective2 = r_u1 * du21 + r_u2 * du22;
 
@@ -284,8 +304,8 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
         const double press_grad1 = 0.0;
         const double press_grad2 = 0.0;
 
-        r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1;
-        r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2;
+        r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + sigma(0,0) * r_u1 + sigma(0,1) * r_u2;
+        r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + sigma(1,0)*r_u1 + sigma(1,1) * r_u2;
 
         r_mass_source = r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22);
 
@@ -298,6 +318,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
 void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndPorosityField()
 {
     const double time = mrModelPart.GetProcessInfo()[TIME];
+    const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double delta_alpha = mDeltaAlpha;
     const double omega = mOmega;
     const double L = mLength;
@@ -309,6 +330,8 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
     const double x20 = mX2Origin;
     const double c_min = (1 - squeeze_amplitude);
     const double R = (c_min * L/2) / n_safety;
+    Matrix inv_permeability = ZeroMatrix(dim,dim);
+
 
     const double c = (1 + squeeze_amplitude * std::sin(omega * time));
 
@@ -334,7 +357,15 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
         double& r_u1 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_X);
         double& r_u2 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_Y);
 
+        Matrix& permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
+
         if (std::pow(c*(x1 - x10), 2) + std::pow(((x2 - x20) / c), 2) < std::pow(R, 2)){
+
+            for (unsigned int d = 0; d < dim; ++d){
+                for (unsigned int e = 0; e < dim; ++e){
+                    permeability(d,d) = 1.0e+30;
+                }
+            }
 
             r_alpha = -delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1;
 
@@ -378,6 +409,12 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
 
         }else{
 
+            for (unsigned int d = 0; d < dim; ++d){
+                for (unsigned int e = 0; e < dim; ++e){
+                    permeability(d,d) = 1.0e+30;
+                }
+            }
+
             r_u1 = 100.0*std::pow(x1,2)*std::pow((1 - x1),2)*(100*std::pow(x2,2)*(2*x2 - 2) + 200*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time);
 
             r_u2 = 100.0*std::pow(x2,2)*std::pow((1 - x2),2)*(-100*std::pow(x1,2)*(2*x1 - 2) - 200*x1*std::pow((1 - x1),2))*std::exp(-time)*std::cos(Globals::Pi*time);
@@ -420,6 +457,10 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
 
         }
 
+        this->InverseMatrix(permeability, inv_permeability, dim);
+
+        Matrix sigma = nu * inv_permeability;
+
         const double convective1 = r_u1 * du11 + r_u2 * du12;
         const double convective2 = r_u1 * du21 + r_u2 * du22;
 
@@ -432,8 +473,8 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
         const double press_grad1 = 0.0;
         const double press_grad2 = 0.0;
 
-        r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1;
-        r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2;
+        r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + sigma(0,0) * r_u1 + sigma(0,1) * r_u2;
+        r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + sigma(1,0)*r_u1 + sigma(1,1) * r_u2;
 
         r_mass_source = r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22);
 
@@ -454,6 +495,40 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
         }
         }
 
+}
+
+void TransientSpatialDependantPorositySolutionBodyForceProcess::InverseMatrix(
+    Matrix& r_matrix,
+    Matrix& r_inv_matrix,
+    double Dim)
+{
+    Matrix adj_matrix = ZeroMatrix(Dim, Dim);
+    double det_matrix;
+    if (Dim == 2){
+        det_matrix = r_matrix(0,0) * r_matrix(1,1) - r_matrix(0,1) * r_matrix(1,0);
+        adj_matrix(0,0) += r_matrix(1,1);
+        adj_matrix(0,1) -= r_matrix(0,1);
+        adj_matrix(1,0) -= r_matrix(1,0);
+        adj_matrix(1,1) += r_matrix(0,0);
+    }
+    else if (Dim == 3){
+        det_matrix = r_matrix(0,0) * r_matrix(1,1) * r_matrix(2,2) + r_matrix(0,1) * r_matrix(1,2) * r_matrix(2,1) + r_matrix(1,0) * r_matrix(2,1) * r_matrix(1,2) - r_matrix(1,2) * r_matrix(2,2) * r_matrix(2,1) - r_matrix(0,1) * r_matrix(1,0) * r_matrix(2,2) - r_matrix(0,0) * r_matrix(1,2) * r_matrix(2,1);
+        adj_matrix(0,0) += r_matrix(1,1) * r_matrix(2,2) - r_matrix(1,2) * r_matrix(2,1);
+        adj_matrix(0,1) -= r_matrix(1,0) * r_matrix(2,2) - r_matrix(1,2) * r_matrix(2,0);
+        adj_matrix(0,2) += r_matrix(1,0) * r_matrix(2,1) - r_matrix(1,1) * r_matrix(2,0);
+        adj_matrix(1,0) -= r_matrix(0,1) * r_matrix(2,2) - r_matrix(0,2) * r_matrix(2,1);
+        adj_matrix(1,1) += r_matrix(0,0) * r_matrix(2,2) - r_matrix(0,2) * r_matrix(2,0);
+        adj_matrix(1,2) -= r_matrix(0,0) * r_matrix(2,1) - r_matrix(0,1) * r_matrix(2,0);
+        adj_matrix(2,0) += r_matrix(0,1) * r_matrix(1,2) - r_matrix(0,2) * r_matrix(1,1);
+        adj_matrix(2,1) -= r_matrix(0,0) * r_matrix(1,2) - r_matrix(0,2) * r_matrix(1,0);
+        adj_matrix(2,2) += r_matrix(0,0) * r_matrix(1,1) - r_matrix(0,1) * r_matrix(1,0);
+    }
+
+    for (unsigned int d = 0; d < Dim; ++d){
+        for (unsigned int e = 0; e < Dim; ++e){
+            r_inv_matrix(d,e) = adj_matrix(d,e) / det_matrix;
+        }
+    }
 }
 /* Private functions ****************************************************/
 

@@ -191,7 +191,7 @@ template< class TElementData >
 void QSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     const TElementData& rData,
     const array_1d<double,3> &rConvectionVelocity,
-    array_1d<double,3>& rResidual) const
+    array_1d<double,3>& rResidual)
 {
     const GeometryType rGeom = this->GetGeometry();
 
@@ -201,18 +201,23 @@ void QSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
+    Matrix inv_permeability = ZeroMatrix(Dim, Dim);
     const auto& r_body_forces = rData.BodyForce;
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
 
+    this->InverseMatrix(permeability, inv_permeability);
+
+    Matrix sigma = viscosity * inv_permeability;
+
     for (unsigned int i = 0; i < NumNodes; i++) {
         const array_1d<double,3>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
+        Vector sigma_U = ZeroVector(Dim);
         for (unsigned int d = 0; d < Dim; d++) {
-            Vector sigma = ZeroVector(Dim);
             for (unsigned int e = 0; e < Dim; e++){
-                sigma[d] += (viscosity/permeability(d,e)) * rData.N[i] * r_velocities(i,e);
+                sigma_U[d] += sigma(d,e) * rData.N[i] * r_velocities(i,e);
             }
-            rResidual[d] += density * ( rData.N[i]*(r_body_forces(i,d) - r_acceleration[d]) - convection[i]*r_velocities(i,d)) - rData.DN_DX(i,d)*r_pressures[i] - sigma[d];
+            rResidual[d] += density * ( rData.N[i]*(r_body_forces(i,d) - r_acceleration[d]) - convection[i]*r_velocities(i,d)) - rData.DN_DX(i,d)*r_pressures[i] - sigma_U[d];
         }
     }
 }
@@ -221,7 +226,7 @@ template< class TElementData >
 void QSVMSDEMCoupled<TElementData>::MomentumProjTerm(
     const TElementData& rData,
     const array_1d<double,3>& rConvectionVelocity,
-    array_1d<double,3> &rMomentumRHS) const
+    array_1d<double,3> &rMomentumRHS)
 {
     Vector AGradN;
     this->ConvectionOperator(AGradN,rConvectionVelocity,rData.DN_DX);
@@ -229,14 +234,19 @@ void QSVMSDEMCoupled<TElementData>::MomentumProjTerm(
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
+    Matrix inv_permeability = ZeroMatrix(Dim, Dim);
+
+    this->InverseMatrix(permeability, inv_permeability);
+
+    Matrix sigma = viscosity * inv_permeability;
 
     for (unsigned int i = 0; i < NumNodes; i++) {
+        Vector sigma_U = ZeroVector(Dim);
         for (unsigned int d = 0; d < Dim; d++) {
-            Vector sigma = ZeroVector(Dim);
             for (unsigned int e = 0; e < Dim; e++){
-                sigma[d] += (viscosity/permeability(d,e)) * rData.N[i] * rData.Velocity(i,e);
+                sigma_U[d] += sigma(d,e) * rData.N[i] * rData.Velocity(i,e);
             }
-            rMomentumRHS[d] += density * ( rData.N[i]*(rData.BodyForce(i,d) /*- rAcc[d]*/) - AGradN[i]*rData.Velocity(i,d)) - rData.DN_DX(i,d)*rData.Pressure[i] - sigma[d];
+            rMomentumRHS[d] += density * ( rData.N[i]*(rData.BodyForce(i,d) /*- rAcc[d]*/) - AGradN[i]*rData.Velocity(i,d)) - rData.DN_DX(i,d)*rData.Pressure[i] - sigma_U[d];
         }
     }
 }
@@ -285,7 +295,7 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
 
             for (unsigned int d = 0; d < Dim; ++d) // iterate over dimensions for velocity Dofs in this node combination
             {
-                double K = weight * tau_one(d,d) * AGradN[i] * rData.N[j];;
+                double K = weight * tau_one(d,d) * AGradN[i] * rData.N[j];
                 double RSigmaU;
                 for (unsigned int e = 0; e < Dim; ++e){
                     RSigmaU = tau_one(d,d) * sigma(d,e) * rData.N[i] * AGradN[j];
@@ -390,7 +400,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
                 double GAlphaR = 0.0;
                 double RSigmaG = 0.0;
-                double GAlphaA = tau_one(d,d) * AGradN[j] * (fluid_fraction * rData.DN_DX(i,d));;
+                double GAlphaA = tau_one(d,d) * AGradN[j] * (fluid_fraction * rData.DN_DX(i,d));
                 double AG = tau_one(d,d) * AGradN[i] * rData.DN_DX(j,d);
                 G += tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,d);
                 double AA = rData.Weight * tau_one(d,d) * AGradN[j] * AGradN[i]; // Stabilization: u*grad(v) * tau_one * u*grad(u);
