@@ -106,10 +106,8 @@ int ParallelUtilities::InitializeNumberOfThreads()
 
 int& ParallelUtilities::GetNumberOfThreads()
 {
-    if (!mspNumThreads) {
-        static int num_threads;
-        num_threads = InitializeNumberOfThreads();
-        mspNumThreads = &num_threads;
+        static int number_of_threads = InitializeNumberOfThreads();
+        return number_of_threads;
     }
 
     return *mspNumThreads;
