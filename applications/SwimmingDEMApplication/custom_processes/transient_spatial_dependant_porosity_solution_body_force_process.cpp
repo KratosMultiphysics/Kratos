@@ -19,6 +19,7 @@
 #include "containers/model.h"
 #include "includes/checks.h"
 #include "utilities/variable_utils.h"
+#include "utilities/math_utils.h"
 
 // Application includes
 #include "swimming_DEM_application.h"
@@ -286,7 +287,8 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
 
         }
 
-        this->InverseMatrix(permeability, inv_permeability, dim);
+        double det_permeability = MathUtils<double>::Det(permeability);
+        MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
         Matrix sigma = nu * inv_permeability;
 
@@ -453,7 +455,8 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
 
         }
 
-        this->InverseMatrix(permeability, inv_permeability, dim);
+        double det_permeability = MathUtils<double>::Det(permeability);
+        MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
         Matrix sigma = nu * inv_permeability;
 
@@ -493,39 +496,6 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
 
 }
 
-void TransientSpatialDependantPorositySolutionBodyForceProcess::InverseMatrix(
-    Matrix& r_matrix,
-    Matrix& r_inv_matrix,
-    double Dim)
-{
-    Matrix adj_matrix = ZeroMatrix(Dim, Dim);
-    double det_matrix;
-    if (Dim == 2){
-        det_matrix = r_matrix(0,0) * r_matrix(1,1) - r_matrix(0,1) * r_matrix(1,0);
-        adj_matrix(0,0) += r_matrix(1,1);
-        adj_matrix(0,1) -= r_matrix(0,1);
-        adj_matrix(1,0) -= r_matrix(1,0);
-        adj_matrix(1,1) += r_matrix(0,0);
-    }
-    else if (Dim == 3){
-        det_matrix = r_matrix(0,0) * r_matrix(1,1) * r_matrix(2,2) + r_matrix(0,1) * r_matrix(1,2) * r_matrix(2,1) + r_matrix(1,0) * r_matrix(2,1) * r_matrix(1,2) - r_matrix(1,2) * r_matrix(2,2) * r_matrix(2,1) - r_matrix(0,1) * r_matrix(1,0) * r_matrix(2,2) - r_matrix(0,0) * r_matrix(1,2) * r_matrix(2,1);
-        adj_matrix(0,0) += r_matrix(1,1) * r_matrix(2,2) - r_matrix(1,2) * r_matrix(2,1);
-        adj_matrix(0,1) -= r_matrix(1,0) * r_matrix(2,2) - r_matrix(1,2) * r_matrix(2,0);
-        adj_matrix(0,2) += r_matrix(1,0) * r_matrix(2,1) - r_matrix(1,1) * r_matrix(2,0);
-        adj_matrix(1,0) -= r_matrix(0,1) * r_matrix(2,2) - r_matrix(0,2) * r_matrix(2,1);
-        adj_matrix(1,1) += r_matrix(0,0) * r_matrix(2,2) - r_matrix(0,2) * r_matrix(2,0);
-        adj_matrix(1,2) -= r_matrix(0,0) * r_matrix(2,1) - r_matrix(0,1) * r_matrix(2,0);
-        adj_matrix(2,0) += r_matrix(0,1) * r_matrix(1,2) - r_matrix(0,2) * r_matrix(1,1);
-        adj_matrix(2,1) -= r_matrix(0,0) * r_matrix(1,2) - r_matrix(0,2) * r_matrix(1,0);
-        adj_matrix(2,2) += r_matrix(0,0) * r_matrix(1,1) - r_matrix(0,1) * r_matrix(1,0);
-    }
-
-    for (unsigned int d = 0; d < Dim; ++d){
-        for (unsigned int e = 0; e < Dim; ++e){
-            r_inv_matrix(d,e) = adj_matrix(d,e) / det_matrix;
-        }
-    }
-}
 /* Private functions ****************************************************/
 
 };  // namespace Kratos.

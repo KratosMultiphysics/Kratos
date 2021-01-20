@@ -131,11 +131,6 @@ public:
 
     void SetBodyForceAndPorosityField();
 
-    void InverseMatrix(
-        Matrix& r_matrix,
-        Matrix& r_inv_matrix,
-        double Dim);
-
     ///@}
     ///@name Access
     ///@{
