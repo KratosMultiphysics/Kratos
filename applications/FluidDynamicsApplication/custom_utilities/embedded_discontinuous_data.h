@@ -50,7 +50,7 @@ double PenaltyCoefficient;
 NodalScalarData ElementalDistances;
 Vector ElementalEdgeDistances;
 Vector ElementalExtrapolatedEdgeDistances;
-NodalScalarData ElementalDistancesWithExtrapolated;
+Vector ElementalDistancesWithExtrapolated;
 
 Matrix PositiveSideN;
 Matrix NegativeSideN;

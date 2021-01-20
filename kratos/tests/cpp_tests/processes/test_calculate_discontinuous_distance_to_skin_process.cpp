@@ -903,6 +903,17 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_2_extra, expected_values_elem_2_extra, 1.0e-6);
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_3_extra, expected_values_elem_3_extra, 1.0e-6);
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_4_extra, expected_values_elem_4_extra, 1.0e-6);
+
+        //Check elemental distances with extrapolated - values of elements that are not incised are characteristic length
+        const auto &r_elem_dist_elem_2_extra = volume_part.GetElement(2).GetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED);
+        const auto &r_elem_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED);
+        const auto &r_elem_dist_elem_4_extra = volume_part.GetElement(4).GetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED);
+        const std::vector<double> expected_values_elem_2_extra_nodal = {1.41421,1.41421,1.41421};
+        const std::vector<double> expected_values_elem_3_extra_nodal = {-0.25,0.25,0.25};
+        const std::vector<double> expected_values_elem_4_extra_nodal = {1.41421,1.41421,1.41421};
+        KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_elem_2_extra, expected_values_elem_2_extra_nodal, 1.0e-5);
+        KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_elem_3_extra, expected_values_elem_3_extra_nodal, 1.0e-6);
+        KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_elem_4_extra, expected_values_elem_4_extra_nodal, 1.0e-5);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessIncisedVsIntersected3D, KratosCoreFastSuite)
@@ -1014,6 +1025,17 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_2_extra, expected_values_elem_2_extra, 1.0e-6);
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_3_extra, expected_values_elem_3_extra, 1.0e-6);
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_6_extra, expected_values_elem_6_extra, 1.0e-6);
+
+        //Check elemental distances with extrapolated - values of elements that are not incised are characteristic length
+        const auto &r_elem_dist_elem_2_extra = volume_part.GetElement(2).GetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED);
+        const auto &r_elem_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED);
+        const auto &r_elem_dist_elem_6_extra = volume_part.GetElement(4).GetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED);
+        const std::vector<double> expected_values_elem_2_extra_nodal = {1.73205,1.73205,1.73205,1.73205};
+        const std::vector<double> expected_values_elem_3_extra_nodal = {-0.565945,0.291548,0.291548,-0.222948};
+        const std::vector<double> expected_values_elem_6_extra_nodal = {1.73205,1.73205,1.73205,1.73205};
+        KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_elem_2_extra, expected_values_elem_2_extra_nodal, 1.0e-5);
+        KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_elem_3_extra, expected_values_elem_3_extra_nodal, 1.0e-5);
+        KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_elem_6_extra, expected_values_elem_6_extra_nodal, 1.0e-5);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessEndAtEdge2D, KratosCoreFastSuite)
@@ -1237,7 +1259,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_3, expected_values_elem_3, 1.0e-6);
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_4, expected_values_elem_4, 1.0e-6);
 
-        //Check extra edge distances - elem_3 is incised, elem_4 is detected as incised
+        //Check extra edge distances - #3 is incised, #4 is detected as incised
         // --> (TODO) solution: detect as intersected in ComputeEdgeIntersection in CalculateDiscontinuousDistanceToSkinProcess?!
         //      (e.g. distance modification to southeast)
         const auto &r_edge_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
@@ -1246,6 +1268,14 @@ namespace Testing {
         const std::vector<double> expected_values_elem_4_extra = {0.0,-1.0,-1.0};
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_3_extra, expected_values_elem_3_extra, 1.0e-6);
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_4_extra, expected_values_elem_4_extra, 1.0e-6);
+
+        //Check elemental distances with extrapolated
+        const auto &r_elem_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED);
+        const auto &r_elem_dist_elem_4_extra = volume_part.GetElement(4).GetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED);
+        const std::vector<double> expected_values_elem_3_extra_nodal = {-0.3,0.4,0.1};
+        const std::vector<double> expected_values_elem_4_extra_nodal = {-0.3,0.0,0.4};
+        KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_elem_3_extra, expected_values_elem_3_extra_nodal, 1.0e-6);
+        KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_elem_4_extra, expected_values_elem_4_extra_nodal, 1.0e-6);
     }
 
 }  // namespace Testing.
