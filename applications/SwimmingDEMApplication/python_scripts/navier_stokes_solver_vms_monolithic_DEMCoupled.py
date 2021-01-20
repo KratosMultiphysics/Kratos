@@ -38,7 +38,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
 
         self.element_name = settings["element_name"].GetString()
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.PERMEABILITY]
+        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY, KratosMultiphysics.PERMEABILITY]
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -72,7 +72,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
 
         self.element_name = settings["element_name"].GetString()
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.PERMEABILITY]
+        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY, KratosMultiphysics.PERMEABILITY]
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
