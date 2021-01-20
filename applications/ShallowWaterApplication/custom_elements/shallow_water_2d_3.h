@@ -240,7 +240,6 @@ public:
      * Specializations of element must specify the actual interface to the integration points!
      * Note, that these functions expect a std::vector of values for the specified variable type that
      * contains a value for each integration point!
-     * GetValueOnIntegrationPoints: get the values for given Variable.
      * @param rVariable: the specified variable
      * @param rValues: where to store the values for the specified variable type at each integration point
      * @param rCurrentProcessInfo: the current process info instance

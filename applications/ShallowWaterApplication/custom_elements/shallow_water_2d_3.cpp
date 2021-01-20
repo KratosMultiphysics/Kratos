@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/mesh_moving_variables.h"
 #include "shallow_water_application_variables.h"
 #include "shallow_water_2d_3.h"
 
@@ -42,6 +43,7 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo) const
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BATHYMETRY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ATMOSPHERIC_PRESSURE, node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_ACCELERATION, node)
 
         KRATOS_CHECK_DOF_IN_NODE(MOMENTUM_X, node)
         KRATOS_CHECK_DOF_IN_NODE(MOMENTUM_Y, node)
@@ -223,12 +225,17 @@ void ShallowWater2D3::AddSourceTerms(
     const double height4_3 = std::pow(rData.height, 1.33333333333) + 1e-6;
     rLHS += rData.gravity * rData.manning2 * abs_vel / height4_3 * flow_mass_matrix;
 
-    // Rain
+    // Rain and mesh acceleration
+    array_1d<double, 9> mesh_acceleration;
     const double lumping_factor = 1.0 / 3.0;
     for (size_t i = 0; i < 3; ++i) {
         const size_t block = 3 * i;
         rRHS(block+2) += lumping_factor * rData.rain[i];
+        mesh_acceleration[block] = GetGeometry()[i].FastGetSolutionStepValue(MESH_ACCELERATION_X);
+        mesh_acceleration[block+1] = GetGeometry()[i].FastGetSolutionStepValue(MESH_ACCELERATION_Y);
+        mesh_acceleration[block+2] = 0.0;
     }
+    rRHS -= prod(flow_mass_matrix, mesh_acceleration);
 }
 
 void ShallowWater2D3::AddShockCapturingTerm(
