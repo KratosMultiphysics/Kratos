@@ -39,6 +39,8 @@ class EmbeddedCouetteTestFluidDynamicsAnalysis(FluidDynamicsAnalysis):
                 elem_dist[i_node] = elem_nodes[i_node].GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, elem_dist)
             element.SetValue(KratosMultiphysics.ELEMENTAL_EDGE_DISTANCES, elem_edge_dist)
+            element.SetValue(KratosMultiphysics.ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, elem_edge_dist)
+            element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED, elem_dist)
 
         # Set up the initial velocity condition
         if self.slip_interface:

@@ -295,11 +295,9 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
     }
 
     // Number of edges cut by extrapolated geometry, if given
-    if (!rData.ElementalExtrapolatedEdgeDistances.empty()) {  // TODO - remove check?!
-        for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
-            if (rData.ElementalExtrapolatedEdgeDistances[i] > 0.0) {
-                rData.NumExtraIntersectedEdges++;
-            }
+    for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
+        if (rData.ElementalExtrapolatedEdgeDistances[i] > 0.0) {
+            rData.NumExtraIntersectedEdges++;
         }
     }
 
@@ -309,7 +307,6 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
     // Check whether element is incised and whether user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES,
     // then use Ausas incised shape functions
     else if (rData.NumExtraIntersectedEdges > 0) {
-        KRATOS_WATCH(rData.NumExtraIntersectedEdges); //TODO remove
         this->DefineModifiedGeometryData(rData, true);
     } else {
         this->DefineStandardGeometryData(rData);
@@ -328,7 +325,7 @@ template <class TBaseElement>
 void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineModifiedGeometryData(EmbeddedDiscontinuousElementData& rData, const bool isIncised) const
 {
     ModifiedShapeFunctions::Pointer p_calculator;
-    if (isIncised && !rData.ElementalDistancesWithExtrapolated.empty()) {   // TODO - remove 2nd part of check?!
+    if (isIncised) {
         // Auxiliary elemental and edge distance vectors of extrapolated intersecting geometry for the element subdivision utility
         Vector elemental_distances_with_extrapolated = rData.ElementalDistancesWithExtrapolated;
         Vector extrapolated_edge_distances = rData.ElementalExtrapolatedEdgeDistances;

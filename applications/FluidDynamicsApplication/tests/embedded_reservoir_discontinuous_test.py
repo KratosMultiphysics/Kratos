@@ -60,6 +60,8 @@ class EmbeddedReservoirDiscontinuousTest(UnitTest.TestCase):
                 i_node += 1
             element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, elem_dist)
             element.SetValue(KratosMultiphysics.ELEMENTAL_EDGE_DISTANCES, elem_edge_dist)
+            element.SetValue(KratosMultiphysics.ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, elem_edge_dist)
+            element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED, elem_dist)
 
     def setUpInitialCondition(self):
         # Set exact initial solution

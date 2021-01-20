@@ -91,6 +91,8 @@ namespace Kratos {
                 }
                 it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
                 it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
+                it_elem->SetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, elem_edge_dist);
+                it_elem->SetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED, elem_dist);
             }
         }
 
@@ -157,6 +159,8 @@ namespace Kratos {
                 }
                 it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
                 it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
+                it_elem->SetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, elem_edge_dist);
+                it_elem->SetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED, elem_dist);
             }
         }
 

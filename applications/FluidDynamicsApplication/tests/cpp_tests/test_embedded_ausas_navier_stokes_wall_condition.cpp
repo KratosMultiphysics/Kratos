@@ -114,6 +114,8 @@ namespace Kratos {
 			modelPart.Elements()[1].SetValue(ELEMENTAL_DISTANCES, distances_vector);
 			const array_1d<double,3> edge_distances_vector(3,-1.0);
 			modelPart.Elements()[1].SetValue(ELEMENTAL_EDGE_DISTANCES, edge_distances_vector);
+			modelPart.Elements()[1].SetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, edge_distances_vector);
+			modelPart.Elements()[1].SetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED, distances_vector);
 
 			// Find the nodal neighbours
 			FindNodalNeighboursProcess find_nodal_neighbours_process(modelPart);
@@ -222,6 +224,8 @@ namespace Kratos {
 			modelPart.Elements()[1].SetValue(ELEMENTAL_DISTANCES, distances_vector);
 			const array_1d<double,6> edge_distances_vector(6,-1.0);
 			modelPart.Elements()[1].SetValue(ELEMENTAL_EDGE_DISTANCES, edge_distances_vector);
+			modelPart.Elements()[1].SetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, edge_distances_vector);
+			modelPart.Elements()[1].SetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED, distances_vector);
 
 			// Find the nodal neighbours
 			FindNodalNeighboursProcess find_nodal_neighbours_process(modelPart);

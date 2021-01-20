@@ -144,6 +144,8 @@ namespace Kratos {
                 const array_1d<double,3> elem_edge_dist(3,-1.0);
                 p_elem_2->SetValue(ELEMENTAL_DISTANCES, elem_dist);
                 p_elem_2->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
+                p_elem_2->SetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, elem_edge_dist);
+                p_elem_2->SetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED, elem_dist);
             }
 
         }
