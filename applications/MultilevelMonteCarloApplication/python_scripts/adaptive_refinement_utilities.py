@@ -1,5 +1,5 @@
 # Import Python libraries
-import numpy as np
+from math import sqrt
 
 # Import Kratos
 import KratosMultiphysics
@@ -185,7 +185,7 @@ class AdaptiveRefinement(object):
                 interp_error_level = original_interp_error/(coefficient_interp_error*current_level)
             else: # current_level == 0
                 interp_error_level = original_interp_error
-            mesh_size_level = self.mesh_size_coarsest_level*np.sqrt(interp_error_level/original_interp_error) # relation from [Alauzet] eqs. pag 34 and 35
+            mesh_size_level = self.mesh_size_coarsest_level*sqrt(interp_error_level/original_interp_error) # relation from [Alauzet] eqs. pag 34 and 35
             self.mesh_size = mesh_size_level
 
     def __generate_variable_list_from_input(self, param):
