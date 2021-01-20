@@ -18,11 +18,6 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
         self.min_buffer_size = 2
         self.advection_epsilon = self.settings["advection_epsilon"].GetDouble()
 
-    def AddVariables(self):
-        super().AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(SW.EQUIVALENT_MANNING)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.POROSITY)
-
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.MOMENTUM_X, self.main_model_part)
         KM.VariableUtils().AddDof(KM.MOMENTUM_Y, self.main_model_part)
@@ -123,5 +118,5 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
 
     def _CreateScheme(self):
         wetting_model = self._GetWettingModel()
-        time_scheme = SW.ResidualBasedIncrementalUpdateWettingScheme(wetting_model)
+        time_scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
         return time_scheme

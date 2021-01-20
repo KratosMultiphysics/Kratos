@@ -41,6 +41,7 @@ int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo) co
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FREE_SURFACE_ELEVATION, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TOPOGRAPHY, node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MANNING, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN, node)
 
         KRATOS_CHECK_DOF_IN_NODE(MOMENTUM_X, node)
@@ -193,8 +194,18 @@ void SWE<TNumNodes, TFramework>::InitializeElementVariables(
     const GeometryType& rGeom = GetGeometry();
     for (size_t i = 0; i < TNumNodes; i++)
     {
-        rVariables.manning2 += rGeom[i].FastGetSolutionStepValue(EQUIVALENT_MANNING);
-        rVariables.porosity += rGeom[i].FastGetSolutionStepValue(POROSITY);
+        const double f = rGeom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
+        const double z = rGeom[i].FastGetSolutionStepValue(TOPOGRAPHY);
+        const double n = rGeom[i].FastGetSolutionStepValue(MANNING);
+        const double h = f - z;
+        if (h > rVariables.epsilon) {
+            rVariables.manning2 += n;
+            rVariables.porosity += 1.0;
+        } else {
+            const double beta = 1e4;
+            rVariables.manning2 += n * (1 - beta * (h - rVariables.epsilon));
+            rVariables.porosity += 0.0;
+        }
     }
     rVariables.manning2 *= rVariables.lumping_factor;
     rVariables.manning2 = std::pow(rVariables.manning2, 2);
