@@ -8,7 +8,7 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                  const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int LocalSize(TDim * TNumNodes);
 
@@ -85,7 +85,7 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::GetDofList(DofsVectorType&
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012LHS(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     const GeometryType& rGeom = this->GetGeometry();
@@ -112,7 +112,7 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012LHS(MatrixTy
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
+void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorType& F, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -143,7 +143,7 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorTy
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -158,7 +158,7 @@ int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rC
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
-        Node<3> &rNode = this->GetGeometry()[i];
+        const Node<3>& rNode = this->GetGeometry()[i];
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_COMPONENT_GRADIENT_X,rNode);
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_COMPONENT_GRADIENT_Y,rNode);
         if (TDim == 3){

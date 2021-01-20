@@ -179,7 +179,7 @@ public:
     /// Calculate the element's local contribution to the system for the current step.
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Provides the global indices for each one of this element's local rows
@@ -217,7 +217,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Inquiry

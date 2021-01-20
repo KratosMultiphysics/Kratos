@@ -179,7 +179,7 @@ public:
 
     const Variable<double>& GetVariable() const override;
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3>>& rVariable,
         std::vector<array_1d<double, 3>>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;

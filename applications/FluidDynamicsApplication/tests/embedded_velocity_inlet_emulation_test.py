@@ -14,10 +14,10 @@ class EmbeddedVelocityInletEmulationTest(UnitTest.TestCase):
         self.check_tolerance = 1.0e-10
         self.print_reference_values = False
         self.work_folder = "EmbeddedVelocityInletEmulationTest"
-        self.reference_file = "reference_embedded_symbolic_navier_stokes"
+        self.reference_file = "reference_embedded_weakly_compressible_navier_stokes"
         self.settings = "EmbeddedVelocityInletEmulationTest.json"
         self.formulation_settings = KratosMultiphysics.Parameters(r'''{
-            "element_type"        : "embedded_symbolic_navier_stokes",
+            "element_type"        : "embedded_weakly_compressible_navier_stokes",
             "is_slip"             : false,
             "slip_length"         : 1.0e8,
             "penalty_coefficient" : 10.0,

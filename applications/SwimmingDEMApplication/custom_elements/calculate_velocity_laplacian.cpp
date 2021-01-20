@@ -44,7 +44,7 @@ void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

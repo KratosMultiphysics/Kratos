@@ -240,7 +240,6 @@ public:
      * Specializations of element must specify the actual interface to the integration points!
      * Note, that these functions expect a std::vector of values for the specified variable type that
      * contains a value for each integration point!
-     * GetValueOnIntegrationPoints: get the values for given Variable.
      * @param rVariable: the specified variable
      * @param rValues: where to store the values for the specified variable type at each integration point
      * @param rCurrentProcessInfo: the current process info instance
@@ -298,6 +297,7 @@ protected:
         double dt_inv;
         double stab_factor;
         double shock_stab_factor;
+        double rel_dry_height;
         double gravity;
 
         double height;
@@ -308,6 +308,7 @@ protected:
         array_1d<double,3> topography;
         array_1d<double,3> rain;
         array_1d<double,9> unknown;
+        array_1d<double,9> mesh_acc;
 
         void InitializeData(const ProcessInfo& rCurrentProcessInfo);
         void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
@@ -347,6 +348,10 @@ protected:
         MatrixType& rLHS,
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
+
+    virtual void AddDesingularizationTerm(
+        MatrixType& rLHS,
+        const ElementData& rData);
 
     void ComputeMassMatrix(
         BoundedMatrix<double,9,9>& rMatrix,
@@ -405,6 +410,8 @@ protected:
         const array_1d<double,3>& rVeector);
 
     double StabilizationParameter(const ElementData& rData);
+
+    double WetFraction(double Height, double Epsilon);
 
     array_1d<double,3> CharacteristicLength(const ElementData& rData);
 

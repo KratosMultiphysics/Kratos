@@ -22,31 +22,24 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.ATMOSPHERIC_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.MESH_ACCELERATION)
 
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.MOMENTUM_X, self.main_model_part)
         KM.VariableUtils().AddDof(KM.MOMENTUM_Y, self.main_model_part)
         KM.VariableUtils().AddDof(SW.HEIGHT, self.main_model_part)
-
         KM.Logger.PrintInfo(self.__class__.__name__, "Shallow water solver DOFs added correctly.")
 
     def Initialize(self):
         super().Initialize()
+        self.main_model_part.ProcessInfo.SetValue(SW.RELATIVE_DRY_HEIGHT, self.settings["relative_dry_height"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(SW.SHOCK_STABILIZATION_FACTOR, self.settings["shock_stabilization_factor"].GetDouble())
 
-    def InitializeSolutionStep(self):
-        # SW.ShallowWaterUtilities().IdentifyWetDomain(self.main_model_part, KM.ACTIVE, self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT)) # TODO: enable that process
-        super().InitializeSolutionStep()
-
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        KM.VariableUtils().SetFlag(KM.ACTIVE, True, self.main_model_part.Nodes)
-        KM.VariableUtils().SetFlag(KM.ACTIVE, True, self.main_model_part.Elements)
-        dry_height = self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT)
-        SW.ShallowWaterUtilities().ResetDryDomain(self.main_model_part, dry_height)
         SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
-        SW.ComputeVelocityProcess(self.main_model_part, dry_height).Execute()
+        SW.ShallowWaterUtilities().ComputeVelocity(self.main_model_part, True)
         self._CheckWaterLoss()
 
     @classmethod
@@ -54,7 +47,8 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         default_settings = KM.Parameters("""
         {
         "time_integration_order"     : 2,
-        "stabilization_factor"     : 0.005,
+        "relative_dry_height"        : 0.1,
+        "stabilization_factor"       : 0.005,
         "shock_stabilization_factor" : 0.001
         }
         """)
