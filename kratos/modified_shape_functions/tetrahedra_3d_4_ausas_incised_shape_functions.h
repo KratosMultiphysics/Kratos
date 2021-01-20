@@ -124,36 +124,37 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // TODO
     /**
-    * Returns the intersection points condensation matrix for positive side Ausas sh functions.
-    * This matrix is used to extrapolate the subdivisions shape funtion values to the
-    * original geometry ones. It has size (nnodes+nedges)x(nnodes).
-    * @return rPosSideCondMatrix: Reference to the intersection points condensation matrix.
+    * Returns the intersection points and extrapolated intersection points condensation matrix for
+    * positive side Ausas shape functions for incised elements.
+    * This matrix is used to transform the subdivisions shape funtion values to the
+    * original geometry ones. It has size (n_nodes+n_edges)x(n_nodes).
+    * @param rPosSideCondMatrix: Reference to the extrapolated) intersection points condensation matrix to be changed.
     * @param rEdgeNodeI Integers array containing the nodes "I" that conform the edges.
     * @param rEdgeNodeJ Integers array containing the nodes "J" that conform the edges.
     * @param rSplitEdges Integers array containing the original nodes ids and the intersected edges nodes ones.
     */
-    /*void SetPositiveSideCondensationMatrix(
+    void SetPositiveSideCondensationMatrix(
         Matrix& rPosSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
-        const std::vector<int>& rSplitEdges);*/
+        const std::vector<int>& rSplitEdges) override;
 
     /**
-    * Returns the intersection points condensation matrix for negative side Ausas sh functions.
-    * This matrix is used to extrapolate the subdivisions shape funtion values to the
-    * original geometry ones. It has size (nnodes+nedges)x(nnodes).
-    * @return rNegSideCondMatrix: Reference to the intersection points condensation matrix.
+    * Returns the intersection points and extrapolated intersection points condensation matrix for
+    * negative side Ausas shape functions for incised elements.
+    * This matrix is used to transform the subdivisions shape funtion values to the
+    * original geometry ones. It has size (n_nodes+n_edges)x(n_nodes).
+    * @param rNegSideCondMatrix: Reference to the (extrapolated) intersection points condensation matrix to be changed.
     * @param rEdgeNodeI Integers array containing the nodes "I" that conform the edges.
     * @param rEdgeNodeJ Integers array containing the nodes "J" that conform the edges.
     * @param rSplitEdges Integers array containing the original nodes ids and the intersected edges nodes ones.
     */
-    /*void SetNegativeSideCondensationMatrix(
+    void SetNegativeSideCondensationMatrix(
         Matrix& rNegSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
-        const std::vector<int>& rSplitEdges);*/
+        const std::vector<int>& rSplitEdges) override;
 
     ///@}
     ///@name Protected  Access
