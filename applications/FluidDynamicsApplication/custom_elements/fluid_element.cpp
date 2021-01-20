@@ -428,7 +428,7 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) co
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 3 > > const& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -447,7 +447,7 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
 
 
 template< class TElementData >
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<double> const& rVariable,
     std::vector<double>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -480,21 +480,21 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
 }
 
 template <class TElementData>
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 6>> const& rVariable,
     std::vector<array_1d<double, 6>>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {}
 
 template <class TElementData>
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<Vector> const& rVariable,
     std::vector<Vector>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {}
 
 template <class TElementData>
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<Matrix> const& rVariable,
     std::vector<Matrix>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
