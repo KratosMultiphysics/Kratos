@@ -454,7 +454,7 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     mNeighbourRigidFacesTotalContactForce.swap(temp_neighbours_contact_forces);
 }
 
-void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info){}
+void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& r_process_info)const{}
 
 void SphericParticle::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& r_process_info)
 {
@@ -1393,7 +1393,7 @@ void SphericParticle::CreateDiscontinuumConstitutiveLaws(const ProcessInfo& r_pr
 
 void SphericParticle::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& r_process_info){}
 
-void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& r_process_info)
+void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& r_process_info) const
 {
     KRATOS_TRY
 
