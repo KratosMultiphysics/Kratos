@@ -21,6 +21,7 @@
 #include "shallow_water_residual_based_bdf_scheme.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "utilities/parallel_utilities.h"
+#include "includes/kratos_parameters.h"
 #include "custom_utilities/flux_limiter.h"
 
 namespace Kratos
@@ -90,6 +91,12 @@ public:
     explicit FluxCorrectedShallowWaterScheme(const std::size_t Order = 2, bool UpdateVelocities = false)
         : SWBaseType(Order, UpdateVelocities)
         , mLimiters()
+    {}
+
+    // Constructor with parameters
+    explicit FluxCorrectedShallowWaterScheme(Parameters ThisParameters)
+        : SWBaseType(GetOrder(ThisParameters), GetUpdateVelocities(ThisParameters))
+        , mLimiters(GetLimiterParameters(ThisParameters))
     {}
 
     // Copy Constructor
@@ -627,6 +634,32 @@ protected:
             }
             rLumpedMassMatrix(i,i) = l;
         }
+    }
+
+    static void ValidateThisParameters(Parameters& rThisParameters) {
+        Parameters default_parameters(R"({
+            "order" : 2,
+            "update_velocities" : false,
+            "limiting_variables" : ["HEIGHT"]
+        })");
+        rThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    static std::size_t GetOrder(Parameters& rThisParameters) {
+        ValidateThisParameters(rThisParameters);
+        return rThisParameters["order"].GetInt();
+    }
+
+    static bool GetUpdateVelocities(Parameters& rThisParameters) {
+        ValidateThisParameters(rThisParameters);
+        return rThisParameters["update_velocities"].GetBool();
+    }
+
+    static Parameters GetLimiterParameters(Parameters& rThisParameters) {
+        ValidateThisParameters(rThisParameters);
+        Parameters limiter_parameters;
+        limiter_parameters.AddValue("limiting_variables", rThisParameters["limiting_variables"]);
+        return limiter_parameters;
     }
 
     ///@}

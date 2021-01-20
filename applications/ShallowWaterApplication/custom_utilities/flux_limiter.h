@@ -68,7 +68,7 @@ public:
     struct AllowableIncrements {
         double max;
         double min;
-        AllowableIncrements(double ThisMax, double ThisMin) {max=ThisMax; min=ThisMin;}
+        AllowableIncrements(double NewMax, double NewMin) {max = NewMax; min = NewMin;}
     };
 
     typedef Node<3> NodeType;
@@ -115,27 +115,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    void AddFluxLimiter(const Variable<double>& rVariable) {
-        this->SetDoubleLimiter(rVariable);
-    }
-
-    void AddFluxLimiter(const Variable<array_1d<double,3>>& rVariable) {
-        this->SetArrayLimiter(rVariable);
-    }
-
-    void AddFluxLimiters(Parameters ThisParameters) {
-        for (auto var_name : ThisParameters["limiting_variables"].GetStringArray()) {
-            if (KratosComponents<Variable<double>>::Has(var_name)) {
-                const auto& r_var = KratosComponents<Variable<double>>::Get(var_name);
-                this->SetDoubleLimiter(r_var);
-            }
-            else if (KratosComponents<Variable<array_1d<double,3>>>::Has(var_name)) {
-                const auto& r_var = KratosComponents<Variable<array_1d<double,3>>>::Get(var_name);
-                this->SetArrayLimiter(r_var);
-            }
-        }
-    }
 
     IndexType size() {return mUnlimitedFlux.size();}
 
@@ -193,6 +172,19 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void AddFluxLimiters(Parameters ThisParameters) {
+        for (auto var_name : ThisParameters["limiting_variables"].GetStringArray()) {
+            if (KratosComponents<Variable<double>>::Has(var_name)) {
+                const auto& r_var = KratosComponents<Variable<double>>::Get(var_name);
+                this->SetDoubleLimiter(r_var);
+            }
+            else if (KratosComponents<Variable<array_1d<double,3>>>::Has(var_name)) {
+                const auto& r_var = KratosComponents<Variable<array_1d<double,3>>>::Get(var_name);
+                this->SetArrayLimiter(r_var);
+            }
+        }
+    }
 
     virtual void SetDoubleLimiter(const Variable<double>& rVariable)
     {
