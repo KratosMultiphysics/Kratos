@@ -308,6 +308,7 @@ protected:
         array_1d<double,3> topography;
         array_1d<double,3> rain;
         array_1d<double,9> unknown;
+        array_1d<double,9> mesh_acc;
 
         void InitializeData(const ProcessInfo& rCurrentProcessInfo);
         void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
