@@ -348,12 +348,14 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
                 return KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(
                     self.GetFluidComputingModelPart(),
                     self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
-                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES)
+                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES,
+                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES)
             elif self.domain_size == 3:
                 return KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D(
                     self.GetFluidComputingModelPart(),
                     self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
-                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D.CALCULATE_ELEMENTAL_EDGE_DISTANCES)
+                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D.CALCULATE_ELEMENTAL_EDGE_DISTANCES,
+                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D.CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES)
             else:
                 raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
         else:
