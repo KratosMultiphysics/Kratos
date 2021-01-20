@@ -298,10 +298,6 @@ protected:
         const double Value,
         const typename TElementData::ShapeFunctionsType& rN) const override;
 
-    void InverseMatrix(
-        Matrix& r_matrix,
-        Matrix& r_inv_matrix);
-
     ///@}
     ///@name Protected  Access
     ///@{

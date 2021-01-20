@@ -163,7 +163,8 @@ void DVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
 
-    this->InverseMatrix(permeability, inv_permeability);
+    double det_permeability = MathUtils<double>::Det(permeability);
+    MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
     Matrix sigma = viscosity * inv_permeability;
 
@@ -193,7 +194,8 @@ void DVMSDEMCoupled<TElementData>::MomentumProjTerm(
     Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     Matrix inv_permeability = ZeroMatrix(Dim, Dim);
 
-    this->InverseMatrix(permeability, inv_permeability);
+    double det_permeability = MathUtils<double>::Det(permeability);
+    MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
     Matrix sigma = viscosity * inv_permeability;
 
@@ -245,7 +247,10 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
     Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     Matrix inv_permeability = ZeroMatrix(Dim, Dim);
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
-    this->InverseMatrix(permeability, inv_permeability);
+
+    double det_permeability = MathUtils<double>::Det(permeability);
+    MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
+
     Matrix sigma = viscosity * inv_permeability;
 
     // Multiplying convective operator by density to have correct units
@@ -403,7 +408,8 @@ void DVMSDEMCoupled<TElementData>::AddMassStabilization(
     Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     Matrix inv_permeability = ZeroMatrix(Dim, Dim);
 
-    this->InverseMatrix(permeability, inv_permeability);
+    double det_permeability = MathUtils<double>::Det(permeability);
+    MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
     double W = rData.Weight * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
     Matrix sigma = inv_permeability * viscosity;
@@ -453,7 +459,8 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     Matrix eigen_values_matrix, eigen_vectors_matrix;
     Matrix inv_eigen_matrix = ZeroMatrix(Dim, Dim);
 
-    this->InverseMatrix(permeability, inv_permeability);
+    double det_permeability = MathUtils<double>::Det(permeability);
+    MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
     double velocity_norm = Velocity[0]*Velocity[0];
     for (unsigned int d = 1; d < Dim; d++)
@@ -462,50 +469,19 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
 
     inv_tau = (mTauC1 * viscosity / (h*h) + density * ( 1.0/rData.DeltaTime + mTauC2 * velocity_norm / h )) * I + viscosity * inv_permeability;
 
-    this->InverseMatrix(inv_tau, non_diag_tau_one);
+    double det_inv_tau = MathUtils<double>::Det(inv_tau);
+    MathUtils<double>::InvertMatrix(inv_tau, non_diag_tau_one, det_inv_tau, -1.0);
 
     MathUtils<double>::GaussSeidelEigenSystem<Matrix, Matrix>(non_diag_tau_one, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
-    this->InverseMatrix(eigen_vectors_matrix, inv_eigen_matrix);
+    double det_eigen_vectors_matrix = MathUtils<double>::Det(eigen_vectors_matrix);
+    MathUtils<double>::InvertMatrix(eigen_vectors_matrix, inv_eigen_matrix, det_eigen_vectors_matrix, -1.0);
 
     Matrix inv_PTau = prod(inv_eigen_matrix, non_diag_tau_one);
     TauOne = prod(inv_PTau, eigen_vectors_matrix);
     TauTwo = viscosity + density * mTauC2 * velocity_norm * h / mTauC1;
 }
 
-template< class TElementData >
-void DVMSDEMCoupled<TElementData>::InverseMatrix(
-    Matrix& r_matrix,
-    Matrix& r_inv_matrix)
-{
-    Matrix adj_matrix = ZeroMatrix(Dim, Dim);
-    double det_matrix;
-    if (Dim == 2){
-        det_matrix = r_matrix(0,0) * r_matrix(1,1) - r_matrix(0,1) * r_matrix(1,0);
-        adj_matrix(0,0) += r_matrix(1,1);
-        adj_matrix(0,1) -= r_matrix(0,1);
-        adj_matrix(1,0) -= r_matrix(1,0);
-        adj_matrix(1,1) += r_matrix(0,0);
-    }
-    else if (Dim == 3){
-        det_matrix = r_matrix(0,0) * r_matrix(1,1) * r_matrix(2,2) + r_matrix(0,1) * r_matrix(1,2) * r_matrix(2,1) + r_matrix(1,0) * r_matrix(2,1) * r_matrix(1,2) - r_matrix(1,2) * r_matrix(2,2) * r_matrix(2,1) - r_matrix(0,1) * r_matrix(1,0) * r_matrix(2,2) - r_matrix(0,0) * r_matrix(1,2) * r_matrix(2,1);
-        adj_matrix(0,0) += r_matrix(1,1) * r_matrix(2,2) - r_matrix(1,2) * r_matrix(2,1);
-        adj_matrix(0,1) -= r_matrix(1,0) * r_matrix(2,2) - r_matrix(1,2) * r_matrix(2,0);
-        adj_matrix(0,2) += r_matrix(1,0) * r_matrix(2,1) - r_matrix(1,1) * r_matrix(2,0);
-        adj_matrix(1,0) -= r_matrix(0,1) * r_matrix(2,2) - r_matrix(0,2) * r_matrix(2,1);
-        adj_matrix(1,1) += r_matrix(0,0) * r_matrix(2,2) - r_matrix(0,2) * r_matrix(2,0);
-        adj_matrix(1,2) -= r_matrix(0,0) * r_matrix(2,1) - r_matrix(0,1) * r_matrix(2,0);
-        adj_matrix(2,0) += r_matrix(0,1) * r_matrix(1,2) - r_matrix(0,2) * r_matrix(1,1);
-        adj_matrix(2,1) -= r_matrix(0,0) * r_matrix(1,2) - r_matrix(0,2) * r_matrix(1,0);
-        adj_matrix(2,2) += r_matrix(0,0) * r_matrix(1,1) - r_matrix(0,1) * r_matrix(1,0);
-    }
-
-    for (unsigned int d = 0; d < Dim; ++d){
-        for (unsigned int e = 0; e < Dim; ++e){
-            r_inv_matrix(d,e) = adj_matrix(d,e) / det_matrix;
-        }
-    }
-}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
