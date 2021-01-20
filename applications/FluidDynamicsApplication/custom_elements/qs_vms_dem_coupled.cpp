@@ -408,7 +408,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                 for (unsigned int e = 0; e < Dim; e++){ // Stabilization: Div(v) * tau_two * Div(u)
                     RSigma = rData.N[i] * sigma(d,e) * rData.N[j];
                     ASigma = tau_one(d,d) * AGradN[i] * sigma(d,e) * rData.N[j];
-                    RRSigma = tau_one(d,d) * sigma(d,e) * rData.N[i] * sigma(d,e) * rData.N[j];
+                    RRSigma = tau_one(d,d) * sigma(d,e) * rData.N[i] * sigma(e,d) * rData.N[j];
                     RSigmaA = tau_one(d,d) * sigma(d,e) * rData.N[i] * AGradN[j];
                     DAlphaD = tau_two * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,e);
                     DU = tau_two * rData.DN_DX(i,d) * fluid_fraction_gradient[e] * rData.N[j];
