@@ -133,6 +133,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     for (auto it_elem = model_part.ElementsBegin(); it_elem != model_part.ElementsEnd(); ++it_elem) {
         it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
         it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
+        it_elem->SetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, elem_edge_dist);
+        it_elem->SetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED, elem_dist);
     }
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
@@ -160,6 +162,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     for (auto it_elem = model_part.ElementsBegin(); it_elem != model_part.ElementsEnd(); ++it_elem) {
         it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
         it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
+        it_elem->SetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, elem_edge_dist);
+        it_elem->SetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED, elem_dist);
     }
 
     model_part.GetProcessInfo().SetValue(SLIP_LENGTH, 0.0);
@@ -195,6 +199,46 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
 
         for (unsigned int j = 0; j < RHS.size(); j++) {
             KRATOS_CHECK_NEAR(RHS[j], output_slip_cut[counter][j], 1e-6);
+        }
+
+        counter++;
+    }
+
+    std::vector< std::vector<double> > output_incised(6);
+    output_incised[0] = {19.59731352,64.76557299,-0.5452373858,37.03125,74.0625,0,96.50664027,234.6416947,0.3952373858}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
+    output_incised[1] = {-5.894175191,-1.478824978,-0.5452373197,37.03125,74.0625,0,77.97750852,184.6559083,0.3952373197}; // EmbeddedQSVMSDiscontinuous
+    counter = 0;
+
+    // Test incised element
+    elem_dist[0] = 0.2;
+    elem_dist[1] = 0.2;
+    elem_dist[2] = 0.2;
+    elem_edge_dist[0] = -1.0;
+    elem_edge_dist[1] = -1.0;
+    elem_edge_dist[2] =  0.5;
+    array_1d<double,3> elem_extra_edge_dist;
+    elem_extra_edge_dist[0] = -1.0;
+    elem_extra_edge_dist[1] =  0.5;
+    elem_extra_edge_dist[2] = -1.0;
+    array_1d<double,3> elem_dist_extra;
+    elem_dist_extra[0] = -0.25;
+    elem_dist_extra[1] =  0.25;
+    elem_dist_extra[2] = -0.25;
+    for (auto it_elem = model_part.ElementsBegin(); it_elem != model_part.ElementsEnd(); ++it_elem) {
+        it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+        it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
+        it_elem->SetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, elem_edge_dist);
+        it_elem->SetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED, elem_dist_extra);
+    }
+
+    for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
+        i->CalculateLocalSystem(LHS, RHS, r_process_info);
+
+        //std::cout << i->Info() << std::setprecision(10) << std::endl;
+        //KRATOS_WATCH(RHS);
+
+        for (unsigned int j = 0; j < RHS.size(); j++) {
+            KRATOS_CHECK_NEAR(RHS[j], output_incised[counter][j], 1e-6);
         }
 
         counter++;
