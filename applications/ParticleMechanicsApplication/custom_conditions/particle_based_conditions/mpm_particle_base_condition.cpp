@@ -258,9 +258,6 @@ int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo ) co
     // Base check
     Condition::Check(rCurrentProcessInfo);
 
-    // Verify variable exists
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& r_node : this->GetGeometry().Points()) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)

@@ -2397,22 +2397,6 @@ int FluidElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
     int ErrorCode = 0;
     ErrorCode = Element::Check(rCurrentProcessInfo);
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
-
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
-
-    KRATOS_CHECK_VARIABLE_KEY(CAUCHY_STRESS_TENSOR);
-    KRATOS_CHECK_VARIABLE_KEY(CAUCHY_STRESS_VECTOR);
-    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_MATRIX);
-    KRATOS_CHECK_VARIABLE_KEY(DEFORMATION_GRADIENT);
-    KRATOS_CHECK_VARIABLE_KEY(STRAIN_ENERGY);
-
-
     // Check that the constitutive law exists
     if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
     {
