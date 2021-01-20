@@ -371,47 +371,6 @@ void SolidShellElementSprism3D6N::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::CalculateRightHandSide(
-    std::vector< VectorType >& rRightHandSideVectors,
-    const std::vector< Variable< VectorType > >& rRHSVariables,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_TRY;
-
-    /* Create local system components */
-    LocalSystemComponents local_system;
-
-    /* Calculation flags */
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_RHS_VECTOR);
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-    MatrixType left_hand_side_matrix = Matrix();
-
-    /* Initialize sizes for the system components: */
-    if( rRHSVariables.size() != rRightHandSideVectors.size() ) {
-        rRightHandSideVectors.resize(rRHSVariables.size());
-    }
-
-    for( IndexType i = 0; i < rRightHandSideVectors.size(); ++i ) {
-        this->InitializeSystemMatrices( left_hand_side_matrix, rRightHandSideVectors[i], local_system.CalculationFlags );
-    }
-
-    /* Set general_variables to Local system components */
-    local_system.SetLeftHandSideMatrix(left_hand_side_matrix);
-    local_system.SetRightHandSideVectors(rRightHandSideVectors);
-
-    local_system.SetRightHandSideVariables(rRHSVariables);
-
-    /* Calculate elemental system */
-    CalculateElementalSystem( local_system, rCurrentProcessInfo );
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void SolidShellElementSprism3D6N::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo

@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/mesh_moving_variables.h"
 #include "shallow_water_application_variables.h"
 #include "shallow_water_2d_3.h"
 
@@ -42,6 +43,7 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo) const
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BATHYMETRY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ATMOSPHERIC_PRESSURE, node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_ACCELERATION, node)
 
         KRATOS_CHECK_DOF_IN_NODE(MOMENTUM_X, node)
         KRATOS_CHECK_DOF_IN_NODE(MOMENTUM_Y, node)
@@ -266,12 +268,13 @@ void ShallowWater2D3::AddSourceTerms(
     const double height4_3 = std::pow(rData.height, 1.33333333333) + 1e-6;
     rLHS += rData.gravity * rData.manning2 * abs_vel / height4_3 * flow_mass_matrix;
 
-    // Rain
+    // Rain and mesh acceleration
     const double lumping_factor = 1.0 / 3.0;
     for (size_t i = 0; i < 3; ++i) {
         const size_t block = 3 * i;
         rRHS(block+2) += lumping_factor * rData.rain[i];
     }
+    rRHS -= rData.height * prod(flow_mass_matrix, rData.mesh_acc);
 }
 
 void ShallowWater2D3::AddShockCapturingTerm(
@@ -341,9 +344,10 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
     velocity = ZeroVector(3);
     manning2 = 0.0;
 
-    size_t j = 0;
     for (size_t i = 0; i < 3; i++)
     {
+        const size_t k = 3 * i;
+
         auto h = rGeometry[i].FastGetSolutionStepValue(HEIGHT);
         const auto f = rGeometry[i].FastGetSolutionStepValue(MOMENTUM);
         const auto v = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
@@ -358,9 +362,13 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
         topography[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY);
         rain[i] = rGeometry[i].FastGetSolutionStepValue(RAIN);
 
-        unknown[j++] = f[0];
-        unknown[j++] = f[1];
-        unknown[j++] = h;
+        unknown[k]   = f[0];
+        unknown[k+1] = f[1];
+        unknown[k+2] = h;
+
+        mesh_acc[k]   = rGeometry[i].FastGetSolutionStepValue(MESH_ACCELERATION_X);
+        mesh_acc[k+1] = rGeometry[i].FastGetSolutionStepValue(MESH_ACCELERATION_Y);
+        mesh_acc[k+2] = 0.0;
     }
     const double lumping_factor = 1.0 / 3.0;
     height = std::max(height, .0);
@@ -658,16 +666,20 @@ void ShallowWater2D3::AlgebraicResidual(
     double rain = 0.0;
     double vel_div = 0.0;
     double flow_div = 0.0;
+    array_1d<double,3> mesh_acc = ZeroVector(3);
     array_1d<double,3> topography_grad = ZeroVector(3);
 
     auto& r_geom = GetGeometry();
     for (size_t i = 0; i < 3; ++i)
     {
+        const size_t block = 3 * i;
+
         flow_acc += r_geom[i].FastGetSolutionStepValue(ACCELERATION);
         height_acc += r_geom[i].FastGetSolutionStepValue(VERTICAL_VELOCITY);
         rain += rData.rain[i];
+        mesh_acc[0] += rData.mesh_acc[block];
+        mesh_acc[1] += rData.mesh_acc[block+1];
 
-        const size_t block = 3 * i;
         const double f1 = rData.unknown[block];
         const double f2 = rData.unknown[block + 1];
         const double h = rData.unknown[block + 2];
@@ -694,7 +706,7 @@ void ShallowWater2D3::AlgebraicResidual(
     const array_1d<double,3> friction = rData.gravity * rData.manning2 * norm_2(rData.flow_rate) * rData.flow_rate / (std::pow(rData.height, 2.333333333333333)+e);
     const array_1d<double,3> flux = prod(rData.velocity, trans(rFlowGrad)) + vel_div * rData.flow_rate;
 
-    rFlowResidual = flow_acc + flux + c2 * (rHeightGrad - topography_grad) + friction;
+    rFlowResidual = flow_acc + flux + c2 * (rHeightGrad - topography_grad) + friction + rData.height * mesh_acc;
     rHeightresidual = height_acc + flow_div + rain;
 }
 
