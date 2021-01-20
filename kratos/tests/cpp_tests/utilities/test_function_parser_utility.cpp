@@ -67,6 +67,21 @@ KRATOS_TEST_CASE_IN_SUITE(GenericFunctionUtility2, KratosCoreFastSuite)
     KRATOS_CHECK_DOUBLE_EQUAL(function.RotateAndCallFunction(4.0,3.0,0.0,0.0), 11);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(FunctionParser, KratosCoreFastSuite)
+{
+    auto function1 = FunctionParser::GenerateFunctionSpace("x**2+y**2");
+    KRATOS_CHECK_DOUBLE_EQUAL(function1(4.0,3.0,0.0), 25);
+
+    auto function2 = FunctionParser::GenerateFunction("3*t");
+    KRATOS_CHECK_DOUBLE_EQUAL(function2(0.0,0.0,0.0,5.0), 15);
+
+    auto function3 = FunctionParser::GenerateFunctionInitialCoordinates("X**2+Y**2");
+    KRATOS_CHECK_DOUBLE_EQUAL(function3(0.0,0.0,0.0,0.0,4.0,3.0,0.0), 25);
+
+    auto function4 = FunctionParser::GenerateFunction("(cos(x*pi)+sin(y*pi))*t");
+    KRATOS_CHECK_DOUBLE_EQUAL(function4(0.25,0.15,0.0,1.5), 1.5*(std::cos(0.25*Globals::Pi) + std::sin(0.15*Globals::Pi)));
+}
+    
 }   // namespace Testing
 }  // namespace Kratos.
 
