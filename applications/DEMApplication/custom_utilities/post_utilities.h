@@ -332,7 +332,7 @@ namespace Kratos {
         } //ComputeEulerAngles
 
 
-        double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart, ModelPart& rContactModelPart, ProcessInfo& r_process_info) {
+        double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart, ModelPart& rContactModelPart, const ProcessInfo& r_process_info) {
 
             double adimensional_value = 0.0;
 
