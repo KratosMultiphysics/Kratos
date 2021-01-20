@@ -140,7 +140,7 @@ UpdatedLagrangian::~UpdatedLagrangian()
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::Initialize()
+void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
