@@ -194,10 +194,10 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
         if (std::pow(c * (x1 - x10), 2) + std::pow(((x2 - x20) / c), 2) < std::pow(R, 2)){
 
             for (unsigned int d = 0; d < dim; ++d){
-                for (unsigned int e = 0; e < dim; ++e){
-                    permeability(d,d) = 1.0e+30;
-                }
+                permeability(d,d) = 100;
             }
+
+            permeability(dim-1,dim-1) = 1.0e+30;
 
             r_alpha = -delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1;
 
@@ -241,9 +241,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
         }else{
 
             for (unsigned int d = 0; d < dim; ++d){
-                for (unsigned int e = 0; e < dim; ++e){
-                    permeability(d,d) = 1.0e+30;
-                }
+                permeability(d,d) = 1.0e+30;
             }
 
             r_u1 = 100.0*std::pow(x1,2)*std::pow((1 - x1),2)*(100*std::pow(x2,2)*(2*x2 - 2) + 200*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time);
@@ -362,10 +360,10 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
         if (std::pow(c*(x1 - x10), 2) + std::pow(((x2 - x20) / c), 2) < std::pow(R, 2)){
 
             for (unsigned int d = 0; d < dim; ++d){
-                for (unsigned int e = 0; e < dim; ++e){
-                    permeability(d,d) = 1.0e+30;
-                }
+                permeability(d,d) = 100;
             }
+
+            permeability(dim-1,dim-1) = 1.0e+30;
 
             r_alpha = -delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1;
 
@@ -410,9 +408,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
         }else{
 
             for (unsigned int d = 0; d < dim; ++d){
-                for (unsigned int e = 0; e < dim; ++e){
-                    permeability(d,d) = 1.0e+30;
-                }
+                permeability(d,d) = 1.0e+30;
             }
 
             r_u1 = 100.0*std::pow(x1,2)*std::pow((1 - x1),2)*(100*std::pow(x2,2)*(2*x2 - 2) + 200*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time);
