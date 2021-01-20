@@ -448,10 +448,10 @@ namespace Testing {
         auto element = Element(0, quadrature_points(2));
 
         // Check polynomial degree
-        KRATOS_CHECK_EQUAL(
-            quadrature_points(2)->PolynomialDegree(0), 2);
-        KRATOS_CHECK_EQUAL(
-            quadrature_points(2)->PolynomialDegree(1), 1);
+        //KRATOS_CHECK_EQUAL(
+        //    quadrature_points(2)->PolynomialDegree(0), 2);
+        //KRATOS_CHECK_EQUAL(
+        //    quadrature_points(2)->PolynomialDegree(1), 1);
 
         // Check shape functions
         KRATOS_CHECK_MATRIX_NEAR(
