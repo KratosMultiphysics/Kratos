@@ -27,20 +27,6 @@ namespace Kratos
 
         KRATOS_CLASS_POINTER_DEFINITION(RomBasis);
 
-        // RomBasis(){
-        //     KRATOS_WATCH('Basis CREATED');
-        // }
-
-        // RomBasis(const RomBasis &source){
-        //     std::cout<<'Copy constructor called'<<std::endl;
-        // }
-
-        // RomBasis& operator=(const RomBasis &source)
-        // {
-        //     KRATOS_WATCH('Assignment operator called');
-        //     return *this;
-        // }
-
         ~RomBasis()= default;
 
         void SetNodalBasis(const int &node_id, const Matrix &the_basis){
@@ -62,20 +48,6 @@ namespace Kratos
         public:
 
         KRATOS_CLASS_POINTER_DEFINITION(RomBases);
-
-        // RomBases(const RomBases &source){
-        //     std::cout<<'Copy constructor called'<<std::endl;
-        // }
-
-        // RomBases& operator=(const RomBases &source)
-        // {
-        //     KRATOS_WATCH('Assignment operator called');
-        //     return *this;
-        // }
-
-        // RomBases(){
-        //     KRATOS_WATCH('Bases CREATED')
-        // }
 
         ~RomBases()= default;
 
@@ -114,18 +86,6 @@ namespace Kratos
                 SetUpWVector();
                 SetUpZMatrix();
             }
-
-
-            // Move contructor
-            // DistanceToClusters &operator=(DistanceToClusters &&rhs){
-            //     std::cout<<"Using move assignment "<<std::endl;
-            //     //checking for self assignment
-
-            //     //should something be erased here? it is in the case of pointer attributes
-
-            //     return *this
-
-            // }
 
 
             void SetWEntry(const Vector &this_vector,const int &cluster, const int &m, const int &p){

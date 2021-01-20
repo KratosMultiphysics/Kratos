@@ -109,7 +109,7 @@ public:
             mRomDofsVector.push_back(ThisParameters["number_of_rom_dofs"][i].GetInt());
         }
         for (int i=0;i<mRomDofsVector.size(); i++){
-            KRATOS_WATCH(mRomDofsVector.at(i))
+            //KRATOS_WATCH(mRomDofsVector.at(i))
         }
 
         // Setting up mapping: VARIABLE_KEY --> CORRECT_ROW_IN_BASIS
@@ -449,17 +449,17 @@ public:
             }
         }
 
-        if (print_this_quantity){
-            std::cout<<"\n\n\n\n"<<std::endl;
-            KRATOS_WATCH(element_id)
-            for(int i=0;i<PhiElemental.size1();i++){
-                for(int j=0;j<PhiElemental.size2();j++){
-                    std::cout<<PhiElemental(i,j)<<std::endl;
-                }
-            }
-            KRATOS_WATCH(PhiElemental)
-            std::cout<<"\n\n\n\n"<<std::endl;
-        }
+        //if (print_this_quantity){
+            //std::cout<<"\n\n\n\n"<<std::endl;
+            //KRATOS_WATCH(element_id)
+            //for(int i=0;i<PhiElemental.size1();i++){
+            //    for(int j=0;j<PhiElemental.size2();j++){
+                    //std::cout<<PhiElemental(i,j)<<std::endl;
+            //    }
+            //}
+            //KRATOS_WATCH(PhiElemental)
+            //std::cout<<"\n\n\n\n"<<std::endl;
+        //}
     }
 
     void UpdateZMatrix(){
