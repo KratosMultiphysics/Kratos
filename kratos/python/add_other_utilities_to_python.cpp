@@ -43,6 +43,7 @@
 #include "utilities/activation_utilities.h"
 #include "utilities/sensitivity_builder.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/entities_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
@@ -498,12 +499,24 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     //OpenMP utilities
     py::class_<OpenMPUtils >(m,"OpenMPUtils")
         .def(py::init<>())
-        .def_static("SetNumThreads", &OpenMPUtils::SetNumThreads)
-        .def_static("GetNumThreads", &OpenMPUtils::GetNumThreads)
+        .def_static("SetNumThreads", [](const int NumThreads){
+            KRATOS_WARNING("OpenMPUtils") << "\"SetNumThreads\" is deprecated, please use ParallelUtilities.SetNumThreads instead" << std::endl;
+            ParallelUtilities::SetNumThreads(NumThreads);})
+        .def_static("GetNumThreads", [](){
+            KRATOS_WARNING("OpenMPUtils") << "\"GetNumThreads\" is deprecated, please use ParallelUtilities.GetNumThreads instead" << std::endl;
+            return ParallelUtilities::GetNumThreads();})
+        .def_static("GetNumberOfProcessors", [](){
+            KRATOS_WARNING("OpenMPUtils") << "\"GetNumberOfProcessors\" is deprecated, please use ParallelUtilities.GetNumProcs instead" << std::endl;
+            return ParallelUtilities::GetNumProcs();})
         .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
-        .def_static("GetNumberOfProcessors", &OpenMPUtils::GetNumberOfProcessors)
         ;
 
+    // ParallelUtilities
+    py::class_<ParallelUtilities >(m,"ParallelUtilities")
+        .def_static("GetNumThreads", &ParallelUtilities::GetNumThreads)
+        .def_static("SetNumThreads", &ParallelUtilities::SetNumThreads)
+        .def_static("GetNumProcs",   &ParallelUtilities::GetNumProcs)
+        ;
 
     // EntitiesUtilities
     auto entities_utilities = m.def_submodule("EntitiesUtilities");
