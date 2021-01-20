@@ -9,8 +9,6 @@ if KratosMultiphysics.IsDistributedRun():
     import KratosMultiphysics.mpi
 if CheckIfApplicationsAvailable("MeshingApplication"):
     import KratosMultiphysics.MeshingApplication
-if CheckIfApplicationsAvailable("ExaquteSandboxApplication"):
-    import KratosMultiphysics.ExaquteSandboxApplication
 
 class AdaptiveRefinement(object):
     """
@@ -83,22 +81,17 @@ class AdaptiveRefinement(object):
             find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
             find_nodal_h.Execute()
 
-            # problem dependent section
-            # we build the metric depending on the problem
-            if (problem_type == "stationary"):
-                local_gradient = KratosMultiphysics.MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.TEMPERATURE,metric_param)
-                local_gradient.Execute()
+            # build the metric
+            if metric_param["hessian_strategy_parameters"].Has("metric_variable"):
+                metric_variables = self.__generate_variable_list_from_input(metric_param["hessian_strategy_parameters"]["metric_variable"])
+                # remove metric value from settings, since we pass it directly in the constructor
+                metric_param["hessian_strategy_parameters"].RemoveValue("metric_variable")
+            else:
+                raise Exception("A list of variable is expected under the key [\"hessian_strategy_parameters\"][\"metric_variable\"] of the \"metric\" dictionary.")
 
-            elif (problem_type in ["monolithic", "FractionalStep"]):
-                if CheckIfApplicationsAvailable("ExaquteSandboxApplication"):
-                    local_gradient = KratosMultiphysics.MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.ExaquteSandboxApplication.AVERAGED_VELOCITY_X,metric_param)
-                    local_gradient.Execute()
-                    local_gradient = KratosMultiphysics.MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.ExaquteSandboxApplication.AVERAGED_VELOCITY_Y,metric_param)
-                    local_gradient.Execute()
-                    local_gradient = KratosMultiphysics.MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.ExaquteSandboxApplication.AVERAGED_VELOCITY_Z,metric_param)
-                    local_gradient.Execute()
-                else:
-                    raise Exception("[MultilevelMonteCarloApplication]: ExaquteSandboxApplication cannot be imported, but it is necessary to perform adaptive refinement for problems type monolithic.")
+            for mv in metric_variables:
+                local_gradient = KratosMultiphysics.MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),mv,metric_param)
+                local_gradient.Execute()
 
             # create the remeshing process and execute it
             if KratosMultiphysics.IsDistributedRun(): # MPI
@@ -194,3 +187,27 @@ class AdaptiveRefinement(object):
                 interp_error_level = original_interp_error
             mesh_size_level = self.mesh_size_coarsest_level*np.sqrt(interp_error_level/original_interp_error) # relation from [Alauzet] eqs. pag 34 and 35
             self.mesh_size = mesh_size_level
+
+    def __generate_variable_list_from_input(self, param):
+        """
+        Method taken and adapted from mmg_progess.py of MeshingApplication.
+        Parse a list of variables from input.
+        """
+        # At least verify that the input is a string
+        if not param.IsArray():
+            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+
+        # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
+        variable_list = []
+        param_names = param.GetStringArray()
+        for variable_name in param_names:
+            varriable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
+            if varriable_type == "Double" or varriable_type == "Component":
+                variable_list.append(KratosMultiphysics.KratosGlobals.GetVariable(variable_name))
+            else:
+                variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_X" ))
+                variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_Y" ))
+                if self.wrapper.GetDomainSize() == 3:
+                    variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_Z" ))
+
+        return variable_list
