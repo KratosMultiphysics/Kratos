@@ -60,10 +60,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         self.element_has_nodal_properties = True
 
         self.element_name = "VMSAdjointElement"
-        if self.settings["domain_size"].GetInt() == 2:
-            self.condition_name = "LineCondition"
-        elif self.settings["domain_size"].GetInt() == 3:
-            self.condition_name = "SurfaceCondition"
+        self.condition_name = "AdjointMonolithicWallCondition"
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
@@ -72,8 +69,10 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_VECTOR_1)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_VECTOR_2)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_VECTOR_3)
@@ -82,6 +81,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
 
@@ -100,17 +100,30 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         self.GetResponseFunction().Initialize()
         self.GetSensitivityBuilder().Initialize()
 
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.main_model_part.Conditions, domain_size)
+        KratosMultiphysics.NormalCalculationUtils().CalculateNormalShapeDerivativesOnSimplex(self.main_model_part.Conditions, domain_size)
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def _CreateScheme(self):
         response_function = self.GetResponseFunction()
         scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if scheme_type == "bossak":
-            scheme = KratosMultiphysics.ResidualBasedAdjointBossakScheme(
-                self.settings["scheme_settings"],
-                response_function)
+            if domain_size == 2:
+                scheme = KratosCFD.VelocityBossakAdjointScheme2D(self.settings["scheme_settings"], response_function)
+            elif domain_size == 3:
+                scheme = KratosCFD.VelocityBossakAdjointScheme3D(self.settings["scheme_settings"], response_function)
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         elif scheme_type == "steady":
-            scheme = KratosMultiphysics.ResidualBasedAdjointSteadyScheme(response_function)
+            if domain_size == 2:
+                scheme = KratosCFD.SimpleSteadyAdjointScheme2D(response_function)
+            elif domain_size == 3:
+                scheme = KratosCFD.SimpleSteadyAdjointScheme3D(response_function)
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
         return scheme
