@@ -48,14 +48,20 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         "time_integration_order"     : 2,
         "relative_dry_height"        : 0.1,
         "stabilization_factor"       : 0.005,
-        "shock_stabilization_factor" : 0.001
+        "shock_stabilization_factor" : 0.001,
+        "add_flux_correction"        : false
         }
         """)
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
     def _CreateScheme(self):
-        time_scheme = SW.ShallowWaterResidualBasedBDFScheme(self.settings["time_integration_order"].GetInt())
+        if self.settings["add_flux_correction"].GetBool():
+            time_scheme = SW.FluxCorrectedShallowWaterScheme(self.settings["time_integration_order"].GetInt())
+            if self.settings["shock_stabilization_factor"].GetDouble() > 0.0:
+                KM.Logger.PrintWarning(self.__class__.__name__, "Detected shock stabilization with flux correction, please, disable on of them.")
+        else:
+            time_scheme = SW.ShallowWaterResidualBasedBDFScheme(self.settings["time_integration_order"].GetInt())
         return time_scheme
 
     def _InitializeWaterLoss(self):

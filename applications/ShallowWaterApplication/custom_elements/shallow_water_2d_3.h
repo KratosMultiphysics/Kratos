@@ -225,6 +225,18 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * In the flux corrected scheme this is called during the assembling
+     * process in order to calculate the elemental diffusion matrix
+     * to ensure monotonicity.
+     * This method should not be called by the stabilized scheme.
+     * @param rDampingMatrix the elemental damping matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the constitutive laws selected
      * It is designed to be called only once (or anyway, not often) typically at the beginning
