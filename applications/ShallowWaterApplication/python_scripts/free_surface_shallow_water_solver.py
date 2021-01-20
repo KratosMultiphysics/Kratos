@@ -48,6 +48,7 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
             "water_height_scale"    : "meters",
             "advection_epsilon"     : 1.0e-2,
             "permeability"          : 1.0e-4,
+            "dry_height_threshold"  : 1e-3,
             "dry_discharge_penalty" : 1.0e+2,
             "stabilization_factor"  : 0.005,
             "wetting_drying_model"  : {
@@ -61,6 +62,7 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
     def PrepareModelPart(self):
         super().PrepareModelPart()
         permeability = self.settings["permeability"].GetDouble()
+        dry_height = self.settings["dry_height_threshold"].GetDouble()
         discharge_penalty = self.settings["dry_discharge_penalty"].GetDouble()
         time_scale = self.settings["time_scale"].GetString()
         water_height_scale = self.settings["water_height_scale"].GetString()
@@ -93,6 +95,7 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
             raise Exception("unknown water height scale")
 
         self.main_model_part.ProcessInfo.SetValue(SW.PERMEABILITY, permeability)
+        self.main_model_part.ProcessInfo.SetValue(SW.DRY_HEIGHT, dry_height)
         self.main_model_part.ProcessInfo.SetValue(SW.DRY_DISCHARGE_PENALTY, discharge_penalty)
         self.main_model_part.ProcessInfo.SetValue(SW.TIME_UNIT_CONVERTER, time_unit_converter)
         self.main_model_part.ProcessInfo.SetValue(SW.WATER_HEIGHT_UNIT_CONVERTER, water_height_unit_converter)
