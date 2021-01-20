@@ -4,7 +4,7 @@ import numpy as np
 # Import Kratos
 import KratosMultiphysics
 from KratosMultiphysics.MultilevelMonteCarloApplication.tools import ParametersWrapper
-from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable, IsMPIAvailable
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 if KratosMultiphysics.IsDistributedRun():
     import KratosMultiphysics.mpi
 if CheckIfApplicationsAvailable("MeshingApplication"):
