@@ -18,8 +18,9 @@
 // External includes
 
 // Project includes
-#include "input_output/logger.h"
 #include "parallel_utilities.h"
+#include "input_output/logger.h"
+#include "includes/lock_object.h"
 
 
 namespace Kratos
@@ -41,7 +42,7 @@ void ParallelUtilities::SetNumThreads(const int NumThreads)
     KRATOS_WARNING_IF("ParallelUtilities", NumThreads > num_procs) << "The number of requested threads (" << NumThreads << ") exceeds the number of available threads (" << num_procs << ")!" << std::endl;
     GetNumberOfThreads() = NumThreads;
 
-#if defined(KRATOS_SMP_OPENMP)
+#ifdef KRATOS_SMP_OPENMP
     // external libraries included in Kratos still use OpenMP (such as AMGCL)
     // this makes sure that they use the same number of threads as Kratos itself.
     omp_set_num_threads(NumThreads);
@@ -50,7 +51,7 @@ void ParallelUtilities::SetNumThreads(const int NumThreads)
 
 int ParallelUtilities::GetNumProcs()
 {
-#if defined(KRATOS_SMP_OPENMP)
+#ifdef KRATOS_SMP_OPENMP
     return omp_get_num_procs();
 
 #elif defined(KRATOS_SMP_CXX11)
@@ -94,7 +95,7 @@ int ParallelUtilities::InitializeNumberOfThreads()
 
     num_threads = std::max(1, num_threads);
 
-#if defined(KRATOS_SMP_OPENMP)
+#ifdef KRATOS_SMP_OPENMP
     // external libraries included in Kratos still use OpenMP (such as AMGCL)
     // this makes sure that they use the same number of threads as Kratos itself.
     omp_set_num_threads(num_threads);
@@ -106,10 +107,15 @@ int ParallelUtilities::InitializeNumberOfThreads()
 
 int& ParallelUtilities::GetNumberOfThreads()
 {
-    if (!mspNumThreads)
-        static int number_of_threads = InitializeNumberOfThreads();
-        mspNumThreads = &number_of_threads;
-        return number_of_threads;
+    if (!mspNumThreads) {
+        LockObject lock;
+        lock.SetLock();
+        if (!mspNumThreads) {
+            static int num_threads;
+            num_threads = InitializeNumberOfThreads();
+            mspNumThreads = &num_threads;
+        }
+        lock.UnSetLock();
     }
 
     return *mspNumThreads;
