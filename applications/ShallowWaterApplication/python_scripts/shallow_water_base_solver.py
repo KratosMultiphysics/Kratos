@@ -99,7 +99,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         if self._TimeBufferIsInitialized():
             is_converged = self._GetSolutionStrategy().SolveSolutionStep()
             if not is_converged:
-                KM.Logger.PrintWarning(self.__class__.__name__, "The solver did not converge")
+                KM.Logger.PrintInfo(self.__class__.__name__, "The solver did not converge")
             return is_converged
         else:
             return True
