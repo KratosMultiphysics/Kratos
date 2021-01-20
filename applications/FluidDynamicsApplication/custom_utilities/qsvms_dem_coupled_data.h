@@ -44,7 +44,7 @@ public:
 
 using NodalScalarData = typename FluidElementData<TDim,TNumNodes, false>::NodalScalarData;
 using NodalVectorData = typename FluidElementData<TDim,TNumNodes, false>::NodalVectorData;
-using NodalTensorData = std::vector< Matrix >;
+using NodalTensorData = typename FluidElementData<TDim,TNumNodes, false>::NodalTensorData;
 
 ///@}
 ///@name Public Members
@@ -84,34 +84,6 @@ void Initialize(
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
 }
 
-void FillFromHistoricalNodalData(
-    NodalTensorData& rData,
-    const Variable<Matrix>& rVariable,
-    const Geometry<Node<3>>& rGeometry)
-{
-    rData.resize(TNumNodes);
-    for (size_t i = 0; i < TNumNodes; i++) {
-        const Matrix& r_nodal_values =
-            rGeometry[i].FastGetSolutionStepValue(rVariable);
-        rData[i] = r_nodal_values;
-    }
-}
-
-void FillFromHistoricalNodalData(
-    NodalVectorData& rData,
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Geometry<Node<3>>& rGeometry)
-{
-    QSVMSData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(rData, rVariable, rGeometry);
-}
-
-void FillFromHistoricalNodalData(
-    NodalScalarData& rData,
-    const Variable<double>& rVariable,
-    const Geometry<Node<3>>& rGeometry)
-{
-    QSVMSData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(rData, rVariable, rGeometry);
-}
 ///@}
 };
 
