@@ -82,7 +82,7 @@ std::vector<int> MPIColoringUtilities::ComputeCommunicationScheduling(
         std::map<int, std::map<int, int> > colored_graph;
         for(unsigned int i=0; i<input_graph.size(); ++i)
         {
-            for(const auto item : input_graph[i] )
+            for(const auto& item : input_graph[i] )
             {
                 unsigned int j = item.first;
                 if(j > i)

@@ -247,9 +247,6 @@ namespace Kratos
       if( this->mpStepVariable == nullptr ){
         KRATOS_ERROR << " time integration method Step Variable not set " <<std::endl;
       }
-      else{
-        KRATOS_CHECK_VARIABLE_KEY((*this->mpStepVariable));
-      }
 
       return ErrorCode;
 
