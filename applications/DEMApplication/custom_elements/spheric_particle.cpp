@@ -454,7 +454,7 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     mNeighbourRigidFacesTotalContactForce.swap(temp_neighbours_contact_forces);
 }
 
-void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& r_process_info)const{}
+void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& r_process_info) const {}
 
 void SphericParticle::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& r_process_info)
 {

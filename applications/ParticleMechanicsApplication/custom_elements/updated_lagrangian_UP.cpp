@@ -1245,9 +1245,6 @@ int UpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo ) const
 
     KRATOS_ERROR_IF(LawFeatures.mOptions.IsNot(ConstitutiveLaw::U_P_LAW)) << "Constitutive law is not compatible with the U-P element type: Large Displacements U_P" << std::endl;
 
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(PRESSURE)
-
     return correct;
 
     KRATOS_CATCH( "" );
