@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -57,7 +58,7 @@ class TestMatrixMarketInterface(KratosUnittest.TestCase):
 
         b = KratosMultiphysics.ComplexVector()
         KratosMultiphysics.ReadMatrixMarketVector('a.mm', b)
-
+        
         self.assertVectorAlmostEqual(a, b)
         kratos_utils.DeleteFileIfExisting("a.mm")
 
