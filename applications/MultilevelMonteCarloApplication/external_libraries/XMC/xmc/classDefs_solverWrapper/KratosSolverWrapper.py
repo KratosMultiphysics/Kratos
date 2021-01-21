@@ -52,7 +52,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
         self.analysis = SimulationScenario
         self.adaptive_refinement_jump_to_finest_level = keywordArgs.get("adaptiveRefinementJumpToFinestLevel",False)
         self.asynchronous = keywordArgs.get("asynchronous",False)
-        self.different_tasks = not keywordArgs.get("taskAllAtOnce",False)
+        self.different_tasks = not keywordArgs.get("taskAllAtOnce",True)
         self.fake_sample_to_serialize =  keywordArgs.get("fakeRandomVariable")
         self.mapping_output_quantities = keywordArgs.get("mappingOutputQuantities",False)
         self.is_mpi = keywordArgs.get("isMpi", False)
@@ -399,8 +399,11 @@ class KratosSolverWrapper(sw.SolverWrapper):
                 raise(Exception("XMC is set in MPI but Kratos is not!"))
             # self.serialized_model cannot be retrieved in MPI so only pickled model is returned
             # returns: [[model1_1,model_1_2, model_1_3, model_1_4], [model2_1,model_2_2, model_2_3, model_2_4]]
+            # we need to pass the index to serialize with the correct number of MPI processors
+            # however, since pickled_project_parameters is the same across levels, the same model part is considered
+            current_index = self.solverWrapperIndex[0]
             pickled_model = mpi_mds.SerializeMPIModel_Wrapper( \
-                pickled_project_parameters, self.wrapper.GetModelPartName(), self.fake_sample_to_serialize, self.analysis, current_index=0)
+                pickled_project_parameters, self.wrapper.GetModelPartName(), self.fake_sample_to_serialize, self.analysis, current_index=current_index)
         else:
             if parameters["problem_data"]["parallel_type"].GetString()=="MPI":
                 raise(Exception("Kratos is set in MPI but XMC is not!"))
@@ -418,7 +421,14 @@ class KratosSolverWrapper(sw.SolverWrapper):
         - self: an instance of the class.
         """
 
-        self.SerializeModelParametersStochasticAdaptiveRefinement() # to prepare parameters and model part of coarsest level
+        # Serialize model and parameters of coarsest level (level = 0).
+        # If we are running with MPI parallel type,
+        # the model is being serialized in a MPI task
+        # with the same number of processes required by level = self.solverWrapperIndex[0].
+        # This strategy works in both cases the solverWrapper instance is solving level 0
+        # or if it is solving levels > 0.
+        self.SerializeModelParametersStochasticAdaptiveRefinement()
+        # now serialize levels > 0
         number_levels_to_serialize = self.solverWrapperIndex[0]
         # same routine of executeInstanceStochasticAdaptiveRefinement() to build models and parameters, but here we save models and parameters
         pickled_coarse_model = self.pickled_model[0]
@@ -431,8 +441,15 @@ class KratosSolverWrapper(sw.SolverWrapper):
         fake_computational_time = 0.0
         if (number_levels_to_serialize > 0):
             for current_level in range(number_levels_to_serialize+1):
-                fake_qoi,pickled_current_model,fake_computational_time = \
-                    mds.executeInstanceStochasticAdaptiveRefinementMultipleTasks_Wrapper(number_levels_to_serialize,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,fake_sample,current_level,current_analysis,fake_computational_time,mapping_flag=False,print_to_file=False,current_contribution=0)
+                if not self.is_mpi: # serial
+                    fake_qoi,pickled_current_model,fake_computational_time = \
+                        mds.executeInstanceStochasticAdaptiveRefinementMultipleTasks_Wrapper(number_levels_to_serialize,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,fake_sample,current_level,current_analysis,fake_computational_time,mapping_flag=False,print_to_file=False,current_contribution=0)
+                elif self.is_mpi and current_level == number_levels_to_serialize: # MPI and we serialize level of interest
+                    adaptive_refinement_jump_to_finest_level = self.adaptive_refinement_jump_to_finest_level
+                    pickled_current_model = mpi_mds.SerializeDeterministicAdaptiveRefinementMPIModel_Wrapper(current_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,fake_sample,current_analysis,fake_computational_time,adaptive_refinement_jump_to_finest_level)
+                else: # MPI parallel type and we do not serialize since it is not the level of interest
+                    # we set pickled model equal to coarsest model as workaround
+                    pickled_current_model = pickled_coarse_model
                 del(pickled_coarse_model)
                 pickled_coarse_model = pickled_current_model
                 # save if current level > 0 (level = 0 has already been saved)

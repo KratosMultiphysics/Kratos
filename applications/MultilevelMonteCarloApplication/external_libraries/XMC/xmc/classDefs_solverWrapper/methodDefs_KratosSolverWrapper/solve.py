@@ -521,6 +521,17 @@ def ExecuteInstanceDeterministicAdaptiveRefinementAux_Functionality(pickled_mode
     serialized_project_parameters.Load("ParametersSerialization",current_project_parameters)
     del(serialized_project_parameters)
 
+    # Set IS_RESTARTED flag to True, STEP to zero and TIME to 0,
+    # since the model has already been initialized and eventually run.
+    # The model we run is coming from
+    # level 0: directly from serialization, where Initialize() method is called
+    # level > 0: from ExecuteInstanceStochasticAdaptiveRefinementAux_Functionality(),
+    # where the model is run and then returned as an output.
+    model_part_name = current_project_parameters["solver_settings"]["model_part_name"].GetString()
+    current_model.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
+    current_model.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
+    current_model.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED, True)
+
     # constructor analysis stage
     simulation = current_analysis_stage(current_model,current_project_parameters,random_variable)
     # add filename flag print_to_file is true
