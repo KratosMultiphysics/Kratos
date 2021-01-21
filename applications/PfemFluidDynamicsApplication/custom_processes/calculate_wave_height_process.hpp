@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include <fstream>
+#include <iostream>
 
 namespace Kratos
 {
@@ -55,6 +56,10 @@ public:
                                                                 mHeightReference(HeightReference), mTolerance(Tolerance),
                                                                 mOutputFileName(OutputFileName)
   {
+    std::ofstream my_file;
+    const std::string file_name = mOutputFileName + ".txt";
+    my_file.open(file_name, std::ios_base::trunc);
+    my_file.close();
   }
 
   /// Destructor.
@@ -78,12 +83,6 @@ public:
   void Execute() override
   {
     KRATOS_TRY;
-
-    // We open the file where we print the wave height values
-    std::fstream my_file;
-    const std::string file_name = mOutputFileName + ".txt";
-    my_file.open(file_name);
-
     const double time = mrModelPart.GetProcessInfo()[TIME];
 
     // We loop over the nodes...
@@ -110,8 +109,12 @@ public:
     }
     const double max_height = *std::max_element(max_vector.begin(), max_vector.end());
 
-    my_file << std::to_string(time) + "    " +  std::to_string(max_height - mHeightReference) + "\n" << std::endl;
-    my_file.close();
+    // We open the file where we print the wave height values
+    std::ofstream my_file;
+    const std::string file_name = mOutputFileName + ".txt";
+    my_file.open(file_name, std::ios_base::app);
+    my_file << "  " + std::to_string(time) + "    " +  std::to_string(max_height - mHeightReference) << std::endl;
+    // my_file.close();
 
     KRATOS_CATCH("");
   }
