@@ -96,27 +96,6 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
         self.main_model_part.ProcessInfo.SetValue(SW.WATER_HEIGHT_UNIT_CONVERTER, water_height_unit_converter)
         self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, stabilization_factor)
 
-    def _GetWettingModel(self):
-        if not hasattr(self, "_dry_wet_model"):
-            self._wetting_model = self._CreateWettingModel()
-        return self._wetting_model
-
-    def _CreateWettingModel(self):
-        if self.settings["wetting_drying_model"].Has("model_name"):
-            if self.settings["wetting_drying_model"]["model_name"].GetString() == "rough_porous_layer":
-                return SW.RoughPorousLayerWettingModel(self.GetComputingModelPart(), self.settings["wetting_drying_model"])
-            if self.settings["wetting_drying_model"]["model_name"].GetString() == "negative_height":
-                return SW.NegativeHeightWettingModel(self.GetComputingModelPart(), self.settings["wetting_drying_model"])
-            else:
-                msg = "Requested wetting drying model: " + self.settings["wetting_drying_model"]["model_name"].GetString() +"\n"
-                msg += "Available options are:\n"
-                msg += "\t\"rough_porous_layer\"\n"
-                msg += "\t\"negative_height\"\n"
-                raise Exception(msg)
-        else:
-            return None
-
     def _CreateScheme(self):
-        wetting_model = self._GetWettingModel()
         time_scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
         return time_scheme
