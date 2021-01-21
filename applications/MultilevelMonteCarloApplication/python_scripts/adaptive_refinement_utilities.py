@@ -1,12 +1,8 @@
 # Import Python libraries
 from math import sqrt
 
-# Importing the Kratos Library
+# Import Kratos
 import KratosMultiphysics
-
-# Import applications
-import KratosMultiphysics.MeshingApplication as KratosMeshing
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 from KratosMultiphysics.MultilevelMonteCarloApplication.tools import ParametersWrapper
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 if KratosMultiphysics.IsDistributedRun():
@@ -16,12 +12,17 @@ if CheckIfApplicationsAvailable("MeshingApplication"):
 
 class AdaptiveRefinement(object):
     """
-    input:  model_coarse       : Kratos model class before refinement
-            parameters_coarse  : Kratos parameters class before refinement
-            minimal_size_value : minimal size after remeshing
-            maximal_size_value : maximal size after remeshing
-            metric_param       : Kratos parameters class containing metric custom settings
-            remesh_param       : Kratos parameters class containing remeshing custom settings
+    Class managing the adaptive refinement process, called when executing Multilevel Monte Carlo algorithms.
+    This class handles the call to the MeshingApplication, and to other applications, if needed along the process.
+
+    Input:
+    - model_coarse: Kratos model class before refinement
+    - parameters_coarse: Kratos parameters class before refinement
+    - minimal_size_value: minimal size after remeshing
+    - maximal_size_value: maximal size after remeshing
+    - metric_param: Kratos parameters class containing metric custom settings
+    - remesh_param: Kratos parameters class containing remeshing custom settings
+    - metric_name: string defining the metring which the class will use to build the metric
     """
     def __init__(self,current_level,model_coarse,parameters_coarse,metric_param,remesh_param,metric_name="hessian"):
         self.model_coarse = model_coarse
@@ -33,14 +34,18 @@ class AdaptiveRefinement(object):
         self.current_level = current_level
         self.wrapper = ParametersWrapper(self.parameters_coarse)
 
-    """
-    function computing the refinement of the model based on the solution on the coarse mesh,
-    exploiting the hessian metric of the solution
-    input:  self: an instance of the class
-    output: current_model_refined      : Kratos model class after refinement
-            current_parameters_refined : Kratos parameters class after refinement
-    """
     def ComputeAdaptiveRefinement(self):
+        """
+        Method computing the refinement of the model based on the solution on the coarse mesh,
+        exploiting the hessian metric of the solution.
+
+        Input:
+        - self: an instance of the class
+
+        Output:
+        - current_model_refined : Kratos model class after refinement
+        - current_parameters_refined : Kratos parameters class after refinement
+        """
         parameters_coarse = self.parameters_coarse
         model_coarse = self.model_coarse
         metric_param = self.metric_param
@@ -48,8 +53,33 @@ class AdaptiveRefinement(object):
         problem_type = self.problem_type
         current_level = self.current_level
 
+        # check MeshingApplication is imported,
+        # otherwise raise an error
+        if not CheckIfApplicationsAvailable("MeshingApplication"):
+            raise Exception("[MultilevelMonteCarloApplication]: MeshingApplication cannot be imported, but it is necessary to perform adaptive refinement.")
+
         if (self.metric is "hessian"):
+            # initialize interpolation error
             original_interp_error = metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
+            # set interpolation error for current level
+            if current_level > 0:
+                coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
+                metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
+                interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
+                # interp_error = original_interp_error/(coefficient_interp_error*current_level)
+                metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
+            # Setting metric tensor to 0
+            domain_size = self.wrapper.GetDomainSize()
+            model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
+            if domain_size == 2:
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D,model_coarse.GetModelPart(model_part_name).Nodes)
+            elif domain_size == 3:
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D,model_coarse.GetModelPart(model_part_name).Nodes)
+            else:
+                err_msg = "Domain size is {}. Supported values are 2 and 3.\n".format(domain_size)
+            # calculate NODAL_H
+            find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
+            find_nodal_h.Execute()
 
             # build the metric
             if metric_param["hessian_strategy_parameters"].Has("metric_variable"):
@@ -98,22 +128,25 @@ class AdaptiveRefinement(object):
             if (problem_type in ["monolithic", "FractionalStep"]):
                 model_coarse.GetModelPart(model_part_name).RemoveSubModelPart("fluid_computational_model_part")
 
-            """
-            the refinement process empties the coarse model part object and fill it with the refined model part
-            the solution on the refined grid is obtained from the interpolation of the coarse solution
-            there are not other operations, therefore to build the new model we just need to take the updated coarse model
-            """
+            # the refinement process empties the coarse model part object and fill it with the refined model part
+            # the solution on the refined grid is obtained from the interpolation of the coarse solution
+            # there are not other operations, therefore to build the new model we just need to take the updated coarse model
             current_model_refined = model_coarse
             current_parameters_refined = parameters_coarse
             return current_model_refined,current_parameters_refined
 
-    """
-    method computing the mesh size of coarsest level, estimated as minimum nodal_h
-    input:  self : an instance of the class
-    """
+        else:
+            err_msg = "Metric passed to the AdaptiveRefinement class is {}, but the only supported metric is \"hessian\".\n".format(self.metric)
+            raise Exception(err_msg)
+
     def ComputeMeshSizeCoarsestLevel(self):
+        """
+        Method computing the mesh size of coarsest level, estimated as minimum nodal_h.
+
+        Input:
+        - self: an instance of the class
+        """
         model_coarse = self.model_coarse
-        parameters_coarse = self.parameters_coarse
         model_part_name = self.wrapper.GetModelPartName()
         # set NODAL_AREA and NODAL_H as non historical variables
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
@@ -129,11 +162,13 @@ class AdaptiveRefinement(object):
                 mesh_size = node.GetValue(KratosMultiphysics.NODAL_H)
         self.mesh_size_coarsest_level = mesh_size
 
-    """
-    method estimating the mesh size of current level
-    input:  self : an instance of the class
-    """
     def EstimateMeshSizeCurrentLevel(self):
+        """
+        Method estimating the mesh size of current level.
+
+        Input:
+        - self: an instance of the class
+        """
         self.ComputeMeshSizeCoarsestLevel()
         current_level = self.current_level
         if (self.metric is "hessian"):
