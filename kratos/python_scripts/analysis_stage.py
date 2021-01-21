@@ -1,4 +1,3 @@
-
 # Importing Kratos
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
