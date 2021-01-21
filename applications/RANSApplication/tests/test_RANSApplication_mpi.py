@@ -49,13 +49,20 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     ### Small MPI tests ########################################################
-    # smallMPISuite = suites['mpi_small']
+    smallMPISuite = suites['mpi_small']
+
+    # adding representative transient tests to small suite
+
+    # adding custom process tests
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
+
+    # add symbolic mpi small tests for mpi small suite
+    smallMPISuite.addTest(FractionalStepKOmegaSSTTest("testRfcVelocityTransient"))
+    smallMPISuite.addTest(MonolithicKOmegaSSTTest("testRfcVelocityTransient"))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
-
-    # adding custom process tests
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
+    nightlyMPISuite.addTests(smallMPISuite)
 
     # adding incompressible potential flow solver tests
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IncompressiblePotentialFlowSolverFormulationTest]))
