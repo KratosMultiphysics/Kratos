@@ -1050,7 +1050,7 @@ void TwoFluidNavierStokes<TElementData>::load(Serializer &rSerializer)
 
 
 template <class TElementData>
-void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(
+void TwoFluidNavierStokes<TElementData>::CalculateOnIntegrationPoints(
     const Variable<double> &rVariable,
     std::vector<double> &rValues,
     const ProcessInfo &rCurrentProcessInfo )

@@ -162,7 +162,7 @@ namespace Kratos {
                     if ((it_node)->Is(ACTIVE))
                     {
                         this->UpdateTranslationalDegreesOfFreedom(r_current_process_info, it_node, disppos, delta_time, dim);
-                    }                    
+                    }
                 } // for Node parallel
 
                 KRATOS_CATCH("")
@@ -193,9 +193,9 @@ namespace Kratos {
                     : 1.0;
                     // we are only adding the central difference corrector here
 
-                for (IndexType j = 0; j < DomainSize; j++) 
+                for (IndexType j = 0; j < DomainSize; j++)
                 {
-                    if (fix_displacements[j]) 
+                    if (fix_displacements[j])
                     {
                         r_nodal_momenta[j] = 0.0;
                         r_current_residual[j] = 0.0;
@@ -265,12 +265,12 @@ namespace Kratos {
                 Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
 
                 // If we are updating stress before momenta update (USF and central difference),
-                if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0 || 
-                    rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)) 
+                if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0 ||
+                    rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE))
                 {
                     // calculate nodal velocities from momenta and apply BCs
                     calculateGridVelocityAndApplyDirichletBC(rCurrentProcessInfo,true);
-                    
+
                     // calculate stresses
                     const auto it_elem_begin = r_model_part.ElementsBegin();
                     #pragma omp parallel for
@@ -327,7 +327,7 @@ namespace Kratos {
                 KRATOS_CATCH("")
             }
 
-            
+
             /** Function called once at the end of a solution step, after convergence is reached if
             an iterative process is needed */
             void FinalizeSolutionStep(
@@ -345,7 +345,7 @@ namespace Kratos {
 
                 // map grid to MPs
                 #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(rElements.size()); ++i) 
+                for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
                 {
                     auto it_elem = it_elem_begin + i;
                     std::vector<bool> dummy;
@@ -364,7 +364,7 @@ namespace Kratos {
                         std::vector<bool> dummy;
                         it_elem->CalculateOnIntegrationPoints(CALCULATE_EXPLICIT_MP_STRESS, dummy, rCurrentProcessInfo);
                     }
-                }                
+                }
 
                 // Finalizes solution step for all of the conditions
                 const auto it_cond_begin = rModelPart.ConditionsBegin();
@@ -478,11 +478,6 @@ namespace Kratos {
 
                 int err = Scheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
                 if (err != 0) return err;
-
-                //check that the variables are correctly initialized
-                KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0) << "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-                KRATOS_ERROR_IF(VELOCITY.Key() == 0) << "VELOCITY has Key zero! (check if the application is correctly registered" << std::endl;
-                KRATOS_ERROR_IF(ACCELERATION.Key() == 0) << "ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
 
                 //check that variables are correctly allocated
                 for (auto it = rModelPart.NodesBegin();
