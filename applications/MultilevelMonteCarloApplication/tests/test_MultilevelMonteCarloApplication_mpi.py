@@ -32,12 +32,12 @@ def AssembleTestSuites():
     # Create a test suit with the selected tests plus all small mpi tests
     nightlySuite = suites['mpi_nightly']
     nightlySuite.addTests(smallSuite)
-    nightlySuite.addTest(TestXMCAlgorithmMPI('test_mc_Kratos_fastfornightly'))
+    nightlySuite.addTest(TestXMCAlgorithmMPI('mpi_test_mlmc_Kratos_ParMmg'))
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['mpi_validation']
-    validationSuite.addTest(TestXMCAlgorithmMPI('test_mc_Kratos'))
-    validationSuite.addTest(TestXMCAlgorithmMPI('test_mlmc_Kratos'))
+    validationSuite.addTest(TestXMCAlgorithmMPI('mpi_test_mc_Kratos'))
+    validationSuite.addTest(TestXMCAlgorithmMPI('mpi_test_mlmc_Kratos'))
 
     # Create a test suit that contains all the tests
     allSuite = suites['mpi_all']
