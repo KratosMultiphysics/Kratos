@@ -379,17 +379,6 @@ class ContactRemeshMmgProcess(MmgProcess):
         # Clean up contact pairs
         ContactStructuralMechanicsApplication.ContactUtilities.CleanContactModelParts(self.main_model_part)
 
-        # We clean the computing before remesh
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.main_model_part.Conditions)
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.main_model_part.Elements)
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.main_model_part.MasterSlaveConstraints)
-
-        self.main_model_part.RemoveNodes(KratosMultiphysics.TO_ERASE)
-        self.main_model_part.RemoveConditions(KratosMultiphysics.TO_ERASE)
-        self.main_model_part.RemoveElements(KratosMultiphysics.TO_ERASE)
-        self.main_model_part.RemoveMasterSlaveConstraints(KratosMultiphysics.TO_ERASE)
-
         # We remove the contact submodelparts
         self.main_model_part.RemoveSubModelPart("Contact")
 

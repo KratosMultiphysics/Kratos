@@ -15,9 +15,9 @@ def CreateSolver(model, custom_settings):
     # Solvers for OpenMP parallelism
     if parallelism == "OpenMP":
         if solver_type == "static" or solver_type == "Static":
-            solver_module_name = "adaptative_remeshing_contact_structural_mechanics_static_solver"
+            solver_module_name = "adaptative_remeshing_structural_mechanics_static_solver"
         elif solver_type == "dynamic" or solver_type == "Dynamic":
-            solver_module_name = "adaptative_remeshing_contact_structural_mechanics_implicit_dynamic_solver"
+            solver_module_name = "adaptative_remeshing_structural_mechanics_implicit_dynamic_solver"
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"static\", \"dynamic\""
@@ -27,7 +27,13 @@ def CreateSolver(model, custom_settings):
         err_msg += "Available options are: \"OpenMP\""
         raise Exception(err_msg)
 
-    module_full = 'KratosMultiphysics.ContactStructuralMechanicsApplication.' + solver_module_name
+    if custom_settings["solver_settings"].Has("contact_settings"): # this is a contact problem
+        kratos_module = "KratosMultiphysics.ContactStructuralMechanicsApplication.adaptive_remeshing"
+        solver_module_name = "contact_" + solver_module_name
+    else:
+        kratos_module = "KratosMultiphysics.StructuralMechanicsApplication.adaptive_remeshing"
+
+    module_full = kratos_module + "." + solver_module_name
     solver = import_module(module_full).CreateSolver(model, custom_settings["solver_settings"])
 
     return solver

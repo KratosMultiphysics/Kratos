@@ -30,6 +30,12 @@ class AnalysisStage(object):
         self.model = model
         self.project_parameters = project_parameters
 
+        # We validate reinitilize settings
+        reinitialize_settings = self._GetReInitializeRequired()
+        if not self.project_parameters.Has("reinitialize_settings"):
+            self.project_parameters.AddEmptyValue("reinitialize_settings")
+        self.project_parameters["reinitialize_settings"].ValidateAndAssignDefaults(reinitialize_settings)
+
         ## Get echo level and parallel type
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
@@ -130,12 +136,22 @@ class AnalysisStage(object):
         """This function performs all the required operations that should be executed
         (for each step) BEFORE solving the solution step.
         """
+        # We reinitialize if remeshed previously
+        if self._CheckIfModelIsModified():
+            self.ClearDatabase()
+            self.ReInitializeSolver()
+
         self.PrintAnalysisStageProgressInformation()
 
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
         self._GetSolver().InitializeSolutionStep()
 
+        # We reinitialize if remeshed on the InitializeSolutionStep
+        if self._CheckIfModelIsModified():
+            self.ClearDatabase()
+            self.ReInitializeSolver()
+            self.InitializeSolutionStep()
 
     def PrintAnalysisStageProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
@@ -202,6 +218,98 @@ class AnalysisStage(object):
     def ChangeMaterialProperties(self):
         """this function is where the user could change material parameters as a part of the solution step """
         pass
+
+    def ClearDatabase(self):
+        """ This method clears the database in case it is necessary. For example it is used in the remeshing process when some specific modifications must be done in the database (i.e To reset a flag that affects the whole model part)
+
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
+        pass
+
+    def ReInitializeSolver(self):
+        """ This reinitializes the solver and the processes (used for example on remesh or on adaptive NR)
+
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
+        solver = self._GetSolver()
+        processes = self._GetListOfProcesses()
+
+        reinitialize_settings = self.project_parameters["reinitialize_settings"]
+
+        # Clear solver
+        if reinitialize_settings["clear_solver"].GetBool():
+            solver.Clear()
+
+        # Some initial calls
+        if reinitialize_settings["modify_initial_properties"].GetBool():
+            self.ModifyInitialProperties()
+        if reinitialize_settings["modify_initial_geometries"].GetBool():
+            self.ModifyInitialGeometry()
+
+        # Processes initialization
+        if reinitialize_settings["initialize_processes"].GetBool():
+            for process in processes:
+                process.ExecuteInitialize()
+
+            if not reinitialize_settings["before_solution_loop_processes"].GetBool():
+                KratosMultiphysics.Logger.PrintWarning(self._GetSimulationName(), "If ExecuteInitialize in processes is executed, ExecuteBeforeSolutionLoop should be called")
+
+        # WE INITIALIZE THE SOLVER
+        if reinitialize_settings["solver_initialize"].GetBool():
+            solver.Initialize()
+        elif reinitialize_settings["entities_initialize"].GetBool(): # Solver already initializes entities
+            # Initilize elements and conditions
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                KratosMultiphysics.EntitiesUtilities.InitializeAllEntities(self.model.GetModelPart(model_part_name))
+
+        # Call check
+        if reinitialize_settings["check_analysis"].GetBool():
+            self.Check()
+
+        # Modify after initialize
+        if reinitialize_settings["modify_after_solver_initialize"].GetBool():
+            self.ModifyAfterSolverInitialize()
+
+        ## Processes before the loop
+        if reinitialize_settings["before_solution_loop_processes"].GetBool():
+            for process in processes:
+                process.ExecuteBeforeSolutionLoop()
+
+            if not reinitialize_settings["initialize_solution_step_processes"].GetBool():
+                KratosMultiphysics.Logger.PrintWarning(self._GetSimulationName(), "If ExecuteBeforeSolutionLoop in processes is executed, ExecuteInitializeSolutionStep should be called")
+
+        ## Processes of initialize the solution step
+        if reinitialize_settings["initialize_solution_step_processes"].GetBool():
+            for process in processes:
+                process.ExecuteInitializeSolutionStep()
+
+        # We reset the flags
+        self._ResetModelIsModified()
+
+    def _GetReInitializeRequired(self):
+        """ This returns the initilization requirement. By default only elements and conditions are initialized
+
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
+
+        reinitialize_settings = KratosMultiphysics.Parameters("""{
+            "clear_solver"                       : true,
+            "modify_initial_properties"          : false,
+            "modify_initial_geometries"          : false,
+            "initialize_processes"               : true,
+            "solver_initialize"                  : false,
+            "entities_initialize"                : true,
+            "check_analysis"                     : false,
+            "modify_after_solver_initialize"     : false,
+            "before_solution_loop_processes"     : true,
+            "initialize_solution_step_processes" : true
+        }""")
+
+        return reinitialize_settings
 
     def _GetSolver(self):
         if not hasattr(self, '_solver'):
@@ -360,3 +468,29 @@ class AnalysisStage(object):
                 warn_msg  = 'Solver "{}" does not return '.format(solver_class_name)
                 warn_msg += 'the state of convergence from "SolveSolutionStep"'
                 IssueDeprecationWarning("AnalysisStage", warn_msg)
+
+    def _CheckIfModelIsModified(self):
+        # We check of some model part requires reinitialize
+        modified_model = False
+        if hasattr(self, 'model'):
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                if self.model.GetModelPart(model_part_name).Is(KratosMultiphysics.MODIFIED):
+                    modified_model = True
+                    break
+
+        return modified_model
+
+    def _SetModelIsModified(self):
+        # Set the MODIFIED flag
+        if hasattr(self, 'model'):
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                self.model.GetModelPart(model_part_name).Set(KratosMultiphysics.MODIFIED, True)
+
+    def _ResetModelIsModified(self):
+        # Reset the MODIFIED flag
+        if hasattr(self, 'model'):
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                self.model.GetModelPart(model_part_name).Reset(KratosMultiphysics.MODIFIED)

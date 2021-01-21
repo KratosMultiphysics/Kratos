@@ -1,22 +1,12 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
-import KratosMultiphysics.kratos_utilities as kratos_utilities
-if kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication"):
-    import KratosMultiphysics.MeshingApplication as MeshingApplication
-    missing_meshing_dependencies = True
-else:
-    missing_meshing_dependencies = False
-
 # Import base class file
 from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_static_solver
 
 # Import auxiliar methods
-from KratosMultiphysics.StructuralMechanicsApplication import auxiliar_methods_adaptative_solvers
-from KratosMultiphysics.StructuralMechanicsApplication import adaptative_remeshing_structural_mechanics_utilities
+from KratosMultiphysics.StructuralMechanicsApplication.adaptive_remeshing import auxiliar_methods_adaptative_solvers
+from KratosMultiphysics.StructuralMechanicsApplication.adaptive_remeshing.adaptative_remeshing_structural_mechanics_utilities import AdaptativeRemeshingMechanicalUtilities
 
 def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingStaticMechanicalSolver(model, custom_settings)
@@ -26,9 +16,6 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
     See structural_mechanics_static_solver.py for more information.
     """
     def __init__(self, model, custom_settings):
-        # Set defaults and validate custom settings.
-        self.adaptative_remeshing_utilities = adaptative_remeshing_structural_mechanics_utilities.AdaptativeRemeshingMechanicalUtilities()
-
         # Construct the base solver.
         super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[AdaptativeRemeshingStaticMechanicalSolver]:: ", "Construction finished")
@@ -36,9 +23,8 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
     #### Private functions ####
 
     def AddVariables(self):
-        super().AddVariables()
-        if not missing_meshing_dependencies:
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        super(AdaptativeRemeshingStaticMechanicalSolver, self).AddVariables()
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         KratosMultiphysics.Logger.PrintInfo("::[AdaptativeRemeshingStaticMechanicalSolver]:: ", "Variables ADDED")
 
     def get_remeshing_process(self):
@@ -60,10 +46,11 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
     def _create_convergence_criterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()
         conv_settings = self._get_convergence_criterion_settings()
-        return self.adaptative_remeshing_utilities.GetConvergenceCriteria(error_criteria, conv_settings)
+        return AdaptativeRemeshingMechanicalUtilities().GetConvergenceCriteria(error_criteria, conv_settings, self.settings["compute_error_settings"])
 
     @classmethod
-    def GetDefaultParameters(cls):
-        this_defaults = adaptative_remeshing_structural_mechanics_utilities.AdaptativeRemeshingMechanicalUtilities().GetDefaultParameters()
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+    def GetDefaultSettings(cls):
+        # Set defaults and validate custom settings.
+        this_defaults = AdaptativeRemeshingMechanicalUtilities().GetDefaultParameters()
+        this_defaults.RecursivelyAddMissingParameters(super(AdaptativeRemeshingStaticMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults
