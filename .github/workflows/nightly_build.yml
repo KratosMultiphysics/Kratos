@@ -54,6 +54,14 @@ jobs:
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
+    - name: Running MPI Python RANSApplication (2 Cores)
+      timeout-minutes : 10
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 applications/RANSApplication/tests/test_RANSApplication_mpi.py --using-mpi -l nightly
+
 
   windows-nightly:
     runs-on: windows-latest
