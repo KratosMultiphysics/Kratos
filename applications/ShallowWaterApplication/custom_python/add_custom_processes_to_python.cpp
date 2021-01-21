@@ -24,7 +24,6 @@
 #include "custom_processes/apply_perturbation_function_process.h"
 #include "custom_processes/apply_sinusoidal_function_process.h"
 #include "custom_processes/compute_velocity_process.h"
-#include "custom_processes/move_shallow_particles_process.h"
 
 
 namespace Kratos
@@ -66,11 +65,6 @@ namespace Python
         py::class_<ComputeVelocityProcess, ComputeVelocityProcess::Pointer, Process>
         (m, "ComputeVelocityProcess")
         .def(py::init<ModelPart&, double>())
-        ;
-
-        py::class_<MoveShallowParticlesProcess<2>, MoveShallowParticlesProcess<2>::Pointer, Process>
-        (m, "MoveShallowParticlesProcess2D")
-        .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3>>&, Variable<double>&, Parameters>())
         ;
 
     }
