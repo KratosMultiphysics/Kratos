@@ -29,7 +29,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite
 {
     Model model;
     unsigned int buffer_size = 2;
-    unsigned int Dim = 3;
+    unsigned int Dim = 2;
     ModelPart& model_part = model.CreateModelPart("Main",buffer_size);
 
     // Variables addition
