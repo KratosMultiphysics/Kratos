@@ -58,5 +58,6 @@ class SetDirectorsProcess(KratosMultiphysics.Process):
         for node in self.model_part.Nodes:
             node.SetValue(IGA.DIRECTOR, director)
             node.SetValue(IGA.DIRECTORTANGENTSPACE, dirTang)
+            node.SetValue(IGA.DIRECTORLENGTH, 1.0)
 
-        self.director_utilities.ComputeDirectors()
+        #self.director_utilities.ComputeDirectors()

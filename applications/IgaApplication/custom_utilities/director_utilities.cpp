@@ -43,10 +43,9 @@ namespace Kratos
 
             SparseMatrixType NTN(number_of_control_points, number_of_control_points, number_of_control_points*4); //inital guess how much non-zero are there
             // Can't we solve each patch independently? -> much more efficient
-            DenseVectorType directorAtIntgrationPoints(number_of_control_points, 3);
+            Matrix directorAtIntgrationPoints{ ZeroMatrix(number_of_control_points, 3) };
 
             SparseSpaceType::SetToZero(NTN);
-            SparseSpaceType::SetToZero(directorAtIntgrationPoints);
             Matrix Nele;
             Matrix NTNele;
             Matrix RhsEle;
@@ -71,17 +70,29 @@ namespace Kratos
                 row(directorAtIntgrationPoints, eqID[inodes]) += row(RhsEle, inodes);
 
             SparseSpaceType::AssembleLHS(NTN, NTNele, eqID);
+
+            std::cout << "asdasdads" << std::endl;
         
             Parameters solver_parameters(mParameters["linear_solver_settings"]);
             if (!solver_parameters.Has("solver_type")) solver_parameters.AddString("solver_type", "skyline_lu_factorization");
 
-            DenseVectorType nodalDirectors(number_of_control_points, 3);
+            Matrix nodalDirectors(number_of_control_points, 3);
             auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(solver_parameters);
-
+            std::cout << "asdasdads" << std::endl;
+           // DenseVectorType nodalDirectorsVec(number_of_control_points);
+           // DenseVectorType directorAtIntgrationPointsVec(number_of_control_points);
             solver->Solve(NTN, nodalDirectors, directorAtIntgrationPoints);
+           // for (SizeType i = 0; i<3; ++i)
+           // { 
+            //   solver->Solve(NTN, nodalDirectorsVec, directorAtIntgrationPointsVec);
+           // }
+            std::cout << "asdasdads" << brep_ids.size()<< std::endl;
+
+            std::cout << nodalDirectors << number_of_control_points<< std::endl;
 
             for (SizeType i = 0; i < number_of_control_points; ++i)
             {
+                std::cout << row(nodalDirectors, i) << std::endl;
                 geometry[i].SetValue(DIRECTOR, row(nodalDirectors, i));
                 geometry[i].SetValue(DIRECTORLENGTH, norm_2(row(nodalDirectors, i)));
                 geometry[i].SetValue(DIRECTORTANGENTSPACE, Shell5pElement::TangentSpaceFromStereographicProjection(row(nodalDirectors, i)));

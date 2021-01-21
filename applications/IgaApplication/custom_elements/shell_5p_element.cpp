@@ -135,8 +135,18 @@ namespace Kratos
 				constitutive_law_parameters,
 				ConstitutiveLaw::StressMeasure_PK2);
 
-			BOperator = CalculateStrainDisplacementOperator(point_number, kinematic_variables, variation_variables);		
-
+			BOperator = CalculateStrainDisplacementOperator(point_number, kinematic_variables, variation_variables);	
+			//std::cout << "===============" << std::endl;
+			//printToMaple(BOperator);
+			std::cout << "===============" << std::endl;
+			std::cout <<"A1: "<< kinematic_variables.A1 << std::endl;
+			std::cout <<"a1: " << kinematic_variables.a1 << std::endl;
+			std::cout <<"dud1: "<< kinematic_variables.dud1 << std::endl;
+			//std::cout << "t: " << kinematic_variables.dud2 << std::endl;
+			//std::cout << kinematic_variables.A2 << std::endl;
+			std::cout << "t: " << kinematic_variables.t << std::endl;
+			std::cout << "===============" << std::endl;
+			//std::cout << kinematic_variables.dtd1 << std::endl;
 			double integration_weight =	r_integration_points[point_number].Weight()	* m_dA_vector[point_number]; 
 
 			// LEFT HAND SIDE MATRIX
@@ -176,11 +186,12 @@ namespace Kratos
 			rKin.dtd2 += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].GetValue(DIRECTOR);
 			rKin.a1   += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].Coordinates();
 			rKin.a2   += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].Coordinates();
-			rKin.dud1 += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].GetValue(DISPLACEMENT);
+			rKin.dud1 += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 			rKin.dud2 += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].GetValue(DISPLACEMENT);
 			rKin.A1   += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].GetInitialPosition();
 			rKin.A2   += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].GetInitialPosition();
 		}
+		std::cout << "dud1TEST: " << rKin.dud1<<std::endl;
 
 		double invL_t = 1.0 / norm_2(rKin.t);
 		rKin.t *= invL_t;
@@ -348,6 +359,7 @@ namespace Kratos
 
 		Matrix Kg{ ZeroMatrix(num_dof, num_dof) };
 		const array_1d<double, 8>& S = rConstitutive.StressVector;
+		std::cout << "Stress: " << S << std::endl;
 
 		const Matrix3d chiAndSfac = ractVar.Chi11 * S[3] + ractVar.Chi22 * S[4] + (ractVar.Chi12 + ractVar.Chi21) * S[5]  //S[3..5] are moments
 		                                                                         + ractVar.S1 * S[6] + ractVar.S2 * S[7]; //S[6..7] is transverse shear
@@ -584,12 +596,14 @@ namespace Kratos
 		{
 			GetGeometry().GetGeometryParent(0).SetValue(DIRECTOR_COMPUTED, true);
 			compute_director = true;
+			std::cout << "PRAGMA" << std::endl;
 		}
 
 		if (compute_director) {
 			auto& r_parent_geometry = GetGeometry().GetGeometryParent(0);
 			for (int i = 0; i < GetGeometry().size(); i++)
 			{
+				std::cout << "DIREKTORUPDATE" << std::endl;
 				const double normt =  GetGeometry()[i].GetValue(DIRECTORLENGTH);
 				array_1d<double, 3 > director = GetGeometry()[i].GetValue(DIRECTOR)/ normt;
 
@@ -599,7 +613,10 @@ namespace Kratos
 
 				const Matrix32d BLA = GetGeometry()[i].GetValue(DIRECTORTANGENTSPACE);
 				const array_1d<double, 3 > inc3d = prod(BLA, inc2d);
-
+				std::cout << director << std::endl;
+				std::cout << normt << std::endl;
+				std::cout << inc2d << std::endl;
+				std::cout << inc3d << std::endl;
 				director = director + inc3d;
 				director *= normt / norm_2(director);
 				

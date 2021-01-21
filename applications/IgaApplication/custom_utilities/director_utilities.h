@@ -24,8 +24,8 @@
 
 namespace Kratos
 {
-///@name Kratos Classes
-///@{
+    ///@name Kratos Classes
+    ///@{
 
     class KRATOS_API(IGA_APPLICATION) DirectorUtilities
     {
@@ -33,17 +33,17 @@ namespace Kratos
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
 
-        typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::matrix<double>> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Matrix> LocalSpaceType;
+        typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
         typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
         typedef typename SparseSpaceType::MatrixType SparseMatrixType;
-        typedef typename LocalSpaceType::VectorType DenseVectorType; 
+        typedef typename LocalSpaceType::VectorType DenseVectorType;
 
         /// Constructor
         DirectorUtilities(
-            ModelPart& rModelPart,
+            ModelPart & rModelPart,
             Parameters JsonParameters);
 
         void ComputeDirectors();
