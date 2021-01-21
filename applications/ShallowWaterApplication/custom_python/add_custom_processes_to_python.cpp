@@ -23,7 +23,6 @@
 #include "custom_processes/elemental_refining_criteria_process.h"
 #include "custom_processes/apply_perturbation_function_process.h"
 #include "custom_processes/apply_sinusoidal_function_process.h"
-#include "custom_processes/id_renumbering_process.h"
 #include "custom_processes/compute_velocity_process.h"
 #include "custom_processes/move_shallow_particles_process.h"
 
@@ -62,18 +61,6 @@ namespace Python
         py::class_<ApplySinusoidalVectorFunctionProcess, ApplySinusoidalVectorFunctionProcess::Pointer, Process>
         (m, "ApplySinusoidalFunctionToVector")
         .def(py::init<ModelPart&, Variable<array_1d<double,3>>&, Parameters&>())
-        ;
-
-        py::class_<IdRenumberingProcess, IdRenumberingProcess::Pointer, Process>
-        (m, "IdRenumberingProcess")
-        .def(py::init<Model&>())
-        .def(py::init<Model&, StringVectorType&>())
-        .def("RenumberNodes", &IdRenumberingProcess::RenumberNodes)
-        .def("RenumberElements", &IdRenumberingProcess::RenumberElements)
-        .def("RenumberConditions", &IdRenumberingProcess::RenumberConditions)
-        .def("RestoreNodes", &IdRenumberingProcess::RestoreNodes)
-        .def("RestoreElements", &IdRenumberingProcess::RestoreElements)
-        .def("RestoreConditions", &IdRenumberingProcess::RestoreConditions)
         ;
 
         py::class_<ComputeVelocityProcess, ComputeVelocityProcess::Pointer, Process>
