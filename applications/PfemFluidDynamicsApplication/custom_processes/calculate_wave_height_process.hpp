@@ -44,7 +44,12 @@ public:
   ///@}
   ///@name Life Cycle
   ///@{
-  CalculateWaveHeightProcess(ModelPart &rHostModelPart, ModelPart &rGuestModelPart) : mrHostModelPart(rHostModelPart), mrGuestModelPart(rGuestModelPart)
+  CalculateWaveHeightProcess(ModelPart &rModelPart, 
+                             const IndexType HeightDirection,
+                             const IndexType PlaneDirection,
+                             const double PlaneCoordinates = 0.0,
+                             const double HeightReference = 0.0,
+                             const double Tolerance = 1.0e-2) : mrHostModelPart(rModelPart), mrGuestModelPart(rGuestModelPart)
   {
     KRATOS_TRY
 
@@ -140,8 +145,13 @@ private:
   ///@name Member Variables
   ///@{
 
-  ModelPart &mrHostModelPart;
-  ModelPart &mrGuestModelPart;
+  ModelPart &mrModelPart;
+  IndexType mHeightDirection;
+  IndexType mPlaneDirection;
+  
+  double mPlaneCoordinates;
+  double mHeightReference;
+  double mTolerance;
 
   ///@}
   ///@name Private Operations
