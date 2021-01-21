@@ -29,17 +29,19 @@ namespace Kratos
 
         ~RomBasis()= default;
 
-        void SetNodalBasis(const int &node_id, const Matrix &the_basis){
-            mMapPhi[node_id] = the_basis;
+        void SetNodalBasis(const int &node_id, const Matrix &nodal_basis){
+            //mMapPhi[node_id] = the_basis;
+            std::shared_ptr<Matrix> pnodal_basis{new Matrix{nodal_basis}};
+            mMapPhi[node_id] = pnodal_basis;
             }
 
-        Matrix GetNodalBasis(const int &node_id){
+        std::shared_ptr<Matrix> GetNodalBasis(const int &node_id){
             return mMapPhi[node_id];
         }
 
         protected:
-        std::unordered_map<int, Matrix> mMapPhi;
-
+        //std::unordered_map<int, Matrix> mMapPhi;
+        std::unordered_map<int, std::shared_ptr<Matrix>> mMapPhi;
 
     };
 
@@ -52,19 +54,20 @@ namespace Kratos
         ~RomBases()= default;
 
 
-    void AddBasis(const int &basis_id, const RomBasis &new_basis){
+    void AddBasis(const int &basis_id, const RomBasis &basis){
         // bases should be added in the correct order
         //mBases.push_back(new_basis);
-        mMapBases[basis_id] = new_basis;
+        std::shared_ptr<RomBasis> pbasis{new RomBasis{basis}};
+        mMapBases[basis_id] = pbasis;
         }
 
-    RomBasis GetBasis(const int &k){
+    std::shared_ptr<RomBasis> GetBasis(const int &k){
         return mMapBases[k];
         //return mBases.at(k);
     }
 
         protected:
-        std::unordered_map<int, RomBasis> mMapBases;
+        std::unordered_map<int, std::shared_ptr<RomBasis>> mMapBases;
         //std::vector<RomBasis> mBases;
 
     };

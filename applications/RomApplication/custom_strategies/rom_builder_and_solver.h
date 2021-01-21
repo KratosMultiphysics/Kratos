@@ -371,12 +371,23 @@ public:
         const auto dofs_begin = BaseType::mDofSet.begin();
         const auto dofs_number = BaseType::mDofSet.size();
         Vector q = ZeroVector(mRomDofs);
-        for (unsigned int k = 0; k<dofs_number; k++){
-            auto dof = dofs_begin + k;
-            Matrix pcurrent_rom_nodal_basis = mRomBases.GetBasis(mDistanceToClusters.GetCurrentCluster()).GetNodalBasis(dof->Id());
-            //KRATOS_WATCH(dof->GetSolutionStepValue(0));//current solution
-            //KRATOS_WATCH(dof->GetSolutionStepValue(1));//prior solution
-            q +=  (dof->GetSolutionStepValue(0) - dof->GetSolutionStepValue(1)) *row(  pcurrent_rom_nodal_basis    , mMapPhi[dof->GetVariable().Key()]   ) ;  // Delta_q = Phi^T * Delta_u
+
+        #pragma omp parallel firstprivate(dofs_begin, dofs_number)
+        {
+            Vector temp_q = ZeroVector(mRomDofs);
+            for (unsigned int k = 0; k<dofs_number; k++){
+                auto dof = dofs_begin + k;
+                //KRATOS_WATCH(dof->GetSolutionStepValue(0));//current solution
+                //KRATOS_WATCH(dof->GetSolutionStepValue(1));//prior solution
+                temp_q +=  (dof->GetSolutionStepValue(0) - dof->GetSolutionStepValue(1)) *row(  *mRomBases.GetBasis(mDistanceToClusters.GetCurrentCluster())->GetNodalBasis(dof->Id()),\
+                                                                                        mMapPhi[dof->GetVariable().Key()]   ) ;  // Delta_q = Phi^T * Delta_u
+
+            }
+
+            #pragma omp critical
+            {
+                noalias(q) +=temp_q;
+            }
         }
         return q;
     }
@@ -388,26 +399,25 @@ public:
         const auto dofs_begin = BaseType::mDofSet.begin();
         const auto dofs_number = BaseType::mDofSet.size();
 
-        //#pragma omp parallel firstprivate(dofs_begin, dofs_number)
+        #pragma omp parallel firstprivate(dofs_begin, dofs_number)
         {
-            //#pragma omp for nowait
+            #pragma omp for nowait
             for (unsigned int k = 0; k<dofs_number; k++){
                 auto dof = dofs_begin + k;
-                Matrix pcurrent_rom_nodal_basis = mRomBases.GetBasis(mDistanceToClusters.GetCurrentCluster()).GetNodalBasis(dof->Id());
+                // bool print_this_quantity = false;
+                // for(int i = 0; i< NodesToPrint.size(); i++){
+                //     if (dof->Id() == NodesToPrint.at(i)){
+                //         print_this_quantity = true;
+                //     }
 
-                bool print_this_quantity = false;
-                for(int i = 0; i< NodesToPrint.size(); i++){
-                    if (dof->Id() == NodesToPrint.at(i)){
-                        print_this_quantity = true;
-                    }
-
-                }
-                if (print_this_quantity){
-                    //KRATOS_WATCH(dof->Id())
-                    //KRATOS_WATCH(mDistanceToClusters.GetCurrentCluster())
-                    //KRATOS_WATCH(pcurrent_rom_nodal_basis)
-                }
-                Dx[dof->EquationId()] = inner_prod(  row(  pcurrent_rom_nodal_basis    , mMapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
+                // }
+                // if (print_this_quantity){
+                //     //KRATOS_WATCH(dof->Id())
+                //     //KRATOS_WATCH(mDistanceToClusters.GetCurrentCluster())
+                //     //KRATOS_WATCH(pcurrent_rom_nodal_basis)
+                // }
+                Dx[dof->EquationId()] = inner_prod(  row(  *mRomBases.GetBasis(mDistanceToClusters.GetCurrentCluster())->GetNodalBasis(dof->Id()),\
+                                                     mMapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
             }
         }
     }
@@ -425,21 +435,13 @@ public:
         const Element::GeometryType &geom,
         int element_id)
     {
-        Matrix pcurrent_rom_nodal_basis;
         int counter = 0;
         for(int k = 0; k < dofs.size(); ++k){
             auto variable_key = dofs[k]->GetVariable().Key();
-            if(k==0){
-                pcurrent_rom_nodal_basis = mRomBases.GetBasis(mDistanceToClusters.GetCurrentCluster()).GetNodalBasis(dofs[k]->Id());
-            }
-            else if(dofs[k]->Id() != dofs[k-1]->Id()){
-                counter++;
-                pcurrent_rom_nodal_basis = mRomBases.GetBasis(mDistanceToClusters.GetCurrentCluster()).GetNodalBasis(dofs[k]->Id());
-            }
             if (dofs[k]->IsFixed())
                 noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
             else
-                noalias(row(PhiElemental, k)) = row(pcurrent_rom_nodal_basis, mMapPhi[variable_key]);
+                noalias(row(PhiElemental, k)) = row(*mRomBases.GetBasis(mDistanceToClusters.GetCurrentCluster())->GetNodalBasis(dofs[k]->Id()), mMapPhi[variable_key]);
         }
         bool print_this_quantity = false;
 
@@ -570,7 +572,7 @@ public:
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
 
-        //#pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
+        #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
         {
             Matrix PhiElemental;
             Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
