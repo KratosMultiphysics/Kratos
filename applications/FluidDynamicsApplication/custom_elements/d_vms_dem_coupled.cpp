@@ -107,7 +107,7 @@ Matrix DVMSDEMCoupled<TElementData>::GetAtCoordinate(
     const typename TElementData::NodalTensorData& rValues,
     const typename TElementData::ShapeFunctionsType& rN) const
 {
-    Matrix result = ZeroMatrix(3);
+    Matrix result = ZeroMatrix(Dim,Dim);
 
     for (size_t i = 0; i < NumNodes; i++) {
         for (size_t j = 0; j < Dim; j++) {
