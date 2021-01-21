@@ -30,7 +30,7 @@ namespace Kratos {
  * 2) YIELD_SHEAR
  * 3) ADAPTIVE_EXPONENT
  */
-class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Bingham2DLaw : public PfemFluidConstitutiveLaw {
+class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HerschelBuckley2DLaw : public PfemFluidConstitutiveLaw {
    public:
     /**
      * Type Definitions
@@ -40,9 +40,9 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Bingham2DLaw : public PfemFlui
     typedef std::size_t SizeType;
 
     /**
-     * Counted pointer of Bingham2DLaw
+     * Counted pointer of HerschelBuckley2DLaw
      */
-    KRATOS_CLASS_POINTER_DEFINITION(Bingham2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(HerschelBuckley2DLaw);
 
     /**
      * Life Cycle
@@ -51,7 +51,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Bingham2DLaw : public PfemFlui
     /**
      * Default constructor.
      */
-    Bingham2DLaw();
+    HerschelBuckley2DLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -62,12 +62,12 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Bingham2DLaw : public PfemFlui
     /**
      * Copy constructor.
      */
-    Bingham2DLaw(const Bingham2DLaw& rOther);
+    HerschelBuckley2DLaw(const HerschelBuckley2DLaw& rOther);
 
     /**
      * Destructor.
      */
-    ~Bingham2DLaw() override;
+    ~HerschelBuckley2DLaw() override;
 
     /**
      * Operators
@@ -169,7 +169,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Bingham2DLaw : public PfemFlui
     void load(Serializer& rSerializer) override;
     ///@}
 
-};  // Class Bingham2DLaw
+};  // Class HerschelBuckley2DLaw
 
 }  // namespace Kratos.
 

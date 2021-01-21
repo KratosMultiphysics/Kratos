@@ -32,28 +32,28 @@ namespace Kratos
     //********************************CONSTRUCTOR*********************************
     //****************************************************************************
 
-    Bingham2DLaw::Bingham2DLaw() : PfemFluidConstitutiveLaw() {}
+    HerschelBuckley2DLaw::HerschelBuckley2DLaw() : PfemFluidConstitutiveLaw() {}
 
     //******************************COPY CONSTRUCTOR******************************
     //****************************************************************************
 
-    Bingham2DLaw::Bingham2DLaw(const Bingham2DLaw &rOther) : PfemFluidConstitutiveLaw(rOther) {}
+    HerschelBuckley2DLaw::HerschelBuckley2DLaw(const HerschelBuckley2DLaw &rOther) : PfemFluidConstitutiveLaw(rOther) {}
 
     //***********************************CLONE************************************
     //****************************************************************************
 
-    ConstitutiveLaw::Pointer Bingham2DLaw::Clone() const { return Kratos::make_shared<Bingham2DLaw>(*this); }
+    ConstitutiveLaw::Pointer HerschelBuckley2DLaw::Clone() const { return Kratos::make_shared<HerschelBuckley2DLaw>(*this); }
 
     //*********************************DESTRUCTOR*********************************
     //****************************************************************************
 
-    Bingham2DLaw::~Bingham2DLaw() {}
+    HerschelBuckley2DLaw::~HerschelBuckley2DLaw() {}
 
-    ConstitutiveLaw::SizeType Bingham2DLaw::WorkingSpaceDimension() { return 2; }
+    ConstitutiveLaw::SizeType HerschelBuckley2DLaw::WorkingSpaceDimension() { return 2; }
 
-    ConstitutiveLaw::SizeType Bingham2DLaw::GetStrainSize() { return 3; }
+    ConstitutiveLaw::SizeType HerschelBuckley2DLaw::GetStrainSize() { return 3; }
 
-    void Bingham2DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
+    void HerschelBuckley2DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {
 
         Flags &r_options = rValues.GetOptions();
@@ -97,12 +97,12 @@ namespace Kratos
         }
     }
 
-    std::string Bingham2DLaw::Info() const { return "Bingham2DLaw"; }
+    std::string HerschelBuckley2DLaw::Info() const { return "HerschelBuckley2DLaw"; }
 
     //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW******************
     //*****************************************************************************
 
-    int Bingham2DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
+    int HerschelBuckley2DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
                             const ProcessInfo &rCurrentProcessInfo)
     {
 
@@ -113,57 +113,57 @@ namespace Kratos
 
         if (rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
         {
-            KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Bingham2DLaw: "
+            KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for HerschelBuckley2DLaw: "
                          << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
         }
 
         if (rMaterialProperties[YIELD_SHEAR] < 0.0)
         {
-            KRATOS_ERROR << "Incorrect or missing YIELD_SHEAR provided in process info for Bingham2DLaw: "
+            KRATOS_ERROR << "Incorrect or missing YIELD_SHEAR provided in process info for HerschelBuckley2DLaw: "
                          << rMaterialProperties[YIELD_SHEAR] << std::endl;
         }
 
         if (rMaterialProperties[ADAPTIVE_EXPONENT] < 0.0)
         {
-            KRATOS_ERROR << "Incorrect or missing ADAPTIVE_EXPONENT provided in process info for Bingham2DLaw: "
+            KRATOS_ERROR << "Incorrect or missing ADAPTIVE_EXPONENT provided in process info for HerschelBuckley2DLaw: "
                          << rMaterialProperties[ADAPTIVE_EXPONENT] << std::endl;
         }
 
         if (rMaterialProperties[BULK_MODULUS] <= 0.0)
         {
-            KRATOS_ERROR << "Incorrect or missing BULK_MODULUS provided in process info for Bingham2DLaw: "
+            KRATOS_ERROR << "Incorrect or missing BULK_MODULUS provided in process info for HerschelBuckley2DLaw: "
                          << rMaterialProperties[BULK_MODULUS] << std::endl;
         }
 
         return 0;
     }
 
-    double Bingham2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters &rParameters) const
+    double HerschelBuckley2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters &rParameters) const
     {
         return rParameters.GetConstitutiveMatrix()(2, 2);
     }
 
-    double Bingham2DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters &rParameters) const
+    double HerschelBuckley2DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters &rParameters) const
     {
         return rParameters.GetMaterialProperties()[DENSITY];
     }
 
-    double Bingham2DLaw::GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters &rParameters) const
+    double HerschelBuckley2DLaw::GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters &rParameters) const
     {
         return rParameters.GetMaterialProperties()[DYNAMIC_VISCOSITY];
     }
 
-    double Bingham2DLaw::GetEffectiveYieldShear(ConstitutiveLaw::Parameters &rParameters) const
+    double HerschelBuckley2DLaw::GetEffectiveYieldShear(ConstitutiveLaw::Parameters &rParameters) const
     {
         return rParameters.GetMaterialProperties()[YIELD_SHEAR];
     }
 
-    void Bingham2DLaw::save(Serializer &rSerializer) const
+    void HerschelBuckley2DLaw::save(Serializer &rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PfemFluidConstitutiveLaw)
     }
 
-    void Bingham2DLaw::load(Serializer &rSerializer)
+    void HerschelBuckley2DLaw::load(Serializer &rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PfemFluidConstitutiveLaw)
     }
