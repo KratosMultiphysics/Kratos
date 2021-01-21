@@ -79,7 +79,7 @@ def StrainToVoigt(M):
     return vm
 
 def MatrixB(DN):
-  """ This method defines the deformation matrix B
+    """ This method defines the deformation matrix B
 
     Keyword arguments:
     DN -- The shape function derivatives
@@ -114,7 +114,7 @@ def MatrixB(DN):
     return B
 
 def grad_sym_voigtform(DN, x):
-  """ This method defines a symmetric gradient
+    """ This method defines a symmetric gradient
 
     Keyword arguments:
     DN -- The shape function derivatives

@@ -63,6 +63,7 @@ namespace Python
     (m, "FluxCorrectedShallowWaterScheme")
     .def(py::init<std::size_t>())
     .def(py::init<std::size_t, bool>())
+    .def(py::init<Parameters>())
     ;
 
   }
