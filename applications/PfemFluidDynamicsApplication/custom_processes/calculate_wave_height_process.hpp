@@ -80,9 +80,9 @@ public:
     KRATOS_TRY;
 
     // We open the file where we print the wave height values
-    std::fstream myfile;
+    std::fstream my_file;
     const std::string file_name = mOutputFileName + ".txt";
-    myfile.open(file_name);
+    my_file.open(file_name);
 
     const double time = mrModelPart.GetProcessInfo()[TIME];
 
@@ -98,9 +98,10 @@ public:
 
         const int thread_id = OpenMPUtils::ThisThread();
         const auto& r_node_coordinates = it_node->Coordinates();
-        if (it_node.IsNot(ISOLATED) && 
-            it_node.Is(FREE_SURFACE) &&
-            (r_node_coordinates(mPlaneDirection) > mPlaneCoordinates + mTolerance || r_node_coordinates(mPlaneDirection) < mPlaneCoordinates - mTolerance))
+        if (it_node->IsNot(ISOLATED) && 
+            it_node->Is(FREE_SURFACE) &&
+            r_node_coordinates(mPlaneDirection) < mPlaneCoordinates + mTolerance && 
+            r_node_coordinates(mPlaneDirection) > mPlaneCoordinates - mTolerance)
         {
           const double height = r_node_coordinates(mHeightDirection);
           if (height > max_vector[thread_id])
@@ -108,7 +109,9 @@ public:
         }
     }
     const double max_height = *std::max_element(max_vector.begin(), max_vector.end());
-    // return *std::max_element(max_vector.begin(), max_vector.end());
+
+    my_file << std::to_string(time) + "    " +  std::to_string(max_height - mHeightReference) + "\n" << std::endl;
+    my_file.close();
 
     KRATOS_CATCH("");
   }
