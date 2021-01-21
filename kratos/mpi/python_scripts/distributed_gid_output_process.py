@@ -1,4 +1,3 @@
-
 import KratosMultiphysics as KM
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 if CheckIfApplicationsAvailable("TrilinosApplication"):
