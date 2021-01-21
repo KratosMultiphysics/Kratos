@@ -45,15 +45,14 @@ public:
   ///@name Life Cycle
   ///@{
   CalculateWaveHeightProcess(ModelPart &rModelPart, 
-                             const IndexType HeightDirection,
-                             const IndexType PlaneDirection,
-                             const double PlaneCoordinates = 0.0,
-                             const double HeightReference = 0.0,
-                             const double Tolerance = 1.0e-2) : mrHostModelPart(rModelPart), mrGuestModelPart(rGuestModelPart)
+                             int HeightDirection,
+                             int PlaneDirection,
+                             double PlaneCoordinates = 0.0,
+                             double HeightReference = 0.0,
+                             double Tolerance = 1.0e-2) : mrModelPart(rModelPart), mHeightDirection(HeightDirection),
+                                                                mPlaneDirection(PlaneDirection), mPlaneCoordinates(PlaneCoordinates),
+                                                                mHeightReference(HeightReference), mTolerance(Tolerance)
   {
-    KRATOS_TRY
-
-    KRATOS_CATCH("");
   }
 
   /// Destructor.
@@ -146,9 +145,9 @@ private:
   ///@{
 
   ModelPart &mrModelPart;
-  IndexType mHeightDirection;
-  IndexType mPlaneDirection;
-  
+  int mHeightDirection;
+  int mPlaneDirection;
+
   double mPlaneCoordinates;
   double mHeightReference;
   double mTolerance;

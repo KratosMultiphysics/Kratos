@@ -91,8 +91,8 @@ void AddCustomProcessesToPython(pybind11::module &m)
     py::class_<InletManagementProcess, InletManagementProcess::Pointer, MesherProcess>(m, "InletManagement")
         .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    py::class_<CalculateWaveHeightProcess, CalculateWaveHeightProcess::Pointer, MesherProcess>(m, "CalculateWaveHeightProcess")
-        .def(py::init<ModelPart &, const IndexType, const IndexType, const double, const double, const double>());
+    py::class_<CalculateWaveHeightProcess, CalculateWaveHeightProcess::Pointer, ProcessBaseType>(m, "CalculateWaveHeightProcess")
+        .def(py::init<ModelPart&, int, int, double, double, double>());
 
     py::class_<SetInletProcess, SetInletProcess::Pointer, ProcessBaseType>(m, "SetInlet")
         .def(py::init<ModelPart &, int>());
