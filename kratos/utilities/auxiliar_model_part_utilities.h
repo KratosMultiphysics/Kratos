@@ -591,15 +591,10 @@ private:
     template<typename TDataType, class TContainerType>
     void GetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, std::vector<TDataType>& data)
     {
-        IndexType counter = 0;
-        for(const auto& r_entity : rContainer){
-            data[counter++] = r_entity.GetValue(rVariable);
-        }
-
-        /*IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
+        IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
-            r_entity.SetValue(data[index],rVariable);
-        });*/
+            data[index] = r_entity.GetValue(rVariable);
+        });
     }
 
     template<typename TDataType, class TContainerType>
@@ -621,22 +616,6 @@ private:
             auto& r_entity = *(rContainer.begin() + index);
             r_entity.SetValue(rVariable,rData[index]);
         });
-
-        /* BlockPartition<TContainerType>(rContainer).for_each([](TContainerType::value_type& rEntity){
-
-        })
-
-        LockObject my_lock;
-
-        block_for_each(mrModelPart.Conditions(), [](Condition& rCond){
-            for (auto& r_node : rCond.Points()) {
-                my_lock.SetLock();
-                r_node.SetLock();
-                r_node.SetValue(DISPLACEMENT_X) += rCond.Id();
-                r_node.UnSetLock();
-                my_lock.UnSetLock();
-            }
-        }) */
     }
 
     template<typename TDataType, class TContainerType>
