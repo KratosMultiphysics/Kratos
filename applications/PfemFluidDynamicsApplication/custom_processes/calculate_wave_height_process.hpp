@@ -51,10 +51,11 @@ public:
                              const double PlaneCoordinates = 0.0,
                              const double HeightReference = 0.0,
                              const double Tolerance = 1.0e-2,
-                             const std::string OutputFileName = "WaveHeight") : mrModelPart(rModelPart), mHeightDirection(HeightDirection),
+                             const std::string OutputFileName = "WaveHeight",
+                             const double TimeInterval = 0.0) : mrModelPart(rModelPart), mHeightDirection(HeightDirection),
                                                                 mPlaneDirection(PlaneDirection), mPlaneCoordinates(PlaneCoordinates),
                                                                 mHeightReference(HeightReference), mTolerance(Tolerance),
-                                                                mOutputFileName(OutputFileName)
+                                                                mOutputFileName(OutputFileName), mTimeInterval(TimeInterval)
   {
     std::ofstream my_file;
     const std::string file_name = mOutputFileName + ".txt";
@@ -84,37 +85,41 @@ public:
   {
     KRATOS_TRY;
     const double time = mrModelPart.GetProcessInfo()[TIME];
+    const int step    = mrModelPart.GetProcessInfo()[STEP];
 
-    // We loop over the nodes...
-    const auto it_node_begin = mrModelPart.NodesBegin();
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    std::vector<int> max_vector(num_threads, 0.0);
+    if (time - mPreviousPlotTime > mTimeInterval || step == 1) {
 
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
-        auto it_node = it_node_begin + i;
-        // const int FEM_node_id = it_FEM_node->Id();
+      // We loop over the nodes...
+      const auto it_node_begin = mrModelPart.NodesBegin();
+      const int num_threads = OpenMPUtils::GetNumThreads();
+      std::vector<double> max_vector(num_threads, 0.0);
 
-        const int thread_id = OpenMPUtils::ThisThread();
-        const auto& r_node_coordinates = it_node->Coordinates();
-        if (it_node->IsNot(ISOLATED) && 
-            it_node->Is(FREE_SURFACE) &&
-            r_node_coordinates(mPlaneDirection) < mPlaneCoordinates + mTolerance && 
-            r_node_coordinates(mPlaneDirection) > mPlaneCoordinates - mTolerance)
-        {
-          const double height = r_node_coordinates(mHeightDirection);
-          if (height > max_vector[thread_id])
-            max_vector[thread_id] = height;
-        }
+      #pragma omp parallel for
+      for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
+          auto it_node = it_node_begin + i;
+
+          const int thread_id = OpenMPUtils::ThisThread();
+          const auto& r_node_coordinates = it_node->Coordinates();
+          if (it_node->IsNot(ISOLATED) && 
+              it_node->Is(FREE_SURFACE) &&
+              r_node_coordinates(mPlaneDirection) < mPlaneCoordinates + mTolerance && 
+              r_node_coordinates(mPlaneDirection) > mPlaneCoordinates - mTolerance)
+          {
+            const double height = std::abs(r_node_coordinates(mHeightDirection));
+            if (height > max_vector[thread_id])
+              max_vector[thread_id] = height;
+          }
+      }
+      const double max_height = *std::max_element(max_vector.begin(), max_vector.end());
+      KRATOS_WATCH(max_height)
+
+      // We open the file where we print the wave height values
+      std::ofstream my_file;
+      const std::string file_name = mOutputFileName + ".txt";
+      my_file.open(file_name, std::ios_base::app);
+      my_file << "  " + std::to_string(time) + "    " +  std::to_string(max_height - mHeightReference) << std::endl;
+      mPreviousPlotTime = time;
     }
-    const double max_height = *std::max_element(max_vector.begin(), max_vector.end());
-
-    // We open the file where we print the wave height values
-    std::ofstream my_file;
-    const std::string file_name = mOutputFileName + ".txt";
-    my_file.open(file_name, std::ios_base::app);
-    my_file << "  " + std::to_string(time) + "    " +  std::to_string(max_height - mHeightReference) << std::endl;
-    // my_file.close();
 
     KRATOS_CATCH("");
   }
@@ -189,6 +194,8 @@ private:
   double mPlaneCoordinates;
   double mHeightReference;
   double mTolerance;
+  double mTimeInterval;
+  double mPreviousPlotTime = 0.0;
 
   std::string mOutputFileName;
 

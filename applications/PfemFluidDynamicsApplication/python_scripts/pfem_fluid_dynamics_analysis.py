@@ -164,6 +164,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.end_time   = self.project_parameters["problem_data"]["end_time"].GetDouble()
         self.delta_time = self.project_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
 
+        self.wave_cal = KratosPfemFluid.CalculateWaveHeightProcess(self.main_model_part, 1, 0, -30.0, 0.0, 0.5, "WaveHeight", 0.5)
+
 
     def InitializeSolutionStep(self):
         """This function performs all the required operations that should be executed
@@ -211,6 +213,10 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             process.ExecuteAfterOutputStep()
 
         self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
+
+        # Temporal -> proceso calculo altura agua
+        self.wave_cal.Execute()
+
 
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
