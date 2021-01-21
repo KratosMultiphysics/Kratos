@@ -173,9 +173,7 @@ std::vector<double> PostComputeSetData(const DataLocation DataLoc, ModelPart& th
                     for(int j=0; j<dim; j++)
 		            {
                         //i_node.SetValue(DISPLACEMENT, test_vals);
-                        printf("\n ashish IN\n");
                         output_values[counter++] = i_node.GetValue(DISPLACEMENT)[j];
-                        printf("\n ashish Out\n");
                     }
                 }
                 break;
@@ -403,7 +401,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Node_Nonhisto
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
-/*
+
 //15. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on Element Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Element, KratosCoreFastSuite)
 {
@@ -459,7 +457,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_ProcessInfo, 
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
- */
+
 //19. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on NodeHistorical Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Node_historical, KratosCoreFastSuite)
 {

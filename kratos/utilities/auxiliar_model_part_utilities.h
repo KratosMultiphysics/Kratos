@@ -595,6 +595,11 @@ private:
         for(const auto& r_entity : rContainer){
             data[counter++] = r_entity.GetValue(rVariable);
         }
+
+        /*IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
+            auto& r_entity = *(rContainer.begin() + index);
+            r_entity.SetValue(data[index],rVariable);
+        });*/
     }
 
     template<typename TDataType, class TContainerType>
@@ -612,16 +617,7 @@ private:
     template<typename TDataType, class TContainerType>
     void SetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, const std::vector<TDataType>& rData)
     {
-        /* IndexType counter = 0;
-        for(auto& r_entity : rContainer){
-            auto& r_val = r_entity.GetValue(rVariable);
-            r_val = rData[counter++];
-        } */
-
-        //printf("\nsize of %d\n", rContainer.size());
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
-            //printf("index=%d, thread number=%d, value = %f\n", index, omp_get_thread_num(), rData[index]);
-            //rContainer[index].GetValue(localvariable) = rData[index];
             auto& r_entity = *(rContainer.begin() + index);
             r_entity.SetValue(rVariable,rData[index]);
         });
@@ -653,7 +649,17 @@ private:
             for(int dim = 0 ; dim < size ; dim++){
                 r_val[dim] = rData[counter++];
             }
-        }
+        } 
+
+        /* IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
+            auto& r_entity = *(rContainer.begin() + index);
+            auto& r_val = r_entity.GetValue(rVariable);
+            KRATOS_DEBUG_ERROR_IF(r_val.size() != size) << "mismatch in size!" << std::endl;
+            for(int dim = 0 ; dim < size ; dim++){
+                r_entity.SetValue(rVariable,rData[index]);
+            }
+        }); */
+
     }
 
     // Only for SetScalarData()
