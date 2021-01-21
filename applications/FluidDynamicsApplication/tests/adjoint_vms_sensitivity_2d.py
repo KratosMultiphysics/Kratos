@@ -6,16 +6,6 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis
 
-class ControlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
 
 @KratosUnittest.skipUnless(CheckIfApplicationsAvailable("HDF5Application"), "Missing HDF5Application")
 class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
@@ -201,7 +191,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             project_parameters_file_name, objective_function)
 
     def testOneElement(self):
-        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope('.', __file__):
             with open('./AdjointVMSSensitivity2DTest/one_element_test_parameters.json', 'r') as file_input:
                 lines = file_input.read()
 
@@ -229,7 +219,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             DeleteFileIfExisting("./tests.post.lst")
 
     def testCylinder(self):
-        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope('.', __file__):
             # calculate sensitivity by finite difference
             step_size = 0.00000001
             FDSensitivity = AdjointVMSSensitivity2D._computeFiniteDifferenceDragSensitivity(
@@ -254,7 +244,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             DeleteFileIfExisting("./tests.post.lst")
 
     def testSteadyCylinder(self):
-        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope('.', __file__):
             # calculate sensitivity by finite difference
             step_size = 0.00000001
             FDSensitivity = AdjointVMSSensitivity2D._computeFiniteDifferenceDragSensitivity(
@@ -279,7 +269,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             DeleteFileIfExisting("./tests.post.lst")
 
     def testSlipNormCylinder(self):
-        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope('.', __file__):
             # calculate sensitivity by finite difference
             step_size = 0.00000001
             FDSensitivity = AdjointVMSSensitivity2D._computeFiniteDifferenceNormSquareSensitivity(
@@ -304,7 +294,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             DeleteFileIfExisting("./tests.post.lst")
 
     def testSlipSteadyNormCylinder(self):
-        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope('.', __file__):
             # calculate sensitivity by finite difference
             step_size = 1e-9
             FDSensitivity = AdjointVMSSensitivity2D._computeFiniteDifferenceNormSquareSensitivity(

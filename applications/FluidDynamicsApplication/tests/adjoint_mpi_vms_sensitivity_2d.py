@@ -9,16 +9,6 @@ from KratosMultiphysics.kratos_utilities import DeleteTimeFiles
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis
 
-class ControlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
 
 @KratosUnittest.skipUnless(CheckIfApplicationsAvailable("HDF5Application"), "Missing HDF5Application")
 class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
@@ -205,7 +195,7 @@ class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
             self.parallel_type = "OpenMP"
 
     def testCylinder(self):
-        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope('.', __file__):
             # solve fluid
             model = Kratos.Model()
             with open('AdjointVMSSensitivity2DTest/cylinder_test_parameters.json', 'r') as parameter_file:
@@ -234,7 +224,7 @@ class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
             Kratos.DataCommunicator.GetDefault().Barrier()
 
     def testSlipCylinder(self):
-        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope('.', __file__):
             # solve fluid
             model = Kratos.Model()
             with open('AdjointVMSSensitivity2DTest/cylinder_slip_test_parameters.json', 'r') as parameter_file:
