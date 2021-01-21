@@ -43,7 +43,7 @@ public:
 
     using NodalVectorData = BoundedMatrix<double,TNumNodes,TDim>;
 
-    using NodalTensorData = std::vector< Matrix >;
+    using NodalTensorData = std::array<BoundedMatrix<double,TDim,TDim>,TNumNodes>;
 
     using ShapeFunctionsType = array_1d<double,TNumNodes>;
 
