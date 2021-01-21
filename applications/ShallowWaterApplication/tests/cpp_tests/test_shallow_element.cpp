@@ -56,7 +56,6 @@ KRATOS_TEST_CASE_IN_SUITE(SWE2D3N, ShallowWaterApplicationFastSuite)
     model_part.GetProcessInfo().SetValue(STABILIZATION_FACTOR, stab_factor);
     model_part.GetProcessInfo().SetValue(GRAVITY_Z, gravity);
     model_part.GetProcessInfo().SetValue(DRY_HEIGHT, 0.1);
-    model_part.GetProcessInfo().SetValue(WATER_HEIGHT_UNIT_CONVERTER, 1.0);
     model_part.GetProcessInfo().SetValue(PERMEABILITY, 0.1);
     model_part.GetProcessInfo().SetValue(DRY_DISCHARGE_PENALTY, 0.1);
 

@@ -39,8 +39,6 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
     def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""
         {
-            "time_scale"            : "seconds",
-            "water_height_scale"    : "meters",
             "advection_epsilon"     : 1.0e-2,
             "permeability"          : 1.0e-4,
             "dry_height_threshold"  : 1e-3,
@@ -59,8 +57,6 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
         permeability = self.settings["permeability"].GetDouble()
         dry_height = self.settings["dry_height_threshold"].GetDouble()
         discharge_penalty = self.settings["dry_discharge_penalty"].GetDouble()
-        time_scale = self.settings["time_scale"].GetString()
-        water_height_scale = self.settings["water_height_scale"].GetString()
         stabilization_factor = self.settings["stabilization_factor"].GetDouble()
 
         # Checks
@@ -69,31 +65,9 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
         if discharge_penalty == 0.0:
             KM.Logger.PrintWarning(self.__class__.__name__, "Detected dry_discharge_penalty == 0.0")
 
-        # Time unit converter
-        if   time_scale == "seconds":
-            time_unit_converter =     1
-        elif time_scale == "minutes":
-            time_unit_converter =    60
-        elif time_scale == "hours":
-            time_unit_converter =  3600
-        elif time_scale == "days":
-            time_unit_converter = 86400
-        else:
-            raise Exception("unknown time scale")
-
-        # Water height unit converter
-        if   water_height_scale == "meters":
-            water_height_unit_converter = 1.0
-        elif water_height_scale == "millimeters":
-            water_height_unit_converter = 0.001
-        else:
-            raise Exception("unknown water height scale")
-
         self.main_model_part.ProcessInfo.SetValue(SW.PERMEABILITY, permeability)
         self.main_model_part.ProcessInfo.SetValue(SW.DRY_HEIGHT, dry_height)
         self.main_model_part.ProcessInfo.SetValue(SW.DRY_DISCHARGE_PENALTY, discharge_penalty)
-        self.main_model_part.ProcessInfo.SetValue(SW.TIME_UNIT_CONVERTER, time_unit_converter)
-        self.main_model_part.ProcessInfo.SetValue(SW.WATER_HEIGHT_UNIT_CONVERTER, water_height_unit_converter)
         self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, stabilization_factor)
 
     def _CreateScheme(self):

@@ -187,7 +187,6 @@ void SWE<TNumNodes, TFramework>::InitializeElementVariables(
     rVariables.gravity = rCurrentProcessInfo[GRAVITY_Z];
     rVariables.manning2 = 0.0;
     rVariables.porosity = 0.0;
-    rVariables.height_units = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
     rVariables.permeability = rCurrentProcessInfo[PERMEABILITY];
     rVariables.discharge_penalty = rCurrentProcessInfo[DRY_DISCHARGE_PENALTY];
 
@@ -290,9 +289,8 @@ void SWE<TNumNodes, TFramework>::CalculateElementValues(
     }
 
     rVariables.velocity *= rVariables.lumping_factor;
-    rVariables.height *= rVariables.lumping_factor * rVariables.height_units;
+    rVariables.height *= rVariables.lumping_factor;
     rVariables.height = std::max(rVariables.height, 0.0);
-    rVariables.surface_grad *= rVariables.height_units;
     rVariables.projected_momentum *= rVariables.lumping_factor;
 
     rVariables.wave_vel_2 = rVariables.gravity * rVariables.height;
