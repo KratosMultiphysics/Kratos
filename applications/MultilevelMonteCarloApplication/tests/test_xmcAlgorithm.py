@@ -82,15 +82,15 @@ class TestXMCAlgorithm(unittest.TestCase):
             # MonoCriterion
             criteriaArray = []
             criteriaInputs = []
-            for monoCriterion in parameters["monoCriteriaInpuctDictionary"]:
+            for monoCriterion in parameters["monoCriteriaInputDictionary"]:
                 criteriaArray.append(
                     xmc.monoCriterion.MonoCriterion(
-                        parameters["monoCriteriaInpuctDictionary"][monoCriterion]["criteria"],
-                        parameters["monoCriteriaInpuctDictionary"][monoCriterion]["tolerance"],
+                        parameters["monoCriteriaInputDictionary"][monoCriterion]["criteria"],
+                        parameters["monoCriteriaInputDictionary"][monoCriterion]["tolerance"],
                     )
                 )
                 criteriaInputs.append(
-                    [parameters["monoCriteriaInpuctDictionary"][monoCriterion]["input"]]
+                    [parameters["monoCriteriaInputDictionary"][monoCriterion]["input"]]
                 )
             # MultiCriterion
             multiCriterionInputDictionary = parameters["multiCriterionInputDictionary"]
@@ -189,15 +189,15 @@ class TestXMCAlgorithm(unittest.TestCase):
             # MonoCriterion
             criteriaArray = []
             criteriaInputs = []
-            for monoCriterion in parameters["monoCriteriaInpuctDictionary"]:
+            for monoCriterion in parameters["monoCriteriaInputDictionary"]:
                 criteriaArray.append(
                     xmc.monoCriterion.MonoCriterion(
-                        parameters["monoCriteriaInpuctDictionary"][monoCriterion]["criteria"],
-                        parameters["monoCriteriaInpuctDictionary"][monoCriterion]["tolerance"],
+                        parameters["monoCriteriaInputDictionary"][monoCriterion]["criteria"],
+                        parameters["monoCriteriaInputDictionary"][monoCriterion]["tolerance"],
                     )
                 )
                 criteriaInputs.append(
-                    [parameters["monoCriteriaInpuctDictionary"][monoCriterion]["input"]]
+                    [parameters["monoCriteriaInputDictionary"][monoCriterion]["input"]]
                 )
             # MultiCriterion
             multiCriterionInputDictionary = parameters["multiCriterionInputDictionary"]
