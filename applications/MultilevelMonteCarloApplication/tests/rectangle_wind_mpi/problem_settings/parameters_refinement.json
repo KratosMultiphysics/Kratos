@@ -1,6 +1,7 @@
 {
     "metric": {
 		"hessian_strategy_parameters"              :{
+			"metric_variable"                  : ["VELOCITY_LAPLACIAN_RATE"],
 			"estimate_interpolation_error"     : false,
 			"non_historical_metric_variable"   : true,
 			"interpolation_error"              : 2e-2,

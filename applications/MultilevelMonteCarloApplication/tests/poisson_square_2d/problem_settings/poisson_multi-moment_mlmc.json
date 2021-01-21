@@ -75,7 +75,7 @@
         "sizeMultiXMomentEstimator": 2,
         "taskAllAtOnce": false
     },
-    "monoCriteriaInpuctDictionary" :{
+    "monoCriteriaInputDictionary" :{
         "statisticalError": {
             "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isLowerThanOrEqualTo",
             "tolerance": [0.15],

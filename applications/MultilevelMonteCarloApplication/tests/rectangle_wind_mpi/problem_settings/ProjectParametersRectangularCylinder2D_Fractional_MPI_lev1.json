@@ -136,7 +136,7 @@
                                 "PRESSURE"
                             ],
                             "output_variables": [
-                                "AVERAGED_PRESSURE"
+                                "CONTACT_PRESSURE"
                             ]
                         }
                     }
@@ -160,7 +160,7 @@
                                 "VELOCITY"
                             ],
                             "output_variables": [
-                                "AVERAGED_VELOCITY"
+                                "VELOCITY_LAPLACIAN_RATE"
                             ]
                         }
                     }

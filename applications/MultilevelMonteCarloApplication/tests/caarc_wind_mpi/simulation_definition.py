@@ -8,33 +8,66 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi
 import KratosMultiphysics.MultilevelMonteCarloApplication
 import KratosMultiphysics.MappingApplication
-from FluidDynamicsAnalysisAuxiliary import FluidDynamicsAnalysisAuxiliary
+from FluidDynamicsAnalysisMC import FluidDynamicsAnalysisMC
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 # Avoid printing of Kratos informations
-KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+# KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
 
-class SimulationScenario(FluidDynamicsAnalysisAuxiliary):
+class SimulationScenario(FluidDynamicsAnalysisMC):
     def __init__(self,input_model,input_parameters,sample):
         super().__init__(input_model,input_parameters)
         self.sample = sample
         self.mapping = False
-        self.interest_model_part = "MainModelPart.NoSlip2D_No_Slip_Auto1"
+        self.interest_model_part = "FluidModelPart.NoSlip3D_structure"
         self.number_instances_time_power_sums = 0
         self.IsVelocityFieldPerturbed = False
+        self.filename = "filename"
 
     def ModifyInitialProperties(self):
         """
-        function introducing the stochasticity in the problem
+        function changing print to file settings
         input:  self: an instance of the class
         """
         super().ModifyInitialProperties()
         random_inlet = max(0.1,self.sample[1])
         self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["value"][0].SetDouble(random_inlet)
-        # save new seed
         if (self.project_parameters["problem_data"]["perturbation"]["type"].GetString() == "correlated"):
             self.project_parameters["processes"]["initial_conditions_process_list"][0]["Parameters"]["seed"].SetInt(self.sample[0])
+
+    def ApplyBoundaryConditions(self):
+        """
+        function introducing the stochasticity in the problem
+        input:  self: an instance of the class
+        """
+        super().ApplyBoundaryConditions()
+        if (self.IsVelocityFieldPerturbed is False) and (self.project_parameters["problem_data"]["perturbation"]["type"].GetString() == "uncorrelated"):
+            np.random.seed(self.sample[0])
+            print("[SCREENING] perturbing the domain:","Yes")
+            self.main_model_part = self.model.GetModelPart("FluidModelPart")
+            # load velocity field
+            with open("average_velocity_field_CAARC_3d_combinedPressureVelocity_312k_690.0.dat") as dat_file:
+                lines=dat_file.readlines()
+                for line, node in zip(lines, self.main_model_part.Nodes):
+                    if not (node.IsFixed(KratosMultiphysics.VELOCITY_X) or node.IsFixed(KratosMultiphysics.VELOCITY_Y) or node.IsFixed(KratosMultiphysics.VELOCITY_Z) or node.IsFixed(KratosMultiphysics.PRESSURE)):
+                        # retrieve velocity
+                        velocity = KratosMultiphysics.Vector(3, 0.0)
+                        velocity[0] = float(line.split(' ')[0])
+                        velocity[1] = float(line.split(' ')[1])
+                        velocity[2] = float(line.split(' ')[2])
+                        # compute uncorrelated perturbation
+                        perturbation_intensity = self.project_parameters["problem_data"]["perturbation"]["intensity"].GetDouble()
+                        perturbation = np.random.uniform(-perturbation_intensity,perturbation_intensity,3) * velocity.norm_2() # all nodes and directions different value
+                        # sum avg velocity and perturbation
+                        velocity[0] = velocity[0] + perturbation[0]
+                        velocity[1] = velocity[1] + perturbation[1]
+                        velocity[2] = velocity[2] + perturbation[2]
+                        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, velocity)
+                        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, velocity)
+            self.IsVelocityFieldPerturbed = True
+        else:
+            print("[SCREENING] perturbing the domain:", "No")
 
     def ComputeNeighbourElements(self):
         """
@@ -55,7 +88,7 @@ class SimulationScenario(FluidDynamicsAnalysisAuxiliary):
         super().Initialize()
         # compute neighbour elements required for current boundary conditions and not automatically run due to remeshing
         self.ComputeNeighbourElements()
-        # initialize MomentEstimator class for each qoi to build time power sums
+        # initialize moment estimator array for each qoi to build time power sums
         self.moment_estimator_array = [[[0.0],[0.0]] for _ in range (0,1)] # +1 is for drag force x
         if (self.mapping is True):
             power_sums_parameters = KratosMultiphysics.Parameters("""{
@@ -63,14 +96,14 @@ class SimulationScenario(FluidDynamicsAnalysisAuxiliary):
                 }""")
             self.power_sums_process_mapping = KratosMultiphysics.MultilevelMonteCarloApplication.PowerSumsStatistics(self.mapping_reference_model.GetModelPart(self.interest_model_part),power_sums_parameters)
             self.power_sums_process_mapping.ExecuteInitialize()
-            print("[SCREENING] number nodes of submodelpart + drag force:",self.mapping_reference_model.GetModelPart(self.interest_model_part).NumberOfNodes()+1) # +1 is for drag force x
+            print("[SCREENING] number nodes of submodelpart + drag force x:",self.mapping_reference_model.GetModelPart(self.interest_model_part).NumberOfNodes()+1) # +1 is for drag force x
         else:
             power_sums_parameters = KratosMultiphysics.Parameters("""{
                 "reference_variable_name": "PRESSURE"
                 }""")
             self.power_sums_process = KratosMultiphysics.MultilevelMonteCarloApplication.PowerSumsStatistics(self.model.GetModelPart(self.interest_model_part),power_sums_parameters)
             self.power_sums_process.ExecuteInitialize()
-            print("[SCREENING] number nodes of submodelpart + drag force:",self.model.GetModelPart(self.interest_model_part).NumberOfNodes()+1) # +1 is for drag force x
+            print("[SCREENING] number nodes of submodelpart + drag force x:",self.model.GetModelPart(self.interest_model_part).NumberOfNodes()+1) # +1 is for drag force x
         print("[SCREENING] mapping flag:",self.mapping)
 
     def FinalizeSolutionStep(self):
@@ -87,26 +120,25 @@ class SimulationScenario(FluidDynamicsAnalysisAuxiliary):
                 # update number of contributions to time power sums
                 self.number_instances_time_power_sums = self.number_instances_time_power_sums + 1
                 # update power sums of drag force x
-                self.moment_estimator_array[0][0][0] = self.moment_estimator_array[0][0][0] + self.current_force_x
-                self.moment_estimator_array[0][1][0] = self.moment_estimator_array[0][1][0] + self.current_force_x**2
+                self.moment_estimator_array[0][0][0] = self.moment_estimator_array[0][0][0] + self.current_drag_force_x
+                self.moment_estimator_array[0][1][0] = self.moment_estimator_array[0][1][0] + self.current_drag_force_x**2
                 if (self.mapping is True):
                     # call parallel fill communicator
-                    ParallelFillCommunicator = KratosMultiphysics.mpi.ParallelFillCommunicator(self.mapping_reference_model.GetModelPart("MainModelPart"))
+                    ParallelFillCommunicator = KratosMultiphysics.mpi.ParallelFillCommunicator(self.mapping_reference_model.GetModelPart("FluidModelPart"))
                     ParallelFillCommunicator.Execute()
                     # mapping from current model part of interest to reference model part the pressure
                     mapping_parameters = KratosMultiphysics.Parameters("""{
                         "mapper_type": "nearest_element",
-                        "interface_submodel_part_origin": "NoSlip2D_No_Slip_Auto1",
-                        "interface_submodel_part_destination": "NoSlip2D_No_Slip_Auto1",
-                        "echo_level" : 0,
-                        "search_radius": 1
+                        "interface_submodel_part_origin": "NoSlip3D_structure",
+                        "interface_submodel_part_destination": "NoSlip3D_structure",
+                        "echo_level" : 3
                         }""")
-                    mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMPIMapper(self._GetSolver().main_model_part,self.mapping_reference_model.GetModelPart("MainModelPart"),mapping_parameters)
+                    mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMPIMapper(self._GetSolver().main_model_part,self.mapping_reference_model.GetModelPart("FluidModelPart"),mapping_parameters)
                     mapper.Map(KratosMultiphysics.PRESSURE,KratosMultiphysics.PRESSURE)
-                    # update pressure field
+                    # pressure field power sums
                     self.power_sums_process_mapping.ExecuteFinalizeSolutionStep()
                 else:
-                    # update pressure field
+                    # update pressure field power sums
                     self.power_sums_process.ExecuteFinalizeSolutionStep()
         else:
             pass
@@ -124,8 +156,10 @@ class SimulationScenario(FluidDynamicsAnalysisAuxiliary):
         if (self.is_current_index_maximum_index is True):
             print("[SCREENING] computing qoi current index:",self.is_current_index_maximum_index)
             qoi_list = []
+
             # append time average drag force
-            qoi_list.append(self.mean_force_x)
+            qoi_list.append(self.mean_drag_force_x)
+
             # append time average pressure
             if (self.mapping is not True):
                 model_part_of_interest = self.model.GetModelPart(self.interest_model_part)
@@ -147,8 +181,9 @@ class SimulationScenario(FluidDynamicsAnalysisAuxiliary):
 
             # append number of contributions to the power sums list
             self.moment_estimator_array[0].append(self.number_instances_time_power_sums) # drag force x
-            # append drag force time series power sums
+            # append drag force x time series power sums
             qoi_list.append(self.moment_estimator_array[0]) # drag force x
+
             # append pressure time series power sums
             pressure_power_sums_list = []
             for node in model_part_of_interest.Nodes:
@@ -181,9 +216,11 @@ class SimulationScenario(FluidDynamicsAnalysisAuxiliary):
             else:
                 pickled_list_qoi = communicator.SendRecvString(string_to_send_qoi, 0, 0)
                 qoi_list = pickle.loads(pickled_list_qoi.encode("latin1"))
+
         else:
             print("[SCREENING] computing qoi current index:",self.is_current_index_maximum_index)
             qoi_list = None
+        # print("[SCREENING] qoi list:",qoi_list)
         return qoi_list
 
     def MappingAndEvaluateQuantityOfInterest(self):
@@ -192,17 +229,16 @@ class SimulationScenario(FluidDynamicsAnalysisAuxiliary):
         input:  self: an instance of the class
         """
         # call parallel fill communicator
-        ParallelFillCommunicator = KratosMultiphysics.mpi.ParallelFillCommunicator(self.mapping_reference_model.GetModelPart("MainModelPart"))
+        ParallelFillCommunicator = KratosMultiphysics.mpi.ParallelFillCommunicator(self.mapping_reference_model.GetModelPart("FluidModelPart"))
         ParallelFillCommunicator.Execute()
         # map from current model part of interest to reference model part
         mapping_parameters = KratosMultiphysics.Parameters("""{
             "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "NoSlip2D_No_Slip_Auto1",
-            "interface_submodel_part_destination": "NoSlip2D_No_Slip_Auto1",
-            "echo_level" : 0,
-            "search_radius": 1
+            "interface_submodel_part_origin": "NoSlip3D_structure",
+            "interface_submodel_part_destination": "NoSlip3D_structure",
+            "echo_level" : 3
             }""")
-        mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMPIMapper(self._GetSolver().main_model_part,self.mapping_reference_model.GetModelPart("MainModelPart"),mapping_parameters)
+        mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMPIMapper(self._GetSolver().main_model_part,self.mapping_reference_model.GetModelPart("FluidModelPart"),mapping_parameters)
         mapper.Map(KratosMultiphysics.CONTACT_PRESSURE, \
             KratosMultiphysics.CONTACT_PRESSURE,        \
             KratosMultiphysics.MappingApplication.Mapper.FROM_NON_HISTORICAL |     \
