@@ -299,9 +299,8 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
             for (unsigned int d = 0; d < Dim; ++d) // iterate over dimensions for velocity Dofs in this node combination
             {
                 double K = weight * tau_one(d,d) * AGradN[i] * rData.N[j];
-                double RSigmaU;
                 for (unsigned int e = 0; e < Dim; ++e){
-                    RSigmaU = tau_one(d,d) * sigma(d,e) * rData.N[i] * AGradN[j];
+                    double RSigmaU = tau_one(d,d) * sigma(d,e) * rData.N[i] * AGradN[j];
                     rMassMatrix(row+d, col+e) += weight * RSigmaU;
                 }
                 rMassMatrix(row+d, col+d) += K;
