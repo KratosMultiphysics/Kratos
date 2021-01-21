@@ -121,7 +121,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
         const double eps = std::numeric_limits<double>::epsilon();
         const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
 
-        const PropertiesType& r_properties = this->GetProperties();
+        const PropertiesType& r_properties = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
         const double rho = r_properties.GetValue(DENSITY);
         const double kappa = r_properties.GetValue(WALL_VON_KARMAN);
         const double beta = r_properties.GetValue(WALL_SMOOTHNESS_BETA);
