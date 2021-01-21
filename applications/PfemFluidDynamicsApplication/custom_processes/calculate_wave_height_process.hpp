@@ -20,8 +20,8 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include <fstream>
 
 namespace Kratos
 {
@@ -79,10 +79,36 @@ public:
   {
     KRATOS_TRY;
 
+    // We open the file where we print the wave height values
+    std::fstream myfile;
+    const std::string file_name = mOutputFileName + ".txt";
+    myfile.open(file_name);
 
+    const double time = mrModelPart.GetProcessInfo()[TIME];
 
+    // We loop over the nodes...
+    const auto it_node_begin = mrModelPart.NodesBegin();
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<int> max_vector(num_threads, 0.0);
 
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
+        auto it_node = it_node_begin + i;
+        // const int FEM_node_id = it_FEM_node->Id();
 
+        const int thread_id = OpenMPUtils::ThisThread();
+        const auto& r_node_coordinates = it_node->Coordinates();
+        if (it_node.IsNot(ISOLATED) && 
+            it_node.Is(FREE_SURFACE) &&
+            (r_node_coordinates(mPlaneDirection) > mPlaneCoordinates + mTolerance || r_node_coordinates(mPlaneDirection) < mPlaneCoordinates - mTolerance))
+        {
+          const double height = r_node_coordinates(mHeightDirection);
+          if (height > max_vector[thread_id])
+            max_vector[thread_id] = height;
+        }
+    }
+    const double max_height = *std::max_element(max_vector.begin(), max_vector.end());
+    // return *std::max_element(max_vector.begin(), max_vector.end());
 
     KRATOS_CATCH("");
   }
