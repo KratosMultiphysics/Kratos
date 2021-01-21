@@ -252,9 +252,10 @@ class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
             Kratos.DataCommunicator.GetDefault().Barrier()
 
     def tearDown(self):
-        DeleteTimeFiles('./AdjointVMSSensitivity2DTest/')
-        DeleteDirectoryIfExisting('./AdjointVMSSensitivity2DTest/cylinder_test_partitioned')
-        AdjointMPIVMSSensitivity._remove_h5_files("MainModelPart")
+        with KratosUnittest.WorkFolderScope('.', __file__):
+            DeleteTimeFiles('./AdjointVMSSensitivity2DTest/')
+            DeleteDirectoryIfExisting('./AdjointVMSSensitivity2DTest/cylinder_test_partitioned')
+            AdjointMPIVMSSensitivity._remove_h5_files("MainModelPart")
 
 if __name__ == '__main__':
     KratosUnittest.main()
