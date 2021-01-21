@@ -254,12 +254,6 @@ namespace Kratos
     int ErrorCode = 0;
     ErrorCode = MomentCondition::Check(rCurrentProcessInfo);
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD_VECTOR);
-    KRATOS_CHECK_VARIABLE_KEY(PLANE_MOMENT_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(PLANE_MOMENT_LOAD_VECTOR);
-
     return ErrorCode;
 
     KRATOS_CATCH( "" )

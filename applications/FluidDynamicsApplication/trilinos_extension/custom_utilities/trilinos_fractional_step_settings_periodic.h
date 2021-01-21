@@ -146,7 +146,7 @@ public:
             }
 
             // Strategy
-            this->mStrategies[BaseType::Velocity] = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > >(rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag);
+            this->mStrategies[BaseType::Velocity] = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > >(rModelPart, pScheme, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag);
 
         }
         else if ( rStrategyLabel == BaseType::Pressure )

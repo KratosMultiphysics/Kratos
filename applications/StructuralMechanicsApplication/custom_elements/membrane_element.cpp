@@ -127,25 +127,28 @@ void MembraneElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
 
-    //Constitutive Law initialisation
-    if ( mConstitutiveLawVector.size() != integration_points.size() )
-        mConstitutiveLawVector.resize( integration_points.size() );
+        //Constitutive Law initialisation
+        if ( mConstitutiveLawVector.size() != integration_points.size() )
+            mConstitutiveLawVector.resize( integration_points.size() );
 
-    if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
-        const GeometryType& r_geometry = GetGeometry();
-        const Properties& r_properties = GetProperties();
-        const auto& N_values = r_geometry.ShapeFunctionsValues(GetIntegrationMethod());
-        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-            mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector[point_number]->InitializeMaterial( r_properties, r_geometry, row(N_values , point_number ));
+        if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+            const GeometryType& r_geometry = GetGeometry();
+            const Properties& r_properties = GetProperties();
+            const auto& N_values = r_geometry.ShapeFunctionsValues(GetIntegrationMethod());
+            for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+                mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+                mConstitutiveLawVector[point_number]->InitializeMaterial( r_properties, r_geometry, row(N_values , point_number ));
+            }
+        } else {
+            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
         }
-    } else
-        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
 
-
-    mReferenceArea = GetGeometry().Area();
+        mReferenceArea = GetGeometry().Area();
+    }
     KRATOS_CATCH( "" )
 }
 
