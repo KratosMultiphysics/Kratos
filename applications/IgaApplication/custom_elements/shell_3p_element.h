@@ -184,7 +184,7 @@ public:
     */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType mat_size = number_of_nodes * 3;
@@ -207,7 +207,7 @@ public:
     */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType mat_size = number_of_nodes * 3;
@@ -233,7 +233,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType mat_size = number_of_nodes * 3;
@@ -355,7 +355,7 @@ private:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     );
