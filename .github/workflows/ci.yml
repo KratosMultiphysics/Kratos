@@ -70,7 +70,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/run_tests.py -l small -c python3
 
     - name: Running MPICore C++ tests (2 Cores)
@@ -78,7 +77,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore C++ tests (3 Cores)
@@ -86,7 +84,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 3 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore C++ tests (4 Cores)
@@ -94,7 +91,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 4 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore Python tests (2 Cores)
@@ -102,7 +98,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 kratos/mpi/tests/test_KratosMPICore.py --using-mpi
 
     - name: Running MPICore Python tests (3 Cores)
@@ -110,7 +105,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 3 python3 kratos/mpi/tests/test_KratosMPICore.py --using-mpi
 
     - name: Running MPICore Python tests (4 Cores)
@@ -118,7 +112,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 4 python3 kratos/mpi/tests/test_KratosMPICore.py --using-mpi
 
     - name: Running MPI Python TrilinosApplication (2 Cores)
@@ -126,7 +119,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 applications/TrilinosApplication/tests/test_TrilinosApplication_mpi.py --using-mpi
 
     - name: Running MPI Python TrilinosApplication (3 Cores)
@@ -134,7 +126,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 3 python3 applications/TrilinosApplication/tests/test_TrilinosApplication_mpi.py --using-mpi
 
     - name: Running MPI Python TrilinosApplication (4 Cores)
@@ -142,7 +133,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 4 python3 applications/TrilinosApplication/tests/test_TrilinosApplication_mpi.py --using-mpi
 
     - name: Running MPI Python CoSimulationApplication (2 Cores)
@@ -150,7 +140,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 applications/CoSimulationApplication/tests/test_CoSimulationApplication_mpi.py --using-mpi
 
     - name: Running MPI Python CoSimulationApplication (3 Cores)
@@ -158,7 +147,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 3 python3 applications/CoSimulationApplication/tests/test_CoSimulationApplication_mpi.py --using-mpi
 
     - name: Running MPI Python CoSimulationApplication (4 Cores)
@@ -166,7 +154,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 4 python3 applications/CoSimulationApplication/tests/test_CoSimulationApplication_mpi.py --using-mpi
 
     - name: Running MPI Python MappingApplication (2 Cores)
@@ -174,7 +161,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 applications/MappingApplication/tests/test_MappingApplication_mpi.py --using-mpi
 
     - name: Running MPI Python MappingApplication (3 Cores)
@@ -182,7 +168,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 3 python3 applications/MappingApplication/tests/test_MappingApplication_mpi.py --using-mpi
 
     - name: Running MPI Python MappingApplication (4 Cores)
@@ -190,7 +175,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 4 python3 applications/MappingApplication/tests/test_MappingApplication_mpi.py --using-mpi
 
     - name: Running MPI Python StructuralMechanicsApplication (2 Cores)
@@ -198,7 +182,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 applications/StructuralMechanicsApplication/tests/test_StructuralMechanicsApplication_mpi.py --using-mpi
 
     - name: Running MPI Python FluidDynamicsApplication (2 Cores)
@@ -206,7 +189,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 applications/FluidDynamicsApplication/tests/test_FluidDynamicsApplication_mpi.py --using-mpi
 
     - name: Running MPI Python RANSApplication (2 Cores)
@@ -214,7 +196,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 applications/RANSApplication/tests/test_RANSApplication_mpi.py --using-mpi
 
     - name: Running MPI Python ParticleMechanicsApplication (2 Cores)
@@ -222,7 +203,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 applications/ParticleMechanicsApplication/tests/test_ParticleMechanicsApplication_mpi.py --using-mpi
 
     - name: Running MPI Python ParticleMechanicsApplication (3 Cores)
@@ -230,7 +210,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 3 python3 applications/ParticleMechanicsApplication/tests/test_ParticleMechanicsApplication_mpi.py --using-mpi
 
     - name: Running MPI Python ParticleMechanicsApplication (4 Cores)
@@ -238,7 +217,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 4 python3 applications/ParticleMechanicsApplication/tests/test_ParticleMechanicsApplication_mpi.py --using-mpi
 
     - name: Running MPI Python MeshingApplication (2 Cores)
@@ -246,7 +224,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 applications/MeshingApplication/tests/test_MeshingApplication_mpi.py --using-mpi
 
     - name: Running MPI Python MeshingApplication (3 Cores)
@@ -254,7 +231,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe  -np 3 python3 applications/MeshingApplication/tests/test_MeshingApplication_mpi.py --using-mpi
 
     - name: Running MPI Python MeshingApplication (4 Cores)
@@ -262,7 +238,6 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe  -np 4 python3 applications/MeshingApplication/tests/test_MeshingApplication_mpi.py --using-mpi
 
   windows:
