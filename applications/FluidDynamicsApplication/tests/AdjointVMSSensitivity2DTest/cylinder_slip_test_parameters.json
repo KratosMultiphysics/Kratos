@@ -6,43 +6,7 @@
         "echo_level": 0,
         "parallel_type": "<PARALLEL_TYPE>"
     },
-    "_output_processes": {
-        "gid_output": [
-            {
-                "python_module": "gid_output_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "GiDOutputProcess",
-                "help": "This process writes postprocessing files for GiD",
-                "Parameters": {
-                    "model_part_name": "MainModelPart",
-                    "output_name": "interface_test",
-                    "postprocess_parameters": {
-                        "result_file_configuration": {
-                            "gidpost_flags": {
-                                "GiDPostMode": "GiD_PostBinary",
-                                "WriteDeformedMeshFlag": "WriteUndeformed",
-                                "WriteConditionsFlag": "WriteElementsOnly",
-                                "MultiFileFlag": "SingleFile"
-                            },
-                            "file_label": "time",
-                            "output_control_type": "step",
-                            "output_interval": 1.0,
-                            "body_output": true,
-                            "node_output": false,
-                            "skin_output": false,
-                            "plane_output": [],
-                            "nodal_results": [
-                                "VELOCITY",
-                                "PRESSURE"
-                            ],
-                            "gauss_point_results": []
-                        },
-                        "point_data_configuration": []
-                    }
-                }
-            }
-        ]
-    },
+    "_output_processes": {},
     "restart_options": {
         "SaveRestart": "False",
         "RestartFrequency": 0,
@@ -94,7 +58,21 @@
         }
     },
     "processes": {
-        "initial_conditions_process_list": [],
+        "initial_conditions_process_list": [
+            {
+                "python_module": "assign_scalar_variable_to_entities_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarInputToEntitiesProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.NoSlip2D_Cylinder",
+                    "variable_name": "Y_WALL",
+                    "value": 2.0,
+                    "entities": [
+                        "nodes"
+                    ]
+                }
+            }
+        ],
         "boundary_conditions_process_list": [
             {
                 "python_module": "assign_vector_variable_process",
@@ -129,7 +107,7 @@
                 }
             },
             {
-                "python_module": "apply_noslip_process",
+                "python_module": "apply_slip_process",
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
                 "process_name": "ApplyNoSlipProcess",
                 "Parameters": {
@@ -169,8 +147,25 @@
                     "nodal_solution_step_data_settings": {
                         "list_of_variables": [
                             "VELOCITY",
+                            "PRESSURE",
                             "ACCELERATION",
-                            "PRESSURE"
+                            "NORMAL",
+                            "BODY_FORCE"
+                        ]
+                    },
+                    "nodal_data_value_settings": {
+                        "list_of_variables": [
+                            "Y_WALL"
+                        ]
+                    },
+                    "nodal_flag_value_settings": {
+                        "list_of_variables": [
+                            "SLIP"
+                        ]
+                    },
+                    "condition_flag_value_settings": {
+                        "list_of_variables": [
+                            "SLIP"
                         ]
                     }
                 }

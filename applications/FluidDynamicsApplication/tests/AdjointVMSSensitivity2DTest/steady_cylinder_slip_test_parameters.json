@@ -1,48 +1,12 @@
 {
     "problem_data": {
-        "problem_name": "cylinder_test",
-        "start_time": 0.0,
-        "end_time": 0.095,
+        "problem_name": "steady_cylinder_test",
+        "parallel_type": "<PARALLEL_TYPE>",
         "echo_level": 0,
-        "parallel_type": "<PARALLEL_TYPE>"
+        "start_time": 0.0,
+        "end_time": 1.0
     },
-    "_output_processes": {
-        "gid_output": [
-            {
-                "python_module": "gid_output_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "GiDOutputProcess",
-                "help": "This process writes postprocessing files for GiD",
-                "Parameters": {
-                    "model_part_name": "MainModelPart",
-                    "output_name": "interface_test",
-                    "postprocess_parameters": {
-                        "result_file_configuration": {
-                            "gidpost_flags": {
-                                "GiDPostMode": "GiD_PostBinary",
-                                "WriteDeformedMeshFlag": "WriteUndeformed",
-                                "WriteConditionsFlag": "WriteElementsOnly",
-                                "MultiFileFlag": "SingleFile"
-                            },
-                            "file_label": "time",
-                            "output_control_type": "step",
-                            "output_interval": 1.0,
-                            "body_output": true,
-                            "node_output": false,
-                            "skin_output": false,
-                            "plane_output": [],
-                            "nodal_results": [
-                                "VELOCITY",
-                                "PRESSURE"
-                            ],
-                            "gauss_point_results": []
-                        },
-                        "point_data_configuration": []
-                    }
-                }
-            }
-        ]
-    },
+    "_output_processes": {},
     "restart_options": {
         "SaveRestart": "False",
         "RestartFrequency": 0,
@@ -53,58 +17,81 @@
         "solver_type": "Monolithic",
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "AdjointVMSSensitivity2DTest/cylinder_test"
+            "input_filename": "AdjointVMSSensitivity2DTest/steady_cylinder_test"
         },
         "material_import_settings": {
-            "materials_filename": "AdjointVMSSensitivity2DTest/cylinder_test_materials.json"
+            "materials_filename": "AdjointVMSSensitivity2DTest/steady_cylinder_test_materials.json"
         },
         "model_part_name": "MainModelPart",
+        "maximum_iterations": 1000,
         "domain_size": 2,
-        "maximum_iterations": 10,
         "echo_level": 0,
         "consider_periodic_conditions": false,
         "compute_reactions": true,
         "reform_dofs_at_each_step": false,
-        "relative_velocity_tolerance": 1e-3,
-        "absolute_velocity_tolerance": 1e-5,
-        "relative_pressure_tolerance": 1e-3,
-        "absolute_pressure_tolerance": 1e-5,
+        "relative_velocity_tolerance": 1e-5,
+        "absolute_velocity_tolerance": 1e-9,
+        "relative_pressure_tolerance": 1e-5,
+        "absolute_pressure_tolerance": 1e-9,
         "linear_solver_settings": {
             "solver_type": "amgcl",
             "max_iteration": 200,
-            "tolerance": 1e-8,
-            "coarse_enough": 500
+            "tolerance": 1e-9,
+            "provide_coordinates": false,
+            "smoother_type": "ilu0",
+            "krylov_type": "gmres",
+            "coarsening_type": "aggregation",
+            "scaling": false,
+            "verbosity": 0
         },
         "volume_model_part_name": "Parts_Fluid",
         "skin_parts": [
             "Inlet2D_Inlet",
             "Outlet2D_Outlet",
-            "NoSlip2D_Wall",
-            "NoSlip2D_Cylinder"
+            "NoSlip2D_Cylinder",
+            "NoSlip2D_Wall"
         ],
         "no_skin_parts": [],
         "time_stepping": {
             "automatic_time_step": false,
-            "time_step": 0.01
+            "time_step": 1.0
         },
+        "time_scheme": "steady",
+        "velocity_relaxation": 0.9,
+        "pressure_relaxation": 0.9,
         "formulation": {
             "element_type": "vms",
             "use_orthogonal_subscales": false,
-            "dynamic_tau": 1.0
+            "dynamic_tau": 0
         }
     },
     "processes": {
-        "initial_conditions_process_list": [],
+        "initial_conditions_process_list": [
+            {
+                "python_module": "assign_scalar_variable_to_entities_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarInputToEntitiesProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.NoSlip2D_Cylinder",
+                    "variable_name": "Y_WALL",
+                    "value": 2.0,
+                    "entities": [
+                        "nodes"
+                    ]
+                }
+            }
+        ],
         "boundary_conditions_process_list": [
             {
-                "python_module": "assign_vector_variable_process",
+                "python_module": "assign_vector_by_direction_process",
                 "kratos_module": "KratosMultiphysics",
-                "process_name": "AssignVectorVariableProcess",
+                "process_name": "AssignVectorByDirectionProcess",
                 "Parameters": {
                     "model_part_name": "MainModelPart.Inlet2D_Inlet",
                     "variable_name": "VELOCITY",
-                    "value": [
-                        0.0001,
+                    "modulus": 1.0,
+                    "direction": [
+                        1.0,
                         0.0,
                         0.0
                     ]
@@ -121,11 +108,11 @@
                 }
             },
             {
-                "python_module": "apply_noslip_process",
+                "python_module": "apply_slip_process",
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "process_name": "ApplyNoSlipProcess",
+                "process_name": "ApplySlipProcess",
                 "Parameters": {
-                    "model_part_name": "MainModelPart.NoSlip2D_Wall"
+                    "model_part_name": "MainModelPart.NoSlip2D_Cylinder"
                 }
             },
             {
@@ -133,7 +120,7 @@
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
                 "process_name": "ApplyNoSlipProcess",
                 "Parameters": {
-                    "model_part_name": "MainModelPart.NoSlip2D_Cylinder"
+                    "model_part_name": "MainModelPart.NoSlip2D_Wall"
                 }
             }
         ],
@@ -141,7 +128,7 @@
             {
                 "python_module": "assign_vector_by_direction_process",
                 "kratos_module": "KratosMultiphysics",
-                "process_name": "AssignVectorByDirectoinProcess",
+                "process_name": "AssignVectorByDirectionProcess",
                 "Parameters": {
                     "model_part_name": "MainModelPart.Parts_Fluid",
                     "variable_name": "BODY_FORCE",
@@ -158,7 +145,7 @@
         "auxiliar_process_list": [
             {
                 "kratos_module": "KratosMultiphysics.HDF5Application",
-                "python_module": "single_mesh_primal_output_process",
+                "python_module": "single_mesh_temporal_output_process",
                 "help": "",
                 "process_name": "",
                 "Parameters": {
@@ -169,8 +156,24 @@
                     "nodal_solution_step_data_settings": {
                         "list_of_variables": [
                             "VELOCITY",
-                            "ACCELERATION",
-                            "PRESSURE"
+                            "PRESSURE",
+                            "NORMAL",
+                            "BODY_FORCE"
+                        ]
+                    },
+                    "nodal_data_value_settings": {
+                        "list_of_variables": [
+                            "Y_WALL"
+                        ]
+                    },
+                    "nodal_flag_value_settings": {
+                        "list_of_variables": [
+                            "SLIP"
+                        ]
+                    },
+                    "condition_flag_value_settings": {
+                        "list_of_variables": [
+                            "SLIP"
                         ]
                     }
                 }
