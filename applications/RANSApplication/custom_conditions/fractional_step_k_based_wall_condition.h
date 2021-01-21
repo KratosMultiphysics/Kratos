@@ -291,28 +291,6 @@ public:
         if (Check != 0) {
             return Check;
         } else {
-            // Check that all required variables have been registered
-            if (VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "VELOCITY Key is 0. Check if the "
-                                   "application was correctly registered.",
-                                   "");
-            if (MESH_VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "MESH_VELOCITY Key is 0. Check if the "
-                                   "application was correctly registered.",
-                                   "");
-            if (NORMAL.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "NORMAL Key is 0. Check if the application "
-                                   "was correctly registered.",
-                                   "")
-            if (Y_WALL.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "Y_WALL Key is 0. Check if the application "
-                                   "was correctly registered.",
-                                   "")
-
             // Checks on nodes
 
             // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
@@ -409,7 +387,7 @@ public:
         }
     }
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3>>& rVariable,
         std::vector<array_1d<double, 3>>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override
@@ -430,7 +408,7 @@ public:
         }
     }
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override
@@ -447,7 +425,7 @@ public:
         rValues[0] = const_this->GetValue(rVariable);
     }
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 6>>& rVariable,
         std::vector<array_1d<double, 6>>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override
@@ -458,7 +436,7 @@ public:
         rValues[0] = const_this->GetValue(rVariable);
     }
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override
@@ -469,7 +447,7 @@ public:
         rValues[0] = const_this->GetValue(rVariable);
     }
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override

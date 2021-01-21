@@ -39,8 +39,6 @@ namespace Kratos
 
         mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
-        mMonotonicElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-
         mNothingCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2< Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) )
     {}
 
@@ -70,6 +68,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(SHOCK_STABILIZATION_FACTOR)
         KRATOS_REGISTER_VARIABLE(EQUIVALENT_MANNING)
         KRATOS_REGISTER_VARIABLE(DRY_HEIGHT)
+        KRATOS_REGISTER_VARIABLE(RELATIVE_DRY_HEIGHT)
         KRATOS_REGISTER_VARIABLE(DRY_DISCHARGE_PENALTY)
 
         // Post-process variables
@@ -95,6 +94,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(NEGATIVE_FLUX)
         KRATOS_REGISTER_VARIABLE(POSITIVE_RATIO)
         KRATOS_REGISTER_VARIABLE(NEGATIVE_RATIO)
+        KRATOS_REGISTER_VARIABLE(CUMULATIVE_CORRECTIONS)
 
         // Benchmark variables
         KRATOS_REGISTER_VARIABLE(EXACT_HEIGHT)
@@ -118,7 +118,6 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("LagrangianSWE2D4N", mLagrangianSWE2D4N)
 
         KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N)
-        KRATOS_REGISTER_ELEMENT("MonotonicElement2D3N", mMonotonicElement2D3N)
 
         KRATOS_REGISTER_CONDITION("NothingCondition2D2N", mNothingCondition2D2N)
     }

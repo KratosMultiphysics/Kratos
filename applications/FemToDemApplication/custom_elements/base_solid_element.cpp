@@ -399,7 +399,7 @@ void BaseSolidElement::AddExplicitContribution(
     // Compiting the nodal mass
     if (rDestinationVariable == NODAL_MASS ) {
         VectorType element_mass_vector(mat_size);
-        this->CalculateLumpedMassVector(element_mass_vector);
+        this->CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
 
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             const IndexType index = i * dimension;
@@ -538,7 +538,7 @@ void BaseSolidElement::CalculateMassMatrix(
     // LUMPED MASS MATRIX
     if (compute_lumped_mass_matrix) {
         VectorType temp_vector(mat_size);
-        CalculateLumpedMassVector(temp_vector);
+        CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
         for (IndexType i = 0; i < mat_size; ++i)
             rMassMatrix(i, i) = temp_vector[i];
     } else { // CONSISTENT MASS
@@ -1387,14 +1387,6 @@ int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
     const SizeType number_of_nodes = this->GetGeometry().size();
     const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
 
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {
         const NodeType &rnode = this->GetGeometry()[i];
@@ -1756,7 +1748,9 @@ void BaseSolidElement::CalculateAndAddExtForceContribution(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector) const
+void BaseSolidElement::CalculateLumpedMassVector(
+    VectorType &rLumpedMassVector,
+    const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -1767,8 +1761,8 @@ void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector) const
     const SizeType mat_size = dimension * number_of_nodes;
 
     // Clear matrix
-    if (rMassVector.size() != mat_size)
-        rMassVector.resize( mat_size, false );
+    if (rLumpedMassVector.size() != mat_size)
+        rLumpedMassVector.resize( mat_size, false );
 
     const double density = r_prop[DENSITY];
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
@@ -1783,7 +1777,7 @@ void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector) const
         const double temp = lumping_factors[i] * total_mass;
         for ( IndexType j = 0; j < dimension; ++j ) {
             IndexType index = i * dimension + j;
-            rMassVector[index] = temp;
+            rLumpedMassVector[index] = temp;
         }
     }
 
@@ -1830,7 +1824,7 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
     // 2.-Calculate mass matrix:
     if (alpha > std::numeric_limits<double>::epsilon()) {
         VectorType temp_vector(mat_size);
-        CalculateLumpedMassVector(temp_vector);
+        CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
         for (IndexType i = 0; i < mat_size; ++i)
             rDampingMatrix(i, i) += alpha * temp_vector[i];
     }

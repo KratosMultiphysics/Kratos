@@ -126,7 +126,7 @@ public:
      */
     ComputeGradientPouliot2012(IndexType NewId, const NodesArrayType& ThisNodes) :
         BaseType(NewId, ThisNodes)
-    {}	
+    {}
 
     /// Constructor using a geometry object.
     /**
@@ -178,7 +178,7 @@ public:
     /// Calculate the element's local contribution to the system for the current step. It is a combination of the
     /// RHS of the Base class (weighed by a small parameter to stabilize the system) and the contribution described in
     /// the Pouliot 2012 paper
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Provides the global indices for each one of this element's local rows
     /**
@@ -187,14 +187,14 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    virtual void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    virtual void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Checks the input and that all required Kratos variables have been registered.
     /**
@@ -205,7 +205,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Inquiry
@@ -304,21 +304,21 @@ private:
      * @param rCurrentProcessInfo the current process info instance
      */
 
-    virtual void AddPouliot2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    virtual void AddPouliot2012LHS(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void AddPouliot2012StabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    virtual void AddPouliot2012StabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void AddFEMLaplacianStabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    virtual void AddFEMLaplacianStabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 
     void AssembleEdgeLHSContribution(const unsigned int edge[2], const array_1d<double, 3>& edge_normalized_vector, MatrixType& rLeftHandSideMatrix);
 
-    virtual void AddPouliot2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo);
+    virtual void AddPouliot2012RHS(VectorType& F, const ProcessInfo& rCurrentProcessInfo);
 
     virtual void AddStabilizationRHSContribution(VectorType& F,
                                                  const array_1d<double, TNumNodes>& rShapeFunc,
                                                  const double Weight);
 
-    void CalculateStabilizationRHS(const double epsilon, VectorType& F, ProcessInfo& rCurrentProcessInfo);
+    void CalculateStabilizationRHS(const double epsilon, VectorType& F, const ProcessInfo& rCurrentProcessInfo);
 
     void AssembleEdgeRHSContributionX(const unsigned int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F);
 

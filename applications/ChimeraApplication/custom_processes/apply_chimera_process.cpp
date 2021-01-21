@@ -17,6 +17,7 @@
 #include <omp.h>
 #include "custom_processes/apply_chimera_process.h"
 #include "containers/model.h"
+#include "includes/deprecated_variables.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/variable_utils.h"
 
