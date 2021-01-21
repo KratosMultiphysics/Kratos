@@ -16,7 +16,6 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
         self.element_name = "SWE"
         self.condition_name = "LineCondition"
         self.min_buffer_size = 2
-        self.advection_epsilon = self.settings["advection_epsilon"].GetDouble()
 
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.MOMENTUM_X, self.main_model_part)
@@ -30,24 +29,19 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        epsilon = max(self.advection_epsilon, self.GetComputingModelPart().ProcessInfo[SW.DRY_HEIGHT])
         SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.GetComputingModelPart())
-        SW.ComputeVelocityProcess(self.GetComputingModelPart(), epsilon).Execute()
+        SW.ShallowWaterUtilities().ComputeVelocity(self.GetComputingModelPart(), True)
         SW.ShallowWaterUtilities().ComputeAccelerations(self.GetComputingModelPart())
 
     @classmethod
     def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""
         {
-            "advection_epsilon"     : 1.0e-2,
             "permeability"          : 1.0e-4,
             "dry_height_threshold"  : 1e-3,
             "dry_discharge_penalty" : 1.0e+2,
             "stabilization_factor"  : 0.005,
-            "wetting_drying_model"  : {
-                "model_name"    : "negative_height",
-                "beta"          : 1e4
-            }
+            "relative_dry_height"   : 0.1
         }""")
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
@@ -56,6 +50,7 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
         super().PrepareModelPart()
         permeability = self.settings["permeability"].GetDouble()
         dry_height = self.settings["dry_height_threshold"].GetDouble()
+        relative_dry_height = self.settings["relative_dry_height"].GetDouble()
         discharge_penalty = self.settings["dry_discharge_penalty"].GetDouble()
         stabilization_factor = self.settings["stabilization_factor"].GetDouble()
 
@@ -67,6 +62,7 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
 
         self.main_model_part.ProcessInfo.SetValue(SW.PERMEABILITY, permeability)
         self.main_model_part.ProcessInfo.SetValue(SW.DRY_HEIGHT, dry_height)
+        self.main_model_part.ProcessInfo.SetValue(SW.RELATIVE_DRY_HEIGHT, relative_dry_height)
         self.main_model_part.ProcessInfo.SetValue(SW.DRY_DISCHARGE_PENALTY, discharge_penalty)
         self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, stabilization_factor)
 
