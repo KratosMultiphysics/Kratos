@@ -45,13 +45,15 @@ public:
   ///@name Life Cycle
   ///@{
   CalculateWaveHeightProcess(ModelPart &rModelPart, 
-                             int HeightDirection,
-                             int PlaneDirection,
-                             double PlaneCoordinates = 0.0,
-                             double HeightReference = 0.0,
-                             double Tolerance = 1.0e-2) : mrModelPart(rModelPart), mHeightDirection(HeightDirection),
+                             const int HeightDirection,
+                             const int PlaneDirection,
+                             const double PlaneCoordinates = 0.0,
+                             const double HeightReference = 0.0,
+                             const double Tolerance = 1.0e-2,
+                             const std::string OutputFileName = "WaveHeight") : mrModelPart(rModelPart), mHeightDirection(HeightDirection),
                                                                 mPlaneDirection(PlaneDirection), mPlaneCoordinates(PlaneCoordinates),
-                                                                mHeightReference(HeightReference), mTolerance(Tolerance)
+                                                                mHeightReference(HeightReference), mTolerance(Tolerance),
+                                                                mOutputFileName(OutputFileName)
   {
   }
 
@@ -76,6 +78,10 @@ public:
   void Execute() override
   {
     KRATOS_TRY;
+
+
+
+
 
 
     KRATOS_CATCH("");
@@ -151,6 +157,8 @@ private:
   double mPlaneCoordinates;
   double mHeightReference;
   double mTolerance;
+
+  std::string mOutputFileName;
 
   ///@}
   ///@name Private Operations
