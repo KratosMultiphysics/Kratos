@@ -1,7 +1,7 @@
 # import Kratos
 from KratosMultiphysics import *
 if not IsDistributedRun():
-    raise Exception("These tests can only be executed in MPI / distributed!")
+    raise Exception("This test script can only be executed in MPI!")
 
 
 # Import Kratos "wrapper" for unittests

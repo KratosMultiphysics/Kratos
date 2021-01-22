@@ -1,11 +1,14 @@
-# import Kratos
-import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
+if not KM.IsDistributedRun():
+    raise Exception("This test script can only be executed in MPI!")
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
+# TODO this needs refactoring!!!
+if KM.ParallelEnvironment.GetDefaultSize() != 2:
     raise Exception("The MPI tests currently support only being run with 2 processors!")
 
 # Import the tests or test_classes to create the suits
