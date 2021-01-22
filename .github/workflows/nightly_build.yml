@@ -54,13 +54,26 @@ jobs:
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
-    - name: Running MPI Python RANSApplication (2 Cores)
-      timeout-minutes : 10
+    - name: Running Python MPI tests (2 Cores)
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        mpiexec -np 2 python3 applications/RANSApplication/tests/test_RANSApplication_mpi.py --using-mpi -l nightly
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -p 2
+
+    - name: Running Python MPI tests (3 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -p 3
+
+    - name: Running Python MPI tests (4 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -p 4
 
 
   windows-nightly:
