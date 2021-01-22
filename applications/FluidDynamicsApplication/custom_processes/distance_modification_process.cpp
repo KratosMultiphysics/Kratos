@@ -297,6 +297,31 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
                 }
             }
         }
+
+        // Check whether user provided flag to calculate extrapolated edge distances
+        if (elems_begin->Has(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES)) {
+            #pragma omp parallel for
+            for (int i_elem = 0; i_elem < static_cast<int>(n_elems); ++i_elem){
+                auto it_elem = elems_begin + i_elem;
+
+                // Compute the distance tolerance
+                const double tol_d = mDistanceThreshold*(it_elem->GetGeometry()).Length();
+
+                // Check if the distance values are close to zero
+                Vector &r_elem_extra_edge_dist = it_elem->GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
+                for (unsigned int i_edge = 0; i_edge < r_elem_extra_edge_dist.size(); ++i_edge){
+                    if (std::abs(r_elem_extra_edge_dist(i_edge)) < mDistanceThreshold){
+                        r_elem_extra_edge_dist(i_edge) = mDistanceThreshold;
+                    }
+                }
+                Vector &r_elem_dist_with_extra = it_elem->GetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED);
+                for (unsigned int i_node = 0; i_node < r_elem_dist_with_extra.size(); ++i_node){
+                    if (std::abs(r_elem_dist_with_extra(i_node)) < tol_d){
+                        r_elem_dist_with_extra(i_node) = r_elem_dist_with_extra(i_node) > 0.0 ? tol_d : -tol_d;
+                    }
+                }
+            }
+        }
     } else {
         // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
 
@@ -336,6 +361,50 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
             {
                 mModifiedDistancesIDs.insert(mModifiedDistancesIDs.end(),aux_modified_distances_ids.begin(),aux_modified_distances_ids.end());
                 mModifiedElementalDistancesValues.insert(mModifiedElementalDistancesValues.end(),aux_modified_elemental_distances.begin(),aux_modified_elemental_distances.end());
+            }
+
+            // Check whether user provided flag to calculate extrapolated edge distances
+            if (elems_begin->Has(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES)) {
+                // Auxiliar chunk arrays
+                std::vector<unsigned int> aux_modified_distances_with_extra_ids;
+                std::vector<Vector> aux_modified_elemental_distances_with_extra;
+                std::vector<unsigned int> aux_modified_extra_edge_distances_ids;
+                std::vector<Vector> aux_modified_elemental_extra_edge_distances;
+
+                for (auto it_elem = elems_begin; it_elem < elems_end; ++it_elem) {
+                    // Compute the distance tolerance
+                    const double tol_d = mDistanceThreshold * (it_elem->GetGeometry()).Length();
+
+                    // Check if the distance values are close to zero
+                    Vector &r_elem_dist_with_extra = it_elem->GetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED);
+                    for (unsigned int i_node = 0; i_node < r_elem_dist_with_extra.size(); ++i_node) {
+                        if (std::abs(r_elem_dist_with_extra(i_node)) < tol_d) {
+                            aux_modified_distances_with_extra_ids.push_back(it_elem->Id());
+                            aux_modified_elemental_distances_with_extra.push_back(r_elem_dist_with_extra);
+                            r_elem_dist_with_extra(i_node) = r_elem_dist_with_extra(i_node) > 0.0 ? tol_d : -tol_d;
+                        }
+                    }
+                    Vector &r_elem_extra_edge_dist = it_elem->GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
+                    for (unsigned int i_edge = 0; i_edge < r_elem_extra_edge_dist.size(); ++i_edge) {
+                        if (std::abs(r_elem_extra_edge_dist(i_edge)) < mDistanceThreshold) {
+                            aux_modified_extra_edge_distances_ids.push_back(it_elem->Id());
+                            aux_modified_elemental_extra_edge_distances.push_back(r_elem_extra_edge_dist);
+                            r_elem_extra_edge_dist(i_edge) = mDistanceThreshold;
+                        }
+                    }
+                }
+
+                // Save the auxiliar chunk arrays
+                #pragma omp critical
+                {
+                    mModifiedDistancesWithExtrapolatedIDs.insert(mModifiedDistancesWithExtrapolatedIDs.end(),aux_modified_distances_with_extra_ids.begin(),aux_modified_distances_with_extra_ids.end());
+                    mModifiedElementalDistancesWithExtrapolatedValues.insert(mModifiedElementalDistancesWithExtrapolatedValues.end(),
+                        aux_modified_elemental_distances_with_extra.begin(),aux_modified_elemental_distances_with_extra.end());
+
+                    mModifiedExtrapolatedEdgeDistancesIDs.insert(mModifiedExtrapolatedEdgeDistancesIDs.end(),aux_modified_extra_edge_distances_ids.begin(),aux_modified_extra_edge_distances_ids.end());
+                    mModifiedElementalExtrapolatedEdgeDistancesValues.insert(mModifiedElementalExtrapolatedEdgeDistancesValues.end(),
+                        aux_modified_elemental_extra_edge_distances.begin(),aux_modified_elemental_extra_edge_distances.end());
+                }
             }
         }
     }
@@ -400,11 +469,33 @@ void DistanceModificationProcess::RecoverOriginalDiscontinuousDistance() {
         mrModelPart.GetElement(elem_id).SetValue(ELEMENTAL_DISTANCES,elem_dist);
     }
 
+    #pragma omp parallel for
+    for (int i_elem = 0; i_elem < static_cast<int>(mModifiedDistancesWithExtrapolatedIDs.size()); ++i_elem) {
+        const unsigned int elem_id = mModifiedDistancesWithExtrapolatedIDs[i_elem];
+        const auto elem_dist = mModifiedElementalDistancesWithExtrapolatedValues[i_elem];
+        mrModelPart.GetElement(elem_id).SetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED,elem_dist);
+    }
+
+    #pragma omp parallel for
+    for (int i_elem = 0; i_elem < static_cast<int>(mModifiedExtrapolatedEdgeDistancesIDs.size()); ++i_elem) {
+        const unsigned int elem_id = mModifiedExtrapolatedEdgeDistancesIDs[i_elem];
+        const auto elem_dist = mModifiedElementalExtrapolatedEdgeDistancesValues[i_elem];
+        mrModelPart.GetElement(elem_id).SetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES,elem_dist);
+    }
+
     // Empty the modified distance vectors
     mModifiedDistancesIDs.resize(0);
     mModifiedElementalDistancesValues.resize(0);
+    mModifiedDistancesWithExtrapolatedIDs.resize(0);
+    mModifiedElementalDistancesWithExtrapolatedValues.resize(0);
+    mModifiedExtrapolatedEdgeDistancesIDs.resize(0);
+    mModifiedElementalExtrapolatedEdgeDistancesValues.resize(0);
     mModifiedDistancesIDs.shrink_to_fit();
     mModifiedElementalDistancesValues.shrink_to_fit();
+    mModifiedDistancesWithExtrapolatedIDs.shrink_to_fit();
+    mModifiedElementalDistancesWithExtrapolatedValues.shrink_to_fit();
+    mModifiedExtrapolatedEdgeDistancesIDs.shrink_to_fit();
+    mModifiedElementalExtrapolatedEdgeDistancesValues.shrink_to_fit();
 
     // Restore the TO_SPLIT flag original status
     this->SetDiscontinuousDistanceToSplitFlag();

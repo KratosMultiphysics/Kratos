@@ -149,19 +149,23 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart&                                       mrModelPart;
-    double                                    mDistanceThreshold;
-    bool                                             mIsModified;
-    bool                                     mContinuousDistance;
-    bool                                        mCheckAtEachStep;
-    bool                                    mNegElemDeactivation;
-    bool                               mAvoidAlmostEmptyElements;
-    bool                                mRecoverOriginalDistance;
-    std::vector<unsigned int>              mModifiedDistancesIDs;
-    std::vector<double>                 mModifiedDistancesValues;
-    std::vector<Vector>        mModifiedElementalDistancesValues;
-    std::vector<const Variable<double>*>    mDoubleVariablesList;
-    std::vector<const ComponentType*>    mComponentVariablesList;
+    ModelPart&                                                                 mrModelPart;
+    double                                                              mDistanceThreshold;
+    bool                                                                       mIsModified;
+    bool                                                               mContinuousDistance;
+    bool                                                                  mCheckAtEachStep;
+    bool                                                              mNegElemDeactivation;
+    bool                                                         mAvoidAlmostEmptyElements;
+    bool                                                          mRecoverOriginalDistance;
+    std::vector<unsigned int>                                        mModifiedDistancesIDs;
+    std::vector<double>                                           mModifiedDistancesValues;
+    std::vector<Vector>                                  mModifiedElementalDistancesValues;
+    std::vector<unsigned int>                        mModifiedDistancesWithExtrapolatedIDs;
+    std::vector<Vector>                  mModifiedElementalDistancesWithExtrapolatedValues;
+    std::vector<unsigned int>                        mModifiedExtrapolatedEdgeDistancesIDs;
+    std::vector<Vector>                  mModifiedElementalExtrapolatedEdgeDistancesValues;
+    std::vector<const Variable<double>*>                              mDoubleVariablesList;
+    std::vector<const ComponentType*>                              mComponentVariablesList;
 
     ///@}
     ///@name Protected Operators

@@ -295,9 +295,11 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
     }
 
     // Number of edges cut by extrapolated geometry, if given
-    for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
-        if (rData.ElementalExtrapolatedEdgeDistances[i] > 0.0) {
-            rData.NumExtraIntersectedEdges++;
+    if (!rData.ElementalExtrapolatedEdgeDistances.empty()) {
+        for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
+            if (rData.ElementalExtrapolatedEdgeDistances[i] > 0.0) {
+                rData.NumExtraIntersectedEdges++;
+            }
         }
     }
 
