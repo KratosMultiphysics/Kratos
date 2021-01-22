@@ -1,5 +1,10 @@
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
+if not KM.IsDistributedRun():
+    raise Exception("This test script can only be executed in MPI!")
+
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.mpi # only needed until the command-line can parse "--using-mpi"
 
 from test_structural_mesh_motion_2d import TestCase as TTestCaseStructural2D
 from test_structural_mesh_motion_3d import TestCase as TTestCaseStructural3D
@@ -43,9 +48,6 @@ def AssembleTestSuites():
     allMPISuite = suites['mpi_all']
     allMPISuite.addTests([nightlyMPISuite]) # already contains the smallSuite
     allMPISuite.addTests([validationMPISuite])
-
-    allSuite = suites['all']
-    allSuite.addTests(allMPISuite)
 
     return suites
 
