@@ -7,10 +7,6 @@ if not KM.IsDistributedRun():
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# TODO this needs refactoring!!!
-if KM.ParallelEnvironment.GetDefaultSize() != 2:
-    raise Exception("The MPI tests currently support only being run with 2 processors!")
-
 # Import the tests or test_classes to create the suits
 
 # Shell tests
