@@ -173,9 +173,6 @@ namespace Kratos
 		// Compute the number of intersected edges
 		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
 		array_1d<unsigned int, n_edges> cut_edges_vector;
-		constexpr int number_of_tetrahedra_points = TDim + 1;
-		Vector& elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
-
 		array_1d<double, n_edges> cut_edges_ratio_vector;
 		std::vector<array_1d <double,3> > int_pts_vector;
 		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_vector, cut_edges_ratio_vector, int_pts_vector);
@@ -185,52 +182,7 @@ namespace Kratos
 		// If there is intersection, calculate the elemental distances
 		const bool is_intersection = (n_cut_edges < rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
 		if (is_intersection){
-			// If there are more than 3 intersected edges, compute the least squares plane approximation
-			// by using the ComputePlaneApproximation utility. Otherwise, the distance is computed using
-			// the plane defined by the 3 intersection points.
-			auto &r_geometry = rElement1.GetGeometry();
-			const bool do_plane_approx = (n_cut_edges == r_geometry.WorkingSpaceDimension() || (int_pts_vector.size() < TDim)) ? false : true;
-
-			if (do_plane_approx){
-				// Call the plane optimization utility
-				array_1d<double,3> base_pt, normal;
-				ComputePlaneApproximation(rElement1, int_pts_vector, base_pt, normal);
-
-				// Compute the distance to the approximation plane
-				Plane3D approximation_plane(normal, Point{base_pt});
-				for (int i = 0; i < number_of_tetrahedra_points; i++) {
-					elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
-				}
-			} else {
-				if (int_pts_vector.size() >= TDim) {
-					// Create a plane with the 3 intersection points (or 2 in 2D)
-					Plane3D plane = SetIntersectionPlane(int_pts_vector);
-					// Compute the distance to the intersection plane
-					for (int i = 0; i < number_of_tetrahedra_points; i++) {
-						elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
-					}
-				}
-				else {
-					// Not enough intersection points to build a plane
-					// Use the intersected objects to create an approximation plane
-					std::vector<array_1d<double,3>> int_pts_vector;
-					for (const auto &r_int_obj : rIntersectedObjects) {
-						for (std::size_t i_int = 0; i_int < r_int_obj.GetGeometry().size(); i_int++) {
-							int_pts_vector.push_back(r_int_obj.GetGeometry()[i_int].Coordinates());
-						}
-					}
-					array_1d<double,3> base_pt, normal;
-					ComputePlaneApproximation(rElement1, int_pts_vector, base_pt, normal);
-					Plane3D approximation_plane(normal, Point{base_pt});
-
-					// Compute the distance to the intersection plane
-					for (int i = 0; i < number_of_tetrahedra_points; i++) {
-						elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
-					}
-				}
-			}
-			// Correct the distance values orientation
-			CorrectDistanceOrientation(r_geometry, rIntersectedObjects, elemental_distances);
+			ComputeIntersectionPlaneElementalDistances(rElement1, rIntersectedObjects, int_pts_vector);
 		}
 
 		// Check if the element is split and set the TO_SPLIT flag accordingly
@@ -369,7 +321,7 @@ namespace Kratos
 		// Otherwise, the distance is computed using the plane defined by the 3 (3D) or 2 (2D) intersection points.
 		const auto& r_geometry = rElement.GetGeometry();
 		const unsigned int n_cut_edges = rIntersectionPointsCoordinates.size();
-		const bool do_plane_approx = (n_cut_edges == TDim) ? false : true;
+		const bool do_plane_approx = (n_cut_edges == r_geometry.WorkingSpaceDimension() || (rIntersectionPointsCoordinates.size() < TDim)) ? false : true;
 
 		if (do_plane_approx){
 			// Call the plane optimization utility
@@ -382,15 +334,33 @@ namespace Kratos
 				r_elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
 			}
 		} else {
-			// Create a plane with the 3 intersection points (or 2 in 2D)
-			Plane3D plane = SetIntersectionPlane(rIntersectionPointsCoordinates);
+			if (rIntersectionPointsCoordinates.size() >= TDim) {
+				// Create a plane with the 3 intersection points (or 2 in 2D)
+				Plane3D plane = SetIntersectionPlane(rIntersectionPointsCoordinates);
+				// Compute the distance to the intersection plane
+				for (std::size_t i = 0; i < num_nodes; i++) {
+					r_elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
+				}
+			}
+			else {
+				// Not enough intersection points to build a plane
+				// Use the intersected objects to create an approximation plane
+				std::vector<array_1d<double,3>> int_pts_vector;
+				for (const auto &r_int_obj : rIntersectedObjects) {
+					for (std::size_t i_int = 0; i_int < r_int_obj.GetGeometry().size(); i_int++) {
+						int_pts_vector.push_back(r_int_obj.GetGeometry()[i_int].Coordinates());
+					}
+				}
+				array_1d<double,3> base_pt, normal;
+				ComputePlaneApproximation(rElement, int_pts_vector, base_pt, normal);
+				Plane3D approximation_plane(normal, Point{base_pt});
 
-			// Compute the distance to the intersection plane
-			for (std::size_t i = 0; i < num_nodes; i++) {
-				r_elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
+				// Compute the distance to the intersection plane
+				for (std::size_t i = 0; i < num_nodes; i++) {
+					r_elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
+				}
 			}
 		}
-
 		// Correct the distance values orientation
 		CorrectDistanceOrientation(r_geometry, rIntersectedObjects, r_elemental_distances);
 	}
