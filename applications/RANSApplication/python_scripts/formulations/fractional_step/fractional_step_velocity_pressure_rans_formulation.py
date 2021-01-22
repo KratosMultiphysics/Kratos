@@ -151,13 +151,9 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
 
         process_info = model_part.ProcessInfo
         wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
-        kappa = process_info[KratosRANS.VON_KARMAN]
-        beta = process_info[KratosRANS.WALL_SMOOTHNESS_BETA]
         wall_function_update_process = KratosRANS.RansWallFunctionUpdateProcess(
             model_part.GetModel(),
             wall_model_part_name,
-            kappa,
-            beta,
             self.echo_level)
 
         self.AddProcess(wall_function_update_process)

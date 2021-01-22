@@ -90,7 +90,6 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
 
         process_info = model_part.ProcessInfo
         wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
-        kappa = process_info[KratosRANS.VON_KARMAN]
         minimum_nut = self.GetParameters()["minimum_turbulent_viscosity"].GetDouble()
 
         nut_process = KratosRANS.RansNutKOmegaUpdateProcess(
@@ -103,7 +102,6 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         nut_wall_process = KratosRANS.RansNutYPlusWallFunctionUpdateProcess(
                                             model,
                                             wall_model_part_name,
-                                            kappa,
                                             minimum_nut,
                                             self.echo_level)
         self.AddProcess(nut_wall_process)
