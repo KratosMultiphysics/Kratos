@@ -82,9 +82,7 @@ class CustomProcessTest(UnitTest.TestCase):
             }
         ]''')
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+        self._RunProcessTest(settings)
 
     def testClipScalarVariableProcess(self):
         settings = Kratos.Parameters(r'''
@@ -102,9 +100,7 @@ class CustomProcessTest(UnitTest.TestCase):
             }
         ]''')
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+        self._RunProcessTest(settings)
 
         for node in self.model_part.Nodes:
             density = node.GetSolutionStepValue(Kratos.DENSITY)
@@ -140,9 +136,7 @@ class CustomProcessTest(UnitTest.TestCase):
             }
         ]''')
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+        self._RunProcessTest(settings)
 
         for node in self.model.GetModelPart("FluidModelPart.AutomaticInlet2D_inlet").Nodes:
             self.assertEqual(node.Is(Kratos.INLET), True)
@@ -245,9 +239,7 @@ class CustomProcessTest(UnitTest.TestCase):
             m[1, 1] = node.GetValue(Kratos.VELOCITY)[2]
             node.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, m)
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+        self._RunProcessTest(settings)
 
     def testKTurbulentIntensityInletProcess(self):
         settings = Kratos.Parameters(r'''
@@ -268,12 +260,10 @@ class CustomProcessTest(UnitTest.TestCase):
         test_variables = ["TURBULENT_KINETIC_ENERGY"]
         test_model_part_name = "FluidModelPart.AutomaticInlet2D_inlet"
         test_file_name = "k_turbulent_intensity_inlet_test_output"
-        CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-        # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+        CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
+        # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+        self._RunProcessTest(settings)
 
         for node in self.model.GetModelPart(test_model_part_name).Nodes:
             self.assertEqual(node.IsFixed(KratosRANS.TURBULENT_KINETIC_ENERGY), True)
@@ -295,14 +285,12 @@ class CustomProcessTest(UnitTest.TestCase):
         test_variables = ["TURBULENT_ENERGY_DISSIPATION_RATE"]
         test_model_part_name = "FluidModelPart.AutomaticInlet2D_inlet"
         test_file_name = "epsilon_turbulent_mixing_length_inlet_test_output"
-        CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-        # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+        CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
+        # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
         Kratos.VariableUtils().AddDof(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, self.model_part)
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+        self._RunProcessTest(settings)
 
         for node in self.model.GetModelPart(test_model_part_name).Nodes:
             self.assertEqual(node.IsFixed(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE), True)
@@ -325,12 +313,10 @@ class CustomProcessTest(UnitTest.TestCase):
         test_variables = ["TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE"]
         test_model_part_name = "FluidModelPart.AutomaticInlet2D_inlet"
         test_file_name = "omega_turbulent_mixing_length_inlet_test_output"
-        CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-        # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+        CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
+        # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+        self._RunProcessTest(settings)
 
         for node in self.model.GetModelPart(test_model_part_name).Nodes:
             self.assertEqual(node.IsFixed(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE), True)
@@ -351,12 +337,10 @@ class CustomProcessTest(UnitTest.TestCase):
         test_variables = ["TURBULENT_VISCOSITY", "VISCOSITY"]
         test_model_part_name = "FluidModelPart.AutomaticInlet2D_inlet"
         test_file_name = "nut_k_epsilon_test_output"
-        CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-        # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+        CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
+        # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+        self._RunProcessTest(settings)
 
     def testNutKOmegaUpdateProcess(self):
         settings = Kratos.Parameters(r'''
@@ -374,12 +358,10 @@ class CustomProcessTest(UnitTest.TestCase):
         test_variables = ["TURBULENT_VISCOSITY", "VISCOSITY"]
         test_model_part_name = "FluidModelPart.AutomaticInlet2D_inlet"
         test_file_name = "nut_k_omega_test_output"
-        CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-        # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+        CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
+        # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+        self._RunProcessTest(settings)
 
     def testNutKOmegaSSTUpdateProcess(self):
         settings = Kratos.Parameters(r'''
@@ -397,12 +379,10 @@ class CustomProcessTest(UnitTest.TestCase):
         test_variables = ["TURBULENT_VISCOSITY", "VISCOSITY"]
         test_model_part_name = "FluidModelPart.AutomaticInlet2D_inlet"
         test_file_name = "nut_k_omega_sst_test_output"
-        CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-        # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+        CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
+        # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+        self._RunProcessTest(settings)
 
     def testNutYPlusWallFunctionUpdateProcess(self):
         settings = Kratos.Parameters(r'''
@@ -422,12 +402,10 @@ class CustomProcessTest(UnitTest.TestCase):
         test_variables = ["TURBULENT_VISCOSITY", "VISCOSITY"]
         test_model_part_name = "FluidModelPart.AutomaticInlet2D_inlet"
         test_file_name = "nut_y_plus_wall_function_test_output"
-        CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-        # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+        CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
+        # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+        self._RunProcessTest(settings)
 
     def testComputeReactionsProcess(self):
         settings = Kratos.Parameters(r'''
@@ -447,12 +425,10 @@ class CustomProcessTest(UnitTest.TestCase):
         test_variables = ["REACTION"]
         test_model_part_name = "FluidModelPart.Slip2D.Slip2D_walls"
         test_file_name = "compute_reactions_test_output"
-        CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-        # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+        CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
+        # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+        self._RunProcessTest(settings)
 
     def testWallDistanceCalculationProcess(self):
         settings = Kratos.Parameters(r'''
@@ -475,16 +451,19 @@ class CustomProcessTest(UnitTest.TestCase):
         test_variables = ["DISTANCE"]
         test_model_part_name = "FluidModelPart"
         test_file_name = "wall_distance_calculation_test_output"
-        CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-        # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+        CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
+        # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
         CalculateNormalsOnConditions(self.model_part)
+        self._RunProcessTest(settings)
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+    def _RunProcessTest(self, settings):
+        with UnitTest.WorkFolderScope(".", __file__):
+            factory = KratosProcessFactory(self.model)
+            self.process_list = factory.ConstructListOfProcesses(settings)
+            self._ExecuteProcesses()
 
-    def __ExecuteProcesses(self):
+    def _ExecuteProcesses(self):
         for process in self.process_list:
             process.Check()
         for process in self.process_list:
@@ -505,7 +484,7 @@ class CustomProcessTest(UnitTest.TestCase):
             process.ExecuteFinalize()
 
     @staticmethod
-    def __AddJsonOutputProcess(settings, output_variables, output_model_part_name, output_file_name):
+    def _AddJsonOutputProcess(settings, output_variables, output_model_part_name, output_file_name):
         settings_str = r"""
             {
                 "kratos_module": "KratosMultiphysics",
@@ -528,7 +507,7 @@ class CustomProcessTest(UnitTest.TestCase):
         settings.Append(Kratos.Parameters(settings_str))
 
     @staticmethod
-    def __AddJsonCheckProcess(settings, check_variables, model_part_name, input_file_name):
+    def _AddJsonCheckProcess(settings, check_variables, model_part_name, input_file_name):
         settings_str = r"""
             {
                 "kratos_module": "KratosMultiphysics",

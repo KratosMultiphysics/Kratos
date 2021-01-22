@@ -50,7 +50,7 @@ def AssembleTestSuites():
     # adding representative transient tests to small suite
 
     # adding custom process tests
-    # smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
