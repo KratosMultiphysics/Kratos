@@ -140,7 +140,7 @@ namespace Kratos {
             KRATOS_INFO("DEM") << "------------------DISCONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
         }
 
-        mNumberOfThreads = OpenMPUtils::GetNumThreads();
+        mNumberOfThreads = ParallelUtilities::GetNumThreads();
         DisplayThreadInfo();
 
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
@@ -314,7 +314,7 @@ namespace Kratos {
         bool has_mpi = false; //check MPI not available in this strategy. refer to continuum strategy
         //          Check_MPI(has_mpi);
 
-        std::vector<double> thread_maxima(OpenMPUtils::GetNumThreads(), 0.0);
+        std::vector<double> thread_maxima(ParallelUtilities::GetNumThreads(), 0.0);
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
         #pragma omp parallel for
@@ -324,7 +324,7 @@ namespace Kratos {
         }
 
         double max_across_threads = 0.0;
-        for (int i = 0; i < OpenMPUtils::GetNumThreads(); i++) {
+        for (int i = 0; i < ParallelUtilities::GetNumThreads(); i++) {
             if (thread_maxima[i] > max_across_threads) max_across_threads = thread_maxima[i];
         }
 
@@ -1424,7 +1424,7 @@ namespace Kratos {
 
         typedef std::map<SphericParticle*,std::vector<SphericParticle*>> ConnectivitiesMap;
         std::vector<ConnectivitiesMap> thread_maps_of_connectivities;
-        thread_maps_of_connectivities.resize(OpenMPUtils::GetNumThreads());
+        thread_maps_of_connectivities.resize(ParallelUtilities::GetNumThreads());
 
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
