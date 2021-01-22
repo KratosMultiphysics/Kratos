@@ -123,6 +123,8 @@ class Commander:
 
         '''
 
+        # TODO check if it is an mpi-test suite!
+
         self.exitCode = 0
 
         test_script = path / Path("tests") / Path("test_{}.py".format(application))
