@@ -116,7 +116,7 @@ namespace Kratos
 		if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)) {
 			#pragma omp parallel for schedule(dynamic)
 			for (int i = 0; i < number_of_elements; ++i) {
-				CalculateElementalAndEdgeDistances(*(r_elements[i]), rIntersectedObjects[i]);
+				// CalculateElementalAndEdgeDistances(*(r_elements[i]), rIntersectedObjects[i]);
 			}
 		} else {
 			#pragma omp parallel for schedule(dynamic)
@@ -173,42 +173,12 @@ namespace Kratos
 		// Compute the number of intersected edges
 		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
 		array_1d<unsigned int, n_edges> cut_edges_vector;
+		constexpr int number_of_tetrahedra_points = TDim + 1;
+		Vector& elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
+
 		array_1d<double, n_edges> cut_edges_ratio_vector;
 		std::vector<array_1d <double,3> > int_pts_vector;
 		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_vector, cut_edges_ratio_vector, int_pts_vector);
-
-		// Check if there is intersection: 3 or more intersected edges for a tetrahedron
-		// If there is only 1 or 2 intersected edges, intersection is not considered
-		// If there is intersection, calculate the elemental distances
-		const bool is_intersection = (n_cut_edges < rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
-		if (is_intersection){
-			ComputeIntersectionPlaneElementalDistances(rElement1, rIntersectedObjects, int_pts_vector);
-		}
-
-		// Check if the element is split and set the TO_SPLIT flag accordingly
-		const double epsilon = std::numeric_limits<double>::epsilon();
-		SetToSplitFlag(rElement1, epsilon);
-	}
-
-	template<std::size_t TDim>
-	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateElementalAndEdgeDistances(
-		Element& rElement1,
-		PointerVector<GeometricalObject>& rIntersectedObjects)
-	{
-		if (rIntersectedObjects.empty()) {
-			rElement1.Set(TO_SPLIT, false);
-			return;
-		}
-
-		// Compute the number of intersected edges
-		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
-		array_1d<unsigned int, n_edges> cut_edges_vector;
-		array_1d<double, n_edges> cut_edges_ratio_vector;
-		std::vector<array_1d <double,3> > int_pts_vector;
-		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_vector, cut_edges_ratio_vector, int_pts_vector);
-
-		// Save the cut edges ratios in the ELEMENTAL_EDGE_DISTANCES variable
-		SetElementalEdgeDistancesValues(rElement1, cut_edges_ratio_vector);
 
 		// Check if there is intersection: 3 or more intersected edges for a tetrahedron
 		// If there is only 1 or 2 intersected edges, intersection is not considered
@@ -259,10 +229,41 @@ namespace Kratos
 					}
 				}
 			}
-
 			// Correct the distance values orientation
 			CorrectDistanceOrientation(r_geometry, rIntersectedObjects, elemental_distances);
-			// ComputeIntersectionPlaneElementalDistances(rElement1, rIntersectedObjects, int_pts_vector);
+		}
+
+		// Check if the element is split and set the TO_SPLIT flag accordingly
+		const double epsilon = std::numeric_limits<double>::epsilon();
+		SetToSplitFlag(rElement1, epsilon);
+	}
+
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateElementalAndEdgeDistances(
+		Element& rElement1,
+		PointerVector<GeometricalObject>& rIntersectedObjects)
+	{
+		if (rIntersectedObjects.empty()) {
+			rElement1.Set(TO_SPLIT, false);
+			return;
+		}
+
+		// Compute the number of intersected edges
+		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
+		array_1d<unsigned int, n_edges> cut_edges_vector;
+		array_1d<double, n_edges> cut_edges_ratio_vector;
+		std::vector<array_1d <double,3> > int_pts_vector;
+		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_vector, cut_edges_ratio_vector, int_pts_vector);
+
+		// Save the cut edges ratios in the ELEMENTAL_EDGE_DISTANCES variable
+		SetElementalEdgeDistancesValues(rElement1, cut_edges_ratio_vector);
+
+		// Check if there is intersection: 3 or more intersected edges for a tetrahedron
+		// If there is only 1 or 2 intersected edges, intersection is not considered
+		// If there is intersection, calculate the elemental distances
+		const bool is_intersection = (n_cut_edges < rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
+		if (is_intersection){
+			ComputeIntersectionPlaneElementalDistances(rElement1, rIntersectedObjects, int_pts_vector);
 		}
 
 		// Check if the element is split and set the TO_SPLIT flag accordingly
@@ -329,12 +330,6 @@ namespace Kratos
 			if (rCutEdgesVector[i_edge] != 0){
 				// Average the edge intersection point and save it
 				avg_pt /= rCutEdgesVector[i_edge];
-				rIntersectionPointsArray.push_back(avg_pt);
-				// Save the ratio location of the average intersection point
-				const double edge_length = r_edges_container[i_edge].Length();
-				const double dist_avg_pt = norm_2(r_edges_container[i_edge][0] - avg_pt);
-				rCutEdgesRatioVector[i_edge] = dist_avg_pt / edge_length;
-				// Increase the total intersected edges counter
 				n_cut_edges++;
 
 				bool is_repeated = false;
