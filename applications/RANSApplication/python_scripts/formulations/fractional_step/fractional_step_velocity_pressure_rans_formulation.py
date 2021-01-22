@@ -11,7 +11,6 @@ from KratosMultiphysics.RANSApplication.formulations.rans_formulation import Ran
 
 # import utilities
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
-from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
@@ -271,22 +270,15 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{
             "von_karman": 0.41,
-            "beta"      : 5.2,
             "c_mu"      : 0.09
         }''')
         settings.ValidateAndAssignDefaults(defaults)
 
         # set constants
         von_karman = settings["von_karman"].GetDouble()
-        beta = settings["beta"].GetDouble()
-        y_plus_limit = RansCalculationUtilities.CalculateLogarithmicYPlusLimit(
-            von_karman,
-            beta)
 
         process_info = self.GetBaseModelPart().ProcessInfo
         process_info.SetValue(KratosRANS.VON_KARMAN, von_karman)
-        process_info.SetValue(KratosRANS.WALL_SMOOTHNESS_BETA, beta)
-        process_info.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, y_plus_limit)
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
 
     def GetStrategy(self):

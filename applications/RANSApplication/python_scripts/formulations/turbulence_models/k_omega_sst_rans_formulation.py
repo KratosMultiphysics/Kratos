@@ -9,7 +9,6 @@ from KratosMultiphysics.RANSApplication.formulations.turbulence_models.scalar_tu
 from KratosMultiphysics.RANSApplication.formulations.turbulence_models.two_equation_turbulence_model_rans_formulation import TwoEquationTurbulenceModelRansFormulation
 
 # import utilities
-from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 from KratosMultiphysics.RANSApplication import RansWallDistanceCalculationProcess
 
 class KOmegaSSTKRansFormulation(ScalarTurbulenceModelRansFormulation):
@@ -137,7 +136,6 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         defaults = Kratos.Parameters('''{
             "wall_law_constants":{
                 "kappa": 0.41,
-                "beta" : 5.2,
                 "c_mu" : 0.09
             },
             "k_omega_constants": {
@@ -162,13 +160,9 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         process_info = self.GetBaseModelPart().ProcessInfo
         # wall law constants
         constants = settings["wall_law_constants"]
-        process_info.SetValue(KratosRANS.WALL_SMOOTHNESS_BETA, constants["beta"].GetDouble())
         process_info.SetValue(KratosRANS.VON_KARMAN, constants["kappa"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, constants["c_mu"].GetDouble())
-        process_info.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, RansCalculationUtilities.CalculateLogarithmicYPlusLimit(
-                                                                                    process_info[KratosRANS.VON_KARMAN],
-                                                                                    process_info[KratosRANS.WALL_SMOOTHNESS_BETA]
-                                                                                    ))
+
         # k-omega constants
         constants = settings["k_omega_constants"]
         process_info.SetValue(KratosRANS.TURBULENT_KINETIC_ENERGY_SIGMA_1, constants["sigma_k"].GetDouble())
