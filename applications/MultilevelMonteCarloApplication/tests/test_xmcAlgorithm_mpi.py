@@ -25,6 +25,38 @@ from xmc.distributedEnvironmentFramework import get_value_from_remote
 import xmc.methodDefs_momentEstimator.computeCentralMoments as ccm
 
 
+class WorkFolderScope:
+    """ Helper-class to execute test in a specific target path
+        Input
+        -----
+        - rel_path_work_folder: String
+            Relative path of the target dir from the calling script
+
+        - file_path: String
+            Absolute path of the calling script
+
+        - add_to_path: Bool
+            "False" (default) if no need to add the target dir to the path, "True" otherwise.
+    """
+
+    def __init__(self, rel_path_work_folder, file_path, add_to_path=False):
+        self.currentPath = os.getcwd()
+        self.add_to_path = add_to_path
+        if self.add_to_path:
+            self.currentPythonpath = sys.path
+        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(file_path)), rel_path_work_folder))
+
+    def __enter__(self):
+        os.chdir(self.scope)
+        if self.add_to_path:
+            sys.path.append(self.scope)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.currentPath)
+        if self.add_to_path:
+            sys.path = self.currentPythonpath
+
+
 def isKratosFound():
     try:
         from KratosMultiphysics.kratos_utilities import (
@@ -72,7 +104,7 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
             "parameters_xmc_asynchronous_mc_RFF.json",
         ]
 
-        with KratosUnittest.WorkFolderScope("rectangle_wind_mpi/problem_settings", __file__):
+        with WorkFolderScope("rectangle_wind_mpi/problem_settings", __file__):
             for parametersPath in parametersList:
                 with open(parametersPath, "r") as parameter_file:
                     parameters = json.load(parameter_file)
@@ -205,7 +237,7 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
             "parameters_xmc_asynchronous_mlmc_RFF.json"
         ]
 
-        with KratosUnittest.WorkFolderScope("rectangle_wind_mpi/problem_settings", __file__):
+        with WorkFolderScope("rectangle_wind_mpi/problem_settings", __file__):
             for parametersPath in parametersList:
                 with open(parametersPath, "r") as parameter_file:
                     parameters = json.load(parameter_file)
@@ -334,7 +366,7 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
             "parameters_xmc_asynchronous_mlmc_DAR.json"
         ]
 
-        with KratosUnittest.WorkFolderScope("caarc_wind_mpi/problem_settings", __file__):
+        with WorkFolderScope("caarc_wind_mpi/problem_settings", __file__):
             for parametersPath in parametersList:
                 with open(parametersPath, "r") as parameter_file:
                     parameters = json.load(parameter_file)
