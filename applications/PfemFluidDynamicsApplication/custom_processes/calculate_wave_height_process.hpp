@@ -92,7 +92,7 @@ namespace Kratos
         // We loop over the nodes...
         const auto it_node_begin = mrModelPart.NodesBegin();
         const int num_threads = OpenMPUtils::GetNumThreads();
-        std::vector<double> max_vector(num_threads, 0.0);
+        std::vector<double> max_vector(num_threads, -1.0);
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
@@ -115,11 +115,14 @@ namespace Kratos
         const double max_height = *std::max_element(max_vector.begin(), max_vector.end());
 
         // We open the file where we print the wave height values
-        std::ofstream my_file;
-        const std::string file_name = mOutputFileName + ".txt";
-        my_file.open(file_name, std::ios_base::app);
-        my_file << "  " + std::to_string(time) + "    " + std::to_string(max_height - mHeightReference) << std::endl;
-        mPreviousPlotTime = time;
+        if (max_height > -1.0) {
+          std::ofstream my_file;
+          const std::string file_name = mOutputFileName + ".txt";
+          my_file.open(file_name, std::ios_base::app);
+          my_file << "  " + std::to_string(time) + "    " + std::to_string(max_height - mHeightReference) << std::endl;
+          mPreviousPlotTime = time;
+        }
+
       }
       KRATOS_CATCH("");
     }
