@@ -163,7 +163,29 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     {
         // Check if user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES, then use Ausas incised shape functions
         if(data.NumExtraIntersectedEdges > 0) {
-            // TODO: Add Boundary
+            // Add the base element boundary contribution on the positive interface
+            const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
+            const unsigned int number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
+            for (unsigned int g = 0; g < number_of_positive_interface_gauss_points; ++g){
+                const size_t gauss_pt_index = g + volume_gauss_points;
+                this->UpdateIntegrationPointData(data, gauss_pt_index, data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
+                this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
+            }
+
+            // Add the base element boundary contribution on the negative interface
+            const unsigned int number_of_negative_interface_gauss_points = data.NegativeInterfaceWeights.size();
+            for (unsigned int g = 0; g < number_of_negative_interface_gauss_points; ++g){
+                const size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
+                this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeInterfaceWeights[g], row(data.NegativeInterfaceN, g), data.NegativeInterfaceDNDX[g]);
+                this->AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
+            }
+
+            // Add the Nitsche Navier boundary condition implementation (Winter, 2018)
+            data.InitializeBoundaryConditionData(rCurrentProcessInfo);
+            AddNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+            AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
         }
         else {
             // Add penalty

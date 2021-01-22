@@ -89,7 +89,6 @@ void Tetrahedra3D4AusasIncisedShapeFunctions::SetPositiveSideCondensationMatrix(
             const std::size_t edge_node_j = rEdgeNodeJ[id_edge];
 
             // Check if edge is intersected by extrapolated skin geometry (or actual skin geometry)
-            // TODO - check if edge node i really is Edge[0]
             if (mExtraEdgeRatios[id_edge] > 0.0) {
                 // Set shape function value according to the edge ratio of the extrapolated intersection.
                 rPosSideCondMatrix(n_nodes+id_edge, edge_node_i) = 1.0 - mExtraEdgeRatios[id_edge];
@@ -133,7 +132,6 @@ void Tetrahedra3D4AusasIncisedShapeFunctions::SetNegativeSideCondensationMatrix(
             const std::size_t edge_node_j = rEdgeNodeJ[id_edge];
 
             // Check if edge is intersected by extrapolated skin geometry (or actual skin geometry)
-            // TODO - check if edge node i really is Edge[0]
             if (mExtraEdgeRatios[id_edge] > 0.0) {
                 // Set shape function value according to the edge ratio of the extrapolated intersection.
                 rNegSideCondMatrix(n_nodes+id_edge, edge_node_i) = 1.0 - mExtraEdgeRatios[id_edge];
