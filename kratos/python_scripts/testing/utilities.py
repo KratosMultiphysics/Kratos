@@ -130,13 +130,15 @@ class Commander:
         if Path.is_file(test_script):
             try:
                 self.process = subprocess.Popen([
-                    "mpiexec --oversubscribe -np",
-                    num_processes,
-                    command,
-                    test_script,
+                    "mpiexec --oversubscribe -np {} {} {} --using-mpi".format(
+                        num_processes,
+                        command,
+                        test_script),
                     '-l'+level,
                     '-v'+str(verbose)
-                ], stdout=subprocess.PIPE, cwd=os.path.dirname(os.path.abspath(test_script)))
+                ], shell=True,
+                   stdout=subprocess.PIPE,
+                   cwd=os.path.dirname(os.path.abspath(test_script)))
             except:
                 # TODO better error here
                 print('[Error]: Unable to execute {}'.format(command), file=sys.stderr)

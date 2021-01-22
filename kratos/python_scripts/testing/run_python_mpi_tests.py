@@ -11,7 +11,6 @@ from pathlib import Path
 if KM.IsDistributedRun():
     raise Exception("cannot be run with MPI!")
 
-
 def Usage():
     ''' Prints the usage of the script '''
 
@@ -21,16 +20,12 @@ def Usage():
         'Options',
         '\t -h, --help: Shows this command',
         '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
-        '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
+        # '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
         '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
         '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used',
     ]
     for l in lines:
-        print(l) # using the logger to only print once in MPI
-
-
-
-
+        print(l)
 
 def main():
     # Set default values
@@ -42,8 +37,8 @@ def main():
     parser.add_argument('-c', '--command', default=testing_utils.GetPython3Command())
     parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'])
     parser.add_argument('-v', '--verbosity', default=1, type=int, choices=[0, 1, 2])
-    parser.add_argument('-a', '--applications', default=applications, choices=applications)
-    parser.add_argument('-p', '--processes', type=int, default=4)
+    # parser.add_argument('-a', '--applications', default=applications, choices=applications)
+    parser.add_argument('-n', '--processes', type=int, default=4)
 
     try:
         args = parser.parse_args()
@@ -66,43 +61,39 @@ def main():
 
     exit_codes = {}
 
+    testing_utils.PrintTestHeader("KratosMPICore")
     # KratosMPICore must always be executed
     with KratosUnittest.SupressConsoleOutput():
-        for np in range(2, args.processes+1):
-            testing_utils.PrintTestHeader("KratosMPICore; {} processes".format(np))
+        commander.RunMPITestSuit(
+            'kratos/mpi',
+            Path(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath())),
+            args.processes,
+            args.level,
+            args.verbosity,
+            args.command,
+            signalTime
+        )
 
+    testing_utils.PrintTestFooter("KratosMPICore", commander.exitCode)
+    exit_codes["KratosMPICore"] = commander.exitCode
+
+    # Run the tests for the rest of the Applications
+    for application in applications:
+        testing_utils.PrintTestHeader(application)
+
+        with KratosUnittest.SupressConsoleOutput():
             commander.RunMPITestSuit(
-                'kratos/mpi',
-                Path(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath())),
-                np,
+                application,
+                Path(KM.KratosPaths.kratos_applications),
+                args.processes,
                 args.level,
                 args.verbosity,
                 args.command,
                 signalTime
             )
 
-            testing_utils.PrintTestFooter("KratosMPICore; {} processes".format(np), commander.exitCode)
-            exit_codes["KratosMPICore_{}_procs".format(np)] = commander.exitCode
-
-    # Run the tests for the rest of the Applications
-    for application in applications:
-        for np in range(2, args.processes+1):
-            testing_utils.PrintTestHeader("{}; {} processes".format(application, np))
-            testing_utils.PrintTestHeader(application)
-
-            with KratosUnittest.SupressConsoleOutput():
-                commander.RunMPITestSuit(
-                    application,
-                    Path(KM.KratosPaths.kratos_applications),
-                    np,
-                    args.level,
-                    args.verbosity,
-                    args.command,
-                    signalTime
-                )
-
-            testing_utils.PrintTestFooter("{}; {} processes".format(application, np), commander.exitCode)
-            exit_codes["{}_{}_procs".format(application, np)] = commander.exitCode
+        testing_utils.PrintTestFooter(application, commander.exitCode)
+        exit_codes[application] = commander.exitCode
 
 
     testing_utils.PrintTestSummary(exit_codes)
