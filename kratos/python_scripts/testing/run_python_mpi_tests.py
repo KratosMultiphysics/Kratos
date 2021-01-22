@@ -65,8 +65,8 @@ def main():
     # KratosMPICore must always be executed
     with KratosUnittest.SupressConsoleOutput():
         commander.RunMPITestSuit(
-            'kratos/mpi',
-            Path(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath())),
+            'KratosMPICore',
+            Path(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()))/"kratos"/"mpi",
             args.processes,
             args.level,
             args.verbosity,
@@ -83,8 +83,8 @@ def main():
 
         with KratosUnittest.SupressConsoleOutput():
             commander.RunMPITestSuit(
-                application,
-                Path(KM.KratosPaths.kratos_applications),
+                application+"_mpi",
+                Path(KM.KratosPaths.kratos_applications) / application,
                 args.processes,
                 args.level,
                 args.verbosity,

@@ -125,7 +125,7 @@ class Commander:
 
         self.exitCode = 0
 
-        test_script = path / Path(application) / Path("tests") / Path("test_{}_mpi.py".format(application))
+        test_script = path / Path("tests") / Path("test_{}.py".format(application))
 
         if Path.is_file(test_script):
             try:
