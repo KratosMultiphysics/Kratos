@@ -600,13 +600,24 @@ private:
     template<typename TDataType, class TContainerType>
     void GetVectorDataFromContainer(TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, std::vector<double>& data)
     {
+        /*
+        //Serial
         IndexType counter = 0;
         for(const auto& r_entity : rContainer){
             const auto& r_val = r_entity.GetValue(rVariable);
             for(int dim = 0 ; dim < TSize ; dim++){
                     data[counter++] = r_val[dim];
             }
-        }
+        }*/
+
+        //Parallel
+        IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
+            const auto& r_entity = *(rContainer.begin() + index);
+            const auto& r_val = r_entity.GetValue(rVariable);
+            for(int dim = 0 ; dim < TSize ; dim++){
+                data[(TSize*index) + dim] = r_val[dim];
+            }
+        });
     }
 
     template<typename TDataType, class TContainerType>
@@ -621,6 +632,7 @@ private:
     template<typename TDataType, class TContainerType>
     void SetVectorDataFromContainer(TContainerType& rContainer, const std::size_t size, const Variable<TDataType>& rVariable, const std::vector<double>& rData)
     {
+        //Sequential
         IndexType counter = 0;
         for(auto& r_entity : rContainer){
             auto& r_val = r_entity.GetValue(rVariable);
@@ -628,17 +640,18 @@ private:
             for(int dim = 0 ; dim < size ; dim++){
                 r_val[dim] = rData[counter++];
             }
-        } 
-
-        /* IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
+        }
+        /*
+        //Parallel
+        IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
             auto& r_val = r_entity.GetValue(rVariable);
             KRATOS_DEBUG_ERROR_IF(r_val.size() != size) << "mismatch in size!" << std::endl;
             for(int dim = 0 ; dim < size ; dim++){
-                r_entity.SetValue(rVariable,rData[index]);
+                r_val[dim] = rData[(size*index) + dim];
             }
-        }); */
-
+        });
+        */
     }
 
     // Only for SetScalarData()
