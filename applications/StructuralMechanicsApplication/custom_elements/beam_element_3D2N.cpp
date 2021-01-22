@@ -545,7 +545,9 @@ Matrix BeamElement3D2N::LogRotationMatrix(const Matrix& rRotationMatrix) const
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     const double trace = rRotationMatrix(0,0)+rRotationMatrix(1,1)+rRotationMatrix(2,2);
-    const double phi = std::acos((trace - 1.0)/2.0);
+    double phi = std::acos((trace - 1.0)/2.0);
+
+    if (std::abs(std::abs(rRotationMatrix(0,0))-1.0) < numerical_limit) phi = std::asin(rRotationMatrix(0,1));
 
     Matrix log_matrix = ZeroMatrix(msDimension);
 
