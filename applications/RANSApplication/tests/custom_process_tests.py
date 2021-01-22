@@ -36,23 +36,25 @@ class CustomProcessTest(UnitTest.TestCase):
         cls.model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, 2)
         cls.model_part.ProcessInfo.SetValue(Kratos.STEP, 1)
 
-        ReadModelPart("BackwardFacingStepTest/backward_facing_step", cls.model_part)
-        CheckAndPrepareModelProcess(cls.model_part,
-                                    Kratos.Parameters("""{
-            "volume_model_part_name": "Parts_fluid",
-            "skin_parts" : ["AutomaticInlet2D_inlet", "Outlet2D_outlet", "Slip2D"],
-            "assign_neighbour_elements_to_conditions": true
-        }""")).Execute()
+        with UnitTest.WorkFolderScope(".", __file__):
+            ReadModelPart("BackwardFacingStepTest/backward_facing_step", cls.model_part)
+            CheckAndPrepareModelProcess(cls.model_part,
+                                        Kratos.Parameters("""{
+                "volume_model_part_name": "Parts_fluid",
+                "skin_parts" : ["AutomaticInlet2D_inlet", "Outlet2D_outlet", "Slip2D"],
+                "assign_neighbour_elements_to_conditions": true
+            }""")).Execute()
 
-        # Add constitutive laws and material properties from json file to model parts.
-        material_settings = Kratos.Parameters(
-            """{
-                "Parameters": {
-                        "materials_filename": "BackwardFacingStepTest/backward_facing_step_material_properties.json"
-                    }
-                }""")
+            # Add constitutive laws and material properties from json file to model parts.
+            material_settings = Kratos.Parameters(
+                """{
+                    "Parameters": {
+                            "materials_filename": "BackwardFacingStepTest/backward_facing_step_material_properties.json"
+                        }
+                    }""")
 
-        Kratos.ReadMaterialsUtility(material_settings, cls.model)
+            Kratos.ReadMaterialsUtility(material_settings, cls.model)
+
         KratosRANS.RansVariableUtilities.SetElementConstitutiveLaws(cls.model_part.Elements)
 
     def setUp(self):
