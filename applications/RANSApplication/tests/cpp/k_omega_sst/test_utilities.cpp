@@ -95,7 +95,6 @@ ModelPart& RansKOmegaSSTOmega2D3NSetUp(
     const auto set_properties = [](Properties& rProperties) {
         rProperties.SetValue(DENSITY, 1.0);
         rProperties.SetValue(DYNAMIC_VISCOSITY, 1e-2);
-        rProperties.SetValue(WALL_VON_KARMAN, 5.2);
     };
 
     using namespace RansApplicationTestUtilities;
@@ -122,6 +121,7 @@ ModelPart& RansKOmegaSSTOmega2D3NSetUp(
     r_process_info.SetValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1, 1.1);
     r_process_info.SetValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2, 2.1);
     r_process_info.SetValue(TURBULENCE_RANS_C_MU, 0.4);
+    r_process_info.SetValue(VON_KARMAN, 5.2);
 
     return r_model_part;
 }

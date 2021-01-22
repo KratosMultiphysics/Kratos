@@ -10,7 +10,6 @@
                 "Variables": {
                     "DENSITY": 1.0,
                     "DYNAMIC_VISCOSITY": 1e-2,
-                    "WALL_VON_KARMAN": 0.41,
                     "WALL_SMOOTHNESS_BETA": 5.2
                 },
                 "Tables": {}

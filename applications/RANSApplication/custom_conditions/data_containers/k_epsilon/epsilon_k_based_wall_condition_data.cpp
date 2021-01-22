@@ -67,13 +67,13 @@ void EpsilonKBasedWallConditionData::CalculateConstants(
 
     mEpsilonSigma = rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
     mCmu25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+    mKappa = rCurrentProcessInfo[VON_KARMAN];
 
     KRATOS_ERROR_IF(!(this->GetGeometry().Has(RANS_Y_PLUS)))
         << "RANS_Y_PLUS value is not set at " << this->GetGeometry() << "\n";
 
     const auto& r_properties = this->GetProperties();
     mDensity = r_properties.GetValue(DENSITY);
-    mKappa = r_properties.GetValue(WALL_VON_KARMAN);
     const double y_plus_limit = r_properties.GetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT);
 
     mYPlus = std::max(this->GetGeometry().GetValue(RANS_Y_PLUS), y_plus_limit);

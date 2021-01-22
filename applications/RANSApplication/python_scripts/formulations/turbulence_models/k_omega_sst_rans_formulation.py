@@ -118,7 +118,7 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         a1 = process_info[KratosRANS.TURBULENCE_RANS_A1]
         beta_star = process_info[KratosRANS.TURBULENCE_RANS_C_MU]
 
-        kappa = process_info[KratosRANS.WALL_VON_KARMAN]
+        kappa = process_info[KratosRANS.VON_KARMAN]
         minimum_nut = settings["minimum_turbulent_viscosity"].GetDouble()
 
         nut_process = KratosRANS.RansNutKOmegaSSTUpdateProcess(
@@ -170,10 +170,10 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         # wall law constants
         constants = settings["wall_law_constants"]
         process_info.SetValue(KratosRANS.WALL_SMOOTHNESS_BETA, constants["beta"].GetDouble())
-        process_info.SetValue(KratosRANS.WALL_VON_KARMAN, constants["kappa"].GetDouble())
+        process_info.SetValue(KratosRANS.VON_KARMAN, constants["kappa"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, constants["c_mu"].GetDouble())
         process_info.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, RansCalculationUtilities.CalculateLogarithmicYPlusLimit(
-                                                                                    process_info[KratosRANS.WALL_VON_KARMAN],
+                                                                                    process_info[KratosRANS.VON_KARMAN],
                                                                                     process_info[KratosRANS.WALL_SMOOTHNESS_BETA]
                                                                                     ))
         # k-omega constants

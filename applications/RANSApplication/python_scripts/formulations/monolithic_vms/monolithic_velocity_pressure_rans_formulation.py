@@ -230,7 +230,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             von_karman, beta)
 
         process_info = self.GetBaseModelPart().ProcessInfo
-        process_info.SetValue(KratosRANS.WALL_VON_KARMAN, von_karman)
+        process_info.SetValue(KratosRANS.VON_KARMAN, von_karman)
         process_info.SetValue(KratosRANS.WALL_SMOOTHNESS_BETA, beta)
         process_info.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, y_plus_limit)
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())

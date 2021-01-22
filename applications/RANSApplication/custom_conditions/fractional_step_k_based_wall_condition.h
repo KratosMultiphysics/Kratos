@@ -512,10 +512,10 @@ protected:
             const IndexType num_gauss_points = gauss_weights.size();
             const double eps = std::numeric_limits<double>::epsilon();
             const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+            const double kappa = rCurrentProcessInfo[VON_KARMAN];
 
             const PropertiesType& r_properties = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
             const double rho = r_properties.GetValue(DENSITY);
-            const double kappa = r_properties.GetValue(WALL_VON_KARMAN);
             const double beta = r_properties.GetValue(WALL_SMOOTHNESS_BETA);
             const double y_plus_limit = r_properties.GetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT);
             const double inv_kappa = 1.0 / kappa;

@@ -90,7 +90,7 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
 
         process_info = model_part.ProcessInfo
         wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
-        kappa = process_info[KratosRANS.WALL_VON_KARMAN]
+        kappa = process_info[KratosRANS.VON_KARMAN]
         minimum_nut = self.GetParameters()["minimum_turbulent_viscosity"].GetDouble()
 
         nut_process = KratosRANS.RansNutKOmegaUpdateProcess(
@@ -130,7 +130,7 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
 
         process_info = self.GetBaseModelPart().ProcessInfo
         process_info.SetValue(KratosRANS.WALL_SMOOTHNESS_BETA, settings["wall_smoothness_beta"].GetDouble())
-        process_info.SetValue(KratosRANS.WALL_VON_KARMAN, settings["von_karman"].GetDouble())
+        process_info.SetValue(KratosRANS.VON_KARMAN, settings["von_karman"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_BETA, settings["beta"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_GAMMA, settings["gamma"].GetDouble())
@@ -139,6 +139,6 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         process_info.SetValue(KratosRANS.RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT, settings["stabilizing_upwind_operator_coefficient"].GetDouble())
         process_info.SetValue(KratosRANS.RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT, settings["stabilizing_positivity_preserving_coefficient"].GetDouble())
         process_info.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, RansCalculationUtilities.CalculateLogarithmicYPlusLimit(
-                                                                                    process_info[KratosRANS.WALL_VON_KARMAN],
+                                                                                    process_info[KratosRANS.VON_KARMAN],
                                                                                     process_info[KratosRANS.WALL_SMOOTHNESS_BETA]
                                                                                     ))
