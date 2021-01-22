@@ -199,25 +199,30 @@ public:
     ///@name Access
     ///@{
 
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 3>> const& rVariable,
-                                     std::vector<array_1d<double, 3>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<array_1d<double, 3>> const& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<double> const& rVariable,
-                                     std::vector<double>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<double> const& rVariable,
+        std::vector<double>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
-                                     std::vector<array_1d<double, 6>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<array_1d<double, 6>> const& rVariable,
+        std::vector<array_1d<double, 6>>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
-                                     std::vector<Vector>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<Vector> const& rVariable,
+        std::vector<Vector>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
-                                     std::vector<Matrix>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry

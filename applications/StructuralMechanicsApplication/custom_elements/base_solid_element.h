@@ -457,6 +457,17 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief Get on rVariable Constitutive Law from the element
+     * @param rVariable The variable we want to get
+     * @param rValues The results in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        std::vector<ConstitutiveLaw::Pointer>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
      /**
       * @brief Set a bool Value on the Element Constitutive Law
@@ -553,19 +564,6 @@ public:
          std::vector<array_1d<double, 6 > > rValues,
          const ProcessInfo& rCurrentProcessInfo
          ) override;
-
-    /**
-     * @todo To be renamed to CalculateOnIntegrationPoints!!!
-     * @brief Get on rVariable Constitutive Law from the element
-     * @param rVariable The variable we want to get
-     * @param rValues The results in the integration points
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<ConstitutiveLaw::Pointer>& rVariable,
-        std::vector<ConstitutiveLaw::Pointer>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.

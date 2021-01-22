@@ -179,7 +179,7 @@ public:
     /// Calculate the element's local contribution to the system for the current step.
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Provides the global indices for each one of this element's local rows
@@ -189,16 +189,14 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+    virtual void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo) override;
+    virtual void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -217,7 +215,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Inquiry
@@ -262,7 +260,7 @@ protected:
     ///@{
     char mCurrentComponent;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLumpedMassMatrix(MatrixType& rLHSMatrix, const double Mass) override;
 
