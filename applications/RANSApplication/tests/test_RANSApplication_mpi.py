@@ -1,16 +1,12 @@
-import os
+# Importing the Kratos Library
+import KratosMultiphysics as KM
 
-import KratosMultiphysics
+if not KM.IsDistributedRun():
+    raise Exception("This test script can only be executed in MPI!")
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-try:
-    import KratosMultiphysics.mpi as KratosMPI
-    import KratosMultiphysics.MetisApplication as MetisApplication
-    import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-except ImportError:
-    raise Exception("KratosMPI could not be imported!")
 
 # Import the tests or test_classes to create the suits
 # process test_classes
@@ -92,16 +88,8 @@ def AssembleTestSuites():
     allMPISuite = suites['mpi_all']
     allMPISuite.addTests(nightlyMPISuite) # already contains the smallMPISuite
 
-    allSuite = suites['all']
-    allSuite.addTests(allMPISuite)
-
     return suites
 
 
 if __name__ == '__main__':
-    # this is required by the CI since, CI runs these tests from $KRATOS_HOME folder.
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(
-        KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())
