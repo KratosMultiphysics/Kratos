@@ -173,8 +173,8 @@ namespace MPMParticleGeneratorUtility
                                     shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
                                     int_method = GeometryData::GI_GAUSS_1;
                                     if (is_equal_int_volumes){
-                                        shape_functions_values(1,0) = 0.5;
-                                        shape_functions_values(1,1) = 0.5;
+                                        shape_functions_values(0,0) = 0.5;
+                                        shape_functions_values(0,1) = 0.5;
                                     }
                                     break;
                                 case 4:
