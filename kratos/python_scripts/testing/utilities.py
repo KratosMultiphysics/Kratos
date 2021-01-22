@@ -81,16 +81,16 @@ def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings):
 
 
 def PrintTestHeader(application):
-    KM.Logger.Flush()
+    Kratos.Logger.Flush()
     print("\nRunning {} tests".format(application), file=sys.stderr, flush=True)
 
 def PrintTestFooter(application, exit_code):
-    KM.Logger.Flush()
+    Kratos.Logger.Flush()
     appendix = " with exit code {}!".format(exit_code) if exit_code != 0 else "."
     print("Completed {} tests{}\n".format(application, appendix), file=sys.stderr, flush=True)
 
 def PrintTestSummary(exit_codes):
-    KM.Logger.Flush()
+    Kratos.Logger.Flush()
     print("Test results summary:", file=sys.stderr, flush=True)
     max_test_name_length = len(max(exit_codes.keys(), key=len))+1
     for test, exit_code in exit_codes.items():
