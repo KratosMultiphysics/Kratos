@@ -56,7 +56,7 @@ def main():
     elif args.level == 'nightly':
         signalTime = 900
 
-    level = "mpi_" + level
+    level = "mpi_" + args.level
 
     # Create the commands
     commander = testing_utils.Commander()
@@ -70,7 +70,7 @@ def main():
             'KratosMPICore',
             Path(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()))/"kratos"/"mpi",
             args.processes,
-            args.level,
+            level,
             args.verbosity,
             args.command,
             signalTime
@@ -88,7 +88,7 @@ def main():
                 application+"_mpi",
                 Path(KM.KratosPaths.kratos_applications) / application,
                 args.processes,
-                args.level,
+                level,
                 args.verbosity,
                 args.command,
                 signalTime
