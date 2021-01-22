@@ -8,7 +8,7 @@ if not KratosMultiphysics.IsDistributedRun():
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import test classes to create the suits
-from mpi_test_xmcAlgorithm import TestXMCAlgorithmMPI
+from test_MultilevelMonteCarloApplication_mpi import TestXMCAlgorithmMPI
 
 def AssembleTestSuites():
     """
