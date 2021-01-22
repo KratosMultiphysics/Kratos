@@ -287,7 +287,7 @@ public:
     /// Returns the polynomial degree of the parent geometry
     SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
     {
-        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+        KRATOS_DEBUG_ERROR_IF_NOT(mpGeometryParent)
             << "Trying to call PolynomialDegree(LocalDirectionIndex) from quadrature point. "
             << "Pointer to parent is not assigned." << std::endl;
 
