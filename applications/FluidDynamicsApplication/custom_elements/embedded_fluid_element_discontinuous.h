@@ -311,7 +311,7 @@ protected:
      * to perform all operations in both the positive and negative sides of the element.
      * @param rData reference to the element data structure
      */
-    void DefineModifiedGeometryData(EmbeddedDiscontinuousElementData& rData, const bool isIncised = false) const;
+    void DefineModifiedGeometryData(EmbeddedDiscontinuousElementData& rData, const bool& IsAusasIncised = false) const;
 
     /**
      * @brief For an intersected element, normalize the interface normals

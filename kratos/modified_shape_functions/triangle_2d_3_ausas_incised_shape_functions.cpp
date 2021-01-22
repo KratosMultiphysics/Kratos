@@ -23,8 +23,8 @@ namespace Kratos
 /// Triangle2D3AusasIncisedShapeFunctions implementation
 /// Default constructor
 Triangle2D3AusasIncisedShapeFunctions::Triangle2D3AusasIncisedShapeFunctions(const GeometryPointerType pInputGeometry,
-        const Vector& rExtrapolatedNodalDistances, const Vector& rExtrapolatedEdgeRatios) :
-    Triangle2D3AusasModifiedShapeFunctions(pInputGeometry, rExtrapolatedNodalDistances), mExtraEdgeRatios(rExtrapolatedEdgeRatios) {};
+        const Vector& rNodalDistancesWithExtrapolated, const Vector& rExtrapolatedEdgeRatios) :
+    Triangle2D3AusasModifiedShapeFunctions(pInputGeometry, rNodalDistancesWithExtrapolated), mExtraEdgeRatios(rExtrapolatedEdgeRatios) {};
 
 /// Destructor
 Triangle2D3AusasIncisedShapeFunctions::~Triangle2D3AusasIncisedShapeFunctions() {};

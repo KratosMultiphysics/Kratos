@@ -162,7 +162,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     } else if ( data.IsIncised() )
     {
         // Check if user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES, then use Ausas incised shape functions
-        if(data.NumExtraIntersectedEdges > 0) {
+        if (data.IsAusasIncised()) {
             // Add the base element boundary contribution on the positive interface
             const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
             const unsigned int number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
@@ -316,12 +316,10 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
         }
     }
 
-    // Number of edges cut by extrapolated geometry, if given
-    if (!rData.ElementalExtrapolatedEdgeDistances.empty()) {
-        for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
-            if (rData.ElementalExtrapolatedEdgeDistances[i] > 0.0) {
-                rData.NumExtraIntersectedEdges++;
-            }
+    // Number of edges cut by extrapolated geometry, if not empty
+    for (size_t i = 0; i < rData.ElementalExtrapolatedEdgeDistances.size(); ++i) {
+        if (rData.ElementalExtrapolatedEdgeDistances[i] > 0.0) {
+            rData.NumExtraIntersectedEdges++;
         }
     }
 
@@ -330,7 +328,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
     }
     // Check whether element is incised and whether user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES,
     // then use Ausas incised shape functions
-    else if (rData.NumExtraIntersectedEdges > 0) {
+    else if (rData.IsAusasIncised()) {
         this->DefineModifiedGeometryData(rData, true);
     } else {
         this->DefineStandardGeometryData(rData);
@@ -346,10 +344,10 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineStandardGeometryData
 }
 
 template <class TBaseElement>
-void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineModifiedGeometryData(EmbeddedDiscontinuousElementData& rData, const bool isIncised) const
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineModifiedGeometryData(EmbeddedDiscontinuousElementData& rData, const bool& IsAusasIncised) const
 {
     ModifiedShapeFunctions::Pointer p_calculator;
-    if (isIncised) {
+    if (IsAusasIncised) {
         // Auxiliary elemental and edge distance vectors of extrapolated intersecting geometry for the element subdivision utility
         Vector elemental_distances_with_extrapolated = rData.ElementalDistancesWithExtrapolated;
         Vector extrapolated_edge_distances = rData.ElementalExtrapolatedEdgeDistances;

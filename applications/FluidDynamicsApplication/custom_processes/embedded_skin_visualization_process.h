@@ -451,14 +451,22 @@ private:
     void InitializeNonHistoricalVariables(const std::vector<const Variable<TDataType>*>& rNonHistoricalVariablesVector);
 
     /**
-     * Checks wether the element is split or not
+     * Checks whether the element is split or not
      * @param pGeometry Pointer to the element geometry
      * @param rNodalDistances Vector containing the distance values
      * @return True if it is split and false if not
      */
     bool ElementIsSplit(
-        Geometry<Node<3>>::Pointer pGeometry,
+        const Geometry<Node<3>>::Pointer pGeometry,
         const Vector &rNodalDistances);
+
+    /**
+     * @brief Checks whether the element is incised
+     * This method checks if an element geometry is incised and Ausas shape functions are being used
+     * @param rExtraEdgeDistances vector containing the element edge distances of extrapolated geometry
+     * @return true if the element is incised and extrapolated edge distances are provided; false if not
+     */
+    const bool ElementIsAusasIncised(const Vector &rExtraEdgeDistances);
 
     /**
      * Checks wether the element is in the positive side or not
@@ -471,16 +479,26 @@ private:
         const Vector &rNodalDistances);
 
     /**
-     * Sets the distance values. If Ausas shape functions are used,
-     * it takes the ELEMENTAL_DISTANCES. Otherwise, the nodal ones
+     * Sets the distance values. If the element is split and Ausas shape functions are used,
+     * it takes the ELEMENTAL_DISTANCES. Otherwise, the nodal ones.
+     * If the element is incised and Ausas incised shape functions are being used, it takes the
+     * ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED variable.
+     * @param ItElem Element iterator
+     * @param IsAusasIncised True if element is incised and Ausas incissed shape functions are being used
+     * @return Vector containing the distance values
+     */
+    const Vector SetDistancesVector(ModelPart::ElementIterator ItElem, const bool& IsAusasIncised);
+
+    /**
+     * Sets the extrapolated edge distance values.
      * @param ItElem Element iterator
      * @return Vector containing the distance values
      */
-    const Vector SetDistancesVector(ModelPart::ElementIterator ItElem);
+    const Vector SetExtrapolatedEdgeDistancesVector(ModelPart::ElementIterator ItElem);
 
     /**
      * Sets the the modified shape functions utility according to the
-     * distance values.
+     * distance values for a cut element
      * @param pGeometry Pointer to the element geometry
      * @param rNodalDistances Vector containing the distance values
      * @return A pointer to the modified shape functions utility
@@ -488,6 +506,18 @@ private:
     ModifiedShapeFunctions::Pointer SetModifiedShapeFunctionsUtility(
         const Geometry<Node<3>>::Pointer pGeometry,
         const Vector &rNodalDistances);
+
+     /**
+     * Sets the the modified shape functions utility for an Ausas incised element.
+     * @param pGeometry Pointer to the element geometry
+     * @param rNodalDistancesWithExtra Vector containing the distance values including extrapolated intersections
+     * @param rExtraEdgeDistances Vector containing the edge distances rations of extrapolated intersections
+     * @return A pointer to the modified shape functions utility
+     */
+    ModifiedShapeFunctions::Pointer SetModifiedShapeFunctionsUtility(
+        const Geometry<Node<3>>::Pointer pGeometry,
+        const Vector &rNodalDistancesWithExtra,
+        const Vector &rExtraEdgeDistances);
 
     /**
      * Sets the new interface condition geometry

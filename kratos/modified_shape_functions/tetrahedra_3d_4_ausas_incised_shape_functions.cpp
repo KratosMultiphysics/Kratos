@@ -23,8 +23,8 @@ namespace Kratos
 /// Tetrahedra3D4AusasIncisedShapeFunctions implementation
 /// Default constructor
 Tetrahedra3D4AusasIncisedShapeFunctions::Tetrahedra3D4AusasIncisedShapeFunctions(const GeometryPointerType pInputGeometry,
-        const Vector& rExtrapolatedNodalDistances, const Vector& rExtrapolatedEdgeRatios) :
-    Tetrahedra3D4AusasModifiedShapeFunctions(pInputGeometry, rExtrapolatedNodalDistances), mExtraEdgeRatios(rExtrapolatedEdgeRatios) {};
+        const Vector& rNodalDistancesWithExrapolated, const Vector& rExtrapolatedEdgeRatios) :
+    Tetrahedra3D4AusasModifiedShapeFunctions(pInputGeometry, rNodalDistancesWithExrapolated), mExtraEdgeRatios(rExtrapolatedEdgeRatios) {};
 
 /// Destructor
 Tetrahedra3D4AusasIncisedShapeFunctions::~Tetrahedra3D4AusasIncisedShapeFunctions() {};

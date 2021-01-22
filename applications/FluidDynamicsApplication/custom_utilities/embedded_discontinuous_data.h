@@ -145,19 +145,30 @@ bool IsCut()
 
 /**
  * @brief Checks if the current element is partially intersected (incised)
- * Checks if the current element is partially intersected by checking the number of (extrapolated) intersected edges
+ * Checks if the current element is partially intersected by checking the number of intersected edges
  * @return true if the element is incised
  * @return false if the element is not incised
  */
 bool IsIncised()
 {
+    if ( (NumIntersectedEdges > 0) && (NumIntersectedEdges < TFluidData::Dim) ) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief Checks if the current element is partially intersected (incised)
+ * Checks if the current element is partially intersected by checking the number of extrapolated intersected edges
+ * Only possible if user provided flag to calculate extrapolated edge distances
+ * @return true if the element is incised
+ * @return false if the element is not incised
+ */
+bool IsAusasIncised()
+{
     // extrapolated edge distances are only calculated if element is incised
     // case in which three edges are intersected and element is only incised is also considered
     if (NumExtraIntersectedEdges > 0) {
-        return true;
-    }
-    // needed if user doesn't provide flag to calculate extrapolated edge distances at all
-    if ( (NumIntersectedEdges > 0) && (NumIntersectedEdges < TFluidData::Dim) ) {
         return true;
     }
     return false;

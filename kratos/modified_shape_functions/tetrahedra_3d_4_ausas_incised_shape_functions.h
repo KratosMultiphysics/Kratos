@@ -67,7 +67,7 @@ public:
 
     /// Default constructor
     Tetrahedra3D4AusasIncisedShapeFunctions(const GeometryPointerType rpInputGeometry,
-        const Vector& rExtrapolatedNodalDistances, const Vector& rExtrapolatedEdgeRatios);
+        const Vector& rNodalDistancesWithExtrapolated, const Vector& rExtrapolatedEdgeRatios);
 
     /// Destructor
     ~Tetrahedra3D4AusasIncisedShapeFunctions();

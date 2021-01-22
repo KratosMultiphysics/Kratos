@@ -26,6 +26,8 @@
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
+#include "modified_shape_functions/triangle_2d_3_ausas_incised_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_ausas_incised_shape_functions.h"
 
 // Application includes
 #include "embedded_skin_visualization_process.h"
@@ -560,7 +562,13 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
         // Get element geometry
         const Geometry<Node<3>>::Pointer p_geometry = it_elem->pGetGeometry();
         const unsigned int n_nodes = p_geometry->PointsNumber();
-        const Vector nodal_distances = this->SetDistancesVector(it_elem);
+
+        // Check if the element is incised
+        const Vector extra_edge_distances = this->SetExtrapolatedEdgeDistancesVector(it_elem);
+        const bool is_ausas_incised = this->ElementIsAusasIncised(extra_edge_distances);
+
+        // Get nodal distances
+        const Vector nodal_distances = this->SetDistancesVector(it_elem, is_ausas_incised);
 
         // Check if the element is split
         const double zero_tol = 1.0e-10;
@@ -570,10 +578,17 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
         }
         const bool is_split = this->ElementIsSplit(p_geometry, nodal_distances);
 
-        // If the element is split, create the new entities
-        if (is_split){
-            // Set the split utility and compute the splitting pattern
-            ModifiedShapeFunctions::Pointer p_modified_shape_functions = this->SetModifiedShapeFunctionsUtility(p_geometry, nodal_distances);
+        // If the element is split or incised (Ausas shape functions), create the new entities
+        if (is_split || is_ausas_incised){
+            // Set the split utility depending on whether the element is split or incised
+            ModifiedShapeFunctions::Pointer p_modified_shape_functions;
+            if (is_ausas_incised) {
+                p_modified_shape_functions = this->SetModifiedShapeFunctionsUtility(p_geometry, nodal_distances, extra_edge_distances);
+            } else {
+                p_modified_shape_functions = this->SetModifiedShapeFunctionsUtility(p_geometry, nodal_distances);
+            }
+
+            // Compute the splitting pattern
             DivideGeometry::Pointer p_split_utility = p_modified_shape_functions->pGetSplittingUtil();
 
             // Create the auxiliar map that will be used to generate the skin
@@ -817,7 +832,7 @@ bool EmbeddedSkinVisualizationProcess::ElementIsPositive(
 }
 
 bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
-    Geometry<Node<3>>::Pointer pGeometry,
+    const Geometry<Node<3>>::Pointer pGeometry,
     const Vector &rNodalDistances)
 {
     const unsigned int pts_number = pGeometry->PointsNumber();
@@ -835,7 +850,20 @@ bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
     return is_split;
 }
 
-const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::ElementIterator ItElem)
+const bool EmbeddedSkinVisualizationProcess::ElementIsAusasIncised(const Vector &rExtraEdgeDistances)
+{
+    // Check whether one edge has intersection ratio with extrapolated skin if the vector is not empty
+    if (mShapeFunctionsType == ShapeFunctionsType::Ausas) {
+        for (unsigned int i_edge = 0; i_edge < rExtraEdgeDistances.size(); ++i_edge){
+            if (rExtraEdgeDistances[i_edge] > 0.0) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::ElementIterator ItElem, const bool& IsAusasIncised)
 {
     const auto &r_geom = ItElem->GetGeometry();
     Vector nodal_distances(r_geom.PointsNumber());
@@ -849,7 +877,11 @@ const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::Ele
             break;
         // Discontinuous elemental distance function case
         case LevelSetType::Discontinuous:
-            nodal_distances = ItElem->GetValue(*mpElementalDistanceVariable);
+            if (IsAusasIncised) {
+                nodal_distances = ItElem->GetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED);
+            } else {
+                nodal_distances = ItElem->GetValue(*mpElementalDistanceVariable);
+            }
             break;
         // Default error case
         default:
@@ -857,6 +889,15 @@ const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::Ele
     }
 
     return nodal_distances;
+}
+
+const Vector EmbeddedSkinVisualizationProcess::SetExtrapolatedEdgeDistancesVector(ModelPart::ElementIterator ItElem)
+{
+    Vector extra_edge_distances;
+    if (mLevelSetType == LevelSetType::Discontinuous) {
+        extra_edge_distances = ItElem->GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
+    }
+    return extra_edge_distances;
 }
 
 ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedShapeFunctionsUtility(
@@ -888,6 +929,25 @@ ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedSha
             }
         default:
             KRATOS_ERROR << "Asking for a non-implemented modified shape functions type.";
+    }
+}
+
+ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedShapeFunctionsUtility(
+    const Geometry<Node<3>>::Pointer pGeometry,
+    const Vector& rNodalDistancesWithExtra,
+    const Vector& rExtraEdgeDistances)
+{
+    // Get the geometry type
+    const GeometryData::KratosGeometryType geometry_type = pGeometry->GetGeometryType();
+
+    // Return the modified shape functions utility
+    switch (geometry_type) {
+        case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+            return Kratos::make_shared<Triangle2D3AusasIncisedShapeFunctions>(pGeometry, rNodalDistancesWithExtra, rExtraEdgeDistances);
+        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+            return Kratos::make_shared<Tetrahedra3D4AusasIncisedShapeFunctions>(pGeometry, rNodalDistancesWithExtra, rExtraEdgeDistances);
+        default:
+            KRATOS_ERROR << "Asking for a non-implemented Ausas modified shape functions geometry.";
     }
 }
 
