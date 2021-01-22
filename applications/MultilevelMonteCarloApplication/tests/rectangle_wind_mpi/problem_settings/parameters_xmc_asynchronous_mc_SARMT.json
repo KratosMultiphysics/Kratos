@@ -66,8 +66,8 @@
         "parameters": null,
         "printToFile": false,
         "problemId": "rectangle_wind_mpi",
-        "projectParametersPath": "rectangle_wind_mpi/problem_settings/ProjectParametersRectangularCylinder2D_Fractional_MPI.json",
-        "refinementParametersPath": "rectangle_wind_mpi/problem_settings/parameters_refinement.json",
+        "projectParametersPath": "problem_settings/ProjectParametersRectangularCylinder2D_Fractional_MPI.json",
+        "refinementParametersPath": "problem_settings/parameters_refinement.json",
         "refinementStrategy": "stochastic_adaptive_refinement",
         "sizeMultiXMomentEstimator": 4,
         "taskAllAtOnce": false

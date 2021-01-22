@@ -70,8 +70,8 @@
         "parameters": null,
         "printToFile": false,
         "problemId": "caarc_wind_mpi",
-        "projectParametersPath": "caarc_wind_mpi/problem_settings/ProjectParametersCAARC_MLMC_steadyInlet.json",
-        "refinementParametersPath": "caarc_wind_mpi/problem_settings/parameters_refinement.json",
+        "projectParametersPath": "problem_settings/ProjectParametersCAARC_MLMC_steadyInlet.json",
+        "refinementParametersPath": "problem_settings/parameters_refinement.json",
         "refinementStrategy": "stochastic_adaptive_refinement",
         "sizeMultiXMomentEstimator": 8,
         "taskAllAtOnce": true

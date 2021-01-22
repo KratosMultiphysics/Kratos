@@ -26,17 +26,19 @@ import xmc.methodDefs_momentEstimator.computeCentralMoments as ccm
 
 
 class WorkFolderScope:
-    """ Helper-class to execute test in a specific target path
-        Input
-        -----
-        - rel_path_work_folder: String
-            Relative path of the target dir from the calling script
+    """
+    This class is taken from the core of Kratos Multiphysics.
 
-        - file_path: String
-            Absolute path of the calling script
+    Helper-class to execute test in a specific target path
+    Input:
+    - rel_path_work_folder: String
+        Relative path of the target dir from the calling script
 
-        - add_to_path: Bool
-            "False" (default) if no need to add the target dir to the path, "True" otherwise.
+    - file_path: String
+        Absolute path of the calling script
+
+    - add_to_path: Bool
+        "False" (default) if no need to add the target dir to the path, "True" otherwise.
     """
 
     def __init__(self, rel_path_work_folder, file_path, add_to_path=False):
@@ -57,60 +59,52 @@ class WorkFolderScope:
             sys.path = self.currentPythonpath
 
 
-def isKratosFound():
-    try:
-        from KratosMultiphysics.kratos_utilities import (
-            CheckIfApplicationsAvailable,
-            IsMPIAvailable,
-        )
+try:
+    from KratosMultiphysics.kratos_utilities import (
+        CheckIfApplicationsAvailable,
+        IsMPIAvailable,
+    )
 
-        return (
-            CheckIfApplicationsAvailable(
-                "FluidDynamicsApplication",
-                "LinearSolversApplication",
-                "MappingApplication",
-                "MeshingApplication",
-                "MetisApplication",
-                "MultilevelMonteCarloApplication",
-                "StatisticsApplication",
-                "TrilinosApplication",
-            )
-            and IsMPIAvailable()
+    is_Kratos = (
+        CheckIfApplicationsAvailable(
+            "FluidDynamicsApplication",
+            "LinearSolversApplication",
+            "MappingApplication",
+            "MeshingApplication",
+            "MetisApplication",
+            "MultilevelMonteCarloApplication",
+            "StatisticsApplication",
+            "TrilinosApplication",
         )
-    except ImportError:
-        return False
+        and IsMPIAvailable()
+    )
+except ImportError:
+    is_Kratos = False
 
-def isParMmgFound():
-    try:
-        import KratosMultiphysics
-        import KratosMultiphysics.MeshingApplication
-        return hasattr(KratosMultiphysics.MeshingApplication, "ParMmgProcess3D")
-    except ImportError:
-        return False
+try:
+    import KratosMultiphysics
+    import KratosMultiphysics.MeshingApplication
+    is_ParMmg = hasattr(KratosMultiphysics.MeshingApplication, "ParMmgProcess3D")
+except ImportError:
+    is_ParMmg = False
 
 class TestXMCAlgorithmMPI(unittest.TestCase):
 
+    @unittest.skipIf(not is_Kratos, "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details.")
     def mpi_test_mc_Kratos(self):
-        if not isKratosFound():
-            self.skipTest(
-                "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details."
-            )
 
         # read parameters
         parametersList = [
-            "parameters_xmc_asynchronous_mc_SARTAAO.json",
-            "parameters_xmc_asynchronous_mc_SARMT.json",
-            "parameters_xmc_asynchronous_mc_DAR.json",
-            "parameters_xmc_asynchronous_mc_RFF.json",
+            "problem_settings/parameters_xmc_asynchronous_mc_SARTAAO.json",
+            "problem_settings/parameters_xmc_asynchronous_mc_SARMT.json",
+            "problem_settings/parameters_xmc_asynchronous_mc_DAR.json",
+            "problem_settings/parameters_xmc_asynchronous_mc_RFF.json",
         ]
 
-        with WorkFolderScope("rectangle_wind_mpi/problem_settings", __file__):
+        with WorkFolderScope("rectangle_wind_mpi/", __file__, add_to_path = True):
             for parametersPath in parametersList:
                 with open(parametersPath, "r") as parameter_file:
                     parameters = json.load(parameter_file)
-                # add path of the problem folder to python path
-                problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
-                sys.path.append(os.path.join(problem_id))
                 # SolverWrapper
                 parameters["solverWrapperInputDictionary"]["qoiEstimator"] = parameters[
                     "monteCarloIndexInputDictionary"
@@ -223,27 +217,20 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 # check multi combined moment estimator
                 sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[3]._sampleCounter
                 self.assertEqual(sample_counter, 60)
-                # remove added path
-                sys.path.remove(os.path.join(problem_id))
 
+
+    @unittest.skipIf(not is_Kratos, "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details.")
     def mpi_test_mlmc_Kratos(self):
-        if not isKratosFound():
-            self.skipTest(
-                "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details."
-            )
 
         # read parameters
         parametersList = [
-            "parameters_xmc_asynchronous_mlmc_RFF.json"
+            "problem_settings/parameters_xmc_asynchronous_mlmc_RFF.json"
         ]
 
-        with WorkFolderScope("rectangle_wind_mpi/problem_settings", __file__):
+        with WorkFolderScope("rectangle_wind_mpi/", __file__, add_to_path = True):
             for parametersPath in parametersList:
                 with open(parametersPath, "r") as parameter_file:
                     parameters = json.load(parameter_file)
-                # add path of the problem folder to python path
-                problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
-                sys.path.append(os.path.join(problem_id))
                 # SolverWrapper
                 parameters["solverWrapperInputDictionary"]["qoiEstimator"] = parameters[
                     "monteCarloIndexInputDictionary"
@@ -347,32 +334,23 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 # check multi combined moment estimator - level 2
                 sample_counter = algo.monteCarloSampler.indices[2].qoiEstimator[3]._sampleCounter
                 self.assertEqual(sample_counter, 60)
-                # remove added path
-                sys.path.remove(os.path.join(problem_id))
 
+
+    @unittest.skipIf(not is_Kratos or not is_ParMmg,
+        "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details."
+        "Missing dependency: ParMmg. You need to compile Kratos with ParMmg to run this test.")
     def mpi_test_mlmc_Kratos_ParMmg(self):
-        if not isKratosFound():
-            self.skipTest(
-                "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details."
-            )
-        if not isParMmgFound:
-            self.skipTest(
-                "Missing dependency: ParMmg. You need to compile Kratos with ParMmg to run this test."
-            )
 
         # read parameters
         parametersList = [
-            "parameters_xmc_asynchronous_mlmc_SAR.json",
-            "parameters_xmc_asynchronous_mlmc_DAR.json"
+            "problem_settings/parameters_xmc_asynchronous_mlmc_SAR.json",
+            "problem_settings/parameters_xmc_asynchronous_mlmc_DAR.json"
         ]
 
-        with WorkFolderScope("caarc_wind_mpi/problem_settings", __file__):
+        with WorkFolderScope("caarc_wind_mpi/", __file__, add_to_path = True):
             for parametersPath in parametersList:
                 with open(parametersPath, "r") as parameter_file:
                     parameters = json.load(parameter_file)
-                # add path of the problem folder to python path
-                problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
-                sys.path.append(os.path.join(problem_id))
                 # SolverWrapper
                 parameters["solverWrapperInputDictionary"]["qoiEstimator"] = parameters[
                     "monteCarloIndexInputDictionary"
@@ -474,8 +452,6 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 # check multi combined moment estimator - level 2
                 sample_counter = algo.monteCarloSampler.indices[2].qoiEstimator[3]._sampleCounter
                 self.assertEqual(sample_counter, 5)
-                # remove added path
-                sys.path.remove(os.path.join(problem_id))
 
 
 if __name__ == "__main__":

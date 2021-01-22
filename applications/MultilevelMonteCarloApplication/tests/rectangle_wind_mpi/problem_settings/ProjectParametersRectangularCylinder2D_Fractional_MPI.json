@@ -17,7 +17,7 @@
         "solver_type"                 : "FractionalStep",
         "model_import_settings"       : {
             "input_type"     : "mdpa",
-            "input_filename" : "rectangle_wind_mpi/problem_settings/RectangularCylinder2D_81nodes",
+            "input_filename" : "problem_settings/RectangularCylinder2D_81nodes",
             "partition_in_memory" : true
         },
         "compute_reactions"        : true,

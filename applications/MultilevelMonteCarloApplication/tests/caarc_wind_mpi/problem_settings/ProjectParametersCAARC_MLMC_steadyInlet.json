@@ -17,11 +17,11 @@
         "solver_type"                     : "FractionalStep",
         "model_import_settings"           : {
             "input_type"     : "mdpa",
-            "input_filename" : "caarc_wind_mpi/problem_settings/CAARC_3d_combinedPressureVelocity_30nodes",
+            "input_filename" : "problem_settings/CAARC_3d_combinedPressureVelocity_30nodes",
             "partition_in_memory" : true
         },
         "material_import_settings"    : {
-            "materials_filename" : "caarc_wind_mpi/materials/materials_Re_119M.json"
+            "materials_filename" : "materials/materials_Re_119M.json"
         },
         "echo_level"                      : 1,
         "compute_reactions"               : true,
