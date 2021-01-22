@@ -40,14 +40,15 @@ public:
 
     ScalarWallFluxConditionData(
         const GeometryType& rGeometry,
-        const Properties& rProperties,
+        const Properties& rConditionProperties,
         const ProcessInfo& rProcessInfo)
         : mrGeometry(rGeometry),
-          mrProperties(rProperties),
+          mrConditionProperties(rConditionProperties),
+          mrElementProperties(rGeometry.GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties()),
           mrConstitutiveLaw(*rGeometry.GetValue(NEIGHBOUR_ELEMENTS)[0].GetValue(CONSTITUTIVE_LAW))
     {
         mConstitutiveLawParameters =
-            ConstitutiveLaw::Parameters(rGeometry, rProperties, rProcessInfo);
+            ConstitutiveLaw::Parameters(rGeometry, mrElementProperties, rProcessInfo);
     }
 
     ConstitutiveLaw::Parameters& GetConstitutiveLawParameters()
@@ -65,14 +66,20 @@ public:
         return mrGeometry;
     }
 
-    const Properties& GetProperties() const
+    const Properties& GetElementProperties() const
     {
-        return mrProperties;
+        return mrElementProperties;
+    }
+
+    const Properties& GetConditionProperties() const
+    {
+        return mrConditionProperties;
     }
 
 private:
     const GeometryType& mrGeometry;
-    const Properties& mrProperties;
+    const Properties& mrConditionProperties;
+    const Properties& mrElementProperties;
     ConstitutiveLaw& mrConstitutiveLaw;
     ConstitutiveLaw::Parameters mConstitutiveLawParameters;
 };

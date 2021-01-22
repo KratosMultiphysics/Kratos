@@ -153,7 +153,7 @@ void ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Cal
         const IndexType num_gauss_points = gauss_weights.size();
 
         TScalarWallFluxConditionData r_current_data(
-            r_geometry, this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties(), rCurrentProcessInfo);
+            r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
         r_current_data.CalculateConstants(rCurrentProcessInfo);
 

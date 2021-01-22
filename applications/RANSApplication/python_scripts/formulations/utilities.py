@@ -219,7 +219,7 @@ def InitializeWallLawProperties(model):
             # logarithmic wall law
             if (properties.Has(KratosRANS.WALL_SMOOTHNESS_BETA) and process_info.Has(KratosRANS.VON_KARMAN)):
                 von_karman = model_part.ProcessInfo[KratosRANS.VON_KARMAN]
-                beta = properties.GetValue(KratosRANS.WALL_SMOOTHNESS_BETA)
+                beta = properties[KratosRANS.WALL_SMOOTHNESS_BETA]
                 y_plus_limit = RansCalculationUtilities.CalculateLogarithmicYPlusLimit(von_karman, beta)
                 properties.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, y_plus_limit)
 

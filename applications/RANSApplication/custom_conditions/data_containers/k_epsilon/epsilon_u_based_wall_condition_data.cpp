@@ -71,12 +71,13 @@ void EpsilonUBasedWallConditionData::CalculateConstants(
     KRATOS_ERROR_IF(!(this->GetGeometry().Has(RANS_Y_PLUS)))
         << "RANS_Y_PLUS value is not set at " << this->GetGeometry() << "\n";
 
-    const auto& r_properties = this->GetProperties();
-    mDensity = r_properties.GetValue(DENSITY);
-    mBeta = r_properties.GetValue(WALL_SMOOTHNESS_BETA);
-    mInvKappa = 1.0 / mKappa;
-    const double y_plus_limit = r_properties.GetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT);
+    mDensity = this->GetElementProperties()[DENSITY];
 
+    const auto& r_properties = this->GetConditionProperties();
+    mBeta = r_properties[WALL_SMOOTHNESS_BETA];
+    const double y_plus_limit = r_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
+
+    mInvKappa = 1.0 / mKappa;
     mYPlus = std::max(this->GetGeometry().GetValue(RANS_Y_PLUS), y_plus_limit);
 
     KRATOS_CATCH("");

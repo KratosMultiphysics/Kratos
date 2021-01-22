@@ -514,17 +514,23 @@ protected:
             const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
             const double kappa = rCurrentProcessInfo[VON_KARMAN];
 
-            const PropertiesType& r_properties = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
-            const double rho = r_properties.GetValue(DENSITY);
-            const double beta = r_properties.GetValue(WALL_SMOOTHNESS_BETA);
-            const double y_plus_limit = r_properties.GetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT);
+            // get parent element
+            auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
+            auto p_constitutive_law = r_parent_element.GetValue(CONSTITUTIVE_LAW);
+
+            // get fluid properties from parent element
+            const auto& r_elem_properties = r_parent_element.GetProperties();
+            const double rho = r_elem_properties[DENSITY];
+            ConstitutiveLaw::Parameters cl_parameters(r_geometry, r_elem_properties, rCurrentProcessInfo);
+
+            // get surface properties from condition
+            const PropertiesType& r_cond_properties = this->GetProperties();
+            const double beta = r_cond_properties.GetValue(WALL_SMOOTHNESS_BETA);
+            const double y_plus_limit = r_cond_properties.GetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT);
             const double inv_kappa = 1.0 / kappa;
 
             double tke, nu;
             array_1d<double, 3> wall_velocity;
-
-            ConstitutiveLaw::Parameters cl_parameters(r_geometry, r_properties, rCurrentProcessInfo);
-            auto p_constitutive_law = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetValue(CONSTITUTIVE_LAW);
 
             for (size_t g = 0; g < num_gauss_points; ++g)
             {
