@@ -13,17 +13,13 @@
 #if !defined(KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVERCOMPONENTWISE )
 #define  KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVERCOMPONENTWISE
 
-
 /* System includes */
 #include <set>
 
-#ifdef _OPENMP
+/* External includes */
+#ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
 #endif
-
-
-/* External includes */
-
 
 /* Project includes */
 #include "includes/define.h"
