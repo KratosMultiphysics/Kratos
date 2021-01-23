@@ -159,18 +159,31 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateNodalContactForce( c
         Vector nodal_force = ZeroVector(3);
         array_1d<double, 3 > mpc_force = ZeroVector(3);
 
-        // TODO:
-        m_particle_based_contact_force = false;
 
         if ( m_particle_based_contact_force )
         {
+            // Prepare variables
+            GeneralVariables Variables;
+
+            // Calculating shape function
+            Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+            Variables.CurrentDisp = this->CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
+
+            
+            Vector gap_function = ZeroVector(dimension);
+            Vector mpc_force = ZeroVector(dimension);
             for (unsigned int i = 0; i < number_of_nodes; i++)
             {
                 for (unsigned int j = 0; j < dimension; j++)
                 {
-                    mpc_force[j] += rRightHandSideVector[block_size * i + j];
+                    gap_function[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
+                    
                 }
             }
+            gap_function -= m_imposed_displacement;
+            
+            mpc_force = -1 * gap_function * m_penalty * this->GetIntegrationWeight();
+            
             // Set Contact Force
             m_contact_force = mpc_force;
         }

@@ -152,6 +152,9 @@ protected:
     ///@{
 
     array_1d<double, 3> m_unit_normal;
+    double m_penalty = 0.0;
+    // TODO:
+    bool m_particle_based_contact_force = false;
 
     ///@}
     ///@name Protected Operators
@@ -204,7 +207,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    double m_penalty = 0.0;
+    
 
     ///@}
     ///@name Private Operators

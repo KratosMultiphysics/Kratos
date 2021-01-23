@@ -187,11 +187,25 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 
         // Calculate gap_function: nodal_displacement - imposed_displacement
         Vector gap_function = ZeroVector(matrix_size);
-        for (unsigned int i = 0; i < number_of_nodes; i++)
+        Vector imposed_disp = ZeroVector(matrix_size);
+        if (m_particle_based_contact_force = false)
         {
-            for ( unsigned int j = 0; j < dimension; j++)
+            for (unsigned int i = 0; i < number_of_nodes; i++)
             {
-                gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - m_imposed_displacement[j]);
+                for ( unsigned int j = 0; j < dimension; j++)
+                {   
+                    gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - m_imposed_displacement[j]); 
+                }
+            }
+        }
+        else{
+            for (unsigned int i = 0; i < number_of_nodes; i++)
+            {
+                for ( unsigned int j = 0; j < dimension; j++)
+                {
+                    gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j));
+                    imposed_disp[block_size * i + j] = Variables.N[i] * m_imposed_displacement[j];
+                }
             }
         }
 
@@ -205,6 +219,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         if ( CalculateResidualVectorFlag == true )
         {
             noalias(rRightHandSideVector) -= prod(prod(trans(shape_function), shape_function), gap_function);
+            rRightHandSideVector += imposed_disp;
             rRightHandSideVector *= m_penalty * this->GetIntegrationWeight();
         }
     }
