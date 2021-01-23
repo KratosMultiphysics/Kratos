@@ -18,6 +18,9 @@
 #include <unordered_set>
 
 /* External includes */
+#ifdef KRATOS_SMP_OPENMP
+#include <omp.h>
+#endif
 
 /* Project includes */
 #include "includes/define.h"
