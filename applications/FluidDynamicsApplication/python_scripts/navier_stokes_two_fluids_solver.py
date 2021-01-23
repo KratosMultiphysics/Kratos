@@ -420,7 +420,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 bfecc_order = 0
 
-            max_cfl = 1.0
+            max_cfl = 10.0
             cross_wind = 0.0
             max_substeps = 1
 
