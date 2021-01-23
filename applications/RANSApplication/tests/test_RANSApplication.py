@@ -68,8 +68,11 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaSSTPeriodicTest]))
 
     # adding representative transient tests to small suite
-    smallSuite.addTest(FractionalStepKOmegaSSTTest("testRfcVelocityTransient"))
-    smallSuite.addTest(MonolithicKOmegaSSTTest("testRfcVelocityTransient"))
+    smallSuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcVelocityTransient"))
+    smallSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocityTransient"))
+
+    smallSuite.addTest(FractionalStepKOmegaSSTTest("testQSVMSRfcVelocityTransient"))
+    smallSuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocityTransient"))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
