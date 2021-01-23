@@ -993,9 +993,7 @@ private:
      * @brief This method computes directly the lumped mass vector
      * @param rMassMatrix The lumped mass vector
      */
-    void CalculateLumpedMassVector(
-        VectorType &rLumpedMassVector,
-        const ProcessInfo& rCurrentProcessInfo) const override;
+    void CalculateLumpedMassVector(VectorType& rMassVector) const;
 
     /**
      * @brief This method computes directly the lumped mass matrix

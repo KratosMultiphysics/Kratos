@@ -42,31 +42,29 @@ class make_block_solver {
         std::tuple<size_t, scalar_type> operator()(
                 const Matrix &A, const Vec1 &rhs, Vec2 &&x) const
         {
-            typedef typename math::scalar_of<typename backend::value_type<typename std::decay<Vec1>::type>::type>::type fs;
-            typedef typename math::scalar_of<typename backend::value_type<typename std::decay<Vec2>::type>::type>::type xs;
+            const size_t n = backend::rows(system_matrix());
 
-            typedef typename math::replace_scalar<rhs_type, fs>::type f_type;
-            typedef typename math::replace_scalar<rhs_type, xs>::type x_type;
+            rhs_type const * fptr = reinterpret_cast<rhs_type const *>(&rhs[0]);
+            rhs_type       * xptr = reinterpret_cast<rhs_type       *>(&x[0]);
 
-            auto F = backend::reinterpret<const f_type>(rhs);
-            auto X = backend::reinterpret<x_type>(x);
+            iterator_range<rhs_type const *> frng(fptr, fptr + n);
+            iterator_range<rhs_type       *> xrng(xptr, xptr + n);
 
-            return (*S)(A, F, X);
+            return (*S)(A, frng, xrng);
         }
 
         template <class Vec1, class Vec2>
         std::tuple<size_t, scalar_type>
         operator()(const Vec1 &rhs, Vec2 &&x) const {
-            typedef typename math::scalar_of<typename backend::value_type<typename std::decay<Vec1>::type>::type>::type fs;
-            typedef typename math::scalar_of<typename backend::value_type<typename std::decay<Vec2>::type>::type>::type xs;
+            const size_t n = backend::rows(system_matrix());
 
-            typedef typename math::replace_scalar<rhs_type, fs>::type f_type;
-            typedef typename math::replace_scalar<rhs_type, xs>::type x_type;
+            rhs_type const * fptr = reinterpret_cast<rhs_type const *>(&rhs[0]);
+            rhs_type       * xptr = reinterpret_cast<rhs_type       *>(&x[0]);
 
-            auto F = backend::reinterpret<const f_type>(rhs);
-            auto X = backend::reinterpret<x_type>(x);
+            iterator_range<rhs_type const *> frng(fptr, fptr + n);
+            iterator_range<rhs_type       *> xrng(xptr, xptr + n);
 
-            return (*S)(F, X);
+            return (*S)(frng, xrng);
         }
 
         std::shared_ptr<typename Precond::matrix> system_matrix_ptr() const {
@@ -79,10 +77,6 @@ class make_block_solver {
 
         friend std::ostream& operator<<(std::ostream &os, const make_block_solver &p) {
             return os << *p.S << std::endl;
-        }
-
-        size_t bytes() const {
-            return backend::bytes(*S);
         }
     private:
         typedef make_solver<Precond, IterativeSolver> Solver;

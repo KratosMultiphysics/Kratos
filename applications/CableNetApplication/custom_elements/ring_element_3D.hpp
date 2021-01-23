@@ -121,9 +121,7 @@ namespace Kratos
         double CalculateGreenLagrangeStrain() const;
         double LinearStiffness() const;
 
-        void CalculateLumpedMassVector(
-            VectorType &rLumpedMassVector,
-            const ProcessInfo& rCurrentProcessInfo) const override;
+        void CalculateLumpedMassVector(VectorType &rMassVector);
 
         void CalculateMassMatrix(
             MatrixType& rMassMatrix,

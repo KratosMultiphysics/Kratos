@@ -68,7 +68,7 @@ MPMGridPointLoadCondition::~MPMGridPointLoadCondition()
 
 void MPMGridPointLoadCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo,
+    ProcessInfo& rCurrentProcessInfo,
     bool CalculateStiffnessMatrixFlag,
     bool CalculateResidualVectorFlag
     )

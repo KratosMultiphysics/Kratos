@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,6 @@ THE SOFTWARE.
 #include <amgcl/relaxation/gauss_seidel.hpp>
 #include <amgcl/relaxation/ilu0.hpp>
 #include <amgcl/relaxation/iluk.hpp>
-#include <amgcl/relaxation/ilup.hpp>
 #include <amgcl/relaxation/ilut.hpp>
 #include <amgcl/relaxation/damped_jacobi.hpp>
 #include <amgcl/relaxation/spai0.hpp>
@@ -59,7 +58,6 @@ enum type {
     gauss_seidel,               ///< Gauss-Seidel smoothing
     ilu0,                       ///< Incomplete LU with zero fill-in
     iluk,                       ///< Level-based incomplete LU
-    ilup,                       ///< Level-based incomplete LU (fill-in is determined from A^p pattern)
     ilut,                       ///< Incomplete LU with thresholding
     damped_jacobi,              ///< Damped Jacobi
     spai0,                      ///< Sparse approximate inverse of 0th order
@@ -76,8 +74,6 @@ inline std::ostream& operator<<(std::ostream &os, type r)
             return os << "ilu0";
         case iluk:
             return os << "iluk";
-        case ilup:
-            return os << "ilup";
         case ilut:
             return os << "ilut";
         case damped_jacobi:
@@ -104,8 +100,6 @@ inline std::istream& operator>>(std::istream &in, type &r)
         r = ilu0;
     else if (val == "iluk")
         r = iluk;
-    else if (val == "ilup")
-        r = ilup;
     else if (val == "ilut")
         r = ilut;
     else if (val == "damped_jacobi")
@@ -118,7 +112,7 @@ inline std::istream& operator>>(std::istream &in, type &r)
         r = chebyshev;
     else
         throw std::invalid_argument("Invalid relaxation value. Valid choices are:"
-                "gauss_seidel, ilu0, iluk, ilup, ilut, damped_jacobi, spai0, spai1, chebyshev.");
+                "gauss_seidel, ilu0, iluk, ilut, damped_jacobi, spai0, spai1, chebyshev.");
 
     return in;
 }
@@ -148,7 +142,6 @@ struct wrapper {
             AMGCL_RUNTIME_RELAXATION(gauss_seidel);
             AMGCL_RUNTIME_RELAXATION(ilu0);
             AMGCL_RUNTIME_RELAXATION(iluk);
-            AMGCL_RUNTIME_RELAXATION(ilup);
             AMGCL_RUNTIME_RELAXATION(ilut);
             AMGCL_RUNTIME_RELAXATION(damped_jacobi);
             AMGCL_RUNTIME_RELAXATION(spai0);
@@ -173,7 +166,6 @@ struct wrapper {
             AMGCL_RUNTIME_RELAXATION(gauss_seidel);
             AMGCL_RUNTIME_RELAXATION(ilu0);
             AMGCL_RUNTIME_RELAXATION(iluk);
-            AMGCL_RUNTIME_RELAXATION(ilup);
             AMGCL_RUNTIME_RELAXATION(ilut);
             AMGCL_RUNTIME_RELAXATION(damped_jacobi);
             AMGCL_RUNTIME_RELAXATION(spai0);
@@ -199,7 +191,6 @@ struct wrapper {
             AMGCL_RUNTIME_RELAXATION(gauss_seidel);
             AMGCL_RUNTIME_RELAXATION(ilu0);
             AMGCL_RUNTIME_RELAXATION(iluk);
-            AMGCL_RUNTIME_RELAXATION(ilup);
             AMGCL_RUNTIME_RELAXATION(ilut);
             AMGCL_RUNTIME_RELAXATION(damped_jacobi);
             AMGCL_RUNTIME_RELAXATION(spai0);
@@ -228,7 +219,6 @@ struct wrapper {
             AMGCL_RUNTIME_RELAXATION(gauss_seidel);
             AMGCL_RUNTIME_RELAXATION(ilu0);
             AMGCL_RUNTIME_RELAXATION(iluk);
-            AMGCL_RUNTIME_RELAXATION(ilup);
             AMGCL_RUNTIME_RELAXATION(ilut);
             AMGCL_RUNTIME_RELAXATION(damped_jacobi);
             AMGCL_RUNTIME_RELAXATION(spai0);
@@ -255,7 +245,6 @@ struct wrapper {
             AMGCL_RUNTIME_RELAXATION(gauss_seidel);
             AMGCL_RUNTIME_RELAXATION(ilu0);
             AMGCL_RUNTIME_RELAXATION(iluk);
-            AMGCL_RUNTIME_RELAXATION(ilup);
             AMGCL_RUNTIME_RELAXATION(ilut);
             AMGCL_RUNTIME_RELAXATION(damped_jacobi);
             AMGCL_RUNTIME_RELAXATION(spai0);
@@ -279,7 +268,6 @@ struct wrapper {
             AMGCL_RUNTIME_RELAXATION(gauss_seidel);
             AMGCL_RUNTIME_RELAXATION(ilu0);
             AMGCL_RUNTIME_RELAXATION(iluk);
-            AMGCL_RUNTIME_RELAXATION(ilup);
             AMGCL_RUNTIME_RELAXATION(ilut);
             AMGCL_RUNTIME_RELAXATION(damped_jacobi);
             AMGCL_RUNTIME_RELAXATION(spai0);

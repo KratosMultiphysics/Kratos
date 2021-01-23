@@ -19,7 +19,6 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "utilities/parallel_utilities.h"
 #include "utilities/time_discretization.h"
 #include "solving_strategies/schemes/residual_based_bdf_scheme.h"
 #include "custom_utilities/flow_rate_slip_utility.h"
@@ -80,8 +79,6 @@ public:
 
     typedef ModelPart::NodesContainerType                          NodesArrayType;
 
-    typedef typename ModelPart::NodeType                                 NodeType;
-
     typedef FlowRateSlipUtility<LocalSystemMatrixType,LocalSystemVectorType,double>FlowRateSlipToolType;
 
     ///@}
@@ -89,17 +86,15 @@ public:
     ///@{
 
     // Constructor
-    explicit ShallowWaterResidualBasedBDFScheme(const std::size_t Order = 2, bool UpdateVelocities = false)
+    explicit ShallowWaterResidualBasedBDFScheme(const std::size_t Order = 2)
         : BDFBaseType(Order)
         , mRotationTool()
-        , mUpdateVelocities(UpdateVelocities)
     {}
 
     // Copy Constructor
     explicit ShallowWaterResidualBasedBDFScheme(ShallowWaterResidualBasedBDFScheme& rOther)
         : BDFBaseType(rOther)
         , mRotationTool()
-        , mUpdateVelocities(rOther.mUpdateVelocities)
     {}
 
     /**
@@ -146,8 +141,6 @@ public:
         mRotationTool.RecoverVelocities(rModelPart);
 
         BDFBaseType::UpdateDerivatives(rModelPart, rDofSet, rA, rDx, rb);
-
-        if (mUpdateVelocities) UpdateVelocities(rModelPart);
 
         KRATOS_CATCH("ShallowWaterResidualBasedBDFScheme.Update");
     }
@@ -344,8 +337,6 @@ protected:
 
     FlowRateSlipToolType mRotationTool;
 
-    bool mUpdateVelocities;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -376,20 +367,6 @@ protected:
      * @param itNode the node interator
      */
     void UpdateSecondDerivative(NodesArrayType::iterator itNode) override {}
-
-    /**
-     * @brief Updating the velocities
-     * @param rModelPart The model part to compute
-     */
-    void UpdateVelocities(ModelPart& rModelPart)
-    {
-        block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
-            auto& vel = r_node.FastGetSolutionStepValue(VELOCITY);
-            const auto& q = r_node.FastGetSolutionStepValue(MOMENTUM);
-            const auto& h = r_node.FastGetSolutionStepValue(HEIGHT);
-            vel = q / h;
-        });
-    }
 
     /**
      * @brief It adds the dynamic LHS contribution of the elements

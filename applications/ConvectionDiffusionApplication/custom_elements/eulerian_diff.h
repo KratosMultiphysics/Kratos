@@ -99,17 +99,14 @@ public:
     {
         return Kratos::make_intrusive<EulerianDiffusionElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
-
+    
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<EulerianDiffusionElement>(NewId, pGeom, pProperties);
     }
 
 
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -263,7 +260,7 @@ public:
             const auto& r_node = r_geom[i];
             phi[i] = r_node.FastGetSolutionStepValue(r_unknown_var);
 
-            // If it is a convection diffusion problem, then the projection variable will exist and
+            // If it is a convection diffusion problem, then the projection variable will exist and 
             // Therefore we must use it instead of UnknownVariable(timestep n), that is, to take the convection into account.
 	        if (is_defined_projection_variable) {
                 const auto& r_projection_var = p_my_settings->GetProjectionVariable();
@@ -546,3 +543,4 @@ private:
 } // namespace Kratos.
 
 #endif // KRATOS_EULERIAN_CONVECTION_DIFFUSION_ELEMENT_INCLUDED  defined
+

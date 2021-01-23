@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,19 +39,14 @@ namespace coarsening {
 // Create rigid body modes from coordinate vector.
 // To be used as near-nullspace vectors with aggregation coarsening
 // for 2D or 3D elasticity problems.
-// The output matrix B may be transposed on demand
-// (to be used as a set of deflation vectors).
 template <class Vector>
-int rigid_body_modes(int ndim, const Vector &coo, std::vector<double> &B, bool transpose = false) {
+int rigid_body_modes(int ndim, const Vector &coo, std::vector<double> &B) {
     precondition(ndim == 2 || ndim == 3, "Only 2D or 3D problems are supported");
     precondition(coo.size() % ndim == 0, "Coordinate vector size should be divisible by ndim");
 
     size_t n = coo.size();
     int nmodes = (ndim == 2 ? 3 : 6);
     B.resize(n * nmodes, 0.0);
-
-    const int stride1 = transpose ? 1 : nmodes;
-    const int stride2 = transpose ? n : 1;
 
     double sn = 1 / sqrt(n);
 
@@ -64,15 +59,15 @@ int rigid_body_modes(int ndim, const Vector &coo, std::vector<double> &B, bool t
             double y = coo[nod * 2 + 1];
 
             // Translation
-            B[i * stride1 + dim * stride2] = sn;
+            B[i * nmodes + dim] = sn;
 
             // Rotation
             switch(dim) {
                 case 0:
-                    B[i * stride1 + 2 * stride2] = -y;
+                    B[i * nmodes + 2] = -y;
                     break;
                 case 1:
-                    B[i * stride1 + 2 * stride2] = x;
+                    B[i * nmodes + 2] = x;
                     break;
             }
         }
@@ -86,21 +81,21 @@ int rigid_body_modes(int ndim, const Vector &coo, std::vector<double> &B, bool t
             double z = coo[nod * 3 + 2];
 
             // Translation
-            B[i * stride1 + dim * stride2] = sn;
+            B[i * nmodes + dim] = sn;
 
             // Rotation
             switch(dim) {
                 case 0:
-                    B[i * stride1 + 3 * stride2] = y;
-                    B[i * stride1 + 5 * stride2] = z;
+                    B[i * nmodes + 3] = y;
+                    B[i * nmodes + 5] = z;
                     break;
                 case 1:
-                    B[i * stride1 + 3 * stride2] = -x;
-                    B[i * stride1 + 4 * stride2] = -z;
+                    B[i * nmodes + 3] = -x;
+                    B[i * nmodes + 4] = -z;
                     break;
                 case 2:
-                    B[i * stride1 + 4 * stride2] =  y;
-                    B[i * stride1 + 5 * stride2] = -x;
+                    B[i * nmodes + 4] =  y;
+                    B[i * nmodes + 5] = -x;
                     break;
             }
         }
@@ -112,17 +107,17 @@ int rigid_body_modes(int ndim, const Vector &coo, std::vector<double> &B, bool t
         std::fill(dot.begin(), dot.end(), 0.0);
         for(size_t j = 0; j < n; ++j) {
             for(int k = 0; k < i; ++k)
-                dot[k] += B[j * stride1 + k * stride2] * B[j * stride1 + i * stride2];
+                dot[k] += B[j * nmodes + k] * B[j * nmodes + i];
         }
         double s = 0.0;
         for(size_t j = 0; j < n; ++j) {
             for(int k = 0; k < i; ++k)
-                B[j * stride1 + i * stride2] -= dot[k] * B[j * stride1 + k * stride2];
-            s += B[j * stride1 + i * stride2] * B[j * stride1 + i * stride2];
+                B[j * nmodes + i] -= dot[k] * B[j * nmodes + k];
+            s += B[j * nmodes + i] * B[j * nmodes + i];
         }
         s = sqrt(s);
         for(size_t j = 0; j < n; ++j)
-            B[j * stride1 + i * stride2] /= s;
+            B[j * nmodes + i] /= s;
     }
 
     return nmodes;

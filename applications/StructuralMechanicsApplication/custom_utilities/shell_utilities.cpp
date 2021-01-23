@@ -15,7 +15,6 @@
 // External includes
 
 // Project includes
-#include "includes/variables.h"
 #include "shell_utilities.h"
 #include "structural_mechanics_application_variables.h"
 

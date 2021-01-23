@@ -1,7 +1,7 @@
 import KratosMultiphysics as km
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from test_utilities import RunParametricTestCase
+from KratosMultiphysics.RANSApplication.test_utilities import RunParametricTestCase
 
 
 class FlowSolverTestCase(UnitTest.TestCase):

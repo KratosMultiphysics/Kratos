@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -108,10 +108,15 @@ struct matrix_builder {
 
     RowBuilder build_row;
 
-    matrix_builder(const RowBuilder &row_builder) : build_row(row_builder) {}
+    mutable std::vector<col_type> col;
+    mutable std::vector<value_type> val;
 
-    size_t rows()     const { return build_row.rows(); }
-    size_t cols()     const { return build_row.rows(); }
+    matrix_builder(const RowBuilder &row_builder) : build_row(row_builder)
+    {}
+
+    size_t rows() const { return build_row.rows(); }
+    size_t cols() const { return build_row.rows(); }
+
     size_t nonzeros() const { return build_row.nonzeros(); }
 
     struct row_iterator {
@@ -121,36 +126,44 @@ struct matrix_builder {
         typedef typename std::vector<col_type>::const_iterator col_iterator;
         typedef typename std::vector<val_type>::const_iterator val_iterator;
 
-        row_iterator(const RowBuilder &build_row, size_t i) : ptr(0)
-        {
-            build_row(i, m_col, m_val);
-        }
+        row_iterator(
+                col_iterator col_begin,
+                col_iterator col_end,
+                val_iterator val_begin
+                )
+            : m_col(col_begin), m_end(col_end), m_val(val_begin)
+        {}
 
         operator bool() const {
-            return m_col.size() - ptr;
+            return m_col != m_end;
         }
 
         row_iterator& operator++() {
-            ++ptr;
+            ++m_col;
+            ++m_val;
             return *this;
         }
 
         col_type col() const {
-            return m_col[ptr];
+            return *m_col;
         }
 
         val_type value() const {
-            return m_val[ptr];
+            return *m_val;
         }
 
         private:
-            int ptr;
-            std::vector<col_type>   m_col;
-            std::vector<value_type> m_val;
+            col_iterator m_col;
+            col_iterator m_end;
+            val_iterator m_val;
     };
 
     row_iterator row_begin(size_t i) const {
-        return row_iterator(build_row, i);
+        col.clear();
+        val.clear();
+        build_row(i, col, val);
+
+        return row_iterator(col.begin(), col.end(), val.begin());
     }
 
 };

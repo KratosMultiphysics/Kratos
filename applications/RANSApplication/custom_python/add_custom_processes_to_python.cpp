@@ -85,11 +85,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<RansNutKEpsilonUpdateProcess, RansNutKEpsilonUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKEpsilonUpdateProcess")
         .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const int>());
+        .def(py::init<Model&, const std::string&, const double, const double, const int>());
 
     py::class_<RansNutKOmegaSSTUpdateProcess, RansNutKOmegaSSTUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKOmegaSSTUpdateProcess")
         .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const int>());
+        .def(py::init<Model&, const std::string&, const double, const double, const double, const int>());
 
     py::class_<RansNutKOmegaUpdateProcess, RansNutKOmegaUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKOmegaUpdateProcess")
         .def(py::init<Model&, Parameters&>())
@@ -97,11 +97,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<RansNutYPlusWallFunctionUpdateProcess, RansNutYPlusWallFunctionUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutYPlusWallFunctionUpdateProcess")
         .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const int>());
+        .def(py::init<Model&, const std::string&, const double, const double, const int>());
 
     py::class_<RansWallFunctionUpdateProcess, RansWallFunctionUpdateProcess::Pointer, RansFormulationProcess>(m, "RansWallFunctionUpdateProcess")
         .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const int>());
+        .def(py::init<Model&, const std::string&, const double, const double, const int>());
 
     py::class_<RansWallDistanceCalculationProcess, RansWallDistanceCalculationProcess::Pointer, RansFormulationProcess>(m, "RansWallDistanceCalculationProcess")
         .def(py::init<Model&, Parameters&>());

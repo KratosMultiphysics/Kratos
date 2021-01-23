@@ -187,7 +187,7 @@ void FluidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo&
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void FluidElement::GetValuesVector( Vector& rValues, int Step ) const
+void FluidElement::GetValuesVector( Vector& rValues, int Step )
 {
     KRATOS_ERROR << " calling the default method GetValuesVector for a fluid element " << std::endl;
 }
@@ -196,7 +196,7 @@ void FluidElement::GetValuesVector( Vector& rValues, int Step ) const
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void FluidElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
+void FluidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 {
     KRATOS_ERROR << " calling the default method GetFirstDerivativesVector for a fluid element " << std::endl;
 }
@@ -204,7 +204,7 @@ void FluidElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void FluidElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
+void FluidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
     KRATOS_ERROR << " calling the default method GetSecondDerivativesVector for a fluid element " << std::endl;
 }
@@ -532,7 +532,7 @@ void FluidElement::TransformElementData(ElementDataType& rVariables, const doubl
 //************************************************************************************
 //************************************************************************************
 
-unsigned int FluidElement::GetDofsSize() const
+unsigned int FluidElement::GetDofsSize()
 {
   KRATOS_ERROR << " calling the default method GetDofsSize for a fluid element " << std::endl;
 }
@@ -2389,13 +2389,29 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
 //************************************************************************************
 //************************************************************************************
 
-int FluidElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
+int FluidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     // Perform base element checks
     int ErrorCode = 0;
     ErrorCode = Element::Check(rCurrentProcessInfo);
+
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+    KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
+
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
+
+    KRATOS_CHECK_VARIABLE_KEY(CAUCHY_STRESS_TENSOR);
+    KRATOS_CHECK_VARIABLE_KEY(CAUCHY_STRESS_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_MATRIX);
+    KRATOS_CHECK_VARIABLE_KEY(DEFORMATION_GRADIENT);
+    KRATOS_CHECK_VARIABLE_KEY(STRAIN_ENERGY);
+
 
     // Check that the constitutive law exists
     if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )

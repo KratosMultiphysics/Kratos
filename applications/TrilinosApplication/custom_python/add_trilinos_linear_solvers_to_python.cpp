@@ -39,10 +39,6 @@
 #include "external_includes/amesos_solver.h"
 #endif
 
-#ifndef TRILINOS_EXCLUDE_AMESOS2_SOLVER
-#include "external_includes/amesos2_solver.h"
-#endif
-
 #ifndef TRILINOS_EXCLUDE_ML_SOLVER
 #include "external_includes/ml_solver.h"
 #endif
@@ -98,18 +94,9 @@ void  AddLinearSolvers(pybind11::module& m)
     py::class_<AmesosSolverType, typename AmesosSolverType::Pointer, TrilinosLinearSolverType >
     (m,"AmesosSolver").def( py::init<const std::string&, Teuchos::ParameterList& >())
         .def(py::init<Parameters>())
+        .def(py::init<Parameters>())
         .def_static("HasSolver", &AmesosSolverType::HasSolver)
         .def("__str__", PrintObject<AmesosSolverType>)
-        ;
-#endif
-
-#ifndef TRILINOS_EXCLUDE_AMESOS2_SOLVER
-    typedef Amesos2Solver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > Amesos2SolverType;
-    py::class_<Amesos2SolverType, typename Amesos2SolverType::Pointer, TrilinosLinearSolverType >
-    (m,"Amesos2Solver").def( py::init<const std::string&, Teuchos::ParameterList& >())
-        .def(py::init<Parameters>())
-        .def_static("HasSolver", &Amesos2SolverType::HasSolver)
-        .def("__str__", PrintObject<Amesos2SolverType>)
         ;
 #endif
 

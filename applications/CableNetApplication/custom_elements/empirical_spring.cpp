@@ -241,6 +241,11 @@ int EmpiricalSpringElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) co
     if (dimension != msDimension ||number_of_nodes != msNumberOfNodes) {
         KRATOS_ERROR << "The element works only in 3D and with 2 nodes" << std::endl;
     }
+    // verify that the variables are correctly initialized
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (IndexType i = 0; i < number_of_nodes; ++i) {
@@ -410,15 +415,13 @@ void EmpiricalSpringElement3D2N::WriteTransformationCoordinates(
 }
 
 
-void EmpiricalSpringElement3D2N::CalculateLumpedMassVector(
-    VectorType& rLumpedMassVector,
-    const ProcessInfo& rCurrentProcessInfo) const
+void EmpiricalSpringElement3D2N::CalculateLumpedMassVector(VectorType& rMassVector)
 {
     KRATOS_TRY
 
     // Clear matrix
-    if (rLumpedMassVector.size() != msLocalSize) {
-        rLumpedMassVector.resize(msLocalSize, false);
+    if (rMassVector.size() != msLocalSize) {
+        rMassVector.resize(msLocalSize, false);
     }
 
     const double A = GetProperties()[CROSS_AREA];
@@ -431,7 +434,7 @@ void EmpiricalSpringElement3D2N::CalculateLumpedMassVector(
         for (int j = 0; j < msDimension; ++j) {
             int index = i * msDimension + j;
 
-            rLumpedMassVector[index] = total_mass * 0.50;
+            rMassVector[index] = total_mass * 0.50;
         }
     }
 
@@ -448,7 +451,7 @@ void EmpiricalSpringElement3D2N::CalculateMassMatrix(
 
     // Compute lumped mass matrix
     VectorType temp_vector(msLocalSize);
-    CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
+    CalculateLumpedMassVector(temp_vector);
 
     // Clear matrix
     if (rMassMatrix.size1() != msLocalSize || rMassMatrix.size2() != msLocalSize) {
@@ -488,7 +491,7 @@ void EmpiricalSpringElement3D2N::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         VectorType element_mass_vector(msLocalSize);
-        CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
+        CalculateLumpedMassVector(element_mass_vector);
 
         for (SizeType i = 0; i < msNumberOfNodes; ++i) {
             double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
@@ -533,7 +536,7 @@ void EmpiricalSpringElement3D2N::AddExplicitContribution(
 
         // Getting the vector mass
         VectorType mass_vector(msLocalSize);
-        CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
+        CalculateLumpedMassVector(mass_vector);
 
         for (int i = 0; i < msNumberOfNodes; ++i) {
             double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);

@@ -17,7 +17,6 @@ from KratosMultiphysics.ShapeOptimizationApplication.analyzer_empty import Empty
 from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, math
-import copy
 
 # ==============================================================================
 def CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer):
@@ -247,7 +246,7 @@ class AnalyzerWithDependencies(Analyzer):
 
     # --------------------------------------------------------------------------
     def __ComputeCombinedGradientsRecursively(self, dependencies, communicator):
-        combined_gradient = {}
+        combined_gradient = None
 
         for response_id, weight, sub_dependencies, _ in dependencies:
             if communicator.isRequestingGradientOf(response_id):
@@ -262,16 +261,15 @@ class AnalyzerWithDependencies(Analyzer):
                     vector[1] *= weight
                     vector[2] *= weight
 
-                if not combined_gradient:
-                    # initialize combined gradient with zeros
-                    combined_gradient = {key: [0.0, 0.0, 0.0] for key in gradient.keys()}
-
-                # Perform nodal sum
-                for key_a, vector_a in combined_gradient.items():
-                    vector_b = gradient[key_a]
-                    vector_a[0] += vector_b[0]
-                    vector_a[1] += vector_b[1]
-                    vector_a[2] += vector_b[2]
+                if combined_gradient is None:
+                    combined_gradient = gradient
+                else:
+                    # Perform nodal sum
+                    for key_a, vector_a in combined_gradient.items():
+                        vector_b = gradient[key_a]
+                        vector_a[0] += vector_b[0]
+                        vector_a[1] += vector_b[1]
+                        vector_a[2] += vector_b[2]
 
         return combined_gradient
 

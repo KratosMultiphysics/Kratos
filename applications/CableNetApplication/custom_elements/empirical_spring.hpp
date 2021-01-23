@@ -138,9 +138,7 @@ namespace Kratos
             MatrixType& rMassMatrix,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-        void CalculateLumpedMassVector(
-            VectorType &rLumpedMassVector,
-            const ProcessInfo &rCurrentProcessInfo) const override;
+        void CalculateLumpedMassVector(VectorType& rMassVector);
 
         void CalculateDampingMatrix(MatrixType& rDampingMatrix,
             const ProcessInfo& rCurrentProcessInfo) override;

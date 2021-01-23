@@ -103,8 +103,11 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TOTAL_ENERGY, KratosFluid.REACTION_ENERGY, self.main_model_part)
 
     def Initialize(self):
-        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.OSS_SWITCH] = int(self.settings["use_oss"].GetBool())
-        self.GetComputingModelPart().ProcessInfo[KratosFluid.SHOCK_CAPTURING_SWITCH] = int(self.settings["shock_capturing"].GetBool())
+        #TODO: PROPERLY IMPLEMENT THIS
+        if self.settings["use_oss"].GetBool():
+            self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.OSS_SWITCH] = 1
+        if self.settings["shock_capturing"].GetBool():
+            self.GetComputingModelPart().ProcessInfo[KratosFluid.SHOCK_CAPTURING_SWITCH] = 1
 
         self.solver = self._get_solution_strategy()
         self.solver.SetEchoLevel(self.settings["echo_level"].GetInt())

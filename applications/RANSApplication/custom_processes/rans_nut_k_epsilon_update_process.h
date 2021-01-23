@@ -67,6 +67,7 @@ public:
     RansNutKEpsilonUpdateProcess(
         Model& rModel,
         const std::string& rModelPartName,
+        const double Cmu,
         const double MinValue,
         const int EchoLevel);
 
@@ -112,6 +113,7 @@ private:
 
     Model& mrModel;
     std::string mModelPartName;
+    double mCmu;
     double mMinValue;
     int mEchoLevel;
     bool mIsInitialized = false;

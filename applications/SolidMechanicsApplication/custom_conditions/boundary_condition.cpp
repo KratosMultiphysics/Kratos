@@ -93,7 +93,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  bool BoundaryCondition::HasVariableDof(VariableVectorType& rVariable) const
+  bool BoundaryCondition::HasVariableDof(VariableVectorType& rVariable)
   {
     KRATOS_TRY
 
@@ -111,7 +111,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  bool BoundaryCondition::HasVariableDof(VariableScalarType& rVariable) const
+  bool BoundaryCondition::HasVariableDof(VariableScalarType& rVariable)
   {
     KRATOS_TRY
 
@@ -128,7 +128,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  unsigned int BoundaryCondition::GetDofsSize() const
+  unsigned int BoundaryCondition::GetDofsSize()
   {
     KRATOS_TRY
 
@@ -266,7 +266,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void BoundaryCondition::GetValuesVector(Vector& rValues, int Step) const
+  void BoundaryCondition::GetValuesVector(Vector& rValues, int Step)
   {
     KRATOS_TRY
 
@@ -325,7 +325,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void BoundaryCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
+  void BoundaryCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
   {
     KRATOS_TRY
 
@@ -385,7 +385,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void BoundaryCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
+  void BoundaryCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
   {
     KRATOS_TRY
 

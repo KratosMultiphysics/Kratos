@@ -83,7 +83,7 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
-  unsigned int MomentCondition::GetDofsSize() const
+  unsigned int MomentCondition::GetDofsSize()
   {
     KRATOS_TRY
 
@@ -170,7 +170,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void MomentCondition::GetValuesVector(Vector& rValues, int Step) const
+  void MomentCondition::GetValuesVector(Vector& rValues, int Step)
   {
     KRATOS_TRY
 
@@ -204,7 +204,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void MomentCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
+  void MomentCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
   {
     KRATOS_TRY
 
@@ -238,7 +238,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void MomentCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
+  void MomentCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
   {
     KRATOS_TRY
 
@@ -516,6 +516,11 @@ namespace Kratos
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = BoundaryCondition::Check(rCurrentProcessInfo);
+
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
+    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
 
     return ErrorCode;
 

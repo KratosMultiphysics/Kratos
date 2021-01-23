@@ -1,13 +1,8 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
+import numpy as np
 
-try:
-    import numpy as np
-    from .MainKratosROM import TestStructuralMechanicsDynamicROM
-    numpy_available = True
-except:
-    numpy_available = False
-
+from .MainKratosROM import TestStructuralMechanicsDynamicROM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
@@ -16,7 +11,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 class ROMDynamicStruct(KratosUnittest.TestCase):
 #########################################################################################
 
-    @KratosUnittest.skipIf(numpy_available == False, "numpy is required for RomApplication")
     def test_Struct_Dynamic_ROM_2D(self):
 
         with KratosUnittest.WorkFolderScope(".", __file__):

@@ -66,9 +66,10 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
-    int out = QSVMSData<TDim,TNumNodes,true>::Check(rElement,rProcessInfo);
+    QSVMSData<TDim,TNumNodes,true>::Check(rElement,rProcessInfo);
+    KRATOS_CHECK_VARIABLE_KEY(BDF_COEFFICIENTS);
 
-    return out;
+    return 0;
 }
 
 ///@}

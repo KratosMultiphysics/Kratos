@@ -20,8 +20,8 @@
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
+#include "custom_utilities/symbolic_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
-#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/vorticity_utilities.h"
 
@@ -276,7 +276,7 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
 }
 
 template< class TElementData >
-void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
+void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const 
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -299,30 +299,28 @@ void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResul
 
 
 template< class TElementData >
-void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const
+void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const 
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
-    if (rElementalDofList.size() != LocalSize)
+     if (rElementalDofList.size() != LocalSize)
          rElementalDofList.resize(LocalSize);
 
-    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
-    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
+     unsigned int LocalIndex = 0;
 
-    unsigned int LocalIndex = 0;
-    for (unsigned int i = 0; i < NumNodes; ++i)
-    {
-        rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_X,xpos);
-        rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Y,xpos+1);
-        if (Dim == 3) rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Z,xpos+2);
-        rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(PRESSURE,ppos);
-    }
+     for (unsigned int i = 0; i < NumNodes; ++i)
+     {
+         rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_X);
+         rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Y);
+         if (Dim == 3) rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Z);
+         rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(PRESSURE);
+     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const
+void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const 
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -342,7 +340,7 @@ void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int 
 
 
 template< class TElementData >
-void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step) const
+void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step) const 
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -383,6 +381,9 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) co
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Something is wrong with the elemental data of Element "
         << this->Info() << std::endl;
+
+    // Extra variables used in computing projections
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
 
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -428,7 +429,7 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) co
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::CalculateOnIntegrationPoints(
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(
     Variable<array_1d<double, 3 > > const& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -447,7 +448,7 @@ void FluidElement<TElementData>::CalculateOnIntegrationPoints(
 
 
 template< class TElementData >
-void FluidElement<TElementData>::CalculateOnIntegrationPoints(
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(
     Variable<double> const& rVariable,
     std::vector<double>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -480,21 +481,21 @@ void FluidElement<TElementData>::CalculateOnIntegrationPoints(
 }
 
 template <class TElementData>
-void FluidElement<TElementData>::CalculateOnIntegrationPoints(
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(
     Variable<array_1d<double, 6>> const& rVariable,
     std::vector<array_1d<double, 6>>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {}
 
 template <class TElementData>
-void FluidElement<TElementData>::CalculateOnIntegrationPoints(
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(
     Variable<Vector> const& rVariable,
     std::vector<Vector>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {}
 
 template <class TElementData>
-void FluidElement<TElementData>::CalculateOnIntegrationPoints(
+void FluidElement<TElementData>::GetValueOnIntegrationPoints(
     Variable<Matrix> const& rVariable,
     std::vector<Matrix>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -883,8 +884,8 @@ template class FluidElement< SymbolicStokesData<3,4> >;
 template class FluidElement< SymbolicStokesData<3,6> >;
 template class FluidElement< SymbolicStokesData<3,8> >;
 
-template class FluidElement< WeaklyCompressibleNavierStokesData<2,3> >;
-template class FluidElement< WeaklyCompressibleNavierStokesData<3,4> >;
+template class FluidElement< SymbolicNavierStokesData<2,3> >;
+template class FluidElement< SymbolicNavierStokesData<3,4> >;
 
 template class FluidElement< QSVMSData<2,3> >;
 template class FluidElement< QSVMSData<3,4> >;

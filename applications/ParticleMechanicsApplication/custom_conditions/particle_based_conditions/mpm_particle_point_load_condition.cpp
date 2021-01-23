@@ -93,7 +93,7 @@ namespace Kratos
 
     void MPMParticlePointLoadCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
+        ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag
         )
@@ -151,7 +151,7 @@ namespace Kratos
         return 1.0;
     }
 
-    void MPMParticlePointLoadCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
+    void MPMParticlePointLoadCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     {
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();

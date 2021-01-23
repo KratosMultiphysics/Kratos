@@ -26,9 +26,7 @@
 #include <thread>
 
 // External includes
-#ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
-#endif
 
 // Project includes
 #include "includes/define.h"
@@ -39,66 +37,6 @@
 namespace Kratos
 {
 ///@addtogroup KratosCore
-
-/// Shared memory parallelism related helper class
-/** Provides access to functionalities for shared memory parallelism
- * such as the number of threads in usa.
-*/
-class KRATOS_API(KRATOS_CORE) ParallelUtilities
-{
-public:
-    ///@name Life Cycle
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /** @brief Returns the current number of threads
-     * @return number of threads
-     */
-    static int GetNumThreads();
-
-    /** @brief Sets the current number of threads
-     * @param NumThreads - the number of threads to be used
-     */
-    static void SetNumThreads(const int NumThreads);
-
-    /** @brief Returns the number of processors available to this device
-     * This can include the multiple threads per processing unit
-     * @return number of processors
-     */
-    static int GetNumProcs();
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    static int* mspNumThreads;
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    /// Default constructor.
-    ParallelUtilities() = delete;
-
-    /** @brief Initializes the number of threads to be used.
-     * @return number of threads
-     */
-    static int InitializeNumberOfThreads();
-    ///@}
-
-    ///@name Private Access
-    ///@{
-
-    static int& GetNumberOfThreads();
-
-    ///@}
-}; // Class ParallelUtilities
-
 
 //***********************************************************************************
 //***********************************************************************************
@@ -116,13 +54,14 @@ template<
 class BlockPartition
 {
 public:
+
     /** @param it_begin - iterator pointing at the beginning of the container
      *  @param it_end - iterator pointing to the end of the container
      *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
      */
     BlockPartition(TIteratorType it_begin,
                    TIteratorType it_end,
-                   int Nchunks = ParallelUtilities::GetNumThreads())
+                   int Nchunks = omp_get_max_threads())
     {
         KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
 
@@ -146,7 +85,7 @@ public:
      *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
      */
     BlockPartition(TContainerType& rData,
-                   int Nchunks = ParallelUtilities::GetNumThreads())
+                   int Nchunks = omp_get_max_threads())
         : BlockPartition(rData.begin(), rData.end(), Nchunks)
     {}
 
@@ -306,7 +245,7 @@ public:
  *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
  */
     IndexPartition(TIndexType Size,
-                   int Nchunks = ParallelUtilities::GetNumThreads())
+                   int Nchunks = omp_get_max_threads())
     {
         KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
 

@@ -703,6 +703,7 @@ public:
                     nodes_positions[i*3+0]=geom[i].X();
                     nodes_positions[i*3+1]=geom[i].Y();
                     nodes_positions[i*3+2]=geom[i].Z();
+                    //weighting_inverse_divisor[i]=1.0/((geom[i].FastGetSolutionStepValue(MEAN_SIZE))*1.01);
                 }
 
                 int & number_of_particles_in_elem= mNumOfParticlesInElems[ii];
@@ -2187,6 +2188,7 @@ private:
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DELTA_SCALAR1, rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR1, rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR1, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MEAN_SIZE, rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(YP, rnode)
 
         return 0;

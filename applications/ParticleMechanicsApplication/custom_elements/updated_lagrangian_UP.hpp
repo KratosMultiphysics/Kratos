@@ -154,7 +154,7 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+    void Initialize() override;
 
     /**
      * Called at the beginning of each solution step
@@ -183,7 +183,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}

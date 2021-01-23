@@ -573,9 +573,7 @@ void SlidingCableElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix
   KRATOS_CATCH("")
 }
 
-void SlidingCableElement3D::CalculateLumpedMassVector(
-  VectorType &rLumpedMassVector,
-  const ProcessInfo& rCurrentProcessInfo) const
+void SlidingCableElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
 {
     KRATOS_TRY;
 
@@ -589,9 +587,8 @@ void SlidingCableElement3D::CalculateLumpedMassVector(
     const SizeType local_size = dimension*points_number;
 
     // Clear matrix
-    if (rLumpedMassVector.size() != local_size) {
-      rLumpedMassVector.resize(local_size);
-    }
+    if (rMassVector.size() != local_size)
+        rMassVector.resize( local_size );
 
     const double A = this->GetProperties()[CROSS_AREA];
     const double L = this->GetRefLength();
@@ -613,8 +610,8 @@ void SlidingCableElement3D::CalculateLumpedMassVector(
         for (int j = 0; j < dimension; ++j) {
             int index = i * dimension + j;
 
-            rLumpedMassVector[index] = nodal_mass;
-            //rLumpedMassVector[index] = total_mass;
+            rMassVector[index] = nodal_mass;
+            //rMassVector[index] = total_mass;
         }
     }
 
@@ -632,7 +629,7 @@ void SlidingCableElement3D::CalculateMassMatrix(
 
     // Compute lumped mass matrix
     VectorType temp_vector(local_size);
-    CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
+    CalculateLumpedMassVector(temp_vector);
 
     // Clear matrix
     if (rMassMatrix.size1() != local_size || rMassMatrix.size2() != local_size)
@@ -698,7 +695,7 @@ void SlidingCableElement3D::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         VectorType element_mass_vector(local_size);
-        this->CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
+        this->CalculateLumpedMassVector(element_mass_vector);
 
         for (int i = 0; i < points_number; ++i) {
             double &r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
@@ -745,7 +742,7 @@ void SlidingCableElement3D::AddExplicitContribution(
 
         // Getting the vector mass
         VectorType mass_vector(local_size);
-        CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
+        CalculateLumpedMassVector(mass_vector);
 
         for (int i = 0; i < points_number; ++i) {
             double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);

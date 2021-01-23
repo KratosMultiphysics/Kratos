@@ -86,11 +86,10 @@ namespace Kratos {
             Model model;
             ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateModelPartToTestDivergence(model_part);
-            const auto& r_process_info = model_part.GetProcessInfo();
             Element::Pointer p_element = model_part.pGetElement(1);
 
             // Initialize the element
-            p_element->Initialize(r_process_info);
+            p_element->Initialize();
 
             // Call the divergence time average process
             WeightedDivergenceCalculationProcess(model_part).ExecuteFinalizeSolutionStep();

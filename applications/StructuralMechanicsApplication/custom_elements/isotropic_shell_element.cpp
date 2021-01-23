@@ -1934,26 +1934,22 @@ void IsotropicShellElement::SetupOrientationAngles()
 void IsotropicShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+    //calculate local coordinates and rotation matrix
+    array_1d<double,3> v1;
+    array_1d<double,3> v2;
+    array_1d<double,3> v3;
+    double x12, x23, x31, y12, y23, y31;
+    double A;
 
-    // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        //calculate local coordinates and rotation matrix
-        array_1d<double,3> v1;
-        array_1d<double,3> v2;
-        array_1d<double,3> v3;
-        double x12, x23, x31, y12, y23, y31;
-        double A;
+    CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,v3,A);
 
-        CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,v3,A);
+    SaveOriginalReference(v1,v2,v3);
 
-        SaveOriginalReference(v1,v2,v3);
+    noalias(rot_oldit[0]) = GetGeometry()[0].FastGetSolutionStepValue(ROTATION);
+    noalias(rot_oldit[1]) = GetGeometry()[1].FastGetSolutionStepValue(ROTATION);
+    noalias(rot_oldit[2]) = GetGeometry()[2].FastGetSolutionStepValue(ROTATION);
 
-        noalias(rot_oldit[0]) = GetGeometry()[0].FastGetSolutionStepValue(ROTATION);
-        noalias(rot_oldit[1]) = GetGeometry()[1].FastGetSolutionStepValue(ROTATION);
-        noalias(rot_oldit[2]) = GetGeometry()[2].FastGetSolutionStepValue(ROTATION);
-
-        this->SetupOrientationAngles();
-    }
+    this->SetupOrientationAngles();
 
     KRATOS_CATCH( "" )
 }

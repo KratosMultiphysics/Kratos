@@ -56,6 +56,7 @@ public:
     RansNutYPlusWallFunctionUpdateProcess(
         Model& rModel,
         const std::string& rModelPartName,
+        const double VonKarman,
         const double MinValue,
         const int EchoLevel);
 
@@ -103,6 +104,7 @@ private:
 
     Model& mrModel;
     std::string mModelPartName;
+    double mVonKarman;
     double mMinValue;
     int mEchoLevel;
     bool mIsInitialized = false;

@@ -1,8 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
-import KratosMultiphysics.assign_vector_by_direction_process as assign_vector_by_direction_process
-
 def Factory(settings, Model):
     if( not isinstance(settings, KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -60,7 +58,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
                 default_settings["fluid_2_settings"]["direction"].SetString("automatic_inwards_normal")
 
         # compare against the appropriate default settings
-        settings.RecursivelyValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
 
         # checking for empty model part name
         if (settings["model_part_name"].GetString() == ""):
@@ -76,6 +74,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         elif (settings["fluid_2_settings"]["variable_name"].GetString() != "VELOCITY"):
             raise Exception("Inlet 'variable_name' in 'fluid_2_settings' is not VELOCITY. This is not admissible.")
         else:
+
             # checking for empty strings
             if (settings["fluid_1_settings"]["modulus"].IsString()):
                 if (settings["fluid_1_settings"]["modulus"].GetString() == ""):
@@ -108,12 +107,8 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         self.variational_distance_process = self.set_variational_distance_process()
         self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess( self.inlet_model_part, settings["interface_settings"], self.variational_distance_process )
 
-        # Set the inlet process in each subdomain
-        # Update the hardcoded subdomain inlet names to prevent flat-map model retrieve
-        settings["fluid_1_settings"]["model_part_name"].SetString(self.inlet_model_part.FullName() + ".fluid_1_inlet")
-        settings["fluid_2_settings"]["model_part_name"].SetString(self.inlet_model_part.FullName() + ".fluid_2_inlet")
-        
-        # Create one process instance for each subdomain
+        import KratosMultiphysics.assign_vector_by_direction_process as assign_vector_by_direction_process
+
         if ( self.inlet_model_part.GetSubModelPart("fluid_1_inlet").NumberOfNodes() > 0):
             self.aux_process_fluid_1 = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings["fluid_1_settings"])
 

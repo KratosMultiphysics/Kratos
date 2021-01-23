@@ -323,9 +323,6 @@ public:
     ///@}
 
 protected:
-    ///@name Protected operations
-    ///@{
-
     /**
      * @brief Get the Values Array
      *
@@ -373,6 +370,8 @@ protected:
         const array_1d<double, 3>& rVector,
         const Matrix& rShapeDerivatives) const;
 
+    ///@name Protected Operations
+    ///@{
     /**
      * @brief Calculates shape function data for this element
      *

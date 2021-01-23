@@ -17,7 +17,7 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
-#include "fluid_dynamics_application_variables.h"
+#include "includes/dem_variables.h"
 
 // Application includes
 #include "custom_constitutive/newtonian_2d_law.h"

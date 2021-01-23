@@ -1,7 +1,7 @@
 from KratosMultiphysics import IsDistributedRun
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from test_utilities import RunParametricTestCase
+from KratosMultiphysics.RANSApplication.test_utilities import RunParametricTestCase
 
 class PeriodicTurbulenceModellingTestCase(UnitTest.TestCase):
     @classmethod

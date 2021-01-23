@@ -1,5 +1,5 @@
 from xmc.distributedEnvironmentFramework import ExaquteTask
-from .types import PowerSumsDict, HStatistics, ListIndex
+from xmc.momentEstimator import PowerSumsDict, HStatistics, ListIndex
 from numpy import ceil, log2
 
 

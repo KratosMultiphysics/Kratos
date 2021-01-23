@@ -7,7 +7,7 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeComponentGradientSimplex<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  const ProcessInfo& rCurrentProcessInfo)
+                                  ProcessInfo& rCurrentProcessInfo)
 {
     const int current_component = rCurrentProcessInfo[CURRENT_COMPONENT];
     if (current_component == 0){
@@ -30,7 +30,9 @@ void ComputeComponentGradientSimplex<TDim, TNumNodes>::CalculateLocalSystem(Matr
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeComponentGradientSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
+void ComputeComponentGradientSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
+                              ProcessInfo& rCurrentProcessInfo)
+{
 
     const unsigned int LocalSize(TDim * TNumNodes);
     unsigned int LocalIndex = 0;
@@ -50,7 +52,9 @@ void ComputeComponentGradientSimplex<TDim, TNumNodes>::EquationIdVector(Equation
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeComponentGradientSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
+void ComputeComponentGradientSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
+                        ProcessInfo& rCurrentProcessInfo)
+{
     const unsigned int LocalSize(TDim * TNumNodes);
 
     if (rElementalDofList.size() != LocalSize)
@@ -69,7 +73,7 @@ void ComputeComponentGradientSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeComponentGradientSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
+int ComputeComponentGradientSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

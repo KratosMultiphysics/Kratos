@@ -181,7 +181,7 @@ void MPMGridSurfaceLoadCondition3D::CalculateAndAddPressureForce(
 void MPMGridSurfaceLoadCondition3D::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo,
+    ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag
     )

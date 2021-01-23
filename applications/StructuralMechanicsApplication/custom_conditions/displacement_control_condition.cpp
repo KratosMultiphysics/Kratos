@@ -15,8 +15,6 @@
 
 // Project includes
 #include "custom_conditions/displacement_control_condition.h"
-#include "structural_mechanics_application_variables.h"
-#include "includes/variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -343,7 +341,10 @@ int DisplacementControlCondition::Check( const ProcessInfo& rCurrentProcessInfo 
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);
-    
+
+    // Verify variable exists
+    KRATOS_CHECK_VARIABLE_KEY(LOAD_FACTOR)
+
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& r_node : GetGeometry().Points()) {
         KRATOS_CHECK_DOF_IN_NODE(LOAD_FACTOR, r_node)

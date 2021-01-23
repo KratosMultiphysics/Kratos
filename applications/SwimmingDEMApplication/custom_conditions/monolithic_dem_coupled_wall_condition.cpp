@@ -1,10 +1,10 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
+//    |  /           | 
+//    ' /   __| _` | __|  _ \   __| 
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//   _|\_\_|  \__,_|\__|\___/ ____/ 
+//                   Multi-Physics  
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Guillermo Casas gcasas@gmail.com
@@ -21,7 +21,9 @@ namespace Kratos
  * @see MonolithicDEMCoupledWallCondition::EquationIdVector
  */
 template <>
-void MonolithicDEMCoupledWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
+void MonolithicDEMCoupledWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo)
+{
     if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
         const unsigned int NumNodes = 2;
         const unsigned int LocalSize = 6;
@@ -58,7 +60,9 @@ void MonolithicDEMCoupledWallCondition<2,2>::EquationIdVector(EquationIdVectorTy
  * @see MonolithicDEMCoupledWallCondition::EquationIdVector
  */
 template <>
-void MonolithicDEMCoupledWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
+void MonolithicDEMCoupledWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo)
+{
     if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
         const SizeType NumNodes = 3;
         const SizeType LocalSize = 12;
@@ -97,7 +101,9 @@ void MonolithicDEMCoupledWallCondition<3,3>::EquationIdVector(EquationIdVectorTy
  * @see MonolithicDEMCoupledWallCondition::GetDofList
  */
 template <>
-void MonolithicDEMCoupledWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
+void MonolithicDEMCoupledWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
+        ProcessInfo& rCurrentProcessInfo)
+{
     if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
         const SizeType NumNodes = 2;
         const SizeType LocalSize = 6;
@@ -136,7 +142,9 @@ void MonolithicDEMCoupledWallCondition<2,2>::GetDofList(DofsVectorType& rElement
  * @see MonolithicDEMCoupledWallCondition::GetDofList
  */
 template <>
-void MonolithicDEMCoupledWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
+void MonolithicDEMCoupledWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
+        ProcessInfo& rCurrentProcessInfo)
+{
     if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
         const SizeType NumNodes = 3;
         const SizeType LocalSize = 12;

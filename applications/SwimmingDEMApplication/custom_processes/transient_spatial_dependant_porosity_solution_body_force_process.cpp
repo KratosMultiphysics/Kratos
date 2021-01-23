@@ -25,9 +25,6 @@
 #include "transient_spatial_dependant_porosity_solution_body_force_process.h"
 #include "swimming_dem_application_variables.h"
 
-// Other applications includes
-#include "fluid_dynamics_application_variables.h"
-
 namespace Kratos
 {
 

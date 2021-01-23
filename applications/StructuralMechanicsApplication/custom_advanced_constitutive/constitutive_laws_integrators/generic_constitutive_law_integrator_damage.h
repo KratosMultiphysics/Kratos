@@ -262,6 +262,7 @@ class GenericConstitutiveLawIntegratorDamage
      */
     static int Check(const Properties& rMaterialProperties)
     {
+        KRATOS_CHECK_VARIABLE_KEY(SOFTENING_TYPE);
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "SOFTENING_TYPE is not a defined value" << std::endl;
         return TYieldSurfaceType::Check(rMaterialProperties);
     }

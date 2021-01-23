@@ -247,6 +247,11 @@ class EigensolverStrategy
     //check the builder and solver
     mpBuilderAndSolver->Check(this->GetModelPart());
 
+    //check internal variable build level
+    KRATOS_CHECK_VARIABLE_KEY(BUILD_LEVEL);
+    KRATOS_CHECK_VARIABLE_KEY(EIGENVALUE_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(EIGENVECTOR_MATRIX);
+
     return 0;
 
     KRATOS_CATCH("")

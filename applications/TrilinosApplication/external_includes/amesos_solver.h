@@ -33,7 +33,7 @@ namespace Kratos
 /** Amesos is the Direct Sparse Solver Package in Trilinos.
  * The goal of Amesos is to make AX=B as easy as it sounds, at least for direct methods.
  * Amesos provides clean and consistent interfaces to several third party libraries.
- * https://github.com/trilinos/Trilinos/tree/master/packages/amesos
+ * https://trilinos.org/packages/amesos/
 */
 
 template< class TSparseSpaceType, class TDenseSpaceType,

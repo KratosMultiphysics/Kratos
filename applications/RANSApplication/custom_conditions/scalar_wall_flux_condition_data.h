@@ -20,10 +20,9 @@
 // Project includes
 #include "containers/variable.h"
 #include "geometries/geometry.h"
-#include "includes/constitutive_law.h"
+#include "geometries/geometry_data.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
-#include "includes/properties.h"
 #include "includes/ublas_interface.h"
 
 // Application includes
@@ -39,49 +38,26 @@ public:
     using GeometryType = Geometry<Node<3>>;
 
     ScalarWallFluxConditionData(
-        const GeometryType& rGeometry,
-        const Properties& rConditionProperties,
-        const ProcessInfo& rProcessInfo)
-        : mrGeometry(rGeometry),
-          mrConditionProperties(rConditionProperties),
-          mrElementProperties(rGeometry.GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties()),
-          mrConstitutiveLaw(*rGeometry.GetValue(NEIGHBOUR_ELEMENTS)[0].GetValue(CONSTITUTIVE_LAW))
+        const GeometryType& rGeometry)
+    : mrGeometry(rGeometry)
     {
-        mConstitutiveLawParameters =
-            ConstitutiveLaw::Parameters(rGeometry, mrElementProperties, rProcessInfo);
     }
 
-    ConstitutiveLaw::Parameters& GetConstitutiveLawParameters()
-    {
-        return mConstitutiveLawParameters;
-    }
+    virtual void CalculateConstants(
+        const ProcessInfo& rCurrentProcessInfo) = 0;
 
-    ConstitutiveLaw& GetConstitutiveLaw()
-    {
-        return mrConstitutiveLaw;
-    }
+    virtual bool IsWallFluxComputable() const = 0;
+
+    virtual double CalculateWallFlux(
+        const Vector& rShapeFunctions) const = 0;
 
     const GeometryType& GetGeometry() const
     {
         return mrGeometry;
     }
 
-    const Properties& GetElementProperties() const
-    {
-        return mrElementProperties;
-    }
-
-    const Properties& GetConditionProperties() const
-    {
-        return mrConditionProperties;
-    }
-
 private:
     const GeometryType& mrGeometry;
-    const Properties& mrConditionProperties;
-    const Properties& mrElementProperties;
-    ConstitutiveLaw& mrConstitutiveLaw;
-    ConstitutiveLaw::Parameters mConstitutiveLawParameters;
 };
 } // namespace Kratos
 

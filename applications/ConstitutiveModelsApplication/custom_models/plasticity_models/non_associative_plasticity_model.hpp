@@ -841,12 +841,14 @@ namespace Kratos
                EigenVectors.clear();
 
                rStrainMatrix.clear();
-               MathUtils<double>::GaussSeidelEigenSystem<MatrixType, MatrixType>(rHenckyTensor, EigenVectors, rStrainMatrix);
+               MathUtils<double>::EigenSystem<3> ( rHenckyTensor, EigenVectors, rStrainMatrix);
 
                for (unsigned int i = 0; i < 3; i++)
                   rStrainMatrix(i,i) = std::exp( 2.0* rStrainMatrix(i,i));
 
-               rStrainMatrix = prod(EigenVectors, MatrixType(prod(rStrainMatrix, trans(EigenVectors))));
+
+               rStrainMatrix = prod( trans(EigenVectors), MatrixType(prod(rStrainMatrix, EigenVectors)) );
+
 
                KRATOS_CATCH("")
             }
@@ -861,12 +863,13 @@ namespace Kratos
                EigenVectors.clear();
 
                rHenckyStrain.clear();
-               MathUtils<double>::GaussSeidelEigenSystem<MatrixType, MatrixType>(rStrainMatrix, EigenVectors, rHenckyStrain);
+               MathUtils<double>::EigenSystem<3> ( rStrainMatrix, EigenVectors, rHenckyStrain);
 
                for (unsigned int i = 0; i < 3; i++)
                   rHenckyStrain(i,i) = std::log( rHenckyStrain(i,i))/2.0;
 
-               rHenckyStrain = prod(EigenVectors, MatrixType(prod(rHenckyStrain, trans(EigenVectors))));
+               rHenckyStrain = prod( trans(EigenVectors), MatrixType(prod(rHenckyStrain, EigenVectors)) );
+
 
                KRATOS_CATCH("")
             }

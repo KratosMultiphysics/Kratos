@@ -71,9 +71,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             if self.SolverSolvesAtThisTime(solver_name):
                 solver.InitializeSolutionStep()
 
-        for coupling_op_name, coupling_op in self.coupling_operations_dict.items():
-            if self.__CouplingOpActsNow(coupling_op_name):
-                coupling_op.InitializeSolutionStep()
+        for coupling_op in self.coupling_operations_dict.values():
+            coupling_op.InitializeSolutionStep()
 
     def Predict(self):
         for solver_name, solver in self.solver_wrappers.items():
@@ -85,9 +84,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             if self.SolverSolvesAtThisTime(solver_name):
                 solver.FinalizeSolutionStep()
 
-        for coupling_op_name, coupling_op in self.coupling_operations_dict.items():
-            if self.__CouplingOpActsNow(coupling_op_name):
-                coupling_op.FinalizeSolutionStep()
+        for coupling_op in self.coupling_operations_dict.values():
+            coupling_op.FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
         for solver_name, solver in self.solver_wrappers.items():
@@ -95,9 +93,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
                 solver.OutputSolutionStep()
 
     def SolveSolutionStep(self):
-        for coupling_op_name, coupling_op in self.coupling_operations_dict.items():
-            if self.__CouplingOpActsNow(coupling_op_name):
-                coupling_op.InitializeCouplingIteration()
+        for coupling_op in self.coupling_operations_dict.values():
+            coupling_op.InitializeCouplingIteration()
 
         for solver_name, solver in self.solver_wrappers.items():
             if self.SolverSolvesAtThisTime(solver_name):
@@ -108,9 +105,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         self.feti_coupling.EquilibrateDomains()
 
-        for coupling_op_name, coupling_op in self.coupling_operations_dict.items():
-            if self.__CouplingOpActsNow(coupling_op_name):
-                coupling_op.FinalizeCouplingIteration()
+        for coupling_op in self.coupling_operations_dict.values():
+            coupling_op.FinalizeCouplingIteration()
 
         return True
 
@@ -175,9 +171,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         # Set origin initial velocities
         self.feti_coupling.SetOriginInitialKinematics()
 
-        # Create output-solver relation dict to ensure mixed timestep ouput is handled properly
-        self.__CreateOutputSolverDict()
-
     def __CreateSolverOriginDestDict(self):
         self._solver_origin_dest_dict = {}
         for solver_index in range(self.settings["coupling_sequence"].size()):
@@ -235,23 +228,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             solver_type = str(solver._ClassName())
             if solver_type not in compatible_solver_wrappers:
                 raise Exception("The coupled solver '" + solver_type + "' is not yet compatible with the FETI coupling")
-
-    def __CreateOutputSolverDict(self):
-        # This function links each coupling output entry with a solver (if applicable)
-        # This means we can now apply SolverSolvesAtThisTime() to the coupling output
-        self.output_solver_dict = {}
-        for coupling_op_name in self.coupling_operations_dict.keys():
-            coupling_op_type = self.settings["coupling_operations"][coupling_op_name]["type"].GetString()
-            if coupling_op_type == "coupling_output":
-                coupling_output_solver_name = self.settings["coupling_operations"][coupling_op_name]["solver"].GetString()
-                self.output_solver_dict[coupling_op_name] = coupling_output_solver_name
-
-    def __CouplingOpActsNow(self,couplingOpName):
-        if couplingOpName in self.output_solver_dict:
-            solver_name = self.output_solver_dict[couplingOpName]
-            return self.SolverSolvesAtThisTime(solver_name)
-        else:
-            return True #only restrict coupling operations for outputs
 
     @classmethod
     def _GetDefaultParameters(cls):

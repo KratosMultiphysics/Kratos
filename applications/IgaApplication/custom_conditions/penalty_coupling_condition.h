@@ -122,7 +122,7 @@ public:
     */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
+        ProcessInfo& rCurrentProcessInfo) override
     {
         MatrixType left_hand_side_matrix = Matrix(0, 0);
 
@@ -138,7 +138,7 @@ public:
     */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override
+        ProcessInfo& rCurrentProcessInfo) override
     {
         VectorType right_hand_side_vector = Vector(0);
 
@@ -157,7 +157,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
+        ProcessInfo& rCurrentProcessInfo) override
     {
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
             rCurrentProcessInfo, true, true);
@@ -194,7 +194,7 @@ public:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
+        ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     );

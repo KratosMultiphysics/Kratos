@@ -245,10 +245,10 @@ public:
     ///@{
 
     /**
-     * @brief Base element CalculateOnIntegrationPoints
+     * @brief Base element GetValueOnIntegrationPoints
      * Called to avoid reimplementing the variable types specializations not required
      */
-    using TBaseElement::CalculateOnIntegrationPoints;
+    using TBaseElement::GetValueOnIntegrationPoints;
 
     /**
      * @brief Get the Value On Integration Points object
@@ -257,7 +257,7 @@ public:
      * @param rValues Computed gauss point values
      * @param rCurrentProcessInfo Current process info
      */
-    void CalculateOnIntegrationPoints(
+    void GetValueOnIntegrationPoints(
         const Variable<array_1d<double, 3>> &rVariable,
         std::vector<array_1d<double, 3>> &rValues,
         const ProcessInfo &rCurrentProcessInfo) override;
@@ -357,12 +357,9 @@ protected:
     /**
      * This function computes the penalty coefficient for the Nitsche normal imposition
      * @param rData reference to element data structure
-     * @param rN the current Gauss pt. shape functions vector
-     * @return double The normal penalty coefficient value
      */
     double ComputeSlipNormalPenaltyCoefficient(
-        const EmbeddedElementData& rData,
-        const Vector& rN) const;
+        const EmbeddedElementData& rData) const;
 
     /**
      * This function computes the Nitsche coefficients for the Nitsche normal imposition
@@ -393,13 +390,11 @@ protected:
 
     /**
      * This function computes the penalty coefficient for the level set BC imposition
+     * @param rLeftHandSideMatrix reference to the LHS matrix
      * @param rData reference to element data structure
-     * @param rN shape function values for the current Gauss pt
-     * @return double the penalty coefficient value
      */
     double ComputePenaltyCoefficient(
-        const EmbeddedElementData& rData,
-        const Vector& rN) const;
+        const EmbeddedElementData& rData) const;
 
     /**
     * This drops the outer nodes velocity constributions in both LHS and RHS matrices.
@@ -493,20 +488,6 @@ private:
     void CalculateDragForceCenter(
         EmbeddedElementData& rData,
         array_1d<double,3>& rDragForceLocation) const;
-
-    /**
-     * @brief Auxiliary method to get the density value
-     * This auxiliary method interfaces the density get in order to make possible the
-     * use of the embedded element with both property-based and nodal-based density formulations.
-     * For the standard case (property-based formulations) the method is not specialized.
-     * In case a nodal density base formulation is used, it needs to be specialized.
-     * @param rData Embedded element data container
-     * @param NodeIndex The local index node for which the density is retrieved (only used in nodal density formulations)
-     * @return double The density value
-     */
-    inline double AuxiliaryDensityGetter(
-        const EmbeddedElementData& rData,
-        const unsigned int NodeIndex) const;
 
     ///@}
     ///@name Private  Access

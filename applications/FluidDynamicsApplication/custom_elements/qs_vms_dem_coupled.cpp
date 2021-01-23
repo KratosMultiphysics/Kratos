@@ -112,7 +112,7 @@ void QSVMSDEMCoupled<TElementData>::Calculate(
 template < class TElementData >
 void QSVMSDEMCoupled<TElementData>::EquationIdVector(
     EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo) const
+    const ProcessInfo& rCurrentProcessInfo) const 
 {
     QSVMS<TElementData>::EquationIdVector(rResult, rCurrentProcessInfo);
 }

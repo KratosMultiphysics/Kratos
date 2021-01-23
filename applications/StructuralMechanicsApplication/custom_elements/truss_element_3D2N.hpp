@@ -257,9 +257,7 @@ private:
      * @brief This method computes directly the lumped mass vector
      * @param rMassVector The lumped mass vector
      */
-    void CalculateLumpedMassVector(
-        VectorType& rMassVector,
-        const ProcessInfo& rCurrentProcessInfo) const override;
+    void CalculateLumpedMassVector(VectorType& rMassVector);
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

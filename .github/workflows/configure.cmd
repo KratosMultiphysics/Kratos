@@ -25,8 +25,7 @@ set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\StatisticsApplicat
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\SwimmingDEMApplication;
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ShapeOptimizationApplication;
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ConstitutiveLawsApplication;
-set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\RANSApplication;
-set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CompressiblePotentialFlowApplication;
+REM set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\RANSApplication;
 
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
@@ -38,7 +37,7 @@ cmake                                                ^
   -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
   -DBOOST_ROOT="%BOOST_ROOT_1_72_0%"                 ^
   -DINSTALL_RUNKRATOS=OFF                            ^
-  -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX"        ^
+  -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804"            ^
   -DFORCE_LOCAL_ZLIB_COMPILATION=ON                  ^
   -DUSE_COTIRE=ON                                    || goto :error
 

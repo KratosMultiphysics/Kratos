@@ -30,43 +30,40 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        if( GetProperties().Has(INTEGRATION_ORDER) ) {
-            const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
-            switch ( integration_order )
-            {
-            case 1:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-                break;
-            case 2:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-                break;
-            case 3:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
-                break;
-            case 4:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
-                break;
-            case 5:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
-                break;
-            default:
-                KRATOS_WARNING("BaseSolidElement") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
-                mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-            }
-        } else {
+    if( GetProperties().Has(INTEGRATION_ORDER) ) {
+        const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
+        switch ( integration_order )
+        {
+        case 1:
+            mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+            break;
+        case 2:
+            mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+            break;
+        case 3:
+            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            break;
+        case 4:
+            mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+            break;
+        case 5:
+            mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+            break;
+        default:
+            KRATOS_WARNING("BaseSolidElement") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
             mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
         }
-
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
-
-        //Constitutive Law initialisation
-        if ( mConstitutiveLawVector.size() != integration_points.size() )
-            mConstitutiveLawVector.resize( integration_points.size() );
-
-        InitializeMaterial();
+    } else {
+        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
     }
+
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    //Constitutive Law initialisation
+    if ( mConstitutiveLawVector.size() != integration_points.size() )
+        mConstitutiveLawVector.resize( integration_points.size() );
+
+    InitializeMaterial();
 
     KRATOS_CATCH( "" )
 }
@@ -454,7 +451,7 @@ void BaseSolidElement::AddExplicitContribution(
     // Compiting the nodal mass
     if (rDestinationVariable == NODAL_MASS ) {
         VectorType element_mass_vector(mat_size);
-        this->CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
+        this->CalculateLumpedMassVector(element_mass_vector);
 
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             const IndexType index = i * dimension;
@@ -605,7 +602,7 @@ void BaseSolidElement::CalculateMassMatrix(
     // LUMPED MASS MATRIX
     if (compute_lumped_mass_matrix) {
         VectorType temp_vector(mat_size);
-        this->CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
+        CalculateLumpedMassVector(temp_vector);
         for (IndexType i = 0; i < mat_size; ++i)
             rMassMatrix(i, i) = temp_vector[i];
     } else { // CONSISTENT MASS
@@ -1189,26 +1186,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::CalculateOnIntegrationPoints(
-    const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    std::vector<ConstitutiveLaw::Pointer>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    if (rVariable == CONSTITUTIVE_LAW) {
-        const SizeType integration_points_number = mConstitutiveLawVector.size();
-        if (rValues.size() != integration_points_number) {
-            rValues.resize(integration_points_number);
-        }
-        for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
-            rValues[point_number] = mConstitutiveLawVector[point_number];
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<bool>& rVariable,
     std::vector<bool>& rValues,
@@ -1346,6 +1323,27 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
         }
     } else {
         KRATOS_WARNING("BaseSolidElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
+    }
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::GetValueOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        std::vector<ConstitutiveLaw::Pointer>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+{
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const SizeType integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != integration_points_number) {
+            rValues.resize(integration_points_number);
+        }
+        for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
+            rValues[point_number] = mConstitutiveLawVector[point_number];
+        }
     }
 }
 
@@ -1674,10 +1672,7 @@ void BaseSolidElement::CalculateAndAddExtForceContribution(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::CalculateLumpedMassVector(
-    VectorType& rLumpedMassVector,
-    const ProcessInfo& rCurrentProcessInfo
-    ) const
+void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector) const
 {
     KRATOS_TRY;
 
@@ -1688,8 +1683,8 @@ void BaseSolidElement::CalculateLumpedMassVector(
     const SizeType mat_size = dimension * number_of_nodes;
 
     // Clear matrix
-    if (rLumpedMassVector.size() != mat_size)
-        rLumpedMassVector.resize( mat_size, false );
+    if (rMassVector.size() != mat_size)
+        rMassVector.resize( mat_size, false );
 
     const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
@@ -1704,7 +1699,7 @@ void BaseSolidElement::CalculateLumpedMassVector(
         const double temp = lumping_factors[i] * total_mass;
         for ( IndexType j = 0; j < dimension; ++j ) {
             IndexType index = i * dimension + j;
-            rLumpedMassVector[index] = temp;
+            rMassVector[index] = temp;
         }
     }
 
@@ -1751,7 +1746,7 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
     // 2.-Calculate mass matrix:
     if (alpha > std::numeric_limits<double>::epsilon()) {
         VectorType temp_vector(mat_size);
-        this->CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
+        CalculateLumpedMassVector(temp_vector);
         for (IndexType i = 0; i < mat_size; ++i)
             rDampingMatrix(i, i) += alpha * temp_vector[i];
     }

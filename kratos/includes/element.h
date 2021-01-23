@@ -798,7 +798,7 @@ public:
     /**
      * ELEMENTS inherited from this class must implement this methods
      * if they need to add dynamic element contributions
-     * CalculateMassMatrix, CalculateDampingMatrix and CalculateLumpedMassVector methods are: OPTIONAL
+     * CalculateMassMatrix and CalculateDampingMatrix methods are: OPTIONAL
      */
 
     /**
@@ -823,6 +823,7 @@ public:
       rMassMatrix.resize(0, 0, false);
     }
 
+
     /**
      * this is called during the assembling process in order
      * to calculate the elemental damping matrix
@@ -845,20 +846,6 @@ public:
       rDampingMatrix.resize(0, 0, false);
     }
 
-    /**
-     * this is called during the initialize of the builder
-     * to calculate the lumped mass vector
-     * @param rLumpedMassVector the elemental lumped mass vector
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    virtual void CalculateLumpedMassVector(
-        VectorType& rLumpedMassVector,
-        const ProcessInfo& rCurrentProcessInfo) const
-        {
-            KRATOS_TRY;
-            KRATOS_ERROR << "Calling the CalculateLumpedMassVector() method of the base element. The method must be implemented in the derived element.";
-            KRATOS_CATCH("");
-        }
 
 
     /**

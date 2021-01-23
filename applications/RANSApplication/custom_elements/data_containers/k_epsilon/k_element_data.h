@@ -51,37 +51,34 @@ public:
         return "KEpsilonKElementData";
     }
 
-    KElementData(
-        const GeometryType& rGeometry,
-        const Properties& rProperties,
-        const ProcessInfo& rProcessInfo)
-        : BaseType(rGeometry, rProperties, rProcessInfo)
+    KElementData(const GeomtryType& rGeometry)
+    : BaseType(rGeometry)
     {
     }
 
     void CalculateConstants(
-        const ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateGaussPointData(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives,
-        const int Step = 0);
+        const int Step = 0) override;
 
     array_1d<double, 3> CalculateEffectiveVelocity(
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
+        const Matrix& rShapeFunctionDerivatives) const override;
 
     double CalculateEffectiveKinematicViscosity(
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
+        const Matrix& rShapeFunctionDerivatives) const override;
 
     double CalculateReactionTerm(
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
+        const Matrix& rShapeFunctionDerivatives) const override;
 
     double CalculateSourceTerm(
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
+        const Matrix& rShapeFunctionDerivatives) const override;
 
 protected:
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
@@ -93,7 +90,6 @@ protected:
     double mVelocityDivergence;
     double mInvTkeSigma;
     double mCmu;
-    double mDensity;
 };
 
 ///@}

@@ -25,11 +25,8 @@ Some examples and validation benchmarks can be found [here](https://gitlab.com/R
 
 ## Dependencies
 - NumPy;
-- SciPy.
-
-Optional dependencies for parallel computation:
-- [COMPSs](https://github.com/bsc-wdc/compss) 2.8 (including its Python interface PyCOMPSs) or [HyperLoom](https://github.com/It4innovations/HyperLoom);
-- MPI.
+- SciPy;
+- [COMPSs](https://github.com/bsc-wdc/compss) (including its Python interface PyCOMPSs) or [HyperLoom](https://github.com/It4innovations/HyperLoom) for parallel computation (optional).
 
 ## External collaborations
 **XMC** is integrated with [Kratos Multiphysics](https://github.com/KratosMultiphysics/Kratos) as solver software.

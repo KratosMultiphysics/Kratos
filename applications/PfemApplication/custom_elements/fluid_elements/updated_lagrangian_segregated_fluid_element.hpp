@@ -154,17 +154,17 @@ public:
   /**
    * Sets on rValues the nodal displacements
    */
-  void GetValuesVector(Vector& rValues, int Step = 0) const override;
+  void GetValuesVector(Vector& rValues, int Step = 0) override;
 
   /**
    * Sets on rValues the nodal velocities
    */
-  void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
+  void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
 
   /**
    * Sets on rValues the nodal accelerations
    */
-  void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
+  void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
 
   /**
@@ -196,7 +196,7 @@ public:
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+  int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
   ///@}
   ///@name Access
@@ -298,7 +298,7 @@ protected:
   /**
    * Get element size from the dofs
    */
-  unsigned int GetDofsSize() const override;
+  unsigned int GetDofsSize() override;
 
   /**
    * Calculation of the Geometric Stiffness Matrix. Kvvm = BT * C * B

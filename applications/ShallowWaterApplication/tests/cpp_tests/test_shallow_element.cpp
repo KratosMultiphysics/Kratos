@@ -46,7 +46,8 @@ KRATOS_TEST_CASE_IN_SUITE(SWE2D3N, ShallowWaterApplicationFastSuite)
     model_part.AddNodalSolutionStepVariable(PROJECTED_VECTOR1);
     model_part.AddNodalSolutionStepVariable(PROJECTED_SCALAR1);
     model_part.AddNodalSolutionStepVariable(RAIN);
-    model_part.AddNodalSolutionStepVariable(MANNING);
+    model_part.AddNodalSolutionStepVariable(EQUIVALENT_MANNING);
+    model_part.AddNodalSolutionStepVariable(POROSITY);
 
     // Process info creation
     const double delta_time = 0.1;
@@ -56,6 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(SWE2D3N, ShallowWaterApplicationFastSuite)
     model_part.GetProcessInfo().SetValue(STABILIZATION_FACTOR, stab_factor);
     model_part.GetProcessInfo().SetValue(GRAVITY_Z, gravity);
     model_part.GetProcessInfo().SetValue(DRY_HEIGHT, 0.1);
+    model_part.GetProcessInfo().SetValue(WATER_HEIGHT_UNIT_CONVERTER, 1.0);
     model_part.GetProcessInfo().SetValue(PERMEABILITY, 0.1);
     model_part.GetProcessInfo().SetValue(DRY_DISCHARGE_PENALTY, 0.1);
 
@@ -88,7 +90,8 @@ KRATOS_TEST_CASE_IN_SUITE(SWE2D3N, ShallowWaterApplicationFastSuite)
         element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 1) = free_surface(i) + 1;
         element->GetGeometry()[i].FastGetSolutionStepValue(PROJECTED_SCALAR1   ) = free_surface(i) + 1;
         element->GetGeometry()[i].FastGetSolutionStepValue(TOPOGRAPHY) = topography(i);
-        element->GetGeometry()[i].FastGetSolutionStepValue(MANNING) = manning;
+        element->GetGeometry()[i].FastGetSolutionStepValue(POROSITY) = 1.0;
+        element->GetGeometry()[i].FastGetSolutionStepValue(EQUIVALENT_MANNING) = manning;
     }
 
     // Compute RHS and LHS

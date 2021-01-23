@@ -7,13 +7,13 @@ from xmc.distributedEnvironmentFramework import (
     COLLECTION_IN,
     INOUT,
 )
-from xmc.tools import flatten
-from .types import (
+from xmc.momentEstimator import (
     PowerSumsDict,
     SampleArray,
     PowerSumsDictUL,
     CombinedSampleArray,
 )
+from xmc.tools import flatten
 from typing import Union
 
 

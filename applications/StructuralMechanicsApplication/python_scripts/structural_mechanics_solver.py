@@ -217,7 +217,15 @@ class MechanicalSolver(PythonSolver):
             self.Clear()
         mechanical_solution_strategy = self.get_mechanical_solution_strategy()
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-        mechanical_solution_strategy.Initialize()
+        if not self.is_restarted():
+            mechanical_solution_strategy.Initialize()
+        else:
+            # SetInitializePerformedFlag is not a member of SolvingStrategy but
+            # is used by ResidualBasedNewtonRaphsonStrategy.
+            try:
+                mechanical_solution_strategy.SetInitializePerformedFlag(True)
+            except AttributeError:
+                pass
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished initialization.")
 
     def InitializeSolutionStep(self):

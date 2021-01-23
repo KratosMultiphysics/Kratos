@@ -207,30 +207,25 @@ public:
     ///@name Access
     ///@{
 
-    void CalculateOnIntegrationPoints(
-        Variable<array_1d<double, 3>> const& rVariable,
-        std::vector<array_1d<double, 3>>& rValues,
-        ProcessInfo const& rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(Variable<array_1d<double, 3>> const& rVariable,
+                                     std::vector<array_1d<double, 3>>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(
-        Variable<double> const& rVariable,
-        std::vector<double>& rValues,
-        ProcessInfo const& rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(Variable<double> const& rVariable,
+                                     std::vector<double>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(
-        Variable<array_1d<double, 6>> const& rVariable,
-        std::vector<array_1d<double, 6>>& rValues,
-        ProcessInfo const& rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
+                                     std::vector<array_1d<double, 6>>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(
-        Variable<Vector> const& rVariable,
-        std::vector<Vector>& rValues,
-        ProcessInfo const& rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
+                                     std::vector<Vector>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(
-        Variable<Matrix> const& rVariable,
-        std::vector<Matrix>& rValues,
-        ProcessInfo const& rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
+                                     std::vector<Matrix>& rValues,
+                                     ProcessInfo const& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -262,24 +257,10 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    constexpr static double mTauC1 = 8.0;
-    constexpr static double mTauC2 = 2.0;
-    constexpr static double mSubscalePredictionVelocityTolerance = 1e-14;
-    constexpr static double mSubscalePredictionResidualTolerance = 1e-14;
-    constexpr static unsigned int mSubscalePredictionMaxIterations = 10;
 
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    // Velocity subscale history, stored at integration points
-    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
-    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
-
-    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
-    std::vector< double > mSubscaleIterationError;
-    std::vector< unsigned int > mSubscaleIterationCount;
-    #endif
 
 
     ///@}
@@ -328,8 +309,7 @@ protected:
     array_1d<double,3> FullConvectiveVelocity(
         const TElementData& rData) const;
 
-    void UpdateSubscaleVelocityPrediction(
-        const TElementData& rData);
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -351,9 +331,24 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    constexpr static double mTauC1 = 8.0;
+    constexpr static double mTauC2 = 2.0;
+    constexpr static double mSubscalePredictionVelocityTolerance = 1e-14;
+    constexpr static double mSubscalePredictionResidualTolerance = 1e-14;
+    constexpr static unsigned int mSubscalePredictionMaxIterations = 10;
+
     ///@}
     ///@name Member Variables
     ///@{
+
+    // Velocity subscale history, stored at integration points
+    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
+
+    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
+    std::vector< double > mSubscaleIterationError;
+    std::vector< unsigned int > mSubscaleIterationCount;
+    #endif
 
     ///@}
     ///@name Serialization
@@ -373,6 +368,9 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void UpdateSubscaleVelocityPrediction(
+        const TElementData& rData);
 
     ///@}
     ///@name Private  Access

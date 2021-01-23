@@ -10,8 +10,6 @@
 //  Main authors:    Pooyan Dadvand
 //                   Ruben Zorrilla
 //
-//  Collaborators:   Franziska Wahl
-//
 
 #if !defined(KRATOS_CALCULATE_DISCONTINUOUS_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED )
 #define  KRATOS_CALCULATE_DISCONTINUOUS_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED
@@ -36,12 +34,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcessFlags
-{
-public:
-    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES); /// Local flag to switch on/off the elemental edge distances storage
-};
-
 /// This only calculates the distance. Calculating the inside outside should be done by a derived class of this.
 /** This process takes a volume model part (with tetrahedra mesh) and a skin model part (with triangle mesh) and
      and calcualtes the distance to the skin for all the elements and nodes of the volume model part.
@@ -65,12 +57,6 @@ public:
     CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart);
-
-    /// Constructor with options
-    CalculateDiscontinuousDistanceToSkinProcess(
-        ModelPart& rVolumePart,
-        ModelPart& rSkinPart,
-        const Flags rOptions);
 
     /// Destructor.
     ~CalculateDiscontinuousDistanceToSkinProcess() override;
@@ -202,8 +188,6 @@ private:
     ModelPart& mrSkinPart;
     ModelPart& mrVolumePart;
 
-    Flags mOptions;
-
     ///@}
     ///@name Private Operations
     ///@{
@@ -219,31 +203,19 @@ private:
         PointerVector<GeometricalObject>& rIntersectedObjects);
 
     /**
-     * @brief Computes the discontinuous edge-based distance in one element
-     * This method computes the discontinuous edge-based distance field for a given element
-     * @param rElement1 reference to the element of interest
-     * @param rIntersectedObjects reference to the array containing the element of interest intersecting geometries
-     */
-    void CalculateElementalAndEdgeDistances(
-        Element& rElement1,
-        PointerVector<GeometricalObject>& rIntersectedObjects);
-
-    /**
      * @brief Computes the edges intersections in one element
      * Provided a list of elemental intersecting geometries, this
      * method computes the edge intersections for a given element
      * @param rElement1 reference to the element of interest
      * @param rIntersectedObjects reference to the array containing the element of interest intersecting geometries
      * @param rCutEdgesVector array that classifies the edges depending on their cut / uncut status
-     * @param rCutEdgesRatioVector array that stores the relative positions from node zero of the average intersection points
      * @param rIntersectionPointsArray array containing the edges intersection points
      * @return unsigned int number of cut edges
      */
     unsigned int ComputeEdgesIntersections(
         Element& rElement1,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
-        array_1d<unsigned int, (TDim == 2) ? 3 : 6>& rCutEdgesVector,
-        array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector,
+        std::vector<unsigned int> &rCutEdgesVector,
         std::vector<array_1d <double,3> > &rIntersectionPointsArray);
 
     /**
@@ -271,22 +243,9 @@ private:
      * @param rNormal obtained unit normal vector
      */
     void ComputeIntersectionNormal(
-        const Element::GeometryType& rGeometry,
+        Element::GeometryType& rGeometry,
         const Vector& rElementalDistances,
         array_1d<double,3> &rNormal);
-
-    /**
-     * @brief Computes the nodal distances to the intersection plane
-     * This methods calculates the nodal distances to the intersection plane
-     * In presence of multiple intersections, it performs a least squares approximation of the intersection plane
-     * @param rElement Element to calculate the ELEMENTAL_DISTANCES
-     * @param rIntersectedObjects Intersected objects container
-     * @param rIntersectionPointsCoordinates The edges intersection points coordinates
-     */
-    void ComputeIntersectionPlaneElementalDistances(
-        Element& rElement,
-        const PointerVector<GeometricalObject>& rIntersectedObjects,
-        const std::vector<array_1d<double,3>>& rIntersectionPointsCoordinates);
 
     /**
      * @brief Computes the intersection plane approximation
@@ -316,7 +275,7 @@ private:
      * @param rElementalDistances array containing the ELEMENTAL_DISTANCES values
      */
     void CorrectDistanceOrientation(
-        const Element::GeometryType& rGeometry,
+        Element::GeometryType& rGeometry,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
         Vector& rElementalDistances);
 
@@ -347,6 +306,10 @@ private:
 	{
 		const auto &r_int_obj_vect= this->GetIntersections();
 		const int n_elems = mrVolumePart.NumberOfElements();
+
+		// Check requested variables
+		KRATOS_ERROR_IF(rEmbeddedVariable.Key() == 0)
+			<< rEmbeddedVariable << " key is 0. Check that the variable is correctly registered." << std::endl;
 
 		KRATOS_ERROR_IF((mrSkinPart.NodesBegin())->SolutionStepsDataHas(rVariable) == false)
 			<< "Skin model part solution step data missing variable: " << rVariable << std::endl;
@@ -415,34 +378,12 @@ private:
 		}
 	};
 
-    /**
-     * @brief Set the ELEMENTAL_EDGE_DISTANCES values
-     * This method saves the provided cut edges ratios in the ELEMENTAL_EDGE_DISTANCES variable
-     * For uncut edges, a value (-1) is set.
-     * For cut edges, the relative distance (wrt the edge length) from the 0 node of the edge to the intersection point is saved
-     * @param rElement The element to set the ELEMENTAL_EDGE_DISTANCES
-     * @param rCutEdgesRatioVector Array containing the cut edges ratio values
-     */
-    void SetElementalEdgeDistancesValues(
-        Element& rElement,
-        const array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector);
-
-    /**
-     * @brief Set the TO_SPLIT Kratos flag 
-     * This function sets the TO_SPLIT flag in the provided element according to the ELEMENTAL_DISTANCES values
-     * Note that the zero distance case is avoided by checking the positiveness and negativeness of the nodal values
-     * @param rElement Element to set the TO_SPLIT flag
-     * @param ZeroTolerance Tolerance to check the zero distance values
-     */
-    void SetToSplitFlag(
-        Element& rElement,
-        const double ZeroTolerance);
-
     ///@}
 
 }; // Class CalculateDiscontinuousDistanceToSkinProcess
 
 ///@}
+
 ///@name Input and output
 ///@{
 

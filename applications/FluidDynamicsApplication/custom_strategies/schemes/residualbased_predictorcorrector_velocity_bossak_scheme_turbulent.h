@@ -126,7 +126,7 @@ namespace Kratos {
 
 
             //Allocate auxiliary memory
-            int NumThreads = ParallelUtilities::GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
             mMass.resize(NumThreads);
             mDamp.resize(NumThreads);
             mvel.resize(NumThreads);
@@ -154,7 +154,7 @@ namespace Kratos {
 
 
             //Allocate auxiliary memory
-            int NumThreads = ParallelUtilities::GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
             mMass.resize(NumThreads);
             mDamp.resize(NumThreads);
             mvel.resize(NumThreads);
@@ -183,7 +183,7 @@ namespace Kratos {
 
 
             //Allocate auxiliary memory
-            int NumThreads = ParallelUtilities::GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
             mMass.resize(NumThreads);
             mDamp.resize(NumThreads);
             mvel.resize(NumThreads);
@@ -212,7 +212,7 @@ namespace Kratos {
 
 
             //Allocate auxiliary memory
-            int NumThreads = ParallelUtilities::GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
             mMass.resize(NumThreads);
             mDamp.resize(NumThreads);
             mvel.resize(NumThreads);
@@ -243,7 +243,7 @@ namespace Kratos {
 
 
             //Allocate auxiliary memory
-            int NumThreads = ParallelUtilities::GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
             mMass.resize(NumThreads);
             mDamp.resize(NumThreads);
             mvel.resize(NumThreads);
@@ -298,7 +298,7 @@ namespace Kratos {
         {
             KRATOS_TRY
 
-            int NumThreads = ParallelUtilities::GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
             OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
@@ -357,7 +357,7 @@ namespace Kratos {
             // if (rModelPart.GetCommunicator().MyPID() == 0)
             //     std::cout << "prediction" << std::endl;
 
-            int NumThreads = ParallelUtilities::GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
             OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 

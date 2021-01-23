@@ -193,7 +193,7 @@ namespace Kratos
    //*********************************DISPLACEMENT***************************************
    //************************************************************************************
 
-   void SmallDisplacementUWwPElement::GetValuesVector( Vector& rValues, int Step ) const
+   void SmallDisplacementUWwPElement::GetValuesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -228,7 +228,7 @@ namespace Kratos
    //************************************VELOCITY****************************************
    //************************************************************************************
 
-   void SmallDisplacementUWwPElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
+   void SmallDisplacementUWwPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -262,7 +262,7 @@ namespace Kratos
    //*********************************ACCELERATION***************************************
    //************************************************************************************
 
-   void SmallDisplacementUWwPElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
+   void SmallDisplacementUWwPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();

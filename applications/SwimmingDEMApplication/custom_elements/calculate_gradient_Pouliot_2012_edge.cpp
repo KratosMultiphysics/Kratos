@@ -8,7 +8,7 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  const ProcessInfo& rCurrentProcessInfo)
+                                  ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int LocalSize(TDim * TNumNodes);
 
@@ -44,7 +44,9 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::CalculateLocalSystem(Matri
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
+void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
+                              ProcessInfo& rCurrentProcessInfo)
+{
 
     const unsigned int LocalSize(TDim * TNumNodes);
     unsigned int LocalIndex = 0;
@@ -63,7 +65,9 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::EquationIdVector(EquationI
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
+void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
+                        ProcessInfo& rCurrentProcessInfo)
+{
     const unsigned int LocalSize(TDim * TNumNodes);
 
     if (rElementalDofList.size() != LocalSize)
@@ -81,7 +85,7 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::GetDofList(DofsVectorType&
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012LHS(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     const GeometryType& rGeom = this->GetGeometry();
@@ -108,7 +112,7 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012LHS(MatrixTy
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorType& F, const ProcessInfo& rCurrentProcessInfo)
+void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -139,7 +143,7 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorTy
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
+int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -154,7 +158,7 @@ int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rC
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
-        const Node<3>& rNode = this->GetGeometry()[i];
+        Node<3> &rNode = this->GetGeometry()[i];
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_COMPONENT_GRADIENT_X,rNode);
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_COMPONENT_GRADIENT_Y,rNode);
         if (TDim == 3){

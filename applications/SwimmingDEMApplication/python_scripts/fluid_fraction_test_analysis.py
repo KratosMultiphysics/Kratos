@@ -31,7 +31,7 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
 
     def Initialize(self):
         super().Initialize()
-        self._GetSolver().ConstructL2ErrorCalculator()
+        self._GetSolver().ConstructL2ErrorProjector()
 
     def GetDebugInfo(self):
         return SDP.Counter(is_dead = 1)

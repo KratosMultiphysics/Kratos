@@ -67,7 +67,7 @@ void MAPcond::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 void MAPcond::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    const ProcessInfo& r_process_info)
+    ProcessInfo& r_process_info)
 {
 
 }

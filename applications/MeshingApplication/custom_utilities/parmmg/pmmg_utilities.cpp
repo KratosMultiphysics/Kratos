@@ -1375,33 +1375,7 @@ void ParMmgUtilities<TPMMGLibrary>::WriteReferenceEntitities(
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart)
 {
-    KRATOS_TRY;
-
-    auto& data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
-
-    ModelPart& r_auxiliar_model_part = rModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
-
-    const auto& r_flags = KratosComponents<Flags>::GetComponents();
-
-    for (auto& r_flag : r_flags) {
-        const std::string name_sub_model = "FLAG_" + r_flag.first;
-        if (name_sub_model.find("NOT") == std::string::npos && name_sub_model.find("ALL") == std::string::npos) { // Avoiding inactive flags
-            r_auxiliar_model_part.CreateSubModelPart(name_sub_model);
-            ModelPart& r_auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
-            FastTransferBetweenModelPartsProcess(r_auxiliar_sub_model_part, rModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, *(r_flag.second)).Execute();
-
-            const bool is_aux_sub_model_empty = r_auxiliar_sub_model_part.NumberOfNodes() == 0
-                && r_auxiliar_sub_model_part.NumberOfElements() == 0
-                && r_auxiliar_sub_model_part.NumberOfConditions() == 0;
-
-            // Remove sub model part if it is empty in all ranks
-            if (data_comm.MinAll(is_aux_sub_model_empty)) {
-                r_auxiliar_model_part.RemoveSubModelPart(name_sub_model);
-            }
-        }
-    }
-
-    KRATOS_CATCH("");
+    BaseType::CreateAuxiliarSubModelPartForFlags(rModelPart);
 }
 
 /***********************************************************************************/

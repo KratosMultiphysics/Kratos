@@ -90,14 +90,14 @@ ShellRigid::~ShellRigid()
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void ShellRigid::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     CalculateAllMatrices(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void ShellRigid::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     Matrix lhs(18,18);
     CalculateAllMatrices(lhs,rRightHandSideVector,rCurrentProcessInfo);
@@ -623,7 +623,7 @@ void ShellRigid::CalculateBendingElasticityTensor( BoundedMatrix<double,3,3>& Eb
 void ShellRigid::CalculateAllMatrices(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
+    ProcessInfo& rCurrentProcessInfo)
 {
     BoundedMatrix<double,18,18> mKloc_system;
     BoundedMatrix<double,3,3> mEm;
@@ -727,7 +727,8 @@ void ShellRigid::CalculateAllMatrices(
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const {
+void ShellRigid::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+{
     int number_of_nodes = 3;
     if(rResult.size() != 18)
         rResult.resize(18,false);
@@ -748,7 +749,8 @@ void ShellRigid::EquationIdVector(EquationIdVectorType& rResult, const ProcessIn
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const {
+void ShellRigid::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+{
     ElementalDofList.resize(0);
 
     for (unsigned int i=0; i<GetGeometry().size(); i++)
@@ -932,6 +934,18 @@ void ShellRigid::NicePrint(const Matrix& A)
         std::cout << std::endl;
     }
 }
+
+
+//************************************************************************************
+//************************************************************************************
+void ShellRigid::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+}
+
+
 
 //************************************************************************************
 //************************************************************************************
@@ -1812,7 +1826,7 @@ void ShellRigid::InvertMatrix(const BoundedMatrix<double,3,3>& InputMatrix,
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void ShellRigid::Initialize()
 {
     KRATOS_TRY
     //calculate local coordinates and rotation matrix
@@ -1835,7 +1849,7 @@ void ShellRigid::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
+void ShellRigid::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1859,7 +1873,7 @@ void ShellRigid::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInf
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+void ShellRigid::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1943,7 +1957,7 @@ void ShellRigid::GetSecondDerivativesVector(Vector& values, int Step) const
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  ShellRigid::Check(const ProcessInfo& rCurrentProcessInfo) const
+int  ShellRigid::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

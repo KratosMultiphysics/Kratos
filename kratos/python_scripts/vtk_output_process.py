@@ -28,9 +28,9 @@ class VtkOutputProcess(KratosMultiphysics.Process):
 
         if settings["save_output_files_in_folder"].GetBool():
             if self.model_part.GetCommunicator().MyPID() == 0:
-                output_path = settings["output_path"].GetString()
+                folder_name = settings["folder_name"].GetString()
                 if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-                    kratos_utils.DeleteDirectoryIfExisting(output_path)
+                    kratos_utils.DeleteDirectoryIfExisting(folder_name)
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
         self.output_interval = settings["output_interval"].GetDouble()
@@ -52,12 +52,6 @@ class VtkOutputProcess(KratosMultiphysics.Process):
 
         old_name = 'write_properties_id'
         new_name = 'write_ids'
-
-        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
-            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
-
-        old_name = 'folder_name'
-        new_name = 'output_path'
 
         if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)

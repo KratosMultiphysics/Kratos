@@ -654,7 +654,7 @@ int ShellThickElement3D4N::Check(const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_CATCH("")
 }
 
-void ShellThickElement3D4N::GetValuesVector(Vector &values, int Step) const {
+void ShellThickElement3D4N::GetValuesVector(Vector &values, int Step) {
   if (values.size() != 24)
     values.resize(24, false);
 
@@ -679,7 +679,7 @@ void ShellThickElement3D4N::GetValuesVector(Vector &values, int Step) const {
 }
 
 void ShellThickElement3D4N::GetFirstDerivativesVector(Vector &values,
-                                                      int Step) const {
+                                                      int Step) {
   if (values.size() != 24)
     values.resize(24, false);
 
@@ -701,7 +701,7 @@ void ShellThickElement3D4N::GetFirstDerivativesVector(Vector &values,
 }
 
 void ShellThickElement3D4N::GetSecondDerivativesVector(Vector &values,
-                                                       int Step) const {
+                                                       int Step) {
   if (values.size() != 24)
     values.resize(24, false);
 

@@ -1,12 +1,8 @@
 from xmc.distributedEnvironmentFramework import *
 
 # Import XMC methods
-from xmc.tools import dynamicImport, mergeTwoListsIntoOne
-from xmc.methodDefs_hierarchyOptimiser import (
-    optimalSampleNumbers,
-    optimalIndexSet,
-    updateHierarchySpace,
-)
+from xmc.tools import dynamicImport
+from xmc.tools import mergeTwoListsIntoOne
 
 
 class HierarchyOptimiser:

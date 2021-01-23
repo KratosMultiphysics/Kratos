@@ -6,7 +6,7 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  const ProcessInfo& rCurrentProcessInfo)
+                                  ProcessInfo& rCurrentProcessInfo)
 {
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
     //const double h_inv = 1.0 / this->GetGeometry().MinEdgeLength();
@@ -47,7 +47,9 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixTyp
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
+void ComputeGradientPouliot2012<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
+                        ProcessInfo& rCurrentProcessInfo)
+{
     const unsigned int LocalSize(TDim * TNumNodes);
 
     if (rElementalDofList.size() != LocalSize)
@@ -65,7 +67,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::GetDofList(DofsVectorType& rEl
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeGradientPouliot2012<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
+int ComputeGradientPouliot2012<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -88,7 +90,9 @@ int ComputeGradientPouliot2012<TDim, TNumNodes>::Check(const ProcessInfo& rCurre
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
+void ComputeGradientPouliot2012<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
+                              ProcessInfo& rCurrentProcessInfo)
+{
 
     const unsigned int LocalSize(TDim * TNumNodes);
     unsigned int LocalIndex = 0;
@@ -107,7 +111,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::EquationIdVector(EquationIdVec
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012LHS(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int NEdges = 3 * TNumNodes - 6; // works in 2D and 3D
     unsigned int edges[NEdges][2];
@@ -135,7 +139,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012LHS(MatrixType& 
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012StabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012StabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int NEdges = 3 * TNumNodes - 6; // works in 2D and 3D
 
@@ -193,7 +197,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012StabilizationLHS
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012<TDim, TNumNodes>::AddFEMLaplacianStabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+void ComputeGradientPouliot2012<TDim, TNumNodes>::AddFEMLaplacianStabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int BlockSize = TDim;
 
@@ -236,7 +240,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::AssembleEdgeLHSContribution(co
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateStabilizationRHS(const double epsilon, VectorType& F, const ProcessInfo& rCurrentProcessInfo)
+void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateStabilizationRHS(const double epsilon, VectorType& F, ProcessInfo& rCurrentProcessInfo)
 {
     // Get the element's geometric parameters
     double Area;
@@ -260,7 +264,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateStabilizationRHS(cons
 
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012RHS(VectorType& F, const ProcessInfo& rCurrentProcessInfo)
+void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int NEdges = 3 * TNumNodes - 6; // works in 2D and 3D
 

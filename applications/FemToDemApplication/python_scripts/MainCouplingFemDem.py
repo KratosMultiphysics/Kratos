@@ -475,19 +475,14 @@ class MainCoupledFemDem_Solution:
         # If we want to compute sand production
         # self.CountErasedVolume()
 
+        # if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
         if KratosFemDem.FEMDEMCouplingUtilities().IsGenerateDEMRequired(self.FEM_Solution.main_model_part):
-
-            if self.PressureLoad:
-                self.ExpandWetNodes()
-                KratosFemDem.UpdatePressureVolumeProcess(self.FEM_Solution.main_model_part).Execute()
-                self.ExpandWetNodes()
-            
-            self.UpdateDEMVariables()
-
             dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
             dem_generator_process.Execute()
 
             # We remove the inactive DEM associated to fem_nodes
+            # self.RemoveAloneDEMElements()
+            # self.RemoveIsolatedFiniteElements()
             element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
             element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
 
@@ -507,8 +502,6 @@ class MainCoupledFemDem_Solution:
             utils = KratosMultiphysics.VariableUtils()
             elements = self.FEM_Solution.main_model_part.Elements
             utils.SetNonHistoricalVariable(KratosFemDem.GENERATE_DEM, False, elements)
-
-            self.ExtrapolatePressureLoad()
 
 
 #RemoveIsolatedFiniteElements============================================================================================================================
@@ -905,11 +898,14 @@ class MainCoupledFemDem_Solution:
     def ExecuteBeforeGeneratingDEM(self):
         """Here the erased are labeled as INACTIVE so you can access to them. After calling
            GenerateDEM they are totally erased """
-        pass
+        if self.PressureLoad:
+            self.ExpandWetNodes()
+            KratosFemDem.UpdatePressureVolumeProcess(self.FEM_Solution.main_model_part).Execute()
+            self.ExpandWetNodes()
 
 #ExecuteAfterGeneratingDEM============================================================================================================================
     def ExecuteAfterGeneratingDEM(self):
-        # self.ExtrapolatePressureLoad()
+        self.ExtrapolatePressureLoad()
         self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
         # We update coordinates, displ and velocities of the DEM according to FEM
         self.UpdateDEMVariables()

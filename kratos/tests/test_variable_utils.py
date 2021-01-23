@@ -1,4 +1,6 @@
-﻿# Importing the Kratos Library
+﻿from __future__ import print_function, absolute_import, division
+
+# Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 

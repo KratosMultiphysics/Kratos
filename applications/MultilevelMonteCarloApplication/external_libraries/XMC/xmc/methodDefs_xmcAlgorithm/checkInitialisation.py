@@ -46,25 +46,25 @@ def checkInitialisationSolverWrapper(solverWrapperDictionary):
         sql = solverWrapperDictionary["outputBatchSize"]
     else:
         warnings.warn("outputBatchSize not defined in solverWrapper dictionary. The default value of 0 will be considered.")
-    if "numberMomentEstimator" in solverWrapperDictionary:
-        nq = solverWrapperDictionary["numberMomentEstimator"]
+    if "numberQoI" in solverWrapperDictionary:
+        nq = solverWrapperDictionary["numberQoI"]
     else:
-        warnings.warn("numberMomentEstimator not defined in solverWrapper dictionary. The default value of 0 will be considered.")
-    if "numberCombinedMomentEstimator" in solverWrapperDictionary:
-        ncq = solverWrapperDictionary["numberCombinedMomentEstimator"]
+        warnings.warn("numberQoI not defined in solverWrapper dictionary. The default value of 0 will be considered.")
+    if "numberCombinedQoi" in solverWrapperDictionary:
+        ncq = solverWrapperDictionary["numberCombinedQoi"]
     else:
-        warnings.warn("numberCombinedMomentEstimator not defined in solverWrapper dictionary. The default value of 0 will be considered.")
-    if "numberMultiCombinedMomentEstimator" in solverWrapperDictionary:
-        nmcq = solverWrapperDictionary["numberMultiCombinedMomentEstimator"]
+        warnings.warn("numberCombinedQoi not defined in solverWrapper dictionary. The default value of 0 will be considered.")
+    if "numberMultiCombinedQoI" in solverWrapperDictionary:
+        nmcq = solverWrapperDictionary["numberMultiCombinedQoI"]
     else:
-        warnings.warn("numberMultiCombinedMomentEstimator not defined in solverWrapper dictionary. The default value of 0 will be considered.")
-    if "numberMultiMomentEstimator" in solverWrapperDictionary:
-        nmq = solverWrapperDictionary["numberMultiMomentEstimator"]
+        warnings.warn("numberMultiCombinedQoI not defined in solverWrapper dictionary. The default value of 0 will be considered.")
+    if "numberMultiQoI" in solverWrapperDictionary:
+        nmq = solverWrapperDictionary["numberMultiQoI"]
     else:
-        warnings.warn("numberMultiMomentEstimator not defined in solverWrapper dictionary. The default value of 0 will be considered.")
+        warnings.warn("numberMultiQoI not defined in solverWrapper dictionary. The default value of 0 will be considered.")
 
     if sql > (nq+ncq+nmq+nmcq):
-        raise Exception ("solverWrapperDictionary: outputBatchSize exceeding maximum dimension. Set a value <= numberMomentEstimator + numberCombinedQoI + numberMultiMomentEstimator + numberMultiCombinedMomentEstimator.")
+        raise Exception ("solverWrapperDictionary: outputBatchSize exceeding maximum dimension. Set a value <= numberQoI + numberCombinedQoI + numberMultiQoI + numberMultiCombinedQoI.")
 
 def checkMaxNumberIterationsCriterion(positionMaxNumberIterationsCriterion,tolerances):
     """

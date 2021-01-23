@@ -1,4 +1,6 @@
-﻿import KratosMultiphysics.KratosUnittest as KratosUnittest
+﻿from __future__ import print_function, absolute_import, division
+
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics as KM
 import math
 

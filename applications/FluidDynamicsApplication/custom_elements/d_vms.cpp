@@ -15,7 +15,6 @@
 #include "includes/checks.h"
 
 #include "custom_utilities/qsvms_data.h"
-#include "custom_utilities/qsvms_dem_coupled_data.h"
 //#include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
@@ -185,13 +184,17 @@ int DVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
+    // Output variables (for Calculate() functions)
+    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_PRESSURE);
+
     return out;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void DVMS<TElementData>::CalculateOnIntegrationPoints(
+void DVMS<TElementData>::GetValueOnIntegrationPoints(
     Variable<array_1d<double, 3 > > const& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -227,13 +230,13 @@ void DVMS<TElementData>::CalculateOnIntegrationPoints(
         }
     }
     else {
-        QSVMS<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
 
 template< class TElementData >
-void DVMS<TElementData>::CalculateOnIntegrationPoints(
+void DVMS<TElementData>::GetValueOnIntegrationPoints(
     Variable<double> const& rVariable,
     std::vector<double>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -294,35 +297,35 @@ void DVMS<TElementData>::CalculateOnIntegrationPoints(
     }
     #endif
     else {
-        QSVMS<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
 template <class TElementData>
-void DVMS<TElementData>::CalculateOnIntegrationPoints(
+void DVMS<TElementData>::GetValueOnIntegrationPoints(
     Variable<array_1d<double, 6>> const& rVariable,
     std::vector<array_1d<double, 6>>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    QSVMS<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void DVMS<TElementData>::CalculateOnIntegrationPoints(
+void DVMS<TElementData>::GetValueOnIntegrationPoints(
     Variable<Vector> const& rVariable,
     std::vector<Vector>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    QSVMS<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void DVMS<TElementData>::CalculateOnIntegrationPoints(
+void DVMS<TElementData>::GetValueOnIntegrationPoints(
     Variable<Matrix> const& rVariable,
     std::vector<Matrix>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    QSVMS<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -864,11 +867,5 @@ void DVMS<TElementData>::load(Serializer& rSerializer)
 
 template class DVMS< QSVMSData<2,3> >;
 template class DVMS< QSVMSData<3,4> >;
-
-template class DVMS< QSVMSDEMCoupledData<2,3> >;
-template class DVMS< QSVMSDEMCoupledData<3,4> >;
-
-template class DVMS< QSVMSDEMCoupledData<2,4> >;
-template class DVMS< QSVMSDEMCoupledData<3,8> >;
 
 } // namespace Kratos

@@ -266,11 +266,12 @@ void FractionalStepKBasedWallCondition<TDim, TNumNodes>::ApplyNeumannCondition(
 
             // Velocity inflow correction
             array_1d<double, 3> velocity = ZeroVector(3);
-            const double density = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties().GetValue(DENSITY);
+            double density = 0.0;
 
             for (unsigned int i = 0; i < TNumNodes; i++) {
                 const auto& r_node = this->GetGeometry()[i];
                 velocity += r_shape_functions[i] * r_node.FastGetSolutionStepValue(VELOCITY);
+                density += r_shape_functions[i] * r_node.FastGetSolutionStepValue(DENSITY);
             }
 
             double projection = velocity[0] * normal[0] + velocity[1] * normal[1] + velocity[2] * normal[2];

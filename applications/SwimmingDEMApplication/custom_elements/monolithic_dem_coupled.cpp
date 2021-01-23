@@ -12,7 +12,9 @@ namespace Kratos
  * @see MonolithicDEMCoupled::EquationIdVector
  */
 template <>
-void MonolithicDEMCoupled<2>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
+void MonolithicDEMCoupled<2>::EquationIdVector(EquationIdVectorType& rResult,
+                              ProcessInfo& rCurrentProcessInfo)
+{
     if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
         const unsigned int NumNodes(3),LocalSize(9);
         unsigned int LocalIndex = 0;
@@ -53,7 +55,9 @@ void MonolithicDEMCoupled<2>::EquationIdVector(EquationIdVectorType& rResult, co
  * @see MonolithicDEMCoupled::EquationIdVector
  */
 template <>
-void MonolithicDEMCoupled<3>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
+void MonolithicDEMCoupled<3>::EquationIdVector(EquationIdVectorType& rResult,
+                              ProcessInfo& rCurrentProcessInfo)
+{
     if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
         const unsigned int NumNodes(4),LocalSize(16);
         unsigned int LocalIndex = 0;
@@ -93,7 +97,9 @@ void MonolithicDEMCoupled<3>::EquationIdVector(EquationIdVectorType& rResult, co
  * @see MonolithicDEMCoupled::GetDofList
  */
 template <>
-void MonolithicDEMCoupled<2>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
+void MonolithicDEMCoupled<2>::GetDofList(DofsVectorType& rElementalDofList,
+                        ProcessInfo& rCurrentProcessInfo)
+{
     if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
         const unsigned int NumNodes(3),LocalSize(9);
         if (rElementalDofList.size() != LocalSize)
@@ -128,7 +134,9 @@ void MonolithicDEMCoupled<2>::GetDofList(DofsVectorType& rElementalDofList, cons
  * @see MonolithicDEMCoupled::GetDofList
  */
 template <>
-void MonolithicDEMCoupled<3>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
+void MonolithicDEMCoupled<3>::GetDofList(DofsVectorType& rElementalDofList,
+                        ProcessInfo& rCurrentProcessInfo)
+{
     if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
         const unsigned int NumNodes(4),LocalSize(16);
         if (rElementalDofList.size() != LocalSize)
@@ -248,10 +256,10 @@ void MonolithicDEMCoupled<3>::GetSecondDerivativesVector(Vector& Values, int Ste
 }
 
 /**
- * @see MonolithicDEMCoupled::CalculateOnIntegrationPoints
+ * @see MonolithicDEMCoupled::GetValueOnIntegrationPoints
  */
 template <>
-void MonolithicDEMCoupled<2>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+void MonolithicDEMCoupled<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -335,10 +343,10 @@ void MonolithicDEMCoupled<2>::CalculateOnIntegrationPoints( const Variable<array
 }
 
 /**
- * @see MonolithicDEMCoupled::CalculateOnIntegrationPoints
+ * @see MonolithicDEMCoupled::GetValueOnIntegrationPoints
  */
 template <>
-void MonolithicDEMCoupled<3>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+void MonolithicDEMCoupled<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -489,7 +497,7 @@ double MonolithicDEMCoupled<3,4>::ElementSize(const double Volume)
 template <>
 double MonolithicDEMCoupled<2,3>::FilterWidth()
 {
-    double FilterWidth = this->GetGeometry().Volume();
+    double FilterWidth = GeometryUtils::CalculateVolume2D(this->GetGeometry());
     return 2.0 * FilterWidth;
 }
 
@@ -501,7 +509,7 @@ template <>
 double MonolithicDEMCoupled<3,4>::FilterWidth()
 {
     const double TwoThirds = 2.0 / 3.0;
-    double FilterWidth = this->GetGeometry().Volume();
+    double FilterWidth = GeometryUtils::CalculateVolume3D(this->GetGeometry());
     FilterWidth *= 6.0;
     return pow(FilterWidth, TwoThirds);
 }

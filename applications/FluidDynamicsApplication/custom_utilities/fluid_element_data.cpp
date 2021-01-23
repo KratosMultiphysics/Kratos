@@ -62,10 +62,9 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::UpdateGeometry
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
-void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(
-    NodalScalarData &rData,
-    const Variable<double> &rVariable,
-    const Geometry<Node<3>> &rGeometry)
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNodalData(
+    NodalScalarData& rData, const Variable<double>& rVariable,
+    const Geometry<Node<3>>& rGeometry)
 {
     noalias(rData) = ZeroVector(TNumNodes);
     for (size_t i = 0; i < TNumNodes; i++) {
@@ -74,8 +73,7 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistor
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
-void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(
-    NodalVectorData& rData,
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNodalData(NodalVectorData& rData,
     const Variable<array_1d<double, 3>>& rVariable,
     const Geometry<Node<3>>& rGeometry)
 {
@@ -107,32 +105,6 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistor
     for (size_t i = 0; i < TNumNodes; i++) {
         const array_1d<double, 3>& r_nodal_values =
             rGeometry[i].FastGetSolutionStepValue(rVariable,Step);
-        for (size_t j = 0; j < rData.size2(); j++) {
-            rData(i, j) = r_nodal_values[j];
-        }
-    }
-}
-
-template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
-void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNonHistoricalNodalData(
-    NodalScalarData& rData,
-    const Variable<double>& rVariable,
-    const Geometry<Node<3>>& rGeometry)
-{
-    noalias(rData) = ZeroVector(TNumNodes);
-    for (size_t i = 0; i < TNumNodes; i++) {
-        rData[i] = rGeometry[i].GetValue(rVariable);
-    }
-}
-
-template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
-void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNonHistoricalNodalData(
-    NodalVectorData& rData,
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Geometry<Node<3>>& rGeometry)
-{
-    for (size_t i = 0; i < TNumNodes; i++) {
-        const array_1d<double, 3>& r_nodal_values = rGeometry[i].GetValue(rVariable);
         for (size_t j = 0; j < rData.size2(); j++) {
             rData(i, j) = r_nodal_values[j];
         }

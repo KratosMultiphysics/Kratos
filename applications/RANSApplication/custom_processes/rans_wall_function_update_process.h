@@ -55,6 +55,8 @@ public:
     RansWallFunctionUpdateProcess(
         Model& rModel,
         const std::string& rModelPartName,
+        const double VonKarman,
+        const double Beta,
         const int EchoLevel);
 
     /// Destructor.
@@ -72,6 +74,8 @@ public:
     ///@{
 
     int Check() override;
+
+    void ExecuteInitialize() override;
 
     void ExecuteInitializeSolutionStep() override;
 
@@ -100,8 +104,21 @@ private:
 
     Model& mrModel;
     std::string mModelPartName;
+    double mVonKarman;
+    double mBeta;
+    double mCmu;
     int mEchoLevel;
     bool mIsInitialized = false;
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief Calculates number of neighbour nodes on condition nodes
+     *
+     */
+    void CalculateConditionNeighbourCount();
 
     ///@}
 

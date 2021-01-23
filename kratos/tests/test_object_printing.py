@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -7,7 +8,7 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 # The expected definitions are here to make the handling of the
-# multiline-strings easier (no need to deal with indentation)
+# multiline-stings easier (no need to deal with indentation)
 prop_str = '''Properties
     VISCOSITY : 5.3
     DENSITY : -95.3
@@ -15,8 +16,6 @@ This properties contains 0 tables'''
 
 model_part_str = '''-Main- model part
     AMBIENT_TEMPERATURE : 250
-    DISPLACEMENT : [3](2.1,3.2,4.3)
-    VELOCITY : [3](3.8,4.9,0)
     Buffer Size : 1
     Number of tables : 1
     Number of sub model parts : 2

@@ -127,28 +127,25 @@ void MembraneElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
 
-        //Constitutive Law initialisation
-        if ( mConstitutiveLawVector.size() != integration_points.size() )
-            mConstitutiveLawVector.resize( integration_points.size() );
+    //Constitutive Law initialisation
+    if ( mConstitutiveLawVector.size() != integration_points.size() )
+        mConstitutiveLawVector.resize( integration_points.size() );
 
-        if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
-            const GeometryType& r_geometry = GetGeometry();
-            const Properties& r_properties = GetProperties();
-            const auto& N_values = r_geometry.ShapeFunctionsValues(GetIntegrationMethod());
-            for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-                mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-                mConstitutiveLawVector[point_number]->InitializeMaterial( r_properties, r_geometry, row(N_values , point_number ));
-            }
-        } else {
-            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+    if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+        const GeometryType& r_geometry = GetGeometry();
+        const Properties& r_properties = GetProperties();
+        const auto& N_values = r_geometry.ShapeFunctionsValues(GetIntegrationMethod());
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[point_number]->InitializeMaterial( r_properties, r_geometry, row(N_values , point_number ));
         }
+    } else
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
 
-        mReferenceArea = GetGeometry().Area();
-    }
+
+    mReferenceArea = GetGeometry().Area();
     KRATOS_CATCH( "" )
 }
 
@@ -1042,9 +1039,7 @@ void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix,
     KRATOS_CATCH("")
 }
 
-void MembraneElement::CalculateLumpedMassVector(
-    VectorType& rLumpedMassVector,
-    const ProcessInfo& rCurrentProcessInfo) const
+void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
 {
     KRATOS_TRY
     auto& r_geom = GetGeometry();
@@ -1052,8 +1047,8 @@ void MembraneElement::CalculateLumpedMassVector(
     const SizeType number_of_nodes = r_geom.size();
     const SizeType local_size = dimension*number_of_nodes;
 
-    if (rLumpedMassVector.size() != local_size) {
-        rLumpedMassVector.resize(local_size, false);
+    if (rMassVector.size() != local_size) {
+        rMassVector.resize(local_size, false);
     }
 
     const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
@@ -1067,7 +1062,7 @@ void MembraneElement::CalculateLumpedMassVector(
         for (SizeType j = 0; j < 3; ++j)
         {
             const SizeType index = i * 3 + j;
-            rLumpedMassVector[index] = temp;
+            rMassVector[index] = temp;
         }
     }
     KRATOS_CATCH("")
@@ -1088,7 +1083,7 @@ void MembraneElement::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         VectorType element_mass_vector(local_size);
-        CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
+        CalculateLumpedMassVector(element_mass_vector);
 
         for (SizeType i = 0; i < number_of_nodes; ++i) {
             double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
@@ -1147,7 +1142,7 @@ void MembraneElement::AddExplicitContribution(
 
         // Getting the vector mass
         VectorType mass_vector(local_size);
-        CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
+        CalculateLumpedMassVector(mass_vector);
 
         for (SizeType i = 0; i < number_of_nodes; ++i) {
             double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
@@ -1210,6 +1205,14 @@ int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo[DOMAIN_SIZE]==3) << "DOMAIN_SIZE in element " << Id() << " is not 3" << std::endl;
     KRATOS_ERROR_IF_NOT(dimension==3) << "dimension in element " << Id() << " is not 3" << std::endl;
+
+    // Verify that the variables are correctly initialized
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
+    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
+    KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
 
     if (GetProperties().Has(THICKNESS) == false ||
             GetProperties()[THICKNESS] <= numerical_limit) {

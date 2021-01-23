@@ -495,12 +495,28 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize> local_matrix;
-        this->AuxiliaryCalculateSensitivityMatrix(rSensitivityVariable, local_matrix, rCurrentProcessInfo);
+        this->CalculateSensitivityMatrix(rSensitivityVariable, local_matrix, rCurrentProcessInfo);
         rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
         noalias(rOutput) = local_matrix;
     }
 
+    void CalculateSensitivityMatrix(
+        const Variable<array_1d<double, 3>>& rSensitivityVariable,
+        BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
 
+        if (rSensitivityVariable == SHAPE_SENSITIVITY) {
+            this->CalculateShapeGradientOfVMSSteadyTerm(rOutput, rCurrentProcessInfo);
+            this->AddShapeGradientOfVMSMassTerm(rOutput, ACCELERATION, -1.0, rCurrentProcessInfo);
+        } else {
+            KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
+                         << " not supported." << std::endl;
+        }
+
+        KRATOS_CATCH("")
+    }
 
     void GetDofList(
         DofsVectorType& rElementalDofList,
@@ -568,24 +584,6 @@ protected:
 
     ///@name Protected Operations
     ///@{
-
-    void AuxiliaryCalculateSensitivityMatrix(
-        const Variable<array_1d<double, 3>>& rSensitivityVariable,
-        BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-        if (rSensitivityVariable == SHAPE_SENSITIVITY) {
-            this->CalculateShapeGradientOfVMSSteadyTerm(rOutput, rCurrentProcessInfo);
-            this->AddShapeGradientOfVMSMassTerm(rOutput, ACCELERATION, -1.0, rCurrentProcessInfo);
-        } else {
-            KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
-                         << " not supported." << std::endl;
-        }
-
-        KRATOS_CATCH("")
-    }
 
     /// Calculate VMS-stabilized (lumped) mass matrix.
     void CalculateVMSMassMatrix(

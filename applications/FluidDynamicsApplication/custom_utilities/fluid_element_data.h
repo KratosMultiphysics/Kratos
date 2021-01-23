@@ -127,49 +127,13 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    //TODO: This needs to be removed
-    void FillFromNodalData(
-        NodalScalarData &rData,
-        const Variable<double> &rVariable,
-        const Geometry<Node<3>> &rGeometry)
-    {
-        KRATOS_WARNING("FluidElementData") << "\'FillFromNodalData\' is deprecated. Use \'FillFromHistoricalNodalData\' instead." << std::endl;
-        FillFromHistoricalNodalData(rData, rVariable, rGeometry);
-    }
+    void FillFromNodalData(NodalScalarData& rData, const Variable<double>& rVariable, const Geometry<Node<3>>& rGeometry);
 
-    //TODO: This needs to be removed
-    void FillFromNodalData(
-        NodalVectorData &rData,
-        const Variable<array_1d<double, 3>> &rVariable,
-        const Geometry<Node<3>> &rGeometry)
-    {
-        KRATOS_WARNING("FluidElementData") << "\'FillFromNodalData\' is deprecated. Use \'FillFromHistoricalNodalData\' instead." << std::endl;
-        FillFromHistoricalNodalData(rData, rVariable, rGeometry);
-    }
-
-    void FillFromHistoricalNodalData(
-        NodalScalarData &rData,
-        const Variable<double> &rVariable,
-        const Geometry<Node<3>> &rGeometry);
-
-    void FillFromHistoricalNodalData(
-        NodalVectorData &rData,
-        const Variable<array_1d<double, 3>> &rVariable,
-        const Geometry<Node<3>> &rGeometry);
+    void FillFromNodalData(NodalVectorData& rData, const Variable<array_1d<double,3>>& rVariable, const Geometry<Node<3>>& rGeometry);
 
     void FillFromHistoricalNodalData(NodalScalarData& rData, const Variable<double>& rVariable, const Geometry<Node<3>>& rGeometry, const unsigned int Step);
 
     void FillFromHistoricalNodalData(NodalVectorData& rData, const Variable<array_1d<double,3>>& rVariable, const Geometry<Node<3>>& rGeometry, const unsigned int Step);
-
-    void FillFromNonHistoricalNodalData(
-        NodalScalarData& rData,
-        const Variable<double>& rVariable,
-        const Geometry<Node<3>>& rGeometry);
-
-    void FillFromNonHistoricalNodalData(
-        NodalVectorData& rData,
-        const Variable<array_1d<double,3>>& rVariable,
-        const Geometry<Node<3>>& rGeometry);
 
     void FillFromProcessInfo(double& rData, const Variable<double>& rVariable, const ProcessInfo& rProcessInfo);
 

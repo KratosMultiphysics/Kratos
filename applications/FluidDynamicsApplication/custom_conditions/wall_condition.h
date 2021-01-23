@@ -325,7 +325,18 @@ namespace Kratos
             }
             else
             {
+                // Check that all required variables have been registered
+                if(VELOCITY.Key() == 0)
+                    KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
+                if(MESH_VELOCITY.Key() == 0)
+                    KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
+                if(NORMAL.Key() == 0)
+                    KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","")
+                if(Y_WALL.Key() == 0)
+                    KRATOS_THROW_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","")
+
                 // Checks on nodes
+
                 // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
                 for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
                 {
@@ -413,10 +424,9 @@ namespace Kratos
 //        }
 
 
-        void CalculateOnIntegrationPoints(
-            const Variable<array_1d<double, 3 > >& rVariable,
-            std::vector<array_1d<double, 3 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
+        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                                                 std::vector<array_1d<double, 3 > >& rValues,
+                                                 const ProcessInfo& rCurrentProcessInfo) override
         {
             rValues.resize(1);
             if (rVariable == NORMAL)
@@ -438,10 +448,9 @@ namespace Kratos
 
 
 
-        void CalculateOnIntegrationPoints(
-            const Variable<double>& rVariable,
-            std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
+        void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                                                 std::vector<double>& rValues,
+                                                 const ProcessInfo& rCurrentProcessInfo) override
         {
             rValues.resize(1);
             /*
@@ -455,10 +464,9 @@ namespace Kratos
         }
 
 
-        void CalculateOnIntegrationPoints(
-            const Variable<array_1d<double, 6 > >& rVariable,
-            std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
+        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+                                                 std::vector<array_1d<double, 6 > >& rValues,
+                                                 const ProcessInfo& rCurrentProcessInfo) override
         {
             rValues.resize(1);
             const WallCondition* const_this = static_cast< const WallCondition* >(this);
@@ -466,10 +474,9 @@ namespace Kratos
         }
 
 
-        void CalculateOnIntegrationPoints(
-            const Variable<Vector>& rVariable,
-            std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
+        void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                 std::vector<Vector>& rValues,
+                                                 const ProcessInfo& rCurrentProcessInfo) override
         {
             rValues.resize(1);
             const WallCondition* const_this = static_cast< const WallCondition* >(this);
@@ -477,10 +484,9 @@ namespace Kratos
         }
 
 
-        void CalculateOnIntegrationPoints(
-            const Variable<Matrix>& rVariable,
-            std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
+        void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                                 std::vector<Matrix>& rValues,
+                                                 const ProcessInfo& rCurrentProcessInfo) override
         {
             rValues.resize(1);
             const WallCondition* const_this = static_cast< const WallCondition* >(this);
