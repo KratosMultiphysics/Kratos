@@ -298,6 +298,151 @@ namespace Kratos
         double Tolerance,
         unsigned int MaximumIterations);
 
+    /** 
+     * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
+     * The origin and destination values have the same L2 norm over the set of conditions.
+     * A typical use case is to transform a distributed load into an equivalent set of point loads.
+     * Version for scalar magnitudes.
+     * @param rModelPart The model part of the problem
+     * @param rConditions Conditions container to calculate the point values
+     * @param rDistributedVariable The variable containing the distributed (origin) values.
+     * @param rPointVariable The variable that will contain the point (destination) values.
+     */
+    static void ConvertDistributedValuesToPointNonHistorical(
+        ModelPart& rModelPart,
+        ModelPart::ConditionsContainerType& rConditions,
+        const Variable< double >& rDistributedVariable,
+        const Variable< double >& rPointVariable);
+
+    /** 
+     * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
+     * The origin and destination values have the same L2 norm over the set of conditions.
+     * A typical use case is to transform a distributed load into an equivalent set of point loads.
+     * Version for scalar magnitudes.
+     * @param rModelPart The model part of the problem
+     * @param rElements Elements container to calculate the point values
+     * @param rDistributedVariable The variable containing the distributed (origin) values.
+     * @param rPointVariable The variable that will contain the point (destination) values.
+     */
+    static void ConvertDistributedValuesToPointNonHistorical(
+        ModelPart& rModelPart,
+        ModelPart::ElementsContainerType& rElements,
+        const Variable< double >& rDistributedVariable,
+        const Variable< double >& rPointVariable);
+
+    /** 
+     * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
+     * The origin and destination values have the same L2 norm over the set of conditions.
+     * A typical use case is to transform a distributed load into an equivalent set of point loads.
+     * Version for vector magnitudes.
+     * @param rModelPart The model part of the problem
+     * @param rConditions Conditions container to calculate the point values
+     * @param rDistributedVariable The variable containing the distributed (origin) values.
+     * @param rPointVariable The variable that will contain the point (destination) values.
+     */
+    static void ConvertDistributedValuesToPointNonHistorical(
+        ModelPart& rModelPart,
+        ModelPart::ConditionsContainerType& rConditions,
+        const Variable< array_1d<double,3> >& rDistributedVariable,
+        const Variable< array_1d<double,3> >& rPointVariable);
+
+    /** 
+     * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
+     * The origin and destination values have the same L2 norm over the set of conditions.
+     * A typical use case is to transform a distributed load into an equivalent set of point loads.
+     * Version for vector magnitudes.
+     * @param rModelPart The model part of the problem
+     * @param rElements Elements container to calculate the point values
+     * @param rDistributedVariable The variable containing the distributed (origin) values.
+     * @param rPointVariable The variable that will contain the point (destination) values.
+     */
+    static void ConvertDistributedValuesToPointNonHistorical(
+        ModelPart& rModelPart,
+        ModelPart::ElementsContainerType& rElements,
+        const Variable< array_1d<double,3> >& rDistributedVariable,
+        const Variable< array_1d<double,3> >& rPointVariable);
+
+    /**
+     * @brief Tranform a set of concentrated nodal values to a variable distributed over the conditions of rModelPart.
+     * The origin and destination values have the same L2 norm over the set of conditions.
+     * A typical use case is to transform a set of point loads into an equivalent distributed load.
+     * Version for scalar magnitudes.
+     * @param rModelPart The model part of the problem
+     * @param rConditions Conditions container to distribute the values
+     * @param rPointVariable The variable that will contain the point (origin) values.
+     * @param rDistributedVariable The variable containing the distributed (destination) values.
+     * @param Tolerance Maximum allowed difference (in L2 norm) between origin and destination values.
+     * @param MaximumIterations Maximum number of iterations for the procedure.
+     */
+    static void DistributePointValuesNonHistorical(
+        ModelPart& rModelPart,
+        ModelPart::ConditionsContainerType& rConditions,
+        const Variable<double>& rPointVariable,
+        const Variable<double>& rDistributedVariable,
+        double Tolerance,
+        unsigned int MaximumIterations);
+
+    /**
+     * @brief Tranform a set of concentrated nodal values to a variable distributed over the conditions of rModelPart.
+     * The origin and destination values have the same L2 norm over the set of conditions.
+     * A typical use case is to transform a set of point loads into an equivalent distributed load.
+     * Version for scalar magnitudes.
+     * @param rModelPart The model part of the problem
+     * @param rElements Elements container to distribute the values
+     * @param rPointVariable The variable that will contain the point (origin) values.
+     * @param rDistributedVariable The variable containing the distributed (destination) values.
+     * @param Tolerance Maximum allowed difference (in L2 norm) between origin and destination values.
+     * @param MaximumIterations Maximum number of iterations for the procedure.
+     */
+    static void DistributePointValuesNonHistorical(
+        ModelPart& rModelPart,
+        ModelPart::ElementsContainerType& rElements,
+        const Variable<double>& rPointVariable,
+        const Variable<double>& rDistributedVariable,
+        double Tolerance,
+        unsigned int MaximumIterations);
+
+    /**
+     * @brief Tranform a set of concentrated nodal values to a variable distributed over the conditions of rModelPart.
+     * The origin and destination values have the same L2 norm over the set of conditions.
+     * A typical use case is to transform a set of point loads into an equivalent distributed load.
+     * Version for vector magnitudes.
+     * @param rModelPart The model part of the problem
+     * @param rConditions Conditions container to distribute the values
+     * @param rPointVariable The variable that will contain the point (origin) values.
+     * @param rDistributedVariable The variable containing the distributed (destination) values.
+     * @param Tolerance Maximum allowed difference (in L2 norm) between origin and destination values.
+     * @param MaximumIterations Maximum number of iterations for the procedure.
+     */
+    static void DistributePointValuesNonHistorical(
+        ModelPart& rModelPart,
+        ModelPart::ConditionsContainerType& rConditions,
+        const Variable<array_1d<double,3>>& rPointVariable,
+        const Variable<array_1d<double,3>>& rDistributedVariable,
+        double Tolerance,
+        unsigned int MaximumIterations);
+
+    /**
+     * @brief Tranform a set of concentrated nodal values to a variable distributed over the conditions of rModelPart.
+     * The origin and destination values have the same L2 norm over the set of conditions.
+     * A typical use case is to transform a set of point loads into an equivalent distributed load.
+     * Version for vector magnitudes.
+     * Note that as no container is provided, the values distribution is performed over the conditions.
+     * @param rModelPart The model part of the problem
+     * @param rElements Elements container to distribute the values
+     * @param rPointVariable The variable that will contain the point (origin) values.
+     * @param rDistributedVariable The variable containing the distributed (destination) values.
+     * @param Tolerance Maximum allowed difference (in L2 norm) between origin and destination values.
+     * @param MaximumIterations Maximum number of iterations for the procedure.
+     */
+    static void DistributePointValuesNonHistorical(
+        ModelPart& rModelPart,
+        ModelPart::ElementsContainerType& rElements,
+        const Variable<array_1d<double,3>>& rPointVariable,
+        const Variable<array_1d<double,3>>& rDistributedVariable,
+        double Tolerance,
+        unsigned int MaximumIterations);
+
     ///@}
     ///@name Access
     ///@{

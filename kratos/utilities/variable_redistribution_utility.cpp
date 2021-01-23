@@ -19,6 +19,7 @@
 namespace Kratos
 {
 
+// Historical API
 // ConvertDistributedValuesToPoint for double variables
 KRATOS_DEPRECATED_MESSAGE("This ConvertDistributedValuesToPoint() signature is deprecated. Use the one with Elements/Conditions container.")
 void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
@@ -141,6 +142,91 @@ void VariableRedistributionUtility::DistributePointValues(
     unsigned int MaximumIterations)
 {
     CallSpecializedDistributePointValues<true>(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
+}
+
+// Non-historical API
+// ConvertDistributedValuesToPointNonHistorical for double variables
+void VariableRedistributionUtility::ConvertDistributedValuesToPointNonHistorical(
+    ModelPart& rModelPart,
+    ModelPart::ConditionsContainerType& rConditions,
+    const Variable<double>& rDistributedVariable,
+    const Variable<double>& rPointVariable)
+{
+    CallSpecializedConvertDistributedValuesToPoint<false>(rModelPart,rConditions,rDistributedVariable,rPointVariable);
+}
+
+void VariableRedistributionUtility::ConvertDistributedValuesToPointNonHistorical(
+    ModelPart& rModelPart,
+    ModelPart::ElementsContainerType& rElements,
+    const Variable<double>& rDistributedVariable,
+    const Variable<double>& rPointVariable)
+{
+    CallSpecializedConvertDistributedValuesToPoint<false>(rModelPart,rElements,rDistributedVariable,rPointVariable);
+}
+
+// ConvertDistributedValuesToPointNonHistorical for array variables
+void VariableRedistributionUtility::ConvertDistributedValuesToPointNonHistorical(
+    ModelPart& rModelPart,
+    ModelPart::ConditionsContainerType& rConditions,
+    const Variable< array_1d<double,3> >& rDistributedVariable,
+    const Variable< array_1d<double,3> >& rPointVariable)
+{
+    CallSpecializedConvertDistributedValuesToPoint<false>(rModelPart,rConditions,rDistributedVariable,rPointVariable);
+}
+
+void VariableRedistributionUtility::ConvertDistributedValuesToPointNonHistorical(
+    ModelPart& rModelPart,
+    ModelPart::ElementsContainerType& rElements,
+    const Variable< array_1d<double,3> >& rDistributedVariable,
+    const Variable< array_1d<double,3> >& rPointVariable)
+{
+    CallSpecializedConvertDistributedValuesToPoint<false>(rModelPart,rElements,rDistributedVariable,rPointVariable);
+}
+
+// DistributePointValuesNonHistorical for double variables
+void VariableRedistributionUtility::DistributePointValuesNonHistorical(
+    ModelPart& rModelPart,
+    ModelPart::ConditionsContainerType& rConditions,
+    const Variable<double>& rPointVariable,
+    const Variable<double>& rDistributedVariable,
+    double Tolerance,
+    unsigned int MaximumIterations)
+{
+    CallSpecializedDistributePointValues<false>(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
+}
+
+void VariableRedistributionUtility::DistributePointValuesNonHistorical(
+    ModelPart& rModelPart,
+    ModelPart::ElementsContainerType& rElements,
+    const Variable<double>& rPointVariable,
+    const Variable<double>& rDistributedVariable,
+    double Tolerance,
+    unsigned int MaximumIterations)
+{
+    CallSpecializedDistributePointValues<false>(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
+}
+
+// DistributePointValuesNonHistorical for array variables
+void VariableRedistributionUtility::DistributePointValuesNonHistorical(
+    ModelPart& rModelPart,
+    ModelPart::ConditionsContainerType& rConditions,
+    const Variable< array_1d<double,3> >& rPointVariable,
+    const Variable< array_1d<double,3> >& rDistributedVariable,
+    double Tolerance,
+    unsigned int MaximumIterations)
+{
+    CallSpecializedDistributePointValues<false>(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
+}
+
+void VariableRedistributionUtility::DistributePointValuesNonHistorical(
+    ModelPart& rModelPart,
+    ModelPart::ElementsContainerType& rElements,
+    const Variable< array_1d<double,3> >& rPointVariable,
+    const Variable< array_1d<double,3> >& rDistributedVariable,
+    double Tolerance,
+    unsigned int MaximumIterations)
+{
+    CallSpecializedDistributePointValues<false>(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
 }
 
 // Private methods
