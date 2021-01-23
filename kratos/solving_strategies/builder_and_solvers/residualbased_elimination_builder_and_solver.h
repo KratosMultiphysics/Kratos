@@ -17,11 +17,11 @@
 /* System includes */
 #include <set>
 #include <unordered_set>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 /* External includes */
+#ifdef KRATOS_SMP_OPENMP
+#include <omp.h>
+#endif
 
 /* Project includes */
 #include "utilities/timer.h"
