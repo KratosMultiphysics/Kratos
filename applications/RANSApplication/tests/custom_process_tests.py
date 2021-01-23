@@ -297,6 +297,7 @@ class CustomProcessTest(UnitTest.TestCase):
         # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
         Kratos.VariableUtils().AddDof(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, self.model_part)
+        self.model_part.ProcessInfo.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, 0.09)
 
         factory = KratosProcessFactory(self.model)
         self.process_list = factory.ConstructListOfProcesses(settings)
@@ -319,6 +320,7 @@ class CustomProcessTest(UnitTest.TestCase):
         ]''')
 
         Kratos.VariableUtils().AddDof(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, self.model_part)
+        self.model_part.ProcessInfo.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, 0.09)
 
         test_variables = ["TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE"]
         test_model_part_name = "FluidModelPart.AutomaticInlet2D_inlet"
@@ -392,6 +394,9 @@ class CustomProcessTest(UnitTest.TestCase):
             }
         ]''')
 
+        self.model_part.ProcessInfo.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, 0.09)
+        self.model_part.ProcessInfo.SetValue(KratosRANS.TURBULENCE_RANS_A1, 0.31)
+
         test_variables = ["TURBULENT_VISCOSITY", "VISCOSITY"]
         test_model_part_name = "FluidModelPart.AutomaticInlet2D_inlet"
         test_file_name = "nut_k_omega_sst_test_output"
@@ -416,6 +421,7 @@ class CustomProcessTest(UnitTest.TestCase):
         ]''')
 
         KratosRANS.RansTestUtilities.RandomFillConditionVariable(self.model.GetModelPart("FluidModelPart"), KratosRANS.RANS_Y_PLUS, 10.0, 100.0)
+        self.model_part.ProcessInfo.SetValue(KratosRANS.VON_KARMAN, 0.41)
 
         test_variables = ["TURBULENT_VISCOSITY", "VISCOSITY"]
         test_model_part_name = "FluidModelPart.AutomaticInlet2D_inlet"
