@@ -12,7 +12,9 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/fluid_dynamics_application_variables.cpp
 
   # utilities (compiled first because they are used within the element cpps)
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/estimate_dt_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_calculation_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_characteristic_numbers_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_element_data.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_element_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/drag_utilities.cpp
@@ -29,8 +31,8 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms_dem_coupled.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/d_vms.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/d_vms_dem_coupled.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/symbolic_stokes.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/symbolic_navier_stokes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_fluid_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_fluid_element_discontinuous.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fic.cpp
@@ -52,6 +54,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/data_containers/qs_vms/qs_vms_derivative_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/data_containers/qs_vms/qs_vms_residual_derivatives.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/data_containers/qs_vms/qs_vms_adjoint_element_data.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/weakly_compressible_navier_stokes.cpp
 
   # conditions
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
@@ -86,10 +89,10 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_modification_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/embedded_skin_visualization_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mass_conservation_check_process.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_detection_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/two_fluids_inlet_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_smoothing_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/calulate_levelset_consistent_nodal_gradient_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_process.cpp
 )
 
 ## define python interface sources

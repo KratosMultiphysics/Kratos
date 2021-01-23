@@ -431,15 +431,6 @@ public:
         int err = Scheme<TSparseSpace, TDenseSpace>::Check(r_model_part);
         if (err != 0) return err;
 
-        //check for variables keys
-        //verify that the variables are correctly initialized
-        if (DISPLACEMENT.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
-        if (VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
-        if (ACCELERATION.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-
         //check that variables are correctly allocated
         for (const auto& r_node : r_model_part.Nodes())
         {

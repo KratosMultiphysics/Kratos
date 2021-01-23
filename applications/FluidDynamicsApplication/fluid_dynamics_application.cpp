@@ -46,6 +46,10 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mTimeIntegratedQSVMS3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mDVMS2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mDVMS3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mDVMSDEMCoupled2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mDVMSDEMCoupled3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mDVMSDEMCoupled2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mDVMSDEMCoupled3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
     mFIC2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mFIC2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mFIC3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -57,12 +61,12 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mSymbolicStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mSymbolicStokes3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
     mSymbolicStokes3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
-    mSymbolicNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mSymbolicNavierStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mEmbeddedSymbolicNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mEmbeddedSymbolicNavierStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mEmbeddedSymbolicNavierStokesDiscontinuous2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mEmbeddedSymbolicNavierStokesDiscontinuous3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mWeaklyCompressibleNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mWeaklyCompressibleNavierStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mEmbeddedWeaklyCompressibleNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mEmbeddedWeaklyCompressibleNavierStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mEmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mEmbeddedWeaklyCompressibleNavierStokesDiscontinuous3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mEmbeddedQSVMS2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mEmbeddedQSVMS3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mEmbeddedQSVMSDiscontinuous2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -202,7 +206,6 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(ARTIFICIAL_BULK_VISCOSITY)
     KRATOS_REGISTER_VARIABLE(ARTIFICIAL_DYNAMIC_VISCOSITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DENSITY_GRADIENT)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TEMPERATURE_GRADIENT)
     KRATOS_REGISTER_VARIABLE(DENSITY_PROJECTION)
     KRATOS_REGISTER_VARIABLE(TOTAL_ENERGY_PROJECTION)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOMENTUM_PROJECTION)
@@ -241,6 +244,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TimeIntegratedQSVMS3D4N",mTimeIntegratedQSVMS3D4N);
     KRATOS_REGISTER_ELEMENT("DVMS2D3N",mDVMS2D3N);
     KRATOS_REGISTER_ELEMENT("DVMS3D4N",mDVMS3D4N);
+    KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled2D3N",mDVMSDEMCoupled2D3N);
+    KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled3D4N",mDVMSDEMCoupled3D4N);
+    KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled2D4N",mDVMSDEMCoupled2D4N);
+    KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled3D8N",mDVMSDEMCoupled3D8N);
     KRATOS_REGISTER_ELEMENT("FIC2D3N",mFIC2D3N);
     KRATOS_REGISTER_ELEMENT("FIC2D4N",mFIC2D4N);
     KRATOS_REGISTER_ELEMENT("FIC3D4N",mFIC3D4N);
@@ -252,12 +259,12 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SymbolicStokes3D4N",mSymbolicStokes3D4N);
     KRATOS_REGISTER_ELEMENT("SymbolicStokes3D6N",mSymbolicStokes3D6N);
     KRATOS_REGISTER_ELEMENT("SymbolicStokes3D8N",mSymbolicStokes3D8N);
-    KRATOS_REGISTER_ELEMENT("SymbolicNavierStokes2D3N",mSymbolicNavierStokes2D3N);
-    KRATOS_REGISTER_ELEMENT("SymbolicNavierStokes3D4N",mSymbolicNavierStokes3D4N);
-    KRATOS_REGISTER_ELEMENT("EmbeddedSymbolicNavierStokes2D3N",mEmbeddedSymbolicNavierStokes2D3N);
-    KRATOS_REGISTER_ELEMENT("EmbeddedSymbolicNavierStokes3D4N",mEmbeddedSymbolicNavierStokes3D4N);
-    KRATOS_REGISTER_ELEMENT("EmbeddedSymbolicNavierStokesDiscontinuous2D3N",mEmbeddedSymbolicNavierStokesDiscontinuous2D3N);
-    KRATOS_REGISTER_ELEMENT("EmbeddedSymbolicNavierStokesDiscontinuous3D4N",mEmbeddedSymbolicNavierStokesDiscontinuous3D4N);
+    KRATOS_REGISTER_ELEMENT("WeaklyCompressibleNavierStokes2D3N",mWeaklyCompressibleNavierStokes2D3N);
+    KRATOS_REGISTER_ELEMENT("WeaklyCompressibleNavierStokes3D4N",mWeaklyCompressibleNavierStokes3D4N);
+    KRATOS_REGISTER_ELEMENT("EmbeddedWeaklyCompressibleNavierStokes2D3N",mEmbeddedWeaklyCompressibleNavierStokes2D3N);
+    KRATOS_REGISTER_ELEMENT("EmbeddedWeaklyCompressibleNavierStokes3D4N",mEmbeddedWeaklyCompressibleNavierStokes3D4N);
+    KRATOS_REGISTER_ELEMENT("EmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D3N",mEmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D3N);
+    KRATOS_REGISTER_ELEMENT("EmbeddedWeaklyCompressibleNavierStokesDiscontinuous3D4N",mEmbeddedWeaklyCompressibleNavierStokesDiscontinuous3D4N);
     KRATOS_REGISTER_ELEMENT("EmbeddedQSVMS2D3N",mEmbeddedQSVMS2D3N);
     KRATOS_REGISTER_ELEMENT("EmbeddedQSVMS3D4N",mEmbeddedQSVMS3D4N);
     KRATOS_REGISTER_ELEMENT("EmbeddedQSVMSDiscontinuous2D3N",mEmbeddedQSVMSDiscontinuous2D3N);
