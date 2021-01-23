@@ -511,7 +511,7 @@ public:
                         + it_node->GetValue(LIMITER_COEFFICIENT)*error_corrected; */
 
                     double phi_n_star = it_node->GetValue(mrLevelSetVar);
-                    if (mLimiter[i_node] < 0.5)
+                    if (mLimiter[i_node] < 0.9)
                         phi_n_star += mLimiter[i_node]*mError[i_node];
                     else
                         phi_n_star += mLimiter[i_node]*mErrorTmp[i_node];
