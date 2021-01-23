@@ -134,6 +134,43 @@ class VariableRedistributionTest(UnitTest.TestCase):
         # Check results
         self.CheckDoubleResults(self.model_part, reference_variable, result_variable)
 
+    def test_quad_elements_quadratic_vector_field_non_historical(self):
+        # Read mdpa and set test model part
+        self.input_file = "two_dim_unstructured_square_quads"
+        self.work_folder = "auxiliar_files_for_python_unittest/mdpa_files"
+        self.SetUpProblem()
+
+        # Set scalar origin field
+        for node in self.model_part.Nodes:
+            node.SetValue(VELOCITY, [node.X**2 + node.Y**2, node.X + node.Y, 0.0])
+
+        # Perform the variable redistribution test (first make point and then distribute again)
+        reference_variable = VELOCITY
+        intermediate_variable = VORTICITY
+        result_variable = ACCELERATION
+
+        VariableRedistributionUtility.ConvertDistributedValuesToPointNonHistorical(
+            self.model_part,
+            self.model_part.Elements,
+            reference_variable,
+            intermediate_variable)
+
+        VariableRedistributionUtility.DistributePointValuesNonHistorical(
+            self.model_part,
+            self.model_part.Elements,
+            intermediate_variable,
+            result_variable,
+            self.redistribution_tolerance,
+            self.redistribution_iterations)
+
+        if self.print_output:
+            self.InitializeOutput()
+            self.PrintOutput()
+            self.FinalizeOutput()
+
+        # Check results
+        self.CheckArrayResults(self.model_part, reference_variable, result_variable)
+
     def RunTestCase(self,inteface_check,set_reference,reference_variable,intermediate_variable,result_variable):
         # Read mdpa and set test model part
         self.SetUpProblem()
@@ -274,4 +311,5 @@ if __name__ == '__main__':
     test.testQuadratic()
     test.testNodalArea()
     test.test_quad_elements_quadratic_scalar_field()
+    test.test_quad_elements_quadratic_vector_field_non_historical()
     test.tearDown()
