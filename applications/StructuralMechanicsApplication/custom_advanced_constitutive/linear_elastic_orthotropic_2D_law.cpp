@@ -256,18 +256,13 @@ namespace Kratos
 		const GeometryType& rElementGeometry,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
-        if(!rMaterialProperties.Has(SHELL_ORTHOTROPIC_LAYERS))
-        {
-            KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS_X);
+        if(!rMaterialProperties.Has(SHELL_ORTHOTROPIC_LAYERS)) {
             KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS_X));
 
-            KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS_Y);
             KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS_Y));
 
-            KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO_XY);
             KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO_XY));
 
-            KRATOS_CHECK_VARIABLE_KEY(DENSITY);
             KRATOS_CHECK(rMaterialProperties.Has(DENSITY));
         }
 

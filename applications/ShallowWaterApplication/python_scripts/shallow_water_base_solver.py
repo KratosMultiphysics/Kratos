@@ -55,14 +55,10 @@ class ShallowWaterBaseSolver(PythonSolver):
     def PrepareModelPart(self):
         # Definition of the variables
         gravity = self.settings["gravity"].GetDouble()
-        dry_height = self.settings["dry_height_threshold"].GetDouble()
-        stabilization_factor = self.settings["stabilization_factor"].GetDouble()
 
         # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
         self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, gravity)
-        self.main_model_part.ProcessInfo.SetValue(SW.DRY_HEIGHT, dry_height)
-        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, stabilization_factor)
 
         if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
             ## Replace default elements and conditions
@@ -101,7 +97,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         if self._TimeBufferIsInitialized():
             is_converged = self._GetSolutionStrategy().SolveSolutionStep()
             if not is_converged:
-                KM.Logger.PrintWarning(self.__class__.__name__, "The solver did not converge")
+                KM.Logger.PrintInfo(self.__class__.__name__, "The solver did not converge")
             return is_converged
         else:
             return True
@@ -144,8 +140,6 @@ class ShallowWaterBaseSolver(PythonSolver):
                 "input_filename"           : "unknown_name"
             },
             "echo_level"               : 0,
-            "stabilization_factor"     : 0.005,
-            "dry_height_threshold"     : 1e-3,
             "relative_tolerance"       : 1e-6,
             "absolute_tolerance"       : 1e-9,
             "maximum_iterations"       : 20,
