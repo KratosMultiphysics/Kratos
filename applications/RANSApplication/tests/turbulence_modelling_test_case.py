@@ -61,6 +61,9 @@ class TurbulenceModellingTestCase(UnitTest.TestCase):
         self._runTest()
 
     def testQSVMSRfcVelocitySteady(self):
+        if (self.transient_scheme_type == "bdf2"):
+            self.skipTest("Skipping since QSVMS is not supported with FractionalStep")
+
         self.parameters["<STABILIZATION_METHOD>"] = "residual_based_flux_corrected"
         self.parameters["<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"] = "turbulent_kinetic_energy_based"
         self.parameters["<TIME_SCHEME_TYPE>"] = "steady"
@@ -69,6 +72,9 @@ class TurbulenceModellingTestCase(UnitTest.TestCase):
         self._runTest()
 
     def testQSVMSRfcVelocityTransient(self):
+        if (self.transient_scheme_type == "bdf2"):
+            self.skipTest("Skipping since QSVMS is not supported with FractionalStep")
+
         self.parameters["<STABILIZATION_METHOD>"] = "residual_based_flux_corrected"
         self.parameters["<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"] = "turbulent_kinetic_energy_based"
         self.parameters["<TIME_SCHEME_TYPE>"] = self.transient_scheme_type

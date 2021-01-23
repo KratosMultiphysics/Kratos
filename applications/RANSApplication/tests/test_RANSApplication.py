@@ -70,8 +70,6 @@ def AssembleTestSuites():
     # adding representative transient tests to small suite
     smallSuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcVelocityTransient"))
     smallSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocityTransient"))
-
-    smallSuite.addTest(FractionalStepKOmegaSSTTest("testQSVMSRfcVelocityTransient"))
     smallSuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocityTransient"))
 
     # Create a test suite with the selected tests plus all small tests
