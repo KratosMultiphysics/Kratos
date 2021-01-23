@@ -18,14 +18,11 @@
 /* System includes */
 #include <set>
 
-#ifdef _OPENMP
+/* External includes */
+#ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
 #endif
 #include "utilities/openmp_utils.h"
-
-
-/* External includes */
-
 
 /* Project includes */
 #include "includes/define.h"
