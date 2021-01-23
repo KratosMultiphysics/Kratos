@@ -25,6 +25,7 @@
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "includes/global_pointer_variables.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
@@ -197,7 +198,7 @@ public:
         TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
 
         //create a partition of the element array
-        int number_of_threads = OpenMPUtils::GetNumThreads();
+        int number_of_threads = ParallelUtilities::GetNumThreads();
 
 #ifdef _OPENMP
         int A_size = A.size1();
@@ -217,8 +218,8 @@ public:
             KRATOS_WATCH( element_partition );
         }
 
-
-        double start_prod = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
+        double start_prod = timer.ElapsedSeconds();
 
         #pragma omp parallel for firstprivate(number_of_threads) schedule(static,1)
         for(int k=0; k<number_of_threads; k++)
@@ -304,7 +305,7 @@ public:
         }
         if (this->GetEchoLevel()>0)
         {
-            double stop_prod = OpenMPUtils::GetCurrentTime();
+            double stop_prod = timer.ElapsedSeconds();
             std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
         }
 
