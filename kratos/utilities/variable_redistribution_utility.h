@@ -338,6 +338,7 @@ namespace Kratos
     /**
      * @brief Specialization of ConvertDistributeValuesToPoint according to the variable value type
      *
+     * @tparam TIsHistorical true if the data is historical
      * @tparam TContainerType container type (elements or contitions)
      * @tparam TValueType variables value type (double or array_1<double,3>)
      * @param rModelPart model part in where the point values accumulation is done
@@ -345,7 +346,7 @@ namespace Kratos
      * @param rDistributedVariable origin distributed variable
      * @param rPointVariable destination point variable
      */
-      template< class TContainerType, class TValueType >
+      template< const bool TIsHistorical, class TContainerType, class TValueType >
       static void CallSpecializedConvertDistributedValuesToPoint(
           ModelPart& rModelPart,
           TContainerType& rEntitiesContainer,
@@ -355,6 +356,7 @@ namespace Kratos
     /**
      * @brief Specialization of DistributePointValues according to the variable value type
      *
+     * @tparam TIsHistorical true if the data is historical
      * @tparam TContainerType container type (elements or contitions)
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rModelPart model part in where the distribution is done
@@ -364,7 +366,7 @@ namespace Kratos
      * @param Tolerance maximum allowed difference (in L2 norm) between origin and destination values.
      * @param MaximumIterations maximum number of iterations for the procedure.
      */
-      template< class TContainerType, class TValueType >
+      template< const bool TIsHistorical, class TContainerType, class TValueType >
       static void CallSpecializedDistributePointValues(
           ModelPart& rModelPart,
           TContainerType& rEntitiesContainer,
@@ -376,6 +378,7 @@ namespace Kratos
     /**
      * @brief ConvertDistributedValuesToPoint specialization according to geometry family, points number and value type
      *
+     * @tparam TIsHistorical true if the variable data is historical
      * @tparam TContainerType container type (elements or conditions)
      * @tparam TFamily geometry family in the model part in where the accumulation is done
      * @tparam TPointNumber points number in the geometries in where the accumulation is done
@@ -385,7 +388,7 @@ namespace Kratos
      * @param rDistributedVariable origin distributed variable
      * @param rPointVariable destination point variable
      */
-      template< class TContainerType, GeometryData::KratosGeometryFamily TFamily, unsigned int TPointNumber, class TValueType >
+      template< const bool TIsHistorical, class TContainerType, GeometryData::KratosGeometryFamily TFamily, unsigned int TPointNumber, class TValueType >
       static void SpecializedConvertDistributedValuesToPoint(
           ModelPart& rModelPart,
           TContainerType& rEntitiesContainer,
@@ -398,12 +401,13 @@ namespace Kratos
      * partition to perform the communication operations that are done in the "standard" case.
      * Otherwise, the MPI synchronism is broken
      *
+     * @tparam TIsHistorical true if the data values are historical
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rModelPart model part in where the point values accumulation is done
      * @param rDistributedVariable origin distributed variable
      * @param rPointVariable destination point variable
      */
-      template< class TValueType >
+      template< const bool TIsHistorical, class TValueType >
       static void DummySpecializedConvertDistributedValuesToPoint(
           ModelPart& rModelPart,
           const Variable< TValueType >& rDistributedVariable,
@@ -412,6 +416,7 @@ namespace Kratos
     /**
      * @brief DistributePointValues specialization according to geometry family, points number and value type
      *
+     * @tparam TIsHistorical true if the data is historical
      * @tparam TFamily geometry family in the model part in where the distribution is done
      * @tparam TPointNumber points number in the geometries in where the distribution is done
      * @tparam TValueType variables value type (double or array_1d<double,3>)
@@ -422,7 +427,7 @@ namespace Kratos
      * @param Tolerance maximum allowed difference (in L2 norm) between origin and destination values.
      * @param MaximumIterations maximum number of iterations for the procedure.
      */
-    template< class TContainerType, GeometryData::KratosGeometryFamily TFamily, unsigned int TPointNumber, class TValueType >
+    template< const bool TIsHistorical, class TContainerType, GeometryData::KratosGeometryFamily TFamily, unsigned int TPointNumber, class TValueType >
     static void SpecializedDistributePointValues(
         ModelPart& rModelPart,
         TContainerType& rEntitiesContainer,
@@ -437,13 +442,14 @@ namespace Kratos
      * partition to perform the communication operations that are done in the "standard" case.
      * Otherwise, the MPI synchronism is broken
      *
+     * @tparam TIsHistorical true if the data is historical
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rModelPart model part in where the distribution is done
      * @param rDistributedVariable destination distributed variable
      * @param Tolerance maximum allowed difference (in L2 norm) between origin and destination values.
      * @param MaximumIterations maximum number of iterations for the procedure.
      */
-      template< class TValueType >
+      template< const bool TIsHistorical, class TValueType >
       static void DummySpecializedDistributePointValues(
           ModelPart& rModelPart,
           const Variable< TValueType >& rDistributedVariable,
@@ -475,6 +481,7 @@ namespace Kratos
     /**
      * @brief Computes the RHS of the distribution problem
      *
+     * @tparam TIsHistorical true if the data is historical
      * @tparam TNumNodes nodes number of the geometries in where the operation is done
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rModelPart model part in where the distribution is done
@@ -483,7 +490,7 @@ namespace Kratos
      * @param rDistributedVariable destination distributed variable
      * @param rMassMatrix mass matrix that is filled
      */
-    template< class TContainerType, unsigned int TNumNodes, class TValueType >
+    template< const bool TIsHistorical, class TContainerType, unsigned int TNumNodes, class TValueType >
     static void UpdateDistributionRHS(
         ModelPart& rModelPart,
         TContainerType& rEntitiesContainer,
@@ -509,12 +516,13 @@ namespace Kratos
     /**
      * @brief Function that solves the distribution problem. It is called at each iteration.
      *
+     * @tparam TIsHistorical true if the data is historical
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rModelPart model part in where the distribution is done
      * @param rDistributedVariable destination distributed variable
      * @return double accumulated error norm of the distribution
      */
-      template< class TValueType >
+      template< const bool TIsHistorical, class TValueType >
       static double SolveDistributionIteration(
           ModelPart& rModelPart,
           const Variable< TValueType >& rDistributedVariable);
@@ -578,6 +586,35 @@ namespace Kratos
     static std::size_t NumberOfLocalEntities(
         const ModelPart& rModelPart,
         const TContainerType& rEntitiesContainer);
+
+    /**
+     * @brief Auxiliary get data function
+     * Auxiliary function to retrieve nodal values from historical and non-historical databases
+     * @tparam TIsHistorical True if the data is historical
+     * @tparam TDataType Value data type (double or array_1d<double,3>)
+     * @param rVariable Variable to retrieve
+     * @param rNode Node from which the data is to be retrieved
+     * @return TDataType& Reference to the data
+     */
+    template< const bool TIsHistorical, class TDataType >
+    static TDataType& AuxiliaryGet(
+        const Variable<TDataType>& rVariable,
+        NodeType& rNode);
+
+    /**
+     * @brief Auxiliary set data function
+     * Auxiliary function to set nodal values in historical and non-historical databases
+     * @tparam TIsHistorical True if the data is historical
+     * @tparam TDataType Value data type (double or array_1d<double,3>)
+     * @param rVariable Variable to set
+     * @param rData Value to set
+     * @param rNode Node in which the data is to be set
+     */
+    template< const bool TIsHistorical, class TDataType >
+    static void AuxiliarySet(
+        const Variable<TDataType>& rVariable,
+        const TDataType& rData,
+        NodeType& rNode);
 
       ///@}
       ///@name Private  Access

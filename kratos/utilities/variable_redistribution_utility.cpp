@@ -26,7 +26,7 @@ void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
     const Variable<double>& rDistributedVariable,
     const Variable<double>& rPointVariable)
 {
-    CallSpecializedConvertDistributedValuesToPoint(rModelPart,rModelPart.Conditions(),rDistributedVariable,rPointVariable);
+    CallSpecializedConvertDistributedValuesToPoint<true>(rModelPart,rModelPart.Conditions(),rDistributedVariable,rPointVariable);
 }
 
 void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
@@ -35,7 +35,7 @@ void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
     const Variable<double>& rDistributedVariable,
     const Variable<double>& rPointVariable)
 {
-    CallSpecializedConvertDistributedValuesToPoint(rModelPart,rConditions,rDistributedVariable,rPointVariable);
+    CallSpecializedConvertDistributedValuesToPoint<true>(rModelPart,rConditions,rDistributedVariable,rPointVariable);
 }
 
 void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
@@ -44,7 +44,7 @@ void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
     const Variable<double>& rDistributedVariable,
     const Variable<double>& rPointVariable)
 {
-    CallSpecializedConvertDistributedValuesToPoint(rModelPart,rElements,rDistributedVariable,rPointVariable);
+    CallSpecializedConvertDistributedValuesToPoint<true>(rModelPart,rElements,rDistributedVariable,rPointVariable);
 }
 
 // ConvertDistributedValuesToPoint for array variables
@@ -54,7 +54,7 @@ void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
     const Variable< array_1d<double,3> >& rDistributedVariable,
     const Variable< array_1d<double,3> >& rPointVariable)
 {
-    CallSpecializedConvertDistributedValuesToPoint(rModelPart,rModelPart.Conditions(),rDistributedVariable,rPointVariable);
+    CallSpecializedConvertDistributedValuesToPoint<true>(rModelPart,rModelPart.Conditions(),rDistributedVariable,rPointVariable);
 }
 
 void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
@@ -63,7 +63,7 @@ void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
     const Variable< array_1d<double,3> >& rDistributedVariable,
     const Variable< array_1d<double,3> >& rPointVariable)
 {
-    CallSpecializedConvertDistributedValuesToPoint(rModelPart,rConditions,rDistributedVariable,rPointVariable);
+    CallSpecializedConvertDistributedValuesToPoint<true>(rModelPart,rConditions,rDistributedVariable,rPointVariable);
 }
 
 void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
@@ -72,7 +72,7 @@ void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
     const Variable< array_1d<double,3> >& rDistributedVariable,
     const Variable< array_1d<double,3> >& rPointVariable)
 {
-    CallSpecializedConvertDistributedValuesToPoint(rModelPart,rElements,rDistributedVariable,rPointVariable);
+    CallSpecializedConvertDistributedValuesToPoint<true>(rModelPart,rElements,rDistributedVariable,rPointVariable);
 }
 
 // DistributePointValues for double variables
@@ -84,7 +84,7 @@ void VariableRedistributionUtility::DistributePointValues(
     double Tolerance,
     unsigned int MaximumIterations)
 {
-    CallSpecializedDistributePointValues(rModelPart, rModelPart.Conditions(), rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
+    CallSpecializedDistributePointValues<true>(rModelPart, rModelPart.Conditions(), rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
 }
 
 void VariableRedistributionUtility::DistributePointValues(
@@ -95,7 +95,7 @@ void VariableRedistributionUtility::DistributePointValues(
     double Tolerance,
     unsigned int MaximumIterations)
 {
-    CallSpecializedDistributePointValues(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
+    CallSpecializedDistributePointValues<true>(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
 }
 
 void VariableRedistributionUtility::DistributePointValues(
@@ -106,7 +106,7 @@ void VariableRedistributionUtility::DistributePointValues(
     double Tolerance,
     unsigned int MaximumIterations)
 {
-    CallSpecializedDistributePointValues(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
+    CallSpecializedDistributePointValues<true>(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
 }
 
 // DistributePointValues for array variables
@@ -118,7 +118,7 @@ void VariableRedistributionUtility::DistributePointValues(
     double Tolerance,
     unsigned int MaximumIterations)
 {
-    CallSpecializedDistributePointValues(rModelPart, rModelPart.Conditions(), rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
+    CallSpecializedDistributePointValues<true>(rModelPart, rModelPart.Conditions(), rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
 }
 
 void VariableRedistributionUtility::DistributePointValues(
@@ -129,7 +129,7 @@ void VariableRedistributionUtility::DistributePointValues(
     double Tolerance,
     unsigned int MaximumIterations)
 {
-    CallSpecializedDistributePointValues(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
+    CallSpecializedDistributePointValues<true>(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
 }
 
 void VariableRedistributionUtility::DistributePointValues(
@@ -140,11 +140,11 @@ void VariableRedistributionUtility::DistributePointValues(
     double Tolerance,
     unsigned int MaximumIterations)
 {
-    CallSpecializedDistributePointValues(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
+    CallSpecializedDistributePointValues<true>(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
 }
 
 // Private methods
-template< class TContainerType, class TValueType >
+template< const bool TIsHistorical, class TContainerType, class TValueType >
 void VariableRedistributionUtility::CallSpecializedConvertDistributedValuesToPoint(
     ModelPart& rModelPart,
     TContainerType& rEntitiesContainer,
@@ -163,19 +163,19 @@ void VariableRedistributionUtility::CallSpecializedConvertDistributedValuesToPoi
             const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
 
             if (GeometryFamily == GeometryData::Kratos_Linear && PointsNumber == 2){
-                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<TContainerType,GeometryData::Kratos_Linear,2,TValueType>(
+                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<TIsHistorical,TContainerType,GeometryData::Kratos_Linear,2,TValueType>(
                     rModelPart,
                     rEntitiesContainer,
                     rDistributedVariable,
                     rPointVariable);
             } else if (GeometryFamily == GeometryData::Kratos_Triangle && PointsNumber == 3) {
-                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<TContainerType,GeometryData::Kratos_Triangle,3,TValueType>(
+                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<TIsHistorical,TContainerType,GeometryData::Kratos_Triangle,3,TValueType>(
                     rModelPart,
                     rEntitiesContainer,
                     rDistributedVariable,
                     rPointVariable);
             } else if (GeometryFamily == GeometryData::Kratos_Quadrilateral && PointsNumber == 4) {
-                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<TContainerType,GeometryData::Kratos_Quadrilateral,4,TValueType>(
+                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<TIsHistorical,TContainerType,GeometryData::Kratos_Quadrilateral,4,TValueType>(
                     rModelPart,
                     rEntitiesContainer,
                     rDistributedVariable,
@@ -184,7 +184,7 @@ void VariableRedistributionUtility::CallSpecializedConvertDistributedValuesToPoi
                 KRATOS_ERROR << "Unsupported geometry type with " << PointsNumber << " points." << std::endl;
             }
         } else {
-            VariableRedistributionUtility::DummySpecializedConvertDistributedValuesToPoint<TValueType>(
+            VariableRedistributionUtility::DummySpecializedConvertDistributedValuesToPoint<TIsHistorical, TValueType>(
                 rModelPart,
                 rDistributedVariable,
                 rPointVariable);
@@ -192,7 +192,7 @@ void VariableRedistributionUtility::CallSpecializedConvertDistributedValuesToPoi
     }
 }
 
-template< class TContainerType, class TValueType >
+template< const bool TIsHistorical, class TContainerType, class TValueType >
 void VariableRedistributionUtility::CallSpecializedDistributePointValues(
     ModelPart& rModelPart,
     TContainerType& rEntitiesContainer,
@@ -213,7 +213,7 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
             const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
 
             if (GeometryFamily == GeometryData::Kratos_Linear && PointsNumber == 2){
-                VariableRedistributionUtility::SpecializedDistributePointValues<TContainerType,GeometryData::Kratos_Linear,2,TValueType>(
+                VariableRedistributionUtility::SpecializedDistributePointValues<TIsHistorical, TContainerType,GeometryData::Kratos_Linear,2,TValueType>(
                     rModelPart,
                     rEntitiesContainer,
                     rPointVariable,
@@ -221,7 +221,7 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
                     Tolerance,
                     MaximumIterations);
             } else if (GeometryFamily == GeometryData::Kratos_Triangle && PointsNumber == 3){
-                VariableRedistributionUtility::SpecializedDistributePointValues<TContainerType,GeometryData::Kratos_Triangle,3,TValueType>(
+                VariableRedistributionUtility::SpecializedDistributePointValues<TIsHistorical, TContainerType,GeometryData::Kratos_Triangle,3,TValueType>(
                     rModelPart,
                     rEntitiesContainer,
                     rPointVariable,
@@ -229,7 +229,7 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
                     Tolerance,
                     MaximumIterations);
             } else if (GeometryFamily == GeometryData::Kratos_Quadrilateral && PointsNumber == 4){
-                VariableRedistributionUtility::SpecializedDistributePointValues<TContainerType,GeometryData::Kratos_Quadrilateral,4,TValueType>(
+                VariableRedistributionUtility::SpecializedDistributePointValues<TIsHistorical, TContainerType,GeometryData::Kratos_Quadrilateral,4,TValueType>(
                     rModelPart,
                     rEntitiesContainer,
                     rPointVariable,
@@ -240,7 +240,7 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
                 KRATOS_ERROR << "Unsupported geometry type with " << PointsNumber << " points." << std::endl;
             }
         } else {
-            VariableRedistributionUtility::DummySpecializedDistributePointValues<TValueType>(
+            VariableRedistributionUtility::DummySpecializedDistributePointValues<TIsHistorical, TValueType>(
                 rModelPart,
                 rDistributedVariable,
                 Tolerance,
@@ -254,7 +254,7 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template< class TContainerType, GeometryData::KratosGeometryFamily TFamily, unsigned int TPointNumber, class TValueType >
+template< const bool TIsHistorical, class TContainerType, GeometryData::KratosGeometryFamily TFamily, unsigned int TPointNumber, class TValueType >
 void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
     ModelPart& rModelPart,
     TContainerType& rEntitiesContainer,
@@ -266,46 +266,63 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
     ConsistentMassMatrix<TFamily,TPointNumber>(MassMatrix);
 
     // Initialize result to zero
-    TValueType Zero = rPointVariable.Zero();
-    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.FastGetSolutionStepValue(rPointVariable) = Zero;
+    const TValueType zero = rPointVariable.Zero();
+    block_for_each(rModelPart.Nodes(), zero, [&](NodeType& rNode, const TValueType& rZero){
+        AuxiliarySet<TIsHistorical>(rPointVariable, rZero, rNode);
     });
 
     // Make sure that the distributed values are equal between processors
-    rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
+    if (TIsHistorical) {
+        rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
+    } else {
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDistributedVariable);
+    }
 
-    block_for_each(rEntitiesContainer, [&](typename TContainerType::value_type& rEntity){
+    TValueType value_j;
+    block_for_each(rEntitiesContainer, value_j, [&](typename TContainerType::value_type& rEntity, TValueType& rValueJ){
         auto& r_geometry = rEntity.GetGeometry();
         const double size = r_geometry.DomainSize();
         for (unsigned int j = 0; j < TPointNumber; ++j) {
-            TValueType value_j = rDistributedVariable.Zero();
+            rValueJ = rDistributedVariable.Zero();
             for (unsigned int k = 0; k < TPointNumber; ++k) {
-                value_j += size * MassMatrix(j,k) * r_geometry[k].FastGetSolutionStepValue(rDistributedVariable);
+                rValueJ += size * MassMatrix(j,k) * r_geometry[k].FastGetSolutionStepValue(rDistributedVariable);
             }
-            ThreadsafeAdd(r_geometry[j].FastGetSolutionStepValue(rPointVariable), value_j);
+            ThreadsafeAdd(AuxiliaryGet<TIsHistorical>(rPointVariable, r_geometry[j]), rValueJ);
         }
     });
 
     // Add the contributions between processors
-    rModelPart.GetCommunicator().AssembleCurrentData(rPointVariable);
+    if (TIsHistorical) {
+        rModelPart.GetCommunicator().AssembleCurrentData(rPointVariable);
+    } else {
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(rPointVariable);
+    }
 }
 
-template< class TValueType >
+template< const bool TIsHistorical, class TValueType >
 void VariableRedistributionUtility::DummySpecializedConvertDistributedValuesToPoint(
     ModelPart& rModelPart,
     const Variable< TValueType >& rDistributedVariable,
     const Variable< TValueType >& rPointVariable)
 {
     // Make sure that the distributed values are equal between processors
-    rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
+    if (TIsHistorical) {
+        rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
+    } else {
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDistributedVariable);
+    }
 
     // Add the contributions between processors
-    rModelPart.GetCommunicator().AssembleCurrentData(rPointVariable);
+    if (TIsHistorical) {
+        rModelPart.GetCommunicator().AssembleCurrentData(rPointVariable);
+    } else {
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(rPointVariable);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template< class TContainerType, GeometryData::KratosGeometryFamily TFamily, unsigned int TPointNumber, class TValueType >
+template< const bool TIsHistorical, class TContainerType, GeometryData::KratosGeometryFamily TFamily, unsigned int TPointNumber, class TValueType >
 void VariableRedistributionUtility::SpecializedDistributePointValues(
     ModelPart& rModelPart,
     TContainerType& rEntitiesContainer,
@@ -321,24 +338,28 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
     // Initial guess (NodalValue / NodalSize)
     ComputeNodalSizes(rModelPart, rEntitiesContainer);
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.FastGetSolutionStepValue(rDistributedVariable) = rNode.FastGetSolutionStepValue(rPointVariable) / rNode.GetValue(NODAL_MAUX);
+        const double nodal_maux = rNode.GetValue(NODAL_MAUX);
+        const TValueType& r_point_value = AuxiliaryGet<TIsHistorical>(rPointVariable,rNode);
+        AuxiliarySet<TIsHistorical>(rDistributedVariable,  TValueType(r_point_value / nodal_maux), rNode);
     });
 
     // Make sure that the initial approximation is the same between processes
-    rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
+    if (TIsHistorical) {
+        rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
+    } else {
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDistributedVariable);
+    }
 
     // Iteration: LumpedMass * delta_distributed = point_value - ConsistentMass * distributed_old
     double error_l2_norm = 0.0;
     unsigned int iteration = 0;
-    while (iteration < MaximumIterations) {
-        UpdateDistributionRHS<TContainerType,TPointNumber,TValueType>(rModelPart, rEntitiesContainer, rPointVariable, rDistributedVariable, mass_matrix);
-
-        error_l2_norm = SolveDistributionIteration(rModelPart,rDistributedVariable);
+    for (std::size_t it = 0; it < MaximumIterations; ++it) {
+        UpdateDistributionRHS<TIsHistorical,TContainerType,TPointNumber,TValueType>(rModelPart, rEntitiesContainer, rPointVariable, rDistributedVariable, mass_matrix);
+        error_l2_norm = SolveDistributionIteration<TIsHistorical>(rModelPart,rDistributedVariable);
         error_l2_norm = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(error_l2_norm);
-
+        error_l2_norm = std::sqrt(error_l2_norm);
         // Check convergence
-        iteration++;
-        if (error_l2_norm <= Tolerance*Tolerance) {
+        if (error_l2_norm <= Tolerance) {
             break;
         }
     }
@@ -347,7 +368,7 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
         << "DistributePointValues did not converge in " << iteration << " iterations. L2 error norm: " << error_l2_norm << std::endl;
 }
 
-template< class TValueType >
+template< const bool TIsHistorical, class TValueType >
 void VariableRedistributionUtility::DummySpecializedDistributePointValues(
     ModelPart& rModelPart,
     const Variable< TValueType >& rDistributedVariable,
@@ -355,7 +376,11 @@ void VariableRedistributionUtility::DummySpecializedDistributePointValues(
     unsigned int MaximumIterations)
 {
     // Make sure that the initial approximation is the same between processes
-    rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
+    if (TIsHistorical) {
+        rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
+    } else {
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDistributedVariable);
+    }
 
     // Iteration: LumpedMass * delta_distributed = point_value - ConsistentMass * distributed_old
     double error_l2_norm = 0.0;
@@ -468,7 +493,7 @@ void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_Q
     rMassMatrix(3, 3) = four_div_36;
 }
 
-template< class TContainerType, unsigned int TNumNodes, class TValueType >
+template< const bool TIsHistorical, class TContainerType, unsigned int TNumNodes, class TValueType >
 void VariableRedistributionUtility::UpdateDistributionRHS(
     ModelPart& rModelPart,
     TContainerType& rEntitiesContainer,
@@ -480,8 +505,8 @@ void VariableRedistributionUtility::UpdateDistributionRHS(
     const TValueType rhs_zero = rhs_variable.Zero(); // something of the correct type to initialize our values to zero
 
     // Reset the RHS container to zero
-    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.SetValue(rhs_variable, rhs_zero);
+    block_for_each(rModelPart.Nodes(), rhs_zero, [&](NodeType& rNode, const TValueType& rRHSZero){
+        rNode.SetValue(rhs_variable, rRHSZero);
     });
 
     // Calculate updated RHS
@@ -491,7 +516,7 @@ void VariableRedistributionUtility::UpdateDistributionRHS(
         for (unsigned int j = 0; j < TNumNodes; j++) {
             TValueType rhs_j = rhs_zero;
             for (unsigned int k = 0; k < TNumNodes; k++) {
-                rhs_j -= size * rMassMatrix(j,k) * r_geometry[k].FastGetSolutionStepValue(rDistributedVariable);
+                rhs_j -= size * rMassMatrix(j,k) * AuxiliaryGet<TIsHistorical>(rDistributedVariable, r_geometry[k]);
             }
             ThreadsafeAdd(r_geometry[j].GetValue(rhs_variable), rhs_j);
         }
@@ -502,7 +527,7 @@ void VariableRedistributionUtility::UpdateDistributionRHS(
 
     // Add the nodal part of the RHS (the point-wise values)
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.GetValue(rhs_variable) += rNode.FastGetSolutionStepValue(rPointVariable);
+        rNode.GetValue(rhs_variable) += AuxiliaryGet<TIsHistorical>(rPointVariable, rNode);
     });
 }
 
@@ -516,7 +541,7 @@ void VariableRedistributionUtility::DummyUpdateDistributionRHS(
     rModelPart.GetCommunicator().AssembleNonHistoricalData(r_rhs_variable);
 }
 
-template< class TValueType >
+template< const bool TIsHistorical, class TValueType >
 double VariableRedistributionUtility::SolveDistributionIteration(
     ModelPart& rModelPart,
     const Variable< TValueType >& rDistributedVariable)
@@ -528,12 +553,10 @@ double VariableRedistributionUtility::SolveDistributionIteration(
     std::tie(domain_size, error_l2_norm) = block_for_each<TwoSumReduction>(rModelPart.Nodes(), delta, [&](NodeType& rNode, TValueType& rDelta){
         // Add correction to the current distributed nodal values
         const double size = rNode.GetValue(NODAL_MAUX);
-        delta = rNode.GetValue(r_rhs_variable) / size;
-        rNode.FastGetSolutionStepValue(rDistributedVariable) += delta;
-        // Reduce error norm and 
-        domain_size += size;
-        error_l2_norm += AddToNorm(delta, size);
-        return std::make_tuple(domain_size, error_l2_norm);
+        rDelta = rNode.GetValue(r_rhs_variable) / size;
+        AuxiliaryGet<TIsHistorical>(rDistributedVariable, rNode) += rDelta;
+        // Reduce error norm and
+        return std::make_tuple(size, AddToNorm(rDelta, size));
     });
 
     return error_l2_norm /= domain_size;
@@ -603,6 +626,74 @@ std::size_t VariableRedistributionUtility::NumberOfLocalEntities(
     const ModelPart::ElementsContainerType& rEntitiesContainer)
 {
     return rModelPart.GetCommunicator().LocalMesh().NumberOfElements();
+}
+
+template<>
+double& VariableRedistributionUtility::AuxiliaryGet<true, double>(
+    const Variable<double>& rVariable,
+    VariableRedistributionUtility::NodeType& rNode)
+{
+    return rNode.FastGetSolutionStepValue(rVariable);
+}
+
+template<>
+array_1d<double,3>& VariableRedistributionUtility::AuxiliaryGet<true, array_1d<double,3>>(
+    const Variable<array_1d<double,3>>& rVariable,
+    VariableRedistributionUtility::NodeType& rNode)
+{
+    return rNode.FastGetSolutionStepValue(rVariable);
+}
+
+template<>
+double& VariableRedistributionUtility::AuxiliaryGet<false, double>(
+    const Variable<double>& rVariable,
+    VariableRedistributionUtility::NodeType& rNode)
+{
+    return rNode.GetValue(rVariable);
+}
+
+template<>
+array_1d<double,3>& VariableRedistributionUtility::AuxiliaryGet<false, array_1d<double,3>>(
+    const Variable<array_1d<double,3>>& rVariable,
+    VariableRedistributionUtility::NodeType& rNode)
+{
+    return rNode.GetValue(rVariable);
+}
+
+template<>
+void VariableRedistributionUtility::AuxiliarySet<true, double>(
+    const Variable<double>& rVariable,
+    const double& rData,
+    VariableRedistributionUtility::NodeType& rNode)
+{
+    rNode.FastGetSolutionStepValue(rVariable) = rData;
+}
+
+template<>
+void VariableRedistributionUtility::AuxiliarySet<true, array_1d<double,3>>(
+    const Variable<array_1d<double,3>>& rVariable,
+    const array_1d<double,3>& rData,
+    VariableRedistributionUtility::NodeType& rNode)
+{
+    rNode.FastGetSolutionStepValue(rVariable) = rData;
+}
+
+template<>
+void VariableRedistributionUtility::AuxiliarySet<false, double>(
+    const Variable<double>& rVariable,
+    const double& rData,
+    VariableRedistributionUtility::NodeType& rNode)
+{
+    rNode.SetValue(rVariable, rData);
+}
+
+template<>
+void VariableRedistributionUtility::AuxiliarySet<false, array_1d<double,3>>(
+    const Variable<array_1d<double,3>>& rVariable,
+    const array_1d<double,3>& rData,
+    VariableRedistributionUtility::NodeType& rNode)
+{
+    rNode.SetValue(rVariable, rData);
 }
 
 }
