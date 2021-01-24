@@ -183,3 +183,72 @@ class FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis:
 
         kratos_parameters["processes"]["auxiliar_process_list"].Append(
             response_parameters)
+
+
+class FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis:
+    @staticmethod
+    def ComputeSensitivity(node_ids, step_size,
+                           kratos_parameters,
+                           norm_model_part_name,
+                           primal_problem_solving_method):
+
+        FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis._AddResponseFunctionOutput(
+            kratos_parameters, norm_model_part_name)
+
+        def compute_drag(kratos_parameters):
+            primal_problem_solving_method(kratos_parameters)
+            return FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis._ObjectiveValueEvaluation()
+
+        sensitivities = ComputeFiniteDifferenceSensitivity(node_ids, step_size,
+                                                           kratos_parameters, compute_drag)
+
+        DeleteFileIfExisting(
+            "velocity_pressure_norm_square_response_output.dat")
+        return sensitivities
+
+    @staticmethod
+    def _ObjectiveValueEvaluation():
+        with open("velocity_pressure_norm_square_response_output.dat", "r") as file_input:
+            lines = file_input.readlines()
+
+        value = 0.0
+        total_time = 0.0
+        delta_time = 0.0
+        for line in lines[2:]:
+            data = line.strip().split(",")
+            delta_time = float(data[0]) - total_time
+            total_time = float(data[0])
+            value += float(data[1])
+
+        return value * delta_time
+
+    @staticmethod
+    def _AddResponseFunctionOutput(kratos_parameters, norm_model_part_name):
+        response_parameters = Kratos.Parameters(R'''
+        {
+            "python_module": "response_function_output_process",
+            "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name": "ResponseFunctionOutputProcess",
+            "Parameters": {
+                "response_type": "norm_square",
+                "model_part_name": "<PARENT_MODEL_PART>",
+                "response_settings": {
+                    "norm_model_part_name": "<SUBMODEL_PART>",
+                    "entities": [
+                        "conditions"
+                    ]
+                },
+                "output_file_settings": {
+                    "file_name": "velocity_pressure_norm_square_response_output"
+                }
+            }
+        }
+        ''')
+        seperator_index = norm_model_part_name.rfind('.')
+        response_parameters["Parameters"]["model_part_name"].SetString(
+            norm_model_part_name[:seperator_index])
+        response_parameters["Parameters"]["response_settings"]["norm_model_part_name"].SetString(
+            norm_model_part_name[seperator_index+1:])
+
+        kratos_parameters["processes"]["auxiliar_process_list"].Append(
+            response_parameters)
