@@ -33,6 +33,7 @@ from test_statistics_process import IntegrationPointStatisticsTest
 from cfl_output_process_test import CFLOutputProcessTest
 from test_flows_measuring_utility import FlowsMeasuringUtilityTest
 from levelset_consistent_nodal_gradient_test import ConsistentLevelsetNodalGradientTest
+from adjoint_conditions import TestAdjointMonolithicWallCondition
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -63,6 +64,7 @@ def AssembleTestSuites():
     smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationSymbolic2D'))
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
     smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
