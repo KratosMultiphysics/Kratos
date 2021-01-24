@@ -10,7 +10,7 @@ from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_u
 from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis
 
 
-@UnitTest.skipIfApplicationsNotAvailable("HDF5Application")
+@KratosUnittest.skipIfApplicationsNotAvailable("HDF5Application")
 class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
     @staticmethod
     def _ReadParameters(parameters_file_name):
