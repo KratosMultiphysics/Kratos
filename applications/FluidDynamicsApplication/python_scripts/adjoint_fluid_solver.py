@@ -28,6 +28,7 @@ class AdjointFluidSolver(FluidSolver):
     def InitializeSolutionStep(self):
         self._GetSolutionStrategy().InitializeSolutionStep()
         self.GetResponseFunction().InitializeSolutionStep()
+        self.GetSensitivityBuilder().InitializeSolutionStep()
 
     def Predict(self):
         self._GetSolutionStrategy().Predict()
@@ -40,6 +41,7 @@ class AdjointFluidSolver(FluidSolver):
         self.GetResponseFunction().FinalizeSolutionStep()
 
         self.GetSensitivityBuilder().UpdateSensitivities()
+        self.GetSensitivityBuilder().FinalizeSolutionStep()
 
     def Check(self):
         self._GetSolutionStrategy().Check()
@@ -121,6 +123,10 @@ class AdjointFluidSolver(FluidSolver):
                     self.main_model_part)
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+        elif response_type == "norm_square":
+            response_function = KratosCFD.VelocityPressureNormSquareResponseFunction(
+                self.settings["response_function_settings"]["custom_settings"],
+                self.main_model_part)
         else:
             raise Exception("Invalid response_type: " + response_type + ". Available response functions: \'drag\'.")
         return response_function
@@ -132,8 +138,19 @@ class AdjointFluidSolver(FluidSolver):
 
     def __CreateSensitivityBuilder(self):
         response_function = self.GetResponseFunction()
+
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if domain_size == 2:
+            self.sensitivity_builder_scheme = KratosCFD.SimpleSteadySensitivityBuilderScheme2D()
+        elif domain_size == 3:
+            self.sensitivity_builder_scheme = KratosCFD.SimpleSteadySensitivityBuilderScheme3D()
+        else:
+            raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+
         sensitivity_builder = KratosMultiphysics.SensitivityBuilder(
             self.settings["sensitivity_settings"],
             self.main_model_part,
-            response_function)
+            response_function,
+            self.sensitivity_builder_scheme
+            )
         return sensitivity_builder
