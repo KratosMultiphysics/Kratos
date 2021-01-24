@@ -134,6 +134,18 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         .def(py::init<AdjointResponseFunction::Pointer>())
         ;
 
+    using SimpleSteadySensitivityBuilderScheme2DType = SimpleSteadySensitivityBuilderScheme<2>;
+    py::class_<SimpleSteadySensitivityBuilderScheme2DType, typename SimpleSteadySensitivityBuilderScheme2DType::Pointer, SensitivityBuilderScheme>
+        (m, "SimpleSteadySensitivityBuilderScheme2D")
+        .def(py::init())
+        ;
+
+    using SimpleSteadySensitivityBuilderScheme3DType = SimpleSteadySensitivityBuilderScheme<3>;
+    py::class_<SimpleSteadySensitivityBuilderScheme3DType, typename SimpleSteadySensitivityBuilderScheme3DType::Pointer, SensitivityBuilderScheme>
+        (m, "SimpleSteadySensitivityBuilderScheme3D")
+        .def(py::init())
+        ;
+
 }
 
 } // namespace Python.
