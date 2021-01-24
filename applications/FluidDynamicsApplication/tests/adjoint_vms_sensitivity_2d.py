@@ -67,6 +67,22 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
             self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 3)
 
+    def testSlipNormCylinder(self):
+        with KratosUnittest.WorkFolderScope('.', __file__):
+            node_ids = [1968]
+
+            # calculate sensitivity by finite difference
+            primal_parameters = AdjointVMSSensitivity2D._ReadParameters('./AdjointVMSSensitivity2DTest/cylinder_slip_test_parameters.json')
+            step_size = 0.00000001
+            fd_sensitivities = FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis.ComputeSensitivity(
+                node_ids, step_size, primal_parameters, 'MainModelPart.NoSlip2D_Cylinder', SolvePrimalProblem)
+
+            # solve adjoint
+            adjoint_parameters = AdjointVMSSensitivity2D._ReadParameters('./AdjointVMSSensitivity2DTest/cylinder_slip_test_adjoint_parameters.json')
+            adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
+
+            self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 9)
+
     def testSlipSteadyNormCylinder(self):
         with KratosUnittest.WorkFolderScope('.', __file__):
             node_ids = [1968]
