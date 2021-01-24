@@ -3,6 +3,7 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
+import KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension as KratosCFD
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
@@ -64,10 +65,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         super(AdjointVMSMonolithicSolver, self).__init__(model, custom_settings)
 
         self.element_name = "VMSAdjointElement"
-        if self.settings["domain_size"].GetInt() == 2:
-            self.condition_name = "LineCondition"
-        elif self.settings["domain_size"].GetInt() == 3:
-            self.condition_name = "SurfaceCondition"
+        self.condition_name = "AdjointMonolithicWallCondition"
         self.min_buffer_size = 2
         self.element_has_nodal_properties = True
 
@@ -106,12 +104,21 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
     def _CreateScheme(self):
         response_function = self.GetResponseFunction()
         scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if scheme_type == "bossak":
-            scheme = TrilinosApplication.TrilinosResidualBasedAdjointBossakScheme(
-                self.settings["scheme_settings"],
-                response_function)
+            if domain_size == 2:
+                scheme = KratosCFD.TrilinosVelocityBossakAdjointScheme2D(self.settings["scheme_settings"], response_function)
+            elif domain_size == 3:
+                scheme = KratosCFD.TrilinosVelocityBossakAdjointScheme3D(self.settings["scheme_settings"], response_function)
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         elif scheme_type == "steady":
-            scheme = TrilinosApplication.TrilinosResidualBasedAdjointSteadyScheme(response_function)
+            if domain_size == 2:
+                scheme = KratosCFD.TrilinosSimpleSteadyAdjointScheme2D(response_function)
+            elif domain_size == 3:
+                scheme = KratosCFD.TrilinosSimpleSteadyAdjointScheme3D(response_function)
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
         return scheme
