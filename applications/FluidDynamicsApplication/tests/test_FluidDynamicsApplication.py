@@ -114,6 +114,7 @@ def AssembleTestSuites():
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
+    validationSuite.addTest(AdjointVMSSensitivity2D('testSlipSteadyNormCylinder'))
     validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
 
 

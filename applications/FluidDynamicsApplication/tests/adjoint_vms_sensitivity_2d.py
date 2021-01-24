@@ -8,6 +8,7 @@ from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_u
 from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import SolveAdjointProblem
 from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import ComputeAdjointSensitivity
 from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis
 
 
 @KratosUnittest.skipUnless(CheckIfApplicationsAvailable("HDF5Application"), "Missing HDF5Application")
@@ -65,6 +66,22 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
 
             self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 3)
+
+    def testSlipSteadyNormCylinder(self):
+        with KratosUnittest.WorkFolderScope('.', __file__):
+            node_ids = [1968]
+
+            # calculate sensitivity by finite difference
+            primal_parameters = AdjointVMSSensitivity2D._ReadParameters('./AdjointVMSSensitivity2DTest/steady_cylinder_slip_test_parameters.json')
+            step_size = 1e-9
+            fd_sensitivities = FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis.ComputeSensitivity(
+                node_ids, step_size, primal_parameters, 'MainModelPart.NoSlip2D_Cylinder', SolvePrimalProblem)
+
+            # solve adjoint
+            adjoint_parameters = AdjointVMSSensitivity2D._ReadParameters('./AdjointVMSSensitivity2DTest/steady_cylinder_slip_test_norm_adjoint_parameters.json')
+            adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
+
+            self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 6)
 
     @classmethod
     def tearDownClass(_):
