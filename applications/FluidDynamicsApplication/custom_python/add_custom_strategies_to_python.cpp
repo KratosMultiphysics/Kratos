@@ -134,6 +134,18 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         .def(py::init<AdjointResponseFunction::Pointer>())
         ;
 
+    using  VelocityBossakAdjointScheme2DType = VelocityBossakAdjointScheme<2, SparseSpaceType, LocalSpaceType>;
+    py::class_<VelocityBossakAdjointScheme2DType, typename VelocityBossakAdjointScheme2DType::Pointer, BaseSchemeType>
+        (m, "VelocityBossakAdjointScheme2D")
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer>())
+        ;
+
+    using  VelocityBossakAdjointScheme3DType = VelocityBossakAdjointScheme<3, SparseSpaceType, LocalSpaceType>;
+    py::class_<VelocityBossakAdjointScheme3DType, typename VelocityBossakAdjointScheme3DType::Pointer, BaseSchemeType>
+        (m, "VelocityBossakAdjointScheme3D")
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer>())
+        ;
+
     using SimpleSteadySensitivityBuilderScheme2DType = SimpleSteadySensitivityBuilderScheme<2>;
     py::class_<SimpleSteadySensitivityBuilderScheme2DType, typename SimpleSteadySensitivityBuilderScheme2DType::Pointer, SensitivityBuilderScheme>
         (m, "SimpleSteadySensitivityBuilderScheme2D")
