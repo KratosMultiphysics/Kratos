@@ -91,6 +91,7 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidElementTest('testSymbolic'))
     nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
     nightSuite.addTest(AdjointFluidTest('testCylinder'))
+    nightSuite.addTest(AdjointFluidTest('testSlipCylinder'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSecondDerivativesLHS'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS1'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS2'))
