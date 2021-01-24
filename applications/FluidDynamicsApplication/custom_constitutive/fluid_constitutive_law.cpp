@@ -34,6 +34,14 @@ ConstitutiveLaw::Pointer FluidConstitutiveLaw::Clone() const {
     return Kratos::make_shared<FluidConstitutiveLaw>(*this);
 }
 
+FluidAdjointConstitutiveLaw::Pointer FluidConstitutiveLaw::GetAdjointConstitutiveLaw()
+{
+    KRATOS_ERROR << "Calling base FluidConstitutiveLaw::GetAdjointConstitutiveLaw method."
+                 << "Fluid adjoint constitutive law is not defined for " << this->Info()
+                 << std::endl;
+    return Kratos::make_shared<FluidAdjointConstitutiveLaw>(*this);
+}
+
 void FluidConstitutiveLaw::CalculateMaterialResponseCauchy(Parameters& rValues) {
     KRATOS_ERROR << "Calling base "
                     "FluidConstitutiveLaw::CalculateMaterialResponseCauchy "
@@ -140,7 +148,7 @@ void FluidConstitutiveLaw::NewtonianConstitutiveMatrix3D(
     Matrix& rC) {
 
     rC.clear();
-    
+
     constexpr double two_thirds = 2./3.;
     constexpr double four_thirds = 4./3.;
 
@@ -185,7 +193,7 @@ double FluidConstitutiveLaw::GetValueFromTable(
         // Compute the input variable Gauss pt. value
         double gauss_input = 0.0;
         for (unsigned int i_node = 0; i_node < r_N.size(); ++i_node) {
-            const double &r_val = r_geom[i_node].FastGetSolutionStepValue(rVariableInput); 
+            const double &r_val = r_geom[i_node].FastGetSolutionStepValue(rVariableInput);
             gauss_input += r_val * r_N[i_node];
         }
 

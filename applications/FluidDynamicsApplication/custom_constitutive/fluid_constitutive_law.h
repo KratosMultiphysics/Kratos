@@ -20,6 +20,8 @@
 // Project includes
 #include "includes/constitutive_law.h"
 
+// Application includes
+#include "custom_constitutive/fluid_adjoint_constitutive_law.h"
 
 namespace Kratos
 {
@@ -63,12 +65,14 @@ public:
     /// Initialize a new instance of this type of law
     ConstitutiveLaw::Pointer Clone() const override;
 
+    virtual FluidAdjointConstitutiveLaw::Pointer GetAdjointConstitutiveLaw();
+
     /// Calculate the response of the material for the current strain rates.
     /** This is the main method for fluid constitutive laws.
      *  It should calculate, at least, the tangent matrix d(Stress)/d(Strain rate) or a suitable linearization
      *  and the stresses corresponding to the current strain rates.
      *  These are returned as rValues.GetConstitutiveMatrix() and rValues.GetStressVector(), respectively.
-     *  @note Besides computing the response, derived constitutive laws are responsible for setting the 
+     *  @note Besides computing the response, derived constitutive laws are responsible for setting the
      *  effective viscosity for the law, which will be used by the element to calculate the stabilization Tau.
      *  When implementing derived laws, please make sure to call SetEffectiveViscosity() at some point within this function.
      *  @see FluidElement, FluidElementData.
@@ -89,20 +93,20 @@ public:
 
     /// Useless boilerplate that's just here to avoid a compilation warning. Only the double variant is meaningful.
     int& CalculateValue(ConstitutiveLaw::Parameters& rParameters, const Variable<int>& rThisVariable, int& rValue) override;
-    
+
     /// We are abusing the constitutive law interface to return the effective viscosity to the calling element through this function.
     /** it always returns this->GetEffectiveViscosity() (and copies the result to rValue). */
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameters, const Variable<double>& rThisVariable, double& rValue) override;
-    
+
     /// Useless boilerplate that's just here to avoid a compilation warning. Only the double variant is meaningful.
     Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameters, const Variable<Vector>& rThisVariable, Vector& rValue) override;
-    
+
     /// Useless boilerplate that's just here to avoid a compilation warning. Only the double variant is meaningful.
     Matrix& CalculateValue(ConstitutiveLaw::Parameters& rParameters, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
-    
+
     /// Useless boilerplate that's just here to avoid a compilation warning. Only the double variant is meaningful.
     array_1d<double, 3 > & CalculateValue(ConstitutiveLaw::Parameters& rParameters, const Variable<array_1d<double, 3 > >& rThisVariable,array_1d<double, 3 > & rValue) override;
-    
+
     /// Useless boilerplate that's just here to avoid a compilation warning. Only the double variant is meaningful.
     array_1d<double, 6 > & CalculateValue(ConstitutiveLaw::Parameters& rParameters, const Variable<array_1d<double, 6 > >& rThisVariable, array_1d<double, 6 > & rValue) override;
 
@@ -145,14 +149,14 @@ protected:
      *  @param[in] EffectiveViscosity Equivalent viscosity for the fluid (dynamic units -- Pa s -- assumed).
      *  @param[out] rC Resulting constitutive matrix.
      */
-    void NewtonianConstitutiveMatrix2D(double EffectiveViscosity, Matrix& rC);
+    static void NewtonianConstitutiveMatrix2D(double EffectiveViscosity, Matrix& rC);
 
     /// Helper function to write the constitutive matrix using an effective viscosity (3D version).
     /** It returns a matrix with the same structure as for a Newtonian fluid, using the given viscosity.
      *  @param[in] EffectiveViscosity Equivalent viscosity for the fluid (dynamic units -- Pa s -- assumed).
      *  @param[out] rC Resulting constitutive matrix.
      */
-    void NewtonianConstitutiveMatrix3D(double EffectiveViscosity, Matrix& rC);
+    static void NewtonianConstitutiveMatrix3D(double EffectiveViscosity, Matrix& rC);
 
     ///@}
     ///@name Protected  Access
@@ -168,9 +172,9 @@ protected:
 
     /**
      * @brief Get the Value From Table object
-     * For an table input variable, this method returns the table output variable 
+     * For an table input variable, this method returns the table output variable
      * value. Note that the properties container must have a table relating the
-     * input and output variables. 
+     * input and output variables.
      * @param rVariableInput input variable
      * @param rVariableOutput output variable
      * @param rParameters constitutive law parameters container
@@ -192,7 +196,7 @@ protected:
     ///@}
     ///@name Serialization
     ///@{
-    
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override;
@@ -200,9 +204,15 @@ protected:
     void load(Serializer& rSerializer) override;
 
     ///@}
+    ///@name Adjoints
+    ///@{
+
+    friend class FluidAdjointConstitutiveLaw;
+
+    ///@}
 
 }; // Class FluidConstitutiveLaw
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FLUID_CONSTITUTIVE_LAW  defined 
+#endif // KRATOS_FLUID_CONSTITUTIVE_LAW  defined
