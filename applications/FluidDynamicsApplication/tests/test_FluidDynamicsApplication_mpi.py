@@ -17,7 +17,7 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
 # Import the tests or test_classes to create the suits
 
 # Shell tests
-from adjoint_mpi_vms_sensitivity_2d import AdjointMPIVMSSensitivity
+from adjoint_fluid_test import AdjointFluidTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -35,7 +35,7 @@ def AssembleTestSuites():
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
-    nightlyMPISuite.addTest(AdjointMPIVMSSensitivity('testCylinder'))
+    nightlyMPISuite.addTest(AdjointFluidTest('testCylinder'))
     nightlyMPISuite.addTests(smallMPISuite)
 
     ### Full MPI set ###########################################################
