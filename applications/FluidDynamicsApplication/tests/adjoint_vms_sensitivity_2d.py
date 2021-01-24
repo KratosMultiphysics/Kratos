@@ -80,6 +80,10 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             adjoint_parameters = AdjointVMSSensitivity2D._ReadParameters('./AdjointVMSSensitivity2DTest/cylinder_slip_test_adjoint_parameters.json')
             adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
 
+            file_output = open("test.txt", "w")
+            file_output.write(str(adjoint_sensitivities))
+            file_output.close()
+
             self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 9)
 
     def testSlipSteadyNormCylinder(self):
