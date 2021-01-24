@@ -174,8 +174,7 @@
                         ]
                     }
                 }
-            },
-            <OUTPUT_PROCESSES>
+            }
         ]
     }
 }
