@@ -133,8 +133,10 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mTwoFluidNavierStokesWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
     mTwoFluidNavierStokesWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
     mVMSAdjointElement2D(0,Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mVMSAdjointElement3D(0,Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
-
+    mVMSAdjointElement3D(0,Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    // Adjoint fluid conditions
+    mAdjointMonolithicWallCondition2D2N(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mAdjointMonolithicWallCondition3D3N(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
 {}
 
 void KratosFluidDynamicsApplication::Register() {
@@ -346,6 +348,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition3D", mFSPeriodicCondition3D);
     KRATOS_REGISTER_CONDITION("FSPeriodicConditionEdge2D", mFSPeriodicConditionEdge2D);
     KRATOS_REGISTER_CONDITION("FSPeriodicConditionEdge3D", mFSPeriodicConditionEdge3D);
+
+    // Register adjoint conditions
+    KRATOS_REGISTER_CONDITION("AdjointMonolithicWallCondition2D2N", mAdjointMonolithicWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("AdjointMonolithicWallCondition3D3N", mAdjointMonolithicWallCondition3D3N);
 
     // Register constitutive laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham3DLaw", mBingham3DLaw);
