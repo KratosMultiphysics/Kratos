@@ -1,5 +1,4 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosMultiphysics.kratos_utilities import DeleteTimeFiles
 
 from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import ReadParameters
@@ -11,7 +10,7 @@ from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_u
 from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis
 
 
-@KratosUnittest.skipUnless(CheckIfApplicationsAvailable("HDF5Application"), "Missing HDF5Application")
+@UnitTest.skipIfApplicationsNotAvailable("HDF5Application")
 class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
     @staticmethod
     def _ReadParameters(parameters_file_name):
