@@ -35,7 +35,6 @@ int AdjointFiniteDifferencingShellElement<TPrimalElement>::Check(const ProcessIn
     KRATOS_ERROR_IF_NOT(this->mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
     //TODO: Check() of primal element should be called, but is not possible because of DOF check!
-    this->CheckVariables();
     this->CheckDofs();
     this->CheckProperties(rCurrentProcessInfo);
 
@@ -48,25 +47,6 @@ int AdjointFiniteDifferencingShellElement<TPrimalElement>::Check(const ProcessIn
 }
 
 // private
-
-template <class TPrimalElement>
-void AdjointFiniteDifferencingShellElement<TPrimalElement>::CheckVariables() const
-{
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
-    KRATOS_CHECK_VARIABLE_KEY(SHELL_ORTHOTROPIC_LAYERS);
-    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
-    KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION);
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
-}
 
 template <class TPrimalElement>
 void AdjointFiniteDifferencingShellElement<TPrimalElement>::CheckDofs() const
@@ -105,15 +85,7 @@ void AdjointFiniteDifferencingShellElement<TPrimalElement>::CheckProperties(cons
 
     const GeometryType& geom = this->GetGeometry(); // TODO check if this can be const
 
-    if(props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
-    {
-        const ShellCrossSection::Pointer & section = props[SHELL_CROSS_SECTION];
-        if(section == nullptr)
-            KRATOS_ERROR << "SHELL_CROSS_SECTION not provided for element " << this->Id() << std::endl;
-
-        section->Check(props, geom, rCurrentProcessInfo);
-    }
-    else if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
+    if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
     {
         this->CheckSpecificProperties();
 

@@ -28,6 +28,17 @@ endif()
 include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
 link_directories(${TRILINOS_LIBRARIES})
 
+# Amesos2 is currenlty under development and is disabled by default. This can be removed in the future to enable it by default.
+OPTION ( TRILINOS_EXCLUDE_AMESOS2_SOLVER "Exclude Amesos2 Solver" ON )
+
+if(${TRILINOS_EXCLUDE_AMESOS2_SOLVER} MATCHES ON)
+    add_definitions(-DTRILINOS_EXCLUDE_AMESOS2_SOLVER)
+    message("**** WARNING: Manually disabled Amesos2-Solver ****")
+elseif(NOT HAVE_AMESOS2)
+    add_definitions(-DTRILINOS_EXCLUDE_AMESOS2_SOLVER)
+    message("**** WARNING: Amesos2-Solver could not be found and will be disabled ****")
+endif(${TRILINOS_EXCLUDE_AMESOS2_SOLVER} MATCHES ON)
+
 # Including the amgcl, which is header only
 include_directories("../../external_libraries")
 

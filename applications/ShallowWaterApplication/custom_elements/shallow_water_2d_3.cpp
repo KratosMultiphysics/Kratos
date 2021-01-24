@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/mesh_moving_variables.h"
 #include "shallow_water_application_variables.h"
 #include "shallow_water_2d_3.h"
 
@@ -33,19 +34,6 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo) const
     int ierr = Element::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(MOMENTUM)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(HEIGHT)
-    KRATOS_CHECK_VARIABLE_KEY(BATHYMETRY)
-    KRATOS_CHECK_VARIABLE_KEY(RAIN)
-    KRATOS_CHECK_VARIABLE_KEY(MANNING)
-    KRATOS_CHECK_VARIABLE_KEY(GRAVITY)
-    KRATOS_CHECK_VARIABLE_KEY(ATMOSPHERIC_PRESSURE)
-    KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME)
-    KRATOS_CHECK_VARIABLE_KEY(STABILIZATION_FACTOR)
-    KRATOS_CHECK_VARIABLE_KEY(SHOCK_STABILIZATION_FACTOR)
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& node : this->GetGeometry())
     {
@@ -55,6 +43,7 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo) const
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BATHYMETRY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ATMOSPHERIC_PRESSURE, node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_ACCELERATION, node)
 
         KRATOS_CHECK_DOF_IN_NODE(MOMENTUM_X, node)
         KRATOS_CHECK_DOF_IN_NODE(MOMENTUM_Y, node)
@@ -171,6 +160,8 @@ void ShallowWater2D3::CalculateLocalSystem(
 
     AddShockCapturingTerm(rLeftHandSideMatrix, data, DN_DX);
 
+    AddDesingularizationTerm(rLeftHandSideMatrix, data);
+
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, data.unknown);
 
@@ -199,6 +190,49 @@ void ShallowWater2D3::CalculateMassMatrix(
     BoundedMatrix<double,9,9> mass_matrix = ZeroMatrix(9,9);
     ComputeMassMatrix(mass_matrix, data, N, DN_DX);
     rMassMatrix = area * mass_matrix;
+}
+
+void ShallowWater2D3::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rDampingMatrix.size1() != 9) {
+        rDampingMatrix.resize(9,9,false);
+    }
+
+    rDampingMatrix = ZeroMatrix(9,9);
+
+    const double area = this->GetGeometry().Area();
+    const double one_third = 1.0 / 3.0;
+    const double one_twelve = 1.0 / 12.0;
+    const double g = rCurrentProcessInfo[GRAVITY_Z];
+
+    // Computing the diffusion factor (inverse of characteristic time)
+    array_1d<double,3> v = ZeroVector(3);
+    double h = 0.0;
+    for (auto& r_node : this->GetGeometry())
+    {
+        v += r_node.FastGetSolutionStepValue(VELOCITY);
+        h += r_node.FastGetSolutionStepValue(HEIGHT);
+    }
+    h = std::max(h, 0.0);
+    const double lambda = norm_2(v) + std::sqrt(g*h);
+    const double c = lambda / this->GetGeometry().Length();
+
+    // Construction of the scalar-based diffusion matrix
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const size_t i_block = 3 * i;
+        for (size_t j = 0; j < 3; ++j)
+        {
+            const size_t j_block = 3 * j;
+
+            const double d = (i == j)? one_third - 2*one_twelve : -one_twelve;
+            rDampingMatrix(i_block,     j_block    ) = c * area * d;
+            rDampingMatrix(i_block + 1, j_block + 1) = c * area * d;
+            rDampingMatrix(i_block + 2, j_block + 2) = c * area * d;
+        }
+    }
 }
 
 void ShallowWater2D3::AddGradientTerms(
@@ -234,12 +268,13 @@ void ShallowWater2D3::AddSourceTerms(
     const double height4_3 = std::pow(rData.height, 1.33333333333) + 1e-6;
     rLHS += rData.gravity * rData.manning2 * abs_vel / height4_3 * flow_mass_matrix;
 
-    // Rain
+    // Rain and mesh acceleration
     const double lumping_factor = 1.0 / 3.0;
     for (size_t i = 0; i < 3; ++i) {
         const size_t block = 3 * i;
         rRHS(block+2) += lumping_factor * rData.rain[i];
     }
+    rRHS -= rData.height * prod(flow_mass_matrix, rData.mesh_acc);
 }
 
 void ShallowWater2D3::AddShockCapturingTerm(
@@ -253,6 +288,19 @@ void ShallowWater2D3::AddShockCapturingTerm(
     BoundedMatrix<double,9,9> diff_matrix = ZeroMatrix(9,9);
     ComputeDiffusionMatrix(diff_matrix, rData, rDN_DX, k1, k2, kh);
     rLHS += diff_matrix;
+}
+
+void ShallowWater2D3::AddDesingularizationTerm(
+    MatrixType& rLHS,
+    const ElementData& rData)
+{
+    const double epsilon = rData.rel_dry_height * GetGeometry().Length();
+    const double factor = 1e3 * (1.0 - WetFraction(rData.height, epsilon));
+    for (size_t i = 0; i < 3; ++i) {
+        const size_t block = 3 * i;
+        rLHS(block, block) += factor;
+        rLHS(block + 1, block + 1) += factor;
+    }
 }
 
 void ShallowWater2D3::CalculateLeftHandSide(
@@ -285,6 +333,7 @@ void ShallowWater2D3::ElementData::InitializeData(const ProcessInfo& rCurrentPro
     dt_inv = 1.0 / delta_t;
     stab_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
     shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
+    rel_dry_height = rCurrentProcessInfo[RELATIVE_DRY_HEIGHT];
     gravity = rCurrentProcessInfo[GRAVITY_Z];
 }
 
@@ -295,9 +344,10 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
     velocity = ZeroVector(3);
     manning2 = 0.0;
 
-    size_t j = 0;
     for (size_t i = 0; i < 3; i++)
     {
+        const size_t k = 3 * i;
+
         auto h = rGeometry[i].FastGetSolutionStepValue(HEIGHT);
         const auto f = rGeometry[i].FastGetSolutionStepValue(MOMENTUM);
         const auto v = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
@@ -312,11 +362,16 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
         topography[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY);
         rain[i] = rGeometry[i].FastGetSolutionStepValue(RAIN);
 
-        unknown[j++] = f[0];
-        unknown[j++] = f[1];
-        unknown[j++] = h;
+        unknown[k]   = f[0];
+        unknown[k+1] = f[1];
+        unknown[k+2] = h;
+
+        mesh_acc[k]   = rGeometry[i].FastGetSolutionStepValue(MESH_ACCELERATION_X);
+        mesh_acc[k+1] = rGeometry[i].FastGetSolutionStepValue(MESH_ACCELERATION_Y);
+        mesh_acc[k+2] = 0.0;
     }
     const double lumping_factor = 1.0 / 3.0;
+    height = std::max(height, .0);
     height *= lumping_factor;
     flow_rate *= lumping_factor;
     velocity *= lumping_factor;
@@ -364,7 +419,7 @@ void ShallowWater2D3::ComputeMassMatrix(
             /* Stabilization x
              * A1*M
              */
-            const double s1_ij = rN[j] * rDN_DX(i,0);
+            const double s1_ij = rN[i] * rDN_DX(j,0);
             rMatrix(i_block,     j_block)     += l * cmm * mu_q * s1_ij * 2*u_1;
             rMatrix(i_block,     j_block + 2) += l * cmm * mu_h * s1_ij * (-pow(u_1,2) + c2);
             rMatrix(i_block + 1, j_block)     += l * cmm * mu_q * s1_ij * u_2;
@@ -375,7 +430,7 @@ void ShallowWater2D3::ComputeMassMatrix(
              /* Stabilization y
               * A1*M
               */
-            const double s2_ij = rN[j] * rDN_DX(i,1);
+            const double s2_ij = rN[i] * rDN_DX(j,1);
             rMatrix(i_block,     j_block)     += l * cmm * mu_q * s2_ij * u_2;
             rMatrix(i_block,     j_block + 1) += l * cmm * mu_q * s2_ij * u_1;
             rMatrix(i_block,     j_block + 2) -= l * cmm * mu_h * s2_ij * u_1*u_2;
@@ -611,16 +666,20 @@ void ShallowWater2D3::AlgebraicResidual(
     double rain = 0.0;
     double vel_div = 0.0;
     double flow_div = 0.0;
+    array_1d<double,3> mesh_acc = ZeroVector(3);
     array_1d<double,3> topography_grad = ZeroVector(3);
 
     auto& r_geom = GetGeometry();
     for (size_t i = 0; i < 3; ++i)
     {
+        const size_t block = 3 * i;
+
         flow_acc += r_geom[i].FastGetSolutionStepValue(ACCELERATION);
         height_acc += r_geom[i].FastGetSolutionStepValue(VERTICAL_VELOCITY);
         rain += rData.rain[i];
+        mesh_acc[0] += rData.mesh_acc[block];
+        mesh_acc[1] += rData.mesh_acc[block+1];
 
-        const size_t block = 3 * i;
         const double f1 = rData.unknown[block];
         const double f2 = rData.unknown[block + 1];
         const double h = rData.unknown[block + 2];
@@ -643,10 +702,11 @@ void ShallowWater2D3::AlgebraicResidual(
     rain *= lumping_factor;
 
     const double c2 = rData.gravity * rData.height;
-    const array_1d<double,3> friction = rData.gravity * rData.manning2 * norm_2(rData.flow_rate) * rData.flow_rate / std::pow(rData.height, 2.333333333333333);
+    const double e = 1e-6; // big value to avoid division by zero
+    const array_1d<double,3> friction = rData.gravity * rData.manning2 * norm_2(rData.flow_rate) * rData.flow_rate / (std::pow(rData.height, 2.333333333333333)+e);
     const array_1d<double,3> flux = prod(rData.velocity, trans(rFlowGrad)) + vel_div * rData.flow_rate;
 
-    rFlowResidual = flow_acc + flux + c2 * (rHeightGrad - topography_grad) + friction;
+    rFlowResidual = flow_acc + flux + c2 * (rHeightGrad - topography_grad) + friction + rData.height * mesh_acc;
     rHeightresidual = height_acc + flow_div + rain;
 }
 
@@ -669,7 +729,9 @@ double ShallowWater2D3::StabilizationParameter(const ElementData& rData)
     const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
     const double length = this->GetGeometry().Length();
     const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
-    return length * rData.stab_factor / (eigenvalue + e);
+    const double wet_fraction = WetFraction(rData.height, rData.rel_dry_height * length);
+
+    return length * wet_fraction * rData.stab_factor / (eigenvalue + e);
 }
 
 array_1d<double,3> ShallowWater2D3::CharacteristicLength(const ElementData& rData)
@@ -678,6 +740,14 @@ array_1d<double,3> ShallowWater2D3::CharacteristicLength(const ElementData& rDat
     const double length = this->GetGeometry().Length();
     const double char_length = 0.5 * length * rData.stab_factor;
     return char_length * rData.flow_rate / (norm_2(rData.flow_rate) + e);
+}
+
+double ShallowWater2D3::WetFraction(double Height, double Epsilon)
+{
+    const double h2 = std::pow(Height, 2);
+    const double h4 = std::pow(Height, 4);
+    const double e4 = std::pow(Epsilon, 4);
+    return std::sqrt(2) * h2 / std::sqrt(h4 + std::max(h4, e4));
 }
 
 } // namespace kratos
