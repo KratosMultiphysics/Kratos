@@ -22,6 +22,43 @@ namespace Kratos
 {
 namespace ConstraintUtilities
 {
+std::size_t NumberOfActiveConstraints(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    std::size_t number_of_active_constraints = 0;
+
+    // The number of constraints
+    const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+    const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
+
+    // Setting to zero the slave dofs
+    #pragma omp parallel
+    {
+        #pragma omp for schedule(guided, 512) reduction(+:number_of_active_constraints)
+        for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+            auto it_const = it_const_begin + i_const;
+
+            // Detect if the constraint is active or not. If the user did not make any choice the constraint
+            // It is active by default
+            bool constraint_is_active = true;
+            if (it_const->IsDefined(ACTIVE))
+                constraint_is_active = it_const->Is(ACTIVE);
+
+            if (constraint_is_active) {
+                ++number_of_active_constraints;
+            }
+        }
+    }
+    
+    return number_of_active_constraints;
+  
+    KRATOS_CATCH("")
+}
+              
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ComputeActiveDofs(
     ModelPart& rModelPart,
     std::vector<int>& rActiveDofs,
@@ -57,7 +94,7 @@ void ComputeActiveDofs(
             }
         }
     }
-
+    
     KRATOS_CATCH("")
 }
 
@@ -70,6 +107,7 @@ void ResetSlaveDofs(ModelPart& rModelPart)
 
     // The number of constraints
     const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+    const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
 
     // The current process info
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -79,7 +117,7 @@ void ResetSlaveDofs(ModelPart& rModelPart)
     {
         #pragma omp for schedule(guided, 512)
         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+            auto it_const = it_const_begin + i_const;
 
             // Detect if the constraint is active or not. If the user did not make any choice the constraint
             // It is active by default
@@ -105,6 +143,7 @@ void ApplyConstraints(ModelPart& rModelPart)
 
     // The number of constraints
     const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+    const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
 
     // The current process info
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -114,7 +153,7 @@ void ApplyConstraints(ModelPart& rModelPart)
     {
         #pragma omp for schedule(guided, 512)
         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+            auto it_const = it_const_begin + i_const;
 
             // Detect if the constraint is active or not. If the user did not make any choice the constraint
             // It is active by default
@@ -179,7 +218,7 @@ void PreComputeExplicitConstraintConstribution(
     // Getting auxiliar variables
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
     const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-    const auto it_cont_begin = rModelPart.MasterSlaveConstraints().begin();
+    const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
 
     // Auxiliar values
     Matrix transformation_matrix;
@@ -191,7 +230,7 @@ void PreComputeExplicitConstraintConstribution(
     {
         #pragma omp for schedule(guided, 512)
         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = it_cont_begin + i_const;
+            auto it_const = it_const_begin + i_const;
 
             // Getting the transformation matrix and constant vector
             it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
@@ -281,7 +320,7 @@ void PreComputeExplicitConstraintMassAndInertia(
     // Getting auxiliar variables
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
     const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-    const auto it_cont_begin = rModelPart.MasterSlaveConstraints().begin();
+    const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
 
     // Auxiliar values
     Matrix transformation_matrix;
@@ -293,7 +332,7 @@ void PreComputeExplicitConstraintMassAndInertia(
     std::unordered_set<std::size_t> slave_mass_map_counter, mass_mass_map_counter;
 
     for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-        auto it_const = it_cont_begin + i_const;
+        auto it_const = it_const_begin + i_const;
 
         // Clear counter
         slave_mass_map_counter.clear();
