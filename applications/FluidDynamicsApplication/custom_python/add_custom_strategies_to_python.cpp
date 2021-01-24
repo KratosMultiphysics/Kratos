@@ -41,6 +41,12 @@
 
 // adjoint schemes
 #include "custom_strategies/schemes/simple_steady_adjoint_scheme.h"
+#include "custom_strategies/schemes/velocity_bossak_adjoint_scheme.h"
+
+// sensitivity builder schemes
+#include "custom_strategies/schemes/simple_steady_sensitivity_builder_scheme.h"
+#include "custom_strategies/schemes/velocity_bossak_sensitivity_builder_scheme.h"
+
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -156,6 +162,18 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     py::class_<SimpleSteadySensitivityBuilderScheme3DType, typename SimpleSteadySensitivityBuilderScheme3DType::Pointer, SensitivityBuilderScheme>
         (m, "SimpleSteadySensitivityBuilderScheme3D")
         .def(py::init())
+        ;
+
+    using VelocityBossakSensitivityBuilderScheme2DType = VelocityBossakSensitivityBuilderScheme<2>;
+    py::class_<VelocityBossakSensitivityBuilderScheme2DType, typename VelocityBossakSensitivityBuilderScheme2DType::Pointer, SensitivityBuilderScheme>
+        (m, "VelocityBossakSensitivityBuilderScheme2D")
+        .def(py::init<const double>())
+        ;
+
+    using VelocityBossakSensitivityBuilderScheme3DType = VelocityBossakSensitivityBuilderScheme<3>;
+    py::class_<VelocityBossakSensitivityBuilderScheme3DType, typename VelocityBossakSensitivityBuilderScheme3DType::Pointer, SensitivityBuilderScheme>
+        (m, "VelocityBossakSensitivityBuilderScheme3D")
+        .def(py::init<const double>())
         ;
 
 }
