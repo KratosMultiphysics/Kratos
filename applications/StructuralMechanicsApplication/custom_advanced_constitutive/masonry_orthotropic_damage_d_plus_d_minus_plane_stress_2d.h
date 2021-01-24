@@ -75,64 +75,102 @@ namespace Kratos
             return VoigtSize;
         };
 
-        struct CalculationData {
+        struct DirectionalMaterialProperties {
+            double E;  // Youngs modulus; 1->11; 2->22
+            double nu; // Poissons ratio; 1->12; 2->21
+            double G;  // Shear modulus;  1->12; 2->21
 
-            // Elastic Properties
-            double E;
-            Matrix ElasticityMatrix;
-
-            // Isotropic Mapping Properties
-            Matrix TransformationMatrix;
-            Matrix TransformationMatrixTranspose;
-
-            // Tension Damage Properties
             double YieldStressTension;
             double FractureEnergyTension;
 
-            // Compression Damage Properties
-            double DamageOnsetStressCompression;                double YieldStressCompression;
-            double ResidualStressCompression;                    double YieldStrainCompression;
-            double BezierControllerC1;                            double BezierControllerC2;
-            double BezierControllerC3;                            double FractureEnergyCompression;
-            double BiaxialCompressionMultiplier;                double ShearCompressionReductor;
+            double ElasticLimitStressCompression;
+            double YieldStressCompression;
+            double YieldStrainCompression;
+            double ResidualStressCompression;
+            double FractureEnergyCompression;
+
+            double BezierControllerC1;
+            double BezierControllerC2;
+            double BezierControllerC3;
+
+            double CharacteristicLength;
+
+            DirectionalMaterialProperties(
+                double CharacteristicLength,
+                double E, double nu, double G,
+                double YieldStressTension,
+                double FractureEnergyTension,
+                double ElasticLimitStressCompression,
+                double YieldStressCompression,
+                double YieldStrainCompression,
+                double ResidualStressCompression,
+                double FractureEnergyCompression,
+                double BezierControllerC1 = 0.65,
+                double BezierControllerC2 = 0.5,
+                double BezierControllerC3 = 1.5)
+                : CharacteristicLength(CharacteristicLength),
+                E(E), nu(nu), G(G),
+                YieldStressTension(YieldStressTension),
+                FractureEnergyTension(FractureEnergyTension),
+                ElasticLimitStressCompression(ElasticLimitStressCompression),
+                YieldStressCompression(YieldStressCompression),
+                YieldStrainCompression(YieldStrainCompression),
+                ResidualStressCompression(ResidualStressCompression),
+                FractureEnergyCompression(FractureEnergyCompression),
+                BezierControllerC1(BezierControllerC1),
+                BezierControllerC2(BezierControllerC2),
+                BezierControllerC3(BezierControllerC3)
+            {
+            }
+        };
+
+        struct CalculationData {
+            DirectionalMaterialProperties MaterialProperties1;
+            DirectionalMaterialProperties MaterialProperties2;
+
+            double BiaxialCompressionMultiplier;
+            double ShearCompressionReductor;
 
             // Effective Stress Data
             array_1d<double, 3> EffectiveStressVectorOrthotropic;
-            array_1d<double, 3> EffectiveStressVector;            array_1d<double, 2> PrincipalStressVector;
-            array_1d<double, 3> EffectiveTensionStressVector;    array_1d<double, 3> EffectiveCompressionStressVector;
-            Matrix ProjectionTensorTension;                        Matrix ProjectionTensorCompression;
+            array_1d<double, 3> EffectiveStressVector;
+            array_1d<double, 2> PrincipalStressVector;
+            array_1d<double, 3> EffectiveTensionStressVector;
+            array_1d<double, 3> EffectiveCompressionStressVector;
+
+            Matrix ProjectionTensorTension;
+            Matrix ProjectionTensorCompression;
 
             // Misc
-            double CharacteristicLength;                        double DeltaTime;
+            double DeltaTime;
             int TensionYieldModel;
 
+            CalculationData(const DirectionalMaterialProperties& rMaterialProperties1,
+                const DirectionalMaterialProperties& rMaterialProperties2)
+                : MaterialProperties1(rMaterialProperties1),
+                MaterialProperties2(rMaterialProperties2)
+            {
+                ProjectionTensorTension = ZeroMatrix(3, 3);
+                ProjectionTensorCompression = ZeroMatrix(3, 3);
+            }
+        };
+
+        struct TransformationMatrices {
+            // Compute transformation from real anisotropic stress space to mapped isotropic stress space
+            Matrix TransformationMatrixTension = ZeroMatrix(3, 3);
+            Matrix TransformationMatrixCompression = ZeroMatrix(3, 3);
+            // Compute transformation from mapped isotropic stress space to real anisotropic stress space
+            Matrix InverseTransformationMatrixTension = ZeroMatrix(3, 3);
+            Matrix InverseTransformationMatrixCompression = ZeroMatrix(3, 3);
         };
 
         /// Has variable <double>
         bool Has(const Variable<double> & rThisVariable) override;
 
-        bool Has(const Variable<Vector>& rThisVariable) override { return false; };
-        bool Has(const Variable<Matrix>& rThisVariable) override { return false; };
-        bool Has(const Variable<array_1d<double, 3 > > & rThisVariable) override { return false; };
-        bool Has(const Variable<array_1d<double, 6 > > & rThisVariable) override { return false; };
-
         /// GetValue variable <double>
         double& GetValue(
             const Variable<double>& rThisVariable,
             double& rValue) override;
-
-        Vector& GetValue(
-            const Variable<Vector> & rThisVariable,
-            Vector & rValue) override { return rValue; }
-        Matrix& GetValue(
-            const Variable<Matrix> & rThisVariable,
-            Matrix & rValue) override { return rValue; }
-        array_1d<double, 3 >& GetValue(
-            const Variable<array_1d<double, 3 > > & rVariable,
-            array_1d<double, 3 > & rValue) override { return rValue; }
-        array_1d<double, 6 >& GetValue(
-            const Variable<array_1d<double, 6 > > & rVariable,
-            array_1d<double, 6 > & rValue) override { return rValue; }
 
         /// SetValue variable <double>
         void SetValue(
@@ -148,26 +186,37 @@ namespace Kratos
         * NOTE: this has to be implemented by each constitutive model. Returns false in base class since
         * no valid implementation is contained here.
         */
-        bool ValidateInput(const Properties & rMaterialProperties) override;
+        bool ValidateInput(
+            const Properties & rProperties) override;
 
         /**
         * returns the expected strain measure of this constitutive law (by default linear strains)
         * @return the expected strain measure
         */
-        StrainMeasure GetStrainMeasure() override;
+        StrainMeasure GetStrainMeasure() override {
+            return ConstitutiveLaw::StrainMeasure_Infinitesimal;
+        }
 
         /**
         * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
         * @return the expected stress measure
         */
-        StressMeasure GetStressMeasure() override;
+        StressMeasure GetStressMeasure() override {
+            return ConstitutiveLaw::StressMeasure_Cauchy;
+        };
 
         /**
         * returns whether this constitutive model is formulated in incremental strains/stresses
         * NOTE: by default, all constitutive models should be formulated in total strains
         * @return true, if formulated in incremental strains/stresses, false otherwise
         */
-        bool IsIncremental() override;
+        bool IsIncremental() override {
+            return false;
+        }
+
+        /// To check compatibility with element
+        void GetLawFeatures(Features& rFeatures) override;
+
 
         /**
         * This is to be called at the very beginning of the calculation
@@ -181,6 +230,12 @@ namespace Kratos
             const Properties & rProperties,
             const GeometryType & rGeometry,
             const Vector & rShapeFunctionsValues) override;
+
+        /// Resets all internal variables as tresholds and damage parameters.
+        void ResetMaterial(
+            const Properties& rMaterialProperties,
+            const GeometryType& rElementGeometry,
+            const Vector& rShapeFunctionsValues) override;
 
         /**
         * to be called at the end of each solution step
@@ -209,25 +264,6 @@ namespace Kratos
         void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) override;
 
         /**
-        * This can be used in order to reset all internal variables of the
-        * constitutive law (e.g. if a model should be reset to its reference state)
-        * @param rMaterialProperties the Properties instance of the current element
-        * @param rElementGeometry the geometry of the current element
-        * @param rShapeFunctionsValues the shape functions values in the current integration point
-        * @param the current ProcessInfo instance
-        */
-        void ResetMaterial(
-            const Properties & rMaterialProperties,
-            const GeometryType & rElementGeometry,
-            const Vector & rShapeFunctionsValues) override;
-
-        /**
-        * This function is designed to be called once to check compatibility with element
-        * @param rFeatures
-        */
-        void GetLawFeatures(Features & rFeatures) override;
-
-        /**
         * This function is designed to be called once to perform all the checks needed
         * on the input provided. Checks can be "expensive" as the function is designed
         * to catch user's errors.
@@ -241,19 +277,6 @@ namespace Kratos
             const GeometryType & rElementGeometry,
             const ProcessInfo & rCurrentProcessInfo) override;
 
-
-        void CalculateMaterialResponse(const Vector & StrainVector,
-            const Matrix & DeformationGradient,
-            Vector & StressVector,
-            Matrix & AlgorithmicTangent,
-            const ProcessInfo & rCurrentProcessInfo,
-            const Properties & rMaterialProperties,
-            const GeometryType & rElementGeometry,
-            const Vector & rShapeFunctionsValues,
-            bool CalculateStresses = true,
-            int CalculateTangent = true,
-            bool SaveInternalVariables = true);
-
     protected:
 
         ///@name Protected member Variables
@@ -263,21 +286,24 @@ namespace Kratos
         bool InitializeDamageLaw = false;
 
         // Tension & Compression Thresholds
-
-        // for IMPLEX_Integration:
-        double PreviousThresholdTension = 0.0;    double PreviousThresholdCompression = 0.0;    // at time step n - 1:
-        // end for IMPLEX_Integration
-
-        double mCurrentThresholdTension = 0.0;     double mCurrentThresholdCompression = 0.0;     // at time step n:
-        double mThresholdTension = 0.0;            double mThresholdCompression = 0.0;            // at time step n + 1:
+        double mCurrentThresholdTension = 0.0;
+        double mCurrentThresholdCompression = 0.0; // at time step n:
+        double mThresholdTension = 0.0;
+        double mThresholdCompression = 0.0; // at time step n + 1:
 
         // Damage Parameters & Uniaxial Stresses
         double mDamageTension = 0.0;
         double mDamageCompression = 0.0;
-        double UniaxialStressTension = 0.0;       double UniaxialStressCompression = 0.0;
+        double mUniaxialStressTension = 0.0;
+        double mUniaxialStressCompression = 0.0;
 
         // Misc
         double mInitialCharacteristicLength = 0.0;
+
+        // for IMPLEX_Integration:
+        double PreviousThresholdTension = 0.0;
+        double PreviousThresholdCompression = 0.0;    // at time step n - 1:
+        // end for IMPLEX_Integration
 
         // for IMPLEX Integration
         double CurrentDeltaTime = 0.0;    // at time step n + 1
@@ -301,11 +327,10 @@ namespace Kratos
         *         ProcessInfo& pinfo        The ProcessInfo from rValues
         *         CalculationData
         */
-        void InitializeCalculationData(
-            const Properties & props,
-            const GeometryType & geom,
-            const ProcessInfo & pinfo,
-            CalculationData & data);
+        CalculationData GetCalculationData(
+            const Properties& rProperties,
+            const GeometryType& rGeometry,
+            const ProcessInfo& rProcessInfo);
 
         /**
         * @brief Constructs the Linear Elasticity Matrix and stores it in the CalculationData
@@ -313,32 +338,41 @@ namespace Kratos
         */
         void CalculateOrthotropicElasticityMatrix(
             Matrix& rC,
-            double E_1,
-            double E_2,
-            double nu_12,
-            double nu_21,
-            double G_12);
+            const DirectionalMaterialProperties& rMaterialProperties1,
+            const DirectionalMaterialProperties& rMaterialProperties2);
 
         /**
         * @brief Assanbles the Transformation Matrix for Stress Mapping from Orthotropic to isotropic states and stores it in the CalculationData
         * @param CalculationData
         */
-        void AssambleTransformationMatrix(
-            CalculationData & data);
+        void AssembleTransformationMatrix(
+            const DirectionalMaterialProperties& rMaterialProperties1,
+            const DirectionalMaterialProperties& rMaterialProperties2,
+            TransformationMatrices& rTransformationMatrices);
+
+        void AssembleTransformationMatrixEnergyEquivalent(
+            const DirectionalMaterialProperties& rMaterialProperties1,
+            const DirectionalMaterialProperties& rMaterialProperties2,
+            TransformationMatrices& rTransformationMatrices);
 
         /**
         * @brief Splits the Effective Stress Vector into a positive (tension) and negative (compression) part
         * @param CalculationData
         */
         void TensionCompressionSplit(
-            CalculationData & data);
+            const array_1d<double, 3>& rEffectiveStressVector,
+            array_1d<double, 2>& rPrincipalStressVector,
+            array_1d<double, 3>& rEffectiveTensionStressVector,
+            array_1d<double, 3>& rEffectiveCompressionStressVector);
 
         /**
         * @brief This method computes the positive (tension) and negative (compression) parts of the ProjectionMatrix
         * @param CalculationData
         */
         void ConstructProjectionTensors(
-            CalculationData & data);
+            const array_1d<double, 3>& rEffectiveStressVector,
+            Matrix& rProjectionTensorTension,
+            Matrix& rProjectionTensorCompression);
 
         /**
         * @brief This method computes the equivalent stress in Tension
@@ -346,8 +380,10 @@ namespace Kratos
         *          UniaxialStressTension The variable to be filled with the resulting value
         */
         void CalculateEquivalentStressTension(
-            CalculationData & data,
-            double& UniaxialStressTension);
+            const CalculationData& data,
+            const DirectionalMaterialProperties& rMaterialProperties,
+            const array_1d<double, 3> rEffectiveStressVector,
+            double& UniaxialStressTension) const;
 
         /**
         * @brief This method computes the equivalent stress in Compression
@@ -355,8 +391,10 @@ namespace Kratos
         *          UniaxialStressCompression The variable to be filled with the resulting value
         */
         void CalculateEquivalentStressCompression(
-            CalculationData & data,
-            double& UniaxialStressCompression);
+            const CalculationData& data,
+            const DirectionalMaterialProperties& rMaterialProperties,
+            const array_1d<double, 3> rEffectiveStressVector,
+            double& UniaxialStressCompression) const;
 
         /**
         * @brief This method computes the damage variable d+ of the tension law
@@ -366,9 +404,9 @@ namespace Kratos
         *        rDamage             The final damage variable to be filled by this method
         */
         void CalculateDamageTension(
-            CalculationData & data,
-            double internal_variable,
-            double& rDamageTension);
+            const DirectionalMaterialProperties& rMaterialProperties,
+            const double TresholdTension,
+            double& rDamageTension) const;
 
         /**
         *  BRIEF DOCUMENTATION OF THE USED UNIAXIAL SOFTENING BEHAVIOR IN COMPRESSION
@@ -418,9 +456,9 @@ namespace Kratos
         *        rDamage             The final damage variable to be filled by this method
         */
         void CalculateDamageCompression(
-            CalculationData & data,
-            double internal_variable,
-            double& rDamage);
+            const DirectionalMaterialProperties& rMaterialProperties,
+            const double TresholdCompression,
+            double& rDamage) const;
 
         /**
         * 7@brief This method computes the energy of the uniaxial damage law before regularization
@@ -434,7 +472,8 @@ namespace Kratos
             double& rBezierEnergy,
             double& rBezierEnergy1,
             double s_p, double s_k, double s_r,
-            double e_p, double e_j, double e_k, double e_r, double e_u);
+            double e_p, double e_j, double e_k,
+            double e_r, double e_u) const;
 
 
         /**
@@ -443,9 +482,9 @@ namespace Kratos
         *          y1, y2, y3 y-coordinates of the Bezier control points
         */
 
-        double EvaluateBezierArea(
+        inline double EvaluateBezierArea(
             double x1, double x2, double x3,
-            double y1, double y2, double y3);
+            double y1, double y2, double y3) const;
 
         /**
         * @brief This method applies the stretcher to the strains, to regularize the fracture energy
@@ -454,9 +493,9 @@ namespace Kratos
         *         e_j, e_k, e_r, e_u    The strains that have to be modified by the stretcher
         */
 
-        void ApplyBezierStretcherToStrains(
+        inline void ApplyBezierStretcherToStrains(
             double stretcher, double e_p, double& e_j,
-            double& e_k, double& e_r, double& e_u);
+            double& e_k, double& e_r, double& e_u) const;
 
         /**
         * @brief This method evaluates the damage parameter by considering the Bezier law explained above
@@ -465,19 +504,19 @@ namespace Kratos
         *         x1, x2, x3         x-coordinates of the Bezier control points
         *          y1, y2, y3         y-coordinates of the Bezier control points
         */
-        void EvaluateBezierCurve(
+        inline void EvaluateBezierCurve(
             double& rDamageParameter, double xi,
             double x1, double x2, double x3,
-            double y1, double y2, double y3);
+            double y1, double y2, double y3) const;
 
         /**
         * @brief This method computes the Charcteristic element length
         * @param GeometryType& geom        The element geometry data from rValues
         *           rCharacteristicLength    The characteristic Length
         */
-        void ComputeCharacteristicLength(
+        double ComputeCharacteristicLength(
             const GeometryType & geom,
-            double& rCharacteristicLength);
+            int DirectionIndex);
 
         /**
         * @brief This method computes the internal material response strain to stress by applying cl
@@ -486,10 +525,10 @@ namespace Kratos
         *         CalculationData    Calculation Data for the CL
         */
         void CalculateMaterialResponseInternal(
-            const Vector strain_vector,
-            Vector & stress_vector,
-            CalculationData & data,
-            int IntegrationImplex = 0);
+            const Vector& rStrainVectorIsotropic,
+            Vector& rPredictiveStressVector,
+            CalculationData& data,
+            int IntegrationImplex);
 
         /**
          * @brief This method checks whether we are in loading/unloading/damage state
@@ -502,27 +541,28 @@ namespace Kratos
 
         /**
         * @brief This method computes the tangent tensor
-        * @param rValues             The constitutive law parameters and flags
-        *          strain_vector        The strain vector
-        *            stress_vector        The stress vector
-        *          CalculationData    Calculation Data for the CL
+        * @param rValues                 The constitutive law parameters and flags
+        *        rStrainVector           The strain vector
+        *        PredictiveStressVector  The stress vector
+        *        CalculationData         Calculation Data for the CL
+        *        IntegrationImplex       Using Integration implex if 1, elso not.
         */
         void CalculateTangentTensor(
-            Parameters & rValues,
-            Vector strain_vector,
-            Vector stress_vector,
-            CalculationData & data,
-            const Properties props);
+            Parameters& rValues,
+            const array_1d<double, 3>& rStrainVector,
+            const array_1d<double, 3>& PredictiveStressVector,
+            CalculationData& data,
+            int IntegrationImplex);
 
         /**
          * @brief This method computes the secant tensor
-         * @param rValues             The constitutive law parameters and flags
-         *          CalculationData    Calculation Data for the CL
+         * @param rValues            The constitutive law parameters and flags
+         *        CalculationData    Calculation Data for the CL
          */
         void CalculateSecantTensor(
-            Parameters & rValues,
-            CalculationData & data);
-
+            Parameters& rValues,
+            const Matrix& rElasticityMatrix,
+            const CalculationData & data);
 
         ///@}
 

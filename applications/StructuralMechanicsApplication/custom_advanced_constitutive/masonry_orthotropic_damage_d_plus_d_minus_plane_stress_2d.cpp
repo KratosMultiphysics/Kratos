@@ -62,14 +62,14 @@ namespace Kratos
         if (rThisVariable == DAMAGE_TENSION)
             rValue = mDamageTension;
         else if (rThisVariable == UNIAXIAL_STRESS_TENSION)
-            rValue = UniaxialStressTension;
+            rValue = mUniaxialStressTension;
         else if (rThisVariable == THRESHOLD_TENSION)
             rValue = mThresholdTension;
         // COMPRESSION
         else if (rThisVariable == DAMAGE_COMPRESSION)
             rValue = mDamageCompression;
         else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION)
-            rValue = UniaxialStressCompression;
+            rValue = mUniaxialStressCompression;
         else if (rThisVariable == THRESHOLD_COMPRESSION)
             rValue = mThresholdCompression;
         return rValue;
@@ -85,14 +85,14 @@ namespace Kratos
         if (rVariable == DAMAGE_TENSION)
             mDamageTension = rValue;
         else if (rVariable == UNIAXIAL_STRESS_TENSION)
-            UniaxialStressTension = rValue;
+            mUniaxialStressTension = rValue;
         else if (rVariable == THRESHOLD_TENSION)
             mThresholdTension = rValue;
         // COMPRESSION
         else if (rVariable == DAMAGE_COMPRESSION)
             mDamageCompression = rValue;
         else if (rVariable == UNIAXIAL_STRESS_COMPRESSION)
-            UniaxialStressCompression = rValue;
+            mUniaxialStressCompression = rValue;
         else if (rVariable == THRESHOLD_COMPRESSION)
             mThresholdCompression = rValue;
     }
@@ -100,43 +100,33 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     bool MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ValidateInput(
-        const Properties& rMaterialProperties)
+        const Properties& rProperties)
     {
+        KRATOS_ERROR << "just because I can";
         // ELASTIC PARAMETERS
-        if (!rMaterialProperties.Has(YOUNG_MODULUS_1))                        return false;
-        if (!rMaterialProperties.Has(YOUNG_MODULUS_2))                        return false;
-        if (!rMaterialProperties.Has(POISSON_RATIO_12))                       return false;
-        if (!rMaterialProperties.Has(POISSON_RATIO_21))                       return false;
+        if (!rProperties.Has(YOUNG_MODULUS_1))                        return false;
+        if (!rProperties.Has(YOUNG_MODULUS_2))                        return false;
+        if (!rProperties.Has(POISSON_RATIO_12))                       return false;
+        if (!rProperties.Has(POISSON_RATIO_21))                       return false;
         // TENSION PARAMETERS
-        if (!rMaterialProperties.Has(YIELD_STRESS_TENSION))                   return false;
-        if( !rMaterialProperties.Has(FRACTURE_ENERGY_TENSION) )               return false;
+        if (!rProperties.Has(YIELD_STRESS_TENSION))                   return false;
+        if( !rProperties.Has(FRACTURE_ENERGY_TENSION) )               return false;
+        if (!rProperties.Has(YIELD_STRESS_TENSION_2))                 return false;
+        if (!rProperties.Has(FRACTURE_ENERGY_TENSION_2))              return false;
         // COMPRESSION PARAMETERS
-        if (!rMaterialProperties.Has(DAMAGE_ONSET_STRESS_COMPRESSION))        return false;
-        if (!rMaterialProperties.Has(YIELD_STRESS_COMPRESSION))               return false;
-        if (!rMaterialProperties.Has(YIELD_STRAIN_COMPRESSION))               return false;
-        if (!rMaterialProperties.Has(RESIDUAL_STRESS_COMPRESSION))            return false;
-        if( !rMaterialProperties.Has(FRACTURE_ENERGY_COMPRESSION) )           return false;
+        if (!rProperties.Has(ELASTIC_LIMIT_STRESS_COMPRESSION))       return false;
+        if (!rProperties.Has(YIELD_STRESS_COMPRESSION))               return false;
+        if (!rProperties.Has(YIELD_STRAIN_COMPRESSION))               return false;
+        if (!rProperties.Has(RESIDUAL_STRESS_COMPRESSION))            return false;
+        if( !rProperties.Has(FRACTURE_ENERGY_COMPRESSION) )           return false;
+        if (!rProperties.Has(ELASTIC_LIMIT_STRESS_COMPRESSION_2))     return false;
+        if (!rProperties.Has(YIELD_STRESS_COMPRESSION_2))             return false;
+        if (!rProperties.Has(YIELD_STRAIN_COMPRESSION_2))             return false;
+        if (!rProperties.Has(RESIDUAL_STRESS_COMPRESSION_2))          return false;
+        if (!rProperties.Has(FRACTURE_ENERGY_COMPRESSION_2))          return false;
         // BIAXIAL PARAMETERS
-        if (!rMaterialProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER))         return false;
+        if (!rProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER))         return false;
         return true;
-    }
-    /***********************************************************************************/
-    /***********************************************************************************/
-    MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::StrainMeasure MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::GetStrainMeasure()
-    {
-        return ConstitutiveLaw::StrainMeasure_Infinitesimal;
-    }
-    /***********************************************************************************/
-    /***********************************************************************************/
-    MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::StressMeasure MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::GetStressMeasure()
-    {
-        return ConstitutiveLaw::StressMeasure_Cauchy;
-    }
-    /***********************************************************************************/
-    /***********************************************************************************/
-    bool MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::IsIncremental()
-    {
-        return false;
     }
     /***********************************************************************************/
     /***********************************************************************************/
@@ -154,8 +144,8 @@ namespace Kratos
 
             mDamageTension = 0.0;
             mDamageCompression = 0.0;
-            UniaxialStressTension = 0.0;
-            UniaxialStressCompression = 0.0;
+            mUniaxialStressTension = 0.0;
+            mUniaxialStressCompression = 0.0;
 
             this->ComputeCharacteristicLength(
                 rGeometry,
@@ -200,11 +190,9 @@ namespace Kratos
         }
         // End IMPLEX Integration
 
-
         // save converged values
         mCurrentThresholdTension = mThresholdTension;
         mCurrentThresholdCompression = mThresholdCompression;
-
     }
     /***********************************************************************************/
     /***********************************************************************************/
@@ -237,32 +225,103 @@ namespace Kratos
         const Properties& r_properties = rParameters.GetMaterialProperties();
 
         const Vector& r_strain_vector = rParameters.GetStrainVector();
-        Vector& PredictiveStressVector = rParameters.GetStressVector();
+        Vector& r_stress_vector = rParameters.GetStressVector();
 
-        CalculationData data;
-        this->InitializeCalculationData(r_properties, r_geometry, r_process_info, data);
+        CalculationData data = GetCalculationData(r_properties, r_geometry, r_process_info);
 
-        // Transform the FEM StrainVector to the isotropic StrainVector 
-        Vector StrainVectorIso = prod(data.TransformationMatrix, r_strain_vector);
+        Matrix ElasticityMatrix = ZeroMatrix(3, 3);
+        CalculateOrthotropicElasticityMatrix(
+            ElasticityMatrix, data.MaterialProperties1, data.MaterialProperties2);
 
-        this->CalculateMaterialResponseInternal(StrainVectorIso, PredictiveStressVector, data, 0);
+        noalias(data.EffectiveStressVector) = prod(ElasticityMatrix, r_strain_vector);
+
+        this->TensionCompressionSplit(
+            data.EffectiveStressVector,
+            data.PrincipalStressVector,
+            data.EffectiveTensionStressVector,
+            data.EffectiveCompressionStressVector);
+        this->ConstructProjectionTensors(
+            data.EffectiveStressVector,
+            data.ProjectionTensorTension,
+            data.ProjectionTensorCompression);
+
+        // Compute transformation from real anisotropic stress space to mapped isotropic stress space
+        TransformationMatrices transformation_matrices;
+        AssembleTransformationMatrix(
+            data.MaterialProperties1, data.MaterialProperties2, transformation_matrices);
+
+        // Transform real effective stresses to the mapped space
+        array_1d<double, 3> effective_tension_stress_mapped_isotropic = prod(transformation_matrices.TransformationMatrixTension, data.EffectiveTensionStressVector);
+        array_1d<double, 3> effective_compression_stress_mapped_isotropic = prod(transformation_matrices.TransformationMatrixCompression, data.EffectiveCompressionStressVector);
+
+        // compute the equivalent stress measures
+        this->CalculateEquivalentStressTension(data, data.MaterialProperties1, effective_tension_stress_mapped_isotropic, mUniaxialStressTension);
+
+        this->CalculateEquivalentStressCompression(data, data.MaterialProperties1, effective_compression_stress_mapped_isotropic, mUniaxialStressCompression);
+
+        // damage update
+        if (r_properties[INTEGRATION_IMPLEX] != 0) { //IMPLEX Integration
+            // time factor
+            double time_factor = 0.0;
+            if (PreviousDeltaTime > 0.0) time_factor = data.DeltaTime / PreviousDeltaTime;
+            CurrentDeltaTime = data.DeltaTime;
+
+            // explicit evaluation
+            mThresholdTension = mCurrentThresholdTension + time_factor * (mCurrentThresholdTension - PreviousThresholdTension);
+            mThresholdCompression = mCurrentThresholdCompression + time_factor * (mCurrentThresholdCompression - PreviousThresholdCompression);
+
+            // save implicit variables for the finalize_solution_step
+            double implicit_threshold_tension = mCurrentThresholdTension;
+            double implicit_threshold_compression = mCurrentThresholdCompression;
+
+            if (mUniaxialStressTension > implicit_threshold_tension)
+                implicit_threshold_tension = mUniaxialStressTension;
+
+            if (mUniaxialStressCompression > implicit_threshold_compression)
+                implicit_threshold_compression = mUniaxialStressCompression;
+
+            TemporaryImplicitThresholdTension = implicit_threshold_tension;
+            TemporaryImplicitThresholdTCompression = implicit_threshold_compression;
+
+            // new damage variables (explicit)
+            this->CalculateDamageTension(data.MaterialProperties1, mThresholdTension, mDamageTension);
+            this->CalculateDamageCompression(data.MaterialProperties1, mThresholdCompression, mDamageCompression);
+        } // IMPLICIT Integration
+        else {
+            if (mUniaxialStressTension > mThresholdTension)
+                mThresholdTension = mUniaxialStressTension;
+            this->CalculateDamageTension(data.MaterialProperties1, mThresholdTension, mDamageTension);
+
+            if (mUniaxialStressCompression > mThresholdCompression)
+                mThresholdCompression = mUniaxialStressCompression;
+            this->CalculateDamageCompression(data.MaterialProperties1, mThresholdCompression, mDamageCompression);
+
+            mCurrentThresholdTension = mThresholdTension;
+            mCurrentThresholdCompression = mThresholdCompression;
+        }
+
+        // Compute the stresses to isotropic space
+        array_1d<double, 3> total_tension_stress_mapped_isotropic = (1.0 - mDamageTension) * effective_tension_stress_mapped_isotropic;
+        array_1d<double, 3> total_compression_stress_mapped_isotropic = (1.0 - mDamageCompression) * effective_compression_stress_mapped_isotropic;
+
+        // Back rotation of final Predictive Stress
+        noalias(r_stress_vector) = prod(transformation_matrices.InverseTransformationMatrixTension, total_tension_stress_mapped_isotropic);
+        noalias(r_stress_vector) += prod(transformation_matrices.InverseTransformationMatrixCompression, total_compression_stress_mapped_isotropic);
 
         bool is_damaging_tension = false;
         bool is_damaging_compression = false;
         this->CheckDamageLoadingUnloading(is_damaging_tension, is_damaging_compression);
 
-
         // Computation of the Constitutive Tensor
         if (rParameters.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
             if (is_damaging_tension || is_damaging_compression) {
-                this->CalculateTangentTensor(rParameters, StrainVectorIso, PredictiveStressVector, data, r_properties);
+                this->CalculateSecantTensor(rParameters, ElasticityMatrix, data);
+                //this->CalculateTangentTensor(rParameters, strain_mapped_isotropic, r_predictive_stress_vector, data, r_properties[INTEGRATION_IMPLEX]);
             }
             else {
-                this->CalculateSecantTensor(rParameters, data);
+                this->CalculateSecantTensor(rParameters, ElasticityMatrix, data);
             }
         }
-        // Back rotation of final Predictive Stress
-        noalias(PredictiveStressVector) = prod(data.TransformationMatrixTranspose, PredictiveStressVector);
     }
     /***********************************************************************************/
     /***********************************************************************************/
@@ -292,7 +351,7 @@ namespace Kratos
         //Set the type of law
         rFeatures.mOptions.Set(PLANE_STRESS_LAW);
         rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
-        rFeatures.mOptions.Set(ISOTROPIC);
+        rFeatures.mOptions.Set(ANISOTROPIC);
 
         //Set strain measure required by the consitutive law
         rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
@@ -306,40 +365,40 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     int MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::Check(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
+        const Properties& rProperties,
+        const GeometryType& rGeometry,
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         // ELASTIC PARAMETERS
-        if (!rMaterialProperties.Has(YOUNG_MODULUS_1))
+        if (!rProperties.Has(YOUNG_MODULUS_1))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YOUNG_MODULUS_1", "");
-        if (!rMaterialProperties.Has(YOUNG_MODULUS_2))
+        if (!rProperties.Has(YOUNG_MODULUS_2))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YOUNG_MODULUS_2", "");
-        if (!rMaterialProperties.Has(POISSON_RATIO_12))
+        if (!rProperties.Has(POISSON_RATIO_12))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: POISSON_RATIO_12", "");
-        if (!rMaterialProperties.Has(POISSON_RATIO_12))
+        if (!rProperties.Has(POISSON_RATIO_12))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: POISSON_RATIO_21", "");
-        if (!rMaterialProperties.Has(SHEAR_MODULUS))
+        if (!rProperties.Has(SHEAR_MODULUS))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: SHEAR_MODULUS", "");
         // TENSION
-        if (!rMaterialProperties.Has(YIELD_STRESS_TENSION))
+        if (!rProperties.Has(YIELD_STRESS_TENSION))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_TENSION", "");
-        if( !rMaterialProperties.Has(FRACTURE_ENERGY_TENSION) )
+        if( !rProperties.Has(FRACTURE_ENERGY_TENSION) )
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_TENSION", "");
         // COMPRESSION
-        if (!rMaterialProperties.Has(DAMAGE_ONSET_STRESS_COMPRESSION))
+        if (!rProperties.Has(DAMAGE_ONSET_STRESS_COMPRESSION))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: DAMAGE_ONSET_STRESS_COMPRESSION", "");
-        if (!rMaterialProperties.Has(YIELD_STRESS_COMPRESSION))
+        if (!rProperties.Has(YIELD_STRESS_COMPRESSION))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_COMPRESSION", "");
-        if (!rMaterialProperties.Has(YIELD_STRAIN_COMPRESSION))
+        if (!rProperties.Has(YIELD_STRAIN_COMPRESSION))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRAIN_COMPRESSION", "");
-        if (!rMaterialProperties.Has(RESIDUAL_STRESS_COMPRESSION))
+        if (!rProperties.Has(RESIDUAL_STRESS_COMPRESSION))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: RESIDUAL_STRESS_COMPRESSION", "");
-        if( !rMaterialProperties.Has(FRACTURE_ENERGY_COMPRESSION) )
+        if( !rProperties.Has(FRACTURE_ENERGY_COMPRESSION) )
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_COMPRESSION", "");
         // BIAXIAL
-        if (!rMaterialProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER))
+        if (!rProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BIAXIAL_COMPRESSION_MULTIPLIER", "");
 
         return 0;
@@ -348,156 +407,132 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateMaterialResponse(const Vector& StrainVector,
-        const Matrix& DeformationGradient,
-        Vector& StressVector,
-        Matrix& AlgorithmicTangent,
-        const ProcessInfo& rCurrentProcessInfo,
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        bool CalculateStresses,
-        int CalculateTangent,
-        bool SaveInternalVariables)
-    {
-        ConstitutiveLaw::Parameters parameters(rElementGeometry, rMaterialProperties, rCurrentProcessInfo);
-        Vector E(StrainVector);
-        parameters.SetStrainVector(E);
-        parameters.SetStressVector(StressVector);
-        parameters.SetConstitutiveMatrix(AlgorithmicTangent);
-        Flags& options = parameters.GetOptions();
-        options.Set(ConstitutiveLaw::COMPUTE_STRESS, CalculateStresses);
-        options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, CalculateTangent);
-        double detF = 1.0;
-        Matrix F(IdentityMatrix(2, 2));
-        parameters.SetDeterminantF(detF);
-        parameters.SetDeformationGradientF(F);
-        parameters.SetShapeFunctionsValues(rShapeFunctionsValues);
-        this->CalculateMaterialResponseCauchy(parameters);
-    }
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::InitializeCalculationData(
+    MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculationData MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::GetCalculationData(
         const Properties& rProperties,
         const GeometryType& rGeometry,
-        const ProcessInfo& pinfo,
-        CalculationData& data)
+        const ProcessInfo& rProcessInfo)
     {
-        double E = rProperties[YOUNG_MODULUS_1];
-
-        this->CalculateOrthotropicElasticityMatrix(
-            data.ElasticityMatrix,
+        auto MaterialProperties1 = DirectionalMaterialProperties(
+            this->ComputeCharacteristicLength(
+                rGeometry, 0),
             rProperties[YOUNG_MODULUS_1],
-            rProperties[YOUNG_MODULUS_2],
             rProperties[POISSON_RATIO_12],
+            rProperties[SHEAR_MODULUS],
+            rProperties[YIELD_STRESS_TENSION],
+            rProperties[FRACTURE_ENERGY_TENSION],
+            rProperties[ELASTIC_LIMIT_STRESS_COMPRESSION],
+            rProperties[YIELD_STRESS_COMPRESSION],
+            rProperties[YIELD_STRAIN_COMPRESSION],
+            rProperties[RESIDUAL_STRESS_COMPRESSION],
+            rProperties[FRACTURE_ENERGY_COMPRESSION],
+            rProperties[BEZIER_CONTROLLER_C1],
+            rProperties[BEZIER_CONTROLLER_C2],
+            rProperties[BEZIER_CONTROLLER_C3]);
+
+        auto MaterialProperties2 = DirectionalMaterialProperties(
+            this->ComputeCharacteristicLength(
+                rGeometry, 1),
+            rProperties[YOUNG_MODULUS_2],
             rProperties[POISSON_RATIO_21],
-            rProperties[SHEAR_MODULUS]);
+            rProperties[SHEAR_MODULUS],
+            rProperties[YIELD_STRESS_TENSION_2],
+            rProperties[FRACTURE_ENERGY_TENSION_2],
+            rProperties[ELASTIC_LIMIT_STRESS_COMPRESSION_2],
+            rProperties[YIELD_STRESS_COMPRESSION_2],
+            rProperties[YIELD_STRAIN_COMPRESSION_2],
+            rProperties[RESIDUAL_STRESS_COMPRESSION_2],
+            rProperties[FRACTURE_ENERGY_COMPRESSION_2],
+            rProperties[BEZIER_CONTROLLER_C1_2],
+            rProperties[BEZIER_CONTROLLER_C2_2],
+            rProperties[BEZIER_CONTROLLER_C3_2]);
 
-        // transformation
-        this->AssambleTransformationMatrix(data);
-
-        // Tension Damage Properties
-        data.YieldStressTension = rProperties[YIELD_STRESS_TENSION];
-        data.FractureEnergyTension = rProperties[FRACTURE_ENERGY_TENSION];
-
-        // Compression Damage Properties
-        data.DamageOnsetStressCompression = rProperties[DAMAGE_ONSET_STRESS_COMPRESSION];
-        data.YieldStressCompression = rProperties[YIELD_STRESS_COMPRESSION];
-        data.YieldStrainCompression = rProperties[YIELD_STRAIN_COMPRESSION];
-        data.ResidualStressCompression = rProperties[RESIDUAL_STRESS_COMPRESSION];
-        data.FractureEnergyCompression      = rProperties[FRACTURE_ENERGY_COMPRESSION];
-
-        data.BezierControllerC1 = rProperties.Has(BEZIER_CONTROLLER_C1) ? rProperties[BEZIER_CONTROLLER_C1] : 0.65;
-        data.BezierControllerC2 = rProperties.Has(BEZIER_CONTROLLER_C2) ? rProperties[BEZIER_CONTROLLER_C2] : 0.50;
-        data.BezierControllerC3 = rProperties.Has(BEZIER_CONTROLLER_C3) ? rProperties[BEZIER_CONTROLLER_C3] : 1.50;
+        CalculationData data(MaterialProperties1, MaterialProperties2);
 
         // Biaxial
         data.BiaxialCompressionMultiplier = rProperties[BIAXIAL_COMPRESSION_MULTIPLIER];
         data.ShearCompressionReductor = rProperties.Has(SHEAR_COMPRESSION_REDUCTOR) ? rProperties[SHEAR_COMPRESSION_REDUCTOR] : 0.5;
         data.ShearCompressionReductor = std::min(std::max(data.ShearCompressionReductor, 0.0), 1.0);
 
-        // Effective Stress Data
-        data.EffectiveStressVector.resize(3, false);
-        data.PrincipalStressVector.resize(2, false);
-        data.EffectiveTensionStressVector.resize(3, false);
-        data.EffectiveCompressionStressVector.resize(3, false);
-        data.ProjectionTensorTension.resize(3, 3, false);
-        data.ProjectionTensorCompression.resize(3, 3, false);
-
         // Misc
-        this->ComputeCharacteristicLength(
-            rGeometry,
-            data.CharacteristicLength);
-        data.DeltaTime = pinfo[DELTA_TIME];
+        data.DeltaTime = rProcessInfo[DELTA_TIME];
         data.TensionYieldModel = rProperties.Has(TENSION_YIELD_MODEL) ? rProperties[TENSION_YIELD_MODEL] : 0;
+
+        return data;
     }
     /***********************************************************************************/
     /***********************************************************************************/
     void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateOrthotropicElasticityMatrix(
         Matrix& rC,
-        double E_1,
-        double E_2,
-        double nu_12,
-        double nu_21,
-        double G_12)
+        const DirectionalMaterialProperties& rMaterialProperties1,
+        const DirectionalMaterialProperties& rMaterialProperties2)
     {
         if (rC.size1() != 3 || rC.size2() != 3)
             rC.resize(3, 3, false);
         rC = ZeroMatrix(3, 3);
 
-        const double nu_12_nu_21 = 1.0 - nu_12 * nu_21;
+        const double nu_12_nu_21 = 1.0 - rMaterialProperties1.nu * rMaterialProperties2.nu;
 
-        rC(0, 0) = E_1 / nu_12_nu_21; rC(0, 1) = nu_12 * rC(0, 0);
-        rC(1, 1) = E_2 / nu_12_nu_21; rC(1, 0) = nu_21 * rC(1, 1);
-        rC(2, 2) = G_12;
+        rC(0, 0) = rMaterialProperties1.E / nu_12_nu_21; rC(0, 1) = rMaterialProperties1.nu * rC(0, 0);
+        rC(1, 1) = rMaterialProperties2.E / nu_12_nu_21; rC(1, 0) = rMaterialProperties2.nu * rC(1, 1);
+        rC(2, 2) = rMaterialProperties1.G;
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::AssambleTransformationMatrix(
-        CalculationData& data)
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::AssembleTransformationMatrix(
+        const DirectionalMaterialProperties& rMaterialProperties1,
+        const DirectionalMaterialProperties& rMaterialProperties2,
+        TransformationMatrices& rTransformationMatrices)
     {
-        if (data.TransformationMatrix.size1() != 3 || data.TransformationMatrix.size2() != 3)
-            data.TransformationMatrix.resize(3, 3, false);
+        double shear_resistance = rMaterialProperties1.YieldStressTension;
+        rTransformationMatrices.TransformationMatrixTension(0, 0) = 1;
+        rTransformationMatrices.TransformationMatrixTension(1, 1) = rMaterialProperties1.YieldStressTension / rMaterialProperties2.YieldStressTension;
+        rTransformationMatrices.TransformationMatrixTension(2, 2) = rMaterialProperties2.YieldStressTension / shear_resistance;
 
-        data.TransformationMatrix(0, 0) = 1; data.TransformationMatrix(0, 1) = 0; data.TransformationMatrix(0, 2) = 0;
-        data.TransformationMatrix(1, 0) = 0; data.TransformationMatrix(1, 1) = 1; data.TransformationMatrix(1, 2) = 0;
-        data.TransformationMatrix(2, 0) = 0; data.TransformationMatrix(2, 1) = 0; data.TransformationMatrix(2, 2) = 1;
+        rTransformationMatrices.InverseTransformationMatrixTension(0, 0) = 1;
+        rTransformationMatrices.InverseTransformationMatrixTension(1, 1) = rMaterialProperties2.YieldStressTension / rMaterialProperties1.YieldStressTension;
+        rTransformationMatrices.InverseTransformationMatrixTension(2, 2) = shear_resistance / rMaterialProperties1.YieldStressTension;
 
-        if (data.TransformationMatrixTranspose.size1() != 3 || data.TransformationMatrixTranspose.size2() != 3)
-            data.TransformationMatrixTranspose.resize(3, 3, false);
+        double shear_resistance_compression = rMaterialProperties1.YieldStressCompression;
+        rTransformationMatrices.TransformationMatrixCompression(0, 0) = 1;
+        rTransformationMatrices.TransformationMatrixCompression(1, 1) = rMaterialProperties1.YieldStressCompression / rMaterialProperties2.YieldStressCompression;
+        rTransformationMatrices.TransformationMatrixCompression(2, 2) = rMaterialProperties2.YieldStressCompression / shear_resistance_compression;
 
-        data.TransformationMatrixTranspose(0, 0) = 1;        data.TransformationMatrixTranspose(0, 1) = 0;        data.TransformationMatrixTranspose(0, 2) = 0;
-        data.TransformationMatrixTranspose(1, 0) = 0;        data.TransformationMatrixTranspose(1, 1) = 1;        data.TransformationMatrixTranspose(1, 2) = 0;
-        data.TransformationMatrixTranspose(2, 0) = 0;        data.TransformationMatrixTranspose(2, 1) = 0;        data.TransformationMatrixTranspose(2, 2) = 1;
+        rTransformationMatrices.InverseTransformationMatrixCompression(0, 0) = 1;
+        rTransformationMatrices.InverseTransformationMatrixCompression(1, 1) = rMaterialProperties2.YieldStressCompression / rMaterialProperties1.YieldStressCompression;
+        rTransformationMatrices.InverseTransformationMatrixCompression(2, 2) = shear_resistance_compression / rMaterialProperties1.YieldStressCompression;
+    }
+    /***********************************************************************************/
+    /***********************************************************************************/
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::AssembleTransformationMatrixEnergyEquivalent(
+        const DirectionalMaterialProperties& rMaterialProperties1,
+        const DirectionalMaterialProperties& rMaterialProperties2,
+        TransformationMatrices& rTransformationMatrices)
+    {
+
     }
     /***********************************************************************************/
     /***********************************************************************************/
 
     void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::TensionCompressionSplit(
-        CalculationData& data)
+        const array_1d<double, 3>& rEffectiveStressVector,
+        array_1d<double, 2>& rPrincipalStressVector,
+        array_1d<double, 3>& rEffectiveTensionStressVector,
+        array_1d<double, 3>& rEffectiveCompressionStressVector)
     {
-        const array_1d<double, 3>& effective_stress_vector = data.EffectiveStressVector;
-        array_1d<double, 2>& principal_stress_vector = data.PrincipalStressVector;
-        array_1d<double, 3>& effective_tension_stress_vector = data.EffectiveTensionStressVector;
-        array_1d<double, 3>& effective_compression_stress_vector = data.EffectiveCompressionStressVector;
-
         ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
-            principal_stress_vector, effective_stress_vector);
+            rPrincipalStressVector, rEffectiveStressVector);
         ConstitutiveLawUtilities<3>::SpectralDecomposition(
-            effective_stress_vector, effective_tension_stress_vector, effective_compression_stress_vector);
+            rEffectiveStressVector, rEffectiveTensionStressVector, rEffectiveCompressionStressVector);
     }
 
     /***********************************************************************************/
     /***********************************************************************************/
     void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ConstructProjectionTensors(
-        CalculationData& data)
+        const array_1d<double, 3>& rEffectiveStressVector,
+        Matrix& rProjectionTensorTension,
+        Matrix& rProjectionTensorCompression)
     {
-        Matrix& projection_tensor_tension = data.ProjectionTensorTension;
-        Matrix& projection_tensor_compression = data.ProjectionTensorCompression;
-
-        const array_1d<double, 3>& effective_stress_vector = data.EffectiveStressVector;
-
-        Matrix effective_stress_tensor = MathUtils<double>::StressVectorToTensor(effective_stress_vector);
+        Matrix effective_stress_tensor = MathUtils<double>::StressVectorToTensor(rEffectiveStressVector);
         BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
         BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
 
@@ -523,10 +558,10 @@ namespace Kratos
         projection_tensor_22 = outer_prod(eigen_vector_2, eigen_vector_2);
         projection_vector_22 = MathUtils<double>::StressTensorToVector(projection_tensor_22);
 
-        projection_tensor_tension.clear();
-        noalias(projection_tensor_tension) += HEAVISIDE(eigen_values_matrix(0, 0)) *
+        rProjectionTensorTension = ZeroMatrix(3, 3);
+        noalias(rProjectionTensorTension) += HEAVISIDE(eigen_values_matrix(0, 0)) *
             outer_prod(projection_vector_11, projection_vector_11);
-        noalias(projection_tensor_tension) += HEAVISIDE(eigen_values_matrix(1, 1)) *
+        noalias(rProjectionTensorTension) += HEAVISIDE(eigen_values_matrix(1, 1)) *
             outer_prod(projection_vector_22, projection_vector_22);
 
 #ifdef PROJECTION_OPERATOR_CERVERA_2003
@@ -557,7 +592,7 @@ namespace Kratos
         else {
             factor_12 = 1.0;
         }
-        noalias(projection_tensor_tension) += factor_12 * outer_prod(projection_vector_cross, projection_vector_cross);
+        noalias(rProjectionTensorTension) += factor_12 * outer_prod(projection_vector_cross, projection_vector_cross);
 #endif //PROJECTION_OPERATOR_CERVERA_2003
 
 #ifdef PROJECTION_OPERATOR_CERVERA_2017
@@ -584,58 +619,62 @@ namespace Kratos
             outer_prod(projection_vector_cross, projection_vector_cross);
 #endif //PROJECTION_OPERATOR_CERVERA_2017
 
-        noalias(projection_tensor_compression) = IdentityMatrix(3, 3) - projection_tensor_tension;
+        noalias(rProjectionTensorCompression) = IdentityMatrix(3, 3) - rProjectionTensorTension;
     }
 
     /***********************************************************************************/
     /***********************************************************************************/
     void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateEquivalentStressTension(
-        CalculationData& data,
-        double& UniaxialStressTension)
+        const CalculationData& data,
+        const DirectionalMaterialProperties& rMaterialProperties,
+        const array_1d<double, 3> rEffectiveStressVector,
+        double& rUniaxialStressTension) const
     {
-        UniaxialStressTension = 0.0;
+        rUniaxialStressTension = 0.0;
         if (data.PrincipalStressVector(0) > 0.0) {
             if (data.TensionYieldModel == 0) {
                 // Lubliner Yield Criteria 
-                const double yield_compression = data.YieldStressCompression;
-                const double yield_tension = data.YieldStressTension;
+                const double yield_compression = rMaterialProperties.YieldStressCompression;
+                const double yield_tension = rMaterialProperties.YieldStressTension;
                 const double alpha = (data.BiaxialCompressionMultiplier - 1.0) /
                     (2.0 * data.BiaxialCompressionMultiplier - 1.0);
                 double I1, J2;
                 array_1d<double, 3> deviator = ZeroVector(3);
 
-                ConstitutiveLawUtilities<3>::CalculateI1Invariant(data.EffectiveStressVector, I1);
-                ConstitutiveLawUtilities<3>::CalculateJ2Invariant(data.EffectiveStressVector, I1, deviator, J2);
+                ConstitutiveLawUtilities<3>::CalculateI1Invariant(rEffectiveStressVector, I1);
+                ConstitutiveLawUtilities<3>::CalculateJ2Invariant(rEffectiveStressVector, I1, deviator, J2);
 
                 const double beta = yield_compression / yield_tension * (1.0 - alpha) - (1.0 + alpha);
                 const double smax = std::max(std::max(data.PrincipalStressVector(0), data.PrincipalStressVector(1)), 0.0);
 
-                UniaxialStressTension = 1.0 / (1.0 - alpha) * (alpha * I1 + std::sqrt(3.0 * J2) + beta * smax) /
+                rUniaxialStressTension = 1.0 / (1.0 - alpha) * (alpha * I1 + std::sqrt(3.0 * J2) + beta * smax) /
                     yield_compression * yield_tension;
             }
             else if (data.TensionYieldModel == 1) {
                 // Rankine Yield Criteria
-                UniaxialStressTension = std::max(std::max(data.PrincipalStressVector(0), data.PrincipalStressVector(1)), 0.0);
+                rUniaxialStressTension = std::max(std::max(data.PrincipalStressVector(0), data.PrincipalStressVector(1)), 0.0);
             }
         }
     }
     /***********************************************************************************/
     /***********************************************************************************/
     void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateEquivalentStressCompression(
-        CalculationData& data,
-        double& UniaxialStressCompression)
+        const CalculationData& data,
+        const DirectionalMaterialProperties& rMaterialProperties,
+        const array_1d<double, 3> rEffectiveStressVector,
+        double& UniaxialStressCompression) const
     {
         UniaxialStressCompression = 0.0;
         if (data.PrincipalStressVector(1) < 0.0) {
-            const double yield_compression = data.DamageOnsetStressCompression;
-            const double yield_tension = data.YieldStressTension;
+            const double yield_compression = rMaterialProperties.ElasticLimitStressCompression;
+            const double yield_tension = rMaterialProperties.YieldStressTension;
             const double alpha = (data.BiaxialCompressionMultiplier - 1.0) /
                 (2.0 * data.BiaxialCompressionMultiplier - 1.0);
             double I1, J2;
             array_1d<double, 3> deviator = ZeroVector(3);
 
-            ConstitutiveLawUtilities<3>::CalculateI1Invariant(data.EffectiveStressVector, I1);
-            ConstitutiveLawUtilities<3>::CalculateJ2Invariant(data.EffectiveStressVector, I1, deviator, J2);
+            ConstitutiveLawUtilities<3>::CalculateI1Invariant(rEffectiveStressVector, I1);
+            ConstitutiveLawUtilities<3>::CalculateJ2Invariant(rEffectiveStressVector, I1, deviator, J2);
 
             const double beta = (yield_compression / yield_tension) * (1.0 - alpha) - (1.0 + alpha);
             const double smax = std::max(std::max(data.PrincipalStressVector(0), data.PrincipalStressVector(1)), 0.0);
@@ -647,64 +686,60 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateDamageTension(
-        CalculationData& data,
-        double internal_variable,
-        double& rDamageTension)
+        const DirectionalMaterialProperties& rMaterialProperties,
+        double TresholdTension,
+        double& rDamageTension) const
     {
-        if (internal_variable <= data.YieldStressTension) {
+        if (TresholdTension <= rMaterialProperties.YieldStressTension) {
             rDamageTension = 0.0;
         }
         else {
-            const double characteristic_length = data.CharacteristicLength;
-            const double young_modulus = data.E;
-            const double yield_tension = data.YieldStressTension;
-            const double initial_internal_variable = yield_tension;
-            const double material_length = 2.0 * young_modulus * data.FractureEnergyTension /
+            const double yield_tension = rMaterialProperties.YieldStressTension;
+            const double initial_treshold_tension = yield_tension;
+            const double material_length = 2.0 * rMaterialProperties.E * rMaterialProperties.FractureEnergyTension /
                 (yield_tension * yield_tension);
 
-            if (characteristic_length >= material_length) {
-                std::stringstream ss;
-                ss << "FRACTURE_ENERGY_TENSION is to low:  2*E*Gt/(ft*ft) = " << material_length
-                    << ",   Characteristic Length = " << characteristic_length << std::endl;
-                std::cout << ss.str();
-                exit(-1);
-            }
+            KRATOS_WATCH(rMaterialProperties.CharacteristicLength)
 
-            const double damage_parameter = 2.0 * characteristic_length /
-                (material_length - characteristic_length);
+            KRATOS_ERROR_IF(rMaterialProperties.CharacteristicLength >= material_length)
+                << "FRACTURE_ENERGY_TENSION is to low:  2*E*Gt/(ft*ft) = " << material_length
+                << ",   Characteristic Length = " << rMaterialProperties.CharacteristicLength << std::endl;
 
-            rDamageTension = 1.0 - initial_internal_variable / internal_variable *
+            const double damage_parameter = 2.0 * rMaterialProperties.CharacteristicLength /
+                (material_length - rMaterialProperties.CharacteristicLength);
+
+            rDamageTension = 1.0 - initial_treshold_tension / TresholdTension *
                 std::exp(damage_parameter *
-                (1.0 - internal_variable / initial_internal_variable));
+                (1.0 - TresholdTension / initial_treshold_tension));
 
-            const double internal_variable_min = 1.0e-2 * yield_tension;
-            if ((1.0 - rDamageTension) * internal_variable < internal_variable_min) {
-                rDamageTension = 1.0 - internal_variable_min / internal_variable;
+            const double min_treshold_tension = 1.0e-2 * yield_tension;
+            if ((1.0 - rDamageTension) * TresholdTension < min_treshold_tension) {
+                rDamageTension = 1.0 - min_treshold_tension / TresholdTension;
             }
         }
     }
     /***********************************************************************************/
     /***********************************************************************************/
     void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateDamageCompression(
-        CalculationData& data,
-        double internal_variable,
-        double& rDamageCompression)
+        const DirectionalMaterialProperties& rMaterialProperties,
+        const double TresholdCompression,
+        double& rDamageCompression) const
     {
-        if (internal_variable <= data.DamageOnsetStressCompression) {
+        if (TresholdCompression <= rMaterialProperties.ElasticLimitStressCompression) {
             rDamageCompression = 0.0;
         }
         else {
             // extract material parameters
-            const double young_modulus = data.E;
-            const double s_0 = data.DamageOnsetStressCompression;
-            const double s_p = data.YieldStressCompression;
-            const double s_r = data.ResidualStressCompression;
-            const double e_p = data.YieldStrainCompression;
-            const double c1 = data.BezierControllerC1;
-            const double c2 = data.BezierControllerC2;
-            const double c3 = data.BezierControllerC3;
-            const double specific_fracture_energy = data.FractureEnergyCompression / 
-                                                    data.CharacteristicLength;
+            const double young_modulus = rMaterialProperties.E;
+            const double s_0 = rMaterialProperties.ElasticLimitStressCompression;
+            const double s_p = rMaterialProperties.YieldStressCompression;
+            const double s_r = rMaterialProperties.ResidualStressCompression;
+            const double e_p = rMaterialProperties.YieldStrainCompression;
+            const double c1 = rMaterialProperties.BezierControllerC1;
+            const double c2 = rMaterialProperties.BezierControllerC2;
+            const double c3 = rMaterialProperties.BezierControllerC3;
+            const double specific_fracture_energy = rMaterialProperties.FractureEnergyCompression /
+                rMaterialProperties.CharacteristicLength;
 
             // Auto-computation of remaining constitutive law parameters
             const double s_k = s_r + (s_p - s_r) * c1;
@@ -724,22 +759,18 @@ namespace Kratos
             const double stretcher = (specific_fracture_energy - bezier_energy_1) /
                                      (bezier_fracture_energy - bezier_energy_1) - 1.0;
 
-            if(stretcher <= -1.0){
-                std::stringstream ss;
-                ss << "Damage TC Error: Compressive fracture energy is too low" << std::endl;
-                ss << "Input Gc/lch = " << specific_fracture_energy << std::endl;
-                ss << "Minimum Gc to avoid constitutive snap-back = " << bezier_energy_1 << std::endl;
-                std::cout << ss.str();
-                exit(-1);
-                }
+            KRATOS_ERROR_IF(stretcher <= -1.0)
+                << "Damage TC Error: Compressive fracture energy is too low" << std::endl
+                << "Input Gc/lch = " << specific_fracture_energy << std::endl
+                << "Minimum Gc to avoid constitutive snap-back = " << bezier_energy_1 << std::endl;
 
             this->ApplyBezierStretcherToStrains(stretcher, e_p, e_j, e_k, e_r, e_u);
 
             // current abscissa
-            const double strain_like_counterpart = internal_variable / young_modulus;
+            const double strain_like_counterpart = TresholdCompression / young_modulus;
 
             // compute damage
-            double damage_variable = internal_variable;
+            double damage_variable = TresholdCompression;
             if (strain_like_counterpart <= e_p) {
                 this->EvaluateBezierCurve(damage_variable, strain_like_counterpart, e_0, e_i, e_p, s_0, s_p, s_p);
             }
@@ -752,14 +783,15 @@ namespace Kratos
             else {
                 damage_variable = s_r;
             }
-            rDamageCompression = 1.0 - damage_variable / internal_variable;
+            rDamageCompression = 1.0 - damage_variable / TresholdCompression;
         }
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ComputeBezierEnergy(double& rBezierEnergy, double& rBezierEnergy1,
+    inline void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ComputeBezierEnergy(
+        double& rBezierEnergy, double& rBezierEnergy1,
         double s_p, double s_k, double s_r,
-        double e_p, double e_j, double e_k, double e_r, double e_u)
+        double e_p, double e_j, double e_k, double e_r, double e_u) const
     {
         rBezierEnergy1 = e_p * s_p / 2.0;
         double bezier_energy_2 = this->EvaluateBezierArea(e_p, e_j, e_k, s_p, s_p, s_k);
@@ -768,8 +800,8 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    double MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::EvaluateBezierArea(
-        double x1, double x2, double x3, double y1, double y2, double y3)
+    inline double MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::EvaluateBezierArea(
+        double x1, double x2, double x3, double y1, double y2, double y3) const
     {
         double bezier_area = x2 * y1 / 3.0 +
             x3 * y1 / 6.0 -
@@ -781,8 +813,8 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ApplyBezierStretcherToStrains(
-        double stretcher, double e_p, double& e_j, double& e_k, double& e_r, double& e_u)
+    inline void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ApplyBezierStretcherToStrains(
+        double stretcher, double e_p, double& e_j, double& e_k, double& e_r, double& e_u) const
     {
         e_j += (e_j - e_p) * stretcher;
         e_k += (e_k - e_p) * stretcher;
@@ -791,10 +823,10 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::EvaluateBezierCurve(
+    inline void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::EvaluateBezierCurve(
         double& rDamageParameter, double xi,
         double x1, double x2, double x3,
-        double y1, double y2, double y3)
+        double y1, double y2, double y3) const
     {
         double bezier_law_param_A = x1 - 2.0 * x2 + x3;
         double bezier_law_param_B = 2.0 * (x2 - x1);
@@ -816,134 +848,87 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ComputeCharacteristicLength(
+    double MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::ComputeCharacteristicLength(
         const GeometryType& rGeometry,
-        double& rCharacteristicLength)
+        int DirectionIndex)
     {
-        //rCharacteristicLength = geom.Length();
-//
-//#ifdef OPTIMIZE_CHARACTERISTIC_LENGTH
-        //if (geom.WorkingSpaceDimension() == 2 && geom.PointsNumber() == 4) {
-            //2D Element with 4 Nodes
-            //double aX = (geom[0].X0() + geom[2].X0()) / 2.0;  //center_coord_X_Node1Node4
-            //double aY = (geom[0].Y0() + geom[2].Y0()) / 2.0;  //center_coord_Y_Node1Node4
-            //double bX = (geom[1].X0() + geom[3].X0()) / 2.0;  //center_coord_X_Node2Node3
-            //double bY = (geom[1].Y0() + geom[3].Y0()) / 2.0;  //center_coord_Y_Node2Node3
-            //double cX = (geom[0].X0() + geom[1].X0()) / 2.0;  //center_coord_X_Node1Node2
-            //double cY = (geom[0].Y0() + geom[1].Y0()) / 2.0;  //center_coord_Y_Node1Node2
-            //double dX = (geom[3].X0() + geom[2].X0()) / 2.0;  //center_coord_X_Node3Node4
-            //double dY = (geom[3].Y0() + geom[2].Y0()) / 2.0;  //center_coord_Y_Node3Node4
-
-            //double SabX = aX - bX;
-            //double SabY = aY - bY;
-            //double ScdX = cX - dX;
-            //double ScdY = cY - dY;
-
-            //double length_ab = std::sqrt(std::pow(SabX, 2) + std::pow(SabY, 2));
-            //double length_cd = std::sqrt(std::pow(ScdX, 2) + std::pow(ScdY, 2));
-
-            //KRATOS_WATCH(geom.size())
-
-            //KRATOS_WATCH(length_ab)
-            //    KRATOS_WATCH(length_cd)
-
-            //rCharacteristicLength = std::min(length_ab, length_cd);
-
-            double radius = 0.0;
-
-            const SizeType points_number = rGeometry.size();
-            array_1d<double, 3> center = rGeometry[0].Coordinates();
-            for (IndexType i_node = 1; i_node < points_number; ++i_node) {
-                center += rGeometry[i_node].Coordinates();
-            }
-            center /= static_cast<double>(points_number);
-
-            for (IndexType i_node = 0; i_node < points_number; ++i_node) {
-                const array_1d<double, 3>& aux_vector = center - rGeometry[i_node].Coordinates();
-                double aux_value = inner_prod(aux_vector, aux_vector);
-                if (aux_value > radius) radius = aux_value;
-            }
-
-            rCharacteristicLength = std::sqrt(radius);
-        //}
-//#endif
+        array_1d<double, 3> characteristic_lengthness;
+        rGeometry.Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_lengthness);
+        SizeType polynomial_degree = rGeometry.PolynomialDegree(0);
+        return characteristic_lengthness[DirectionIndex] / std::sqrt(polynomial_degree);
     }
     /***********************************************************************************/
     /***********************************************************************************/
     void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateMaterialResponseInternal(
-        const Vector StrainVectorIso,
-        Vector& PredictiveStressVector,
+        const Vector& rStrainVectorIsotropic,
+        Vector& rPredictiveStressVector,
         CalculationData& data,
         int IntegrationImplex)
     {
-        if (PredictiveStressVector.size() != VoigtSize)
-            PredictiveStressVector.resize(VoigtSize, false);
+        //if (rPredictiveStressVector.size() != VoigtSize)
+        //    rPredictiveStressVector.resize(VoigtSize, false);
 
-        ///////////////////////////////////////////////////////////////////////////
-        /// WHY
-        mThresholdTension = mCurrentThresholdTension;
-        mThresholdCompression = mCurrentThresholdCompression;
+        //mThresholdTension = mCurrentThresholdTension;
+        //mThresholdCompression = mCurrentThresholdCompression;
 
-        //Vector StrainVectorIso = prod(data.TransformationMatrix, StrainVector);
+        //noalias(data.EffectiveStressVector) = prod(data.ElasticityMatrix, rStrainVectorIsotropic);
 
-        noalias(data.EffectiveStressVector) = prod(data.ElasticityMatrix, StrainVectorIso);
+        //if (std::abs(data.EffectiveStressVector(0)) < tolerance) { data.EffectiveStressVector(0) = 0.0; }
+        //if (std::abs(data.EffectiveStressVector(1)) < tolerance) { data.EffectiveStressVector(1) = 0.0; }
+        //if (std::abs(data.EffectiveStressVector(2)) < tolerance) { data.EffectiveStressVector(2) = 0.0; }
 
-        if (std::abs(data.EffectiveStressVector(0)) < tolerance) { data.EffectiveStressVector(0) = 0.0; }
-        if (std::abs(data.EffectiveStressVector(1)) < tolerance) { data.EffectiveStressVector(1) = 0.0; }
-        if (std::abs(data.EffectiveStressVector(2)) < tolerance) { data.EffectiveStressVector(2) = 0.0; }
+        //this->TensionCompressionSplit(data);
+        //this->ConstructProjectionTensors(data);
 
-        this->TensionCompressionSplit(data);
-        this->ConstructProjectionTensors(data);
+        //// compute the equivalent stress measures
+        //this->CalculateEquivalentStressTension(data, data.MaterialProperties1, mUniaxialStressTension);
 
-        // compute the equivalent stress measures
-        this->CalculateEquivalentStressTension(data, UniaxialStressTension);
+        //this->CalculateEquivalentStressCompression(data, data.MaterialProperties1, mUniaxialStressCompression);
 
-        this->CalculateEquivalentStressCompression(data, UniaxialStressCompression);
+        //// damage update
+        //if (IntegrationImplex != 0) { //IMPLEX Integration
+        //    // time factor
+        //    double time_factor = 0.0;
+        //    if (PreviousDeltaTime > 0.0) time_factor = data.DeltaTime / PreviousDeltaTime;
+        //    CurrentDeltaTime = data.DeltaTime;
 
-        // damage update
-        if (IntegrationImplex != 0) { //IMPLEX Integration
-            // time factor
-            double time_factor = 0.0;
-            if (PreviousDeltaTime > 0.0) time_factor = data.DeltaTime / PreviousDeltaTime;
-            CurrentDeltaTime = data.DeltaTime;
+        //    // explicit evaluation
+        //    mThresholdTension = mCurrentThresholdTension + time_factor * (mCurrentThresholdTension - PreviousThresholdTension);
+        //    mThresholdCompression = mCurrentThresholdCompression + time_factor * (mCurrentThresholdCompression - PreviousThresholdCompression);
 
-            // explicit evaluation
-            mThresholdTension = mCurrentThresholdTension + time_factor * (mCurrentThresholdTension - PreviousThresholdTension);
-            mThresholdCompression = mCurrentThresholdCompression + time_factor * (mCurrentThresholdCompression - PreviousThresholdCompression);
+        //    // save implicit variables for the finalize_solution_step
+        //    double implicit_threshold_tension = mCurrentThresholdTension;
+        //    double implicit_threshold_compression = mCurrentThresholdCompression;
 
-            // save implicit variables for the finalize_solution_step
-            double implicit_threshold_tension = mCurrentThresholdTension;
-            double implicit_threshold_compression = mCurrentThresholdCompression;
+        //    if (mUniaxialStressTension > implicit_threshold_tension)
+        //        implicit_threshold_tension = mUniaxialStressTension;
 
-            if (UniaxialStressTension > implicit_threshold_tension)
-                implicit_threshold_tension = UniaxialStressTension;
+        //    if (mUniaxialStressCompression > implicit_threshold_compression)
+        //        implicit_threshold_compression = mUniaxialStressCompression;
 
-            if (UniaxialStressCompression > implicit_threshold_compression)
-                implicit_threshold_compression = UniaxialStressCompression;
+        //    TemporaryImplicitThresholdTension = implicit_threshold_tension;
+        //    TemporaryImplicitThresholdTCompression = implicit_threshold_compression;
 
-            TemporaryImplicitThresholdTension = implicit_threshold_tension;
-            TemporaryImplicitThresholdTCompression = implicit_threshold_compression;
+        //    // new damage variables (explicit)
+        //    this->CalculateDamageTension(data.MaterialProperties1, mThresholdTension, mDamageTension);
+        //    this->CalculateDamageCompression(data.MaterialProperties1, mThresholdCompression, mDamageCompression);
+        //} // IMPLICIT Integration
+        //else {
+        //    if (mUniaxialStressTension > mThresholdTension)
+        //        mThresholdTension = mUniaxialStressTension;
+        //    this->CalculateDamageTension(data.MaterialProperties1, mThresholdTension, mDamageTension);
 
-            // new damage variables (explicit)
-            this->CalculateDamageTension(data, mThresholdTension, mDamageTension);
-            this->CalculateDamageCompression(data, mThresholdCompression, mDamageCompression);
-        }
-        else { // IMPLICIT Integration
-            if (UniaxialStressTension > mThresholdTension)
-                mThresholdTension = UniaxialStressTension;
-            this->CalculateDamageTension(data, mThresholdTension, mDamageTension);
+        //    if (mUniaxialStressCompression > mThresholdCompression)
+        //        mThresholdCompression = mUniaxialStressCompression;
+        //    this->CalculateDamageCompression(data.MaterialProperties1, mThresholdCompression, mDamageCompression);
 
-            if (UniaxialStressCompression > mThresholdCompression)
-                mThresholdCompression = UniaxialStressCompression;
-            this->CalculateDamageCompression(data, mThresholdCompression, mDamageCompression);
+        //    mCurrentThresholdTension = mThresholdTension;
+        //    mCurrentThresholdCompression = mThresholdCompression;
+        //}
 
-            mCurrentThresholdTension = mThresholdTension;
-            mCurrentThresholdCompression = mThresholdCompression;
-        }
-
-        // calculation of isotropic stress tensor
-        noalias(PredictiveStressVector) = (1.0 - mDamageTension) * data.EffectiveTensionStressVector;
-        noalias(PredictiveStressVector) += (1.0 - mDamageCompression) * data.EffectiveCompressionStressVector;
+        //// calculation of isotropic stress tensor
+        //noalias(rPredictiveStressVector) = (1.0 - mDamageTension) * data.EffectiveTensionStressVector;
+        //noalias(rPredictiveStressVector) += (1.0 - mDamageCompression) * data.EffectiveCompressionStressVector;
     }
     /***********************************************************************************/
     /***********************************************************************************/
@@ -951,8 +936,8 @@ namespace Kratos
         bool& is_damaging_tension,
         bool& is_damaging_compression)
     {
-        const double F_tension = UniaxialStressTension - mCurrentThresholdTension;
-        const double F_compression = UniaxialStressCompression - mCurrentThresholdCompression;
+        const double F_tension = mUniaxialStressTension - mCurrentThresholdTension;
+        const double F_compression = mUniaxialStressCompression - mCurrentThresholdCompression;
 
         is_damaging_tension = (F_tension > 0.0)
             ? true : false;
@@ -963,10 +948,10 @@ namespace Kratos
     /***********************************************************************************/
     void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateTangentTensor(
         Parameters& rValues,
-        Vector StrainVector,
-        Vector PredictiveStressVector,
+        const array_1d<double, 3>& rStrainVector,
+        const array_1d<double, 3>& rPredictiveStressVector,
         CalculationData& data,
-        Properties props)
+        int IntegrationImplex)
     {
         // prepare constitutive matrix
         Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
@@ -978,8 +963,8 @@ namespace Kratos
         double save_threshold_compression = mThresholdCompression;
         double save_damage_tension = mDamageTension;
         double save_damage_compression = mDamageCompression;
-        double save_uniaxial_stress_tension = UniaxialStressTension;
-        double save_uniaxial_stress_compression = UniaxialStressCompression;
+        double save_uniaxial_stress_tension = mUniaxialStressTension;
+        double save_uniaxial_stress_compression = mUniaxialStressCompression;
 
         // perturbation parameter
         double perturbation_factor = 1.0E-8;
@@ -991,18 +976,18 @@ namespace Kratos
         // apply perturbation to each strain component...
         for (size_t j = 0; j < VoigtSize; j++)
         {
-            noalias(perturbated_strain_vector) = StrainVector;
+            noalias(perturbated_strain_vector) = rStrainVector;
 
-            perturbated_strain_vector(j) = StrainVector(j) + perturbation_factor;
-            int integration_implex = props[INTEGRATION_IMPLEX];
-            this->CalculateMaterialResponseInternal(
-                perturbated_strain_vector,
-                perturbated_stress_vector,
-                data,
-                integration_implex);
+            perturbated_strain_vector(j) = rStrainVector(j) + perturbation_factor;
+            int integration_implex = IntegrationImplex;
+            //this->CalculateMaterialResponseInternal(
+            //    perturbated_strain_vector,
+            //    perturbated_stress_vector,
+            //    data,
+            //    integration_implex);
 
             for (size_t i = 0; i < VoigtSize; i++)
-                constitutive_matrix(i, j) = (perturbated_stress_vector(i) - PredictiveStressVector(i)) /
+                constitutive_matrix(i, j) = (perturbated_stress_vector(i) - rPredictiveStressVector(i)) /
                 perturbation_factor;
         }
 
@@ -1011,14 +996,15 @@ namespace Kratos
         mThresholdCompression = save_threshold_compression;
         mDamageTension = save_damage_tension;
         mDamageCompression = save_damage_compression;
-        UniaxialStressTension = save_uniaxial_stress_tension;
-        UniaxialStressCompression = save_uniaxial_stress_compression;
+        mUniaxialStressTension = save_uniaxial_stress_tension;
+        mUniaxialStressCompression = save_uniaxial_stress_compression;
     }
     /***********************************************************************************/
     /***********************************************************************************/
     void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::CalculateSecantTensor(
         Parameters& rParameters,
-        CalculationData& data)
+        const Matrix& rElasticityMatrix,
+        const CalculationData& data)
     {
         Matrix& constitutive_matrix = rParameters.GetConstitutiveMatrix();
         if (constitutive_matrix.size1() != VoigtSize || constitutive_matrix.size2() != VoigtSize)
@@ -1028,7 +1014,7 @@ namespace Kratos
         noalias(DamageMatrix) -= mDamageTension * data.ProjectionTensorTension;
         noalias(DamageMatrix) -= mDamageCompression * data.ProjectionTensorCompression;
 
-        noalias(constitutive_matrix) = prod(DamageMatrix, data.ElasticityMatrix);
+        noalias(constitutive_matrix) = prod(DamageMatrix, rElasticityMatrix);
     }
 
 } // namespace Kratos
