@@ -226,6 +226,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
 void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(double Increment)
 {
     auto& r_process_info = mrModelPart.GetProcessInfo();
+    std::vector<bool> cycle_identifier;
     std::vector<int>  local_number_of_cycles;
     std::vector<int>  global_number_of_cycles;
     std::vector<double> period;
@@ -236,26 +237,35 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(double Increment)
     const unsigned int number_of_ip = r_elem->GetGeometry().IntegrationPoints(r_elem->GetIntegrationMethod()).size();
 
     for (auto& r_elem : mrModelPart.Elements()) {
+        r_elem.CalculateOnIntegrationPoints(CYCLE_INDICATOR, cycle_identifier, r_process_info);
         r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, r_process_info);
         r_elem.CalculateOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
         r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, r_process_info);
         r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, r_process_info);
 
-        for (unsigned int i = 0; i < number_of_ip; i++){
-            unsigned int local_cycles_increment;
-            if (period[i] == 0.0) {
-                local_cycles_increment = 0;
-            } else {
-                local_cycles_increment = std::trunc(Increment / period[i]);
-                time_increment = std::trunc(Increment / period[i]) * period[i];
-                previous_cycle_time[i] += time_increment;
+        // Check if the HCF CL is being used. Otherwise there is no reason for entering into the advance in time strategy
+        std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
+        r_elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_process_info);
+
+        const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
+
+        if (is_fatigue){
+            for (unsigned int i = 0; i < number_of_ip; i++){
+                unsigned int local_cycles_increment;
+                if (period[i] == 0.0) {
+                    local_cycles_increment = 0;
+                } else {
+                    local_cycles_increment = std::trunc(Increment / period[i]);
+                    time_increment = std::trunc(Increment / period[i]) * period[i];
+                    previous_cycle_time[i] += time_increment;
+                }
+                local_number_of_cycles[i] += local_cycles_increment;
+                global_number_of_cycles[i] += local_cycles_increment;
             }
-            local_number_of_cycles[i] += local_cycles_increment;
-            global_number_of_cycles[i] += local_cycles_increment;
+            r_elem.SetValuesOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, r_process_info);
+            r_elem.SetValuesOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
+            r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, r_process_info);
         }
-        r_elem.SetValuesOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, r_process_info);
-        r_elem.SetValuesOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
-        r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, r_process_info);
     }
     r_process_info[TIME_INCREMENT] = time_increment;
 
