@@ -88,16 +88,16 @@ public:
         mInitialF.resize(TDim, TDim, false);
 
         if (InitialStateType == 0) {
-            noalias(mInitialStrain) = InitialStateType;
+            noalias(mInitialStrain) = rInitialStateVector;
             noalias(mInitialStress) = ZeroVector(voigt_size);
         } else if (InitialStateType == 1) {
             noalias(mInitialStrain) = ZeroVector(voigt_size);
-            noalias(mInitialStress) = InitialStateType;
+            noalias(mInitialStress) = rInitialStateVector;
         } else {
             noalias(mInitialStrain) = ZeroVector(voigt_size);
             noalias(mInitialStress) = ZeroVector(voigt_size);
         }
-        noalias(mInitialF)      = ZeroMatrix(TDim, TDim);
+        noalias(mInitialF) = ZeroMatrix(TDim, TDim);
     }
 
     /// Constructor with imposed F.
