@@ -547,13 +547,13 @@ public:
      */
     void SetInitialState(InitialState& rInitialState)
     {
-        mpInitialState = &rInitialState;
+        mpInitialState = Kratos::make_shared<InitialState>(rInitialState);
     }
 
     /**
      * @return The initial state of strains/stresses/F
      */
-    InitialState* pGetpInitialState()
+    InitialState::Pointer pGetpInitialState()
     {
         return mpInitialState;
     }
@@ -1347,7 +1347,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    InitialState* mpInitialState = nullptr;
+    InitialState::Pointer mpInitialState = nullptr;
 
     ///@}
     ///@name Private Operators

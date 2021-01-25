@@ -160,11 +160,9 @@ public:
             if (it_elem->GetGeometry().Has(INITIAL_DEFORMATION_GRADIENT_MATRIX)) {
                 noalias(aux_initial_F) = (it_elem->GetGeometry()).GetValue(INITIAL_DEFORMATION_GRADIENT_MATRIX);
             }
-            
             InitialState initial_state = InitialState(aux_initial_strain, aux_initial_strain, aux_initial_F);
 
             // Assign the values to the GP of the element
-
             std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;
             it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, mrModelPart.GetProcessInfo());
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
