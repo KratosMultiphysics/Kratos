@@ -104,27 +104,7 @@ class Commander:
         self.process = None
         self.exitCode = 0
 
-    def RunMPITestSuit(self, application, path, num_processes, level, verbose, command, timer):
-        ''' Calls the script that will run the tests.
-
-        Input
-        -----
-        application: string
-            Name of the application that will be tested.
-
-        path: string
-            Absoulte path with the location of the application.
-
-        level: string
-            minimum level of the test that will be run if possible.
-
-        verbose: int
-            detail of the ouptut. The grater the verbosity level, the greater the detail will be.
-
-        command: string
-            command to be used to call the tests. Ex: Python, Python3, Runkratos
-
-        '''
+    def RunMPITestSuit(self, application, path, mpi_command, mpi_flags, num_processes_flag, num_processes, level, verbose, command, timer):
 
         if not level.startswith("mpi_"):
             raise Exception("Trying to run a serial suite!")
@@ -134,7 +114,7 @@ class Commander:
         test_script = path / Path("tests") / Path("test_{}.py".format(application))
 
         if Path.is_file(test_script):
-            full_command = "mpiexec --oversubscribe -np {} {} {} --using-mpi".format(num_processes, command, test_script)
+            full_command = "{} {} {} {} {} {} --using-mpi".format(mpi_command, mpi_flags, num_processes_flag, num_processes, command, test_script)
             try:
                 self.process = subprocess.Popen([
                     full_command,

@@ -11,21 +11,6 @@ from pathlib import Path
 if KM.IsDistributedRun():
     raise Exception("cannot be run with MPI!")
 
-def Usage():
-    ''' Prints the usage of the script '''
-
-    lines = [
-        'Usage:',
-        '\t python kratos_run_tests [-l level] [-v verbosity] [-a app1:[app2:...]]',  # noqa
-        'Options',
-        '\t -h, --help: Shows this command',
-        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
-        # '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
-        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
-        '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used',
-    ]
-    for l in lines:
-        print(l)
 
 def main():
     # Set default values
@@ -37,13 +22,15 @@ def main():
     parser.add_argument('-c', '--command', default=testing_utils.GetPython3Command())
     parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'])
     parser.add_argument('-v', '--verbosity', default=1, type=int, choices=[0, 1, 2])
-    # parser.add_argument('-a', '--applications', default=applications, choices=applications)
+    # parser.add_argument('-a', '--applications', default=applications, choices=applications) # TODO
     parser.add_argument('-n', '--processes', type=int, default=4)
+    parser.add_argument('-m', '--mpi_command', default="mpiexec")
+    parser.add_argument('-f', '--mpi_flags', default="")
+    parser.add_argument('-p', '--num_processes_flag', default="-np")
 
     try:
         args = parser.parse_args()
     except:
-        Usage()
         sys.exit(2)
 
     # Set timeout of the different levels
@@ -66,6 +53,9 @@ def main():
         commander.RunMPITestSuit(
             'KratosMPICore',
             Path(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()))/"kratos"/"mpi",
+            args.mpi_command,
+            args.mpi_flags,
+            args.num_processes_flag,
             args.processes,
             level,
             args.verbosity,
@@ -84,6 +74,9 @@ def main():
             commander.RunMPITestSuit(
                 application+"_mpi",
                 Path(KM.KratosPaths.kratos_applications) / application,
+                args.mpi_command,
+                args.mpi_flags,
+                args.num_processes_flag,
                 args.processes,
                 level,
                 args.verbosity,
