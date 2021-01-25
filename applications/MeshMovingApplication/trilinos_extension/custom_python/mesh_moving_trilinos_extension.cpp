@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela
+//  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
 
 #ifdef KRATOS_PYTHON
@@ -18,7 +18,7 @@
 namespace Kratos {
 namespace Python {
 
-PYBIND11_MODULE(KratosMeshMovingTrilinosExtension,m)
+PYBIND11_MODULE(KratosMeshMovingTrilinosExtension, m)
 {
     AddMeshMovingStrategies(m);
 }
