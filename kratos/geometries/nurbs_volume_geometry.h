@@ -729,7 +729,7 @@ public:
                 N, shape_function_derivatives);
 
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                this->WorkingSpaceDimension(), 3, data_container, nonzero_control_points);
+                this->WorkingSpaceDimension(), 3, data_container, nonzero_control_points, this);
         }
     }
 
