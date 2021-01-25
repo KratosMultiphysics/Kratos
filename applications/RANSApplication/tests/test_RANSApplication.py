@@ -101,7 +101,7 @@ def AssembleTestSuites():
     nightSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcTkeSteady"))
     nightSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocitySteady"))
     nightSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcTkeTransient"))
-    nightSuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcTkeTransient"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocitySteady"))
 
     # adding fractional step k-omega-sst high re tests
     nightSuite.addTest(FractionalStepKOmegaSSTTest("testVMSAfcTkeSteady"))
