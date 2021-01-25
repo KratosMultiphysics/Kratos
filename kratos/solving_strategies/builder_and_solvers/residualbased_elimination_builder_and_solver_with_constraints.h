@@ -1159,7 +1159,6 @@ protected:
 
         // Assemble the constraints
         const auto timer = BuiltinTimer();
-        const double start_build = timer.ElapsedSeconds();
 
         // We get the global T matrix
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -1209,8 +1208,7 @@ protected:
         auxiliar_A_matrix.resize(0, 0, false);
         T_transpose_matrix.resize(0, 0, false);
 
-        const double stop_build = timer.ElapsedSeconds();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << timer.ElapsedSeconds() << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building with constraints" << std::endl;
 
@@ -1234,7 +1232,6 @@ protected:
 
         // Assemble the constraints
         const auto timer = BuiltinTimer();
-        const double start_build = timer.ElapsedSeconds();
 
         // We get the global T matrix
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -1277,8 +1274,7 @@ protected:
         // Final multiplication
         TSparseSpace::Mult(T_transpose_matrix, rb_copy, rb);
 
-        const double stop_build = timer.ElapsedSeconds();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << timer.ElapsedSeconds() << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building with constraints" << std::endl;
 

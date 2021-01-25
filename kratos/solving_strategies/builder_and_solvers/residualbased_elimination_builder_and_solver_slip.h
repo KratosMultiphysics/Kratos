@@ -210,7 +210,6 @@ public:
         //create a partition of the element array
         int number_of_threads = ParallelUtilities::GetNumThreads();
         const auto timer = BuiltinTimer();
-        double start_prod = timer.ElapsedSeconds();
 
 #ifdef _OPENMP
 
@@ -338,11 +337,8 @@ public:
             }
         }
 
-
-        if (this->GetEchoLevel() > 0)
-        {
-            double stop_prod = timer.ElapsedSeconds();
-            std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
+        if (this->GetEchoLevel() > 0) {
+            std::cout << "parallel building time: " << timer.ElapsedSeconds() << std::endl;
         }
 
 #ifdef _OPENMP
@@ -839,7 +835,6 @@ protected:
         CreatePartition(number_of_threads, pElements.size(), element_partition);
 
         const auto timer = BuiltinTimer();
-        double start_prod = timer.ElapsedSeconds();
 
         unsigned int pos = (r_model_part.Nodes().begin())->GetDofPosition(rLocalVar);
 
@@ -928,10 +923,8 @@ protected:
             }
         }
 
-        if (this->GetEchoLevel() > 0)
-        {
-            double stop_prod = timer.ElapsedSeconds();
-            std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
+        if (this->GetEchoLevel() > 0) {
+            std::cout << "parallel building time: " << timer.ElapsedSeconds() << std::endl;
         }
 
         KRATOS_CATCH("")

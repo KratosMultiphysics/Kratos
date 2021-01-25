@@ -219,7 +219,6 @@ public:
         }
 
         const auto timer = BuiltinTimer();
-        double start_prod = timer.ElapsedSeconds();
 
         #pragma omp parallel for firstprivate(number_of_threads) schedule(static,1)
         for(int k=0; k<number_of_threads; k++)
@@ -303,10 +302,8 @@ public:
 #endif
             }
         }
-        if (this->GetEchoLevel()>0)
-        {
-            double stop_prod = timer.ElapsedSeconds();
-            std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
+        if (this->GetEchoLevel()>0) {
+            std::cout << "parallel building time: " << timer.ElapsedSeconds() << std::endl;
         }
 
 #ifdef _OPENMP
