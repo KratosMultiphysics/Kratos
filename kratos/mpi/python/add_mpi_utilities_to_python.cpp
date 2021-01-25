@@ -22,6 +22,7 @@
 #include "mpi/utilities/data_communicator_factory.h"
 #include "mpi/utilities/gather_modelpart_utility.h"
 #include "mpi/utilities/mpi_normal_calculation_utilities.h"
+#include "mpi/utilities/distributed_model_part_initializer.h"
 
 namespace Kratos {
 namespace Python {
@@ -73,12 +74,16 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
              &GatherModelPartUtility::ScatterFromMaster<array_1d<double, 3>>);
 
     py::class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer>(m,"MPINormalCalculationUtils")
-    .def(py::init<>())
-    .def("Check",&MPINormalCalculationUtils::Check)
-    .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
-    .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
-    ;
+        .def(py::init<>())
+        .def("Check",&MPINormalCalculationUtils::Check)
+        .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
+        .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
+        ;
 
+    py::class_<DistributedModelPartInitializer>(m, "DistributedModelPartInitializer")
+        .def(py::init<ModelPart&, int>())
+        .def("Execute", &DistributedModelPartInitializer::Execute)
+        ;
 }
 
 } // namespace Python

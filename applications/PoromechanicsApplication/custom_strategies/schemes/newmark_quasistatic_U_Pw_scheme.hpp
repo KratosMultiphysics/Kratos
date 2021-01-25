@@ -277,7 +277,7 @@ public:
                 ModelPart::NodesContainerType::iterator itNode = node_begin + i;
 
                 itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-                Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+                Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
                 if(rNodalStress.size1() != Dim)
                     rNodalStress.resize(Dim,Dim,false);
                 noalias(rNodalStress) = ZeroMatrix(Dim,Dim);
@@ -299,7 +299,7 @@ public:
                 if (NodalArea>1.0e-20)
                 {
                     const double InvNodalArea = 1.0/NodalArea;
-                    Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+                    Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
                     for(unsigned int i = 0; i<Dim; i++)
                     {
                         for(unsigned int j = 0; j<Dim; j++)
