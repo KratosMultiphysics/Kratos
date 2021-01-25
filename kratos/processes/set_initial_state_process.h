@@ -99,7 +99,7 @@ public:
     void ExecuteInitializeSolutionStep() override
     {
         const auto it_elem_begin = mrModelPart.ElementsBegin();
-        const auto& integration_points = it_elem_begin->GetGeometry().IntegrationPoints(it_elem_begin->GetIntegrationMethod());
+        const auto& r_integration_points = it_elem_begin->GetGeometry().IntegrationPoints(it_elem_begin->GetIntegrationMethod());
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
@@ -126,7 +126,7 @@ public:
 
             std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;
             it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, mrModelPart.GetProcessInfo());
-            for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
                 constitutive_law_vector[point_number]->SetInitialState(initial_state);
             }
         }
