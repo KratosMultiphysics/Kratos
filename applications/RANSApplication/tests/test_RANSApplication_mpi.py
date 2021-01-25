@@ -53,6 +53,9 @@ def AssembleTestSuites():
     # add symbolic mpi small tests for mpi small suite
     # smallMPISuite.addTest(FractionalStepKOmegaSSTTest("testRfcVelocityTransient"))
     # smallMPISuite.addTest(MonolithicKOmegaSSTTest("testRfcVelocityTransient"))
+    smallMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcVelocityTransient"))
+    smallMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocityTransient"))
+    smallMPISuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocityTransient"))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
