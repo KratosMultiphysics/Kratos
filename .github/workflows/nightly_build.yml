@@ -67,7 +67,7 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        export LD_LIBRARY_PATH=/external_libraries/mmg/mmg_5_5_1/lib:/external_libraries/ParMmg_5ffc6ad/lib:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         mpiexec -np 2 python3 applications/MultilevelMonteCarloApplication/tests/test_MultilevelMonteCarloApplication_mpi.py -l nightly --using-mpi
 
     - name: Running MPI Python MultilevelMonteCarloApplication (3 Cores)
@@ -75,7 +75,7 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        export LD_LIBRARY_PATH=/external_libraries/mmg/mmg_5_5_1/lib:/external_libraries/ParMmg_5ffc6ad/lib:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         mpiexec --oversubscribe -np 3 python3 applications/MultilevelMonteCarloApplication/tests/test_MultilevelMonteCarloApplication_mpi.py -l nightly --using-mpi
 
     - name: Running MPI Python MultilevelMonteCarloApplication (4 Cores)
@@ -83,7 +83,7 @@ jobs:
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        export LD_LIBRARY_PATH=/external_libraries/mmg/mmg_5_5_1/lib:/external_libraries/ParMmg_5ffc6ad/lib:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         mpiexec --oversubscribe -np 4 python3 applications/MultilevelMonteCarloApplication/tests/test_MultilevelMonteCarloApplication_mpi.py -l nightly --using-mpi
 
   windows-nightly:
