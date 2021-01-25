@@ -19,6 +19,7 @@
 
 // Project includes
 #include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
+#include "unordered_map"
 
 namespace Kratos
 {
@@ -115,6 +116,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    const std::unordered_map<size_t, size_t> edge_id_for_ratio = {{0,0},{1,2},{2,3},{3,1},{4,4},{5,5}};
 
     ///@}
     ///@name Protected Operators
