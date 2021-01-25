@@ -33,7 +33,7 @@ jobs:
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=gcc
           export CXX=g++
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_4d272bb -DINCLUDE_PMMG=ON"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
