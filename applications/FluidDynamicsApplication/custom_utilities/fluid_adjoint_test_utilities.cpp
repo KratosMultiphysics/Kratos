@@ -321,8 +321,8 @@ void FluidAdjointTestUtilities::ContainerDataTypeUtilities<TContainerType, TData
     KRATOS_ERROR_IF(r_primal_process_info[DOMAIN_SIZE] != r_adjoint_process_info[DOMAIN_SIZE])
         << "Domain size mismatch in primal and adjoint model parts.\n";
 
-    Matrix adjoint_residual_derivatives;
-    Vector residual_ref, residual, fd_derivatives;
+    Matrix adjoint_residual_derivatives, adjoint_primal_lhs;
+    Vector residual_ref, residual, fd_derivatives, adjoint_primal_rhs;
 
     const auto& perturbation_method = DataTypeUtilities<TDataType>::GetPerturbationMethod(rVariable);
     const auto derivative_dimension = DataTypeUtilities<TDataType>::GetVariableDimension(rVariable, r_primal_process_info);
@@ -345,6 +345,13 @@ void FluidAdjointTestUtilities::ContainerDataTypeUtilities<TContainerType, TData
         // calculate primal reference residuals
         rUpdateModelPart(rPrimalModelPart);
         CalculateResidual(residual_ref, r_primal_element, r_primal_process_info);
+
+        r_adjoint_element.CalculateLocalSystem(
+            adjoint_primal_lhs, adjoint_primal_rhs, r_adjoint_process_info);
+        r_adjoint_element.CalculateLocalVelocityContribution(
+            adjoint_primal_lhs, adjoint_primal_rhs, r_adjoint_process_info);
+
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(residual_ref, adjoint_primal_rhs, Tolerance);
 
         // TODO : Remove these casts once non const versions of the followings are removed from
         // the element and condition base classes.
