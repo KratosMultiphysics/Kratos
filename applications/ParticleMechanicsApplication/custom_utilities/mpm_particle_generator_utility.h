@@ -484,7 +484,6 @@ namespace MPMParticleGeneratorUtility
                                 ProcessInfo process_info = ProcessInfo();
 
                                 // Setting particle condition's initial condition
-                                // TODO: If any variable is added or remove here, please add and remove also at the second loop below
                                 //p_condition->SetValuesOnIntegrationPoints(MPC_CONDITION_ID, mpc_condition_id, process_info);
                                 p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
                                 p_condition->SetValuesOnIntegrationPoints(MPC_AREA,  mpc_area  , process_info);
