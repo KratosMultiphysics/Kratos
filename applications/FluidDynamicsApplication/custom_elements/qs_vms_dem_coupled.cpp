@@ -159,15 +159,14 @@ void QSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
-    BoundedMatrix<double,Dim,Dim> inv_permeability = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
     const auto& r_body_forces = rData.BodyForce;
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
 
     double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
-
-    BoundedMatrix<double,Dim,Dim> sigma = viscosity * inv_permeability;
+    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    sigma *= viscosity;
 
     for (unsigned int i = 0; i < NumNodes; i++) {
         const array_1d<double,Dim>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
@@ -193,12 +192,12 @@ void QSVMSDEMCoupled<TElementData>::MomentumProjTerm(
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
-    BoundedMatrix<double,Dim,Dim> inv_permeability = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
 
     double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
+    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
-    BoundedMatrix<double,Dim,Dim> sigma = viscosity * inv_permeability;
+    sigma *= viscosity;
 
     for (unsigned int i = 0; i < NumNodes; i++) {
         Vector sigma_U = ZeroVector(Dim);
@@ -238,12 +237,12 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
-    BoundedMatrix<double,Dim,Dim> inv_permeability = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
 
     double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
+    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
-    BoundedMatrix<double,Dim,Dim> sigma = viscosity * inv_permeability;
+    sigma *= viscosity;
 
     // Note: Dof order is (vx,vy,[vz,]p) for each node
     for (unsigned int i = 0; i < NumNodes; ++i)
@@ -324,12 +323,12 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
-    BoundedMatrix<double,Dim,Dim> inv_permeability = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
 
     double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
+    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
-    BoundedMatrix<double,Dim,Dim> sigma = viscosity * inv_permeability;
+    sigma *= viscosity;
 
     // Temporary containers
     double V, P, U, QAlpha, DAlphaD, DU, RSigma, ASigma, RRSigma, RSigmaA;
@@ -450,7 +449,7 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
-    BoundedMatrix<double,Dim,Dim> inv_permeability = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
     BoundedMatrix<double,Dim,Dim> non_diag_tau_one = ZeroMatrix(Dim, Dim);
     BoundedMatrix<double,Dim,Dim> inv_tau = ZeroMatrix(Dim, Dim);
     BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
@@ -458,14 +457,14 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
     BoundedMatrix<double,Dim,Dim> inv_eigen_matrix = ZeroMatrix(Dim, Dim);
 
     double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
+    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     double velocity_norm = Velocity[0]*Velocity[0];
     for (unsigned int d = 1; d < Dim; d++)
         velocity_norm += Velocity[d]*Velocity[d];
     velocity_norm = std::sqrt(velocity_norm);
 
-    inv_tau = (c1 * viscosity / (h*h) + density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / h )) * I + viscosity * inv_permeability;
+    inv_tau = (c1 * viscosity / (h*h) + density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / h )) * I + viscosity * sigma;
 
     double det_inv_tau = MathUtils<double>::Det(inv_tau);
     MathUtils<double>::InvertMatrix(inv_tau, non_diag_tau_one, det_inv_tau, -1.0);
