@@ -210,6 +210,11 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateLocalVelocityContribution(
+        MatrixType &rDampMatrix,
+        VectorType &rRightHandSideVector,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
     void CalculateFirstDerivativesLHS(
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
@@ -220,11 +225,11 @@ public:
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        const ProcessInfo& /*rCurrentProcessInfo*/) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        const ProcessInfo& /*rCurrentProcessInfo*/) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateSensitivityMatrix(
         const Variable<array_1d<double, 3>>& rSensitivityVariable,

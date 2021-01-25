@@ -323,8 +323,15 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateLocalSy
 {
     KRATOS_TRY
 
-    KRATOS_ERROR << "FluidAdjointElement::"
-                    "CalculateLocalSystem method is not implemented.";
+    // Resize and initialize output
+    if (rLeftHandSideMatrix.size1() != TElementLocalSize)
+        rLeftHandSideMatrix.resize(TElementLocalSize, TElementLocalSize, false);
+
+    if (rRightHandSideVector.size() != TElementLocalSize)
+        rRightHandSideVector.resize(TElementLocalSize, false);
+
+    rLeftHandSideMatrix.clear();
+    rRightHandSideVector.clear();
 
     KRATOS_CATCH("");
 }
@@ -351,6 +358,43 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateRightHa
 
     KRATOS_ERROR << "FluidAdjointElement::"
                     "CalculateRightHandSide method is not implemented.";
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
+void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateLocalVelocityContribution(
+    MatrixType &rDampMatrix,
+    VectorType &rRightHandSideVector,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(gauss_weights, shape_functions,
+                                shape_derivatives, TAdjointElementData::GetIntegrationMethod());
+
+    typename TAdjointElementData::Primal::Data element_data(*this, *mpFluidConstitutiveLaw);
+    typename TAdjointElementData::Primal::ResidualContributions residual_contributions(element_data);
+
+    residual_contributions.Initialize(rDampMatrix, rCurrentProcessInfo);
+    element_data.Initialize(rCurrentProcessInfo);
+
+    BoundedVector<double, TElementLocalSize> residual;
+    residual.clear();
+
+    for (IndexType g = 0; g < gauss_weights.size(); ++g) {
+        const Vector& N = row(shape_functions, g);
+        const Matrix& dNdX = shape_derivatives[g];
+        const double weight = gauss_weights[g];
+
+        element_data.CalculateGaussPointData(weight, N, dNdX);
+        residual_contributions.AddResidualContribution(residual, weight, N, dNdX);
+    }
+
+    noalias(rRightHandSideVector) = residual;
 
     KRATOS_CATCH("");
 }
@@ -392,12 +436,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateMassMat
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-
-    KRATOS_ERROR << "FluidAdjointElement::"
-                    "CalculateMassMatrix method is not implemented.";
-
-    KRATOS_CATCH("")
+    rMassMatrix.resize(0, 0);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
