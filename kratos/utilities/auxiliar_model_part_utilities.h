@@ -337,7 +337,7 @@ public:
         return data;
     }
 
-    /// To export a Vector data (std::vector/array/..)
+    /// To Export a Vector data (std::vector/array/..)
     template<class TDataType>
     std::vector<double> GetVectorData(
         const Variable<TDataType>& rVariable,
@@ -600,17 +600,6 @@ private:
     template<typename TDataType, class TContainerType>
     void GetVectorDataFromContainer(TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, std::vector<double>& data)
     {
-        /*
-        //Serial
-        IndexType counter = 0;
-        for(const auto& r_entity : rContainer){
-            const auto& r_val = r_entity.GetValue(rVariable);
-            for(int dim = 0 ; dim < TSize ; dim++){
-                    data[counter++] = r_val[dim];
-            }
-        }*/
-
-        //Parallel
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
             const auto& r_val = r_entity.GetValue(rVariable);
@@ -632,26 +621,15 @@ private:
     template<typename TDataType, class TContainerType>
     void SetVectorDataFromContainer(TContainerType& rContainer, const std::size_t size, const Variable<TDataType>& rVariable, const std::vector<double>& rData)
     {
-        //Sequential
-        IndexType counter = 0;
-        for(auto& r_entity : rContainer){
-            auto& r_val = r_entity.GetValue(rVariable);
-            KRATOS_DEBUG_ERROR_IF(r_val.size() != size) << "mismatch in size!" << std::endl;
-            for(int dim = 0 ; dim < size ; dim++){
-                r_val[dim] = rData[counter++];
-            }
-        }
-        /*
-        //Parallel
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
-            auto& r_val = r_entity.GetValue(rVariable);
-            KRATOS_DEBUG_ERROR_IF(r_val.size() != size) << "mismatch in size!" << std::endl;
+            TDataType aux;
+            KRATOS_DEBUG_ERROR_IF(aux.size() != size) << "mismatch in size!" << std::endl;
             for(int dim = 0 ; dim < size ; dim++){
-                r_val[dim] = rData[(size*index) + dim];
+                aux[dim] = rData[(size*index) + dim];
             }
+            r_entity.SetValue(rVariable, aux);
         });
-        */
     }
 
     // Only for SetScalarData()
