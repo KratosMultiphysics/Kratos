@@ -94,10 +94,19 @@ def AssembleTestSuites():
     # adding fractional step k-omega high re tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaTest]))
 
-    # adding monolithic k-omega high re tests
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaSSTTest]))
-    # adding fractional step k-omega high re tests
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaSSTTest]))
+    # adding monolithic k-omega-sst high re tests
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testAfcTkeSteady"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testAfcVelocitySteady"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testRfcTkeSteady"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testRfcVelocitySteady"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testRfcTkeTransient"))
+
+    # adding fractional step k-omega-sst high re tests
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testAfcTkeSteady"))
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testAfcVelocitySteady"))
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testRfcTkeSteady"))
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testRfcVelocitySteady"))
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testRfcTkeTransient"))
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']
