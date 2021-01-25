@@ -11,7 +11,7 @@ from test_structural_mesh_motion_3d import TestCase as TTestCaseStructural3D
 from test_laplacian_mesh_motion_2d import TestCase as TTestCaseLaplacian2D
 from test_laplacian_mesh_motion_3d import TestCase as TTestCaseLaplacian3D
 
-from test_ale_fluid_solver import ALEFluidSolverTest
+# from test_ale_fluid_solver import ALEFluidSolverTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
