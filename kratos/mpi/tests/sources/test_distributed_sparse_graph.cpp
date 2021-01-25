@@ -224,7 +224,6 @@ ElementConnectivityType RandomElementConnectivities(
     std::cout << std::endl;
     std::cout << "beginning generation" << std::endl;
     const auto timer = BuiltinTimer();
-    double start = timer.ElapsedSeconds();
     //generating random indices
     ElementConnectivityType connectivities((index_end-index_begin)*block_size);
 
@@ -258,8 +257,7 @@ ElementConnectivityType RandomElementConnectivities(
             }
         }
     }
-    double end_gen = timer.ElapsedSeconds();
-    std::cout << "finishing generation - time = " << end_gen-start << std::endl;
+    std::cout << "Finishing generation - time = " << timer.ElapsedSeconds() << std::endl;
 
     return connectivities;
 }
@@ -371,7 +369,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, 
                                 standard_dev);
     rComm.Barrier(); //to ensure fair timings
     auto timer =  BuiltinTimer();
-    double start_graph = timer.ElapsedSeconds();
     DistributedSparseGraph<DistTestingInternals::IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
     IndexPartition<DistTestingInternals::IndexType>(connectivities.size()).for_each([&](DistTestingInternals::IndexType i){
@@ -379,8 +376,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, 
     });
     Agraph.Finalize();
     rComm.Barrier(); //to ensure fair timings
-    double end_graph = timer.ElapsedSeconds();
-    std::cout << "graph - time = " << end_graph-start_graph << std::endl;
+    std::cout << "graph - time = " << timer.ElapsedSeconds() << std::endl;
 
 }
 
