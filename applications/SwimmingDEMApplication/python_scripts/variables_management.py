@@ -340,7 +340,7 @@ class VariablesManager:
         # fluid coupling variables
         self.coupling_fluid_vars = []
         self.coupling_fluid_vars += [Kratos.MATERIAL_ACCELERATION]
-        self.coupling_fluid_vars += [Kratos.MASS_SOURCE]
+        self.coupling_fluid_vars += [Fluid.MASS_SOURCE]
         self.coupling_fluid_vars += [SDEM.EXACT_VELOCITY]
         self.coupling_fluid_vars += [SDEM.VECTORIAL_ERROR]
         self.coupling_fluid_vars += [SDEM.ERROR_X]
