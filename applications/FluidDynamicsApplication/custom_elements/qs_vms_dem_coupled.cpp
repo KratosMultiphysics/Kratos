@@ -145,48 +145,6 @@ void QSVMSDEMCoupled<TElementData>::CalculateRightHandSide(
         QSVMS<TElementData>::CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
 
-template <class TElementData>
-Matrix QSVMSDEMCoupled<TElementData>::GetAtCoordinate(
-    const typename TElementData::NodalTensorData& rValues,
-    const typename TElementData::ShapeFunctionsType& rN) const
-{
-    Matrix result = ZeroMatrix(Dim, Dim);
-
-    for (size_t i = 0; i < NumNodes; i++) {
-        for (size_t j = 0; j < Dim; j++) {
-            for (size_t k = 0; k < Dim; k++) {
-                result(j, k) += rN[i] * rValues[i](j, k);
-            }
-        }
-    }
-
-    return result;
-}
-
-template <class TElementData>
-double QSVMSDEMCoupled<TElementData>::GetAtCoordinate(
-    const typename TElementData::NodalScalarData& rValues,
-    const typename TElementData::ShapeFunctionsType& rN) const
-{
-    return QSVMS<TElementData>::GetAtCoordinate(rValues, rN);
-}
-
-template <class TElementData>
-array_1d<double, 3> QSVMSDEMCoupled<TElementData>::GetAtCoordinate(
-    const typename TElementData::NodalVectorData& rValues,
-    const typename TElementData::ShapeFunctionsType& rN) const
-{
-    return QSVMS<TElementData>::GetAtCoordinate(rValues, rN);
-}
-
-template <class TElementData>
-double QSVMSDEMCoupled<TElementData>::GetAtCoordinate(
-    const double Value,
-    const typename TElementData::ShapeFunctionsType& rN) const
-{
-    return QSVMS<TElementData>::GetAtCoordinate(Value, rN);
-}
-
 template< class TElementData >
 void QSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     const TElementData& rData,

@@ -102,48 +102,6 @@ void DVMSDEMCoupled<TElementData>::PrintInfo(std::ostream& rOStream) const
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Evaluation of system terms on Gauss Points
 
-template <class TElementData>
-Matrix DVMSDEMCoupled<TElementData>::GetAtCoordinate(
-    const typename TElementData::NodalTensorData& rValues,
-    const typename TElementData::ShapeFunctionsType& rN) const
-{
-    Matrix result = ZeroMatrix(Dim,Dim);
-
-    for (size_t i = 0; i < NumNodes; i++) {
-        for (size_t j = 0; j < Dim; j++) {
-            for (size_t k = 0; k < Dim; k++) {
-                result(j, k) += rN[i] * rValues[i](j, k);
-            }
-        }
-    }
-
-    return result;
-}
-
-template <class TElementData>
-double DVMSDEMCoupled<TElementData>::GetAtCoordinate(
-    const typename TElementData::NodalScalarData& rValues,
-    const typename TElementData::ShapeFunctionsType& rN) const
-{
-    return DVMS<TElementData>::GetAtCoordinate(rValues, rN);
-}
-
-template <class TElementData>
-array_1d<double, 3> DVMSDEMCoupled<TElementData>::GetAtCoordinate(
-    const typename TElementData::NodalVectorData& rValues,
-    const typename TElementData::ShapeFunctionsType& rN) const
-{
-    return DVMS<TElementData>::GetAtCoordinate(rValues, rN);
-}
-
-template <class TElementData>
-double DVMSDEMCoupled<TElementData>::GetAtCoordinate(
-    const double Value,
-    const typename TElementData::ShapeFunctionsType& rN) const
-{
-    return DVMS<TElementData>::GetAtCoordinate(Value, rN);
-}
-
 template< class TElementData >
 void DVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     const TElementData& rData,

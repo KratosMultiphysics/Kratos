@@ -245,22 +245,6 @@ protected:
         const TElementData& rData,
         double& rMassRHS) const override;
 
-    virtual Matrix GetAtCoordinate(
-        const typename TElementData::NodalTensorData& rValues,
-        const typename TElementData::ShapeFunctionsType& rN) const;
-
-    virtual double GetAtCoordinate(
-        const typename TElementData::NodalScalarData& rValues,
-        const typename TElementData::ShapeFunctionsType& rN) const override;
-
-    virtual array_1d<double, 3> GetAtCoordinate(
-        const typename TElementData::NodalVectorData& rValues,
-        const typename TElementData::ShapeFunctionsType& rN) const override;
-
-    virtual double GetAtCoordinate(
-        const double Value,
-        const typename TElementData::ShapeFunctionsType& rN) const override;
-
     ///@}
     ///@name Protected  Access
     ///@{
