@@ -126,27 +126,25 @@ class Commander:
 
         '''
 
-        # TODO check if it is an mpi-test suite!
+        if not level.startswith("mpi_"):
+            raise Exception("Trying to run a serial suite!")
 
         self.exitCode = 0
 
         test_script = path / Path("tests") / Path("test_{}.py".format(application))
 
         if Path.is_file(test_script):
+            full_command = "mpiexec --oversubscribe -np {} {} {} --using-mpi".format(num_processes, command, test_script)
             try:
                 self.process = subprocess.Popen([
-                    "mpiexec --oversubscribe -np {} {} {} --using-mpi".format(
-                        num_processes,
-                        command,
-                        test_script),
+                    full_command,
                     '-l'+level,
                     '-v'+str(verbose)
                 ], shell=True,
                    stdout=subprocess.PIPE,
                    cwd=os.path.dirname(os.path.abspath(test_script)))
             except:
-                # TODO better error here
-                print('[Error]: Unable to execute {}'.format(command), file=sys.stderr)
+                print('[Error]: Unable to execute "{}"'.format(full_command), file=sys.stderr)
                 self.exitCode = 1
             else:
                 # Used instead of wait to "soft-block" the process and prevent deadlocks

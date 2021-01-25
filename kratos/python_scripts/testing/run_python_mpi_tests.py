@@ -46,9 +46,6 @@ def main():
         Usage()
         sys.exit(2)
 
-    # Keep the worst exit code
-    exit_code = 0
-
     # Set timeout of the different levels
     signalTime = None
     if args.level == 'small':
@@ -96,7 +93,6 @@ def main():
 
         testing_utils.PrintTestFooter(application, commander.exitCode)
         exit_codes[application] = commander.exitCode
-
 
     testing_utils.PrintTestSummary(exit_codes)
     sys.exit(max(exit_codes.values()))
