@@ -215,4 +215,7 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
         self.element_name = self.formulation.element_name
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
 
+        # TODO: at the moment, qs_vms with SLIP adjoints are not supported, only no slip is supported
+        #       because AdjointMonolithicWallCondition is based on nodal nu, where as QSVMS is based on
+        #       CLs. There need to update navier_stokes_wall_condition.h with adjoints
         self.condition_name = "AdjointMonolithicWallCondition"
