@@ -24,6 +24,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "utilities/intersection_utilities.h"
 
 
 namespace Kratos
