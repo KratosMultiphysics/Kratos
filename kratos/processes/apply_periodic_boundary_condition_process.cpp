@@ -147,7 +147,6 @@ template <int TDim>
 void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
 {
     const auto timer = BuiltinTimer();
-    const double start_apply = timer.ElapsedSeconds();
     const int num_vars = mParameters["variable_names"].size();
     BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(mrMasterModelPart);
     bin_based_point_locator.UpdateSearchDatabase();
@@ -187,8 +186,7 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
         }
     }
     KRATOS_WARNING_IF("ApplyPeriodicConditionProcess",num_slaves_found != mrSlaveModelPart.NumberOfNodes())<<"Periodic condition cannot be applied for all the nodes."<<std::endl;
-    const double end_apply = timer.ElapsedSeconds();
-    KRATOS_INFO("ApplyPeriodicConditionProcess")<<"Applying periodic boundary conditions took : "<<end_apply - start_apply<<" seconds." <<std::endl;
+    KRATOS_INFO("ApplyPeriodicConditionProcess")<<"Applying periodic boundary conditions took : "<< timer.ElapsedSeconds() <<" seconds." <<std::endl;
 }
 
 template <int TDim>
