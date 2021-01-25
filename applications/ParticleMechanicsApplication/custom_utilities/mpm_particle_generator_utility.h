@@ -340,11 +340,7 @@ namespace MPMParticleGeneratorUtility
                         // Get shape_function_values from defined particle_per_condition
                         const Geometry< Node < 3 > >& r_geometry = i->GetGeometry(); // current condition's geometry
 
-                        const GeometryData::KratosGeometryType geo_type = r_geometry.GetGeometryType();
                         Matrix shape_functions_values;
-
-                        // Get geometry and dimension of the background grid
-                        const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
                         // Get integration method and shape function values
                         IntegrationMethod int_method = GeometryData::GI_GAUSS_1;
@@ -474,8 +470,6 @@ namespace MPMParticleGeneratorUtility
                                 auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
                                     pelem->pGetGeometry(), mpc_xg[0],
                                     mpc_area[0]);
-                                
-
 
                                 // Create new material point condition
                                 new_condition_id = last_condition_id + point_number;
@@ -520,10 +514,6 @@ namespace MPMParticleGeneratorUtility
                             last_condition_id += integration_point_per_conditions;
 
                         }
-
-                        
-
-                        
 
                     }
 
