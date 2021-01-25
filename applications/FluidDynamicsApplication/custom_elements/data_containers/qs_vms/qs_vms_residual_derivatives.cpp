@@ -58,6 +58,90 @@ GeometryData::IntegrationMethod QSVMSResidualDerivatives<TDim, TNumNodes>::GetIn
     return GeometryData::GI_GAUSS_2;
 }
 
+
+template <unsigned int TDim, unsigned int TNumNodes>
+QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualContributions::ResidualContributions(
+    Data& rData)
+    : mrData(rData)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualContributions::Initialize(
+    Matrix& rOutput,
+    const ProcessInfo& rProcessInfo)
+{
+    mBlockSize = rOutput.size2() / TNumNodes;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualContributions::AddResidualContribution(
+    BoundedVector<double, TElementLocalSize>& rResidual,
+    const double W,
+    const Vector& rN,
+    const Matrix& rdNdX)
+{
+    for (IndexType a = 0; a < TNumNodes; ++a) {
+        const IndexType row = a * mBlockSize;
+
+        for (IndexType i = 0; i < TDim; ++i) {
+
+            double value = 0.0;
+
+            // Adding RHS derivative terms
+            value += W * rN[a] * mrData.mBodyForce[i]; // v*BodyForce
+            value += mrData.mDensity * W * mrData.mTauOne * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mBodyForce[i];
+            value -= mrData.mDensity * W * mrData.mTauOne * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mMomentumProjection[i];
+            value -= W * mrData.mTauTwo * rdNdX(a, i) * mrData.mMassProjection;
+
+            // Adding LHS derivative terms
+            value -= W * mrData.mDensity * rN[a] * mrData.mEffectiveVelocityDotVelocityGradient[i];
+            value -= W * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mTauOne * mrData.mDensity * mrData.mEffectiveVelocityDotVelocityGradient[i];
+            value -= W * mrData.mTauOne * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mPressureGradient[i];
+            value += W * rdNdX(a, i) * mrData.mPressure;
+            value -= W * mrData.mTauTwo * rdNdX(a, i) * mrData.mVelocityDotNabla;
+
+            // Adding Mass term derivatives
+            value -= W * mrData.mDensity * rN[a] * mrData.mRelaxedAcceleration[i];
+            value -= W * mrData.mTauOne * mrData.mDensity * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mRelaxedAcceleration[i];
+
+            rResidual[row + i] += value;
+        }
+
+        double value = 0.0;
+
+        const double forcing = mrData.mBodyForceDotDnDx[a] - mrData.mMomentumProjectionDotDnDx[a];
+        value += W * mrData.mTauOne * forcing;
+        value -= W * mrData.mTauOne * mrData.mDensity * mrData.mEffectiveVelocityDotVelocityGradientDotShapeGradient[a];
+        value -= W * rN[a] * mrData.mVelocityDotNabla;
+        value -= W * mrData.mTauOne * mrData.mPressureGradientDotDnDx[a];
+
+        // Adding mass term derivatives
+        value -=  W * mrData.mTauOne * mrData.mDensity * mrData.mRelaxedAccelerationDotDnDx[a];
+
+        rResidual[row + TDim] += value;
+    }
+
+    this->AddViscousTerms(rResidual, W);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualContributions::AddViscousTerms(
+    BoundedVector<double, TElementLocalSize>& rResidual,
+    const double W) const
+{
+    for (IndexType a = 0; a < TNumNodes; ++a) {
+        const IndexType row = a * mBlockSize;
+        const IndexType local_row = a * TBlockSize;
+
+        for (IndexType i = 0; i < TDim; ++i) {
+            rResidual[row + i] -= W * mrData.mViscousTermRHSContribution[local_row + i];
+        }
+
+        rResidual[row + TDim] -= W * mrData.mViscousTermRHSContribution[local_row + TDim];
+    }
+}
+
 template <unsigned int TDim, unsigned int TNumNodes>
 QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::SecondDerivatives(
     const Element& rElement,

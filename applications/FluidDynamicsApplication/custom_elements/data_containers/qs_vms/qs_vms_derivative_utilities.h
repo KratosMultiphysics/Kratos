@@ -77,8 +77,6 @@ public:
             const double DetJDerivative,
             const Matrix& rdNdXDerivative);
 
-        virtual ~Derivative() = default;
-
         ///@}
 
     protected:
@@ -131,8 +129,6 @@ public:
         {
         }
 
-        ~VelocityDerivative() override = default;
-
         ///@}
         ///@name Operations
         ///@{
@@ -183,8 +179,6 @@ public:
         {
         }
 
-        ~PressureDerivative() override = default;
-
         ///@}
         ///@name Operations
         ///@{
@@ -234,8 +228,6 @@ public:
             : BaseType(NodeIndex, DirectionIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
         {
         }
-
-        ~ShapeDerivative() override = default;
 
         ///@}
         ///@name Operations

@@ -65,6 +65,19 @@ public:
     ///@name Classes
     ///@{
 
+    class Primal
+    {
+    public:
+        ///@name Type Definitions
+        ///@{
+
+        using Data = typename TResidualDerivatives::Data;
+
+        using ResidualContributions = typename TResidualDerivatives::ResidualContributions;
+
+        ///@}
+    };
+
     class StateDerivatives
     {
     public:
