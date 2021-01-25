@@ -213,9 +213,6 @@ public:
 
             TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
 
-            // Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-            if (!pScheme->SchemeIsInitialized())pScheme->Initialize(r_model_part);
-
             // Initialize The Elements - OPERATIONS TO BE DONE ONCE
             if (!pScheme->ElementsAreInitialized())pScheme->InitializeElements(r_model_part);
 
@@ -263,6 +260,11 @@ public:
             if(r_model_part.MasterSlaveConstraints().size() > 0) {
                 ConstraintUtilities::PreComputeExplicitConstraintMassAndInertia(r_model_part);
             }
+
+
+
+            // Initialize The Scheme - OPERATIONS TO BE DONE ONCE
+            if (!pScheme->SchemeIsInitialized())pScheme->Initialize(r_model_part);
 
             this->mInitializeWasPerformed = true;
         }
