@@ -137,6 +137,20 @@ public:
                                        std::vector<Matrix>& rValues,
                                        const ProcessInfo& rCurrentProcessInfo) override;
 
+    // Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "U-Pw Base class Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        return buffer.str();
+    }
+
+    // Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "U-Pw Base class Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+    }
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:

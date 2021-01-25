@@ -86,7 +86,7 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -101,6 +101,20 @@ public:
     void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+    // Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "U-Pw small strain Interface Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        return buffer.str();
+    }
+
+    // Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "U-Pw small strain Interface Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+    }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
