@@ -68,7 +68,7 @@ MPMParticlePenaltyDirichletCondition::~MPMParticlePenaltyDirichletCondition()
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     MPMParticleBaseDirichletCondition::InitializeSolutionStep( rCurrentProcessInfo );
 
@@ -99,7 +99,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& 
 
 void MPMParticlePenaltyDirichletCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     bool CalculateStiffnessMatrixFlag,
     bool CalculateResidualVectorFlag
     )
@@ -219,7 +219,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 

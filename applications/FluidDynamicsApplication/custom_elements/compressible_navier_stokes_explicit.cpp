@@ -357,7 +357,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
                 rData.f_ext(i, k) = r_body_force[k];
             }
             // Density data
-            const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY); 
+            const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
             const double& r_rho_old = r_node.FastGetSolutionStepValue(DENSITY, 1);
             const double rho_inc = r_rho - r_rho_old;
             rData.U(i, 0) = r_rho;
@@ -392,7 +392,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
                 rData.f_ext(i, k) = r_body_force[k];
             }
             // Density data
-            const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY); 
+            const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
             const double& r_rho_old = r_node.FastGetSolutionStepValue(DENSITY, 1);
             rData.U(i, 0) = r_rho;
             rData.dUdt(i, 0) = aux_theta * (r_rho - r_rho_old);
@@ -8308,6 +8308,22 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateMassMatrix(
 
     // Here we assume that all the Gauss pt. have the same weight so we multiply by the volume
     rMassMatrix *= GetGeometry().Volume();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateLumpedMassVector(
+    VectorType& rLumpedMassVector,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    // Initialize the lumped mass vector
+    constexpr IndexType size = TNumNodes * BlockSize;
+    if (rLumpedMassVector.size() != BlockSize) {
+        rLumpedMassVector.resize(size, false);
+    }
+
+    // Fill the lumped mass vector
+    const double nodal_mass = GetGeometry().DomainSize() / TNumNodes;
+    std::fill(rLumpedMassVector.begin(),rLumpedMassVector.end(),nodal_mass);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

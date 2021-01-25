@@ -68,7 +68,7 @@ MPMParticlePenaltyCouplingInterfaceCondition::~MPMParticlePenaltyCouplingInterfa
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticlePenaltyCouplingInterfaceCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void MPMParticlePenaltyCouplingInterfaceCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     if (Is(INTERFACE))
     {
@@ -90,7 +90,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::InitializeNonLinearIteration(
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticlePenaltyCouplingInterfaceCondition::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void MPMParticlePenaltyCouplingInterfaceCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -104,7 +104,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::FinalizeNonLinearIteration(Pr
 }
 
 
-void MPMParticlePenaltyCouplingInterfaceCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MPMParticlePenaltyCouplingInterfaceCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -124,7 +124,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::FinalizeSolutionStep( Process
 
 void MPMParticlePenaltyCouplingInterfaceCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     bool CalculateStiffnessMatrixFlag,
     bool CalculateResidualVectorFlag
     )
@@ -148,7 +148,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateAll(
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticlePenaltyCouplingInterfaceCondition::CalculateNodalContactForce( const VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, const bool CalculateResidualVectorFlag )
+void MPMParticlePenaltyCouplingInterfaceCondition::CalculateNodalContactForce( const VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo, const bool CalculateResidualVectorFlag )
 {
     if ( CalculateResidualVectorFlag == true )
     {
@@ -182,7 +182,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateNodalContactForce( c
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForce( ProcessInfo& rCurrentProcessInfo )
+void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForce( const ProcessInfo& rCurrentProcessInfo )
 {
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();

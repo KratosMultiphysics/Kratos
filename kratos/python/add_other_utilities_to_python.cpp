@@ -43,19 +43,21 @@
 #include "utilities/activation_utilities.h"
 #include "utilities/sensitivity_builder.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/entities_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "utilities/properties_utilities.h"
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/file_name_data_collector.h"
+#include "utilities/sensitivity_utilities.h"
 
 namespace Kratos {
 namespace Python {
 
 /**
  * @brief A thin wrapper for GetSortedListOfFileNameData. The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
- */   
+ */
 pybind11::list GetSortedListOfFileNameDataHelper(
     std::vector<FileNameDataCollector::FileNameData>& rFileNameDataList,
     const std::vector<std::string> & rSortingFlagsOrder
@@ -480,21 +482,41 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     //sensitivity builder
     py::class_<SensitivityBuilder>(m, "SensitivityBuilder")
         .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
+        .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer, SensitivityBuilderScheme::Pointer>())
         .def("Initialize", &SensitivityBuilder::Initialize)
+        .def("InitializeSolutionStep", &SensitivityBuilder::InitializeSolutionStep)
         .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities)
-        .def("AssignConditionDerivativesToNodes", &SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
-        .def("AssignElementDerivativesToNodes", &SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
+        .def("FinalizeSolutionStep", &SensitivityBuilder::FinalizeSolutionStep)
+        .def("Finalize", &SensitivityBuilder::Finalize)
+        ;
+
+    //Sensitivity utilities
+    py::class_<SensitivityUtilities>(m,"SensitivityUtilities")
+        .def_static("AssignConditionDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
+        .def_static("AssignElementDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
         ;
 
     //OpenMP utilities
     py::class_<OpenMPUtils >(m,"OpenMPUtils")
         .def(py::init<>())
-        .def_static("SetNumThreads", &OpenMPUtils::SetNumThreads)
-        .def_static("GetNumThreads", &OpenMPUtils::GetNumThreads)
+        .def_static("SetNumThreads", [](const int NumThreads){
+            KRATOS_WARNING("OpenMPUtils") << "\"SetNumThreads\" is deprecated, please use ParallelUtilities.SetNumThreads instead" << std::endl;
+            ParallelUtilities::SetNumThreads(NumThreads);})
+        .def_static("GetNumThreads", [](){
+            KRATOS_WARNING("OpenMPUtils") << "\"GetNumThreads\" is deprecated, please use ParallelUtilities.GetNumThreads instead" << std::endl;
+            return ParallelUtilities::GetNumThreads();})
+        .def_static("GetNumberOfProcessors", [](){
+            KRATOS_WARNING("OpenMPUtils") << "\"GetNumberOfProcessors\" is deprecated, please use ParallelUtilities.GetNumProcs instead" << std::endl;
+            return ParallelUtilities::GetNumProcs();})
         .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
-        .def_static("GetNumberOfProcessors", &OpenMPUtils::GetNumberOfProcessors)
         ;
 
+    // ParallelUtilities
+    py::class_<ParallelUtilities >(m,"ParallelUtilities")
+        .def_static("GetNumThreads", &ParallelUtilities::GetNumThreads)
+        .def_static("SetNumThreads", &ParallelUtilities::SetNumThreads)
+        .def_static("GetNumProcs",   &ParallelUtilities::GetNumProcs)
+        ;
 
     // EntitiesUtilities
     auto entities_utilities = m.def_submodule("EntitiesUtilities");

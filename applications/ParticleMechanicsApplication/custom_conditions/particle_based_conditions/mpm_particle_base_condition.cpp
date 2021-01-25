@@ -171,7 +171,7 @@ void MPMParticleBaseCondition::GetSecondDerivativesVector(
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticleBaseCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void MPMParticleBaseCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     // Calculation flags
     const bool CalculateStiffnessMatrixFlag = false;
@@ -183,7 +183,7 @@ void MPMParticleBaseCondition::CalculateRightHandSide( VectorType& rRightHandSid
 
 //************************************************************************************
 //************************************************************************************
-void MPMParticleBaseCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void MPMParticleBaseCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     const bool CalculateStiffnessMatrixFlag = true;
@@ -197,7 +197,7 @@ void MPMParticleBaseCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMa
 
 void MPMParticleBaseCondition::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rMassMatrix.size1() != 0)
@@ -211,7 +211,7 @@ void MPMParticleBaseCondition::CalculateMassMatrix(
 
 void MPMParticleBaseCondition::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rDampingMatrix.size1() != 0)
@@ -225,7 +225,7 @@ void MPMParticleBaseCondition::CalculateDampingMatrix(
 
 void MPMParticleBaseCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     bool CalculateStiffnessMatrixFlag,
     bool CalculateResidualVectorFlag
     )
@@ -240,9 +240,6 @@ int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo ) co
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);
-
-    // Verify variable exists
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
 
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& r_node : this->GetGeometry().Points()) {
