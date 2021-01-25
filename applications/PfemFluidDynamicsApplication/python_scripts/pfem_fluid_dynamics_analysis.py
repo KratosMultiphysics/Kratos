@@ -164,7 +164,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.end_time   = self.project_parameters["problem_data"]["end_time"].GetDouble()
         self.delta_time = self.project_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
 
-        self.wave_cal = KratosPfemFluid.CalculateWaveHeightProcess(self.main_model_part, 1, 0, -30.0, 0.0, 0.5, "WaveHeight", 0.5)
+        self.wave_cal = KratosPfemFluid.CalculateWaveHeightProcess(self.main_model_part, 1, 0, -30.0, 0.0, 0.5, "WaveHeight", 0.00)
 
 
     def InitializeSolutionStep(self):
