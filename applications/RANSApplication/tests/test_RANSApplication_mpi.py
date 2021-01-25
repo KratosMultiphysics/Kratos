@@ -1,16 +1,12 @@
-import os
+# Importing the Kratos Library
+import KratosMultiphysics as KM
 
-import KratosMultiphysics
+if not KM.IsDistributedRun():
+    raise Exception("This test script can only be executed in MPI!")
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-try:
-    import KratosMultiphysics.mpi as KratosMPI
-    import KratosMultiphysics.MetisApplication as MetisApplication
-    import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-except ImportError:
-    raise Exception("KratosMPI could not be imported!")
 
 # Import the tests or test_classes to create the suits
 # process test_classes
@@ -51,14 +47,13 @@ def AssembleTestSuites():
     ### Small MPI tests ########################################################
     smallMPISuite = suites['mpi_small']
 
-    # adding representative transient tests to small suite
-
     # adding custom process tests
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
 
     # add symbolic mpi small tests for mpi small suite
-    smallMPISuite.addTest(FractionalStepKOmegaSSTTest("testRfcVelocityTransient"))
-    smallMPISuite.addTest(MonolithicKOmegaSSTTest("testRfcVelocityTransient"))
+    smallMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcVelocityTransient"))
+    smallMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocityTransient"))
+    smallMPISuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocityTransient"))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
@@ -84,24 +79,26 @@ def AssembleTestSuites():
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaTest]))
 
     # adding monolithic k-omega-sst high re tests
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaSSTTest]))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSAfcTkeSteady"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSAfcVelocitySteady"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcTkeSteady"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocitySteady"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcTkeTransient"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocitySteady"))
+
     # adding fractional step k-omega-sst high re tests
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaSSTTest]))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSAfcTkeSteady"))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSAfcVelocitySteady"))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcTkeSteady"))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcVelocitySteady"))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcTkeTransient"))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']
     allMPISuite.addTests(nightlyMPISuite) # already contains the smallMPISuite
 
-    allSuite = suites['all']
-    allSuite.addTests(allMPISuite)
-
     return suites
 
 
 if __name__ == '__main__':
-    # this is required by the CI since, CI runs these tests from $KRATOS_HOME folder.
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(
-        KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())
