@@ -79,18 +79,19 @@ def AssembleTestSuites():
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaTest]))
 
     # adding monolithic k-omega-sst high re tests
-    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testAfcTkeSteady"))
-    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testAfcVelocitySteady"))
-    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testRfcTkeSteady"))
-    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testRfcVelocitySteady"))
-    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testRfcTkeTransient"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSAfcTkeSteady"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSAfcVelocitySteady"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcTkeSteady"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocitySteady"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcTkeTransient"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcTkeTransient"))
 
     # adding fractional step k-omega-sst high re tests
-    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testAfcTkeSteady"))
-    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testAfcVelocitySteady"))
-    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testRfcTkeSteady"))
-    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testRfcVelocitySteady"))
-    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testRfcTkeTransient"))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSAfcTkeSteady"))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSAfcVelocitySteady"))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcTkeSteady"))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcVelocitySteady"))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcTkeTransient"))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']
