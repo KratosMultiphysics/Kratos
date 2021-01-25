@@ -5,9 +5,6 @@ import KratosMultiphysics.StatisticsApplication
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
-    raise Exception("The MPI tests currently support only being run with 2 processors!")
-
 # Import the tests or test_classes to create the suits
 
 # Shell tests
