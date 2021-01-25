@@ -75,6 +75,47 @@ public:
     {
     }
 
+    /// Constructor with imposed vector.
+    SetInitialStateProcess(ModelPart& rModelPart,
+                           const Vector& rInitialStateVector, 
+                           const int InitialStateType) :
+        mrModelPart(rModelPart)
+    {
+        const SizeType voigt_size = (TDim == 3) ? 6 : 3;
+
+        mInitialStrain.resize(voigt_size, false);
+        mInitialStress.resize(voigt_size, false);
+        mInitialF.resize(TDim, TDim, false);
+
+        if (InitialStateType == 0) {
+            noalias(mInitialStrain) = InitialStateType;
+            noalias(mInitialStress) = ZeroVector(voigt_size);
+        } else if (InitialStateType == 1) {
+            noalias(mInitialStrain) = ZeroVector(voigt_size);
+            noalias(mInitialStress) = InitialStateType;
+        } else {
+            noalias(mInitialStrain) = ZeroVector(voigt_size);
+            noalias(mInitialStress) = ZeroVector(voigt_size);
+        }
+        noalias(mInitialF)      = ZeroMatrix(TDim, TDim);
+    }
+
+    /// Constructor with imposed F.
+    SetInitialStateProcess(ModelPart& rModelPart,
+                           const Matrix& rInitialStateF) :
+        mrModelPart(rModelPart)
+    {
+        const SizeType voigt_size = (TDim == 3) ? 6 : 3;
+
+        mInitialStrain.resize(voigt_size, false);
+        mInitialStress.resize(voigt_size, false);
+        mInitialF.resize(TDim, TDim, false);
+
+        noalias(mInitialStrain) = ZeroVector(voigt_size);
+        noalias(mInitialStress) = ZeroVector(voigt_size);
+        noalias(mInitialF)      = rInitialStateF;
+    }
+
     /// Destructor.
     ~SetInitialStateProcess() override {}
 

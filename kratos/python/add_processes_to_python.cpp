@@ -320,10 +320,14 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<SetInitialStateProcess<3>, SetInitialStateProcess<3>::Pointer, Process>(m,"SetInitialStateProcess3D")
             .def(py::init<ModelPart&>())
             .def(py::init<ModelPart&, const Vector&, const Vector&, const Matrix&>())
+            .def(py::init<ModelPart&, const Vector&, const int>())
+            .def(py::init<ModelPart&, const Matrix&>())
     ;
     py::class_<SetInitialStateProcess<2>, SetInitialStateProcess<2>::Pointer, Process>(m,"SetInitialStateProcess2D")
             .def(py::init<ModelPart&>())
             .def(py::init<ModelPart&, const Vector&, const Vector&, const Matrix&>())
+            .def(py::init<ModelPart&, const Vector&, const int>())
+            .def(py::init<ModelPart&, const Matrix&>())
     ;
 
     /* Historical */
