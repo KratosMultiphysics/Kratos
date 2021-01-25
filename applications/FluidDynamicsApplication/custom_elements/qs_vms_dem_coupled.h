@@ -266,7 +266,7 @@ protected:
     void CalculateTau(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
-        Matrix &TauOne,
+        BoundedMatrix<double,Dim,Dim> &TauOne,
         double &TauTwo);
 
     void AddVelocitySystem(

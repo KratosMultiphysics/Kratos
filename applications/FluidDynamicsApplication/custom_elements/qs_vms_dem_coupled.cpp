@@ -200,8 +200,8 @@ void QSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
-    Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
-    Matrix inv_permeability = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
+    BoundedMatrix<double,Dim,Dim> inv_permeability = ZeroMatrix(Dim, Dim);
     const auto& r_body_forces = rData.BodyForce;
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
@@ -209,11 +209,11 @@ void QSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     double det_permeability = MathUtils<double>::Det(permeability);
     MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
-    Matrix sigma = viscosity * inv_permeability;
+    BoundedMatrix<double,Dim,Dim> sigma = viscosity * inv_permeability;
 
     for (unsigned int i = 0; i < NumNodes; i++) {
-        const array_1d<double,3>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
-        Vector sigma_U = ZeroVector(Dim);
+        const array_1d<double,Dim>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
+        array_1d<double,Dim> sigma_U = ZeroVector(Dim);
         for (unsigned int d = 0; d < Dim; d++) {
             for (unsigned int e = 0; e < Dim; e++){
                 sigma_U[d] += sigma(d,e) * rData.N[i] * r_velocities(i,e);
@@ -234,13 +234,13 @@ void QSVMSDEMCoupled<TElementData>::MomentumProjTerm(
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
-    Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
-    Matrix inv_permeability = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
+    BoundedMatrix<double,Dim,Dim> inv_permeability = ZeroMatrix(Dim, Dim);
 
     double det_permeability = MathUtils<double>::Det(permeability);
     MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
-    Matrix sigma = viscosity * inv_permeability;
+    BoundedMatrix<double,Dim,Dim> sigma = viscosity * inv_permeability;
 
     for (unsigned int i = 0; i < NumNodes; i++) {
         Vector sigma_U = ZeroVector(Dim);
@@ -261,7 +261,7 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
 
     const double density = this->GetAtCoordinate(rData.Density, rData.N);
 
-    Matrix tau_one = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
     const array_1d<double, 3> convective_velocity=
         this->GetAtCoordinate(rData.Velocity, rData.N) -
@@ -279,13 +279,13 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
 
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
-    Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
-    Matrix inv_permeability = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
+    BoundedMatrix<double,Dim,Dim> inv_permeability = ZeroMatrix(Dim, Dim);
 
     double det_permeability = MathUtils<double>::Det(permeability);
     MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
-    Matrix sigma = viscosity * inv_permeability;
+    BoundedMatrix<double,Dim,Dim> sigma = viscosity * inv_permeability;
 
     // Note: Dof order is (vx,vy,[vz,]p) for each node
     for (unsigned int i = 0; i < NumNodes; ++i)
@@ -346,7 +346,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const array_1d<double,3> momentum_projection = this->GetAtCoordinate(rData.MomentumProjection, rData.N);
     double mass_projection = this->GetAtCoordinate(rData.MassProjection, rData.N);
 
-    Matrix tau_one = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
     const array_1d<double, 3> convective_velocity =
         this->GetAtCoordinate(rData.Velocity, rData.N) -
@@ -364,14 +364,14 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
     const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
-    Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
+    BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
-    Matrix inv_permeability = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> inv_permeability = ZeroMatrix(Dim, Dim);
 
     double det_permeability = MathUtils<double>::Det(permeability);
     MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
-    Matrix sigma = viscosity * inv_permeability;
+    BoundedMatrix<double,Dim,Dim> sigma = viscosity * inv_permeability;
 
     // Temporary containers
     double V, P, U, QAlpha, DAlphaD, DU, RSigma, ASigma, RRSigma, RSigmaA;
@@ -482,7 +482,7 @@ template< class TElementData >
 void QSVMSDEMCoupled<TElementData>::CalculateTau(
     const TElementData& rData,
     const array_1d<double,3> &Velocity,
-    Matrix &TauOne,
+    BoundedMatrix<double,Dim,Dim> &TauOne,
     double &TauTwo)
 {
     constexpr double c1 = 8.0;
@@ -491,13 +491,13 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
     const double h = rData.ElementSize;
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
-    Matrix permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
-    Matrix inv_permeability = ZeroMatrix(Dim, Dim);
-    Matrix non_diag_tau_one = ZeroMatrix(Dim, Dim);
-    Matrix inv_tau = ZeroMatrix(Dim, Dim);
-    Matrix I = IdentityMatrix(Dim, Dim);
-    Matrix eigen_values_matrix, eigen_vectors_matrix;
-    Matrix inv_eigen_matrix = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
+    BoundedMatrix<double,Dim,Dim> inv_permeability = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> non_diag_tau_one = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> inv_tau = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> eigen_values_matrix, eigen_vectors_matrix;
+    BoundedMatrix<double,Dim,Dim> inv_eigen_matrix = ZeroMatrix(Dim, Dim);
 
     double det_permeability = MathUtils<double>::Det(permeability);
     MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
@@ -512,12 +512,12 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
     double det_inv_tau = MathUtils<double>::Det(inv_tau);
     MathUtils<double>::InvertMatrix(inv_tau, non_diag_tau_one, det_inv_tau, -1.0);
 
-    MathUtils<double>::GaussSeidelEigenSystem<Matrix, Matrix>(non_diag_tau_one, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+    MathUtils<double>::GaussSeidelEigenSystem<BoundedMatrix<double,Dim,Dim>, BoundedMatrix<double,Dim,Dim>>(non_diag_tau_one, eigen_vectors_matrix, eigen_values_matrix);
 
     double det_eigen_vectors_matrix = MathUtils<double>::Det(eigen_vectors_matrix);
     MathUtils<double>::InvertMatrix(eigen_vectors_matrix, inv_eigen_matrix, det_eigen_vectors_matrix, -1.0);
 
-    Matrix inv_PTau = prod(inv_eigen_matrix, non_diag_tau_one);
+    BoundedMatrix<double,Dim,Dim> inv_PTau = prod(inv_eigen_matrix, non_diag_tau_one);
     TauOne = prod(inv_PTau, eigen_vectors_matrix);
     TauTwo = viscosity + c2 * density * velocity_norm * h / c1;
 }
