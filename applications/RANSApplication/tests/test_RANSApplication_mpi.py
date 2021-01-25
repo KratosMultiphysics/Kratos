@@ -47,8 +47,6 @@ def AssembleTestSuites():
     ### Small MPI tests ########################################################
     smallMPISuite = suites['mpi_small']
 
-    # adding representative transient tests to small suite
-
     # adding custom process tests
     # smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
 
@@ -76,9 +74,18 @@ def AssembleTestSuites():
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaTest]))
 
     # adding monolithic k-omega-sst high re tests
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaSSTTest]))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testAfcTkeSteady"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testAfcVelocitySteady"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testRfcTkeSteady"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testRfcVelocitySteady"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testRfcTkeTransient"))
+
     # adding fractional step k-omega-sst high re tests
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaSSTTest]))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testAfcTkeSteady"))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testAfcVelocitySteady"))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testRfcTkeSteady"))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testRfcVelocitySteady"))
+    nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testRfcTkeTransient"))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']

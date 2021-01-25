@@ -11,9 +11,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 ## SMALL TESTS
 from convergence_accelerator_spring_MPI_test import ConvergenceAcceleratorSpringMPITest
 
-## NIGTHLY TESTS
-
-## VALIDATION TESTS
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
