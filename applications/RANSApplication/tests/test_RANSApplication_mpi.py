@@ -84,7 +84,7 @@ def AssembleTestSuites():
     nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcTkeSteady"))
     nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocitySteady"))
     nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcTkeTransient"))
-    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcTkeTransient"))
+    nightlyMPISuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocitySteady"))
 
     # adding fractional step k-omega-sst high re tests
     nightlyMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSAfcTkeSteady"))
