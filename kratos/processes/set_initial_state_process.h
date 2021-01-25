@@ -147,7 +147,7 @@ public:
             auto it_elem = it_elem_begin + i;
 
             Vector aux_initial_strain = mInitialStrain;
-            Vector aux_initial_stress = mInitialStrain;
+            Vector aux_initial_stress = mInitialStress;
             Matrix aux_initial_F      = mInitialF;
 
             // If the values are set element-wise have priority
@@ -160,7 +160,7 @@ public:
             if (it_elem->GetGeometry().Has(INITIAL_DEFORMATION_GRADIENT_MATRIX)) {
                 noalias(aux_initial_F) = (it_elem->GetGeometry()).GetValue(INITIAL_DEFORMATION_GRADIENT_MATRIX);
             }
-            InitialState initial_state = InitialState(aux_initial_strain, aux_initial_strain, aux_initial_F);
+            InitialState initial_state = InitialState(aux_initial_strain, aux_initial_stress, aux_initial_F);
 
             // Assign the values to the GP of the element
             std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;

@@ -84,7 +84,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
             mInitialStrainVector.resize(voigt_size, false);
             mInitialDeformationGradientMatrix.resize(dimension, dimension, false);
 
-            noalias(mInitialStressVector) = rInitialStrainVector;
+            noalias(mInitialStressVector) = rInitialStressVector;
             noalias(mInitialStrainVector) = rInitialStrainVector;
             noalias(mInitialDeformationGradientMatrix) = rInitialDeformationGradientMatrix;
         }
