@@ -71,8 +71,8 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
 
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS )) {
         Vector& r_stress_vector = rValues.GetStressVector();
-        this->AddInitialStressVectorContribution( r_strain_vector, rValues );
         CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
+        this->AddInitialStressVectorContribution( r_stress_vector, rValues );
     }
 
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
