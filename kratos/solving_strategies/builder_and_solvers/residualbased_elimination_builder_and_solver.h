@@ -262,7 +262,8 @@ public:
         }
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished building" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished building" << std::endl;
+
 
         KRATOS_CATCH("")
     }
