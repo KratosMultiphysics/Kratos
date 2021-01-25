@@ -358,24 +358,21 @@ KRATOS_TEST_CASE_IN_SUITE(OmpVsPureC11, KratosCoreFastSuite)
         );
 
     //benchmark openmp vs pure c++11 impementation in a simple loop
-    const auto timer = BuiltinTimer();
-    double start_omp = timer.ElapsedSeconds();
+    const auto timer_omp = BuiltinTimer();
     IndexPartition<unsigned int>(nsize).for_each(
             [&](unsigned int i){
                     output[i] = std::pow(data_vector[i],0.01);
                 }
             );
-    double stop_omp = timer.ElapsedSeconds();
-    std::cout << "omp time = " << stop_omp-start_omp << std::endl;
+    std::cout << "OMP time = " << timer_omp.ElapsedSeconds() << std::endl;
 
-    double start_pure= timer.ElapsedSeconds();
+    const auto timer_pure = BuiltinTimer();
     IndexPartition<unsigned int>(nsize).for_pure_c11(
             [&](unsigned int i){
                     output[i] = std::pow(data_vector[i],0.01);
                 }
             );
-    double stop_pure = timer.ElapsedSeconds();
-    std::cout << "pure c++11 time = " << stop_pure-start_pure << std::endl;
+    std::cout << "Pure c++11 time = " << timer_pure.ElapsedSeconds() << std::endl;
 
 
 

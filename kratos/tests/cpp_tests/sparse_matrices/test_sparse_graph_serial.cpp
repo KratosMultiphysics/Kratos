@@ -51,7 +51,6 @@ ElementConnectivityType RandomElementConnectivities(
     std::cout << std::endl;
     std::cout << "beginning generation" << std::endl;
     const auto timer = BuiltinTimer();
-    double start = timer.ElapsedSeconds();
     //generating random indices
     ElementConnectivityType connectivities((index_end-index_begin)*block_size);
 
@@ -85,8 +84,7 @@ ElementConnectivityType RandomElementConnectivities(
             }
         }
     }
-    double end_gen = timer.ElapsedSeconds();
-    std::cout << "finishing generation - time = " << end_gen-start << std::endl;
+    std::cout << "finishing generation - time = " << timer.ElapsedSeconds() << std::endl;
 
     return connectivities;
 }
@@ -416,11 +414,9 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseGraph, KratosCoreFastSuite)
     auto connectivities = SparseTestingInternals::RandomElementConnectivities(block_size,nodes_in_elem, 0,nel,ndof,standard_dev);
 
     const auto timer = BuiltinTimer();
-    double start_graph = timer.ElapsedSeconds();
     auto pAgraph = SparseTestingInternals::AssembleGraph<SparseGraph<>>(connectivities, ndof*block_size);
-    double end_graph = timer.ElapsedSeconds();
 
-    std::cout << "SparseGraph time = " << end_graph-start_graph << std::endl;
+    std::cout << "SparseGraph time = " << timer.ElapsedSeconds() << std::endl;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCoreFastSuite)
@@ -434,7 +430,6 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCo
     auto connectivities = SparseTestingInternals::RandomElementConnectivities(block_size,nodes_in_elem,0, nel,ndof,standard_dev);
 
     const auto timer = BuiltinTimer();
-    double start_graph = timer.ElapsedSeconds();
 
     SparseContiguousRowGraph<> Agraph(ndof*block_size);
     #pragma omp parallel for
@@ -442,9 +437,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCo
         Agraph.AddEntries(connectivities[i]);
     Agraph.Finalize();
 
-    double end_graph = timer.ElapsedSeconds();
-
-    std::cout << "SparseGraphContiguousRow generation time = " << end_graph-start_graph << std::endl;
+    std::cout << "SparseGraphContiguousRow generation time = " << timer.ElapsedSeconds() << std::endl;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SystemVectorAssembly, KratosCoreFastSuite)
