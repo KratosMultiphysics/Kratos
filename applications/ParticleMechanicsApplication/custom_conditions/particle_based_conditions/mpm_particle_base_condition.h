@@ -335,7 +335,7 @@ protected:
      * Calculate Shape Function Values in a given point
      */
 
-    virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint);
+    virtual Vector& MPMShapeFunctionPointValues(Vector& rResult);
 
     /**
      * Calculation of the Current Displacement
