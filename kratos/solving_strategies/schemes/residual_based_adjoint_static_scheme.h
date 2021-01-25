@@ -73,7 +73,7 @@ public:
     {
         mpResponseFunction = pResponseFunction;
 
-        int num_threads = OpenMPUtils::GetNumThreads();
+        int num_threads = ParallelUtilities::GetNumThreads();
         mAdjointValues.resize(num_threads);
     }
 
