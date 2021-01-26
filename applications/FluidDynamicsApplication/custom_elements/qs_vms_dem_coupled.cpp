@@ -149,7 +149,7 @@ template< class TElementData >
 void QSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     const TElementData& rData,
     const array_1d<double,3> &rConvectionVelocity,
-    array_1d<double,3>& rResidual)
+    array_1d<double,3>& rResidual) const
 {
     const GeometryType rGeom = this->GetGeometry();
 
@@ -184,7 +184,7 @@ template< class TElementData >
 void QSVMSDEMCoupled<TElementData>::MomentumProjTerm(
     const TElementData& rData,
     const array_1d<double,3>& rConvectionVelocity,
-    array_1d<double,3> &rMomentumRHS)
+    array_1d<double,3> &rMomentumRHS) const
 {
     Vector AGradN;
     this->ConvectionOperator(AGradN,rConvectionVelocity,rData.DN_DX);

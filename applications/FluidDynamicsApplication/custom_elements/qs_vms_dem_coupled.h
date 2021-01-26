@@ -252,12 +252,12 @@ protected:
     void AlgebraicMomentumResidual(
         const TElementData& rData,
         const array_1d<double,3> &rConvectionVelocity,
-        array_1d<double,3>& rResidual);
+        array_1d<double,3>& rResidual) const override;
 
     void MomentumProjTerm(
         const TElementData& rData,
         const array_1d<double,3>& rConvectionVelocity,
-        array_1d<double,3> &rMomentumRHS);
+        array_1d<double,3> &rMomentumRHS) const override;
 
     void AddMassStabilization(
         TElementData& rData,
