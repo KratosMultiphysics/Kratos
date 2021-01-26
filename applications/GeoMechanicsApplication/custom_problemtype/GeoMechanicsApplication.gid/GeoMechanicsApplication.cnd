@@ -2803,10 +2803,10 @@ QUESTION: Solid_Bulk_Modulus
 VALUE: 1.0e12
 HELP: Units in IS: N/m2
 QUESTION: Fluid_Bulk_Modulus
-VALUE: 2.0e-30
+VALUE: 1.0e-30
 HELP: Units in IS: N/m2
 QUESTION: Transversal_Permeability
-VALUE: 4.5e-30
+VALUE: 1.0e-30
 HELP: Units in IS: m2
 QUESTION: Dynamic_Viscosity
 VALUE: 1.0e-3
@@ -3312,7 +3312,7 @@ QUESTION: Fluid_Bulk_Modulus
 VALUE: 2.0e9
 HELP: Units in IS: N/m2
 QUESTION: Transversal_Permeability
-VALUE: 4.5e-30
+VALUE: 1.0e-30
 HELP: Units in IS: m2
 QUESTION: Dynamic_Viscosity
 VALUE: 1.0e-3
