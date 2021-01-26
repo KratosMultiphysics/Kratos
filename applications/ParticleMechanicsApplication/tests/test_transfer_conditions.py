@@ -22,18 +22,18 @@ class TestTransferConditions(KratosUnittest.TestCase):
 
         if dimension == 2:
             if condition_type == "dirichlet":
-                mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition", condition_id, [1, 2, 3], mp.GetProperties()[1])
+                mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition2D3N", condition_id, [1, 2, 3], mp.GetProperties()[1])
             if condition_type == "neumann":
-                mp.CreateNewCondition("MPMParticlePointLoadCondition", condition_id, [1, 2, 3], mp.GetProperties()[1])
+                mp.CreateNewCondition("MPMParticlePointLoadCondition2D3N", condition_id, [1, 2, 3], mp.GetProperties()[1])
             if condition_type == "coupling":
-                mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition", condition_id, [1, 2, 3], mp.GetProperties()[1])
+                mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition2D3N", condition_id, [1, 2, 3], mp.GetProperties()[1])
         if dimension == 3:
             if condition_type == "dirichlet":
-                mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
+                mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition3D4N", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
             if condition_type == "neumann":
-                mp.CreateNewCondition("MPMParticlePointLoadCondition", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
+                mp.CreateNewCondition("MPMParticlePointLoadCondition3D4N", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
             if condition_type == "coupling":
-                mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
+                mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition3D4N", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
 
     def _assign_pseudo_variables(self, cond, condition_type):
         process_info = KratosMultiphysics.ProcessInfo()
