@@ -21,7 +21,6 @@ namespace Kratos
 
 // Historical API
 // ConvertDistributedValuesToPoint for double variables
-KRATOS_DEPRECATED_MESSAGE("This ConvertDistributedValuesToPoint() signature is deprecated. Use the one with Elements/Conditions container.")
 void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
     ModelPart& rModelPart,
     const Variable<double>& rDistributedVariable,
@@ -50,7 +49,6 @@ void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
 }
 
 // ConvertDistributedValuesToPoint for array variables
-KRATOS_DEPRECATED_MESSAGE("This ConvertDistributedValuesToPoint() signature is deprecated. Use the one with Elements/Conditions container.")
 void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
     ModelPart& rModelPart,
     const Variable< array_1d<double,3> >& rDistributedVariable,
@@ -79,7 +77,6 @@ void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
 }
 
 // DistributePointValues for double variables
-KRATOS_DEPRECATED_MESSAGE("This DistributePointValues() signature is deprecated. Use the one with Elements/Conditions container.")
 void VariableRedistributionUtility::DistributePointValues(
     ModelPart& rModelPart,
     const Variable<double>& rPointVariable,
@@ -114,7 +111,6 @@ void VariableRedistributionUtility::DistributePointValues(
 }
 
 // DistributePointValues for array variables
-KRATOS_DEPRECATED_MESSAGE("This DistributePointValues() signature is deprecated. Use the one with Elements/Conditions container.")
 void VariableRedistributionUtility::DistributePointValues(
     ModelPart& rModelPart,
     const Variable< array_1d<double,3> >& rPointVariable,
