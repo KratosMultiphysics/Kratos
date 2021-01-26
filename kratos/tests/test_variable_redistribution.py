@@ -25,7 +25,7 @@ class VariableRedistributionTest(UnitTest.TestCase):
 
     def tearDown(self):
         with UnitTest.WorkFolderScope(self.work_folder,__file__):
-            KratosUtilities.DeleteFileIfExisting(self.input_file + '.time')
+            KratosUtilities.DeleteTimeFiles('.')
 
     def testLinearFunction(self):
         def Flag1Check(node):
