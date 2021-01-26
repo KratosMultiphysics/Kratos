@@ -310,6 +310,7 @@ if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
   else (OPENMP_FOUND)
     message(FATAL_ERROR "OpenMP could not be found!")
+    # fallback solution => in future once better supported we can use the C++11 based parallelization instead
     message("OpenMP could not be found, disabling shared memory parallelization!")
     add_definitions( -DKRATOS_SMP_NONE )
 	endif (OPENMP_FOUND)
