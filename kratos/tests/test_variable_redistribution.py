@@ -7,6 +7,7 @@ except ImportError:
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+import KratosMultiphysics.testing.utilities as TestingUtilities
 
 @UnitTest.skipUnless(have_fsi,"Missing required application: FSIApplication")
 class VariableRedistributionTest(UnitTest.TestCase):
@@ -15,6 +16,7 @@ class VariableRedistributionTest(UnitTest.TestCase):
         self.input_file = "redistribution_test"
         self.work_folder = "auxiliar_files_for_python_unittest/RedistributionTest"
 
+        self.domain_size = 3
         self.redistribution_iterations = 100
         self.redistribution_tolerance = 1e-8
 
@@ -99,6 +101,7 @@ class VariableRedistributionTest(UnitTest.TestCase):
 
     def test_quad_elements_quadratic_scalar_field(self):
         # Read mdpa and set test model part
+        self.domain_size = 2
         self.input_file = "two_dim_unstructured_square_quads"
         self.work_folder = "auxiliar_files_for_python_unittest/mdpa_files"
         self.SetUpProblem()
@@ -136,6 +139,7 @@ class VariableRedistributionTest(UnitTest.TestCase):
 
     def test_quad_elements_quadratic_vector_field_non_historical(self):
         # Read mdpa and set test model part
+        self.domain_size = 2
         self.input_file = "two_dim_unstructured_square_quads"
         self.work_folder = "auxiliar_files_for_python_unittest/mdpa_files"
         self.SetUpProblem()
@@ -248,8 +252,8 @@ class VariableRedistributionTest(UnitTest.TestCase):
             self.model_part.AddNodalSolutionStepVariable(VORTICITY)
             self.model_part.AddNodalSolutionStepVariable(ACCELERATION)
 
-            model_part_io = ModelPartIO(self.input_file)
-            model_part_io.ReadModelPart(self.model_part)
+            self.model_part.ProcessInfo[DOMAIN_SIZE] = self.domain_size
+            TestingUtilities.ReadModelPart(self.input_file, self.model_part)
 
             self.model_part.SetBufferSize(1)
 
