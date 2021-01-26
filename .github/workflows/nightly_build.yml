@@ -26,6 +26,10 @@ jobs:
       options: --user 1001
 
     steps:
+    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
     - uses: actions/checkout@v2
 
     - name: Build
@@ -54,13 +58,26 @@ jobs:
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
-    - name: Running MPI Python RANSApplication (2 Cores)
-      timeout-minutes : 10
+    - name: Running Python MPI tests (2 Cores)
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        mpiexec -np 2 python3 applications/RANSApplication/tests/test_RANSApplication_mpi.py --using-mpi -l nightly
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 2
+
+    - name: Running Python MPI tests (3 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3 -f--oversubscribe
+
+    - name: Running Python MPI tests (4 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4 -f--oversubscribe
 
     - name: Running MPI Python MultilevelMonteCarloApplication (2 Cores)
       timeout-minutes : 10

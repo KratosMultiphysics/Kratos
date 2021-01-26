@@ -5,9 +5,6 @@ import KratosMultiphysics.StatisticsApplication
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
-    raise Exception("The MPI tests currently support only being run with 2 processors!")
-
 # Import the tests or test_classes to create the suits
 
 # Shell tests
@@ -39,13 +36,13 @@ def AssembleTestSuites():
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
     nightlyMPISuite.addTests(smallMPISuite)
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SpatialStatisticsProcessTest]))
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalSumMethodTests]))
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMeanMethodTests]))
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalVarianceMethodTests]))
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMinMethodTests]))
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMaxMethodTests]))
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalRootMeanSquareMethodTests]))
+    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SpatialStatisticsProcessTest]))
+    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalSumMethodTests]))
+    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMeanMethodTests]))
+    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalVarianceMethodTests]))
+    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMinMethodTests]))
+    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMaxMethodTests]))
+    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalRootMeanSquareMethodTests]))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']
