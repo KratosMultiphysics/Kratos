@@ -47,9 +47,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixTyp
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeGradientPouliot2012<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
     const unsigned int LocalSize(TDim * TNumNodes);
 
     if (rElementalDofList.size() != LocalSize)
@@ -90,9 +88,7 @@ int ComputeGradientPouliot2012<TDim, TNumNodes>::Check(const ProcessInfo& rCurre
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientPouliot2012<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeGradientPouliot2012<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
 
     const unsigned int LocalSize(TDim * TNumNodes);
     unsigned int LocalIndex = 0;

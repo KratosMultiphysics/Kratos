@@ -145,16 +145,6 @@ namespace Kratos
     int BarkerMuIRheology3DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
                                       const ProcessInfo &rCurrentProcessInfo)
     {
-        KRATOS_CHECK_VARIABLE_KEY(STATIC_FRICTION);
-        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_FRICTION);
-        KRATOS_CHECK_VARIABLE_KEY(INERTIAL_NUMBER_ZERO);
-        KRATOS_CHECK_VARIABLE_KEY(INERTIAL_NUMBER_ONE);
-        KRATOS_CHECK_VARIABLE_KEY(GRAIN_DIAMETER);
-        KRATOS_CHECK_VARIABLE_KEY(GRAIN_DENSITY);
-        KRATOS_CHECK_VARIABLE_KEY(INFINITE_FRICTION);
-        KRATOS_CHECK_VARIABLE_KEY(ALPHA_PARAMETER);
-        KRATOS_CHECK_VARIABLE_KEY(BULK_MODULUS);
-
         if (rMaterialProperties[STATIC_FRICTION] < 0.0)
         {
             KRATOS_ERROR << "Incorrect or missing STATIC_FRICTION provided in process info for BarkerMuIRheology3DLaw: "
