@@ -23,7 +23,7 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/mpm_search_element_utility.h"
-#include "custom_utilities/mpm_particle_generator_utility.h"
+#include "custom_utilities/mpm_particle_generator_utility.cpp"
 
 
 namespace Kratos{
