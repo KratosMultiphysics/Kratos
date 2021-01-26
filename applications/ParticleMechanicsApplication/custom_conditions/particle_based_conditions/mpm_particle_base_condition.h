@@ -332,10 +332,10 @@ protected:
     virtual double GetIntegrationWeight();
 
     /**
-     * Calculate Shape Function Values in a given point
+     * Calculate Shape Function Values as a vector
      */
 
-    virtual Vector& MPMShapeFunctionPointValues(Vector& rResult);
+    virtual void MPMShapeFunctionPointValues(Vector& rResult) const;
 
     /**
      * Calculation of the Current Displacement

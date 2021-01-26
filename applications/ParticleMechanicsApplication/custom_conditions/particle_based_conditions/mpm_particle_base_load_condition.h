@@ -133,10 +133,10 @@ protected:
     virtual double GetPointLoadIntegrationWeight();
 
     /**
-     * Calculate Shape Function Values in a given point
+     * Calculate Shape Function Values as a vector
      */
 
-    Vector& MPMShapeFunctionPointValues(Vector& rResult) override;
+    virtual void MPMShapeFunctionPointValues(Vector& rResult) const override;
 
     ///@}
     ///@name Protected  Access

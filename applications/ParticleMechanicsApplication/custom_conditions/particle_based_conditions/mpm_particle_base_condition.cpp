@@ -259,19 +259,12 @@ int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo ) co
    * Shape function values in given point. This method calculate the shape function
    * vector in given point.
    *
-   * @param rPoint point which shape function values have to
-   * be calculated in it.
-   *
-   * @return Vector of double which is shape function vector \f$ N \f$ in given point.
-   *
  */
-Vector& MPMParticleBaseCondition::MPMShapeFunctionPointValues(Vector& rResult)
+void MPMParticleBaseCondition::MPMShapeFunctionPointValues(Vector& rResult) const
 {
     KRATOS_TRY
 
     rResult = row(GetGeometry().ShapeFunctionsValues(), 0);
-
-    return rResult;
 
     KRATOS_CATCH( "" )
 }
