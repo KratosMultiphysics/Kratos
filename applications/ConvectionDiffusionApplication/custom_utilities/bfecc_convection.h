@@ -67,6 +67,9 @@ public:
 
         mSigmaPlus.resize(nparticles);
         mSigmaMinus.resize(nparticles);
+        mPhiNPlusOne.resize(nparticles);
+        mErrorNew.resize(nparticles);
+        mErrorStd.resize(nparticles);
 
         PointerVector< Element > elem_backward( rModelPart.Nodes().size());
         std::vector< Vector > Ns( rModelPart.Nodes().size());
@@ -154,7 +157,7 @@ public:
                 denominator += beta_ij*std::abs(distance_i - distance_j);
             }
 
-            const double fraction = (std::abs(numerator)+epsilon) / (denominator + epsilon);
+            const double fraction = (std::abs(numerator)/* +epsilon */) / (denominator + epsilon);
             const double limiter_i = 1.0 - std::pow(fraction, power);
             it_node->SetValue(LIMITER_COEFFICIENT, limiter_i);
         }
@@ -205,12 +208,18 @@ public:
             }
         }
 
+        // Storing Phi_n+1
+        for (int i = 0; i < nparticles; i++)
+        {
+            ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
+            mPhiNPlusOne[i] = iparticle->FastGetSolutionStepValue(rVar);
+        }
+
         // New BFECC Algorithm
         for (int i = 0; i < nparticles; i++)
         {
             ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
-            iparticle->FastGetSolutionStepValue(rVar) = 0.5*(
-                iparticle->FastGetSolutionStepValue(rVar) + iparticle->FastGetSolutionStepValue(rVar, 1) );
+            iparticle->FastGetSolutionStepValue(rVar) = 0.5*(mPhiNPlusOne[i] + iparticle->FastGetSolutionStepValue(rVar, 1));
         }
 
         //now obtain the value AT TIME STEP N by taking it from N+1
@@ -241,16 +250,75 @@ public:
                 const double compensated_error = /* 0.5* */iparticle->GetValue(LIMITER_COEFFICIENT)*(
                     phi_old - iparticle->FastGetSolutionStepValue(rVar,1));
 
-                iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) - compensated_error; //1.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5*phi_old;
+                mErrorNew[i] = compensated_error;
+                //iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) - compensated_error; //1.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5*phi_old;
 //                 iparticle->FastGetSolutionStepValue(rVar) = iparticle->GetValue(rVar) - 0.5 * (phi2 - iparticle->FastGetSolutionStepValue(rVar,1));
             }
             else
             {
-                iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1);
+                //iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1);
+                mErrorNew[i] = 0.0;
             }
         }
 
-         #pragma omp parallel for
+        // Standard BFECC Algorithm
+        for (int i = 0; i < nparticles; i++)
+        {
+            ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
+            iparticle->FastGetSolutionStepValue(rVar) = mPhiNPlusOne[i];
+        }
+
+        //now obtain the value AT TIME STEP N by taking it from N+1
+        #pragma omp parallel for firstprivate(results,N,N_valid)
+        for (int i = 0; i < nparticles; i++)
+        {
+            typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+
+            ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
+
+            Element::Pointer pelement;
+            Element::Pointer pelement_valid;
+
+            array_1d<double,3> fwdPos = iparticle->Coordinates();
+            const array_1d<double,3>& vel = iparticle->FastGetSolutionStepValue(conv_var,1);
+            bool has_valid_elem_pointer = false;
+            bool is_found = ConvectBySubstepping(dt,fwdPos,vel, N, N_valid, pelement, pelement_valid, result_begin, max_results, 1.0, substeps, conv_var,has_valid_elem_pointer);
+
+            if(is_found) {
+                Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                double phi_old = N[0] * ( geom[0].FastGetSolutionStepValue(rVar));
+
+                for (unsigned int k = 1; k < geom.size(); k++) {
+                    phi_old  += N[k] * ( geom[k].FastGetSolutionStepValue(rVar) );
+                }
+
+                //store correction
+                const double compensated_error = 0.5*iparticle->GetValue(LIMITER_COEFFICIENT)*(
+                    phi_old - iparticle->FastGetSolutionStepValue(rVar,1));
+
+                mErrorStd[i] = compensated_error;
+                //iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) - compensated_error; //1.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5*phi_old;
+//                 iparticle->FastGetSolutionStepValue(rVar) = iparticle->GetValue(rVar) - 0.5 * (phi2 - iparticle->FastGetSolutionStepValue(rVar,1));
+            }
+            else
+            {
+                //iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1);
+                mErrorStd[i] = 0.0;
+            }
+        }
+
+        // Combined BFECC Algorithm
+        for (int i = 0; i < nparticles; i++)
+        {
+            ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
+            const double limiter = iparticle->GetValue(LIMITER_COEFFICIENT);
+            if (limiter < 0.9)
+                iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) - mErrorNew[i];
+            else
+                iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) - mErrorStd[i];
+        }
+
+        #pragma omp parallel for
         for (int i = 0; i < nparticles; i++)
         {
             ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
@@ -421,7 +489,7 @@ public:
     }
 
 protected:
-    std::vector< double > mSigmaPlus, mSigmaMinus;
+    std::vector< double > mSigmaPlus, mSigmaMinus, mPhiNPlusOne, mErrorNew, mErrorStd;
 
 private:
     typename BinBasedFastPointLocator<TDim>::Pointer mpSearchStructure;

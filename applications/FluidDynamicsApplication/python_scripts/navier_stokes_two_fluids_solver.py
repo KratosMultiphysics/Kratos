@@ -421,7 +421,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 bfecc_order = 0
 
             max_cfl = 10.0
-            cross_wind = 0.0
+            cross_wind = 0.7
             max_substeps = 1
 
             if domain_size == 2:

@@ -118,7 +118,7 @@ public:
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
-        const double dyn_st_beta = 0.0;//rCurrentProcessInfo[DYNAMIC_TAU];
+        const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
 
 
         //getting data for the given geometry
@@ -193,7 +193,7 @@ public:
             array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);
 
             const double tau_denom = std::max(dyn_st_beta *dt_inv + 2.0 * norm_vel / h + std::abs(/*beta**/div_v),  1e-2); //the term std::abs(div_v) is added following Pablo Becker's suggestion
-            const double tau = 0.0;//1.0 / (tau_denom);
+            const double tau = 1.0 / (tau_denom);
 
             //terms multiplying dphi/dt (aux1)
             noalias(aux1) += (1.0+tau*beta*div_v)*outer_prod(N, N);
