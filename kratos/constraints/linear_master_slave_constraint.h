@@ -54,7 +54,7 @@ namespace Kratos
  * @details The data T and ConstantVector (or the equivalent scalars) are not stored in the base class, since they can be eventually evaluated runtime.
  * @author Aditya Ghantasala
  */
-class LinearMasterSlaveConstraint
+class KRATOS_API(KRATOS_CORE) LinearMasterSlaveConstraint
     :  public MasterSlaveConstraint
 {
 public:
