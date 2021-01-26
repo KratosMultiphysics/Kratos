@@ -390,9 +390,9 @@ protected:
      *  @param[in] rN Values of the shape functions at the desired point.
      *  @return The value evaluated at that coordinate.
      */
-    virtual Matrix GetAtCoordinate(
-        const typename TElementData::NodalTensorData& rValues,
-        const typename TElementData::ShapeFunctionsType& rN) const;
+    virtual BoundedMatrix<double, TElementData::Dim, TElementData::Dim> GetAtCoordinate(
+        const typename TElementData::NodalTensorData &rValues,
+        const typename TElementData::ShapeFunctionsType &rN) const;
 
     /// Get information from TElementData at a given point.
     /** This function serves as a wrapper so that the element does not need to

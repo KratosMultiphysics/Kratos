@@ -554,18 +554,14 @@ array_1d<double, 3> FluidElement<TElementData>::GetAtCoordinate(
 }
 
 template <class TElementData>
-Matrix FluidElement<TElementData>::GetAtCoordinate(
-    const typename TElementData::NodalTensorData& rValues,
-    const typename TElementData::ShapeFunctionsType& rN) const
+BoundedMatrix<double, TElementData::Dim, TElementData::Dim> FluidElement<TElementData>::GetAtCoordinate(
+    const typename TElementData::NodalTensorData &rValues,
+    const typename TElementData::ShapeFunctionsType &rN) const
 {
-    Matrix result = ZeroMatrix(Dim,Dim);
+    BoundedMatrix<double,Dim,Dim> result = ZeroMatrix(Dim,Dim);
 
     for (size_t i = 0; i < NumNodes; i++) {
-        for (size_t j = 0; j < Dim; j++) {
-            for (size_t k = 0; k < Dim; k++) {
-                result(j, k) += rN[i] * rValues[i](j, k);
-            }
-        }
+        noalias(result) += rN[i] * rValues[i];
     }
 
     return result;
