@@ -27,6 +27,7 @@ void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
     const Variable<double>& rDistributedVariable,
     const Variable<double>& rPointVariable)
 {
+    KRATOS_WARNING("VariableRedistributionUtility") << "This ConvertDistributedValuesToPoint() signature is deprecated. Use the one with Elements/Conditions container." << std::endl;
     CallSpecializedConvertDistributedValuesToPoint<true>(rModelPart,rModelPart.Conditions(),rDistributedVariable,rPointVariable);
 }
 
@@ -55,6 +56,7 @@ void VariableRedistributionUtility::ConvertDistributedValuesToPoint(
     const Variable< array_1d<double,3> >& rDistributedVariable,
     const Variable< array_1d<double,3> >& rPointVariable)
 {
+    KRATOS_WARNING("VariableRedistributionUtility") << "This ConvertDistributedValuesToPoint() signature is deprecated. Use the one with Elements/Conditions container." << std::endl;
     CallSpecializedConvertDistributedValuesToPoint<true>(rModelPart,rModelPart.Conditions(),rDistributedVariable,rPointVariable);
 }
 
@@ -85,6 +87,7 @@ void VariableRedistributionUtility::DistributePointValues(
     double Tolerance,
     unsigned int MaximumIterations)
 {
+    KRATOS_WARNING("VariableRedistributionUtility") << "This DistributePointValues() signature is deprecated. Use the one with Elements/Conditions container." << std::endl;
     CallSpecializedDistributePointValues<true>(rModelPart, rModelPart.Conditions(), rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
 }
 
@@ -119,6 +122,7 @@ void VariableRedistributionUtility::DistributePointValues(
     double Tolerance,
     unsigned int MaximumIterations)
 {
+    KRATOS_WARNING("VariableRedistributionUtility") << "This DistributePointValues() signature is deprecated. Use the one with Elements/Conditions container." << std::endl;
     CallSpecializedDistributePointValues<true>(rModelPart, rModelPart.Conditions(), rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
 }
 
