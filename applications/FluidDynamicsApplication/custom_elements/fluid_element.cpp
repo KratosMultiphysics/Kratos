@@ -561,7 +561,15 @@ BoundedMatrix<double, TElementData::Dim, TElementData::Dim> FluidElement<TElemen
     BoundedMatrix<double,Dim,Dim> result = ZeroMatrix(Dim,Dim);
 
     for (size_t i = 0; i < NumNodes; i++) {
+<<<<<<< HEAD
         noalias(result) += rN[i] * rValues[i];
+=======
+        for (size_t j = 0; j < Dim; j++) {
+            for (size_t k = 0; k < Dim; k++) {
+                noalias(result) += rN[i] * rValues[i];
+            }
+        }
+>>>>>>> 65745a1b605abfe79626cdcd97b56eecb5cd7959
     }
 
     return result;
