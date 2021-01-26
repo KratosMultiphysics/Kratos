@@ -13,7 +13,6 @@ def kratosFound():
         from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
         return CheckIfApplicationsAvailable(
             "ConvectionDiffusionApplication",
-            "FluidDynamicsApplication",
             "LinearSolversApplication",
             "MeshingApplication",
             "MultilevelMonteCarloApplication",
