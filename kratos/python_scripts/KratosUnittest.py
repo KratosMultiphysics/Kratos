@@ -5,7 +5,7 @@ from unittest import * # needed to make all functions available to the tests usi
 from unittest.util import safe_repr
 from contextlib import contextmanager
 
-import getopt
+import argparse
 import sys
 import os
 from time import time
@@ -167,65 +167,28 @@ def main():
     unittest.main()
 
 def runTests(tests):
-    verbose_values = [0, 1, 2]
-    level_values = ['all', 'small', 'nightly', 'validation']
+    # parse command line options
+    parser = argparse.ArgumentParser()
 
-    verbosity = 1
-    level = 'all'
-    print_timings = False
-    is_mpi = False
+    parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'])
+    parser.add_argument('-v', '--verbosity', default=1, type=int, choices=[0, 1, 2])
+    parser.add_argument('--timing', action='store_true')
+    parser.add_argument('--using-mpi', action='store_true')
 
-    # Parse Commandline
     try:
-        opts, args = getopt.getopt(
-            sys.argv[1:],
-            'hv:l:t', [
-                'help',
-                'verbose=',
-                'level=',
-                'timing',
-                'using-mpi'
-            ])
-    except getopt.GetoptError as err:
-        print(str(err))
-        Usage()
+        args = parser.parse_args()
+    except:
         sys.exit(2)
 
-    for o, a in opts:
-        if o in ('-v', '--verbose'):
-            if int(a) in verbose_values:
-                verbosity = int(a)
-            else:
-                print('Error: {} is not a valid verbose level.'.format(a))
-                Usage()
-                sys.exit()
-        elif o in ('-h', '--help'):
-            Usage()
-            sys.exit()
-        elif o in ('-l', '--level'):
-            if a in level_values:
-                level = a
-            else:
-                print('Error: {} is not a valid level.'.format(a))
-                Usage()
-                sys.exit()
-        elif o in ('--using-mpi'):
-            is_mpi = True
-        elif o in ('-t', '--timing'):
-            print_timings = True
-        else:
-            assert False, 'unhandled option'
-
-    if is_mpi:
+    level = args.level
+    if args.using_mpi:
         level = "mpi_" + level
 
     if tests[level].countTestCases() == 0:
-        print(
-            '[Warning]: "{}" test suite is empty'.format(level),
-            file=sys.stderr)
+        print('[Warning]: "{}" test suite is empty'.format(level),file=sys.stderr)
     else:
-        result = not TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level]).wasSuccessful()
-        if DataCommunicator.GetDefault().Rank() == 0 and print_timings:
+        result = not TextTestRunner(verbosity=args.verbosity, buffer=True).run(tests[level]).wasSuccessful()
+        if DataCommunicator.GetDefault().Rank() == 0 and args.timing:
             print("Test Execution Times:")
             for test_time, test_name in sorted(test_timing_results.items(), reverse=True):
                 print(test_name, " {0:.{1}f} [sec]".format(test_time,2))
