@@ -15,6 +15,7 @@
 #define  KRATOS_LOCK_OBJECT_H_INCLUDED
 
 // System includes
+#include <mutex>
 
 // External includes
 #ifdef KRATOS_SMP_OPENMP
@@ -23,102 +24,106 @@
 
 // Project includes
 
+
 namespace Kratos
 {
-  ///@addtogroup KratosCore
-  ///@{
+///@addtogroup KratosCore
+///@{
 
-  ///@name Kratos Classes
-  ///@{
+///@name Kratos Classes
+///@{
 
-  /// This class defines stores a lock and gives interface to it.
-  /** The class makes a tiny wrapper over the ahared memory locking mechanisms
-  */
-  class LockObject
-    {
-    public:
-      ///@name Life Cycle
-      ///@{
+/// This class defines stores a lock and gives interface to it.
+/** The class makes a tiny wrapper over the sahared memory locking mechanisms
+ */
+class LockObject
+{
+public:
+    ///@name Life Cycle
+    ///@{
 
-      /// Default constructor.
-		LockObject() noexcept {
+    /// Default constructor.
+    LockObject() noexcept {
 #ifdef KRATOS_SMP_OPENMP
-			omp_init_lock(&mLock);
+        omp_init_lock(&mLock);
 #endif
-		}
+    }
 
-		/// Copy constructor.
-		LockObject(LockObject const& rOther) = delete;
+    /// Copy constructor.
+    LockObject(LockObject const& rOther) = delete;
 
-		/// Move constructor.
+    /// Move constructor.
     LockObject(LockObject&& rOther) noexcept
 #ifdef KRATOS_SMP_OPENMP
-			: mLock(rOther.mLock)
+        : mLock(rOther.mLock)
 #endif
-		{
+    {
 #ifdef KRATOS_SMP_OPENMP
-      static_assert(std::is_move_constructible<omp_lock_t>::value, "omp_lock_t is not move constructible!");
-			omp_init_lock(&mLock);
+    static_assert(std::is_move_constructible<omp_lock_t>::value, "omp_lock_t is not move constructible!");
+        omp_init_lock(&mLock);
 #endif
-		}
+    }
 
-		/// Destructor.
-		virtual ~LockObject() noexcept {
+    /// Destructor.
+    virtual ~LockObject() noexcept {
 #ifdef KRATOS_SMP_OPENMP
-			omp_destroy_lock(&mLock);
+        omp_destroy_lock(&mLock);
 #endif
-		}
+    }
 
-      ///@}
-      ///@name Operators
-      ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
-	  /// Assignment operator.
-		LockObject& operator=(LockObject const& rOther) = delete;
+    /// Assignment operator.
+    LockObject& operator=(LockObject const& rOther) = delete;
 
-      ///@}
-      ///@name Operations
-      ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-      ///@}
-      ///@name Access
-      ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
-		inline void SetLock() const
-		{
-			//does nothing if openMP is not present
-#ifdef KRATOS_SMP_OPENMP
-			omp_set_lock(&mLock);
+    inline void SetLock() const
+    {
+#ifdef KRATOS_SMP_CXX11
+        mLock.lock();
+#elif KRATOS_SMP_OPENMP
+        omp_set_lock(&mLock);
 #endif
-		}
+    }
 
-		inline void UnSetLock() const
-		{
-			//does nothing if openMP is not present
-#ifdef KRATOS_SMP_OPENMP
-			omp_unset_lock(&mLock);
+    inline void UnSetLock() const
+    {
+#ifdef KRATOS_SMP_CXX11
+        mLock.unlock();
+#elif KRATOS_SMP_OPENMP
+        omp_unset_lock(&mLock);
 #endif
-		}
+    }
 
-      ///@}
+    ///@}
 
-    private:
-      ///@name Member Variables
-      ///@{
+private:
+    ///@name Member Variables
+    ///@{
 
-#ifdef KRATOS_SMP_OPENMP
-		mutable omp_lock_t mLock;
+#ifdef KRATOS_SMP_CXX11
+    mutable std::mutex mLock;
+#elif KRATOS_SMP_OPENMP
+    mutable omp_lock_t mLock;
 #endif
 
-      ///@}
+    ///@}
 
-    }; // Class LockObject
+}; // Class LockObject
 
-  ///@}
+///@}
 
-
-  ///@} addtogroup block
+///@} addtogroup block
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LOCK_OBJECT_H_INCLUDED  defined
+#endif // KRATOS_LOCK_OBJECT_H_INCLUDED defined
