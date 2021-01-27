@@ -42,7 +42,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TestSetTopographyProcess('test_execution'))
     smallSuite.addTest(TestVisualizationMeshProcess('test_execution'))
     smallSuite.addTest(TestNodesOutputProcess('test_execution'))
-    smallSuite.addTest(TestConvergenceOutputProcess('test_execution'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceOutputProcess]))
 
     # Create a test suit with the selected tests plus all small tests
     nightlySuite = suites['nightly']
