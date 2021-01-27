@@ -177,7 +177,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
         const Vector gauss_shape_functions = row(shape_functions, g);
 
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const double source = r_current_data.CalculateSourceTerm(
+        const double source = r_current_data.GetSourceTerm(
             gauss_shape_functions, r_shape_derivatives);
 
         noalias(rRightHandSideVector) +=
@@ -256,15 +256,15 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
         const Vector& r_shape_functions = row(shape_functions, g);
 
         r_current_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
-        const array_1d<double, 3>& velocity = r_current_data.CalculateEffectiveVelocity(
+        const array_1d<double, 3>& velocity = r_current_data.GetEffectiveVelocity(
             r_shape_functions, r_shape_derivatives);
         this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
 
         const double effective_kinematic_viscosity =
-            r_current_data.CalculateEffectiveKinematicViscosity(
+            r_current_data.GetEffectiveKinematicViscosity(
                 r_shape_functions, r_shape_derivatives);
 
-        const double reaction = r_current_data.CalculateReactionTerm(
+        const double reaction = r_current_data.GetReactionTerm(
             r_shape_functions, r_shape_derivatives);
 
         const Matrix& dNa_dNb = prod(r_shape_derivatives, trans(r_shape_derivatives));
