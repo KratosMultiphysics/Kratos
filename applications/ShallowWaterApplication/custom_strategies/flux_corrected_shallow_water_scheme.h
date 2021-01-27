@@ -20,7 +20,6 @@
 // Project includes
 #include "shallow_water_residual_based_bdf_scheme.h"
 #include "processes/find_global_nodal_neighbours_process.h"
-#include "utilities/parallel_utilities.h"
 #include "includes/kratos_parameters.h"
 #include "custom_utilities/flux_limiter.h"
 
