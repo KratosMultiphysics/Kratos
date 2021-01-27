@@ -104,12 +104,15 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
 
     KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
 
-    CalculateGradient(mTurbulentKineticEnergyGradient, r_geometry,
-                      TURBULENT_KINETIC_ENERGY, rShapeFunctionDerivatives, Step);
+    // TODO: Remove following clears
+    mTurbulentKineticEnergyGradient.clear();
+    mTurbulentSpecificEnergyDissipationRateGradient.clear();
 
-    CalculateGradient(mTurbulentSpecificEnergyDissipationRateGradient,
-                      r_geometry, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE,
-                      rShapeFunctionDerivatives, Step);
+    FluidCalculationUtilities::EvaluateGradientInPoint(
+        this->GetGeometry(), rShapeFunctionDerivatives,
+        std::tie(mTurbulentKineticEnergyGradient, TURBULENT_KINETIC_ENERGY),
+        std::tie(mTurbulentSpecificEnergyDissipationRateGradient, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+        std::tie(mVelocityGradient, VELOCITY));
 
     mCrossDiffusion = KOmegaSSTElementData::CalculateCrossDiffusionTerm(
         mSigmaOmega2, mTurbulentSpecificEnergyDissipationRate,
@@ -130,55 +133,19 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
 
     mBlendedGamma = KOmegaSSTElementData::CalculateBlendedPhi(gamma_1, gamma_2, mF1);
 
-    mVelocityDivergence = GetDivergence(r_geometry, VELOCITY, rShapeFunctionDerivatives);
+    mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
 
-    CalculateGradient<TDim>(mVelocityGradient, r_geometry, VELOCITY,
-                            rShapeFunctionDerivatives, Step);
+    this->mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mBlendedSigmaOmega;
+
+    const double omega = std::max(mTurbulentSpecificEnergyDissipationRate, 1e-12);
+    this->mReactionTerm = mBlendedBeta * omega;
+    this->mReactionTerm -= (1.0 - mF1) * mCrossDiffusion / omega;
+    this->mReactionTerm += mBlendedGamma * 2.0 * mVelocityDivergence / 3.0;
+    this->mReactionTerm = std::max(this->mReactionTerm, 0.0);
+
+    this->mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity) * (mBlendedGamma / mTurbulentKinematicViscosity);
 
     KRATOS_CATCH("");
-}
-
-template <unsigned int TDim>
-array_1d<double, 3> OmegaElementData<TDim>::CalculateEffectiveVelocity(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return mEffectiveVelocity;
-}
-
-template <unsigned int TDim>
-double OmegaElementData<TDim>::CalculateEffectiveKinematicViscosity(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return mKinematicViscosity + mTurbulentKinematicViscosity * mBlendedSigmaOmega;
-}
-
-template <unsigned int TDim>
-double OmegaElementData<TDim>::CalculateReactionTerm(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    const double omega = std::max(mTurbulentSpecificEnergyDissipationRate, 1e-12);
-    double value = mBlendedBeta * omega;
-    value -= (1.0 - mF1) * mCrossDiffusion / omega;
-    value += mBlendedGamma * 2.0 * mVelocityDivergence / 3.0;
-    return std::max(value, 0.0);
-}
-
-template <unsigned int TDim>
-double OmegaElementData<TDim>::CalculateSourceTerm(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    double production = 0.0;
-
-    production = KEpsilonElementData::CalculateSourceTerm<TDim>(
-        mVelocityGradient, mTurbulentKinematicViscosity);
-
-    production *= (mBlendedGamma / mTurbulentKinematicViscosity);
-
-    return production;
 }
 
 // template instantiations

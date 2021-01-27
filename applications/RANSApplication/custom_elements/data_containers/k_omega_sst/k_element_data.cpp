@@ -116,7 +116,9 @@ double KElementData<TDim>::CalculateEffectiveViscosity(
             std::tie(y, DISTANCE)
         );
 
-        CalculateGradient<TDim>(velocity_gradient, this->GetGeometry(), VELOCITY, r_shape_derivatives);
+        FluidCalculationUtilities::EvaluateGradientInPoint(
+            this->GetGeometry(), r_shape_derivatives,
+            std::tie(velocity_gradient, VELOCITY));
 
         const double f_2 = KOmegaSSTElementData::CalculateF2(tke, omega, nu, y, beta_star);
 
@@ -173,12 +175,15 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
 
-    CalculateGradient(mTurbulentKineticEnergyGradient, r_geometry,
-                      TURBULENT_KINETIC_ENERGY, rShapeFunctionDerivatives, Step);
+    // TODO: Remove following clears
+    mTurbulentKineticEnergyGradient.clear();
+    mTurbulentSpecificEnergyDissipationRateGradient.clear();
 
-    CalculateGradient(mTurbulentSpecificEnergyDissipationRateGradient,
-                      r_geometry, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE,
-                      rShapeFunctionDerivatives, Step);
+    FluidCalculationUtilities::EvaluateGradientInPoint(
+        this->GetGeometry(), rShapeFunctionDerivatives,
+        std::tie(mTurbulentKineticEnergyGradient, TURBULENT_KINETIC_ENERGY),
+        std::tie(mTurbulentSpecificEnergyDissipationRateGradient, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+        std::tie(mVelocityGradient, VELOCITY));
 
     mCrossDiffusion = KOmegaSSTElementData::CalculateCrossDiffusionTerm(
         mSigmaOmega2, mTurbulentSpecificEnergyDissipationRate,
@@ -191,47 +196,13 @@ void KElementData<TDim>::CalculateGaussPointData(
     mBlendedSimgaK =
         KOmegaSSTElementData::CalculateBlendedPhi(mSigmaK1, mSigmaK2, f_1);
 
-    mVelocityDivergence = GetDivergence(r_geometry, VELOCITY, rShapeFunctionDerivatives);
+    mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
 
-    CalculateGradient<TDim>(mVelocityGradient, r_geometry, VELOCITY,
-                            rShapeFunctionDerivatives, Step);
+    this->mEffectiveKinematicViscosity = mKinematicViscosity + mBlendedSimgaK * mTurbulentKinematicViscosity;
+    this->mReactionTerm = std::max(mBetaStar * mTurbulentKineticEnergy / mTurbulentKinematicViscosity + (2.0 / 3.0) * mVelocityDivergence, 0.0);
+    this->mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity);
 
     KRATOS_CATCH("");
-}
-
-template <unsigned int TDim>
-array_1d<double, 3> KElementData<TDim>::CalculateEffectiveVelocity(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return mEffectiveVelocity;
-}
-
-template <unsigned int TDim>
-double KElementData<TDim>::CalculateEffectiveKinematicViscosity(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return mKinematicViscosity + mBlendedSimgaK * mTurbulentKinematicViscosity;
-}
-
-template <unsigned int TDim>
-double KElementData<TDim>::CalculateReactionTerm(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return std::max(mBetaStar * mTurbulentKineticEnergy / mTurbulentKinematicViscosity +
-                        (2.0 / 3.0) * mVelocityDivergence,
-                    0.0);
-}
-
-template <unsigned int TDim>
-double KElementData<TDim>::CalculateSourceTerm(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return KEpsilonElementData::CalculateSourceTerm<TDim>(
-        mVelocityGradient, mTurbulentKinematicViscosity);
 }
 
 // template instantiations

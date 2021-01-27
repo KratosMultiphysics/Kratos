@@ -73,28 +73,8 @@ public:
         const Matrix& rShapeFunctionDerivatives,
         const int Step = 0);
 
-    array_1d<double, 3> CalculateEffectiveVelocity(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
-
-    double CalculateEffectiveKinematicViscosity(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
-
-    double CalculateReactionTerm(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
-
-    double CalculateSourceTerm(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
-
-    double CalculateEffectiveViscosity(
-        const ProcessInfo& rCurrentProcessInfo);
-
 protected:
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
-    array_1d<double, 3> mEffectiveVelocity;
     array_1d<double, 3> mTurbulentKineticEnergyGradient;
     array_1d<double, 3> mTurbulentSpecificEnergyDissipationRateGradient;
 
@@ -111,6 +91,9 @@ protected:
     double mBlendedSimgaK;
     double mVelocityDivergence;
     double mDensity;
+
+    double CalculateEffectiveViscosity(
+        const ProcessInfo& rCurrentProcessInfo);
 };
 
 ///@}
