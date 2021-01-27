@@ -75,6 +75,28 @@ public:
         return mrProperties;
     }
 
+    array_1d<double, 3> CalculateEffectiveVelocity(
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives) const { return mEffectiveVelocity; }
+
+    double CalculateEffectiveKinematicViscosity(
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives) const { return mEffectiveKinematicViscosity; }
+
+    double CalculateReactionTerm(
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives) const { return mReactionTerm; }
+
+    double CalculateSourceTerm(
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives) const { return mSourceTerm; }
+
+protected:
+    array_1d<double, 3> mEffectiveVelocity;
+    double mEffectiveKinematicViscosity;
+    double mReactionTerm;
+    double mSourceTerm;
+
 private:
     const GeometryType& mrGeometry;
     const Properties& mrProperties;
