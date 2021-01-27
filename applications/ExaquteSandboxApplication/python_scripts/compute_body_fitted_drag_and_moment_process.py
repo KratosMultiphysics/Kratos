@@ -24,7 +24,7 @@ class ComputeBodyFittedDragAndMomentProcess(ComputeDragAndMomentProcess):
         return header
 
     def _PrintToScreen(self, result_msg):
-        KratosMultiphysics.Logger.PrintInfo("ComputeBodyFittedDragAndMomentProcess","BODY FITTED DRAG RESULTS:")
+        KratosMultiphysics.Logger.PrintInfo("ComputeBodyFittedDragAndMomentProcess","BODY FITTED DRAG AND MOMENT RESULTS:")
         KratosMultiphysics.Logger.PrintInfo("ComputeBodyFittedDragAndMomentProcess","Current time: " + result_msg)
 
     def _GetCorrespondingDragForceAndMoment(self):

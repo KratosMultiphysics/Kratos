@@ -26,6 +26,7 @@ set( KRATOS_EXAQUTE_SANDBOX_APPLICATION_SOURCES
 set( KRATOS_EXAQUTE_SANDBOX_PYTHON_INTERFACE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/exaqute_sandbox_python_application.cpp
 )
 
