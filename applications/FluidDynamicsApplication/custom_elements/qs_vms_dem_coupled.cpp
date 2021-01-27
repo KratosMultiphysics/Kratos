@@ -175,7 +175,8 @@ void QSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
             for (unsigned int e = 0; e < Dim; e++){
                 sigma_U[d] += sigma(d,e) * rData.N[i] * r_velocities(i,e);
             }
-            rResidual[d] += density * ( rData.N[i]*(r_body_forces(i,d) - r_acceleration[d]) - convection[i]*r_velocities(i,d)) - rData.DN_DX(i,d)*r_pressures[i] - sigma_U[d];
+            rResidual[d] += density * ( rData.N[i]*(r_body_forces(i,d) - r_acceleration[d]) - convection[i]*r_velocities(i,d))
+                            - rData.DN_DX(i,d)*r_pressures[i] - sigma_U[d];
         }
     }
 }
@@ -205,7 +206,8 @@ void QSVMSDEMCoupled<TElementData>::MomentumProjTerm(
             for (unsigned int e = 0; e < Dim; e++){
                 sigma_U[d] += sigma(d,e) * rData.N[i] * rData.Velocity(i,e);
             }
-            rMomentumRHS[d] += density * ( rData.N[i]*(rData.BodyForce(i,d) /*- rAcc[d]*/) - AGradN[i]*rData.Velocity(i,d)) - rData.DN_DX(i,d)*rData.Pressure[i] - sigma_U[d];
+            rMomentumRHS[d] += density * ( rData.N[i]*(rData.BodyForce(i,d) /*- rAcc[d]*/) - AGradN[i]*rData.Velocity(i,d))
+                                - rData.DN_DX(i,d)*rData.Pressure[i] - sigma_U[d];
         }
     }
 }
