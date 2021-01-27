@@ -85,7 +85,7 @@ double KElementData<TDim>::CalculateEffectiveViscosity(
     // Get Shape function data
     Vector gauss_weights;
     Matrix shape_functions;
-    GeometryType::ShapeFunctionsGradientsType shape_derivatives;
+    typename GeometryType::ShapeFunctionsGradientsType shape_derivatives;
     CalculateGeometryData(this->GetGeometry(), GeometryData::IntegrationMethod::GI_GAUSS_1,
                           gauss_weights, shape_functions, shape_derivatives);
     const int num_gauss_points = gauss_weights.size();
@@ -171,7 +171,7 @@ void KElementData<TDim>::CalculateGaussPointData(
         std::tie(mTurbulentSpecificEnergyDissipationRate, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
         std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
         std::tie(mWallDistance, DISTANCE),
-        std::tie(mEffectiveVelocity, VELOCITY));
+        std::tie(this->mEffectiveVelocity, VELOCITY));
 
     KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
 

@@ -33,10 +33,10 @@ namespace Kratos
 namespace KEpsilonElementData
 {
 template <unsigned int TDim>
-class KElementData : public ConvectionDiffusionReactionElementData
+class KElementData : public ConvectionDiffusionReactionElementData<TDim>
 {
 public:
-    using BaseType = ConvectionDiffusionReactionElementData;
+    using BaseType = ConvectionDiffusionReactionElementData<TDim>;
     using NodeType = Node<3>;
     using GeometryType = typename BaseType::GeometryType;
 

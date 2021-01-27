@@ -34,12 +34,12 @@ namespace Kratos
 namespace KOmegaSSTElementData
 {
 template <unsigned int TDim>
-class OmegaElementData : public ConvectionDiffusionReactionElementData
+class OmegaElementData : public ConvectionDiffusionReactionElementData<TDim>
 {
 public:
-    using BaseType = ConvectionDiffusionReactionElementData;
+    using BaseType = ConvectionDiffusionReactionElementData<TDim>;
     using NodeType = Node<3>;
-    using GeomtryType = BaseType::GeometryType;
+    using GeometryType = typename BaseType::GeometryType;
 
     static const Variable<double>& GetScalarVariable();
 

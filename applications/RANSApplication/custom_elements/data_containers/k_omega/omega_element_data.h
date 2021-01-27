@@ -37,10 +37,10 @@ namespace Kratos
 namespace KOmegaElementData
 {
 template <unsigned int TDim>
-class OmegaElementData : public ConvectionDiffusionReactionElementData
+class OmegaElementData : public ConvectionDiffusionReactionElementData<TDim>
 {
 public:
-    using BaseType = ConvectionDiffusionReactionElementData;
+    using BaseType = ConvectionDiffusionReactionElementData<TDim>;
     using NodeType = Node<3>;
     using GeometryType = typename BaseType::GeometryType;
 

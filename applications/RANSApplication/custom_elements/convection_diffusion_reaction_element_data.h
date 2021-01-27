@@ -31,10 +31,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+template<unsigned int TDim>
 class ConvectionDiffusionReactionElementData
 {
 public:
     using GeometryType = Geometry<Node<3>>;
+    using ArrayD = array_1d<double, TDim>;
 
     ConvectionDiffusionReactionElementData(
         const GeometryType& rGeometry,
@@ -78,6 +80,15 @@ public:
     array_1d<double, 3> GetEffectiveVelocity(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives) const { return mEffectiveVelocity; }
+
+    ArrayD GetEffectiveVelocity() const
+    {
+        ArrayD result;
+        for (unsigned int i = 0; i < TDim; ++i) {
+            result[i] =mEffectiveVelocity[i];
+        }
+        return result;
+    }
 
     double GetEffectiveKinematicViscosity(
         const Vector& rShapeFunctions,

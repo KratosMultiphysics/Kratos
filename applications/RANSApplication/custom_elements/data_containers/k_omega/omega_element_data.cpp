@@ -93,7 +93,7 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
         this->GetGeometry(), rShapeFunctions, Step,
         std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
         std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-        std::tie(mEffectiveVelocity, VELOCITY));
+        std::tie(this->mEffectiveVelocity, VELOCITY));
 
     FluidCalculationUtilities::EvaluateGradientInPoint(
         this->GetGeometry(), rShapeFunctionDerivatives,
