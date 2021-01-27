@@ -50,6 +50,7 @@ namespace Kratos
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mXYRays;
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mXZRays;
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mYZRays;
+      std::unordered_map<std::string, std::vector<double>> mElementalData;
      public:
       CartesianMeshColors(): mTolerance(1e-12), mMinPoint(0.00, 0.00, 0.00), mMaxPoint(0.00, 0.00, 0.00){}
 
@@ -117,6 +118,18 @@ namespace Kratos
             mElementalColors[i] = TheColor;
             mElementalFaceColors[i] = ScalarVector(6,TheColor);
         }
+    }
+
+    void SetElementalData(std::string const& DataName, std::vector<double> const& TheData){
+        mElementalData[DataName] = TheData;
+    }
+
+    std::vector<double> const& GetElementalData(std::string const& DataName) {
+        return mElementalData[DataName];
+    }
+
+    bool HasElementalData(std::string const& DataName) const {
+        return (mElementalData.find(DataName) != mElementalData.end());
     }
 
     double& GetNodalColor(std::size_t I, std::size_t J, std::size_t K){
