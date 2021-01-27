@@ -89,6 +89,8 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
+    BoundedVector<double, TNumNodes> velocity_convective_terms;
+
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector gauss_shape_functions = row(shape_functions, g);
@@ -109,8 +111,7 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
             element_length, norm_2(velocity), reaction, effective_kinematic_viscosity,
             bossak_alpha, bossak_gamma, delta_time, dynamic_tau);
 
-        BoundedVector<double, TNumNodes> velocity_convective_terms;
-        this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
+        noalias(velocity_convective_terms) = prod(r_shape_derivatives, r_current_data.GetEffectiveVelocity());
 
         ConvectionDiffusionReactionStabilizationUtilities::AddSourceTermWithSUPGStabilizationGaussPointContributions(
             rRightHandSideVector, source, std::abs(reaction), tau,
@@ -166,6 +167,8 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
+    BoundedVector<double, TNumNodes> velocity_convective_terms;
+
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector gauss_shape_functions = row(shape_functions, g);
@@ -176,8 +179,9 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
         const array_1d<double, 3>& velocity = r_current_data.GetEffectiveVelocity(
             gauss_shape_functions, r_shape_derivatives);
-        BoundedVector<double, TNumNodes> velocity_convective_terms;
-        this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
+
+        noalias(velocity_convective_terms) = prod(r_shape_derivatives, r_current_data.GetEffectiveVelocity());
+
         const double effective_kinematic_viscosity =
             r_current_data.GetEffectiveKinematicViscosity(
                 gauss_shape_functions, r_shape_derivatives);
@@ -280,6 +284,8 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
+    BoundedVector<double, TNumNodes> velocity_convective_terms;
+
     double scalar_multiplier = 0.0;
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
@@ -288,8 +294,9 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
         const array_1d<double, 3>& velocity = r_current_data.GetEffectiveVelocity(
             gauss_shape_functions, r_shape_derivatives);
-        BoundedVector<double, TNumNodes> velocity_convective_terms;
-        this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
+
+        noalias(velocity_convective_terms) = prod(r_shape_derivatives, r_current_data.GetEffectiveVelocity());
+
         const double velocity_magnitude = norm_2(velocity);
 
         const double effective_kinematic_viscosity =

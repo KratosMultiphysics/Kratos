@@ -258,7 +258,8 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
         r_current_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
         const array_1d<double, 3>& velocity = r_current_data.GetEffectiveVelocity(
             r_shape_functions, r_shape_derivatives);
-        this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
+
+        noalias(velocity_convective_terms) = prod(r_shape_derivatives, r_current_data.GetEffectiveVelocity());
 
         const double effective_kinematic_viscosity =
             r_current_data.GetEffectiveKinematicViscosity(
@@ -315,20 +316,6 @@ double ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionR
     }
 
     return value;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetConvectionOperator(
-    BoundedVector<double, TNumNodes>& rOutput,
-    const array_1d<double, 3>& rVector,
-    const Matrix& rShapeDerivatives) const
-{
-    rOutput.clear();
-    for (IndexType i = 0; i < TNumNodes; ++i) {
-        for (IndexType j = 0; j < TDim; ++j) {
-            rOutput[i] += rVector[j] * rShapeDerivatives(i, j);
-        }
-    }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
