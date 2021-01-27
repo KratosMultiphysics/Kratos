@@ -32,7 +32,8 @@ class BaseBenchmarkProcess(KM.Process):
         default_settings["benchmark_settings"] = self._GetBenchmarkDefaultSettings()
         settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
-        self.model_part = model[settings["model_part_name"].GetString()]
+        self.model = model
+        self.model_part = self.model[settings["model_part_name"].GetString()]
 
         self.variables = GenerateVariableListFromInput(settings["variables_list"])
         self.exact_variables = GenerateVariableListFromInput(settings["exact_variables_list"])
