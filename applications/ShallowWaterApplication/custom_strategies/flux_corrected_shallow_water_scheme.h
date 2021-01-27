@@ -131,7 +131,7 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         // Memory allocation
-        const IndexType num_threads = OpenMPUtils::GetNumThreads();
+        const IndexType num_threads = ParallelUtilities::GetNumThreads();
         mMl.resize(num_threads);
 
         // Initialization of non-historical variables
