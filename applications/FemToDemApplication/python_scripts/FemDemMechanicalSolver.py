@@ -3,6 +3,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.FemToDemApplication.check_and_prepare_model_process as check_and_prepare_model_process
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 from importlib import import_module
 
 def CreateSolver(main_model_part, custom_settings):
@@ -44,6 +45,10 @@ class FemDemMechanicalSolver(object):
             "solution_type": "Dynamic",
             "time_integration_method": "Implicit",
             "scheme_type": "Newmark",
+            "time_step_prediction_level" : 0,
+            "delta_time_refresh"         : 1000,
+            "max_delta_time"             : 1.0e0,
+            "fraction_delta_time"        : 0.333333333333333333333333333333333333,
 	    "analysis_type": "Non-Linear",
             "model_import_settings": {
                 "input_type": "mdpa",
@@ -53,7 +58,7 @@ class FemDemMechanicalSolver(object):
             },
             "computing_model_part_name" : "computing_domain",
             "dofs": [],
-            "reform_dofs_at_each_step": false,
+            "reform_dofs_at_each_step": true,
             "line_search": false,
             "implex": false,
             "stabilization_factor": null,
@@ -166,6 +171,15 @@ class FemDemMechanicalSolver(object):
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
         for variable in self.nodal_variables:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
+
+        scheme_type = self.settings["scheme_type"].GetString()
+        if scheme_type == "central_differences":
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_DISPLACEMENT_DAMPING)
+
+
         print("::[Mechanical_Solver]:: General Variables ADDED")
 
     def AddDofs(self):

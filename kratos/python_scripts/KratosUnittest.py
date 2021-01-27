@@ -280,4 +280,4 @@ class WorkFolderScope:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
         if self.add_to_path:
-            sys.path = self.currentPythonpath
+            sys.path.remove(self.scope)

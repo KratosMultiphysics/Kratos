@@ -2,6 +2,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics import Parameters
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import sys
+import numpy as np
 
 class ProjectionModule:
 
@@ -28,7 +29,10 @@ class ProjectionModule:
         self.do_impose_flow_from_field = project_parameters["custom_fluid"]["do_impose_flow_from_field_option"].GetBool()
         self.flow_field = flow_field
 
-        # Create projector_parameters
+        if self.backward_coupling_parameters.Has("averaging_time_interval"):
+            self.averaging_time_interval = self.backward_coupling_parameters["averaging_time_interval"].GetInt()
+
+         # Create projector_parameters
         self.projector_parameters = Parameters("{}")
         self.projector_parameters.AddValue("backward_coupling", project_parameters["coupling"]["backward_coupling"])
         self.projector_parameters.AddValue("coupling_type", project_parameters["coupling"]["coupling_weighing_type"])
@@ -69,7 +73,13 @@ class ProjectionModule:
             self.projector.AddDEMVariablesToImpose(Kratos.AUX_VEL)
 
         for var in time_filtered_vars:
-            self.projector.AddFluidVariableToBeTimeFiltered(var, 0.004)
+            averaging_time_interval = self.averaging_time_interval
+            if self.averaging_time_interval < 15:
+                alpha = 1 - np.exp(- averaging_time_interval)
+            else:
+                alpha = 1.0 / averaging_time_interval
+            print('A'*100, alpha)
+            self.projector.AddFluidVariableToBeTimeFiltered(var, alpha)
 
     def UpdateDatabase(self, HMin):
 

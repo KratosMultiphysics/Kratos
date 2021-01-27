@@ -148,7 +148,7 @@ void TranslatoryRigidBodyElement::EquationIdVector(EquationIdVectorType& rResult
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void TranslatoryRigidBodyElement::GetValuesVector(Vector& rValues, int Step)
+void TranslatoryRigidBodyElement::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
@@ -175,7 +175,7 @@ void TranslatoryRigidBodyElement::GetValuesVector(Vector& rValues, int Step)
 
 //************************************************************************************
 //************************************************************************************
-void TranslatoryRigidBodyElement::GetFirstDerivativesVector(Vector& rValues, int Step)
+void TranslatoryRigidBodyElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
@@ -201,7 +201,7 @@ void TranslatoryRigidBodyElement::GetFirstDerivativesVector(Vector& rValues, int
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void TranslatoryRigidBodyElement::GetSecondDerivativesVector(Vector& rValues, int Step)
+void TranslatoryRigidBodyElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
@@ -466,7 +466,7 @@ void TranslatoryRigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProc
 //************************************************************************************
 //************************************************************************************
 
-TranslatoryRigidBodyElement::SizeType TranslatoryRigidBodyElement::GetDofsSize()
+TranslatoryRigidBodyElement::SizeType TranslatoryRigidBodyElement::GetDofsSize() const
 {
   KRATOS_TRY
 

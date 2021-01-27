@@ -212,7 +212,7 @@ public:
     /**
      * @brief This sets the output mesh in a .mdpa format
      */
-    void OutputMdpa();
+    virtual void OutputMdpa();
 
     /**
      * @brief Ths function removes superfluous (defined by "not belonging to an element") nodes from the model part
@@ -269,42 +269,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
     ModelPart& mrThisModelPart;                                      /// The model part to compute
     Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
     NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
-
-    MmgUtilities<TMMGLibrary> mMmgUtilities;                         /// The MMG utilities class
 
     std::string mFilename;                                           /// I/O file name
     IndexType mEchoLevel;                                            /// The echo level
@@ -320,12 +287,20 @@ private:
     std::unordered_map<IndexType,Condition::Pointer> mpRefCondition; /// Reference condition
 
     ///@}
-    ///@name Private Operators
+    ///@name Protected Operators
     ///@{
 
     ///@}
-    ///@name Private Operations
+    ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This is the default constructor, which is used to read the input files. To be called by derived classes.
+     * @param pThisModelPart The pointer to the model part
+     */
+    MmgProcess(
+        ModelPart* pThisModelPart
+    );
 
     /**
      * @brief This converts the framework string to an enum
@@ -364,43 +339,43 @@ private:
     /**
      * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
      */
-    void InitializeMeshData();
+    virtual void InitializeMeshData();
 
     /**
      *@brief This function generates the metric MMG5 structure from a Kratos Model Part
      */
-    void InitializeSolDataMetric();
+    virtual void InitializeSolDataMetric();
 
     /**
      *@brief This function generates the MMG5 structure for the distance field from a Kratos Model Part
      */
-    void InitializeSolDataDistance();
+    virtual void InitializeSolDataDistance();
 
     /**
      *@brief This function generates the displacement MMG5 structure from a Kratos Model Part
      */
-    void InitializeDisplacementData();
+    virtual void InitializeDisplacementData();
 
     /**
      * @brief We execute the MMg library and build the new model part from the old model part
      */
-    void ExecuteRemeshing();
+    virtual void ExecuteRemeshing();
 
     /**
      * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
      */
-    void InitializeElementsAndConditions();
+    virtual void InitializeElementsAndConditions();
 
     /**
      * @brief It saves the solution and mesh to files (for debugging pourpose g.e)
      * @param PostOutput If the file to save is after or before remeshing
      */
-    void SaveSolutionToFile(const bool PostOutput);
+    virtual void SaveSolutionToFile(const bool PostOutput);
 
     /**
      * @brief It frees the memory used during all the process
      */
-    void FreeMemory();
+    virtual void FreeMemory();
 
     /**
      * @brief It sets to zero the entity data, using the variables from the orginal model part
@@ -460,6 +435,50 @@ private:
     }
 
     /**
+     * @brief This function removes the conditions with duplicated geometries
+     */
+    virtual void ClearConditionsDuplicatedGeometries();
+
+    /**
+     * @brief This function creates an before/after remesh output file
+     * @param rOldModelPart The old model part before remesh
+     */
+    virtual void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    MmgUtilities<TMMGLibrary> mMmgUtilities;                         /// The MMG utilities class
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
      * @brief This method collapses the prisms elements into triangles
      */
     void CollapsePrismsToTriangles();
@@ -469,17 +488,6 @@ private:
      * @param rOldModelPart The old model part
      */
     void ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart);
-
-    /**
-     * @brief This function removes the conditions with duplicated geometries
-     */
-    void ClearConditionsDuplicatedGeometries();
-
-    /**
-     * @brief This function creates an before/after remesh output file
-     * @param rOldModelPart The old model part before remesh
-     */
-    void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
 
     /**
      * @brief This method is used in order to mark the conditions in a recursive way to avoid remove necessary conditions

@@ -19,30 +19,25 @@ namespace Kratos
 int ExponentialCohesive3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
 {
     // Verify ProcessInfo variables
-    KRATOS_CHECK_VARIABLE_KEY(IS_CONVERGED);
 
-    KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
     if(rMaterialProperties.Has(YIELD_STRESS)) {
         KRATOS_ERROR_IF(rMaterialProperties[YIELD_STRESS] <= 0.0) << "YIELD_STRESS has an invalid value " << std::endl;
     } else {
         KRATOS_ERROR << "YIELD_STRESS not defined" << std::endl;
     }
 
-    KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
     if(rMaterialProperties.Has(FRACTURE_ENERGY)) {
         KRATOS_ERROR_IF(rMaterialProperties[FRACTURE_ENERGY] <= 0.0) << "FRACTURE_ENERGY has an invalid value " << std::endl;
     } else {
         KRATOS_ERROR << "FRACTURE_ENERGY not defined" << std::endl;
     }
 
-    KRATOS_CHECK_VARIABLE_KEY(SHEAR_FRACTURE_ENERGY);
     if(rMaterialProperties.Has(SHEAR_FRACTURE_ENERGY)) {
         KRATOS_ERROR_IF(rMaterialProperties[SHEAR_FRACTURE_ENERGY] < 0.0) << "SHEAR_FRACTURE_ENERGY has an invalid value " << std::endl;
     } else {
         KRATOS_ERROR << "SHEAR_FRACTURE_ENERGY not defined" << std::endl;
     }
 
-    KRATOS_CHECK_VARIABLE_KEY(STATE_VARIABLE);
     if(rMaterialProperties.Has(STATE_VARIABLE)) {
         KRATOS_ERROR_IF(rMaterialProperties[STATE_VARIABLE] < 0.0) << "STATE_VARIABLE has an invalid value " << std::endl;
     } else {

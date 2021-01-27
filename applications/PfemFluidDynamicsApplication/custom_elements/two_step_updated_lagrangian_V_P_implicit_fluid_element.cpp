@@ -1232,7 +1232,8 @@ namespace Kratos
       }
       else
       {
-        this->SetValue(YIELDED, false);
+        if (this->Has(YIELDED))
+          this->SetValue(YIELDED, false);
       }
     }
 
@@ -1311,7 +1312,8 @@ namespace Kratos
       }
       else
       {
-        this->SetValue(YIELDED, false);
+        if (this->Has(YIELDED))
+          this->SetValue(YIELDED, false);
       }
     }
 

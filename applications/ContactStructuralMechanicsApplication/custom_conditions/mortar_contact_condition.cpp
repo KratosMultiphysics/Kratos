@@ -663,11 +663,6 @@ int MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNode
     const GeometryType& r_current_slave = this->GetParentGeometry();
     KRATOS_ERROR_IF(r_current_slave.NumberOfGeometryParts() == 0) << "YOU HAVE NOT INITIALIZED THE PAIR GEOMETRY IN THE MortarContactCondition" << std::endl;
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(WEIGHTED_GAP)
-    KRATOS_CHECK_VARIABLE_KEY(NORMAL)
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < TNumNodes; ++i ) {
         const auto& r_node = r_current_slave[i];

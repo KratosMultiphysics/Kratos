@@ -262,49 +262,49 @@ public:
      * @brief Returns a vector of ids of spatially repeated nodes
      * @param[in,out] rModelPart The model part whose nodes are checked
      */
-    IndexVectorType FindDuplicateNodeIds(const ModelPart& rModelPart);
+    virtual IndexVectorType FindDuplicateNodeIds(const ModelPart& rModelPart);
 
     /**
      * @brief Returns a vector of ids of repeated conditions
      * @details For 2D and surface meshes it returns the ids of repeated edges found in the MMG mesh data structure. In 3D it returns ids of triangles.
      */
-    IndexVectorType CheckFirstTypeConditions();
+    virtual IndexVectorType CheckFirstTypeConditions();
 
     /**
      * @brief Returns a vector of ids of repeated conditions
      * @details For 3D meshes it returns the ids of repeated quadrilaterals found in the MMG mesh data structure. Otherwise, it returns an empty vector.
      */
-    IndexVectorType CheckSecondTypeConditions();
+    virtual IndexVectorType CheckSecondTypeConditions();
 
     /**
      * @brief Returns a vector of ids of repeated elements
      * @details For 2D and surface meshes it returns the ids of repeated triangles found in the MMG mesh data structure. In 3D it returns ids of tetrahedra.
      */
-    IndexVectorType CheckFirstTypeElements();
+    virtual IndexVectorType CheckFirstTypeElements();
 
     /**
      * @brief Returns a vector of ids of repeated elements
      * @details For 3D meshes it returns the ids of repeated prisms found in the MMG mesh data structure. Otherwise, it returns an empty vector.
      */
-    IndexVectorType CheckSecondTypeElements();
+    virtual IndexVectorType CheckSecondTypeElements();
 
     /**
      * @brief It blocks certain nodes before remesh the model
      * @param[in] iNode The index of the node
      */
-    void BlockNode(const IndexType iNode);
+    virtual void BlockNode(const IndexType iNode);
 
     /**
      * @brief It blocks certain conditions before remesh the model
      * @param[in] iCondition The index of the condition
      */
-    void BlockCondition(const IndexType iCondition);
+    virtual void BlockCondition(const IndexType iCondition);
 
     /**
      * @brief It blocks certain elements before remesh the model
      * @param[in] iElement The index of the element
      */
-    void BlockElement(const IndexType iElement);
+    virtual void BlockElement(const IndexType iElement);
 
     /**
      * @brief It creates the new node
@@ -315,7 +315,7 @@ public:
      * @param[out] IsRequired MMG required entity (0 or 1)
      * @return pNode The pointer to the new node created
      */
-    NodeType::Pointer CreateNode(
+    virtual NodeType::Pointer CreateNode(
         ModelPart& rModelPart,
         IndexType iNode,
         int& Ref,
@@ -333,7 +333,7 @@ public:
      * @param[in] SkipCreation Skips the creation of the new condition
      * @return pCondition The pointer to the new condition created
      */
-    Condition::Pointer CreateFirstTypeCondition(
+    virtual Condition::Pointer CreateFirstTypeCondition(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
         const IndexType CondId,
@@ -369,7 +369,7 @@ public:
      * @param[out] IsRequired MMG required entity (0 or 1)
      * @return pElement The pointer to the new condition created
      */
-    Element::Pointer CreateFirstTypeElement(
+    virtual Element::Pointer CreateFirstTypeElement(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
         const IndexType ElemId,
@@ -405,18 +405,18 @@ public:
      * -# MMG5_ARG_ppMet next arg will be a pointer over a MMG5_pSol storing a metric
      * -# &mmgSol pointer toward your MMG5_pSol (that store your metric)
      */
-    void InitMesh();
+    virtual void InitMesh();
 
     /**
      * @brief Here the verbosity is set
      */
-    void InitVerbosity();
+    virtual void InitVerbosity();
 
     /**
      * @brief Here the verbosity is set using the API
      * @param[in] VerbosityMMG The equivalent verbosity level in the MMG API
      */
-    void InitVerbosityParameter(const IndexType VerbosityMMG);
+    virtual void InitVerbosityParameter(const IndexType VerbosityMMG);
 
     /**
      * @brief This sets the size of the mesh
@@ -428,60 +428,60 @@ public:
      * @brief This sets the size of the solution for the scalar case
      * @param[in] NumNodes Number of nodes
      */
-    void SetSolSizeScalar(const SizeType NumNodes);
+    virtual void SetSolSizeScalar(const SizeType NumNodes);
 
     /**
      * @brief This sets the size of the solution for the vector case
      * @param[in] NumNodes Number of nodes
      */
-    void SetSolSizeVector(const SizeType NumNodes);
+    virtual void SetSolSizeVector(const SizeType NumNodes);
 
     /**
      * @brief This sets the size of the solution for the tensor case
      * @param[in] NumNodes Number of nodes
      */
-    void SetSolSizeTensor(const SizeType NumNodes);
+    virtual void SetSolSizeTensor(const SizeType NumNodes);
 
     /**
      * @brief This sets the size of the displacement for lagrangian movement
      * @param[in] NumNodes Number of nodes
      */
-    void SetDispSizeVector(const SizeType NumNodes);
+    virtual void SetDispSizeVector(const SizeType NumNodes);
 
     /**
      * @brief This checks the mesh data and prints if it is OK
      */
-    void CheckMeshData();
+    virtual void CheckMeshData();
 
     /**
      * @brief This sets the output mesh
      * @param[in] rInputName The input name
      */
-    void InputMesh(const std::string& rInputName);
+    virtual void InputMesh(const std::string& rInputName);
 
     /**
      * @brief This sets the output sol
      * @param[in] rInputName The input name
      */
-    void InputSol(const std::string& rInputName);
+    virtual void InputSol(const std::string& rInputName);
 
     /**
      * @brief This sets the output mesh
      * @param[in] rOutputName The output name
      */
-    void OutputMesh(const std::string& rOutputName);
+    virtual void OutputMesh(const std::string& rOutputName);
 
     /**
      * @brief This sets the output sol
      * @param[in] rOutputName The output name
      */
-    void OutputSol(const std::string& rOutputName);
+    virtual void OutputSol(const std::string& rOutputName);
 
     /**
      * @brief This sets the output displacement
      * @param[in] rOutputName The output name
      */
-    void OutputDisplacement(const std::string& rOutputName);
+    virtual void OutputDisplacement(const std::string& rOutputName);
 
     /**
      * @brief This method generates the maps of reference for conditions and elements from an existing json
@@ -489,7 +489,7 @@ public:
      * @param[in] rRefCondition The conditions of reference
      * @param[in] rRefElement The elements of reference
      */
-    void OutputReferenceEntitities(
+    virtual void OutputReferenceEntitities(
         const std::string& rOutputName,
         const std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
         const std::unordered_map<IndexType,Element::Pointer>& rRefElement
@@ -498,7 +498,7 @@ public:
     /**
      * @brief This frees the MMG structures
      */
-    void FreeAll();
+    virtual void FreeAll();
 
     /**
      * @brief This loads the solution
@@ -518,7 +518,7 @@ public:
      * @param[in] Color Reference of the node(submodelpart)
      * @param[in] Index The index number of the node
      */
-    void SetNodes(
+    virtual void SetNodes(
         const double X,
         const double Y,
         const double Z,
@@ -532,7 +532,7 @@ public:
      * @param[in] Color Reference of the node(submodelpart)
      * @param[in] Index The index number of the node
      */
-    void SetConditions(
+    virtual void SetConditions(
         GeometryType& rGeometry,
         const IndexType Color,
         const IndexType Index
@@ -544,7 +544,7 @@ public:
      * @param[in] Color Reference of the node(submodelpart)
      * @param[in] Index The index number of the node
      */
-    void SetElements(
+    virtual void SetElements(
         GeometryType& rGeometry,
         const IndexType Color,
         const IndexType Index
@@ -555,7 +555,7 @@ public:
      * @param[in] Metric The inverse of the size node
      * @param[in] NodeId The id of the node
      */
-    void SetMetricScalar(
+    virtual void SetMetricScalar(
         const double Metric,
         const IndexType NodeId
         );
@@ -565,7 +565,7 @@ public:
      * @param[in] rMetric This array contains the components of the metric vector
      * @param[in] NodeId The id of the node
      */
-    void SetMetricVector(
+    virtual void SetMetricVector(
         const array_1d<double, Dimension>& rMetric,
         const IndexType NodeId
         );
@@ -575,7 +575,7 @@ public:
      * @param[in] rMetric This array contains the components of the metric tensor in the MMG defined order
      * @param[in] NodeId The id of the node
      */
-    void SetMetricTensor(
+    virtual void SetMetricTensor(
         const TensorArrayType& rMetric,
         const IndexType NodeId
         );
@@ -585,7 +585,7 @@ public:
      * @param[in] rMetric This array contains the components of the displacement vector
      * @param[in] NodeId The id of the node
      */
-    void SetDisplacementVector(
+    virtual void SetDisplacementVector(
         const array_1d<double, 3>& rDisplacement,
         const IndexType NodeId
         );
@@ -594,25 +594,25 @@ public:
      * @brief This function is used to retrieve the metric scalar
      * @param[in,out] rMetric The inverse of the size node
      */
-    void GetMetricScalar(double& rMetric);
+    virtual void GetMetricScalar(double& rMetric);
 
     /**
      * @brief This function is used to retrieve the metric vector (x, y, z)
      * @param[in,out] rMetric This array contains the components of the metric vector
      */
-    void GetMetricVector(array_1d<double, Dimension>& rMetric);
+    virtual void GetMetricVector(array_1d<double, Dimension>& rMetric);
 
     /**
      * @brief This function is used to retrieve the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
      * @param[in,out] rMetric This array contains the components of the metric tensor in the MMG defined order
      */
-    void GetMetricTensor(TensorArrayType& rMetric);
+    virtual void GetMetricTensor(TensorArrayType& rMetric);
 
     /**
      * @brief This function is used to retrieve the displacement vector (x, y, z)
      * @param[in,out] rDisplacement This array contains the components of the displacement vector
      */
-    void GetDisplacementVector(array_1d<double, 3>& rDisplacement);
+    virtual void GetDisplacementVector(array_1d<double, 3>& rDisplacement);
 
     /**
      * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
@@ -629,7 +629,7 @@ public:
      * @param[in] Framework The framework considered
      * @param[in] CollapsePrismElements If the prisms elements are going to be collapsed
      */
-    void GenerateMeshDataFromModelPart(
+    virtual void GenerateMeshDataFromModelPart(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,std::vector<std::string>>& rColors,
         ColorsMapType& rColorMapCondition,
@@ -646,7 +646,7 @@ public:
      * @param[in,out] rRefCondition The conditions of reference
      * @param[in,out] rRefElement The elements of reference
      */
-    void GenerateReferenceMaps(
+    virtual void GenerateReferenceMaps(
         ModelPart& rModelPart,
         const ColorsMapType& rColorMapCondition,
         const ColorsMapType& rColorMapElement,
@@ -658,13 +658,13 @@ public:
      * @brief This method generates solution (metric) data from an existing model part
      * @param[in,out] rModelPart The model part of interest to study
      */
-    void GenerateSolDataFromModelPart(ModelPart& rModelPart);
+    virtual void GenerateSolDataFromModelPart(ModelPart& rModelPart);
 
     /**
      * @brief This method generates displacement data from an existing model part
      * @param[in,out] rModelPart The model part of interest to study
      */
-    void GenerateDisplacementDataFromModelPart(ModelPart& rModelPart);
+    virtual void GenerateDisplacementDataFromModelPart(ModelPart& rModelPart);
 
     /**
      * @brief This method writes mesh data to an existing model part
@@ -697,7 +697,7 @@ public:
      * @param[in,out] rRefCondition The conditions of reference
      * @param[in,out] rRefElement The elements of reference
      */
-    void WriteReferenceEntitities(
+    virtual void WriteReferenceEntitities(
         ModelPart& rModelPart,
         const std::string& rFilename,
         std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
@@ -708,13 +708,13 @@ public:
      * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
      * @param[in,out] rModelPart The model part of interest to study
      */
-    void CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
+   virtual void CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
 
     /**
      * @brief This function assigns the flags and clears the auxiliar sub model part for flags
      * @param[in,out] rModelPart The model part of interest to study
      */
-    void AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
+    virtual void AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
 
     ///@}
     ///@name Access
