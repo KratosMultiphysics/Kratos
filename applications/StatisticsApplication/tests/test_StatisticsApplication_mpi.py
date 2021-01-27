@@ -32,17 +32,17 @@ def AssembleTestSuites():
 
     ### Small MPI tests ########################################################
     smallMPISuite = suites['mpi_small']
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SpatialStatisticsProcessTest]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalSumMethodTests]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMeanMethodTests]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalVarianceMethodTests]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMinMethodTests]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMaxMethodTests]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalRootMeanSquareMethodTests]))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
     nightlyMPISuite.addTests(smallMPISuite)
-    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SpatialStatisticsProcessTest]))
-    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalSumMethodTests]))
-    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMeanMethodTests]))
-    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalVarianceMethodTests]))
-    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMinMethodTests]))
-    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMaxMethodTests]))
-    # nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalRootMeanSquareMethodTests]))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']
