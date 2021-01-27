@@ -160,10 +160,7 @@ def runTests(tests):
     parser.add_argument('--timing', action='store_true')
     parser.add_argument('--using-mpi', action='store_true')
 
-    try:
-        args = parser.parse_args()
-    except:
-        sys.exit(2)
+    args = parser.parse_args()
 
     level = args.level
     if args.using_mpi:

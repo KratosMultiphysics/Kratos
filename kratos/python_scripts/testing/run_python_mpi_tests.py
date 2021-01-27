@@ -28,10 +28,7 @@ def main():
     parser.add_argument('-f', '--mpi_flags', default="")
     parser.add_argument('-p', '--num_processes_flag', default="-np")
 
-    try:
-        args = parser.parse_args()
-    except:
-        sys.exit(2)
+    args = parser.parse_args()
 
     # Set timeout of the different levels
     signalTime = None
