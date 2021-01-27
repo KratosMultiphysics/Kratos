@@ -94,48 +94,17 @@ void KElementData<TDim>::CalculateGaussPointData(
         std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
         std::tie(mEffectiveVelocity, VELOCITY));
 
-    mVelocityDivergence =
-        GetDivergence(this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);
+    FluidCalculationUtilities::EvaluateGradientInPoint(
+        this->GetGeometry(), rShapeFunctionDerivatives, Step,
+        std::tie(mVelocityGradient, VELOCITY));
 
-    CalculateGradient<TDim>(this->mVelocityGradient, this->GetGeometry(),
-                            VELOCITY, rShapeFunctionDerivatives, Step);
+    mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
+
+    mEffectiveKinematicViscosity = mKinematicViscosity + mSigmaK * mTurbulentKinematicViscosity;
+    mReactionTerm = std::max(mBetaStar * mTurbulentKineticEnergy / mTurbulentKinematicViscosity + (2.0 / 3.0) * mVelocityDivergence, 0.0);
+    mSourceTerm = KEpsilonElementData::GetSourceTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity);
 
     KRATOS_CATCH("");
-}
-
-template <unsigned int TDim>
-array_1d<double, 3> KElementData<TDim>::GetEffectiveVelocity(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return mEffectiveVelocity;
-}
-
-template <unsigned int TDim>
-double KElementData<TDim>::GetEffectiveKinematicViscosity(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return mKinematicViscosity + mSigmaK * mTurbulentKinematicViscosity;
-}
-
-template <unsigned int TDim>
-double KElementData<TDim>::GetReactionTerm(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return std::max(mBetaStar * mTurbulentKineticEnergy / mTurbulentKinematicViscosity +
-                        (2.0 / 3.0) * mVelocityDivergence,
-                    0.0);
-}
-
-template <unsigned int TDim>
-double KElementData<TDim>::GetSourceTerm(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return KEpsilonElementData::GetSourceTerm<TDim>(
-        mVelocityGradient, mTurbulentKinematicViscosity);
 }
 
 // template instantiations
