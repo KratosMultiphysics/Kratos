@@ -55,25 +55,31 @@ public:
     {
     }
 
-    ConstitutiveLaw::Parameters& GetConstitutiveLawParameters()
-    {
-        return mConstitutiveLawParameters;
-    }
+    ConstitutiveLaw::Parameters& GetConstitutiveLawParameters() { return mConstitutiveLawParameters; }
 
-    ConstitutiveLaw& GetConstitutiveLaw()
-    {
-        return mrConstitutiveLaw;
-    }
+    ConstitutiveLaw& GetConstitutiveLaw() { return mrConstitutiveLaw; }
 
-    const GeometryType& GetGeometry() const
-    {
-        return mrGeometry;
-    }
+    const GeometryType& GetGeometry() const { return mrGeometry; }
 
-    const Properties& GetProperties() const
-    {
-        return mrProperties;
-    }
+    const Properties& GetProperties() const { return mrProperties; }
+
+    array_1d<double, 3> GetEffectiveVelocity(const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives) const { return mEffectiveVelocity; }
+
+    double GetEffectiveKinematicViscosity(const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives) const { return mEffectiveKinematicViscosity; }
+
+    double GetReactionTerm(const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives) const { return mReactionTerm; }
+
+    double GetSourceTerm(const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives) const { return mSourceTerm; }
+
+protected:
+    array_1d<double, 3> mEffectiveVelocity;
+    double mEffectiveKinematicViscosity;
+    double mReactionTerm;
+    double mSourceTerm;
 
 private:
     const GeometryType& mrGeometry;
