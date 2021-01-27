@@ -70,8 +70,8 @@ public:
 
 protected:
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
-    array_1d<double, 3> mTurbulentKineticEnergyGradient;
-    array_1d<double, 3> mTurbulentSpecificEnergyDissipationRateGradient;
+    array_1d<double, TDim> mTurbulentKineticEnergyGradient;
+    array_1d<double, TDim> mTurbulentSpecificEnergyDissipationRateGradient;
 
     double mBeta1;
     double mBeta2;

@@ -175,17 +175,13 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
 
-    // TODO: Remove following clears
-    mTurbulentKineticEnergyGradient.clear();
-    mTurbulentSpecificEnergyDissipationRateGradient.clear();
-
     FluidCalculationUtilities::EvaluateGradientInPoint(
         this->GetGeometry(), rShapeFunctionDerivatives,
         std::tie(mTurbulentKineticEnergyGradient, TURBULENT_KINETIC_ENERGY),
         std::tie(mTurbulentSpecificEnergyDissipationRateGradient, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
         std::tie(mVelocityGradient, VELOCITY));
 
-    mCrossDiffusion = KOmegaSSTElementData::CalculateCrossDiffusionTerm(
+    mCrossDiffusion = KOmegaSSTElementData::CalculateCrossDiffusionTerm<TDim>(
         mSigmaOmega2, mTurbulentSpecificEnergyDissipationRate,
         mTurbulentKineticEnergyGradient, mTurbulentSpecificEnergyDissipationRateGradient);
 
