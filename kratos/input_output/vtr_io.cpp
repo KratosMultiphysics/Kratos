@@ -67,12 +67,30 @@ namespace{
                 TheIO.ReadBlock("DataArray", [&z_coordinates](XmlIO& TheIO){ // Here I am forcing to have DataArray block in the input with the given action.
                     TheIO.ReadBlockContent(z_coordinates);
                 });
+
+                this->mMultiBlockMesh.push_back(Internals::CartesianMeshColors());
+                this->mMultiBlockMesh.back().SetCoordinates(x_coordinates, y_coordinates, z_coordinates);
+            });
+
+            TheIO.SetBlockAction("CellData", [&](XmlIO& TheIO){
+                TheIO.SetBlockAction("DataArray", [&](XmlIO& TheIO){ 
+
+                    auto& current_block_info = TheIO.GetCurrentBlockInfo();
+                    KRATOS_ERROR_IF_NOT(current_block_info.HasAttribute("Name")) << " The cell data array should provide the Name attribute" << std::endl;
+
+                    std::string const& data_name = current_block_info.GetAttribute("Name");
+                    auto& mesh = this->mMultiBlockMesh.back();
+                    std::size_t size = mesh.GetElementalColors().size();
+                    std::vector<double> data(size);
+                    TheIO.ReadBlockContent(data);
+
+                    mesh.SetElementalData(data_name, data);
+
+                });
+                TheIO.Read();
             });
 
             TheIO.Read();
-
-            mMultiBlockMesh.push_back(Internals::CartesianMeshColors());
-            mMultiBlockMesh.back().SetCoordinates(x_coordinates, y_coordinates, z_coordinates);
 
         }
 
