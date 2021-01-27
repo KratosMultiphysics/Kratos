@@ -1,4 +1,4 @@
-from KratosMultiphysics import Logger, DataCommunicator
+from KratosMultiphysics import DataCommunicator
 from KratosMultiphysics.kratos_utilities import GetNotAvailableApplications
 
 from unittest import * # needed to make all functions available to the tests using this file
