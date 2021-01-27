@@ -5,8 +5,9 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 try:
     import KratosMultiphysics.ShallowWaterApplication.output.convergence_output_process as convergence_output
     import h5py
+    h5py_available = True
 except ImportError:
-    pass
+    h5py_available = False
 
 @KratosUnittest.skipIfApplicationsNotAvailable("StatisticsApplication")
 class TestConvergenceOutputProcess(KratosUnittest.TestCase):
@@ -35,6 +36,8 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
         self.assertEqual(h5file[dset_name_b].attrs[attribute_key], value_b)
 
     def _ExecuteBasicConvergenceOutputProcessCheck(self):
+        if not h5py_available:
+            self.skipTest('h5py is not available')
         settings = KM.Parameters('''{
             "Parameters"         : {
                 "model_part_name"            : "model_part",
@@ -59,6 +62,8 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
         kratos_utils.DeleteFileIfExisting(settings["Parameters"]["file_name"].GetString() + ".hdf5")
 
     def _ExecuteMultipleConvergenceOutputProcessCheck(self):
+        if not h5py_available:
+            self.skipTest('h5py is not available')
         settings = KM.Parameters('''{
             "Parameters"         : {
                 "model_part_name"            : "model_part",
