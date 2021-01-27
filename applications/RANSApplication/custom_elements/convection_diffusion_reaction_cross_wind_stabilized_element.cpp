@@ -241,6 +241,9 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     const double eps = std::numeric_limits<double>::epsilon();
 
     array_1d<double, 3> variable_gradient;
+    // TODO: Remove this clear;
+    variable_gradient.clear();
+
     const Variable<double>& primal_variable =
         TConvectionDiffusionReactionData::GetScalarVariable();
     const Variable<double>& relaxed_primal_rate_variable =
@@ -272,9 +275,12 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
         const double effective_kinematic_viscosity =
             element_data.CalculateEffectiveKinematicViscosity(
                 gauss_shape_functions, r_shape_derivatives);
-        const double variable_gradient_norm =
-            this->GetScalarVariableGradientNorm(r_shape_derivatives);
-        this->CalculateGradient(variable_gradient, primal_variable, r_shape_derivatives);
+
+        FluidCalculationUtilities::EvaluateGradientInPoint(
+            r_geometry, r_shape_derivatives,
+            std::tie(variable_gradient, primal_variable));
+
+        const double variable_gradient_norm = norm_2(variable_gradient);
 
         const double reaction = element_data.CalculateReactionTerm(
             gauss_shape_functions, r_shape_derivatives);
@@ -348,31 +354,6 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateGradient(
-    BoundedMatrix<double, TDim, TDim>& rOutput,
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Matrix& rShapeDerivatives,
-    const int Step) const
-{
-    const auto& r_geometry = this->GetGeometry();
-
-    RansCalculationUtilities::CalculateGradient<TDim>(
-        rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateGradient(
-    array_1d<double, 3>& rOutput,
-    const Variable<double>& rVariable,
-    const Matrix& rShapeDerivatives,
-    const int Step) const
-{
-    const auto& r_geometry = this->GetGeometry();
-    RansCalculationUtilities::CalculateGradient(rOutput, r_geometry, rVariable,
-                                                rShapeDerivatives, Step);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateContravariantMetricTensor(
     BoundedMatrix<double, TDim, TDim>& rOutput,
     const Matrix& rParameterDerivatives) const
@@ -385,22 +366,6 @@ double ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TC
     const ProcessInfo& rProcessInfo) const
 {
     return rProcessInfo[DELTA_TIME];
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-double ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetScalarVariableGradientNorm(
-    const Matrix& rShapeFunctionDerivatives,
-    const int Step) const
-{
-    KRATOS_TRY;
-
-    array_1d<double, 3> scalar_variable_gradient;
-    this->CalculateGradient(scalar_variable_gradient,
-                            TConvectionDiffusionReactionData::GetScalarVariable(),
-                            rShapeFunctionDerivatives, Step);
-    return norm_2(scalar_variable_gradient);
-
-    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>

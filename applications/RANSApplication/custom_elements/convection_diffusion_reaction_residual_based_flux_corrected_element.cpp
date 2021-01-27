@@ -265,6 +265,10 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
     const double element_length = this->GetGeometry().Length();
 
     array_1d<double, 3> variable_gradient;
+
+    // TODO: Remove this clear;
+    variable_gradient.clear();
+
     const Variable<double>& primal_variable =
         TConvectionDiffusionReactionData::GetScalarVariable();
     const Variable<double>& relaxed_primal_rate_variable =
@@ -301,7 +305,11 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
 
         const double source = r_current_data.CalculateSourceTerm(
             gauss_shape_functions, r_shape_derivatives);
-        this->CalculateGradient(variable_gradient, primal_variable, r_shape_derivatives);
+
+        FluidCalculationUtilities::EvaluateGradientInPoint(
+            r_geometry, r_shape_derivatives,
+            std::tie(variable_gradient, primal_variable));
+
         const double velocity_dot_variable_gradient =
             inner_prod(velocity, variable_gradient);
 
@@ -339,47 +347,6 @@ template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactio
 GeometryData::IntegrationMethod ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_1;
-}
-
-template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
-double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetScalarVariableGradientNorm(
-    const Matrix& rShapeFunctionDerivatives,
-    const int Step) const
-{
-    KRATOS_TRY;
-
-    array_1d<double, 3> scalar_variable_gradient;
-    this->CalculateGradient(scalar_variable_gradient,
-                            TConvectionDiffusionReactionData::GetScalarVariable(),
-                            rShapeFunctionDerivatives, Step);
-    return norm_2(scalar_variable_gradient);
-
-    KRATOS_CATCH("");
-}
-
-template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
-void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateGradient(
-    BoundedMatrix<double, TDim, TDim>& rOutput,
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Matrix& rShapeDerivatives,
-    const int Step) const
-{
-    const auto& r_geometry = this->GetGeometry();
-
-    RansCalculationUtilities::CalculateGradient<TDim>(
-        rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
-}
-
-template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
-void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateGradient(
-    array_1d<double, 3>& rOutput,
-    const Variable<double>& rVariable,
-    const Matrix& rShapeDerivatives,
-    const int Step) const
-{
-    const auto& r_geometry = this->GetGeometry();
-    RansCalculationUtilities::CalculateGradient(rOutput, r_geometry, rVariable,
-                                                rShapeDerivatives, Step);
 }
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>

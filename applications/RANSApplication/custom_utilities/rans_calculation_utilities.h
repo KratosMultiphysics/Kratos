@@ -83,27 +83,6 @@ template <unsigned int TDim>
 double CalculateMatrixTrace(
     const BoundedMatrix<double, TDim, TDim>& rMatrix);
 
-template <unsigned int TDim>
-void CalculateGradient(
-    BoundedMatrix<double, TDim, TDim>& rOutput,
-    const Geometry<ModelPart::NodeType>& rGeometry,
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Matrix& rShapeDerivatives,
-    const int Step = 0);
-
-void CalculateGradient(
-    array_1d<double, 3>& rOutput,
-    const Geometry<ModelPart::NodeType>& rGeometry,
-    const Variable<double>& rVariable,
-    const Matrix& rShapeDerivatives,
-    const int Step = 0);
-
-double GetDivergence(
-    const Geometry<ModelPart::NodeType>& rGeometry,
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Matrix& rShapeDerivatives,
-    const int Step = 0);
-
 template <unsigned int TNumNodes>
 void CalculateGaussSensitivities(
     BoundedVector<double, TNumNodes>& rGaussSensitivities,
