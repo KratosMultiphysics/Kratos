@@ -73,7 +73,7 @@ public:
         BlockInfo(std::stringstream& TheStartTag){
             std::cout << std::endl << "\"" << TheStartTag.str() << "\"" << std::endl;
             TheStartTag >> std::skipws >> mBlockName;
-            std::cout << "Reading block \'" << mBlockName << "\' with attributes: ";
+            //std::cout << "Reading block \'" << mBlockName << "\' with attributes: ";
             while (!TheStartTag.eof())
             {
                 std::string key;
@@ -85,7 +85,7 @@ public:
                 std::getline(TheStartTag, value, '"');
                 std::getline(TheStartTag, value, '"');
 
-                std::cout << "[" << key << ":" << value << "]";
+                //std::cout << "[" << key << ":" << value << "]";
                 mAttributes[key]=value;
             }
             std::cout << std::endl;            
@@ -96,6 +96,10 @@ public:
 
         bool HasAttribute(std::string const& AttributeName) const {
             return (mAttributes.find(AttributeName) != mAttributes.end());
+        }
+
+        bool IsStartTag() const {
+            return (mBlockName[0] != '/');
         }
 
         std::string const& GetAttribute(std::string const& AttributeName) const {
@@ -258,6 +262,7 @@ private:
 
     void ReadStartTag();
     void ReadEndTag();
+    BlockInfo ReadTag();
 
 
     ///@}
