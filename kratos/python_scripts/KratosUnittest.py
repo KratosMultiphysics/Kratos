@@ -143,21 +143,6 @@ def SupressAllConsole():
             sys.stderr = old_stderr
             sys.stdout = old_stdout
 
-def Usage():
-    ''' Prints the usage of the script '''
-
-    lines = [
-        'Usage:',
-        '\t python kratos_run_tests [-l level] [-v verbosity]',
-        'Options',
-        '\t -h, --help: Shows this command',
-        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\' \'(validation)\'',  # noqa
-        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
-        '\t --using-mpi: If running in MPI and executing the MPI-tests'
-    ]
-    for l in lines:
-        Logger.PrintInfo(l) # using the logger to only print once in MPI
-
 def main():
     # this deliberately overiddes the function "unittest.main",
     # because it cannot parse extra command line arguments
