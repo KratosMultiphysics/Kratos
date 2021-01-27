@@ -95,54 +95,17 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
         std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
         std::tie(mEffectiveVelocity, VELOCITY));
 
-    mVelocityDivergence =
-        GetDivergence(this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);
+    FluidCalculationUtilities::EvaluateGradientInPoint(
+        this->GetGeometry(), rShapeFunctionDerivatives,
+        std::tie(mVelocityGradient, VELOCITY));
 
-    CalculateGradient<TDim>(this->mVelocityGradient, this->GetGeometry(),
-                            VELOCITY, rShapeFunctionDerivatives, Step);
+    mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
+
+    this->mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mSigmaOmega;
+    this->mReactionTerm = std::max(mBeta * mTurbulentKineticEnergy / mTurbulentKinematicViscosity + mGamma * 2.0 * mVelocityDivergence / 3.0, 0.0);
+    this->mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity) *  (mGamma / mTurbulentKinematicViscosity);
 
     KRATOS_CATCH("");
-}
-
-template <unsigned int TDim>
-array_1d<double, 3> OmegaElementData<TDim>::CalculateEffectiveVelocity(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return mEffectiveVelocity;
-}
-
-template <unsigned int TDim>
-double OmegaElementData<TDim>::CalculateEffectiveKinematicViscosity(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return mKinematicViscosity + mTurbulentKinematicViscosity * mSigmaOmega;
-}
-
-template <unsigned int TDim>
-double OmegaElementData<TDim>::CalculateReactionTerm(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return std::max(mBeta * mTurbulentKineticEnergy / mTurbulentKinematicViscosity +
-                        mGamma * 2.0 * mVelocityDivergence / 3.0,
-                    0.0);
-}
-
-template <unsigned int TDim>
-double OmegaElementData<TDim>::CalculateSourceTerm(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    double production = 0.0;
-
-    production = KEpsilonElementData::CalculateSourceTerm<TDim>(
-        mVelocityGradient, mTurbulentKinematicViscosity);
-
-    production *= (mGamma / mTurbulentKinematicViscosity);
-
-    return production;
 }
 
 // template instantiations
