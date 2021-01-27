@@ -40,8 +40,6 @@ def main():
     elif args.level == 'nightly':
         signalTime = 900
 
-    level = "mpi_" + args.level
-
     # Create the commands
     commander = testing_utils.Commander()
 
@@ -57,7 +55,7 @@ def main():
             args.mpi_flags,
             args.num_processes_flag,
             args.processes,
-            level,
+            args.level,
             args.verbosity,
             args.command,
             signalTime
@@ -78,7 +76,7 @@ def main():
                 args.mpi_flags,
                 args.num_processes_flag,
                 args.processes,
-                level,
+                args.level,
                 args.verbosity,
                 args.command,
                 signalTime
