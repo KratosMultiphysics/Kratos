@@ -38,7 +38,7 @@ class KElementData : public ConvectionDiffusionReactionElementData
 public:
     using BaseType = ConvectionDiffusionReactionElementData;
     using NodeType = Node<3>;
-    using GeomtryType = BaseType::GeometryType;
+    using GeometryType = typename BaseType::GeometryType;
 
     static const Variable<double>& GetScalarVariable();
 
@@ -67,28 +67,12 @@ public:
         const Matrix& rShapeFunctionDerivatives,
         const int Step = 0);
 
-    array_1d<double, 3> CalculateEffectiveVelocity(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
-
-    double CalculateEffectiveKinematicViscosity(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
-
-    double CalculateReactionTerm(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
-
-    double CalculateSourceTerm(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
-
 protected:
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
-    array_1d<double, 3> mEffectiveVelocity;
 
     double mGamma;
     double mTurbulentKinematicViscosity;
+    double mTurbulentKineticEnergy;
     double mKinematicViscosity;
     double mVelocityDivergence;
     double mInvTkeSigma;
