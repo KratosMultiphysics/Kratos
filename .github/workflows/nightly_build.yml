@@ -109,3 +109,4 @@ jobs:
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/run_tests.py -l nightly -c python
+
