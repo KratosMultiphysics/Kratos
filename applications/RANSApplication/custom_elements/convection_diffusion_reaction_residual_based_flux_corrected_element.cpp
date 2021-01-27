@@ -94,15 +94,15 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
         const Vector gauss_shape_functions = row(shape_functions, g);
 
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const array_1d<double, 3>& velocity = r_current_data.CalculateEffectiveVelocity(
+        const array_1d<double, 3>& velocity = r_current_data.GetEffectiveVelocity(
             gauss_shape_functions, r_shape_derivatives);
         const double effective_kinematic_viscosity =
-            r_current_data.CalculateEffectiveKinematicViscosity(
+            r_current_data.GetEffectiveKinematicViscosity(
                 gauss_shape_functions, r_shape_derivatives);
 
-        const double reaction = r_current_data.CalculateReactionTerm(
+        const double reaction = r_current_data.GetReactionTerm(
             gauss_shape_functions, r_shape_derivatives);
-        const double source = r_current_data.CalculateSourceTerm(
+        const double source = r_current_data.GetSourceTerm(
             gauss_shape_functions, r_shape_derivatives);
 
         const double tau = ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
@@ -174,15 +174,15 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
         this->AddLumpedMassMatrix(rMassMatrix, mass);
 
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const array_1d<double, 3>& velocity = r_current_data.CalculateEffectiveVelocity(
+        const array_1d<double, 3>& velocity = r_current_data.GetEffectiveVelocity(
             gauss_shape_functions, r_shape_derivatives);
         BoundedVector<double, TNumNodes> velocity_convective_terms;
         this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
         const double effective_kinematic_viscosity =
-            r_current_data.CalculateEffectiveKinematicViscosity(
+            r_current_data.GetEffectiveKinematicViscosity(
                 gauss_shape_functions, r_shape_derivatives);
 
-        const double reaction = r_current_data.CalculateReactionTerm(
+        const double reaction = r_current_data.GetReactionTerm(
             gauss_shape_functions, r_shape_derivatives);
 
         const double tau = ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
@@ -282,24 +282,24 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
         const Vector& gauss_shape_functions = row(shape_functions, g);
 
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const array_1d<double, 3>& velocity = r_current_data.CalculateEffectiveVelocity(
+        const array_1d<double, 3>& velocity = r_current_data.GetEffectiveVelocity(
             gauss_shape_functions, r_shape_derivatives);
         BoundedVector<double, TNumNodes> velocity_convective_terms;
         this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
         const double velocity_magnitude = norm_2(velocity);
 
         const double effective_kinematic_viscosity =
-            r_current_data.CalculateEffectiveKinematicViscosity(
+            r_current_data.GetEffectiveKinematicViscosity(
                 gauss_shape_functions, r_shape_derivatives);
 
-        const double reaction = r_current_data.CalculateReactionTerm(
+        const double reaction = r_current_data.GetReactionTerm(
             gauss_shape_functions, r_shape_derivatives);
 
         const double tau = ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
             element_length, velocity_magnitude, reaction, effective_kinematic_viscosity,
             bossak_alpha, bossak_gamma, delta_time, dynamic_tau);
 
-        const double source = r_current_data.CalculateSourceTerm(
+        const double source = r_current_data.GetSourceTerm(
             gauss_shape_functions, r_shape_derivatives);
         this->CalculateGradient(variable_gradient, primal_variable, r_shape_derivatives);
         const double velocity_dot_variable_gradient =

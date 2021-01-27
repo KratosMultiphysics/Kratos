@@ -106,7 +106,7 @@ void EpsilonElementData<TDim>::CalculateGaussPointData(
 }
 
 template <unsigned int TDim>
-array_1d<double, 3> EpsilonElementData<TDim>::CalculateEffectiveVelocity(
+array_1d<double, 3> EpsilonElementData<TDim>::GetEffectiveVelocity(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
@@ -114,7 +114,7 @@ array_1d<double, 3> EpsilonElementData<TDim>::CalculateEffectiveVelocity(
 }
 
 template <unsigned int TDim>
-double EpsilonElementData<TDim>::CalculateEffectiveKinematicViscosity(
+double EpsilonElementData<TDim>::GetEffectiveKinematicViscosity(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
@@ -122,7 +122,7 @@ double EpsilonElementData<TDim>::CalculateEffectiveKinematicViscosity(
 }
 
 template <unsigned int TDim>
-double EpsilonElementData<TDim>::CalculateReactionTerm(
+double EpsilonElementData<TDim>::GetReactionTerm(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
@@ -130,13 +130,13 @@ double EpsilonElementData<TDim>::CalculateReactionTerm(
 }
 
 template <unsigned int TDim>
-double EpsilonElementData<TDim>::CalculateSourceTerm(
+double EpsilonElementData<TDim>::GetSourceTerm(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
     double production = 0.0;
 
-    production = KEpsilonElementData::CalculateSourceTerm<TDim>(
+    production = KEpsilonElementData::GetSourceTerm<TDim>(
         mVelocityGradient, mTurbulentKinematicViscosity);
 
     production *= (mC1 * mGamma);

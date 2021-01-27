@@ -67,19 +67,19 @@ public:
         const Matrix& rShapeFunctionDerivatives,
         const int Step = 0);
 
-    array_1d<double, 3> CalculateEffectiveVelocity(
+    array_1d<double, 3> GetEffectiveVelocity(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives) const;
 
-    double CalculateEffectiveKinematicViscosity(
+    double GetEffectiveKinematicViscosity(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives) const;
 
-    double CalculateReactionTerm(
+    double GetReactionTerm(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives) const;
 
-    double CalculateSourceTerm(
+    double GetSourceTerm(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives) const;
 
