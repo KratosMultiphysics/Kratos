@@ -57,10 +57,8 @@ namespace MPMParticleGeneratorUtility
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
 
         // Loop over the submodelpart of rInitialModelPart
-        for (ModelPart::SubModelPartIterator submodelpart_it = rInitialModelPart.SubModelPartsBegin();
-            submodelpart_it != rInitialModelPart.SubModelPartsEnd(); submodelpart_it++)
+        for (auto& submodelpart : rInitialModelPart.SubModelParts())
         {
-            ModelPart& submodelpart = *submodelpart_it;
             std::string submodelpart_name = submodelpart.Name();
 
             rMPMModelPart.CreateSubModelPart(submodelpart_name);
@@ -238,11 +236,8 @@ namespace MPMParticleGeneratorUtility
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
 
         // Loop over the submodelpart of rBackgroundGridModelPart
-        for (ModelPart::SubModelPartIterator submodelpart_it = rBackgroundGridModelPart.SubModelPartsBegin();
-                submodelpart_it != rBackgroundGridModelPart.SubModelPartsEnd(); submodelpart_it++)
+        for (auto& submodelpart : rBackgroundGridModelPart.SubModelParts())
         {
-            ModelPart& submodelpart = *submodelpart_it;
-
             // For submodelpart without condition, exit
             if (submodelpart.NumberOfConditions() != 0){
 
