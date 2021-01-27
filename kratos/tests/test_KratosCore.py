@@ -15,6 +15,7 @@ import test_geometries
 import test_linear_solvers
 import test_eigen_solvers
 import test_condition_number
+import test_points
 import test_processes
 import test_properties
 import test_importing
@@ -85,6 +86,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_solvers.TestLinearSolvers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_eigen_solvers.TestEigenSolvers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_condition_number.TestConditionNumber]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_points.TestPoints]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_processes.TestProcesses]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_properties.TestProperties]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_importing.TestImporting]))
