@@ -506,12 +506,23 @@ public:
                 // Dynamic derivatives are unsymmetric
                 basis_j_start_index = 0;
 
+                // Add dynamic derivative constraint
+                this->AddDynamicDerivativeConstraint(basis);
+
             } 
             else 
             {   // Static derivatives
 
                 // Shift the derivative start index due to symmetry of static derivatives
                 basis_j_start_index = basis_i;
+            }
+
+            // Apply the master-slave constraints to LHS only!
+            if(r_model_part.MasterSlaveConstraints().size() != 0) {
+                Timer::Start("ApplyConstraints");
+                this->pGetBuilderAndSolver()->ApplyConstraints(p_scheme, r_model_part, rA, rb);
+                TSparseSpace::Resize(rb, this->pGetBuilderAndSolver()->GetDofSet().size());
+                Timer::Stop("ApplyConstraints");
             }
 
             // Derivative wrt basis_j
@@ -545,14 +556,15 @@ public:
 
                 ///////////////////////////////////////////////////////////////
                 // Builder and Solver routines
+                // Apply the master-slave constraints to RHS only
                 if (r_model_part.MasterSlaveConstraints().size() != 0)
                     this->pGetBuilderAndSolver()->ApplyRHSConstraints(p_scheme, r_model_part, rb);
 
                 Timer::Start("ApplyConstraints");
 
-                // Apply dynamic derivative constraint
-                if (mDerivativeTypeFlag) 
-                    this->ApplyDynamicDerivativeConstraint(basis);
+                // // Apply dynamic derivative constraint
+                // if (mDerivativeTypeFlag) 
+                //     this->AddDynamicDerivativeConstraint(basis);
 
                 // Apply Dirichlet conditions
                 this->pGetBuilderAndSolver()->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
@@ -563,14 +575,14 @@ public:
                 Timer::Start("Solve");
 
                 // Compute particular solution
-                this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
-                // this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
+                // this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
+                this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
 
                 if (mDerivativeTypeFlag){
                     // Compute and add null space solution
                     this->ComputeAndAddNullSpaceSolution(rDx, basis);
-                    // Free the constrained DOF related to the dynamic derivative
-                    this->FreeDynamicDerivativeConstraint();
+                    // // Free the constrained DOF related to the dynamic derivative
+                    // this->RemoveDynamicDerivativeConstraint();
                 } 
                     
 
@@ -590,6 +602,10 @@ public:
                 // Update the derivative index
                 r_model_part.GetProcessInfo()[DERIVATIVE_INDEX] += 1;
             }
+
+            // Remove the constrained DOF related to the dynamic derivative
+            if (mDerivativeTypeFlag)
+                this->RemoveDynamicDerivativeConstraint();
             
         }
 
@@ -676,7 +692,7 @@ public:
                     Timer::Start("ApplyConstraints");
 
                     if (mDerivativeTypeFlag) // Apply dynamic derivative constraint
-                        this->ApplyDynamicDerivativeConstraint(basis);
+                        this->AddDynamicDerivativeConstraint(basis);
 
                     // Apply Dirichlet conditions
                     this->pGetBuilderAndSolver()->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
@@ -696,7 +712,7 @@ public:
                             // Compute and add null space solution in case of dynamic derivative
                             this->ComputeAndAddNullSpaceSolution(rDx, basis);
                             // Free the constrained DOF related to the dynamic derivative
-                            this->FreeDynamicDerivativeConstraint();
+                            this->RemoveDynamicDerivativeConstraint();
                         }
                     }
                     else
@@ -804,15 +820,15 @@ public:
     }
 
     /**
-     * @brief This function applies the dynamic derivative constraint
+     * @brief This function adds the dynamic derivative constraint
      * @details
      * { 
      * The dynamic derivative LHS is singular since A = K - lambda_i*M,
      * thus the dynamic derivative constraint has to be applied.
-     * This function applies a Dirichlet constraint on the DOF with the maximum absolute value
+     * This function adds a Dirichlet constraint on the DOF with the maximum absolute value
      * } 
      */  
-    void ApplyDynamicDerivativeConstraint(TSystemVectorType& rBasis)
+    void AddDynamicDerivativeConstraint(TSystemVectorType& rBasis)
     {
         KRATOS_TRY
 
@@ -844,7 +860,7 @@ public:
      * { 
      * } 
      */  
-    void FreeDynamicDerivativeConstraint()
+    void RemoveDynamicDerivativeConstraint()
     {
 
         DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
