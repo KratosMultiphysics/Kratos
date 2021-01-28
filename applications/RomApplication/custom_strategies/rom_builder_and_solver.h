@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "utilities/builtin_timer.h"
 
 /* Application includes */
 #include "rom_application_variables.h"
@@ -105,7 +106,7 @@ public:
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();
 
         mNodalDofs = mNodalVariablesNames.size();
-        for (int i=0;i<(ThisParameters["number_of_rom_dofs"]).size(); i++){
+        for (u_int i=0;i<(ThisParameters["number_of_rom_dofs"]).size(); i++){
             mRomDofsVector.push_back(ThisParameters["number_of_rom_dofs"][i].GetInt());
         }
 
@@ -140,7 +141,7 @@ public:
 
         DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
 
-        unsigned int nthreads = OpenMPUtils::GetNumThreads();
+        unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
         typedef std::unordered_set<NodeType::DofType::Pointer, DofPointerHasher> set_type;
 
@@ -416,8 +417,7 @@ public:
         const Element::GeometryType &geom,
         int element_id)
     {
-        int counter = 0;
-        for(int k = 0; k < dofs.size(); ++k){
+        for(u_int k = 0; k < dofs.size(); ++k){
             auto variable_key = dofs[k]->GetVariable().Key();
             if (dofs[k]->IsFixed())
                 noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
@@ -475,15 +475,10 @@ public:
         TSystemVectorType &Dx,
         TSystemVectorType &b) override
     {
+        KRATOS_TRY
         //define a dense matrix to hold the reduced problem
         Matrix Arom = ZeroMatrix(mRomDofs, mRomDofs);
         Vector brom = ZeroVector(mRomDofs);
-        double project_to_reduced_start = OpenMPUtils::GetCurrentTime();
-
-        Vector dq = ZeroVector(mRomDofs);
-
-        const double project_to_reduced_end = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << project_to_reduced_end - project_to_reduced_start << std::endl;
 
         //build the system matrix by looping over elements and conditions and assembling to A
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
@@ -520,7 +515,7 @@ public:
         Element::EquationIdVectorType EquationId;
 
         // assemble all elements
-        double start_build = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
 
         #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
         {
@@ -592,24 +587,25 @@ public:
 
         }
 
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
 
+        Vector dq = ZeroVector(mRomDofs);
         //solve for the rom unkowns dunk = Arom^-1 * brom
-        double start_solve = OpenMPUtils::GetCurrentTime();
+        const auto timer_solve = BuiltinTimer();
         MathUtils<double>::Solve(Arom, dq, brom);
+        KRATOS_INFO_IF("ROMBuilderAndSolver", this->GetEchoLevel() >=1) << "Solve reduced system time: " << timer_solve.ElapsedSeconds() << std::endl;
 
-        const double stop_solve = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << stop_solve - start_solve << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << Arom << "\nUnknowns vector = " << dq << "\nRHS vector = " << brom << std::endl;
 
         // project reduced solution back to full order model
-        double project_to_fine_start = OpenMPUtils::GetCurrentTime();
+        const auto timer_backward_projection = BuiltinTimer();
         ProjectToFineBasis(dq, Dx);
-        const double project_to_fine_end = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << project_to_fine_end - project_to_fine_start << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", this->GetEchoLevel() >=1) << "Projection to Full Order Space: " << timer_backward_projection.ElapsedSeconds() << std::endl;
+
+        KRATOS_CATCH("")
     }
 
     void ResizeAndInitializeVectors(
