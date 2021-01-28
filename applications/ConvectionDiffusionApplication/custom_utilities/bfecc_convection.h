@@ -312,7 +312,7 @@ public:
         {
             ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
             const double limiter = iparticle->GetValue(LIMITER_COEFFICIENT);
-            if (limiter < 0.9)
+            if (limiter < 0.95)
                 iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) - mErrorNew[i];
             else
                 iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) - mErrorStd[i];
