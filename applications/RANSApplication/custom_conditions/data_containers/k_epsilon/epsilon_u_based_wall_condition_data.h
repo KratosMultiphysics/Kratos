@@ -42,7 +42,7 @@ public:
     static const Variable<double>& GetScalarVariable();
 
     static void Check(
-        const GeometryType& rGeometry,
+        const Condition& rCondition,
         const ProcessInfo& rCurrentProcessInfo);
 
     static GeometryData::IntegrationMethod GetIntegrationMethod();
