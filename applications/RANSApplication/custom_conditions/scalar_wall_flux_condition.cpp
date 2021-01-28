@@ -24,6 +24,8 @@
 #include "custom_conditions/data_containers/k_epsilon/epsilon_u_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega/omega_k_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega/omega_u_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_omega_sst/omega_k_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_omega_sst/omega_u_based_wall_condition_data.h"
 
 // Include base h
 #include "scalar_wall_flux_condition.h"
@@ -208,5 +210,10 @@ template class ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaKBase
 template class ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaUBasedWallConditionData>;
 template class ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaKBasedWallConditionData>;
 template class ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaUBasedWallConditionData>;
+
+template class ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData>;
+template class ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData>;
+template class ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData>;
+template class ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData>;
 
 } // namespace Kratos.

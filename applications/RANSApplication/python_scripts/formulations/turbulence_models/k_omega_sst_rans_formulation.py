@@ -30,7 +30,7 @@ class KOmegaSSTOmegaRansFormulation(ScalarTurbulenceModelRansFormulation):
         return "RansKOmegaSSTOmega"
 
     def GetConditionNamePrefix(self):
-        return "RansKOmegaOmega"
+        return "RansKOmegaSSTOmega"
 
 
 class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
@@ -135,8 +135,7 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         defaults = Kratos.Parameters('''{
             "wall_law_constants":{
                 "kappa"       : 0.41,
-                "c_mu"        : 0.09,
-                "sigma_omega" : 0.0
+                "c_mu"        : 0.09
             },
             "k_omega_constants": {
                 "sigma_k"    : 0.85,
@@ -160,8 +159,6 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         process_info = self.GetBaseModelPart().ProcessInfo
         # wall law constants
         constants = settings["wall_law_constants"]
-        # TODO: This needs to be checked with validation cases
-        process_info.SetValue(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA, constants["sigma_omega"].GetDouble())
         process_info.SetValue(KratosRANS.VON_KARMAN, constants["kappa"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, constants["c_mu"].GetDouble())
 
