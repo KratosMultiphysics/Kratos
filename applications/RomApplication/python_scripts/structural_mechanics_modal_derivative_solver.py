@@ -65,18 +65,12 @@ class ModalDerivativeSolver(MechanicalSolver):
             return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
     def _create_solution_scheme(self):
-
-        finite_difference_type = self.settings["finite_difference_type"].GetString()
-        if finite_difference_type != "forward" and finite_difference_type != "central":
-            err_msg  = '\"finite_difference_type\" can only be \"forward\" or \"central\"!'
-            raise Exception(err_msg)
-
         return RomApplication.ModalDerivativeScheme(self.settings)
         
     def _create_builder_and_solver(self):
 
         if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool() is False:
-            err_msg  = 'Modal derivative analysis is only possible with block builder and solver!'
+            err_msg  = 'Modal derivative analysis is only available with block builder and solver!'
             raise Exception(err_msg)
         
         return super(ModalDerivativeSolver, self)._create_builder_and_solver()
