@@ -463,6 +463,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
     // CalculateOnIntegrationPoints
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, bool>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, int>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, double>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, array_1d<double, 3>>)
@@ -471,6 +472,7 @@ void  AddMeshToPython(pybind11::module& m)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Element>)
     // SetValuesOnIntegrationPoints
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, bool>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, int>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
@@ -588,6 +590,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNodes", GetNodesFromCondition )
 
     // CalculateOnIntegrationPoints
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, bool>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, int>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, double>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, array_1d<double, 3>>)
@@ -596,6 +599,7 @@ void  AddMeshToPython(pybind11::module& m)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Condition>)
     // SetValuesOnIntegrationPoints
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, bool>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, int>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, double>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
