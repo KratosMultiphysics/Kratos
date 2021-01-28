@@ -473,13 +473,14 @@ public:
 
         ModelPart& r_model_part = BaseType::GetModelPart();
         TSchemePointerType& p_scheme = this->pGetScheme();
+        TBuilderAndSolverPointerType& p_builder_and_solver = this->pGetBuilderAndSolver();
         TSystemMatrixType& rA = *mpA;
         TSystemMatrixType& rStiffnessMatrix = *mpStiffnessMatrix;
         TSystemMatrixType& rMassMatrix = *mpMassMatrix;
         TSystemVectorType& rb = *mpb;
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType basis;
-        TSparseSpace::Resize(basis, this->pGetBuilderAndSolver()->GetDofSet().size());
+        TSparseSpace::Resize(basis, p_builder_and_solver->GetDofSet().size());
         
         // Get eigenvalues vector
         LocalSystemVectorType& r_eigenvalues = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR];
@@ -520,8 +521,7 @@ public:
             // Apply the master-slave constraints to LHS only!
             if(r_model_part.MasterSlaveConstraints().size() != 0) {
                 Timer::Start("ApplyConstraints");
-                this->pGetBuilderAndSolver()->ApplyConstraints(p_scheme, r_model_part, rA, rb);
-                TSparseSpace::Resize(rb, this->pGetBuilderAndSolver()->GetDofSet().size());
+                p_builder_and_solver->ApplyConstraints(p_scheme, r_model_part, rA, rb);
                 Timer::Stop("ApplyConstraints");
             }
 
@@ -540,7 +540,7 @@ public:
                 Timer::Start("BuildRHS");
 
                 // Build stiffness contribution first
-                this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
+                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
 
                 // Compute the derivative of the eigenvalue
                 const double deigenvalue_i_dbasis_j = -inner_prod(basis, rb);
@@ -558,16 +558,12 @@ public:
                 // Builder and Solver routines
                 // Apply the master-slave constraints to RHS only
                 if (r_model_part.MasterSlaveConstraints().size() != 0)
-                    this->pGetBuilderAndSolver()->ApplyRHSConstraints(p_scheme, r_model_part, rb);
+                    p_builder_and_solver->ApplyRHSConstraints(p_scheme, r_model_part, rb);
 
                 Timer::Start("ApplyConstraints");
 
-                // // Apply dynamic derivative constraint
-                // if (mDerivativeTypeFlag) 
-                //     this->AddDynamicDerivativeConstraint(basis);
-
                 // Apply Dirichlet conditions
-                this->pGetBuilderAndSolver()->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
+                p_builder_and_solver->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
 
                 Timer::Stop("ApplyConstraints");
 
@@ -575,16 +571,12 @@ public:
                 Timer::Start("Solve");
 
                 // Compute particular solution
-                // this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
-                this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
+                p_builder_and_solver->SystemSolve(rA, rDx, rb);
+                // p_builder_and_solver->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
 
-                if (mDerivativeTypeFlag){
-                    // Compute and add null space solution
+                // Compute and add null space solution for dynamic derivatives
+                if (mDerivativeTypeFlag)
                     this->ComputeAndAddNullSpaceSolution(rDx, basis);
-                    // // Free the constrained DOF related to the dynamic derivative
-                    // this->RemoveDynamicDerivativeConstraint();
-                } 
-                    
 
                 Timer::Stop("Solve");
                 const double stop_solve = OpenMPUtils::GetCurrentTime();
