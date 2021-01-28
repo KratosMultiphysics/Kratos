@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -45,9 +46,6 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-// Forward declaration of ModelPart
-class ModelPart;
 
 /// Base class defining the API for the fill communicator utilities
 /** The objective of this class is to set the API for the derived ParallelFillCommunicator utilities
