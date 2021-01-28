@@ -89,14 +89,6 @@ void CalculateGaussSensitivities(
     const BoundedVector<double, TNumNodes>& rNodalSensitivities,
     const Vector& rGaussShapeFunctions);
 
-template <unsigned int TDim>
-Vector GetVector(
-    const array_1d<double, 3>& rVector);
-
-Vector GetVector(
-    const array_1d<double, 3>& rVector,
-    const unsigned int Dim);
-
 double KRATOS_API(RANS_APPLICATION) CalculateLogarithmicYPlusLimit(
     const double Kappa,
     const double Beta,

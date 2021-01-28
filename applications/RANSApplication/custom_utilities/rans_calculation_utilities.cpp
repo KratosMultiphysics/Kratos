@@ -165,32 +165,6 @@ void CalculateGaussSensitivities(
     }
 }
 
-template <unsigned int TDim>
-Vector GetVector(
-    const array_1d<double, 3>& rVector)
-{
-    Vector result(TDim);
-
-    for (unsigned int i_dim = 0; i_dim < TDim; ++i_dim) {
-        result[i_dim] = rVector[i_dim];
-    }
-
-    return result;
-}
-
-Vector GetVector(
-    const array_1d<double, 3>& rVector,
-    const unsigned int Dim)
-{
-    Vector result(Dim);
-
-    for (unsigned int i_dim = 0; i_dim < Dim; ++i_dim) {
-        result[i_dim] = rVector[i_dim];
-    }
-
-    return result;
-}
-
 double CalculateLogarithmicYPlusLimit(
     const double Kappa,
     const double Beta,
@@ -402,12 +376,6 @@ template void CalculateGaussSensitivities<4>(
     BoundedVector<double, 4>&,
     const BoundedVector<double, 4>&,
     const Vector&);
-
-template Vector GetVector<2>(
-    const array_1d<double, 3>&);
-
-template Vector GetVector<3>(
-    const array_1d<double, 3>&);
 
 template void CalculateNumberOfNeighbourEntities<ModelPart::ConditionsContainerType>(
     ModelPart&,

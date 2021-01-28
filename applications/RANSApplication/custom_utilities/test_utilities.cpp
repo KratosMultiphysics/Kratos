@@ -126,8 +126,8 @@ ModelPart& CreateTestModelPart(
 
     RansVariableUtilities::SetElementConstitutiveLaws(r_model_part.Elements());
 
-    r_element.Check(r_model_part.GetProcessInfo());
-    r_model_part.Conditions().front().Check(r_model_part.GetProcessInfo());
+    static_cast<const Element&>(r_element).Check(r_model_part.GetProcessInfo());
+    static_cast<const Condition&>(r_model_part.Conditions().front()).Check(r_model_part.GetProcessInfo());
 
     return r_model_part;
 }

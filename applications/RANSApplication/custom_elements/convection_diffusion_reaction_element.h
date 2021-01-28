@@ -337,21 +337,6 @@ protected:
         const int Step = 0) const;
 
     /**
-     * @brief Get the Divergence Operator object
-     *
-     * Calculates divergence of a vector at a gauss point
-     *
-     * @param rVariable          Vector variable
-     * @param rShapeDerivatives  Shape derivatives at gauss point
-     * @param Step               time step
-     * @return double            Divergence of the variable
-     */
-    double GetDivergenceOperator(
-        const Variable<array_1d<double, 3>>& rVariable,
-        const Matrix& rShapeDerivatives,
-        const int Step = 0) const;
-
-    /**
      * @brief Calculates shape function data for this element
      *
      * @param rGaussWeights Gauss point weights list

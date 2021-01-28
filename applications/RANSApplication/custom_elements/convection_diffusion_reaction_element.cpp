@@ -291,26 +291,6 @@ GeometryData::IntegrationMethod ConvectionDiffusionReactionElement<TDim, TNumNod
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-double ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetDivergenceOperator(
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Matrix& rShapeDerivatives,
-    const int Step) const
-{
-    double value = 0.0;
-    const auto& r_geometry = this->GetGeometry();
-
-    for (IndexType i = 0; i < TNumNodes; ++i) {
-        const array_1d<double, 3>& r_value =
-            r_geometry[i].FastGetSolutionStepValue(rVariable, Step);
-        for (IndexType j = 0; j < TDim; ++j) {
-            value += r_value[j] * rShapeDerivatives(i, j);
-        }
-    }
-
-    return value;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateGeometryData(
     Vector& rGaussWeights,
     Matrix& rNContainer,
