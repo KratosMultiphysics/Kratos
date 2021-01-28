@@ -108,8 +108,7 @@ public:
     /// Constructor.
     ModalDerivativeScheme(Variable<double>& DerivativeParameter, Parameters InputParameters)
     : 
-    Scheme<TSparseSpace,TDenseSpace>(),
-    mDerivativeParameter(DerivativeParameter)
+    Scheme<TSparseSpace,TDenseSpace>()
     {
         KRATOS_TRY
 
@@ -121,13 +120,6 @@ public:
         else
             KRATOS_ERROR << "\"finite_difference_type\" can only be \"forward\" or \"central\""  << std::endl;
 
-        if (mDerivativeParameter == DENSITY)
-            mDerivativeMatrixType = true;
-        else if (mDerivativeParameter == MODAL_COORDINATE || mDerivativeParameter == YOUNG_MODULUS || mDerivativeParameter == POISSON_RATIO)
-            mDerivativeMatrixType = false;
-        else
-            KRATOS_ERROR;
-        
         mFiniteDifferenceStepSize = InputParameters["finite_difference_step_size"].GetDouble();
 
         KRATOS_CATCH("")
@@ -295,42 +287,14 @@ public:
         // Compute element LHS derivative
         Matrix element_matrix_derivative;
         element_matrix_derivative.resize(elementalLocalDofSize,elementalLocalDofSize,false);
-        if (mDerivativeParameter == MODAL_COORDINATE)
-        {   // Modal parameter            
 
-            // Derivative wrt basis_j
-            const std::size_t basis_j = rCurrentProcessInfo[BASIS_J];
+        // Derivative wrt basis_j
+        const std::size_t basis_j = rCurrentProcessInfo[BASIS_J];
 
-            if (mFiniteDifferenceTypeFlag) // Central Difference
-                this->CentralDifferencingWithBasis(rElement, element_matrix_derivative, basis_j, rCurrentProcessInfo);
-            else // Forward difference
-                this->ForwardDifferencingWithBasis(rElement, element_matrix_derivative, basis_j, rCurrentProcessInfo);
-
-        }
-        else if (mDerivativeParameter == POISSON_RATIO)
-        {   // Material parameter with nonlinear dependency
-            
-            if (mFiniteDifferenceTypeFlag) // Central Difference
-                this->CentralDifferencingWithMaterialParameter(rElement, element_matrix_derivative, mDerivativeParameter, rCurrentProcessInfo);
-            else // Forward difference
-                this->ForwardDifferencingWithMaterialParameter(rElement, element_matrix_derivative, mDerivativeParameter, rCurrentProcessInfo);
-
-        } 
-        else if (mDerivativeParameter == DENSITY || mDerivativeParameter == YOUNG_MODULUS)
-        {   // Material parameter with linear dependency
-            
-            // Get property pointer
-            Properties::Pointer p_global_properties = rElement.pGetProperties();
-            const double property_value = p_global_properties->GetValue(mDerivativeParameter);
-
-            if (mDerivativeMatrixType)
-                rElement.CalculateMassMatrix(element_matrix_derivative, rCurrentProcessInfo);
-            else
-                rElement.CalculateLeftHandSide(element_matrix_derivative, rCurrentProcessInfo);
-
-            element_matrix_derivative /= property_value;
-
-        }
+        if (mFiniteDifferenceTypeFlag) // Central Difference
+            this->CentralDifferencingWithBasis(rElement, element_matrix_derivative, basis_j, rCurrentProcessInfo);
+        else // Forward difference
+            this->ForwardDifferencingWithBasis(rElement, element_matrix_derivative, basis_j, rCurrentProcessInfo);
 
         // Create PhiElementalGlobal 
         LocalSystemVectorType PhiElementalGlobal;
@@ -706,8 +670,6 @@ private:
     bool mSchemeIsInitialized;
 
     bool mDerivativeMatrixType;
-
-    Variable<double> mDerivativeParameter;
 
     double mFiniteDifferenceStepSize;
 
