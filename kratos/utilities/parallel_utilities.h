@@ -70,6 +70,11 @@ public:
      */
     static int GetNumProcs();
 
+    /** @brief Returns whether or not the current code is executed in parallel
+     * @return if the current code is executed in a parallel region
+     */
+    static bool IsInParallel();
+
     ///@}
 
 private:
@@ -77,6 +82,7 @@ private:
     ///@{
 
     static int* mspNumThreads;
+    static std::thread::id* mspMainThreadId;
 
     ///@}
     ///@name Private Operations

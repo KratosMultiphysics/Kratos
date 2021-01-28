@@ -68,6 +68,33 @@ int ParallelUtilities::GetNumProcs()
 #endif
 }
 
+bool ParallelUtilities::IsInParallel()
+{
+#ifdef KRATOS_SMP_OPENMP
+    return omp_in_parallel();
+
+#elif defined(KRATOS_SMP_CXX11)
+    // This does not work with OpenMP as
+    // it also uses the main thread for
+    // execution of parallel regions
+    if (!mspMainThreadId) {
+        LockObject lock;
+        lock.SetLock();
+        if (!mspMainThreadId) {
+            static std::thread::id main_thread_id;
+            main_thread_id = std::this_thread::get_id();
+            mspMainThreadId = &main_thread_id;
+        }
+        lock.UnSetLock();
+    }
+    // if the thread ID of this thread is different from the thread ID of the main thread
+    // it means that this runs in parallel / aka separate thread
+    return *mspMainThreadId != std::this_thread::get_id();
+#else
+    return false;
+#endif
+}
+
 int ParallelUtilities::InitializeNumberOfThreads()
 {
 #ifdef KRATOS_SMP_NONE
@@ -123,5 +150,6 @@ int& ParallelUtilities::GetNumberOfThreads()
 }
 
 int* ParallelUtilities::mspNumThreads = nullptr;
+std::thread::id* ParallelUtilities::mspMainThreadId = nullptr;
 
 }  // namespace Kratos.
