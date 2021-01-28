@@ -45,17 +45,16 @@ class ModalDerivativeSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[ModalDerivativeSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "derivative_type"               : "static",
             "sub_model_parts_list"          : [],
             "finite_difference_type"        : "forward",
             "finite_difference_step_size"   : 1e-3,
-            "compute_basis_derivatives"     : true,
             "mass_orthonormalize"           : true,
             "rom_parameters_filename"       : "RomParameters.json"
         }""")
-        this_defaults.AddMissingParameters(super(ModalDerivativeSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(ModalDerivativeSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def _create_linear_solver(self):
@@ -80,7 +79,7 @@ class ModalDerivativeSolver(MechanicalSolver):
             err_msg  = 'Modal derivative analysis is only possible with block builder and solver!'
             raise Exception(err_msg)
         
-        super(ModalDerivativeSolver, self)._create_builder_and_solver()
+        return super(ModalDerivativeSolver, self)._create_builder_and_solver()
 
     def _create_mechanical_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()

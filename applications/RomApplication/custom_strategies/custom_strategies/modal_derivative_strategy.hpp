@@ -160,8 +160,8 @@ public:
         this->SetRebuildLevel(1);
         
         mInitializeWasPerformed = false;
-        mSolutionStepIsInitialized = false;        
-        
+        mSolutionStepIsInitialized = false;     
+
         KRATOS_CATCH("")
     }
 
@@ -300,35 +300,15 @@ public:
 
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
-                if (mComputeBasisDerivativesFlag)
-                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                  BaseType::GetModelPart());
-                else {
-
-                    if (mpDx == NULL) //if the pointer is not initialized initialize it to an empty matrix
-                    {
-                        TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
-                        mpDx.swap(pNewDx);
-                    }
-                    if (mpb == NULL) //if the pointer is not initialized initialize it to an empty matrix
-                    {
-                        TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
-                        mpb.swap(pNewb);
-                    }
-
-                    const int dof_set_size = this->pGetBuilderAndSolver()->GetDofSet().size();
-
-                    mpDx->resize(dof_set_size, false);
-                    mpb->resize(dof_set_size, false);
-
-                }
-                if ((mDerivativeTypeFlag || mMassOrthonormalizeFlag) && mComputeBasisDerivativesFlag)
-                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMassMatrix, mpDx, mpb,
+                
+                // if (mDerivativeTypeFlag || mMassOrthonormalizeFlag)
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMassMatrix, mpDx, mpb,
                                                                  BaseType::GetModelPart());
-                if (mDerivativeTypeFlag && mComputeBasisDerivativesFlag)
-                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpStiffnessMatrix, mpDx, mpb,
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpStiffnessMatrix, mpDx, mpb,
                                                                  BaseType::GetModelPart());
-
+                
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
 
@@ -908,8 +888,6 @@ private:
     bool mDerivativeTypeFlag;
 
     bool mMassOrthonormalizeFlag;
-
-    bool mComputeBasisDerivativesFlag;
 
     std::size_t mNumberInitialBasis;
 
