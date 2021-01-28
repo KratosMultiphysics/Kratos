@@ -116,6 +116,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    // Arrays to get edge and node IDs of geometry from edge ID of splitting utility
+    const size_t edge_id_for_geometry [6] = {0, 2, 3, 1, 4, 5};
+    const size_t node_ids_for_geometry [6][2] = {{0,1}, {2,0}, {0,3}, {1,2}, {1,3}, {2,3}};
+
     ///@}
     ///@name Protected Operators
     ///@{

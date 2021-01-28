@@ -88,11 +88,13 @@ void Triangle2D3AusasIncisedShapeFunctions::SetPositiveSideCondensationMatrix(
             const std::size_t edge_node_i = rEdgeNodeI[id_edge];
             const std::size_t edge_node_j = rEdgeNodeJ[id_edge];
 
+            // Transform definition of edge ID from divide_triangle_2d_3.h to definition of triangle_2d_3.h (geometry)
+            unsigned int ratio_edge_id = (id_edge+2)%3;
             // Check if edge is intersected by extrapolated skin geometry (or actual skin geometry)
-            if (mExtraEdgeRatios[id_edge] > 0.0) {
+            if (mExtraEdgeRatios[ratio_edge_id] > 0.0) {
                 // Set shape function value according to the edge ratio of the extrapolated intersection.
-                rPosSideCondMatrix(n_nodes+id_edge, edge_node_i) = 1.0 - mExtraEdgeRatios[id_edge];
-                rPosSideCondMatrix(n_nodes+id_edge, edge_node_j) = mExtraEdgeRatios[id_edge];
+                rPosSideCondMatrix(n_nodes+id_edge, edge_node_i) = 1.0 - mExtraEdgeRatios[ratio_edge_id];
+                rPosSideCondMatrix(n_nodes+id_edge, edge_node_j) = mExtraEdgeRatios[ratio_edge_id];
             } else {
                 // Set to one the shape function value along the positive side of the edge.
                 rPosSideCondMatrix(n_nodes+id_edge, edge_node_i) = (nodal_distances(edge_node_i) > 0.0) ? 1.0 : 0.0;
@@ -131,11 +133,13 @@ void Triangle2D3AusasIncisedShapeFunctions::SetNegativeSideCondensationMatrix(
             const std::size_t edge_node_i = rEdgeNodeI[id_edge];
             const std::size_t edge_node_j = rEdgeNodeJ[id_edge];
 
+            // Transform definition of edge ID from divide_triangle_2d_3.h to definition of triangle_2d_3.h (geometry)
+            unsigned int ratio_edge_id = (id_edge+2)%3;
             // Check if edge is intersected by extrapolated skin geometry (or actual skin geometry)
-            if (mExtraEdgeRatios[id_edge] > 0.0) {
+            if (mExtraEdgeRatios[ratio_edge_id] > 0.0) {
                 // Set shape function value according to the edge ratio of the extrapolated intersection.
-                rNegSideCondMatrix(n_nodes+id_edge, edge_node_i) = 1.0 - mExtraEdgeRatios[id_edge];
-                rNegSideCondMatrix(n_nodes+id_edge, edge_node_j) = mExtraEdgeRatios[id_edge];
+                rNegSideCondMatrix(n_nodes+id_edge, edge_node_i) = 1.0 - mExtraEdgeRatios[ratio_edge_id];
+                rNegSideCondMatrix(n_nodes+id_edge, edge_node_j) = mExtraEdgeRatios[ratio_edge_id];
             } else {
                 // Set to one the shape function value along the negative side of the edge.
                 rNegSideCondMatrix(n_nodes+id_edge, edge_node_i) = (nodal_distances(edge_node_i) < 0.0) ? 1.0 : 0.0;
