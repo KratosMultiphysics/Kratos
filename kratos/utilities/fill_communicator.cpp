@@ -13,7 +13,6 @@
 #include "includes/model_part.h"
 #include "includes/data_communicator.h"
 #include "includes/fill_communicator.h"
-#include "processes/graph_coloring_process.h"
 
 namespace Kratos
 {
