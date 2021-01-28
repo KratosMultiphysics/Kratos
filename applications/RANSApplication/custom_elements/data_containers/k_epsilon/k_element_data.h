@@ -36,20 +36,18 @@ template <unsigned int TDim>
 class KElementData : public ConvectionDiffusionReactionElementData<TDim>
 {
 public:
+    ///@name Type Definitions
+    ///@{
+
     using BaseType = ConvectionDiffusionReactionElementData<TDim>;
+
     using NodeType = Node<3>;
+
     using GeometryType = typename BaseType::GeometryType;
 
-    static const Variable<double>& GetScalarVariable();
-
-    static void Check(
-        const GeometryType& rGeometry,
-        const ProcessInfo& rCurrentProcessInfo);
-
-    static const std::string GetName()
-    {
-        return "KEpsilonKElementData";
-    }
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     KElementData(
         const GeometryType& rGeometry,
@@ -59,6 +57,24 @@ public:
     {
     }
 
+    ~KElementData() override = default;
+
+    ///@}
+    ///@name Static Operations
+    ///@{
+
+    static const Variable<double>& GetScalarVariable();
+
+    static void Check(
+        const GeometryType& rGeometry,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    static const std::string GetName() { return "KEpsilonKElementData"; }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
     void CalculateConstants(
         const ProcessInfo& rCurrentProcessInfo);
 
@@ -67,7 +83,12 @@ public:
         const Matrix& rShapeFunctionDerivatives,
         const int Step = 0);
 
+    ///@}
+
 protected:
+    ///@name Protected Members
+    ///@{
+
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
 
     double mGamma;
@@ -78,6 +99,8 @@ protected:
     double mInvTkeSigma;
     double mCmu;
     double mDensity;
+
+    ///@}
 };
 
 ///@}

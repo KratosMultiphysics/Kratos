@@ -37,9 +37,32 @@ template <unsigned int TDim>
 class OmegaElementData : public ConvectionDiffusionReactionElementData<TDim>
 {
 public:
+    ///@name Type Definitions
+    ///@{
+
     using BaseType = ConvectionDiffusionReactionElementData<TDim>;
+
     using NodeType = Node<3>;
+
     using GeometryType = typename BaseType::GeometryType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    OmegaElementData(
+        const GeometryType& rGeometry,
+        const Properties& rProperties,
+        const ProcessInfo& rProcessInfo)
+        : BaseType(rGeometry, rProperties, rProcessInfo)
+    {
+    }
+
+    ~OmegaElementData() override = default;
+
+    ///@}
+    ///@name Static Operations
+    ///@{
 
     static const Variable<double>& GetScalarVariable();
 
@@ -52,13 +75,9 @@ public:
         return "KOmegaSSTOmegaElementData";
     }
 
-    OmegaElementData(
-        const GeometryType& rGeometry,
-        const Properties& rProperties,
-        const ProcessInfo& rProcessInfo)
-        : BaseType(rGeometry, rProperties, rProcessInfo)
-    {
-    }
+    ///@}
+    ///@name Operations
+    ///@{
 
     void CalculateConstants(
         const ProcessInfo& rCurrentProcessInfo);
@@ -68,7 +87,12 @@ public:
         const Matrix& rShapeFunctionDerivatives,
         const int Step = 0);
 
+    ///@}
+
 protected:
+    ///@name Protected Members
+    ///@{
+
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
     array_1d<double, TDim> mTurbulentKineticEnergyGradient;
     array_1d<double, TDim> mTurbulentSpecificEnergyDissipationRateGradient;
@@ -91,6 +115,8 @@ protected:
     double mTurbulentKinematicViscosity;
     double mKappa;
     double mDensity;
+
+    ///@}
 };
 
 ///@}

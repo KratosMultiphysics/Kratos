@@ -177,8 +177,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
         const Vector gauss_shape_functions = row(shape_functions, g);
 
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const double source = r_current_data.GetSourceTerm(
-            gauss_shape_functions, r_shape_derivatives);
+        const double source = r_current_data.GetSourceTerm();
 
         noalias(rRightHandSideVector) +=
             gauss_shape_functions * (source * gauss_weights[g]);
@@ -256,18 +255,11 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
         const Vector& r_shape_functions = row(shape_functions, g);
 
         r_current_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
-        const array_1d<double, 3>& velocity = r_current_data.GetEffectiveVelocity(
-            r_shape_functions, r_shape_derivatives);
+        const auto& velocity = r_current_data.GetEffectiveVelocity();
+        const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
+        const double reaction = r_current_data.GetReactionTerm();
 
-        noalias(velocity_convective_terms) = prod(r_shape_derivatives, r_current_data.GetEffectiveVelocity());
-
-        const double effective_kinematic_viscosity =
-            r_current_data.GetEffectiveKinematicViscosity(
-                r_shape_functions, r_shape_derivatives);
-
-        const double reaction = r_current_data.GetReactionTerm(
-            r_shape_functions, r_shape_derivatives);
-
+        noalias(velocity_convective_terms) = prod(r_shape_derivatives, velocity);
         const Matrix& dNa_dNb = prod(r_shape_derivatives, trans(r_shape_derivatives));
 
         AddDampingMatrixGaussPointContributions(

@@ -36,9 +36,32 @@ template <unsigned int TDim>
 class EpsilonElementData : public ConvectionDiffusionReactionElementData<TDim>
 {
 public:
+    ///@name Type Definitions
+    ///@{
+
     using BaseType = ConvectionDiffusionReactionElementData<TDim>;
+
     using NodeType = Node<3>;
+
     using GeometryType = typename BaseType::GeometryType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    EpsilonElementData(
+        const GeometryType& rGeometry,
+        const Properties& rProperties,
+        const ProcessInfo& rProcessInfo)
+        : BaseType(rGeometry, rProperties, rProcessInfo)
+    {
+    }
+
+    ~EpsilonElementData() override = default;
+
+    ///@}
+    ///@name Static Operations
+    ///@{
 
     static const Variable<double>& GetScalarVariable();
 
@@ -51,13 +74,9 @@ public:
         return "KEpsilonEpsilonElementData";
     }
 
-    EpsilonElementData(
-        const GeometryType& rGeometry,
-        const Properties& rProperties,
-        const ProcessInfo& rProcessInfo)
-        : BaseType(rGeometry, rProperties, rProcessInfo)
-    {
-    }
+    ///@}
+    ///@name Operations
+    ///@{
 
     void CalculateConstants(
         const ProcessInfo& rCurrentProcessInfo);
@@ -67,7 +86,12 @@ public:
         const Matrix& rShapeFunctionDerivatives,
         const int Step = 0);
 
+    ///@}
+
 protected:
+    ///@name Protected Members
+    ///@{
+
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
 
     double mC1;
@@ -80,6 +104,8 @@ protected:
     double mVelocityDivergence;
     double mInvEpsilonSigma;
     double mDensity;
+
+    ///@}
 };
 
 ///@}

@@ -87,24 +87,18 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
                                                  r_parameter_derivatives[g]);
 
         element_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const array_1d<double, 3>& velocity = element_data.GetEffectiveVelocity(
-            gauss_shape_functions, r_shape_derivatives);
-        const double effective_kinematic_viscosity =
-            element_data.GetEffectiveKinematicViscosity(
-                gauss_shape_functions, r_shape_derivatives);
-
-        const double reaction = element_data.GetReactionTerm(
-            gauss_shape_functions, r_shape_derivatives);
-        const double source = element_data.GetSourceTerm(
-            gauss_shape_functions, r_shape_derivatives);
+        const auto& velocity = element_data.GetEffectiveVelocity();
+        const double effective_kinematic_viscosity = element_data.GetEffectiveKinematicViscosity();
+        const double reaction = element_data.GetReactionTerm();
+        const double source = element_data.GetSourceTerm();
 
         double tau, element_length;
-        ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
+        ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau<TDim>(
             tau, element_length, velocity, contravariant_metric_tensor,
             reaction, effective_kinematic_viscosity, bossak_alpha, bossak_gamma,
             delta_time, dynamic_tau);
 
-        noalias(velocity_convective_terms) = prod(r_shape_derivatives, element_data.GetEffectiveVelocity());
+        noalias(velocity_convective_terms) = prod(r_shape_derivatives, velocity);
 
         const double s = std::abs(reaction);
 
@@ -187,20 +181,14 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
         this->AddLumpedMassMatrix(rMassMatrix, mass);
 
         element_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
-        const array_1d<double, 3>& velocity = element_data.GetEffectiveVelocity(
-            r_shape_functions, r_shape_derivatives);
+        const auto& velocity = element_data.GetEffectiveVelocity();
+        const double effective_kinematic_viscosity = element_data.GetEffectiveKinematicViscosity();
+        const double reaction = element_data.GetReactionTerm();
 
-        noalias(velocity_convective_terms) = prod(r_shape_derivatives, element_data.GetEffectiveVelocity());
-
-        const double effective_kinematic_viscosity =
-            element_data.GetEffectiveKinematicViscosity(
-                r_shape_functions, r_shape_derivatives);
-
-        const double reaction =
-            element_data.GetReactionTerm(r_shape_functions, r_shape_derivatives);
+        noalias(velocity_convective_terms) = prod(r_shape_derivatives, velocity);
 
         double tau, element_length;
-        ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
+        ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau<TDim>(
             tau, element_length, velocity, contravariant_metric_tensor,
             reaction, effective_kinematic_viscosity, bossak_alpha, bossak_gamma,
             delta_time, dynamic_tau);
@@ -242,9 +230,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
     const double eps = std::numeric_limits<double>::epsilon();
 
-    array_1d<double, 3> variable_gradient;
-    // TODO: Remove this clear;
-    variable_gradient.clear();
+    array_1d<double, TDim> variable_gradient;
 
     const Variable<double>& primal_variable =
         TConvectionDiffusionReactionData::GetScalarVariable();
@@ -270,16 +256,12 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
                                                  r_parameter_derivatives[g]);
 
         element_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const array_1d<double, 3>& velocity = element_data.GetEffectiveVelocity(
-            gauss_shape_functions, r_shape_derivatives);
+        const auto& velocity = element_data.GetEffectiveVelocity();
+        const double effective_kinematic_viscosity = element_data.GetEffectiveKinematicViscosity();
+        const double reaction = element_data.GetReactionTerm();
 
-        noalias(velocity_convective_terms) = prod(r_shape_derivatives, element_data.GetEffectiveVelocity());
-
+        noalias(velocity_convective_terms) = prod(r_shape_derivatives, velocity);
         const double velocity_magnitude = norm_2(velocity);
-
-        const double effective_kinematic_viscosity =
-            element_data.GetEffectiveKinematicViscosity(
-                gauss_shape_functions, r_shape_derivatives);
 
         FluidCalculationUtilities::EvaluateGradientInPoint(
             r_geometry, r_shape_derivatives,
@@ -287,11 +269,8 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 
         const double variable_gradient_norm = norm_2(variable_gradient);
 
-        const double reaction = element_data.GetReactionTerm(
-            gauss_shape_functions, r_shape_derivatives);
-
         double tau, element_length;
-        ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
+        ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau<TDim>(
             tau, element_length, velocity, contravariant_metric_tensor,
             reaction, effective_kinematic_viscosity, bossak_alpha, bossak_gamma,
             delta_time, dynamic_tau);
@@ -309,8 +288,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
             std::tie(relaxed_variable_acceleration, relaxed_primal_rate_variable));
 
         if (variable_gradient_norm > eps && velocity_magnitude_square > eps) {
-            const double source = element_data.GetSourceTerm(
-                gauss_shape_functions, r_shape_derivatives);
+            const double source = element_data.GetSourceTerm();
 
             double residual = relaxed_variable_acceleration;
             residual += velocity_dot_variable_gradient;
