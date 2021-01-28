@@ -205,8 +205,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     }
 
     std::vector< std::vector<double> > output_incised(6);
-    output_incised[0] = {7.436774003,64.76562889,-0.5285707191,0.5578768105,74.0625,-0.05,71.96345168,234.6416388,0.4285707191};  // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
-    output_incised[1] = {-18.05471471,-1.478769076,-0.528570653,0.5578768105,74.0625,-0.05,53.43431994,184.6558524,0.428570653}; // EmbeddedQSVMSDiscontinuous
+    output_incised[0] = {-10.02330911,16.21326328,-0.646193458,23.84225308,140.9326145,0.03528444693,93.63200904,252.7354578,0.4609090111};  // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
+    output_incised[1] = {-33.91609958,-37.55862371,-0.646193379,7.300490992,98.97131258,0.03528442788,71.97887246,205.2539778,0.4609089511}; // EmbeddedQSVMSDiscontinuous
     counter = 0;
 
     // Test incised element
@@ -234,8 +234,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         i->CalculateLocalSystem(LHS, RHS, r_process_info);
 
-        std::cout << i->Info() << std::setprecision(10) << std::endl;
-        KRATOS_WATCH(RHS);
+        //std::cout << i->Info() << std::setprecision(10) << std::endl;
+        //KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < RHS.size(); j++) {
             KRATOS_CHECK_NEAR(RHS[j], output_incised[counter][j], 1e-6);
