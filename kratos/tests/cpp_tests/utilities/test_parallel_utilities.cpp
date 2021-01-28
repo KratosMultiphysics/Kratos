@@ -339,6 +339,23 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(sub, reference_sub );
 }
 
+KRATOS_TEST_CASE_IN_SUITE(IsInParallel, KratosCoreFastSuite)
+{
+    KRATOS_CHECK_IS_FALSE(ParallelUtilities::IsInParallel());
+
+#ifdef KRATOS_SMP_NONE
+    constexpr bool is_in_parallel = false;
+#else
+    constexpr bool is_in_parallel = true;
+#endif
+
+    IndexPartition<unsigned int>(10).for_each(
+            [&](unsigned int i){
+                    KRATOS_CHECK_EQUAL(ParallelUtilities::IsInParallel(), is_in_parallel);
+                }
+            );
+}
+
 KRATOS_TEST_CASE_IN_SUITE(OmpVsPureC11, KratosCoreFastSuite)
 {
     int nsize = 1e7;
