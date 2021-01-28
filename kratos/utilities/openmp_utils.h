@@ -119,7 +119,7 @@ public:
      @return Maximum number of OpenMP threads that will be used in
      parallel regions.
      */
-    static inline int IsInParallel()
+    static inline KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"ParallelUtilities\" instead") int IsInParallel()
     {
 #ifdef _OPENMP
         return omp_in_parallel();
