@@ -50,17 +50,6 @@ int GeoStructuralBaseElement<TDim,TNumNodes>::
     const GeometryType& Geom = this->GetGeometry();
 
     // verify nodal variables and dofs
-    if ( DISPLACEMENT.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero at element", this->Id() )
-    if ( VELOCITY.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero at element", this->Id() )
-    if ( ACCELERATION.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero at element", this->Id() )
-    if ( VOLUME_ACCELERATION.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "VOLUME_ACCELERATION has Key zero at element", this->Id() )
-    if ( ROTATION.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "ROTATION has Key zero at element", this->Id() )
-
     for ( unsigned int i = 0; i < TNumNodes; i++ )
     {
         if ( Geom[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
@@ -84,22 +73,14 @@ int GeoStructuralBaseElement<TDim,TNumNodes>::
     }
 
     // Verify ProcessInfo variables
-    if ( VELOCITY_COEFFICIENT.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY_COEFFICIENT has Key zero at element", this->Id() )
-    if ( RAYLEIGH_ALPHA.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"RAYLEIGH_ALPHA has Key zero at element", this->Id() )
-    if ( RAYLEIGH_BETA.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"RAYLEIGH_BETA has Key zero at element", this->Id() )
-
     // Verify properties
-    if ( DENSITY.Key() == 0 ||
-         Prop.Has( DENSITY ) == false ||
+    if ( Prop.Has( DENSITY ) == false ||
          Prop[DENSITY] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero, is not defined or has an invalid value at element", this->Id() )
 
-    if ( YOUNG_MODULUS.Key() == 0 || Prop.Has( YOUNG_MODULUS ) == false )
+    if ( Prop.Has( YOUNG_MODULUS ) == false )
     {
-        if ( UDSM_NAME.Key() ==0 || Prop.Has( UDSM_NAME ) == false )
+        if ( Prop.Has( UDSM_NAME ) == false )
         {
           KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or is not defined at element", this->Id() )
         }
@@ -110,9 +91,9 @@ int GeoStructuralBaseElement<TDim,TNumNodes>::
             KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has an invalid value at element", this->Id() )
     }
 
-    if ( POISSON_RATIO.Key() == 0 || Prop.Has( POISSON_RATIO ) == false )
+    if ( Prop.Has( POISSON_RATIO ) == false )
     {
-        if ( UDSM_NAME.Key() ==0 || Prop.Has( UDSM_NAME ) == false )
+        if ( Prop.Has( UDSM_NAME ) == false )
         {
             KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero or is not defined at element", this->Id() )
         }

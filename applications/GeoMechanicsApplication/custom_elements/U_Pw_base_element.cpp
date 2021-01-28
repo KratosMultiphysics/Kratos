@@ -80,14 +80,14 @@ int UPwBaseElement<TDim,TNumNodes>::
     // Verify ProcessInfo variables
 
     // Verify properties
-    if ( DENSITY_SOLID.Key() == 0 || Prop.Has( DENSITY_SOLID ) == false || Prop[DENSITY_SOLID] < 0.0 )
+    if ( Prop.Has( DENSITY_SOLID ) == false || Prop[DENSITY_SOLID] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_SOLID has Key zero, is not defined or has an invalid value at element", this->Id() )
-    if ( DENSITY_WATER.Key() == 0 || Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
+    if ( Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_WATER has Key zero, is not defined or has an invalid value at element", this->Id() )
 
-    if ( YOUNG_MODULUS.Key() == 0 || Prop.Has( YOUNG_MODULUS ) == false )
+    if ( Prop.Has( YOUNG_MODULUS ) == false )
     {
-        if ( UDSM_NAME.Key() ==0 || Prop.Has( UDSM_NAME ) == false )
+        if ( Prop.Has( UDSM_NAME ) == false )
         {
           KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or is not defined at element", this->Id() )
         }
@@ -98,9 +98,9 @@ int UPwBaseElement<TDim,TNumNodes>::
             KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has an invalid value at element", this->Id() )
     }
 
-    if ( POISSON_RATIO.Key() == 0 || Prop.Has( POISSON_RATIO ) == false )
+    if ( Prop.Has( POISSON_RATIO ) == false )
     {
-        if ( UDSM_NAME.Key() ==0 || Prop.Has( UDSM_NAME ) == false )
+        if ( Prop.Has( UDSM_NAME ) == false )
         {
             KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero or is not defined at element", this->Id() )
         } 
@@ -112,9 +112,9 @@ int UPwBaseElement<TDim,TNumNodes>::
             KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has an invalid value at element", this->Id() )
     }
 
-    if ( BULK_MODULUS_SOLID.Key() == 0 || Prop.Has( BULK_MODULUS_SOLID ) == false || Prop[BULK_MODULUS_SOLID] < 0.0 )
+    if ( Prop.Has( BULK_MODULUS_SOLID ) == false || Prop[BULK_MODULUS_SOLID] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_SOLID has Key zero, is not defined or has an invalid value at element", this->Id() )
-    if ( POROSITY.Key() == 0 || Prop.Has( POROSITY ) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0 )
+    if ( Prop.Has( POROSITY ) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"POROSITY has Key zero, is not defined or has an invalid value at element", this->Id() )
 
 

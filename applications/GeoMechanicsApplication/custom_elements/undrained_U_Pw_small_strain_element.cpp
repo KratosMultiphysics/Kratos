@@ -58,7 +58,7 @@ int UndrainedUPwSmallStrainElement<TDim,TNumNodes>::
     if (ierr != 0) return ierr;
 
     // Verify specific properties
-    if ( BULK_MODULUS_FLUID.Key() == 0 || Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] < 0.0 )
+    if ( Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element", this->Id() )
 
     // Verify that the constitutive law exists

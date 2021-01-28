@@ -51,7 +51,7 @@ int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     if (ierr != 0) return ierr;
 
     // Verify specific properties
-    if ( MINIMUM_JOINT_WIDTH.Key() == 0 || Prop.Has( MINIMUM_JOINT_WIDTH ) == false || Prop[MINIMUM_JOINT_WIDTH] <= 0.0 )
+    if ( Prop.Has( MINIMUM_JOINT_WIDTH ) == false || Prop[MINIMUM_JOINT_WIDTH] <= 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"MINIMUM_JOINT_WIDTH has Key zero, is not defined or has an invalid value at element", this->Id() )
     
     // Verify specific properties
@@ -61,18 +61,18 @@ int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     if (!IgnoreUndrained)
     {
-        if ( TRANSVERSAL_PERMEABILITY.Key() == 0 || Prop.Has( TRANSVERSAL_PERMEABILITY ) == false || Prop[TRANSVERSAL_PERMEABILITY] < 0.0 )
+        if ( Prop.Has( TRANSVERSAL_PERMEABILITY ) == false || Prop[TRANSVERSAL_PERMEABILITY] < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,"TRANSVERSAL_PERMEABILITY has Key zero, is not defined or has an invalid value at element", this->Id() )
 
-        if ( BULK_MODULUS_FLUID.Key() == 0 || Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] <= 0.0 )
+        if ( Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] <= 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element", this->Id() )
 
-        if ( DYNAMIC_VISCOSITY.Key() == 0 || Prop.Has( DYNAMIC_VISCOSITY ) == false || Prop[DYNAMIC_VISCOSITY] <= 0.0 )
+        if ( Prop.Has( DYNAMIC_VISCOSITY ) == false || Prop[DYNAMIC_VISCOSITY] <= 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,"DYNAMIC_VISCOSITY has Key zero, is not defined or has an invalid value at element", this->Id() )
     }
 
     // Verify the constitutive law
-    if ( CONSTITUTIVE_LAW.Key() == 0 || Prop.Has( CONSTITUTIVE_LAW ) == false )
+    if ( Prop.Has( CONSTITUTIVE_LAW ) == false )
         KRATOS_THROW_ERROR( std::invalid_argument, "CONSTITUTIVE_LAW has Key zero or is not defined at element ", this->Id() )
     if ( Prop[CONSTITUTIVE_LAW] != NULL )
     {

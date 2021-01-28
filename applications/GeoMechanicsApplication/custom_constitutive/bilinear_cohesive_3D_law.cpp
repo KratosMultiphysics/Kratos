@@ -59,20 +59,17 @@ int BilinearCohesive3DLaw::
           const ProcessInfo& rCurrentProcessInfo)
 {
     // Verify ProcessInfo variables
-    if ( IS_CONVERGED.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"IS_CONVERGED Key is 0. Check if all applications were correctly registered.", "" )
-
     // Verify Properties variables
-    if(CRITICAL_DISPLACEMENT.Key() == 0 || rMaterialProperties.Has( CRITICAL_DISPLACEMENT ) == false || rMaterialProperties[CRITICAL_DISPLACEMENT] <= 0.0)
+    if (rMaterialProperties.Has( CRITICAL_DISPLACEMENT ) == false || rMaterialProperties[CRITICAL_DISPLACEMENT] <= 0.0)
         KRATOS_THROW_ERROR( std::invalid_argument,"CRITICAL_DISPLACEMENT has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties.Has( YOUNG_MODULUS ) == false || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
+    if (rMaterialProperties.Has( YOUNG_MODULUS ) == false || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
         KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
-    if(YIELD_STRESS.Key() == 0 || rMaterialProperties.Has( YIELD_STRESS ) == false || rMaterialProperties[YIELD_STRESS] < 0.0)
+    if (rMaterialProperties.Has( YIELD_STRESS ) == false || rMaterialProperties[YIELD_STRESS] < 0.0)
         KRATOS_THROW_ERROR( std::invalid_argument,"YIELD_STRESS has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
-    if(FRICTION_COEFFICIENT.Key() == 0 || rMaterialProperties.Has( FRICTION_COEFFICIENT ) == false || rMaterialProperties[FRICTION_COEFFICIENT] < 0.0)
+    if (rMaterialProperties.Has( FRICTION_COEFFICIENT ) == false || rMaterialProperties[FRICTION_COEFFICIENT] < 0.0)
         KRATOS_THROW_ERROR( std::invalid_argument,"FRICTION_COEFFICIENT has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
     const double& DamageThreshold = rMaterialProperties[DAMAGE_THRESHOLD];
-    if(DAMAGE_THRESHOLD.Key() == 0 || rMaterialProperties.Has( DAMAGE_THRESHOLD ) == false || DamageThreshold<=0.0 || DamageThreshold > 1.0)
+    if (rMaterialProperties.Has( DAMAGE_THRESHOLD ) == false || DamageThreshold<=0.0 || DamageThreshold > 1.0)
         KRATOS_THROW_ERROR( std::invalid_argument,"DAMAGE_THRESHOLD has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
 
     return 0;

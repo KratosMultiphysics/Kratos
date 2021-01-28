@@ -472,12 +472,6 @@ protected:
         int ierr = MotherType::Check();
         if(ierr != 0) return ierr;
 
-        if(ARC_LENGTH_LAMBDA.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "ARC_LENGTH_LAMBDA Key is 0. Check if all applications were correctly registered.", "" )
-        if(ARC_LENGTH_RADIUS_FACTOR.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "ARC_LENGTH_RADIUS_FACTOR Key is 0. Check if all applications were correctly registered.", "" )
         return ierr;
 
         KRATOS_CATCH( "" )

@@ -962,33 +962,6 @@ int GeoCrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 2 || GetGeometry().size() != 2)
             << "The beam element works only in 2D and with 2 noded elements" << std::endl;
 
-    // verify that the variables are correctly initialized
-    if (VELOCITY.Key() == 0) {
-        KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
-    if (DISPLACEMENT.Key() == 0) {
-        KRATOS_ERROR << "DISPLACEMENT has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
-    if (ACCELERATION.Key() == 0) {
-        KRATOS_ERROR << "ACCELERATION has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
-    if (DENSITY.Key() == 0) {
-        KRATOS_ERROR << "DENSITY has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
-    if (CROSS_AREA.Key() == 0) {
-        KRATOS_ERROR << "CROSS_AREA has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
-
     // verify that the dofs exist
     for (unsigned int i = 0; i < GetGeometry().size(); ++i) {
         if (GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false) {

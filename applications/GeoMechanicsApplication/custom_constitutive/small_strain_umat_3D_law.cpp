@@ -157,13 +157,13 @@ int SmallStrainUMAT3DLaw::Check(const Properties &rMaterialProperties,
                                 const ProcessInfo &rCurrentProcessInfo)
 {
    // Verify Properties variables
-   if (UDSM_NAME.Key() == 0 || rMaterialProperties.Has(UDSM_NAME) == false || rMaterialProperties[UDSM_NAME] == "")
+   if (rMaterialProperties.Has(UDSM_NAME) == false || rMaterialProperties[UDSM_NAME] == "")
       KRATOS_THROW_ERROR(std::invalid_argument, 
                          "UDSM_NAME has Key zero, is not defined or has an invalid value for property",
                          rMaterialProperties.Id())
 
 
-   if (IS_FORTRAN_UDSM.Key() == 0 || rMaterialProperties.Has(IS_FORTRAN_UDSM) == false)
+   if (rMaterialProperties.Has(IS_FORTRAN_UDSM) == false)
       KRATOS_THROW_ERROR(std::invalid_argument,
                          "IS_FORTRAN_UDSM has Key zero, is not defined or has an invalid value for property",
                          rMaterialProperties.Id())
@@ -210,7 +210,7 @@ void SmallStrainUMAT3DLaw::ResetStateVariables(const Properties& rMaterialProper
 
       const Variable<double> &var = KratosComponents< Variable<double> >::Get(stateVariableName);
 
-      if (var.Key() == 0 || rMaterialProperties.Has(var) == false)
+      if (rMaterialProperties.Has(var) == false)
       {
          KRATOS_THROW_ERROR(std::invalid_argument, stateVariableName + 
                             " is not defined or has an invalid value for property", rMaterialProperties.Id())
@@ -264,7 +264,7 @@ void SmallStrainUMAT3DLaw::SetMaterialParameters(const Properties &rMaterialProp
 
       const Variable<double> &var = KratosComponents< Variable<double> >::Get(parameterName);
 
-      if (var.Key() == 0 || rMaterialProperties.Has(var) == false)
+      if (rMaterialProperties.Has(var) == false)
       {
          KRATOS_THROW_ERROR(std::invalid_argument, parameterName + 
                             " is not defined or has an invalid value for property", rMaterialProperties.Id())

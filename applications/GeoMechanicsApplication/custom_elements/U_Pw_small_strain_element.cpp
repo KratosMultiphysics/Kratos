@@ -61,41 +61,41 @@ int UPwSmallStrainElement<TDim,TNumNodes>::
 
     if (!IgnoreUndrained)
     {
-        if ( BULK_MODULUS_FLUID.Key() == 0 || Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] < 0.0 )
+        if ( Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,
                                 "BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element",
                                 this->Id() )
 
-        if ( DYNAMIC_VISCOSITY.Key() == 0 || Prop.Has( DYNAMIC_VISCOSITY ) == false || Prop[DYNAMIC_VISCOSITY] < 0.0 )
+        if ( Prop.Has( DYNAMIC_VISCOSITY ) == false || Prop[DYNAMIC_VISCOSITY] < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,
                                 "DYNAMIC_VISCOSITY has Key zero, is not defined or has an invalid value at element",
                                 this->Id() )
 
-        if ( PERMEABILITY_XX.Key() == 0 || Prop.Has( PERMEABILITY_XX ) == false || Prop[PERMEABILITY_XX] < 0.0 )
+        if ( Prop.Has( PERMEABILITY_XX ) == false || Prop[PERMEABILITY_XX] < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,
                                 "PERMEABILITY_XX has Key zero, is not defined or has an invalid value at element",
                                 this->Id() )
 
-        if ( PERMEABILITY_YY.Key() == 0 || Prop.Has( PERMEABILITY_YY ) == false || Prop[PERMEABILITY_YY] < 0.0 )
+        if ( Prop.Has( PERMEABILITY_YY ) == false || Prop[PERMEABILITY_YY] < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,
                                 "PERMEABILITY_YY has Key zero, is not defined or has an invalid value at element",
                                 this->Id() )
 
-        if ( PERMEABILITY_XY.Key() == 0 || Prop.Has( PERMEABILITY_XY ) == false || Prop[PERMEABILITY_XY] < 0.0 )
+        if ( Prop.Has( PERMEABILITY_XY ) == false || Prop[PERMEABILITY_XY] < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,
                                 "PERMEABILITY_XY has Key zero, is not defined or has an invalid value at element",
                                 this->Id() )
         if (TDim > 2)
         {
-            if ( PERMEABILITY_ZZ.Key() == 0 || Prop.Has( PERMEABILITY_ZZ ) == false || Prop[PERMEABILITY_ZZ] < 0.0 )
+            if ( Prop.Has( PERMEABILITY_ZZ ) == false || Prop[PERMEABILITY_ZZ] < 0.0 )
                 KRATOS_THROW_ERROR( std::invalid_argument,
                                     "PERMEABILITY_ZZ has Key zero, is not defined or has an invalid value at element", this->Id() )
 
-            if ( PERMEABILITY_YZ.Key() == 0 || Prop.Has( PERMEABILITY_YZ ) == false || Prop[PERMEABILITY_YZ] < 0.0 )
+            if ( Prop.Has( PERMEABILITY_YZ ) == false || Prop[PERMEABILITY_YZ] < 0.0 )
                 KRATOS_THROW_ERROR( std::invalid_argument,
                                     "PERMEABILITY_YZ has Key zero, is not defined or has an invalid value at element", this->Id() )
 
-            if ( PERMEABILITY_ZX.Key() == 0 || Prop.Has( PERMEABILITY_ZX ) == false || Prop[PERMEABILITY_ZX] < 0.0 )
+            if ( Prop.Has( PERMEABILITY_ZX ) == false || Prop[PERMEABILITY_ZX] < 0.0 )
                 KRATOS_THROW_ERROR( std::invalid_argument,
                                     "PERMEABILITY_ZX has Key zero, is not defined or has an invalid value at element", this->Id() )
         }
