@@ -174,6 +174,11 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
             """)
 
 class TestAmesos2LinearSolvers(TestLinearSolvers):
+    def setUp(self):
+        if not hasattr(KratosMultiphysics.TrilinosApplication, "Amesos2Solver"):
+            self.skipTest("Amesos2Solver is not available")
+        super().setUp()
+
     def test_amesos2_superludist(self):
         if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_superludist") ):
             self.skipTest("amesos2_superludist is not among the available Amesos2 Solvers")
