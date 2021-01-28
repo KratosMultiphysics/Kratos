@@ -79,8 +79,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Modal Derivative scheme
     py::class_< ModalDerivativeSchemeType,typename ModalDerivativeSchemeType::Pointer, BaseSchemeType>(m,"ModalDerivativeScheme")
-        .def(py::init<Variable<double>&,
-        Parameters>())
+        .def(py::init<Parameters>())
         ;
 
     //********************************************************************
