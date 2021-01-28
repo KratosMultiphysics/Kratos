@@ -69,7 +69,7 @@ public:
     static const Variable<double>& GetScalarVariable();
 
     static void Check(
-        const GeometryType& rGeometry,
+        const Element& rElement,
         const ProcessInfo& rCurrentProcessInfo);
 
     static const std::string GetName()

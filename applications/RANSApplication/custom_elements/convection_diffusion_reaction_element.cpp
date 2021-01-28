@@ -277,7 +277,7 @@ int ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReac
     KRATOS_TRY
 
     int check = BaseType::Check(rCurrentProcessInfo);
-    TConvectionDiffusionReactionData::Check(this->GetGeometry(), rCurrentProcessInfo);
+    TConvectionDiffusionReactionData::Check(*this, rCurrentProcessInfo);
 
     return check;
 

@@ -35,6 +35,8 @@ ModelPart& RansKOmegaSSTKAFC2D3NSetUp(
     auto& r_model_part = KOmegaSSTTestUtilities::RansKOmegaSSTK2D3NSetUp(
         rModel, "RansKOmegaSSTKAFC2D3N");
 
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
+
     return r_model_part;
 }
 
@@ -43,6 +45,8 @@ ModelPart& RansKOmegaSSTOmegaAFC2D3NSetUp(
 {
     auto& r_model_part = KOmegaSSTTestUtilities::RansKOmegaSSTOmega2D3NSetUp(
         rModel, "RansKOmegaSSTOmegaAFC2D3N");
+
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
 
     return r_model_part;
 }

@@ -39,6 +39,8 @@ ModelPart& RansKOmegaKRFC2D3NSetUp(
     StabilizationMethodTestUtilities::InitializeResidualBasedFluxCorrectedConstants(
         r_model_part.GetProcessInfo());
 
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
+
     return r_model_part;
 }
 
@@ -50,6 +52,8 @@ ModelPart& RansKOmegaOmegaRFC2D3NSetUp(
 
     StabilizationMethodTestUtilities::InitializeResidualBasedFluxCorrectedConstants(
         r_model_part.GetProcessInfo());
+
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
 
     return r_model_part;
 }

@@ -42,14 +42,16 @@ const Variable<double>& KElementData<TDim>::GetScalarVariable()
 
 template <unsigned int TDim>
 void KElementData<TDim>::Check(
-    const GeometryType& rGeometry,
+    const Element& rElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    const int number_of_nodes = rGeometry.PointsNumber();
+
+    const auto& r_geometry = rElement.GetGeometry();
+    const int number_of_nodes = r_geometry.PointsNumber();
 
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        const auto& r_node = rGeometry[i_node];
+        const auto& r_node = r_geometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
