@@ -137,7 +137,7 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
         #self.distance_to_clusters.UpdateZMatrix(self._GetSolver().get_builder_and_solver().GetCurrentReducedCoefficients())
         self._GetSolver().get_builder_and_solver().UpdateZMatrix()
         self.CurrentFullDimensionalVector = np.array(self._GetSolver().get_builder_and_solver().GetCurrentFullDimensionalVector())
-        print('The solution I got by summing is: ',np.linalg.norm(self.CurrentFullDimensionalVector))
+        #print('The solution I got by summing is: ',np.linalg.norm(self.CurrentFullDimensionalVector))
         self.save_for_comparison.append(self.CurrentFullDimensionalVector)
         print('according to full dimnesional reconstruction, nearest cluster is: ', self.FindNearestClusterToFullDimensionalVector())
 
@@ -160,7 +160,7 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
 
 
     def Finalize(self):
-        super().FinalizeSolutionStep()
+        super().Finalize()
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()

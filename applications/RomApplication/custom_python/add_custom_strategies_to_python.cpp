@@ -64,6 +64,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("SetElementToPrint",&ROMBuilderAndSolverType::SetElementToPrint) //
         .def("GetCurrentReducedCoefficients",&ROMBuilderAndSolverType::GetCurrentReducedCoefficients) //
         .def("GetCurrentCluster",&ROMBuilderAndSolverType::GetCurrentCluster) //
+        .def("ProjectToReducedBasis",&ROMBuilderAndSolverType::ProjectToReducedBasis) //
         ;
 
 }

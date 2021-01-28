@@ -375,12 +375,15 @@ public:
         #pragma omp parallel firstprivate(dofs_begin, dofs_number)
         {
             Vector temp_q = ZeroVector(mRomDofs);
+            #pragma omp for nowait
             for (unsigned int k = 0; k<dofs_number; k++){
                 auto dof = dofs_begin + k;
                 //KRATOS_WATCH(dof->GetSolutionStepValue(0));//current solution
                 //KRATOS_WATCH(dof->GetSolutionStepValue(1));//prior solution
-                temp_q +=  (dof->GetSolutionStepValue(0) - dof->GetSolutionStepValue(1)) *row(  *mRomBases.GetBasis(mDistanceToClusters.GetCurrentCluster())->GetNodalBasis(dof->Id()),\
-                                                                                        mMapPhi[dof->GetVariable().Key()]   ) ;  // Delta_q = Phi^T * Delta_u
+                auto variable_1 = row(  *mRomBases.GetBasis(mDistanceToClusters.GetCurrentCluster())->GetNodalBasis(dof->Id()),\
+                                                                                        mMapPhi[dof->GetVariable().Key()]   ) ;
+                //KRATOS_WATCH(variable_1)
+                temp_q +=  (dof->GetSolutionStepValue() - dof->GetSolutionStepValue(1)) *variable_1;  // Delta_q = Phi^T * Delta_u
 
             }
 
