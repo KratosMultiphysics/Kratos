@@ -100,7 +100,7 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
         std::tie(mTurbulentSpecificEnergyDissipationRate, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
         std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
         std::tie(mWallDistance, DISTANCE),
-        std::tie(this->mEffectiveVelocity, VELOCITY));
+        std::tie(mEffectiveVelocity, VELOCITY));
 
     KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
 
@@ -131,15 +131,15 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
 
     mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
 
-    this->mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mBlendedSigmaOmega;
+    mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mBlendedSigmaOmega;
 
     const double omega = std::max(mTurbulentSpecificEnergyDissipationRate, 1e-12);
-    this->mReactionTerm = mBlendedBeta * omega;
-    this->mReactionTerm -= (1.0 - mF1) * mCrossDiffusion / omega;
-    this->mReactionTerm += mBlendedGamma * 2.0 * mVelocityDivergence / 3.0;
-    this->mReactionTerm = std::max(this->mReactionTerm, 0.0);
+    mReactionTerm = mBlendedBeta * omega;
+    mReactionTerm -= (1.0 - mF1) * mCrossDiffusion / omega;
+    mReactionTerm += mBlendedGamma * 2.0 * mVelocityDivergence / 3.0;
+    mReactionTerm = std::max(mReactionTerm, 0.0);
 
-    this->mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity) * (mBlendedGamma / mTurbulentKinematicViscosity);
+    mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity) * (mBlendedGamma / mTurbulentKinematicViscosity);
 
     KRATOS_CATCH("");
 }

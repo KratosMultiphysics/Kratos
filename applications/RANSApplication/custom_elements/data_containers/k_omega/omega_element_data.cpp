@@ -93,7 +93,7 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
         this->GetGeometry(), rShapeFunctions, Step,
         std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
         std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-        std::tie(this->mEffectiveVelocity, VELOCITY));
+        std::tie(mEffectiveVelocity, VELOCITY));
 
     FluidCalculationUtilities::EvaluateGradientInPoint(
         this->GetGeometry(), rShapeFunctionDerivatives,
@@ -101,9 +101,9 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
 
     mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
 
-    this->mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mSigmaOmega;
-    this->mReactionTerm = std::max(mBeta * mTurbulentKineticEnergy / mTurbulentKinematicViscosity + mGamma * 2.0 * mVelocityDivergence / 3.0, 0.0);
-    this->mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity) *  (mGamma / mTurbulentKinematicViscosity);
+    mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mSigmaOmega;
+    mReactionTerm = std::max(mBeta * mTurbulentKineticEnergy / mTurbulentKinematicViscosity + mGamma * 2.0 * mVelocityDivergence / 3.0, 0.0);
+    mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity) *  (mGamma / mTurbulentKinematicViscosity);
 
     KRATOS_CATCH("");
 }

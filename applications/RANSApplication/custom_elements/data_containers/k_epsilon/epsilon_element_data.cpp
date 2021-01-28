@@ -90,7 +90,7 @@ void EpsilonElementData<TDim>::CalculateGaussPointData(
         this->GetGeometry(), rShapeFunctions, Step,
         std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
         std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-        std::tie(this->mEffectiveVelocity, VELOCITY));
+        std::tie(mEffectiveVelocity, VELOCITY));
 
     mGamma = KEpsilonElementData::CalculateGamma(mCmu, mTurbulentKineticEnergy, mTurbulentKinematicViscosity);
 
@@ -100,9 +100,9 @@ void EpsilonElementData<TDim>::CalculateGaussPointData(
 
     mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
 
-    this->mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mInvEpsilonSigma;
-    this->mReactionTerm = std::max(mC2 * mGamma + mC1 * 2.0 * mVelocityDivergence / 3.0, 0.0);
-    this->mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity) * (mC1 * mGamma);
+    mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mInvEpsilonSigma;
+    mReactionTerm = std::max(mC2 * mGamma + mC1 * 2.0 * mVelocityDivergence / 3.0, 0.0);
+    mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity) * (mC1 * mGamma);
 
     KRATOS_CATCH("");
 }

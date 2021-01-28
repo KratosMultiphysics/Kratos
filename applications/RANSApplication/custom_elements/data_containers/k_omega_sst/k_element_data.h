@@ -46,6 +46,8 @@ public:
 
     using GeometryType = typename BaseType::GeometryType;
 
+    using ArrayD = typename BaseType::ArrayD;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -98,9 +100,14 @@ protected:
     ///@name Protected Members
     ///@{
 
+    using BaseType::mEffectiveVelocity;
+    using BaseType::mEffectiveKinematicViscosity;
+    using BaseType::mReactionTerm;
+    using BaseType::mSourceTerm;
+
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
-    array_1d<double, TDim> mTurbulentKineticEnergyGradient;
-    array_1d<double, TDim> mTurbulentSpecificEnergyDissipationRateGradient;
+    ArrayD mTurbulentKineticEnergyGradient;
+    ArrayD mTurbulentSpecificEnergyDissipationRateGradient;
 
     double mSigmaK1;
     double mSigmaK2;

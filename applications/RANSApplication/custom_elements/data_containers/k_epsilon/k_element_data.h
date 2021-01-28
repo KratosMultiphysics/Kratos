@@ -89,6 +89,11 @@ protected:
     ///@name Protected Members
     ///@{
 
+    using BaseType::mEffectiveVelocity;
+    using BaseType::mEffectiveKinematicViscosity;
+    using BaseType::mReactionTerm;
+    using BaseType::mSourceTerm;
+
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
 
     double mGamma;
