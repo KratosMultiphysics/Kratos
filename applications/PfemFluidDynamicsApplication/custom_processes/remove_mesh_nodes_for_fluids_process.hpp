@@ -1128,21 +1128,21 @@ namespace Kratos
 			rigidNodesCoordinates.resize(3);
 			rigidNodesNormals.resize(3);
 
-			if (mrRemesh.UseRefiningBox == true)
-			{
-				array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
-				array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-				if (eElement[0].X() > mrRemesh.RefiningBoxMinimumPoint[0] && eElement[0].X() < mrRemesh.RefiningBoxMinimumPoint[0] &&
-					eElement[0].Y() > mrRemesh.RefiningBoxMinimumPoint[1] && eElement[0].Y() < mrRemesh.RefiningBoxMinimumPoint[1] &&
-					eElement[0].Z() > mrRemesh.RefiningBoxMinimumPoint[2] && eElement[0].Z() < mrRemesh.RefiningBoxMinimumPoint[2])
-				{
-					criticalVolume = 0.25 * 0.1 * (pow(mrRemesh.RefiningBoxMeshSize, 3) / (6.0 * sqrt(2))); //mean Volume per node with 0.025 of penalization
-				}
-				else
-				{
-					criticalVolume = 0.25 * 0.1 * (pow(mrRemesh.Refine->CriticalRadius, 3) / (6.0 * sqrt(2)));
-				}
-			}
+			// if (mrRemesh.UseRefiningBox == true)
+			// {
+			// 	array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
+			// 	array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
+			// 	if (eElement[0].X() > mrRemesh.RefiningBoxMinimumPoint[0] && eElement[0].X() < mrRemesh.RefiningBoxMinimumPoint[0] &&
+			// 		eElement[0].Y() > mrRemesh.RefiningBoxMinimumPoint[1] && eElement[0].Y() < mrRemesh.RefiningBoxMinimumPoint[1] &&
+			// 		eElement[0].Z() > mrRemesh.RefiningBoxMinimumPoint[2] && eElement[0].Z() < mrRemesh.RefiningBoxMinimumPoint[2])
+			// 	{
+			// 		criticalVolume = 0.25 * 0.1 * (pow(mrRemesh.RefiningBoxMeshSize, 3) / (6.0 * sqrt(2))); //mean Volume per node with 0.025 of penalization
+			// 	}
+			// 	else
+			// 	{
+			// 		criticalVolume = 0.25 * 0.1 * (pow(mrRemesh.Refine->CriticalRadius, 3) / (6.0 * sqrt(2)));
+			// 	}
+			// }
 
 			unsigned int rigidNode = 0;
 			for (unsigned int i = 0; i < numNodes; i++)
