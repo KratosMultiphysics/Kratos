@@ -48,7 +48,6 @@ class ModalDerivativeSolver(MechanicalSolver):
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "derivative_type"               : "static",
-            "derivative_parameter"          : "modal_coordinates",
             "sub_model_parts_list"          : [],
             "finite_difference_type"        : "forward",
             "finite_difference_step_size"   : 1e-3,
@@ -64,10 +63,7 @@ class ModalDerivativeSolver(MechanicalSolver):
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
             return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
-            KratosMultiphysics.Logger.PrintInfo('::[MechanicalSolver]:: No linear solver was specified, using "super_lu" as default solver')
-            from KratosMultiphysics import ExternalSolversApplication
-            linear_solver_configuration = KratosMultiphysics.Parameters("""{ "solver_type" : "super_lu"}""")
-            return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
+            return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
     def _create_solution_scheme(self):
 
@@ -76,32 +72,15 @@ class ModalDerivativeSolver(MechanicalSolver):
             err_msg  = '\"finite_difference_type\" can only be \"forward\" or \"central\"!'
             raise Exception(err_msg)
 
-        derivative_parameter = self.settings["derivative_parameter"].GetString()
-        if derivative_parameter == "modal_coordinates":
-            derivative_parameter = RomApplication.MODAL_COORDINATE
-        elif derivative_parameter == "density":
-            derivative_parameter = KratosMultiphysics.DENSITY
-        elif derivative_parameter == "poisson_ratio":
-            derivative_parameter = KratosMultiphysics.POISSON_RATIO
-        elif derivative_parameter == "young_modulus":
-            derivative_parameter = KratosMultiphysics.YOUNG_MODULUS
-        else:
-            err_msg  = 'Given \"derivative_parameter\": ', derivative_parameter, ' is not valid!'
-            raise Exception(err_msg)
-
-        return RomApplication.ModalDerivativeScheme(derivative_parameter, self.settings)
+        return RomApplication.ModalDerivativeScheme(self.settings)
         
     def _create_builder_and_solver(self):
-        linear_solver = self.get_linear_solver()
-        if self.settings["block_builder"].GetBool():
-            bs_params = self.settings["builder_and_solver_settings"]
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
-        else:
-            if self.settings["multi_point_constraints_used"].GetBool():
-                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
-            else:
-                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
-        return builder_and_solver
+
+        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool() is False:
+            err_msg  = 'Modal derivative analysis is only possible with block builder and solver!'
+            raise Exception(err_msg)
+        
+        super(ModalDerivativeSolver, self)._create_builder_and_solver()
 
     def _create_mechanical_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()
