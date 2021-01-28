@@ -221,6 +221,7 @@ private:
     ///@{
 
     double m_pre_strain_factor = 0;
+    double m_E = 0;
 
     ///@}
     ///@name Private Operators

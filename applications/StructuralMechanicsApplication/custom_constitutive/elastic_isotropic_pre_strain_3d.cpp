@@ -255,7 +255,7 @@ Matrix& ElasticIsotropicPrestrain3D::CalculateValue(
 bool ElasticIsotropicPrestrain3D::Has(const Variable<double>& rThisVariable)
 
 {
-    if (rThisVariable == PRE_STRAIN_FACTOR) {
+    if (rThisVariable == PRE_STRAIN_FACTOR || rThisVariable == YOUNGS_MODULUS) {
         return true;
     }
     return false;
@@ -267,6 +267,9 @@ void ElasticIsotropicPrestrain3D::SetValue(const Variable<double>& rVariable,
 {
     if (rVariable == PRE_STRAIN_FACTOR) {
         m_pre_strain_factor = Value;
+    }
+    if (rVariable == YOUNGS_MODULUS) {
+        m_E = Value;
     }
 }
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
@@ -336,12 +339,14 @@ void ElasticIsotropicPrestrain3D::CalculateElasticMatrix(
     )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
+    if (m_E == 0) {
+        m_E = r_material_properties[YOUNG_MODULUS];
+    }
     const double NU = r_material_properties[POISSON_RATIO];
 
     this->CheckClearElasticMatrix(rConstitutiveMatrix);
 
-    const double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
+    const double c1 = m_E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
     const double c2 = c1 * ( 1 - NU );
     const double c3 = c1 * NU;
     const double c4 = c1 * 0.5 * ( 1 - 2 * NU );
@@ -370,10 +375,12 @@ void ElasticIsotropicPrestrain3D::CalculatePK2Stress(
     )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
+    if (m_E == 0) {
+        m_E = r_material_properties[YOUNG_MODULUS];
+    }
     const double NU = r_material_properties[POISSON_RATIO];
 
-    const double c1 = E / ((1.00 + NU) * (1 - 2 * NU));
+    const double c1 = m_E / ((1.00 + NU) * (1 - 2 * NU));
     const double c2 = c1 * (1 - NU);
     const double c3 = c1 * NU;
     const double c4 = c1 * 0.5 * (1 - 2 * NU);
