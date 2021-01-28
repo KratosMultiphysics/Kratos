@@ -138,44 +138,18 @@ public:
         else
             KRATOS_ERROR << "\"derivative_type\" can only be \"static\" or \"dynamic\""  << std::endl;
 
-        // Set derivative parameter: modal_coordinates, density, young_modulus or poisson_ratio
-        // This distinction is necessary to decide the differentiaton type for different system matrices
-        std::string derivative_parameter = InputParameters["derivative_parameter"].GetString();
-        if (derivative_parameter == "modal_coordinates")
-            mDerivativeParameterType = 0;
-        else if (derivative_parameter == "density") // mass parameter
-            mDerivativeParameterType = 1;
-        else if (derivative_parameter == "young_modulus" || derivative_parameter == "poisson_ratio") // stiffness parameter
-            mDerivativeParameterType = 2;
-        else
-            KRATOS_ERROR << "\"derivative_parameter\" can only be \"modal_coordinate\", \"mass_parameter\" or \"stiffness_parameter\"" << std::endl;
-
-        // Derivative with respect to mass parameter is only available in combination with dynamic derivatives
-        if (!mDerivativeTypeFlag && mDerivativeParameterType == 1)
-            KRATOS_ERROR << "\"derivative_parameter\": \"" << derivative_parameter << "\" is only available when \"derivative_type\" is selected to be \"dynamic\"" << std::endl;
-
-        mDerivativeSubModelPartNames = InputParameters["sub_model_parts_list"].GetStringArray();
-                
         mMassOrthonormalizeFlag = InputParameters["mass_orthonormalize"].GetBool();
-        if (mDerivativeParameterType == 0 || InputParameters["compute_basis_derivatives"].GetBool()) 
-            mComputeBasisDerivativesFlag = true;
-        else
-            mComputeBasisDerivativesFlag = false;
+        
+        mFixedDofIndex = 0;
 
         mNumberInitialBasis = rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].size();
-
-        mFixedDofIndex = 0;
-    
         rModelPart.GetProcessInfo()[DERIVATIVE_INDEX] = mNumberInitialBasis;
 
-        std::size_t number_of_sub_model_parts = mDerivativeSubModelPartNames.size();
-        if ( mDerivativeTypeFlag && mDerivativeParameterType == 0 )
+        if ( mDerivativeTypeFlag)   // Dynamic derivatives are unsymmetric
             rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis*( mNumberInitialBasis + 1 ), true);
-        else if ( !mDerivativeTypeFlag && mDerivativeParameterType == 0 )
+        else // Static derivatives are symmetric
             rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis + mNumberInitialBasis * ( mNumberInitialBasis + 1 ) / 2, true);
-        else if ( mDerivativeParameterType > 0 )
-            rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize((1+number_of_sub_model_parts)*mNumberInitialBasis);
-
+        
         // ensure initialization of system matrices in InitializeSolutionStep()
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
 
@@ -427,36 +401,158 @@ public:
 
         ModelPart& r_model_part = BaseType::GetModelPart();
         TSchemePointerType& p_scheme = this->pGetScheme();
+        TBuilderAndSolverPointerType& p_builder_and_solver = this->pGetBuilderAndSolver();
         TSystemMatrixType& rA = *mpA;
         TSystemMatrixType& rStiffnessMatrix = *mpStiffnessMatrix;
         TSystemMatrixType& rMassMatrix = *mpMassMatrix;
+        TSystemVectorType& rb = *mpb;
+        TSystemVectorType& rDx = *mpDx;
+        TSystemVectorType basis;
+        TSparseSpace::Resize(basis, p_builder_and_solver->GetDofSet().size());
+        
+        /*
+            BUILD_LEVEL = 1 : Scheme builds M
+            BUILD_LEVEL = 2 : Scheme builds K
+        */
 
         // Build system matrices
         // Build mass matrix
-        if ((mMassOrthonormalizeFlag || mDerivativeTypeFlag) && mComputeBasisDerivativesFlag)
+        if (mDerivativeTypeFlag || mMassOrthonormalizeFlag)
         {
             r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
-            this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rMassMatrix);
+            p_builder_and_solver->BuildLHS(p_scheme,r_model_part,rMassMatrix);
         }
 
         // Build stiffness matrix
         r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
-        if (mDerivativeTypeFlag && mComputeBasisDerivativesFlag)
+        if (mDerivativeTypeFlag)
         {   // Dynamic derivatives
             // Build stiffness matrix separately
-            this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rStiffnessMatrix);   
+            p_builder_and_solver->BuildLHS(p_scheme,r_model_part,rStiffnessMatrix);   
         } 
-        else if (mComputeBasisDerivativesFlag)
-        {   // Static derivatives
+        else // Static derivatives: build stiffness matrix directly into the system matrix
+            p_builder_and_solver->BuildLHS(p_scheme,r_model_part,rA);
+        
+        // Get eigenvalues vector
+        LocalSystemVectorType& r_eigenvalues = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR];
+
+        // Derivative of basis_i
+        std::size_t basis_j_start_index;
+        for (std::size_t basis_i = 0; basis_i < mNumberInitialBasis; basis_i++)
+        {
+            // Set the BASIS_I counter for use in the scheme
+            r_model_part.GetProcessInfo()[BASIS_I] = basis_i;
+
+            // Get basis_i
+            TSparseSpace::SetToZero(basis);
+            this->GetBasis(basis_i, basis);
+
+            if (mDerivativeTypeFlag)
+            {   // Dynamic derivatives
+
+                const double eigenvalue_i = r_eigenvalues[basis_i];
+
+                // If dynamic derivatives then build system matrix for each eigenvalue
+                rA = rStiffnessMatrix - (eigenvalue_i * rMassMatrix);
+
+                // Dynamic derivatives are unsymmetric
+                basis_j_start_index = 0;
+
+                // Add dynamic derivative constraint
+                this->AddDynamicDerivativeConstraint(basis);
+
+            } 
+            else 
+            {   // Static derivatives
+
+                // Shift the derivative start index due to symmetry of static derivatives
+                basis_j_start_index = basis_i;
+            }
+
+            // Apply the master-slave constraints to LHS!
+            if(r_model_part.MasterSlaveConstraints().size() != 0) {
+                Timer::Start("Apply LHS Master-Slave Constraints");
+                p_builder_and_solver->ApplyConstraints(p_scheme, r_model_part, rA, rb);
+                Timer::Stop("Apply LHS Master-Slave Constraints");
+            }
+
+            // Derivative wrt basis_j
+            for (std::size_t basis_j = basis_j_start_index; basis_j < mNumberInitialBasis; basis_j++)
+            {
+                // Set the BASIS_J counter for using in the scheme
+                r_model_part.GetProcessInfo()[BASIS_J] = basis_j;
+
+                // Reset RHS and solution vector at each step
+                TSparseSpace::SetToZero(rb);
+                TSparseSpace::SetToZero(rDx);
+
+                // Start building RHS
+                const double start_build_rhs = OpenMPUtils::GetCurrentTime();
+                Timer::Start("BuildRHS");
+
+                // Build RHS partially : -dK/dp . basis
+                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+
+                // Compute the derivative of the eigenvalue : basis^T . dK/dp . basis
+                const double deigenvalue_i_dbasis_j = -inner_prod(basis, rb);
+                r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]] = deigenvalue_i_dbasis_j;
+
+                
+                // Dynamic derivative RHS
+                if (mDerivativeTypeFlag)
+                    rb += deigenvalue_i_dbasis_j * prod(rMassMatrix, basis);
+
+                Timer::Stop("BuildRHS");
+                const double stop_build_rhs = OpenMPUtils::GetCurrentTime();
+                KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "Build time RHS: " << stop_build_rhs - start_build_rhs << std::endl;
+
+                Timer::Start("Apply RHS Master-Slave Constraints");
+                // Apply the master-slave constraints to RHS only
+                if (r_model_part.MasterSlaveConstraints().size() != 0)
+                    p_builder_and_solver->ApplyRHSConstraints(p_scheme, r_model_part, rb);
+                Timer::Stop("Apply RHS Master-Slave Constraints");
+
+                Timer::Start("Apply Dirichlet Conditions");
+                // Apply Dirichlet conditions
+                p_builder_and_solver->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
+                Timer::Stop("Apply Dirichlet Conditions");
+
+                // Start Solve
+                const double start_solve = OpenMPUtils::GetCurrentTime();
+                Timer::Start("Solve");
+                
+                // Compute particular solution
+                p_builder_and_solver->SystemSolve(rA, rDx, rb);
+
+                // Compute and add null space solution for dynamic derivatives
+                if (mDerivativeTypeFlag)
+                    this->ComputeAndAddNullSpaceSolution(rDx, basis);
+
+                Timer::Stop("Solve");
+                const double stop_solve = OpenMPUtils::GetCurrentTime();
+
+                KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+
+                // Mass orthonormalization
+                if (mMassOrthonormalizeFlag)
+                    this->MassOrthonormalize(rDx);
+                
+                // Assign solution to ROM_BASIS
+                this->AssignVariables(rDx);
+
+                // Update the derivative index
+                r_model_part.GetProcessInfo()[DERIVATIVE_INDEX] += 1;
+
+            }
+
+            // Remove the constrained DOF related to the dynamic derivative
+            if (mDerivativeTypeFlag)
+                this->RemoveDynamicDerivativeConstraint();
             
-            // Build the stiffness matrix into system matrix directly
-            this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rA);
         }
 
-        if (mDerivativeParameterType == 0) // modal coordinates
-            this->BuildRHSAndSolveModalCoordinateDerivative();
-        if (mDerivativeParameterType > 0) // material parameter
-            this->BuildRHSAndSolveMaterialParameterDerivative();
+        KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) 
+        << "Eigenvalues and derivatives: " << r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR] << std::endl;
 
         // KRATOS_WATCH(r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR])
 
@@ -607,139 +703,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    void BuildRHSAndSolveMaterialParameterDerivative()
-    {
-        KRATOS_TRY
-
-        ModelPart& r_model_part = BaseType::GetModelPart();
-        TSchemePointerType& p_scheme = this->pGetScheme();
-        TSystemMatrixType& rA = *mpA;
-        TSystemMatrixType& rStiffnessMatrix = *mpStiffnessMatrix;
-        TSystemMatrixType& rMassMatrix = *mpMassMatrix;
-        TSystemVectorType& rb = *mpb;
-        TSystemVectorType& rDx = *mpDx;
-        TSystemVectorType basis;
-        TSparseSpace::Resize(basis, this->pGetBuilderAndSolver()->GetDofSet().size());
-        
-        // Get eigenvalues vector
-        LocalSystemVectorType& r_eigenvalues = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR];
-
-        // Derivative of basis_i
-        for (std::size_t basis_i = 0; basis_i < mNumberInitialBasis; basis_i++)
-        {
-            // Set the BASIS_I counter for use in the scheme
-            r_model_part.GetProcessInfo()[BASIS_I] = basis_i;
-            
-            // Get basis_i
-            TSparseSpace::SetToZero(basis);
-            this->GetBasis(basis_i, basis);
-
-            if (mDerivativeTypeFlag && mComputeBasisDerivativesFlag)
-            {   // Dynamic derivatives
-
-                const double eigenvalue_i = r_eigenvalues[basis_i];
-
-                // If dynamic derivatives then build system matrix for each eigenvalue
-                rA = rStiffnessMatrix - (eigenvalue_i * rMassMatrix);
-
-            } 
-
-            for (std::string sub_model_part_name : mDerivativeSubModelPartNames)
-            {
-                ModelPart& r_sub_model_part = r_model_part.GetSubModelPart(sub_model_part_name);
-
-                // Reset RHS vector at each step
-                TSparseSpace::SetToZero(rb);
-                
-                // Compute RHS
-                const double start_build_rhs = OpenMPUtils::GetCurrentTime();
-                Timer::Start("BuildRHS");
-
-                // Build stiffness contribution first
-                this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_sub_model_part, rb);
-                
-                // Compute the derivative of the eigenvalue
-                const double deigenvalue_i_dparameter = -inner_prod(basis, rb);
-                r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]] = deigenvalue_i_dparameter;
-                
-                // Solve
-                if (mComputeBasisDerivativesFlag)
-                {
-                    // Reset solution vector at each step
-                    TSparseSpace::SetToZero(rDx);
-
-                    // Dynamic derivative RHS
-                    if (mDerivativeTypeFlag)
-                        rb += deigenvalue_i_dparameter * prod(rMassMatrix, basis);
-
-                    Timer::Stop("BuildRHS");
-                    const double stop_build_rhs = OpenMPUtils::GetCurrentTime();
-                    KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "Build time RHS: " << stop_build_rhs - start_build_rhs << std::endl;
-
-                    ///////////////////////////////////////////////////////////////
-                    // Builder and Solver routines
-                    if (r_model_part.MasterSlaveConstraints().size() != 0)
-                        this->pGetBuilderAndSolver()->ApplyRHSConstraints(p_scheme, r_model_part, rb);
-
-                    Timer::Start("ApplyConstraints");
-
-                    if (mDerivativeTypeFlag) // Apply dynamic derivative constraint
-                        this->AddDynamicDerivativeConstraint(basis);
-
-                    // Apply Dirichlet conditions
-                    this->pGetBuilderAndSolver()->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
-
-                    Timer::Stop("ApplyConstraints");
-
-                    const double start_solve = OpenMPUtils::GetCurrentTime();
-                    Timer::Start("Solve");
-
-                    if (TSparseSpace::TwoNorm(rb) != 0.00)
-                    {
-                        // Compute particular solution
-                        this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
-                        // this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
-
-                        if (mDerivativeTypeFlag){
-                            // Compute and add null space solution in case of dynamic derivative
-                            this->ComputeAndAddNullSpaceSolution(rDx, basis);
-                            // Free the constrained DOF related to the dynamic derivative
-                            this->RemoveDynamicDerivativeConstraint();
-                        }
-                    }
-                    else
-                    {
-                        KRATOS_WARNING("ModalDerivativeStrategy") << "ATTENTION! RHS is zero! Setting solution vector to zero!" << std::endl;
-                        TSparseSpace::SetToZero(rDx);
-                    }
-
-                    Timer::Stop("Solve");
-                    const double stop_solve = OpenMPUtils::GetCurrentTime();
-
-                    KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
-                    ///////////////////////////////////////////////////////////////
-                }
-                else
-                    TSparseSpace::SetToZero(rDx);
-
-                // Mass orthonormalization
-                if (mMassOrthonormalizeFlag && mComputeBasisDerivativesFlag)
-                    this->MassOrthonormalize(rDx);
-
-                // Assign solution to ROM_BASIS
-                this->AssignVariables(rDx);
-
-                // Update the derivative index
-                r_model_part.GetProcessInfo()[DERIVATIVE_INDEX] += 1;
-            }
-        }
-
-        KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) 
-        << "Eigenvalues and derivatives: " << r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR] << std::endl;
-        
-        KRATOS_CATCH("")
-    }
-
     /**
      * @brief This function applies mass orthonormalization of the given vector
      * @details
@@ -876,17 +839,6 @@ public:
 
         // Component c for the null space solution
         double c = -inner_prod(rDx, prod(rMassMatrix, rBasis));
-
-        // Additional term related to the mass matrix derivative
-        if (mDerivativeParameterType == 1)
-        {
-            ModelPart& r_model_part = BaseType::GetModelPart();
-            LocalSystemVectorType& r_eigenvalues = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR];
-            const double eigenvalue_i = r_eigenvalues[r_model_part.GetProcessInfo()[BASIS_I]];
-            const double deigenvalue_i_dparameter = r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]];
-            
-            c -= (0.5*deigenvalue_i_dparameter/eigenvalue_i);
-        }
 
         rDx += c*rBasis;
 
@@ -1096,8 +1048,6 @@ private:
 
     bool mDerivativeTypeFlag;
 
-    int mDerivativeParameterType;
-
     bool mMassOrthonormalizeFlag;
 
     bool mComputeBasisDerivativesFlag;
@@ -1105,8 +1055,6 @@ private:
     std::size_t mNumberInitialBasis;
 
     std::size_t mFixedDofIndex;
-
-    std::vector<std::string> mDerivativeSubModelPartNames;
 
     TSystemMatrixPointerType mpMassMatrix;
 
