@@ -475,9 +475,6 @@ void ParallelFillCommunicator::GenerateMeshes(int NeighbourPID, int MyPID, unsig
     ModelPart::NodesContainerType& r_local_nodes =
         rModelPart.GetCommunicator().LocalMesh(Color).Nodes();
     r_local_nodes.clear();
-
-    KRATOS_WATCH(rModelPart)
-
     for (int id : ids_to_send)
     {
         KRATOS_DEBUG_ERROR_IF(rModelPart.Nodes().find(id) == rModelPart.Nodes().end()) << "Trying to add Node with Id #" << id << " to the local mesh, but the node does not exist in the ModelPart!" << std::endl;
