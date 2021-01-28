@@ -211,9 +211,9 @@ template class ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaUBase
 template class ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaKBasedWallConditionData>;
 template class ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaUBasedWallConditionData>;
 
-template class ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData>;
-template class ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData>;
-template class ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData>;
-template class ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData>;
+template class ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData<2>>;
+template class ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData<2>>;
+template class ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData<3>>;
+template class ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData<3>>;
 
 } // namespace Kratos.

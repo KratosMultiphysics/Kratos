@@ -13,12 +13,14 @@
 // System includes
 
 // Project includes
+#include "geometries/geometry_data.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/variables.h"
 
 // Application includes
+#include "custom_elements/data_containers/k_omega_sst/element_data_utilities.h"
 #include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
@@ -30,12 +32,14 @@ namespace Kratos
 {
 namespace KOmegaSSTWallConditionData
 {
-const Variable<double>& OmegaUBasedWallConditionData::GetScalarVariable()
+template<unsigned int TDim>
+const Variable<double>& OmegaUBasedWallConditionData<TDim>::GetScalarVariable()
 {
     return TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE;
 }
 
-void OmegaUBasedWallConditionData::Check(
+template<unsigned int TDim>
+void OmegaUBasedWallConditionData<TDim>::Check(
     const Condition& rCondition,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -44,8 +48,10 @@ void OmegaUBasedWallConditionData::Check(
     const auto& r_properties = rCondition.GetProperties();
     const int number_of_nodes = r_geometry.PointsNumber();
 
-    // KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA))
-    //     << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1))
+        << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1 is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2))
+        << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2 is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(VON_KARMAN))
@@ -70,19 +76,23 @@ void OmegaUBasedWallConditionData::Check(
 
     KRATOS_CATCH("");
 }
-GeometryData::IntegrationMethod OmegaUBasedWallConditionData::GetIntegrationMethod()
+template<unsigned int TDim>
+GeometryData::IntegrationMethod OmegaUBasedWallConditionData<TDim>::GetIntegrationMethod()
 {
     return GeometryData::GI_GAUSS_1;
 }
 
-void OmegaUBasedWallConditionData::CalculateConstants(
+template<unsigned int TDim>
+void OmegaUBasedWallConditionData<TDim>::CalculateConstants(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    mOmegaSigma = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA];
-    mCmu25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+    const double beta_star = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    const double sigma_omega_1 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1];
+    const double sigma_omega_2 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2];
     mKappa = rCurrentProcessInfo[VON_KARMAN];
+    mCmu25 = std::pow(beta_star, 0.25);
 
     KRATOS_ERROR_IF(!(this->GetGeometry().Has(RANS_Y_PLUS)))
         << "RANS_Y_PLUS value is not set at " << this->GetGeometry() << "\n";
@@ -96,15 +106,57 @@ void OmegaUBasedWallConditionData::CalculateConstants(
     mInvKappa = 1.0 / mKappa;
     mYPlus = std::max(this->GetGeometry().GetValue(RANS_Y_PLUS), y_plus_limit);
 
+    // Blended sigma is computed on the center of the condition, therefore
+    // it will be a constant for all gauss point evaluations
+    const auto& parent_element_geometry = this->GetGeometry().GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry();
+    Vector W;
+    Matrix N;
+    ShapeFunctionDerivativesArrayType dNdX;
+    RansCalculationUtilities::CalculateGeometryData(
+        parent_element_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1, W, N, dNdX);
+
+    const Vector& r_N = row(N, 0);
+
+    auto& cl_parameters = this->GetConstitutiveLawParameters();
+    cl_parameters.SetShapeFunctionsValues(r_N);
+
+    double tke, omega, nu, wall_distance;
+    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+    nu /= mDensity;
+
+    FluidCalculationUtilities::EvaluateInPoint(
+        parent_element_geometry, r_N,
+        std::tie(tke, TURBULENT_KINETIC_ENERGY),
+        std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+        std::tie(wall_distance, DISTANCE));
+
+    array_1d<double, TDim> k_gradient, epsilon_gradient;
+    FluidCalculationUtilities::EvaluateGradientInPoint(
+        parent_element_geometry, dNdX[0],
+        std::tie(k_gradient, TURBULENT_KINETIC_ENERGY),
+        std::tie(epsilon_gradient, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
+
+    const double cross_diffusion =
+        KOmegaSSTElementData::CalculateCrossDiffusionTerm<TDim>(
+            sigma_omega_2, omega, k_gradient, epsilon_gradient);
+
+    const double f1 = KOmegaSSTElementData::CalculateF1(
+        tke, omega, nu, wall_distance, beta_star, cross_diffusion, sigma_omega_2);
+
+    mBlendedSigmaOmega =
+        KOmegaSSTElementData::CalculateBlendedPhi(sigma_omega_1, sigma_omega_2, f1);
+
     KRATOS_CATCH("");
 }
 
-bool OmegaUBasedWallConditionData::IsWallFluxComputable() const
+template<unsigned int TDim>
+bool OmegaUBasedWallConditionData<TDim>::IsWallFluxComputable() const
 {
     return true;
 }
 
-double OmegaUBasedWallConditionData::CalculateWallFlux(
+template<unsigned int TDim>
+double OmegaUBasedWallConditionData<TDim>::CalculateWallFlux(
     const Vector& rShapeFunctions)
 {
     using namespace RansCalculationUtilities;
@@ -127,9 +179,13 @@ double OmegaUBasedWallConditionData::CalculateWallFlux(
 
     const double u_tau = velocity_magnitude / (mInvKappa * std::log(mYPlus) + mBeta);
 
-    return (nu + mOmegaSigma * nu_t) * std::pow(u_tau, 3) /
+    return (nu + mBlendedSigmaOmega * nu_t) * std::pow(u_tau, 3) /
            (mKappa * std::pow(mCmu25 * mYPlus * nu, 2));
 }
+
+// template instantiations
+template class OmegaUBasedWallConditionData<2>;
+template class OmegaUBasedWallConditionData<3>;
 
 } // namespace KOmegaSSTWallConditionData
 

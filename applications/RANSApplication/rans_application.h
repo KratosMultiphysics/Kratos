@@ -239,11 +239,11 @@ private:
     const ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall3D3N;
 
     // k-omega-sst turbulence model conditions
-    const ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData> mRansKOmegaSSTOmegaKBasedWall2D2N;
-    const ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData> mRansKOmegaSSTOmegaKBasedWall3D3N;
+    const ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData<2>> mRansKOmegaSSTOmegaKBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData<3>> mRansKOmegaSSTOmegaKBasedWall3D3N;
 
-    const ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaSSTOmegaUBasedWall2D2N;
-    const ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaSSTOmegaUBasedWall3D3N;
+    const ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData<2>> mRansKOmegaSSTOmegaUBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData<3>> mRansKOmegaSSTOmegaUBasedWall3D3N;
 
     // constitutive laws
     const RansNewtonian2DLaw mRansNewtonian2DLaw;

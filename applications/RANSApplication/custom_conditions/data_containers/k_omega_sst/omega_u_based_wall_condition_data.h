@@ -32,12 +32,14 @@ namespace Kratos
 
 namespace KOmegaSSTWallConditionData
 {
+template<unsigned int TDim>
 class OmegaUBasedWallConditionData : public ScalarWallFluxConditionData
 {
 public:
     using BaseType = ScalarWallFluxConditionData;
     using NodeType = Node<3>;
     using GeometryType = typename BaseType::GeometryType;
+    using ShapeFunctionDerivativesArrayType = typename GeometryType::ShapeFunctionsGradientsType;
 
     static const Variable<double>& GetScalarVariable();
 
@@ -69,7 +71,7 @@ public:
         const Vector& rShapeFunctions);
 
 protected:
-    double mOmegaSigma;
+    double mBlendedSigmaOmega;
     double mKappa;
     double mInvKappa;
     double mBeta;
