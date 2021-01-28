@@ -113,15 +113,15 @@ void ShellThinElement3D3N::Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_TRY
 
     const int points_number = GetGeometry().PointsNumber();
-
-    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThinElement3D3N - Wrong number of nodes"
-                                            << points_number << std::endl;
+    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThinElement3D3N - Wrong number of nodes" << points_number << std::endl;
 
     BaseShellElement::Initialize(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->Initialize();
-
-    this->SetupOrientationAngles();
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        mpCoordinateTransformation->Initialize();
+        this->SetupOrientationAngles();
+    }
 
     KRATOS_CATCH("")
 }

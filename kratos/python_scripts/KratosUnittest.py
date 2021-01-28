@@ -1,5 +1,4 @@
-from __future__ import print_function, absolute_import, division
-from KratosMultiphysics import Logger
+from KratosMultiphysics import Logger, DataCommunicator
 from KratosMultiphysics.kratos_utilities import GetNotAvailableApplications
 
 from unittest import * # needed to make all functions available to the tests using this file
@@ -9,6 +8,7 @@ from contextlib import contextmanager
 import getopt
 import sys
 import os
+from time import time
 
 
 class TestLoader(TestLoader):
@@ -25,10 +25,15 @@ class TestLoader(TestLoader):
         return allTests
 
 
+test_timing_results = {}
+
 class TestCase(TestCase):
 
     def run(self, result=None):
-        super(TestCase,self).run(result)
+        start_time = time()
+        super().run(result)
+        time_needed = time()-start_time
+        test_timing_results[time_needed] = str(self)
 
     def skipTestIfApplicationsNotAvailable(self, *application_names):
         '''Skips the test if required applications are not available'''
@@ -167,16 +172,18 @@ def runTests(tests):
 
     verbosity = 1
     level = 'all'
+    print_timings = False
     is_mpi = False
 
     # Parse Commandline
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            'hv:l:', [
+            'hv:l:t', [
                 'help',
                 'verbose=',
                 'level=',
+                'timing',
                 'using-mpi'
             ])
     except getopt.GetoptError as err:
@@ -204,6 +211,8 @@ def runTests(tests):
                 sys.exit()
         elif o in ('--using-mpi'):
             is_mpi = True
+        elif o in ('-t', '--timing'):
+            print_timings = True
         else:
             assert False, 'unhandled option'
 
@@ -216,6 +225,10 @@ def runTests(tests):
             file=sys.stderr)
     else:
         result = not TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level]).wasSuccessful()
+        if DataCommunicator.GetDefault().Rank() == 0 and print_timings:
+            print("Test Execution Times:")
+            for test_time, test_name in sorted(test_timing_results.items(), reverse=True):
+                print(test_name, " {0:.{1}f} [sec]".format(test_time,2))
         sys.exit(result)
 
 
@@ -267,4 +280,4 @@ class WorkFolderScope:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
         if self.add_to_path:
-            sys.path = self.currentPythonpath
+            sys.path.remove(self.scope)

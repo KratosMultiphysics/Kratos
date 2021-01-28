@@ -51,36 +51,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    struct ElementData
-    {
-        double dt_inv;
-        double lumped_mass_factor;
-        double stab_factor;
-        double shock_stab_factor;
-        double gravity;
-        double irregularity;
-
-        double height;
-        array_1d<double,3> flow_rate;
-        array_1d<double,3> velocity;
-        double velocity_div;
-        double manning2;
-        double wet_fraction;
-        double effective_height;
-
-        array_1d<double, 9> depth;
-        array_1d<double, 9> rain;
-        array_1d<double, 9> unknown;
-
-        bool is_monotonic_calculation;
-
-        void InitializeData(const ProcessInfo& rCurrentProcessInfo);
-        void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
-
-    protected:
-        void PhaseFunctions(double Height, double& rWetFraction, double& rEffectiveHeight);
-    };
-
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ShallowWater2D3
@@ -255,6 +225,18 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * In the flux corrected scheme this is called during the assembling
+     * process in order to calculate the elemental diffusion matrix
+     * to ensure monotonicity.
+     * This method should not be called by the stabilized scheme.
+     * @param rDampingMatrix the elemental damping matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the constitutive laws selected
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -270,7 +252,6 @@ public:
      * Specializations of element must specify the actual interface to the integration points!
      * Note, that these functions expect a std::vector of values for the specified variable type that
      * contains a value for each integration point!
-     * GetValueOnIntegrationPoints: get the values for given Variable.
      * @param rVariable: the specified variable
      * @param rValues: where to store the values for the specified variable type at each integration point
      * @param rCurrentProcessInfo: the current process info instance
@@ -320,6 +301,32 @@ public:
 
 protected:
 
+    ///@name Protected type definitions
+    ///@{
+
+    struct ElementData
+    {
+        double dt_inv;
+        double stab_factor;
+        double shock_stab_factor;
+        double rel_dry_height;
+        double gravity;
+
+        double height;
+        array_1d<double,3> flow_rate;
+        array_1d<double,3> velocity;
+        double manning2;
+
+        array_1d<double,3> topography;
+        array_1d<double,3> rain;
+        array_1d<double,9> unknown;
+        array_1d<double,9> mesh_acc;
+
+        void InitializeData(const ProcessInfo& rCurrentProcessInfo);
+        void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
+    };
+
+    ///@}
     ///@name Protected static Member Variables
     ///@{
 
@@ -335,30 +342,26 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void AddGradientTerms(
+    virtual void AddGradientTerms(
         MatrixType& rLHS,
         VectorType& rRHS,
         const ElementData& rData,
         const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
-    void AddSourceTerms(
+    virtual void AddSourceTerms(
         MatrixType& rLHS,
         VectorType& rRHS,
         const ElementData& rData,
         const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
-    void AddShockCapturingTerm(
+    virtual void AddShockCapturingTerm(
         MatrixType& rLHS,
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
-    /*
-     * This method is adding a matrix with positive diagonal and negative
-     * off diagonal terms. The sum of the rows and the columns is zero.
-     */
-    void AddLowOrderDiffusion(
+    virtual void AddDesingularizationTerm(
         MatrixType& rLHS,
         const ElementData& rData);
 
@@ -405,10 +408,10 @@ protected:
     void AlgebraicResidual(
         array_1d<double,3>& rFlowResidual,
         double& rHeightresidual,
+        BoundedMatrix<double,3,3> rFlowGrad,
+        array_1d<double,3> rHeightGrad,
         const ElementData& rData,
-        const double& rFlowDiv,
-        const array_1d<double,3> rHeightGrad,
-        const BoundedMatrix<double,3,3> rFlowGrad);
+        const BoundedMatrix<double,3,2>& rDN_DX);
 
     void StreamLineTensor(
         BoundedMatrix<double,2,2>& rTensor,
@@ -419,6 +422,8 @@ protected:
         const array_1d<double,3>& rVeector);
 
     double StabilizationParameter(const ElementData& rData);
+
+    double WetFraction(double Height, double Epsilon);
 
     array_1d<double,3> CharacteristicLength(const ElementData& rData);
 

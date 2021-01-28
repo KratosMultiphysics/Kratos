@@ -66,14 +66,75 @@ if(${INCLUDE_MMG} MATCHES ON)
     include_directories(${MMG_INCLUDE_DIRS} ${MMG2D_INCLUDE_DIRS} ${MMG3D_INCLUDE_DIRS} ${MMGS_INCLUDE_DIRS})
     set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS} ${MMG_LIBRARIES} ${MMG2D_LIBRARIES} ${MMG3D_LIBRARIES} ${MMGS_LIBRARIES})
 
-    MESSAGE(STATUS "Compilation with MMG: ${MMG_LIBRARIES} ${MMG_INCLUDE_DIRS}")
-    MESSAGE(STATUS "Compilation with MMG2D: ${MMG2D_LIBRARIES} ${MMG2D_INCLUDE_DIRS}")
-    MESSAGE(STATUS "Compilation with MMG3D: ${MMG3D_LIBRARIES} ${MMG3D_INCLUDE_DIRS}")
-    MESSAGE(STATUS "Compilation with MMGS: ${MMGS_LIBRARIES} ${MMGS_INCLUDE_DIRS}")
+    message(STATUS "Compilation with MMG: ${MMG_LIBRARIES} ${MMG_INCLUDE_DIRS}")
+    message(STATUS "Compilation with MMG2D: ${MMG2D_LIBRARIES} ${MMG2D_INCLUDE_DIRS}")
+    message(STATUS "Compilation with MMG3D: ${MMG3D_LIBRARIES} ${MMG3D_INCLUDE_DIRS}")
+    message(STATUS "Compilation with MMGS: ${MMGS_LIBRARIES} ${MMGS_INCLUDE_DIRS}")
 
     # Add definitions
     add_definitions( -DINCLUDE_MMG )
 endif(${INCLUDE_MMG} MATCHES ON)
+
+if(${INCLUDE_PMMG} MATCHES ON)
+    IF(${USE_MPI} MATCHES OFF )
+        message( FATAL_ERROR "Please compile Kratos in MPI to use ParMmg by setting the flag -DUSE_MPI=ON")
+    ENDIF(${USE_MPI} MATCHES OFF )
+
+    file( GLOB KRATOS_MESHING_APPLICATION_CORE ${KRATOS_MESHING_APPLICATION_CORE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/parmmg/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/parmmg/*.cpp
+    )
+
+    IF(NOT DEFINED INCLUDE_MMG)
+        message( FATAL_ERROR "MMG not included. Please add -DINCLUDE_MMG=ON to the configure file in order to compile with ParMMG")
+    ELSE(NOT DEFINED INCLUDE_MMG)
+        if(${INCLUDE_MMG} MATCHES OFF)
+            message( FATAL_ERROR " MMG disabled. Please set -DINCLUDE_MMG=ON in the configure file in order to compile with ParMMG")
+        endif(${INCLUDE_MMG} MATCHES OFF)
+    ENDIF(NOT DEFINED INCLUDE_MMG)
+
+    IF(NOT DEFINED MMG3D_LIBRARIES)
+        message( FATAL_ERROR "MMG3D not found. Please make sure MMG3D libraries are added setting the MMG build path as MMG_ROOT")
+    ENDIF(NOT DEFINED MMG3D_LIBRARIES)
+
+    add_definitions( -DINCLUDE_PMMG )
+
+    IF(NOT DEFINED PMMG_LIBRARY_PREFIX)
+        SET(PMMG_LIBRARY_PREFIX "lib")
+    ENDIF(NOT DEFINED PMMG_LIBRARY_PREFIX)
+
+    IF (PMMG_ROOT)
+        IF(NOT DEFINED PMMG_LIBRARY_EXTENSION)
+            IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+                IF(EXISTS "${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.dll") # Dynamic library
+                    SET(PMMG_LIBRARY_EXTENSION "dll")
+                ELSE(EXISTS "${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.dll") # Static library
+                    SET(PMMG_LIBRARY_EXTENSION "lib")
+                ENDIF(EXISTS "${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.dll")
+            ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+                IF(EXISTS "${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.so") # Dynamic library
+                    SET(PMMG_LIBRARY_EXTENSION "so")
+                ELSE(EXISTS "${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.so") # Static library
+                    SET(PMMG_LIBRARY_EXTENSION "a")
+                ENDIF(EXISTS "${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.so")
+            ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        ENDIF(NOT DEFINED PMMG_LIBRARY_EXTENSION)
+
+        IF(NOT DEFINED PMMG_INCLUDE_DIR)
+            SET(PMMG_INCLUDE_DIR ${PMMG_ROOT}/include/)
+        ENDIF(NOT DEFINED PMMG_INCLUDE_DIR)
+        IF(NOT DEFINED PMMG_LIBRARY)
+            SET(PMMG_LIBRARY ${PMMG_ROOT}/lib/${PMMG_LIBRARY_PREFIX}parmmg.${PMMG_LIBRARY_EXTENSION})
+        ENDIF(NOT DEFINED PMMG_LIBRARY)
+    ENDIF (PMMG_ROOT)
+
+    set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS} KratosMPICore ${PMMG_LIBRARY})
+
+    include_directories(${PMMG_INCLUDE_DIR})
+
+    message("Compilation with PMMG = " ${PMMG_LIBRARY})
+    message("... and MMG3D = " ${MMG3D_LIBRARIES})
+endif(${INCLUDE_PMMG} MATCHES ON)
 
 add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosMeshingCore PUBLIC KratosCore ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS})
@@ -104,6 +165,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 if(USE_COTIRE MATCHES ON)
     ## The MMG is not compatible with cotire
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg/mmg_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/parmmg/pmmg_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosMeshingCore)
     cotire(KratosMeshingApplication)
 endif(USE_COTIRE MATCHES ON)

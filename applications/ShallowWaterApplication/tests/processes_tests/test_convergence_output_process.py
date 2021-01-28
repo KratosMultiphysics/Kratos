@@ -1,20 +1,16 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 try:
-    import KratosMultiphysics.ShallowWaterApplication.convergence_output_process as convergence_output
+    import KratosMultiphysics.ShallowWaterApplication.output.convergence_output_process as convergence_output
     import h5py
+    h5py_available = True
 except ImportError:
-    pass
+    h5py_available = False
 
 @KratosUnittest.skipIfApplicationsNotAvailable("StatisticsApplication")
 class TestConvergenceOutputProcess(KratosUnittest.TestCase):
-    def test_execution(self):
-        self._ExecuteBasicConvergenceOutputProcessCheck()
-        self._ExecuteMultipleConvergenceOutputProcessCheck()
 
     def tearDown(self):
         kratos_utils.DeleteFileIfExisting("output_file")
@@ -36,7 +32,9 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
         self.assertEqual(h5file[dset_name_a].attrs[attribute_key], value_a)
         self.assertEqual(h5file[dset_name_b].attrs[attribute_key], value_b)
 
-    def _ExecuteBasicConvergenceOutputProcessCheck(self):
+    def testSingleConvergenceOutputProcessCheck(self):
+        if not h5py_available:
+            self.skipTest('h5py is not available')
         settings = KM.Parameters('''{
             "Parameters"         : {
                 "model_part_name"            : "model_part",
@@ -60,7 +58,9 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
 
         kratos_utils.DeleteFileIfExisting(settings["Parameters"]["file_name"].GetString() + ".hdf5")
 
-    def _ExecuteMultipleConvergenceOutputProcessCheck(self):
+    def testMultipleConvergenceOutputProcessCheck(self):
+        if not h5py_available:
+            self.skipTest('h5py is not available')
         settings = KM.Parameters('''{
             "Parameters"         : {
                 "model_part_name"            : "model_part",

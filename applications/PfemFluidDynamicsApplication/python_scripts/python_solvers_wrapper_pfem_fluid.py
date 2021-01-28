@@ -15,6 +15,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     if solver_type == "pfem_fluid_solver" or solver_type == "PfemFluid":
         solver_module_name = "pfem_fluid_solver"
 
+    elif solver_type == "pfem_dem_solver" or solver_type == "PfemDem":
+        solver_module_name = "pfem_dem_solver"
+
     elif solver_type == "pfem_fluid_nodal_integration_solver" or solver_type == "PfemFluidNodalIntegration":
         solver_module_name = "pfem_fluid_nodal_integration_solver"
 
