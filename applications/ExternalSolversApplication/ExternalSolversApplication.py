@@ -11,4 +11,4 @@ _ImportApplication(application, application_name)
 
 print("    !!! DEPRECATION WARNING !!!")
 print("    The ExternalSolversApplication is deprecated in favor of the LinearSolversApplication")
-print("    It is no longer updated/maintained and will be removed in the future")
+print("    It is no longer updated/maintained and will be removed in the future, tentatively in July 2021")
