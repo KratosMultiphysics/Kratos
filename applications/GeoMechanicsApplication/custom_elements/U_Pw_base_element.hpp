@@ -74,8 +74,6 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    //void Initialize() override;
-
     void GetDofList(DofsVectorType& rElementalDofList, 
                     const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -108,20 +106,7 @@ public:
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                     std::vector<double>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
-                                     std::vector<array_1d<double,3>>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                     std::vector<Matrix>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    void CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                       std::vector<ConstitutiveLaw::Pointer>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo ) override;
 

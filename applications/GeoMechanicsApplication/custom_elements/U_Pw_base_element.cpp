@@ -605,112 +605,14 @@ void UPwBaseElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
+
+
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::
-    GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                std::vector<double>& rValues,
-                                const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    if ( rVariable == VON_MISES_STRESS )
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
-        {
-            rValues[i] = 0.0;
-            rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwBaseElement<TDim,TNumNodes>::
-    GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
-                                std::vector<array_1d<double,3>>& rValues,
-                                const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    if (rVariable == FLUID_FLUX_VECTOR)
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
-        {
-            noalias(rValues[i]) = ZeroVector(3);
-            rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwBaseElement<TDim,TNumNodes>::
-    GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                std::vector<Matrix>& rValues,
-                                const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    if (rVariable == CAUCHY_STRESS_TENSOR ||
-       rVariable == TOTAL_STRESS_TENSOR  ||
-       rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||
-       rVariable == PERMEABILITY_MATRIX )
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
-        {
-            rValues[i].resize(TDim,TDim,false);
-            noalias(rValues[i]) = ZeroMatrix(TDim,TDim);
-            rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwBaseElement<TDim,TNumNodes>::
-    GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                std::vector<ConstitutiveLaw::Pointer>& rValues,
-                                const ProcessInfo& rCurrentProcessInfo)
+    CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                 std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
