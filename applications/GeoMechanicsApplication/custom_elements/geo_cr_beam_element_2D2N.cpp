@@ -111,7 +111,7 @@ void GeoCrBeamElement2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
     KRATOS_CATCH("")
 }
 
-void GeoCrBeamElement2D2N::Initialize()
+void GeoCrBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY;
@@ -818,16 +818,6 @@ void GeoCrBeamElement2D2N::CalculateOnIntegrationPoints(
         rOutput[2][2] = 0.00;
     }
 
-    KRATOS_CATCH("")
-}
-
-void GeoCrBeamElement2D2N::
-    GetValueOnIntegrationPoints( const Variable<array_1d<double, 3>>& rVariable,
-                                 std::vector<array_1d<double, 3>>& rOutput,
-                                 const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     KRATOS_CATCH("")
 }
 

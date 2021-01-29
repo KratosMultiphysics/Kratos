@@ -96,7 +96,7 @@ void GeoCrBeamElement3D2N::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void GeoCrBeamElement3D2N::Initialize()
+void GeoCrBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY;
@@ -1267,18 +1267,7 @@ void GeoCrBeamElement3D2N::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::
-    GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                std::vector<array_1d<double, 3>>& rOutput,
-                                const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void GeoCrBeamElement3D2N::
-    AssembleSmallInBigMatrix( const Matrix& SmallMatrix,
+    AssembleSmallInBigMatrix( Matrix SmallMatrix,
                               BoundedMatrix<double, GeoCrBeamElement3D2N::msElementSize,
                               GeoCrBeamElement3D2N::msElementSize>& BigMatrix) const
 {
@@ -1556,7 +1545,7 @@ void GeoCrBeamElement3D2N::
         Vector current_nodal_velocities = ZeroVector(msElementSize);
         GetFirstDerivativesVector(current_nodal_velocities);
         Matrix damping_matrix = ZeroMatrix(msElementSize, msElementSize);
-        ProcessInfo temp_process_information; // cant pass const ProcessInfo
+        const ProcessInfo temp_process_information; // cant pass const ProcessInfo
         CalculateDampingMatrix(damping_matrix, temp_process_information);
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
@@ -1594,7 +1583,7 @@ void GeoCrBeamElement3D2N::
 
     if (rDestinationVariable == NODAL_INERTIA) {
         Matrix element_mass_matrix = ZeroMatrix(msElementSize, msElementSize);
-        ProcessInfo temp_info; // Dummy
+        const ProcessInfo temp_info; // Dummy
         CalculateMassMatrix(element_mass_matrix, temp_info);
 
         for (IndexType i = 0; i < msNumberOfNodes; ++i) {

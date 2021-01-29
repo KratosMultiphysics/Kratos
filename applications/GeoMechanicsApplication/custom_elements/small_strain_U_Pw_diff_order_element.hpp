@@ -110,7 +110,7 @@ public:
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                                      std::vector<int>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -151,6 +151,10 @@ public:
     void CalculateOnIntegrationPoints(const Variable<Matrix> &rVariable,
                                       std::vector< Matrix> &rOutput,
                                       const ProcessInfo &rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                      std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo ) override;
 
     // Turn back information as a string.
     std::string Info() const override

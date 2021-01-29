@@ -103,7 +103,7 @@ public:
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
@@ -265,11 +265,6 @@ public:
     BoundedVector<double,msElementSize> CalculateBodyForces() const;
 
     void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector< array_1d<double, 3 > >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector< array_1d<double, 3 > >& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;

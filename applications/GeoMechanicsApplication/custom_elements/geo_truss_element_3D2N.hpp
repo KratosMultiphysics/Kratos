@@ -106,7 +106,7 @@ namespace Kratos
             DofsVectorType& rElementalDofList,
             const ProcessInfo& rCurrentProcessInfo) const override;
 
-        void Initialize() override;
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function calculates the total stiffness matrix for the element
@@ -117,16 +117,6 @@ namespace Kratos
         void CalculateOnIntegrationPoints(
             const Variable<double>& rVariable,
             std::vector<double>& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void GetValueOnIntegrationPoints(
-            const Variable<double>& rVariable,
-            std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void GetValueOnIntegrationPoints(
-            const Variable<array_1d<double, 3 > >& rVariable,
-            std::vector< array_1d<double, 3 > >& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
@@ -144,11 +134,6 @@ namespace Kratos
         void CalculateOnIntegrationPoints(
             const Variable<Vector>& rVariable,
             std::vector<Vector>& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void GetValueOnIntegrationPoints(
-            const Variable<Vector>& rVariable,
-            std::vector<Vector>& rValues,
             const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateOnIntegrationPoints(
@@ -204,7 +189,8 @@ namespace Kratos
      * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
      * @param rCurrentProcessInfo the current process info instance
      */
-    void AddExplicitContribution(const VectorType& rRHSVector,
+    void AddExplicitContribution(
+        const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
         const Variable<array_1d<double, 3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo

@@ -94,7 +94,7 @@ void GeoTrussElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
     KRATOS_CATCH("")
 }
 
-void GeoTrussElement3D2N::Initialize()
+void GeoTrussElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
@@ -442,32 +442,6 @@ void GeoTrussElement3D2N::CalculateOnIntegrationPoints(
 
 }
 
-void GeoTrussElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable, std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-void GeoTrussElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<Vector>& rVariable, std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
-void GeoTrussElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
 
 int GeoTrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -483,12 +457,6 @@ int GeoTrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
     if (dimension != msDimension ||number_of_nodes != msNumberOfNodes) {
         KRATOS_ERROR << "The truss element works only in 3D and with 2 noded elements" << std::endl;
     }
-    // verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (IndexType i = 0; i < number_of_nodes; ++i) {

@@ -828,6 +828,18 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint],FluidFlux);
         }
     }
+    else
+    {
+        if ( rOutput.size() != mConstitutiveLawVector.size() )
+            rOutput.resize(mConstitutiveLawVector.size());
+
+        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+        {
+            noalias(rOutput[i]) = ZeroVector(3);
+            rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rOutput[i] );
+        }
+    }
+
     // KRATOS_INFO("11-UPwSmallStrainElement::CalculateOnIntegrationPoints()") << std::endl;
 
     KRATOS_CATCH( "" )
@@ -973,6 +985,18 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         {
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
+        }
+    }
+    else
+    {
+        if ( rOutput.size() != mConstitutiveLawVector.size() )
+            rOutput.resize(mConstitutiveLawVector.size());
+
+        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+        {
+            rOutput[i].resize(TDim,TDim,false);
+            noalias(rOutput[i]) = ZeroMatrix(TDim,TDim);
+            rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rOutput[i] );
         }
     }
 
