@@ -148,17 +148,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator
     BrepSurface& operator=( const BrepSurface& rOther )
     {
         BaseType::operator=( rOther );
@@ -169,17 +159,7 @@ public:
         return *this;
     }
 
-    /**
-     * Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator with different point type
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
     BrepSurface& operator=( BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
@@ -346,6 +326,21 @@ public:
     ///@name Geometrical Operations
     ///@{
 
+    /* @brief Provides Spans of the underlying nurbs surface.
+     * @param vector of span intervals.
+     * @param index of chosen direction, possible direction 0 and 1.
+     */
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const override
+    {
+        mpNurbsSurface->Spans(rSpans, DirectionIndex);
+    }
+
+    /// Provides the center of the underlying surface
+    Point Center() const override
+    {
+        return mpNurbsSurface->Center();
+    }
+
     /*
     * @brief This method maps from dimension space to working space.
     * @param rResult array_1d<double, 3> with the coordinates in working space
@@ -371,10 +366,11 @@ public:
      * @param return integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         mpNurbsSurface->CreateIntegrationPoints(
-            rIntegrationPoints);
+            rIntegrationPoints, rIntegrationInfo);
     }
 
     ///@}
@@ -394,10 +390,11 @@ public:
      */
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives) override
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints) override
     {
         mpNurbsSurface->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives);
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
