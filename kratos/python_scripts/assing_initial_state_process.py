@@ -49,8 +49,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
 
         settings.ValidateAndAssignDefaults(default_settings)
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.value = settings["value"]
-        self.dimension = 3
+        self.dimension = settings["dimension"].GetInt()
 
         self.imposed_strain = settings["imposed_strain"]
         self.imposed_stress = settings["imposed_stress"]
@@ -72,7 +71,6 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-
         if self.interval.IsInInterval(current_time):
             self.SetInitialState()
 
@@ -83,7 +81,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        if self.Dimension == 3:
+        if self.dimension == 3:
             KratosMultiphysics.SetInitialStateProcess3D(self.model_part,
                 self.imposed_strain, self.imposed_stress, self.imposed_deformation_gradient).ExecuteInitializeSolutionStep()
         else:  # 2D case
