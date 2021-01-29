@@ -35,18 +35,27 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             "help"            : "This sets the initial conditions in terms of imposed strain, stress or deformation gradient",
             "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
-            "Imposed Entity"  : ["STRAIN","STRESS","DEFORMATION_GRADIENT"],
-            "Dimension"       : 3,
-            "value"           : [[0.01,0.01,0.01,0,0,0], [1e6,1e6,1e6,0,0,0], [[1,0,0],[0,1,0],[0,0,1]]],
-            "interval"        : [0.0, 1e30],
+            "dimension"       : 3,
+            "imposed_strain"  : [0,0,0,0,0,0],
+            "imposed_stress"  : [0,0,0,0,0,0],
+            "imposed_deformation_gradient"  : [[1,0,0],[0,1,0],[0,0,1]],
+            "interval"        : [0.0, 1e30]
         }
         """
         )
 
+        #assign this here since it will change the "interval" prior to validation
+        self.interval = KratosMultiphysics.IntervalUtility(settings)
+
         settings.ValidateAndAssignDefaults(default_settings)
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.value = settings["value"]
-        self.Dimension = 3
+        self.dimension = 3
+
+        self.imposed_strain = settings["imposed_strain"]
+        self.imposed_stress = settings["imposed_stress"]
+        self.imposed_deformation_gradient = settings["imposed_deformation_gradient"]
+
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -65,4 +74,18 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         if self.interval.IsInInterval(current_time):
+            self.SetInitialState()
 
+
+    def SetInitialState(self):
+        """ This method creates the c++ process and sets each entity
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        if self.Dimension == 3:
+            KratosMultiphysics.SetInitialStateProcess3D(self.model_part,
+                self.imposed_strain, self.imposed_stress, self.imposed_deformation_gradient).ExecuteInitializeSolutionStep()
+        else:  # 2D case
+            KratosMultiphysics.SetInitialStateProcess2D(self.model_part,
+                self.imposed_strain, self.imposed_stress, self.imposed_deformation_gradient).ExecuteInitializeSolutionStep()
