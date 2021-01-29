@@ -66,6 +66,12 @@
 #include "custom_constitutive/rans_newtonian_2d_law.h"
 #include "custom_constitutive/rans_newtonian_3d_law.h"
 
+// adjoint elements
+#include "custom_elements/two_equation_turbulence_adjoint_element.h"
+
+// adjoint element data containers
+#include "custom_elements/data_containers/k_epsilon/qsvms_rfc_adjoint_element_data.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -237,6 +243,10 @@ private:
     // constitutive laws
     const RansNewtonian2DLaw mRansNewtonian2DLaw;
     const RansNewtonian3DLaw mRansNewtonian3DLaw;
+
+    // k-epsilon turbulence model adjoint elements
+    const TwoEquationTurbulenceAdjointElement<2, 3, KEpsilonElementData::QSVMSRFCAdjointElementData<2, 3>> mRansKEpsilonQSVMSRFCAdjoint2D3N;
+    const TwoEquationTurbulenceAdjointElement<3, 4, KEpsilonElementData::QSVMSRFCAdjointElementData<3, 4>> mRansKEpsilonQSVMSRFCAdjoint3D4N;
 
     ///@}
     ///@name Un accessible methods
