@@ -82,7 +82,7 @@ public:
 
     using ShapeFunctionDerivativesArrayType = GeometryType::ShapeFunctionsGradientsType;
 
-    constexpr static IndexType TBlockSize = TAdjointElementData::TBlockSize;
+    constexpr static IndexType TBlockSize = TDim + 3;
 
     constexpr static IndexType TElementLocalSize = TBlockSize * TNumNodes;
 
@@ -261,41 +261,29 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    template<class TDerivativesType>
     void AddFluidFirstDerivatives(
         MatrixType& rLeftHandSideMatrix,
-        const GeometryData::IntegrationMethod& rIntegrationMethod,
         const ProcessInfo& rCurrentProcessInfo);
 
-    template<class TDerivativesType>
     void AddFluidSecondDerivatives(
         MatrixType& rLeftHandSideMatrix,
-        const GeometryData::IntegrationMethod& rIntegrationMethod,
         const ProcessInfo& rCurrentProcessInfo);
 
-    template<class TDerivativesType>
     void AddFluidShapeDerivatives(
         Matrix& rOutput,
-        const GeometryData::IntegrationMethod& rIntegrationMethod,
         const ProcessInfo& rCurrentProcessInfo);
 
-    // template<class TDerivativesType>
-    // void AddTurbulenceFirstDerivatives(
-    //     MatrixType& rLeftHandSideMatrix,
-    //     const GeometryData::IntegrationMethod& rIntegrationMethod,
-    //     const ProcessInfo& rCurrentProcessInfo);
+    void AddTurbulenceFirstDerivatives(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo);
 
-    // template<class TDerivativesType>
-    // void AddTurbulenceSecondDerivatives(
-    //     MatrixType& rLeftHandSideMatrix,
-    //     const GeometryData::IntegrationMethod& rIntegrationMethod,
-    //     const ProcessInfo& rCurrentProcessInfo);
+    void AddTurbulenceSecondDerivatives(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo);
 
-    // template<class TDerivativesType>
-    // void AddTurbulenceShapeDerivatives(
-    //     Matrix& rOutput,
-    //     const GeometryData::IntegrationMethod& rIntegrationMethod,
-    //     const ProcessInfo& rCurrentProcessInfo);
+    void AddTurbulenceShapeDerivatives(
+        Matrix& rOutput,
+        const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateGeometryData(
         Vector& rGaussWeights,

@@ -76,6 +76,8 @@ public:
 
         static constexpr unsigned int TDerivativeDimension = TDim;
 
+        static constexpr double TSelfWeight = 0.0;
+
         ///@}
         ///@name Life Cycle
         ///@{
@@ -141,6 +143,8 @@ public:
 
         static constexpr unsigned int TDerivativeDimension = 1;
 
+        static constexpr double TSelfWeight = 0.0;
+
         ///@}
         ///@name Life Cycle
         ///@{
@@ -196,6 +200,8 @@ public:
 
         static constexpr unsigned int TDerivativeDimension = 1;
 
+        static constexpr double TSelfWeight = 1.0;
+
         ///@}
         ///@name Life Cycle
         ///@{
@@ -250,6 +256,8 @@ public:
         using DataType = Data;
 
         static constexpr unsigned int TDerivativeDimension = TDim;
+
+        static constexpr double TSelfWeight = 0.0;
 
         ///@}
         ///@name Life Cycle
@@ -311,6 +319,8 @@ public:
         ///@{
 
         using BaseType = EpsilonElementData<TDim>;
+
+        static constexpr IndexType TEquationOffset = TDim + 2;
 
         ///@}
         ///@name Life Cycle

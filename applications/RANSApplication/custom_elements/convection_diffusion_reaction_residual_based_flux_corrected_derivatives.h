@@ -21,12 +21,12 @@
 #include "containers/variable.h"
 #include "geometries/geometry.h"
 #include "geometries/geometry_data.h"
+#include "includes/constitutive_law.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
 #include "includes/ublas_interface.h"
 
 // Application includes
-#include "custom_constitutive/fluid_constitutive_law.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "custom_utilities/fluid_calculation_utilities.h"
 
@@ -35,7 +35,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template <unsigned int TDim, unsigned int TNumNodes>
+template <
+    unsigned int TDim,
+    unsigned int TNumNodes,
+    class TElementDataType>
 class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives
 {
 public:
@@ -50,10 +53,6 @@ public:
 
     using PropertiesType = typename Element::PropertiesType;
 
-    static constexpr IndexType TBlockSize = 1;
-
-    constexpr static IndexType TElementLocalSize = TBlockSize * TNumNodes;
-
     using ArrayD = array_1d<double, TDim>;
 
     using VectorN = BoundedVector<double, TNumNodes>;
@@ -61,6 +60,10 @@ public:
     using MatrixDD = BoundedMatrix<double, TDim, TDim>;
 
     using MatrixND = BoundedMatrix<double, TNumNodes, TDim>;
+
+    using MatrixNN = BoundedMatrix<double, TNumNodes, TNumNodes>;
+
+    static constexpr IndexType TEquationOffset = TElementDataType::TEquationOffset;
 
     ///@}
     ///@name Static Operations
@@ -95,17 +98,20 @@ public:
         ///@{
 
         void Initialize(
-            Matrix& rOutput,
+            Vector& rResidual,
             const ProcessInfo& rProcessInfo);
 
         void AddResidualContribution(
-            BoundedVector<double, TElementLocalSize>& rResidual,
+            Vector& rResidual,
             const double W,
             const Vector& rN,
             const Matrix& rdNdX);
 
-        ///@}
+        void Finalize(
+            Vector& rResidual,
+            const ProcessInfo& rProcessInfo);
 
+        ///@}
     private:
         ///@name Private Members
         ///@{
@@ -114,28 +120,26 @@ public:
         IndexType mBlockSize;
 
         ///@}
-        ///@name Private Operations
-        ///@{
-
-        ///@}
     };
 
-    template<class TDerivativesType, unsigned int TEquationOffset, unsigned int TDerivativeOffset>
-    class VariableDerivatives
+    template<class TDerivativesType>
+    class FirstDerivative
     {
     public:
         ///@name Type Definitions
         ///@{
 
-        constexpr static IndexType TDerivativeDimension = TDerivativesType::TDerivativeDimension;
+        static constexpr double TSelfWeight = TDerivativesType::TSelfWeight;
 
-        constexpr static double TSelfWeight = (TEquationOffset == TDerivativeOffset);
+        static constexpr IndexType TDerivativeDimension = TDerivativesType::TDerivativeDimension;
+
+        static constexpr IndexType TDerivativesSize = TDerivativeDimension * TNumNodes;
 
         ///@}
         ///name@ Life Cycle
         ///@{
 
-        VariableDerivatives(
+        FirstDerivative(
             Data& rData);
 
         ///@}
@@ -143,11 +147,11 @@ public:
         ///@{
 
         void Initialize(
-            Matrix& rOutput,
+            Vector& rResidualDerivative,
             const ProcessInfo& rProcessInfo);
 
         void CalculateResidualDerivative(
-            BoundedVector<double, TElementLocalSize>& rResidualDerivative,
+            Vector& rResidualDerivative,
             const int NodeIndex,
             const int DirectionIndex,
             const double W,
@@ -157,8 +161,11 @@ public:
             const double DetJDerivative,
             const Matrix& rdNdXDerivative);
 
-        ///@}
+        void Finalize(
+            Vector& rResidualDerivative,
+            const ProcessInfo& rProcessInfo);
 
+        ///@}
     private:
         ///@name Private Members
         ///@{
@@ -166,54 +173,47 @@ public:
         Data& mrData;
         IndexType mBlockSize;
         ResidualContributions mResidualWeightDerivativeContributions;
-
-        ///@}
-        ///@name Private Operations
-        ///@{
+        BoundedVector<MatrixNN, TDerivativesSize> mPrimalMatrixDerivatives;
 
         ///@}
     };
 
-    class SecondDerivatives
+    class SecondDerivative
     {
     public:
-        ///@name Type Definitions
-        ///@{
-
-        ///@}
         ///@name Life Cycle
         ///@{
 
-        SecondDerivatives(
-            const Element& rElement,
-            FluidConstitutiveLaw& rFluidConstitutiveLaw);
+        SecondDerivative(
+            Data& rData);
 
         ///@}
         ///@name Operations
         ///@{
 
         void Initialize(
-            Matrix& rOutput,
+            Vector& rResidualDerivative,
             const ProcessInfo& rProcessInfo);
 
         void AddResidualDerivativeContributions(
-            Matrix& rOutput,
+            Vector& rResidualDerivative,
             const double W,
             const Vector& rN,
             const Matrix& rdNdX);
+
+        void Finalize(
+            Vector& rResidualDerivative,
+            const ProcessInfo& rProcessInfo);
 
         ///@}
     private:
         ///@name Private Members
         ///@{
 
-        const Element& mrElement;
-        FluidConstitutiveLaw& mrFluidConstitutiveLaw;
-
+        Data& mrData;
         IndexType mBlockSize;
 
         ///@}
-
     };
 
     class Data
@@ -224,7 +224,7 @@ public:
 
         Data(
             const Element& rElement,
-            FluidConstitutiveLaw& rFluidConstitutiveLaw);
+            const ProcessInfo& rProcessInfo);
 
         ///@}
         ///@name Operations
@@ -243,22 +243,19 @@ public:
         ///@{
 
         const Element& mrElement;
-        FluidConstitutiveLaw& mrFluidConstitutiveLaw;
+        TElementDataType mrElementData;
 
         ///@}
         ///@name Private Friends
         ///@{
 
-        template<class TDerivativesType, unsigned int TEquationOffset, unsigned int TDerivativeOffset>
-        friend class VariableDerivatives;
+        template<class TDerivativesType>
+        friend class FirstDerivative;
+        friend class SecondDerivative;
         friend class ResidualContributions;
 
         ///@}
     };
-
-    ///@}
-    ///@name Static Operations
-    ///@{
 
     ///@}
 };
