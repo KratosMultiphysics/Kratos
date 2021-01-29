@@ -368,7 +368,7 @@ public:
 
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(
                 data_container, nonzero_control_points,
-                global_space_derivatives[1][0], global_space_derivatives[1][1]);
+                global_space_derivatives[1][0], global_space_derivatives[1][1], this);
         }
     }
 

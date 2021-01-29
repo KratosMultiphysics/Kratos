@@ -16,6 +16,7 @@ def GetFilePath(fileName):
 
 class TestTrilinosRedistance(KratosUnittest.TestCase):
 
+    @classmethod
     def _ExpectedDistance(self,x,y,z):
         d = x
         if( d > 0.2):
@@ -25,12 +26,17 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         return x
         #return -(math.sqrt(x**2+y**2+z**2) - 0.4)
 
+    @classmethod
+    def _ExpectedLinearDistance(self,x,x_0):
+        return x - x_0
+
     def setUp(self):
         self.parameters = """{
             "echo_level" : 0,
             "model_import_settings" : {
                 "input_type" : "mdpa",
-                "input_filename" : \"""" + GetFilePath("coarse_sphere") + """\"
+                "input_filename" : \"""" + GetFilePath("coarse_sphere") + """\",
+                "partition_in_memory" : true
             }
         } """
 
@@ -75,8 +81,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
 
         # Set the utility and compute the variational distance values
         trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(
-            KratosMultiphysics.Parameters("""{"solver_type" : "amesos" }""")
-        )
+            KratosMultiphysics.Parameters("""{"solver_type" : "amesos" }"""))
 
         epetra_comm = TrilinosApplication.CreateCommunicator()
 
@@ -105,17 +110,53 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         self.assertAlmostEqual(max_distance, 0.44556526310761013) # Serial max_distance
         self.assertAlmostEqual(min_distance,-0.504972246827639) # Serial min_distance
 
-class TestTrilinosRedistanceInMemory(TestTrilinosRedistance):
+    def testTrilinosParallelRedistance(self):
+        # Set the model part
+        current_model = KratosMultiphysics.Model()
+        self.model_part = current_model.CreateModelPart("Main")
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-    def setUp(self):
-        self.parameters = """{
-            "echo_level" : 0,
-            "model_import_settings" : {
-                "input_type" : "mdpa",
-                "input_filename" : \"""" + GetFilePath("coarse_sphere") + """\",
-                "partition_in_memory" : true
-            }
-        } """
+        # Import the model part, perform the partitioning and create communicators
+        import_settings = KratosMultiphysics.Parameters(self.parameters)
+
+        ModelPartImporter = distributed_import_model_part_utility.DistributedImportModelPartUtility(self.model_part, import_settings)
+        ModelPartImporter.ImportModelPart()
+        ModelPartImporter.CreateCommunicators()
+
+        # Recall to set the buffer size
+        self.model_part.SetBufferSize(2)
+
+        # Initialize the DISTANCE values
+        x_zero_dist = 0.0
+        for node in self.model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0, self._ExpectedLinearDistance(node.X, x_zero_dist))
+
+        # Fake time advance
+        self.model_part.CloneTimeStep(1.0)
+
+        # Calculate NODAL_AREA
+        domain_size = 3
+        nodal_area_process = KratosMultiphysics.CalculateNodalAreaProcess(self.model_part, domain_size)
+        nodal_area_process.Execute()
+
+        # Set the parallel distance calculator
+        max_levels = 10
+        max_distance = 100.0
+        distance_calculator = KratosMultiphysics.ParallelDistanceCalculator3D()
+        distance_calculator.CalculateDistances(
+            self.model_part,
+            KratosMultiphysics.DISTANCE,
+            KratosMultiphysics.NODAL_AREA,
+            max_levels,
+            max_distance,
+            KratosMultiphysics.ParallelDistanceCalculator3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+
+        # Check the obtained values
+        for node in self.model_part.Nodes:
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), self._ExpectedLinearDistance(node.X, x_zero_dist), 10)
 
 if __name__ == '__main__':
     KratosUnittest.main()

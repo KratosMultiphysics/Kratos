@@ -124,7 +124,7 @@ void ThermalElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInf
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void ThermalElement::GetValuesVector( Vector& rValues, int Step )
+void ThermalElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes;
@@ -140,7 +140,7 @@ void ThermalElement::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void ThermalElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void ThermalElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes;
@@ -156,7 +156,7 @@ void ThermalElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void ThermalElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void ThermalElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes;
@@ -920,16 +920,6 @@ void ThermalElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVar
 int  ThermalElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
      KRATOS_TRY
-
-     // Check that all required variables have been registered
-     KRATOS_CHECK_VARIABLE_KEY(TEMPERATURE);
-
-     KRATOS_CHECK_VARIABLE_KEY(HEAT_CAPACITY);
-     KRATOS_CHECK_VARIABLE_KEY(HEAT_CONDUCTIVITY);
-
-     KRATOS_CHECK_VARIABLE_KEY(HEAT_SOURCE);
-     KRATOS_CHECK_VARIABLE_KEY(PLASTIC_DISSIPATION);
-     KRATOS_CHECK_VARIABLE_KEY(DELTA_PLASTIC_DISSIPATION);
 
      return 0;
 

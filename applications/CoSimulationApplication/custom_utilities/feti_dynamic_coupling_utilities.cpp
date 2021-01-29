@@ -103,23 +103,21 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(mpDestinationDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension() == dim_origin)
             << "FetiDynamicCouplingUtilities::EquilibrateDomains | Origin and destination working space dimensions do not match\n";
 
-        const SizeType destination_interface_dofs = dim_origin * mrDestinationInterfaceModelPart.NumberOfNodes();
+        const SizeType lagrange_interface_dofs = (mLagrangeDefinedOn == SolverIndex::Destination)
+            ? dim_origin * mrDestinationInterfaceModelPart.NumberOfNodes()
+            : dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
 
         SolverIndex solver_index = SolverIndex::Origin;
 
         // 1 - calculate unbalanced interface free kinematics
-        DenseVectorType unbalanced_interface_free_kinematics(destination_interface_dofs,0.0);
+        DenseVectorType unbalanced_interface_free_kinematics(lagrange_interface_dofs,0.0);
         CalculateUnbalancedInterfaceFreeKinematics(unbalanced_interface_free_kinematics);
 
         if (!mIsLinear || !mIsLinearSetupComplete)
         {
             // 2 - Construct projection matrices
             if (mSubTimestepIndex == 1) ComposeProjector(mProjectorOrigin, solver_index);
-
             solver_index = SolverIndex::Destination;
-            const SizeType destination_dofs = (mIsImplicitDestination) ? mpKDestination->size1() : 1;
-            if (mProjectorDestination.size1() != destination_interface_dofs || mProjectorDestination.size2() != destination_dofs)
-                mProjectorDestination.resize(destination_interface_dofs, destination_dofs, false);
             ComposeProjector(mProjectorDestination, solver_index);
 
             // 3 - Determine domain response to unit loads
@@ -127,13 +125,9 @@ namespace Kratos
             if (mSubTimestepIndex == 1) DetermineDomainUnitAccelerationResponse(mpKOrigin, mProjectorOrigin, mUnitResponseOrigin, solver_index);
 
             solver_index = SolverIndex::Destination;
-            if (mUnitResponseDestination.size1() != mProjectorDestination.size2() || mUnitResponseDestination.size2() != mProjectorDestination.size1())
-                mUnitResponseDestination.resize(mProjectorDestination.size2(), mProjectorDestination.size1(), false);
             DetermineDomainUnitAccelerationResponse(mpKDestination, mProjectorDestination, mUnitResponseDestination, solver_index);
 
             // 4 - Calculate condensation matrix
-            if (mCondensationMatrix.size1() != destination_interface_dofs || mCondensationMatrix.size2() != destination_interface_dofs)
-                mCondensationMatrix.resize(destination_interface_dofs, destination_interface_dofs, false);
             CalculateCondensationMatrix(mCondensationMatrix, mUnitResponseOrigin,
                 mUnitResponseDestination, mProjectorOrigin, mProjectorDestination);
 
@@ -141,7 +135,7 @@ namespace Kratos
         }
 
         // 5 - Calculate lagrange mults
-        DenseVectorType lagrange_vector(destination_interface_dofs,0.0);
+        DenseVectorType lagrange_vector(lagrange_interface_dofs,0.0);
         DetermineLagrangianMultipliers(lagrange_vector, mCondensationMatrix, unbalanced_interface_free_kinematics);
         if (mParameters["is_disable_coupling"].GetBool()) lagrange_vector.clear();
         if (mParameters["is_disable_coupling"].GetBool()) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
@@ -187,9 +181,19 @@ namespace Kratos
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         Variable< array_1d<double, 3> >& equilibrium_variable = GetEquilibriumVariable();
 
+        SparseMatrixType expanded_mapper;
+        GetExpandedMappingMatrix(expanded_mapper, dim);
+
         // Get destination kinematics
-        GetInterfaceQuantity(mrDestinationInterfaceModelPart, equilibrium_variable, rUnbalancedKinematics, dim);
-        rUnbalancedKinematics *= -1.0;
+        Vector destination_kinematics(mrDestinationInterfaceModelPart.NumberOfNodes() * dim);
+        GetInterfaceQuantity(mrDestinationInterfaceModelPart, equilibrium_variable, destination_kinematics, dim);
+        if (mLagrangeDefinedOn == SolverIndex::Origin)
+        {
+            DenseVectorType mapped_destination_kinematics(expanded_mapper.size1(), 0.0);
+            TSparseSpace::Mult(expanded_mapper, destination_kinematics, mapped_destination_kinematics);
+            rUnbalancedKinematics -= mapped_destination_kinematics;
+        }
+        else rUnbalancedKinematics -= destination_kinematics;
 
         // Get final predicted origin kinematics
         if (mSubTimestepIndex == 1 || IsEquilibriumCheck)
@@ -199,13 +203,13 @@ namespace Kratos
         const double time_ratio = double(mSubTimestepIndex) / double(mTimestepRatio);
         DenseVectorType interpolated_origin_kinematics = (IsEquilibriumCheck) ? mFinalOriginInterfaceKinematics
             : time_ratio * mFinalOriginInterfaceKinematics + (1.0 - time_ratio) * mInitialOriginInterfaceKinematics;
-        SparseMatrixType expanded_mapper;
-        GetExpandedMappingMatrix(expanded_mapper, dim);
-        DenseVectorType mapped_interpolated_origin_kinematics(expanded_mapper.size1(), 0.0);
-        TSparseSpace::Mult(expanded_mapper, interpolated_origin_kinematics, mapped_interpolated_origin_kinematics);
 
-        // Determine kinematics difference
-        rUnbalancedKinematics += mapped_interpolated_origin_kinematics;
+        if (mLagrangeDefinedOn == SolverIndex::Destination) {
+            DenseVectorType mapped_interpolated_origin_kinematics(expanded_mapper.size1(), 0.0);
+            TSparseSpace::Mult(expanded_mapper, interpolated_origin_kinematics, mapped_interpolated_origin_kinematics);
+            rUnbalancedKinematics += mapped_interpolated_origin_kinematics;
+        }
+        else rUnbalancedKinematics += interpolated_origin_kinematics;
 
         KRATOS_CATCH("")
 	}
@@ -245,9 +249,15 @@ namespace Kratos
             }
         }
 
+        if (domain_dofs == 0){
+            const std::string domain = (solverIndex == SolverIndex::Origin) ? "Origin" : "Destination";
+            KRATOS_ERROR << "Zero domain DOFs in " << domain
+                << ". Please check newmark properties in the cosim params align with individual solver time schemes.\n";
+        }
+
         DenseMatrixType temp(rInterfaceMP.NumberOfNodes() * dim, domain_dofs, 0.0);
 
-        block_for_each(rInterfaceMP.Nodes(), [&](Node<3>& rNode)
+        block_for_each(rInterfaceMP.Nodes(), [&](const Node<3>& rNode)
             {
                 IndexType interface_equation_id = rNode.GetValue(INTERFACE_EQUATION_ID);
                 IndexType domain_equation_id = (is_implicit)
@@ -264,7 +274,7 @@ namespace Kratos
         // Incorporate force mapping matrix into projector if it is the origin
         // since the lagrangian multipliers are defined on the destination and need
         // to be mapped back later
-        if (solverIndex == SolverIndex::Origin) ApplyMappingMatrixToProjector(rProjector, dim);
+        if (solverIndex != mLagrangeDefinedOn) ApplyMappingMatrixToProjector(rProjector, dim);
 
         KRATOS_CATCH("")
     }
@@ -456,8 +466,14 @@ namespace Kratos
         KRATOS_TRY
 
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        ModelPart& r_slave_modelpart = (mLagrangeDefinedOn == SolverIndex::Destination)
+            ? mrDestinationInterfaceModelPart
+            : mrOriginInterfaceModelPart;
 
-        block_for_each(mrDestinationInterfaceModelPart.Nodes(), [&](Node<3>& rNode)
+        KRATOS_ERROR_IF_NOT(r_slave_modelpart.NumberOfNodes() * dim == rLagrange.size())
+            << "Trying to set Lagrange Multiplier results on the wrong domain!\n";
+
+        block_for_each(r_slave_modelpart.Nodes(), [&](Node<3>& rNode)
             {
                 IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
 
@@ -577,12 +593,10 @@ namespace Kratos
 
         rUnitResponse.clear();
 
-        if (is_implicit)
-        {
+        if (is_implicit) {
             DetermineDomainUnitAccelerationResponseImplicit(rUnitResponse, rProjector, pK, solverIndex);
         }
-        else
-        {
+        else {
             ModelPart& r_domain = (solverIndex == SolverIndex::Origin) ? *mpOriginDomain : *mpDestinationDomain;
             DetermineDomainUnitAccelerationResponseExplicit(rUnitResponse, rProjector, r_domain, solverIndex);
         }
@@ -598,6 +612,7 @@ namespace Kratos
         KRATOS_TRY
 
         // expand the mapping matrix to map all dofs at once
+        SparseMatrixType expanded_mapper;
         if (mpMappingMatrixForce == nullptr)
         {
             // No force map specified, we use the transpose of the displacement mapper
@@ -605,19 +620,17 @@ namespace Kratos
             // Note - the combined projector is transposed later, so now we submit trans(trans(M)) = M
             SparseMatrixType expanded_mapper(DOFs * mpMappingMatrix->size1(), DOFs * mpMappingMatrix->size2(), 0.0);
             GetExpandedMappingMatrix(expanded_mapper, DOFs);
-            rProjector = prod(expanded_mapper, rProjector);
+            SparseMatrixType temp(expanded_mapper.size1(), rProjector.size2(), 0.0);
+            KRATOS_DEBUG_ERROR_IF_NOT(expanded_mapper.size2() == rProjector.size1())
+                << "Expanded mapper and projector are non-conformant. Check assignment of mapper slave and lagrange mult side.\n";
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(expanded_mapper, rProjector, temp);
+            rProjector = temp;
         }
         else
         {
             KRATOS_ERROR << "Using mpMappingMatrixForce is not yet implemented!\n";
             // Force map has been specified, and we use this.
             // This corresponds to consistent mapping (energy not conserved, but proper force mapping)
-            // Note - the combined projector is transposed later, so now we submit trans(trans(M)) = M
-            SparseMatrixType expanded_mapper(DOFs * mpMappingMatrixForce->size2(), DOFs * mpMappingMatrixForce->size1(), 0.0);
-            GetExpandedMappingMatrix(expanded_mapper, DOFs);
-            SparseMatrixType temp(expanded_mapper.size1(), rProjector.size2(), 0.0);
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(expanded_mapper, rProjector, temp);
-            rProjector = temp;
         }
 
         KRATOS_CATCH("")
@@ -768,6 +781,23 @@ namespace Kratos
             << "\nActual ratio = " << actual_timestep_ratio
             << "\n\tOrigin timestep = " << dt_origin
             << "\n\tDestination timestep = " << dt_destination << std::endl;
+
+        // Check if the Lagrangian multipliers are defined on the origin or destination
+        // Lagrange mults are always defined on slave.
+        if (mpMappingMatrix->size1() == mrDestinationInterfaceModelPart.NumberOfNodes()) {
+            // Forward mapping is from origin (master) to dest (slave).
+            // Slave = destination. Lagrange mults defined on destination.
+            mLagrangeDefinedOn = SolverIndex::Destination;
+        }
+        else if (mpMappingMatrix->size1() == mrOriginInterfaceModelPart.NumberOfNodes()) {
+            // Forward mapping is from dest (master) to origin (slave).
+            // Slave = origin. Lagrange mults defined on origin.
+            mLagrangeDefinedOn = SolverIndex::Origin;
+        }
+        else KRATOS_ERROR << "Mapping matrix dimensions do not match either origin or destination interfaces!"
+            << "\nOrigin interface = \n" << mrOriginInterfaceModelPart
+            << "\nDestination interface = \n" << mrDestinationInterfaceModelPart
+            << "\nMapper = \n" << *mpMappingMatrix << "\n";
     }
 
     template<class TSparseSpace, class TDenseSpace>

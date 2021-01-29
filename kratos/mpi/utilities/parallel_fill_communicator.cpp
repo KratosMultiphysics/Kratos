@@ -21,21 +21,17 @@
 namespace Kratos
 {
 
-ParallelFillCommunicator::ParallelFillCommunicator(ModelPart& r_model_part)
-    : mrBaseModelPart(r_model_part)
+ParallelFillCommunicator::ParallelFillCommunicator(ModelPart& rModelPart)
+    : FillCommunicator(rModelPart)
 {}
 
 void ParallelFillCommunicator::Execute()
 {
     KRATOS_TRY
     mPartitionIndexCheckPerformed = false;
-    ComputeCommunicationPlan(mrBaseModelPart);
+    auto& r_base_model_part = GetBaseModelPart();
+    ComputeCommunicationPlan(r_base_model_part);
     KRATOS_CATCH("");
-}
-
-void ParallelFillCommunicator::PrintDebugInfo()
-{
-    PrintModelPartDebugInfo(mrBaseModelPart);
 }
 
 void ParallelFillCommunicator::PrintModelPartDebugInfo(const ModelPart& rModelPart)
