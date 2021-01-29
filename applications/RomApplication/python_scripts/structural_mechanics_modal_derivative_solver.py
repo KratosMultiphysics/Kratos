@@ -10,7 +10,6 @@ import KratosMultiphysics.RomApplication as RomApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 # Other imports
-from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 
 def CreateSolver(model, custom_settings):
     return ModalDerivativeSolver(model, custom_settings)
@@ -39,6 +38,7 @@ class ModalDerivativeSolver(MechanicalSolver):
     settings -- Kratos parameters containing solver settings.
     """
     def __init__(self, model, custom_settings):
+        """Initializes the solver."""
         # Construct the base solver.
         super(ModalDerivativeSolver, self).__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[ModalDerivativeSolver]:: ", "Construction finished")
@@ -58,13 +58,13 @@ class ModalDerivativeSolver(MechanicalSolver):
 
     def _create_solution_scheme(self):
         return RomApplication.ModalDerivativeScheme(self.settings)
-        
+
     def _create_builder_and_solver(self):
 
         if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool() is False:
             err_msg  = 'Modal derivative analysis is only available with block builder and solver!'
             raise Exception(err_msg)
-        
+
         return super(ModalDerivativeSolver, self)._create_builder_and_solver()
 
     def _create_mechanical_solution_strategy(self):

@@ -5,13 +5,13 @@ import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 # Import applications
-import KratosMultiphysics.RomApplication as romapp
+import KratosMultiphysics.RomApplication as RomApplication
 
 # Other imports
 import os
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters): #type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
 
     process_settings = settings["Parameters"]
@@ -36,4 +36,4 @@ def Factory(settings, Model):
     process_settings.RemoveValue("computing_model_part_name")
     process_settings.RemoveValue("help")
 
-    return romapp.PostprocessRomBasisProcess(computing_model_part, process_settings)
+    return RomApplication.PostprocessRomBasisProcess(computing_model_part, process_settings)

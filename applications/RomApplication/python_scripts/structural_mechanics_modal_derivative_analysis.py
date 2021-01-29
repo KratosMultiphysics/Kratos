@@ -17,7 +17,7 @@ import json
 class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
 
     def __init__(self,model,project_parameters):
-        """This is the class for modal derivative analysis"""
+        """The class for modal derivative analysis."""
         super(StructuralMechanicsModalDerivativeAnalysis,self).__init__(model,project_parameters)
 
     #### Internal functions ####
@@ -30,8 +30,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         return "::[Modal Derivative Simulation]:: "
     
     def OutputSolutionStep(self):
-        """This function prints / writes output files after the solution of a step."""
-
+        """Prints / writes output files after the solution of a step."""
         # Creating output
         super(StructuralMechanicsModalDerivativeAnalysis, self).OutputSolutionStep()
 
@@ -85,7 +84,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
                 counter+=1
 
     def WriteRomParameters(self):
-        """This function writes the extended basis into RomParameters.json file."""
+        """Writes the extended basis into RomParameters.json file."""
         # Iniate nodal modes dictionary
         rom_parameters = {}
         rom_parameters["rom_settings"] = {}

@@ -106,7 +106,7 @@ public:
      * @details Initiliazes the flags
      */
     /// Constructor.
-    ModalDerivativeScheme(Parameters InputParameters)
+    explicit ModalDerivativeScheme(Parameters InputParameters)
     : 
     Scheme<TSparseSpace,TDenseSpace>()
     {
