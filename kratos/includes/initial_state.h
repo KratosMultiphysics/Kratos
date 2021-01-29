@@ -8,7 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo
-//                    
+//
 //
 
 #if !defined(KRATOS_INITIAL_STATE_H_INCLUDED)
