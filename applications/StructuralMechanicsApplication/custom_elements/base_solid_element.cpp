@@ -1037,41 +1037,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 rOutput[point_number] = this_constitutive_variables.StressVector;
             }
-        } else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR ) {
-            // Create and initialize element variables:
-            const SizeType number_of_nodes = GetGeometry().size();
-            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-            const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-            ConstitutiveVariables this_constitutive_variables(strain_size);
-
-            // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-            // Set constitutive law flags:
-            Flags &ConstitutiveLawOptions=Values.GetOptions();
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
-            Values.SetStrainVector(this_constitutive_variables.StrainVector);
-
-            const ConstitutiveLaw::StressMeasure this_stress_measure = rVariable == GREEN_LAGRANGE_STRAIN_VECTOR ? ConstitutiveLaw::StressMeasure_PK2 : ConstitutiveLaw::StressMeasure_Kirchhoff;
-
-            //reading integration points
-            for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
-                // Compute element kinematics B, F, DN_DX ...
-                CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-
-                // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this_stress_measure);
-
-                if ( rOutput[point_number].size() != strain_size)
-                    rOutput[point_number].resize( strain_size, false );
-
-                rOutput[point_number] = this_constitutive_variables.StrainVector;
-            }
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
         }
