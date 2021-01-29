@@ -29,18 +29,18 @@
 #include "custom_elements/data_containers/k_epsilon/qsvms_rfc_adjoint_element_data.h"
 
 // Include base h
-#include "two_equation_turbulence_adjoint_element.h"
+#include "two_equation_turbulence_model_adjoint_element.h"
 
 namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::ThisExtensions(Element* pElement)
+TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::ThisExtensions(Element* pElement)
     : mpElement{pElement}
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetFirstDerivativesVector(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetFirstDerivativesVector(
     std::size_t NodeId,
     std::vector<IndirectScalar<double>>& rVector,
     std::size_t Step)
@@ -58,7 +58,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetSecondDerivativesVector(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetSecondDerivativesVector(
     std::size_t NodeId,
     std::vector<IndirectScalar<double>>& rVector,
     std::size_t Step)
@@ -77,7 +77,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetAuxiliaryVector(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetAuxiliaryVector(
     std::size_t NodeId,
     std::vector<IndirectScalar<double>>& rVector,
     std::size_t Step)
@@ -97,7 +97,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetFirstDerivativesVariables(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetFirstDerivativesVariables(
     std::vector<VariableData const*>& rVariables) const
 {
     rVariables.resize(1);
@@ -105,7 +105,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetSecondDerivativesVariables(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetSecondDerivativesVariables(
     std::vector<VariableData const*>& rVariables) const
 {
     rVariables.resize(1);
@@ -113,7 +113,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetAuxiliaryVariables(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetAuxiliaryVariables(
     std::vector<VariableData const*>& rVariables) const
 {
     rVariables.resize(1);
@@ -121,13 +121,13 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::TwoEquationTurbulenceAdjointElement(IndexType NewId)
+TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::TwoEquationTurbulenceModelAdjointElement(IndexType NewId)
     : BaseType(NewId)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::TwoEquationTurbulenceAdjointElement(
+TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::TwoEquationTurbulenceModelAdjointElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : BaseType(NewId, pGeometry)
@@ -135,7 +135,7 @@ TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::TwoEq
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::TwoEquationTurbulenceAdjointElement(
+TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::TwoEquationTurbulenceModelAdjointElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
@@ -144,52 +144,52 @@ TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::TwoEq
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::~TwoEquationTurbulenceAdjointElement()
+TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::~TwoEquationTurbulenceModelAdjointElement()
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-Element::Pointer TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::Create(
+Element::Pointer TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<TwoEquationTurbulenceAdjointElement>(
+    return Kratos::make_intrusive<TwoEquationTurbulenceModelAdjointElement>(
         NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-Element::Pointer TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::Create(
+Element::Pointer TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<TwoEquationTurbulenceAdjointElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<TwoEquationTurbulenceModelAdjointElement>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-Element::Pointer TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::Clone(
+Element::Pointer TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::Clone(
     IndexType NewId,
     NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<TwoEquationTurbulenceAdjointElement>(
+    return Kratos::make_intrusive<TwoEquationTurbulenceModelAdjointElement>(
         NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-int TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::Check(const ProcessInfo& rCurrentProcessInfo) const
+int TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     return TAdjointElementData::Check(this->GetGeometry(), rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::EquationIdVector(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::EquationIdVector(
     EquationIdVectorType& rElementalEquationIdList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -210,7 +210,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::GetDofList(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -230,7 +230,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::GetValuesVector(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::GetValuesVector(
     VectorType& rValues,
     int Step) const
 {
@@ -253,7 +253,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::GetFirstDerivativesVector(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::GetFirstDerivativesVector(
     VectorType& rValues,
     int Step) const
 {
@@ -264,7 +264,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::GetSecondDerivativesVector(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::GetSecondDerivativesVector(
     VectorType& rValues,
     int Step) const
 {
@@ -285,7 +285,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -316,7 +316,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateLocalSystem(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -337,7 +337,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateLeftHandSide(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -350,20 +350,20 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateRightHandSide(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR << "TwoEquationTurbulenceAdjointElement::"
+    KRATOS_ERROR << "TwoEquationTurbulenceModelAdjointElement::"
                     "CalculateRightHandSide method is not implemented.";
 
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateLocalVelocityContribution(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateLocalVelocityContribution(
     MatrixType &rDampMatrix,
     VectorType &rRightHandSideVector,
     const ProcessInfo &rCurrentProcessInfo)
@@ -400,7 +400,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateFirstDerivativesLHS(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateFirstDerivativesLHS(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -416,7 +416,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateSecondDerivativesLHS(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateSecondDerivativesLHS(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -432,7 +432,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateMassMatrix(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -440,20 +440,20 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateDampingMatrix(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR << "TwoEquationTurbulenceAdjointElement::"
+    KRATOS_ERROR << "TwoEquationTurbulenceModelAdjointElement::"
                     "CalculateDampingMatrix method is not implemented.";
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateSensitivityMatrix(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateSensitivityMatrix(
     const Variable<array_1d<double, 3>>& rSensitivityVariable,
     Matrix& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -481,21 +481,21 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-std::string TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::Info() const
+std::string TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::Info() const
 {
     std::stringstream buffer;
-    buffer << "TwoEquationTurbulenceAdjointElement #" << Element::Id();
+    buffer << "TwoEquationTurbulenceModelAdjointElement #" << Element::Id();
     return buffer.str();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::PrintInfo(std::ostream& rOStream) const
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "TwoEquationTurbulenceAdjointElement #" << Element::Id();
+    rOStream << "TwoEquationTurbulenceModelAdjointElement #" << Element::Id();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::PrintData(std::ostream& rOStream) const
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::PrintData(std::ostream& rOStream) const
 {
     Element::pGetGeometry()->PrintData(rOStream);
 }
@@ -504,7 +504,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 template <class TDerivativesType>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidFirstDerivatives(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidFirstDerivatives(
     MatrixType& rLeftHandSideMatrix,
     const GeometryData::IntegrationMethod& rIntegrationMethod,
     const ProcessInfo& rCurrentProcessInfo)
@@ -554,7 +554,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 template <class TDerivativesType>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidSecondDerivatives(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidSecondDerivatives(
     MatrixType& rLeftHandSideMatrix,
     const GeometryData::IntegrationMethod& rIntegrationMethod,
     const ProcessInfo& rCurrentProcessInfo)
@@ -585,7 +585,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 template <class TDerivativesType>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidShapeDerivatives(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidShapeDerivatives(
     Matrix& rOutput,
     const GeometryData::IntegrationMethod& rIntegrationMethod,
     const ProcessInfo& rCurrentProcessInfo)
@@ -648,7 +648,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateGeometryData(
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateGeometryData(
     Vector& rGaussWeights,
     Matrix& rNContainer,
     ShapeFunctionDerivativesArrayType& rDN_DX,
@@ -678,7 +678,7 @@ void TwoEquationTurbulenceAdjointElement<TDim, TNumNodes, TAdjointElementData>::
 }
 
 // template instantiations
-template class TwoEquationTurbulenceAdjointElement<2, 3, KEpsilonElementData::QSVMSRFCAdjointElementData<2, 3>>;
-template class TwoEquationTurbulenceAdjointElement<3, 4, KEpsilonElementData::QSVMSRFCAdjointElementData<3, 4>>;
+template class TwoEquationTurbulenceModelAdjointElement<2, 3, KEpsilonElementData::QSVMSRFCAdjointElementData<2, 3>>;
+template class TwoEquationTurbulenceModelAdjointElement<3, 4, KEpsilonElementData::QSVMSRFCAdjointElementData<3, 4>>;
 
 } // namespace Kratos

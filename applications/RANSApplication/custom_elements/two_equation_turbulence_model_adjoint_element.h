@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_TWO_EQUATION_TURBULENCE_ADJOINT_ELEMENT_H)
-#define KRATOS_TWO_EQUATION_TURBULENCE_ADJOINT_ELEMENT_H
+#if !defined(KRATOS_TWO_EQUATION_TURBULENCE_MODEL_ADJOINT_ELEMENT_H)
+#define KRATOS_TWO_EQUATION_TURBULENCE_MODEL_ADJOINT_ELEMENT_H
 
 // System includes
 
@@ -31,7 +31,7 @@ namespace Kratos
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-class TwoEquationTurbulenceAdjointElement : public Element
+class TwoEquationTurbulenceModelAdjointElement : public Element
 {
     class ThisExtensions : public AdjointExtensions
     {
@@ -86,7 +86,7 @@ public:
 
     constexpr static IndexType TElementLocalSize = TBlockSize * TNumNodes;
 
-    KRATOS_CLASS_POINTER_DEFINITION(TwoEquationTurbulenceAdjointElement);
+    KRATOS_CLASS_POINTER_DEFINITION(TwoEquationTurbulenceModelAdjointElement);
 
     ///@name Life Cycle
     ///@{
@@ -94,19 +94,19 @@ public:
     /**
      * Constructor.
      */
-    TwoEquationTurbulenceAdjointElement(IndexType NewId = 0);
+    TwoEquationTurbulenceModelAdjointElement(IndexType NewId = 0);
 
     /**
      * Constructor using Geometry
      */
-    TwoEquationTurbulenceAdjointElement(
+    TwoEquationTurbulenceModelAdjointElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
     /**
      * Constructor using Properties
      */
-    TwoEquationTurbulenceAdjointElement(
+    TwoEquationTurbulenceModelAdjointElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
@@ -114,7 +114,7 @@ public:
     /**
      * Destructor
      */
-    ~TwoEquationTurbulenceAdjointElement() override;
+    ~TwoEquationTurbulenceModelAdjointElement() override;
 
     ///@}
     ///@name Operations
@@ -310,4 +310,4 @@ protected:
 
 } // namespace Kratos
 
-#endif // KRATOS_TWO_EQUATION_TURBULENCE_ADJOINT_ELEMENT_H
+#endif // KRATOS_TWO_EQUATION_TURBULENCE_MODEL_ADJOINT_ELEMENT_H
