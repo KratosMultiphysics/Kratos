@@ -27,9 +27,9 @@ class TestIntegrationPoints(KratosUnittest.TestCase):
 
         for elem in mp.Elements:
             # Boolean
-            #out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.IS_RESTARTED, mp.ProcessInfo)
-            #for value in out:
-                #self.assertEqual(value,False)
+            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.IS_RESTARTED, mp.ProcessInfo)
+            for value in out:
+                self.assertEqual(value,False)
             # Int
             out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOAD_RESTART, mp.ProcessInfo)
             for value in out:
