@@ -476,7 +476,6 @@ void ParallelFillCommunicator::GenerateMeshes(int NeighbourPID, int MyPID, unsig
         rModelPart.GetCommunicator().LocalMesh(Color).Nodes();
     r_local_nodes.clear();
 
-    KRATOS_WATCH(rModelPart)
 
     for (int id : ids_to_send)
     {
