@@ -133,7 +133,7 @@ public:
                    "region is not allowed.\n";
 
             // resizing for OMP parallel loops
-            const int number_of_threads = OpenMPUtils::GetNumThreads();
+            const int number_of_threads = ParallelUtilities::GetNumThreads();
             mNonLocalGlobalPointerMapsVector.resize(number_of_threads);
             mNonLocalDataValueMapsVector.resize(number_of_threads);
 

@@ -10,13 +10,11 @@
 //  Main author:     Jordi Cotela
 //
 
-#ifdef _OPENMP
-#include "omp.h"
-#endif
-
+// Project includes
 #include "includes/parallel_environment.h"
 #include "includes/kratos_components.h"
 #include "input_output/logger.h"
+#include "includes/lock_object.h"
 
 namespace Kratos {
 
@@ -144,7 +142,7 @@ ParallelEnvironment::~ParallelEnvironment()
     if (mpEnvironmentManager)
     {
         mpEnvironmentManager.reset();
-    }    
+    }
 
     mDestroyed = true;
     mpInstance = nullptr;
@@ -153,18 +151,14 @@ ParallelEnvironment::~ParallelEnvironment()
 ParallelEnvironment& ParallelEnvironment::GetInstance()
 {
     // Using double-checked locking to ensure thread safety in the first creation of the singleton.
-    if (mpInstance == nullptr)
-    {
-        #ifdef _OPENMP
-        #pragma omp critical
-        if (mpInstance == nullptr)
-        {
-        #endif
+    if (!mpInstance) {
+        LockObject lock;
+        lock.SetLock();
+        if (!mpInstance) {
             KRATOS_ERROR_IF(mDestroyed) << "Accessing ParallelEnvironment after its destruction" << std::endl;
             Create();
-        #ifdef _OPENMP
         }
-        #endif
+        lock.UnSetLock();
     }
 
     return *mpInstance;

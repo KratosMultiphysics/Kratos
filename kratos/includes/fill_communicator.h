@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -45,9 +46,6 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-// Forward declaration of ModelPart
-class ModelPart;
 
 /// Base class defining the API for the fill communicator utilities
 /** The objective of this class is to set the API for the derived ParallelFillCommunicator utilities
@@ -93,7 +91,7 @@ public:
     virtual void Execute();
 
     /**
-     * @brief Function to print DETAILED mesh information 
+     * @brief Function to print DETAILED mesh information
      * WARNING: to be used for debugging only as many informations are plotted
      */
     void PrintDebugInfo();
@@ -247,5 +245,3 @@ inline std::ostream & operator <<(
 } // namespace Kratos.
 
 #endif // KRATOS_FILL_COMMUNICATOR_H_INCLUDED  defined
-
-
