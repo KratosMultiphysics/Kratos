@@ -122,6 +122,8 @@ public:
 
         mFiniteDifferenceStepSize = InputParameters["finite_difference_step_size"].GetDouble();
 
+        mSchemeIsInitialized = false;
+
         KRATOS_CATCH("")
     }
 
@@ -360,9 +362,6 @@ public:
             rRHS_Contribution -= prod(element_matrix_derivative, PhiElementalLocal);
         }
 
-        if (mDerivativeMatrixType)
-            rRHS_Contribution *= -rCurrentProcessInfo[EIGENVALUE_VECTOR][basis_i];
-
         rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -570,8 +569,6 @@ private:
     ///@{
 
     bool mSchemeIsInitialized;
-
-    bool mDerivativeMatrixType;
 
     double mFiniteDifferenceStepSize;
 

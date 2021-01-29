@@ -538,8 +538,9 @@ public:
 
         // this->ComputeReducedMatrices();
 
-        return true;
         KRATOS_CATCH("")
+
+        return true;
     }
 
     /**
@@ -592,11 +593,10 @@ public:
 
         DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
         bool is_active;
-        std::size_t num_node_dofs;
         
         for (ModelPart::NodeIterator itNode = r_model_part.NodesBegin(); itNode!= r_model_part.NodesEnd(); itNode++) {
             ModelPart::NodeType::DofsContainerType& node_dofs = itNode->GetDofs();
-            num_node_dofs = node_dofs.size();
+            std::size_t num_node_dofs = node_dofs.size();
             Matrix& r_rom_basis = itNode->GetValue(ROM_BASIS);
                 
             // fill the basis vector
@@ -630,10 +630,9 @@ public:
 
         // Find the DOF with the maximum absolute value in the considered basis
         double max_abs_value = 0.0;
-        double temp_abs_value = 0.0;
         for (auto dof_i : r_dof_set)
         {
-            temp_abs_value = std::abs(rBasis[dof_i.EquationId()]);
+            double temp_abs_value = std::abs(rBasis[dof_i.EquationId()]);
             if (temp_abs_value > max_abs_value)
             {
                 max_abs_value = temp_abs_value;

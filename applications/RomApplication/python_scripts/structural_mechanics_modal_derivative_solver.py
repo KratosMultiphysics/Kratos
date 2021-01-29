@@ -16,16 +16,16 @@ def CreateSolver(model, custom_settings):
     return ModalDerivativeSolver(model, custom_settings)
 
 class ModalDerivativeSolver(MechanicalSolver):
-    """The structural mechanics modal derivative solver.
+    """
+    The structural mechanics modal derivative solver.
 
     This class creates the modal derivative solver for computing modal derivatives.
 
     See structural_mechanics_solver.py for more information.
-    """
-    """
+
     _create_solution_scheme -> implement a new scheme
     _create_convergence_criterion -> not necessary
-    _create_linear_solver -> use from base class 
+    _create_linear_solver -> use from base class
     _create_builder_and_solver -> do i need a new builder and solver?
     _create_mechanical_solution_strategy -> implement a new strategy
 

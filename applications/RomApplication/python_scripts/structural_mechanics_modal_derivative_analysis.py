@@ -17,11 +17,14 @@ import json
 class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
 
     def __init__(self,model,project_parameters):
+        """
+        This is the class for modal derivative analysis
+        """
         super(StructuralMechanicsModalDerivativeAnalysis,self).__init__(model,project_parameters)
 
     #### Internal functions ####
     def _CreateSolver(self):
-        """ Create the Solver (and create and import the ModelPart if it is not already in the model) """
+        """Create the Solver (and create and import the ModelPart if it is not already in the model)."""
         ## Solver construction
         return solver_wrapper.CreateSolver(self.model, self.project_parameters)
 
@@ -29,8 +32,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         return "::[Modal Derivative Simulation]:: "
     
     def OutputSolutionStep(self):
-        """This function printed / writes output files after the solution of a step
-        """
+        """This function prints / writes output files after the solution of a step."""
 
         # Creating output
         super(StructuralMechanicsModalDerivativeAnalysis, self).OutputSolutionStep()
@@ -38,7 +40,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         self.WriteRomParameters()
     
     def ModifyInitialGeometry(self):
-        """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
+        """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node."""
         super(StructuralMechanicsModalDerivativeAnalysis,self).ModifyInitialGeometry()
         computing_model_part = self._solver.GetComputingModelPart()
 
@@ -61,7 +63,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
             number_of_extended_rom_dofs = None
             if derivative_type_flag:
                 number_of_extended_rom_dofs = int(self.number_of_initial_rom_dofs * ( self.number_of_initial_rom_dofs + 1 ))
-            elif not derivative_type_flag: 
+            elif not derivative_type_flag:
                 number_of_extended_rom_dofs = int(self.number_of_initial_rom_dofs + self.number_of_initial_rom_dofs * ( self.number_of_initial_rom_dofs + 1 ) / 2)
             
             eigenvalues = rom_parameters["eigenvalues"]
@@ -85,7 +87,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
                 counter+=1
 
     def WriteRomParameters(self):
-
+        """This function writes the extended basis into RomParameters.json file."""
         # Iniate nodal modes dictionary
         rom_parameters = {}
         rom_parameters["rom_settings"] = {}
@@ -117,7 +119,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
                 # Initiate DOF modes
                 dof_modes = []
 
-                # Loop over dof modes                
+                # Loop over dof modes
                 for iMode in range(0, num_nodal_modes):
                     dof_modes.append(nodal_modes_mtx[iDOF, iMode])
 
