@@ -16,8 +16,7 @@ def CreateSolver(model, custom_settings):
     return ModalDerivativeSolver(model, custom_settings)
 
 class ModalDerivativeSolver(MechanicalSolver):
-    """
-    The structural mechanics modal derivative solver.
+    """The structural mechanics modal derivative solver.
 
     This class creates the modal derivative solver for computing modal derivatives.
 
@@ -56,13 +55,6 @@ class ModalDerivativeSolver(MechanicalSolver):
         }""")
         this_defaults.AddMissingParameters(super(ModalDerivativeSolver, cls).GetDefaultParameters())
         return this_defaults
-
-    def _create_linear_solver(self):
-        linear_solver_configuration = self.settings["linear_solver_settings"]
-        if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
-            return linear_solver_factory.ConstructSolver(linear_solver_configuration)
-        else:
-            return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
     def _create_solution_scheme(self):
         return RomApplication.ModalDerivativeScheme(self.settings)

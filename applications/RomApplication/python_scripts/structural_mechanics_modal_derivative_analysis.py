@@ -17,9 +17,7 @@ import json
 class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
 
     def __init__(self,model,project_parameters):
-        """
-        This is the class for modal derivative analysis
-        """
+        """This is the class for modal derivative analysis"""
         super(StructuralMechanicsModalDerivativeAnalysis,self).__init__(model,project_parameters)
 
     #### Internal functions ####

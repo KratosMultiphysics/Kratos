@@ -22,7 +22,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/timer.h"
-#include "utilities/openmp_utils.h"
 #include "utilities/builtin_timer.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -160,7 +159,7 @@ public:
         this->SetRebuildLevel(1);
         
         mInitializeWasPerformed = false;
-        mSolutionStepIsInitialized = false;     
+        mSolutionStepIsInitialized = false;
 
         KRATOS_CATCH("")
     }
@@ -467,7 +466,7 @@ public:
                 TSparseSpace::SetToZero(rDx);
 
                 // Start building RHS
-                const double start_build_rhs = OpenMPUtils::GetCurrentTime();
+                BuiltinTimer build_rhs;
                 Timer::Start("BuildRHS");
 
                 // Build RHS partially : -dK/dp . basis
@@ -483,8 +482,7 @@ public:
                     rb += deigenvalue_i_dbasis_j * prod(rMassMatrix, basis);
 
                 Timer::Stop("BuildRHS");
-                const double stop_build_rhs = OpenMPUtils::GetCurrentTime();
-                KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "Build time RHS: " << stop_build_rhs - start_build_rhs << std::endl;
+                KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "Build time RHS: " << build_rhs.ElapsedSeconds() << std::endl;
 
                 Timer::Start("Apply RHS Master-Slave Constraints");
                 // Apply the master-slave constraints to RHS only
@@ -498,7 +496,7 @@ public:
                 Timer::Stop("Apply Dirichlet Conditions");
 
                 // Start Solve
-                const double start_solve = OpenMPUtils::GetCurrentTime();
+                BuiltinTimer solve;
                 Timer::Start("Solve");
                 
                 // Compute particular solution
@@ -509,9 +507,7 @@ public:
                     this->ComputeAndAddNullSpaceSolution(rDx, basis);
 
                 Timer::Stop("Solve");
-                const double stop_solve = OpenMPUtils::GetCurrentTime();
-
-                KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+                KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "System solve time: " << solve.ElapsedSeconds() << std::endl;
 
                 // Mass orthonormalization
                 if (mMassOrthonormalizeFlag)
