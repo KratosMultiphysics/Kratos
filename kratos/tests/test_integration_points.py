@@ -38,7 +38,8 @@ class TestIntegrationPoints(KratosUnittest.TestCase):
             # Double
             out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.PRESSURE, mp.ProcessInfo)
             for value in out:
-                self.assertEqual(value,0.0)
+                self.assertAlmostEqual(value,0.0)
+
             # Array
             out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.DISPLACEMENT, mp.ProcessInfo)
             for value in out:
