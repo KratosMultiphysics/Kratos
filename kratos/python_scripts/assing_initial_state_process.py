@@ -51,9 +51,9 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.dimension = settings["dimension"].GetInt()
 
-        self.imposed_strain = settings["imposed_strain"]
-        self.imposed_stress = settings["imposed_stress"]
-        self.imposed_deformation_gradient = settings["imposed_deformation_gradient"]
+        self.imposed_strain = settings["imposed_strain"].GetVector()
+        self.imposed_stress = settings["imposed_stress"].GetVector()
+        self.imposed_deformation_gradient = settings["imposed_deformation_gradient"].GetMatrix()
 
 
     def ExecuteBeforeSolutionLoop(self):

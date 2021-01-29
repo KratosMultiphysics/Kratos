@@ -210,6 +210,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
         rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
         rThisVariable == ALMANSI_STRAIN_VECTOR) {
         this->CalculateCauchyGreenStrain( rParameterValues, rValue);
+        this->AddInitialStrainVectorContribution( r_strain_vector, rValues );
     } else if (rThisVariable == STRESSES ||
         rThisVariable == CAUCHY_STRESS_VECTOR ||
         rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
@@ -226,6 +227,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
 
         // We compute the stress
         ElasticIsotropic3D::CalculateMaterialResponseCauchy(rParameterValues);
+        this->AddInitialStressVectorContribution( rParameterValues.GetStressVector(), rParameterValues );
         rValue = rParameterValues.GetStressVector();
 
         // Previous flags restored
