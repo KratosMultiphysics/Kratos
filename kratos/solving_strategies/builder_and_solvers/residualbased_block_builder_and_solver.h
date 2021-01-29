@@ -18,9 +18,6 @@
 #include <unordered_set>
 
 /* External includes */
-#ifdef KRATOS_SMP_OPENMP
-#include <omp.h>
-#endif
 
 /* Project includes */
 #include "includes/define.h"
@@ -28,11 +25,11 @@
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
 #include "utilities/timer.h"
+#include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
 #include "includes/kratos_flags.h"
 #include "includes/lock_object.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
-#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
@@ -223,7 +220,7 @@ public:
         Element::EquationIdVectorType EquationId;
 
         // assemble all elements
-        const auto timer = BuiltinTimer();
+        double start_build = OpenMPUtils::GetCurrentTime();
 
         #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
@@ -271,8 +268,8 @@ public:
             }
         }
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
-
+        const double stop_build = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
@@ -314,7 +311,7 @@ public:
         Element::EquationIdVectorType equation_id;
 
         // Assemble all elements
-        const auto timer = BuiltinTimer();
+        double start_build = OpenMPUtils::GetCurrentTime();
 
         #pragma omp parallel firstprivate(nelements, nconditions, lhs_contribution, equation_id )
         {
@@ -357,7 +354,8 @@ public:
             }
         }
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << timer.ElapsedSeconds() << std::endl;
+        const double stop_build = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << stop_build - start_build << std::endl;
 
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished parallel building LHS" << std::endl;
@@ -530,18 +528,108 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-        const auto timer = BuiltinTimer();
+        const double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
 
         SystemSolveWithPhysics(A, Dx, b, rModelPart);
 
         Timer::Stop("Solve");
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
-
+        const double stop_solve = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Function to perform the building and solving phase at the same time Linearizing with the database at the old iteration
+     * @details It is ideally the fastest and safer function to use when it is possible to solve just after building
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
+     * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
+     * @param MoveMesh tells if the update of the scheme needs  to be performed when calling the Update of the scheme
+     */
+    void BuildAndSolveLinearizedOnPreviousIteration(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
+        const bool MoveMesh
+        ) override
+    {
+        KRATOS_INFO_IF("BlockBuilderAndSolver", this->GetEchoLevel() > 0)
+            << "Linearizing on Old iteration" << std::endl;
+
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() == 1) << "BlockBuilderAndSolver: \n"
+                << "The buffer size needs to be at least 2 in order to use \n"
+                << "BuildAndSolveLinearizedOnPreviousIteration \n"
+                << "current buffer size for modelpart: " << rModelPart.Name() << std::endl
+                << "is :" << rModelPart.GetBufferSize()
+                << " Please set IN THE STRATEGY SETTINGS "
+                << " UseOldStiffnessInFirstIteration=false " << std::endl;
+
+        DofsArrayType fixed_dofs;
+        for(auto& r_dof : BaseType::mDofSet){
+            if(r_dof.IsFixed()){
+                fixed_dofs.push_back(&r_dof);
+                r_dof.FreeDof();
+            }
+        }
+
+        //TODO: Here we need to take the vector from other ones because
+        // We cannot create a trilinos vector without a communicator. To be improved!
+        TSystemVectorType dx_prediction(rDx);
+        TSystemVectorType rhs_addition(rb); //we know it is zero here, so we do not need to set it
+
+        // Here we bring back the database to before the prediction,
+        // but we store the prediction increment in dx_prediction.
+        // The goal is that the stiffness is computed with the
+        // converged configuration at the end of the previous step.
+        const auto it_dof_begin = BaseType::mDofSet.begin();
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
+            auto it_dof = it_dof_begin + i;
+            //NOTE: this is initialzed to - the value of dx prediction
+            dx_prediction[it_dof->EquationId()] = -(it_dof->GetSolutionStepValue() - it_dof->GetSolutionStepValue(1));
+        }
+
+        // Use UpdateDatabase to bring back the solution to how it was at the end of the previous step
+        pScheme->Update(rModelPart, BaseType::mDofSet, rA, dx_prediction, rb);
+        if (MoveMesh) {
+            VariableUtils().UpdateCurrentPosition(rModelPart.Nodes(),DISPLACEMENT,0);
+        }
+
+        this->Build(pScheme, rModelPart, rA, rb);
+
+        // Put back the prediction into the database
+        TSparseSpace::InplaceMult(dx_prediction, -1.0); //change sign to dx_prediction
+        TSparseSpace::UnaliasedAdd(rDx, 1.0, dx_prediction);
+
+        // Use UpdateDatabase to bring back the solution
+        // to where it was taking into account BCs
+        // it is done here so that constraints are correctly taken into account right after
+        pScheme->Update(rModelPart, BaseType::mDofSet, rA, dx_prediction, rb);
+        if (MoveMesh) {
+            VariableUtils().UpdateCurrentPosition(rModelPart.Nodes(),DISPLACEMENT,0);
+        }
+
+
+        // Apply rb -= A*dx_prediction
+        TSparseSpace::Mult(rA, dx_prediction, rhs_addition);
+        TSparseSpace::UnaliasedAdd(rb, -1.0, rhs_addition);
+
+        for(auto& dof : fixed_dofs)
+            dof.FixDof();
+
+        if (!rModelPart.MasterSlaveConstraints().empty()) {
+            this->ApplyConstraints(pScheme, rModelPart, rA, rb);
+        }
+        this->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+        this->SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
     }
 
     /**
@@ -574,14 +662,14 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
-        const auto timer = BuiltinTimer();
+        const double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
 
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
-
+        const double stop_solve = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
@@ -646,7 +734,7 @@ public:
 
         DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
 
-        unsigned int nthreads = ParallelUtilities::GetNumThreads();
+        unsigned int nthreads = OpenMPUtils::GetNumThreads();
 
         typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
 
@@ -735,9 +823,6 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
-
-
 #ifdef KRATOS_DEBUG
         // If reactions are to be calculated, we check if all the dofs have reactions defined
         // This is tobe done only in debug mode
@@ -822,8 +907,11 @@ public:
         }
         if (Dx.size() != BaseType::mEquationSystemSize)
             Dx.resize(BaseType::mEquationSystemSize, false);
-        if (b.size() != BaseType::mEquationSystemSize)
+        TSparseSpace::SetToZero(Dx);
+        if (b.size() != BaseType::mEquationSystemSize) {
             b.resize(BaseType::mEquationSystemSize, false);
+        }
+        TSparseSpace::SetToZero(b);
 
         ConstructMasterSlaveConstraintsStructure(rModelPart);
 
@@ -1761,7 +1849,7 @@ protected:
 //         return max_diag;
 
         // Creating a buffer for parallel vector fill
-        const int num_threads = ParallelUtilities::GetNumThreads();
+        const int num_threads = OpenMPUtils::GetNumThreads();
         Vector max_vector(num_threads, 0.0);
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
@@ -1794,7 +1882,7 @@ protected:
 //         return min_diag;
 
         // Creating a buffer for parallel vector fill
-        const int num_threads = ParallelUtilities::GetNumThreads();
+        const int num_threads = OpenMPUtils::GetNumThreads();
         Vector min_vector(num_threads, std::numeric_limits<double>::max());
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
@@ -1884,7 +1972,6 @@ private:
         if (i == endit) {
             v.push_back(candidate);
         }
-
     }
 
     //******************************************************************************************
