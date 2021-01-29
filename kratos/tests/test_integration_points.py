@@ -43,9 +43,10 @@ class TestIntegrationPoints(KratosUnittest.TestCase):
             # Array
             out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.DISPLACEMENT, mp.ProcessInfo)
             for value in out:
-                self.assertEqual(value[0],0.0)
-                self.assertEqual(value[1],0.0)
-                self.assertEqual(value[2],0.0)
+                self.assertAlmostEqual(value[0],0.0)
+                self.assertAlmostEqual(value[1],0.0)
+                self.assertAlmostEqual(value[2],0.0)
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
