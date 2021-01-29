@@ -54,6 +54,7 @@ public:
 
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
+    typedef Geometry<typename TContainerPointType::value_type> BaseType;
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
