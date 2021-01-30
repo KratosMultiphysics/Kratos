@@ -1267,7 +1267,7 @@ void GeoCrBeamElement3D2N::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::
-    AssembleSmallInBigMatrix( Matrix SmallMatrix,
+    AssembleSmallInBigMatrix( const Matrix &SmallMatrix,
                               BoundedMatrix<double, GeoCrBeamElement3D2N::msElementSize,
                               GeoCrBeamElement3D2N::msElementSize>& BigMatrix) const
 {

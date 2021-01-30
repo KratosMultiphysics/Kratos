@@ -241,8 +241,8 @@ public:
      * @param SmallMatrix The local transformation matrix
      * @param BigMatrix The total global rotation matrix
      */
-    void AssembleSmallInBigMatrix(const Matrix& SmallMatrix, BoundedMatrix<double,
-                                  msElementSize,msElementSize>& BigMatrix) const;
+    void AssembleSmallInBigMatrix(const Matrix& SmallMatrix, 
+                                  BoundedMatrix<double, msElementSize, msElementSize>& BigMatrix) const;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 

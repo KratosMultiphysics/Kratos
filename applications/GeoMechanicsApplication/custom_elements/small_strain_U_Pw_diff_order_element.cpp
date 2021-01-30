@@ -849,9 +849,10 @@ void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints( const Variabl
     KRATOS_CATCH( "" )
 }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variable<int>& rVariable,
-                                                                  std::vector<int>& rValues,
-                                                                  const ProcessInfo& rCurrentProcessInfo )
+void SmallStrainUPwDiffOrderElement::
+    CalculateOnIntegrationPoints( const Variable<int>& rVariable,
+                                  std::vector<int>& rValues,
+                                  const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -874,8 +875,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
     CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                 std::vector<ConstitutiveLaw::Pointer>& rValues,
-                                 const ProcessInfo& rCurrentProcessInfo )
+                                  std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                  const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1215,9 +1216,10 @@ void SmallStrainUPwDiffOrderElement::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
-                                                                  std::vector< Matrix >& rOutput,
-                                                                  const ProcessInfo& rCurrentProcessInfo)
+void SmallStrainUPwDiffOrderElement::
+    CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+                                 std::vector< Matrix >& rOutput,
+                                 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::-CalculateOnIntegrationPoints()") << std::endl;

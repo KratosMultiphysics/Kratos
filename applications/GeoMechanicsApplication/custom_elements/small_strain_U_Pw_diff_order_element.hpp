@@ -114,28 +114,6 @@ public:
                                      std::vector<int>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                     std::vector<double>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                     std::vector<Vector>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
-                                     std::vector<array_1d<double,3>>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                     std::vector<Matrix>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                     std::vector<ConstitutiveLaw::Pointer>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo ) override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void CalculateOnIntegrationPoints(const Variable<double> &rVariable,
                                       std::vector<double> &rOutput,
                                       const ProcessInfo &rCurrentProcessInfo) override;
