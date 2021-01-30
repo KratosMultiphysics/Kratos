@@ -553,7 +553,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
     InitializeNonHistoricalVariables<array_1d<double,3>>(mVisualizationNonHistoricalVectorVariables);
 }
 
-template<const bool IsParallel>
+template<const bool IsDistributed>
 void EmbeddedSkinVisualizationProcess::CopyOriginNodes()
 {
     // Creates a copy of all the origin model part nodes to the visualization model part
@@ -563,7 +563,7 @@ void EmbeddedSkinVisualizationProcess::CopyOriginNodes()
     for (int i_node = 0; i_node < n_nodes; ++i_node){
         auto it_node = orig_nodes_begin + i_node;
         auto p_vis_node = mrVisualizationModelPart.CreateNewNode(it_node->Id(), *it_node);
-        SetPartitionIndexFromOriginNode<IsParallel>(*it_node, *p_vis_node);
+        SetPartitionIndexFromOriginNode<IsDistributed>(*it_node, *p_vis_node);
     }
 }
 
