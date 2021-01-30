@@ -120,7 +120,7 @@ namespace Kratos
                 
               if (r_properties.HasTable(TEMPERATURE, CONDUCTIVITY)) {
                 const auto& r_table = r_properties.GetTable(TEMPERATURE, CONDUCTIVITY);
-                effective_density = r_table.GetValue(temp);
+                effective_conductivity = r_table.GetValue(temp);
               }
               else {
                 effective_conductivity = r_properties[CONDUCTIVITY];
@@ -128,7 +128,7 @@ namespace Kratos
 
               if (r_properties.HasTable(TEMPERATURE, SPECIFIC_HEAT)) {
                 const auto& r_table = r_properties.GetTable(TEMPERATURE, SPECIFIC_HEAT);
-                effective_density = r_table.GetValue(temp);
+                effective_capacity = r_table.GetValue(temp);
               }
               else {
                 effective_capacity = r_properties[SPECIFIC_HEAT];
