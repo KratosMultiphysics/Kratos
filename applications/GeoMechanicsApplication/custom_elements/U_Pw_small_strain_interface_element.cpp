@@ -492,9 +492,9 @@ void UPwSmallStrainInterfaceElement<3,8>::ExtrapolateGPValues (const std::vector
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                std::vector<double>& rValues,
-                                const ProcessInfo& rCurrentProcessInfo)
+    CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                 std::vector<double>& rValues,
+                                 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -565,9 +565,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
-                                std::vector<array_1d<double,3>>& rValues,
-                                const ProcessInfo& rCurrentProcessInfo)
+    CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
+                                 std::vector<array_1d<double,3>>& rValues,
+                                 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -580,7 +580,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         const GeometryType& Geom = this->GetGeometry();
         std::vector<array_1d<double,3>> GPValues(Geom.IntegrationPointsNumber( this->GetIntegrationMethod() ));
 
-        this->CalculateOnIntegrationPoints(rVariable, GPValues, rCurrentProcessInfo);
+        this->CalculateOnLobattoIntegrationPoints(rVariable, GPValues, rCurrentProcessInfo);
 
         //Printed on standard GiD Gauss points
         const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
@@ -610,9 +610,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                std::vector<Matrix>& rValues,
-                                const ProcessInfo& rCurrentProcessInfo)
+    CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                 std::vector<Matrix>& rValues,
+                                 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -623,7 +623,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         const GeometryType& Geom = this->GetGeometry();
         std::vector<Matrix> GPValues(Geom.IntegrationPointsNumber( this->GetIntegrationMethod() ));
 
-        this->CalculateOnIntegrationPoints(rVariable, GPValues, rCurrentProcessInfo);
+        this->CalculateOnLobattoIntegrationPoints(rVariable, GPValues, rCurrentProcessInfo);
 
         //Printed on standard GiD Gauss points
         const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
@@ -655,9 +655,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    CalculateOnIntegrationPoints( const Variable<array_1d<double,3>>& rVariable,
-                                  std::vector<array_1d<double,3>>& rOutput,
-                                  const ProcessInfo& rCurrentProcessInfo )
+    CalculateOnLobattoIntegrationPoints( const Variable<array_1d<double,3>>& rVariable,
+                                         std::vector<array_1d<double,3>>& rOutput,
+                                         const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -889,9 +889,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                 std::vector<Matrix>& rOutput,
-                                 const ProcessInfo& rCurrentProcessInfo )
+    CalculateOnLobattoIntegrationPoints(const Variable<Matrix>& rVariable,
+                                        std::vector<Matrix>& rOutput,
+                                        const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 

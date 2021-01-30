@@ -57,7 +57,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               PropertiesType::Pointer pProperties ) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetDofList(DofsVectorType& rConditionDofList,
                     const ProcessInfo& rCurrentProcessInfo ) const override;

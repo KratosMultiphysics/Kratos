@@ -60,7 +60,7 @@ Condition::Pointer GeneralUPwDiffOrderCondition::
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::Initialize()
+void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

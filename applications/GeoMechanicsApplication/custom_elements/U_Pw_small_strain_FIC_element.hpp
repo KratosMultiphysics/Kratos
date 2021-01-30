@@ -85,8 +85,6 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    //void Initialize() override;
-
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
