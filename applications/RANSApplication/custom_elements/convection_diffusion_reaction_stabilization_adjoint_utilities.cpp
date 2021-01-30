@@ -26,17 +26,17 @@ namespace Kratos
 namespace ConvectionDiffusionReactionStabilizationUtilities
 {
 template <>
-double AdjointUtilities<2, 3>::CalculateElementLengthShapeDerivative(
-    const double ElementLength,
-    const double DetJDerivative)
+double AdjointUtilities<2, 3>::Derivatives::Shape::CalculateElementLengthDerivative(
+    const double DetJDerivative,
+    const double ElementLength)
 {
     return 0.31830988618378353 * DetJDerivative / ElementLength;
 }
 
 template <>
-double AdjointUtilities<3, 4>::CalculateElementLengthShapeDerivative(
-    const double ElementLength,
-    const double DetJDerivative)
+double AdjointUtilities<3, 4>::Derivatives::Shape::CalculateElementLengthDerivative(
+    const double DetJDerivative,
+    const double ElementLength)
 {
     return 0.4714045207910277 * DetJDerivative / std::pow(ElementLength, 2);
 }

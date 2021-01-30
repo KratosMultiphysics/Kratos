@@ -20,6 +20,8 @@
 
 // Project includes
 #include "containers/array_1d.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
 #include "includes/ublas_interface.h"
 
 // Application includes
@@ -40,6 +42,10 @@ public:
     ///@name Public Type Definitions
     ///@{
 
+    using NodeType = Node<3>;
+
+    using GeometryType = Geometry<NodeType>;
+
     using ArrayD = array_1d<double, TDim>;
 
     using VectorN = BoundedVector<double, TNumNodes>;
@@ -47,6 +53,48 @@ public:
     using MatrixNN = BoundedMatrix<double, TNumNodes, TNumNodes>;
 
     using IndexType = std::size_t;
+
+    ///@}
+    ///@name Classes
+    ///@{
+
+    class Derivatives
+    {
+    public:
+        ///@name Classes
+        ///@{
+
+        class NonRelatedVariable
+        {
+        public:
+            ///@name Static Operations
+            ///@{
+
+            static double CalculateElementLengthDerivative(
+                const double DetJDerivative,
+                const double ElementLength)
+            {
+                return 0.0;
+            }
+
+            ///@}
+        };
+
+        class Shape
+        {
+        public:
+            ///@name Static Operations
+            ///@{
+
+            static double CalculateElementLengthDerivative(
+                const double DetJDerivative,
+                const double ElementLength);
+
+            ///@}
+        };
+
+        ///@}
+    };
 
     ///@}
     ///@name Static Operations
@@ -67,10 +115,6 @@ public:
         const double EffectiveKinematicViscosityDerivative,
         const double ReactionTermDerivative,
         const double ElementLengthDerivative);
-
-    static double CalculateElementLengthShapeDerivative(
-        const double ElementLength,
-        const double DetJDerivative);
 
     static double CalculateAbsoluteValueDerivative(
         const double Value,

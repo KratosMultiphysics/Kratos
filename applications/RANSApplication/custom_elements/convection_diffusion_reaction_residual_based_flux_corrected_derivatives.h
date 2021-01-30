@@ -63,8 +63,6 @@ public:
 
     using MatrixNN = BoundedMatrix<double, TNumNodes, TNumNodes>;
 
-    static constexpr IndexType TEquationOffset = TElementDataType::TEquationOffset;
-
     ///@}
     ///@name Static Operations
     ///@{
@@ -85,30 +83,36 @@ public:
     ///@name Classes
     ///@{
 
-    class ResidualContributions
+    class ResidualsContributions
     {
     public:
         ///@name Life Cycle
         ///@{
 
-        ResidualContributions(Data& rData);
+        ResidualsContributions(Data& rData);
 
         ///@}
         ///@name Operations
         ///@{
 
         void Initialize(
-            Vector& rResidual,
+            const Vector& rResidual,
             const ProcessInfo& rProcessInfo);
 
-        void AddResidualContribution(
-            Vector& rResidual,
+        void AddResidualsContributions(
+            VectorN& rResidual,
+            const double W,
+            const Vector& rN,
+            const Matrix& rdNdX);
+
+        void AddDampingMatrixContributions(
+            MatrixNN& rDampingMatrix,
             const double W,
             const Vector& rN,
             const Matrix& rdNdX);
 
         void Finalize(
-            Vector& rResidual,
+            VectorN& rResidual,
             const ProcessInfo& rProcessInfo);
 
         ///@}
@@ -118,12 +122,13 @@ public:
 
         Data& mrData;
         IndexType mBlockSize;
+        MatrixNN mPrimalMatrix;
 
         ///@}
     };
 
     template<class TDerivativesType>
-    class FirstDerivative
+    class VariableDerivatives
     {
     public:
         ///@name Type Definitions
@@ -139,7 +144,7 @@ public:
         ///name@ Life Cycle
         ///@{
 
-        FirstDerivative(
+        VariableDerivatives(
             Data& rData);
 
         ///@}
@@ -147,11 +152,11 @@ public:
         ///@{
 
         void Initialize(
-            Vector& rResidualDerivative,
+            const Vector& rResidualDerivative,
             const ProcessInfo& rProcessInfo);
 
-        void CalculateResidualDerivative(
-            Vector& rResidualDerivative,
+        void CalculateResidualsDerivativeContributions(
+            VectorN& rResidualDerivative,
             const int NodeIndex,
             const int DirectionIndex,
             const double W,
@@ -162,7 +167,7 @@ public:
             const Matrix& rdNdXDerivative);
 
         void Finalize(
-            Vector& rResidualDerivative,
+            VectorN& rResidualDerivative,
             const ProcessInfo& rProcessInfo);
 
         ///@}
@@ -171,20 +176,19 @@ public:
         ///@{
 
         Data& mrData;
-        IndexType mBlockSize;
-        ResidualContributions mResidualWeightDerivativeContributions;
+        ResidualsContributions mResidualWeightDerivativeContributions;
         BoundedVector<MatrixNN, TDerivativesSize> mPrimalMatrixDerivatives;
 
         ///@}
     };
 
-    class SecondDerivative
+    class SecondDerivatives
     {
     public:
         ///@name Life Cycle
         ///@{
 
-        SecondDerivative(
+        SecondDerivatives(
             Data& rData);
 
         ///@}
@@ -192,17 +196,17 @@ public:
         ///@{
 
         void Initialize(
-            Vector& rResidualDerivative,
+            const Vector& rResidualDerivative,
             const ProcessInfo& rProcessInfo);
 
-        void AddResidualDerivativeContributions(
-            Vector& rResidualDerivative,
+        void CalculateResidualsDerivativeContributions(
+            VectorN& rResidualDerivative,
             const double W,
             const Vector& rN,
             const Matrix& rdNdX);
 
         void Finalize(
-            Vector& rResidualDerivative,
+            VectorN& rResidualDerivative,
             const ProcessInfo& rProcessInfo);
 
         ///@}
@@ -230,12 +234,10 @@ public:
         ///@name Operations
         ///@{
 
-        void Initialize(const ProcessInfo& rProcessInfo);
-
         void CalculateGaussPointData(
-            const double W,
             const Vector& rN,
-            const Matrix& rdNdX);
+            const Matrix& rdNdX,
+            const int Step = 0);
 
         ///@}
     private:
@@ -245,14 +247,34 @@ public:
         const Element& mrElement;
         TElementDataType mrElementData;
 
+        // Primal data
+
+        double mStabilizationTau;
+        double mAbsoluteReactionTerm;
+        double mVelocityMagnitude;
+        double mElementLength;
+        double mDeltaTime;
+        double mBossakAlpha;
+        double mBossakGamma;
+        double mDynamicTau;
+        double mPrimalVariableValue;
+        double mPrimalVariableGradientDotVelocity;
+
+        ArrayD mPrimalVariableGradient;
+
+        VectorN mVelocityConvectiveTerms;
+        VectorN mPrimalVariableGradientDotDnDx;
+
+        MatrixNN mdNadNb;
+
         ///@}
         ///@name Private Friends
         ///@{
 
         template<class TDerivativesType>
-        friend class FirstDerivative;
-        friend class SecondDerivative;
-        friend class ResidualContributions;
+        friend class VariableDerivatives;
+        friend class SecondDerivatives;
+        friend class ResidualsContributions;
 
         ///@}
     };

@@ -26,6 +26,7 @@
 #include "includes/ublas_interface.h"
 
 // Application includes
+#include "custom_elements/convection_diffusion_reaction_stabilization_adjoint_utilities.h"
 #include "custom_elements/data_containers/k_epsilon/k_element_data.h"
 #include "custom_elements/data_containers/element_data_derivative.h"
 
@@ -57,6 +58,8 @@ public:
 
     using MatrixDD = BoundedMatrix<double, TDim, TDim>;
 
+    using UtilityDerivatives = typename ConvectionDiffusionReactionStabilizationUtilities::AdjointUtilities<TDim, TNumNodes>::Derivatives;
+
     ///@}
     ///@name Classes
     ///@{
@@ -73,6 +76,8 @@ public:
         using BaseType = ElementDataDerivative<TDim>;
 
         using DataType = Data;
+
+        using UtilitiesDerivative = typename UtilityDerivatives::NonRelatedVariable;
 
         static constexpr unsigned int TDerivativeDimension = TDim;
 
@@ -141,6 +146,8 @@ public:
 
         using DataType = Data;
 
+        using UtilitiesDerivative = typename UtilityDerivatives::NonRelatedVariable;
+
         static constexpr unsigned int TDerivativeDimension = 1;
 
         static constexpr double TSelfWeight = 1.0;
@@ -197,6 +204,8 @@ public:
 
         using DataType = Data;
 
+        using UtilitiesDerivative = typename UtilityDerivatives::NonRelatedVariable;
+
         static constexpr unsigned int TDerivativeDimension = 1;
 
         static constexpr double TSelfWeight = 0.0;
@@ -252,6 +261,8 @@ public:
         using BaseType = ElementDataDerivative<TDim>;
 
         using DataType = Data;
+
+        using UtilitiesDerivative = typename UtilityDerivatives::Shape;
 
         static constexpr unsigned int TDerivativeDimension = TDim;
 
@@ -317,8 +328,6 @@ public:
         ///@{
 
         using BaseType = KElementData<TDim>;
-
-        static constexpr IndexType TEquationOffset = TDim + 1;
 
         ///@}
         ///@name Life Cycle
