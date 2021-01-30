@@ -53,35 +53,35 @@ int QSVMSRFCAdjointElementData<TDim, TNumNodes>::Check(
     const GeometryType& rGeometry,
     const ProcessInfo& rProcessInfo)
 {
-    KRATOS_TRY
+    // KRATOS_TRY
 
-    int value = TResidualDerivatives::Check(rGeometry, rProcessInfo);
+    // int value = TResidualDerivatives::Check(rGeometry, rProcessInfo);
 
-    const auto& dofs_list = GetDofVariablesList();
+    // const auto& dofs_list = GetDofVariablesList();
 
-    for (IndexType c = 0; c < TNumNodes; ++c) {
-        const auto& r_node = rGeometry[c];
+    // for (IndexType c = 0; c < TNumNodes; ++c) {
+    //     const auto& r_node = rGeometry[c];
 
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_1, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_2, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_3, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_SCALAR_1, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(AUX_ADJOINT_FLUID_VECTOR_1, r_node);
+    //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_1, r_node);
+    //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_2, r_node);
+    //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_3, r_node);
+    //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_SCALAR_1, r_node);
+    //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(AUX_ADJOINT_FLUID_VECTOR_1, r_node);
 
-        for (const auto p_variable : dofs_list) {
-            KRATOS_CHECK_DOF_IN_NODE((*p_variable), r_node);
-        }
-    }
+    //     for (const auto p_variable : dofs_list) {
+    //         KRATOS_CHECK_DOF_IN_NODE((*p_variable), r_node);
+    //     }
+    // }
 
-    return value;
+    // return value;
 
-    KRATOS_CATCH("");
+    // KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod QSVMSRFCAdjointElementData<TDim, TNumNodes>::GetIntegrationMethod()
 {
-    return TResidualDerivatives::GetIntegrationMethod();
+    // return TResidualDerivatives::GetIntegrationMethod();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

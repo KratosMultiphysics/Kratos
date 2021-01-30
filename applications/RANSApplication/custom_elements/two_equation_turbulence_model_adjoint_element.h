@@ -82,9 +82,21 @@ public:
 
     using ShapeFunctionDerivativesArrayType = GeometryType::ShapeFunctionsGradientsType;
 
+    using VectorN = BoundedVector<double, TNumNodes>;
+
+    using MatrixND = BoundedMatrix<double, TNumNodes, TDim>;
+
+    using FluidData = typename TAdjointElementData::Fluid;
+
+    using TurbulenceModelEquation1Data = typename TAdjointElementData::TurbulenceModelEquation1;
+
+    using TurbulenceModelEquation2Data = typename TAdjointElementData::TurbulenceModelEquation2;
+
     constexpr static IndexType TBlockSize = TDim + 3;
 
     constexpr static IndexType TElementLocalSize = TBlockSize * TNumNodes;
+
+    constexpr static IndexType TCoordLocalSize = TDim * TNumNodes;
 
     KRATOS_CLASS_POINTER_DEFINITION(TwoEquationTurbulenceModelAdjointElement);
 
@@ -261,28 +273,36 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void AddFluidResidualsContributions(
+        Vector& rResidual,
+        const ProcessInfo& rCurrentProcessInfo);
+
     void AddFluidFirstDerivatives(
-        MatrixType& rLeftHandSideMatrix,
+        MatrixType& rDerivativesMatrix,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddFluidSecondDerivatives(
-        MatrixType& rLeftHandSideMatrix,
+        MatrixType& rDerivativesMatrix,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddFluidShapeDerivatives(
-        Matrix& rOutput,
+        Matrix& rDerivativesMatrix,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void AddTurbulenceResidualsContributions(
+        Vector& rResidual,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddTurbulenceFirstDerivatives(
-        MatrixType& rLeftHandSideMatrix,
+        MatrixType& rDerivativesMatrix,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddTurbulenceSecondDerivatives(
-        MatrixType& rLeftHandSideMatrix,
+        MatrixType& rDerivativesMatrix,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddTurbulenceShapeDerivatives(
-        Matrix& rOutput,
+        Matrix& rDerivativesMatrix,
         const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateGeometryData(
@@ -290,6 +310,28 @@ protected:
         Matrix& rNContainer,
         ShapeFunctionDerivativesArrayType& rDN_DX,
         const GeometryData::IntegrationMethod& rIntegrationMethod) const;
+
+    template<unsigned int TEquationOffset, unsigned int TSize>
+    void AssembleSubVectorToVector(Vector& rOutput, const BoundedVector<double, TSize>& rSubVector)
+    {
+        constexpr IndexType ValueBlockSize = TSize / TNumNodes;
+        for (IndexType i = 0; i < TNumNodes; ++i) {
+            for (IndexType j = 0; j < ValueBlockSize; ++j) {
+                rOutput[i * TBlockSize + j + TEquationOffset] += rSubVector[i * ValueBlockSize + j];
+            }
+        }
+    }
+
+    template<unsigned int TEquationOffset, unsigned int TSize>
+    void AssembleSubVectorToMatrix(Matrix& rOutput, const BoundedVector<double, TSize>& rSubVector, const IndexType Row)
+    {
+        constexpr IndexType ValueBlockSize = TSize / TNumNodes;
+        for (IndexType i = 0; i < TNumNodes; ++i) {
+            for (IndexType j = 0; j < ValueBlockSize; ++j) {
+                rOutput(Row, i * TBlockSize + j + TEquationOffset) += rSubVector[i * ValueBlockSize + j];
+            }
+        }
+    }
 
     ///@}
 };
