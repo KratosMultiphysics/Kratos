@@ -415,9 +415,9 @@ private:
      * @brief Create the visualization model part nodes
      * Copies the non-interface nodes from the origin model part to the visualization one
      * If the simulation is MPI parallel it also copies the PARTITION_INDEX from the origin model part
-     * @tparam IsParallel Bool template argument indicating if the simulation is MPI parallel
+     * @tparam IsDistributed Bool template argument indicating if the simulation is MPI parallel
      */
-    template<const bool IsParallel>
+    template<const bool IsDistributed>
     void CopyOriginNodes();
 
     /**
@@ -518,12 +518,12 @@ private:
      */
     void RemoveVisualizationProperties();
 
-    template<const bool IsParallel>
+    template<const bool IsDistributed>
     static void SetPartitionIndexFromOriginNode(
         const Node<3>& rOriginNode,
         Node<3>& rVisualizationNode);
 
-    template<const bool IsParallel>
+    template<const bool IsDistributed>
     static void SetPartitionIndex(
         const int PartitionIndex,
         Node<3>& rVisualizationNode);
