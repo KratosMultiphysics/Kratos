@@ -306,10 +306,6 @@ void  AddCoSimIOToPython(pybind11::module& m)
     m_co_sim_io.def("ImportMesh", CoSimIO_Wrappers::ImportMesh);
     m_co_sim_io.def("ExportMesh", CoSimIO_Wrappers::ExportMesh);
 
-    //m_co_sim_io.def("ImportData", CoSimIO_Wrappers::SetScalarData);
-    //m_co_sim_io.def("ExportData", CoSimIO_Wrappers::GetScalarData);
-    //m_co_sim_io.def("ImportData", CoSimIO_Wrappers::SetVectorData);
-    //m_co_sim_io.def("ExportData", CoSimIO_Wrappers::GetVectorData;
     m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_ModelPart_Scalar);
     m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_ModelPart_Scalar);
     m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_ModelPart_Vector);
