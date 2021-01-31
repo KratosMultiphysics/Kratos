@@ -168,12 +168,6 @@ public:
         class StateDerivatives
         {
         public:
-            ///@name Type Definitions
-            ///@{
-
-            using SecondDerivatives = typename TResidualsDerivatives::SecondDerivatives;
-
-            ///@}
             ///@name Classes
             ///@{
 
@@ -192,6 +186,20 @@ public:
                 using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::EpsilonDerivative>;
 
                 ///@}
+            };
+
+            class SecondDerivatives
+            {
+            public:
+                ///@name Type Definitions
+                ///@{
+
+                using Data = typename TResidualsDerivatives::Data;
+
+                using TurbulenceModelVariable1 = typename TResidualsDerivatives::SecondDerivatives;
+
+                ///@}
+
             };
 
             ///@}
@@ -239,12 +247,6 @@ public:
         class StateDerivatives
         {
         public:
-            ///@name Type Definitions
-            ///@{
-
-            using SecondDerivatives = typename TResidualsDerivatives::SecondDerivatives;
-
-            ///@}
             ///@name Classes
             ///@{
 
@@ -263,6 +265,20 @@ public:
                 using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::EpsilonDerivative>;
 
                 ///@}
+            };
+
+            class SecondDerivatives
+            {
+            public:
+                ///@name Type Definitions
+                ///@{
+
+                using Data = typename TResidualsDerivatives::Data;
+
+                using TurbulenceModelVariable2 = typename TResidualsDerivatives::SecondDerivatives;
+
+                ///@}
+
             };
 
             ///@}

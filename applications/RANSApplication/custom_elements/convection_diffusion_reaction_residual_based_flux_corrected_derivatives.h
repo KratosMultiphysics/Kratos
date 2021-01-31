@@ -105,12 +105,6 @@ public:
             const Vector& rN,
             const Matrix& rdNdX);
 
-        void AddDampingMatrixContributions(
-            MatrixNN& rDampingMatrix,
-            const double W,
-            const Vector& rN,
-            const Matrix& rdNdX);
-
         void Finalize(
             VectorN& rResidual,
             const ProcessInfo& rProcessInfo);
@@ -168,6 +162,8 @@ public:
 
         void Finalize(
             VectorN& rResidualDerivative,
+            const int NodeIndex,
+            const int DirectionIndex,
             const ProcessInfo& rProcessInfo);
 
         ///@}
@@ -177,7 +173,8 @@ public:
 
         Data& mrData;
         ResidualsContributions mResidualWeightDerivativeContributions;
-        BoundedVector<MatrixNN, TDerivativesSize> mPrimalMatrixDerivatives;
+        BoundedVector<MatrixNN, TDerivativesSize> mPrimalDampingMatrixDerivatives;
+        BoundedVector<double, TDerivativesSize> mScalarMultiplierDerivatives;
 
         ///@}
     };
@@ -201,12 +198,14 @@ public:
 
         void CalculateResidualsDerivativeContributions(
             VectorN& rResidualDerivative,
+            const int NodeIndex,
             const double W,
             const Vector& rN,
             const Matrix& rdNdX);
 
         void Finalize(
             VectorN& rResidualDerivative,
+            const int NodeIndex,
             const ProcessInfo& rProcessInfo);
 
         ///@}
@@ -216,6 +215,8 @@ public:
 
         Data& mrData;
         IndexType mBlockSize;
+
+        BoundedVector<double, TNumNodes> mScalarMultiplierDerivatives;
 
         ///@}
     };
@@ -235,9 +236,18 @@ public:
         ///@{
 
         void CalculateGaussPointData(
+            const double W,
             const Vector& rN,
             const Matrix& rdNdX,
             const int Step = 0);
+
+        void AddDampingMatrixContributions(
+            MatrixNN& rDampingMatrix,
+            const double W,
+            const Vector& rN,
+            const Matrix& rdNdX) const;
+
+        void CalculateAfterGaussPointLoop();
 
         ///@}
     private:
@@ -246,6 +256,7 @@ public:
 
         const Element& mrElement;
         TElementDataType mrElementData;
+        double mNumberOfGaussPoints;
 
         // Primal data
 
@@ -257,15 +268,28 @@ public:
         double mBossakAlpha;
         double mBossakGamma;
         double mDynamicTau;
+        double mPrimalRelaxedVariableRateValue;
         double mPrimalVariableValue;
         double mPrimalVariableGradientDotVelocity;
+        double mScalarMultiplier;
+        double mResidual;
+        double mAbsoluteResidual;
+        double mDiagonalCoefficient;
+        double mLumpedMass;
 
         ArrayD mPrimalVariableGradient;
 
         VectorN mVelocityConvectiveTerms;
         VectorN mPrimalVariableGradientDotDnDx;
+        VectorN mNodalPrimalVariableValues;
+        VectorN mNodalPrimalRelaxedVariableRateValues;
 
         MatrixNN mdNadNb;
+        MatrixNN mPrimalDampingMatrix;
+        MatrixNN mDiscreteDiffusionMatrix;
+
+        double mDiscreteUpwindOperatorCoefficient;
+        double mDiagonalPositivityPreservingCoefficient;
 
         ///@}
         ///@name Private Friends
