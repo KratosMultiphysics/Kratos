@@ -152,8 +152,6 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
 
     AddDampingMatrixContributions(mPrimalDampingMatrix, W, rN, rdNdX);
 
-    mLumpedMass = W * (1.0 / TNumNodes);
-
     mNumberOfGaussPoints += 1.0;
 
     KRATOS_CATCH("");
@@ -257,7 +255,6 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
         // adding LHS terms
         value -= rN[a] * mrData.mPrimalVariableGradientDotVelocity;
         value -= rN[a] * reaction_term * mrData.mPrimalVariableValue;
-
         value -= viscosity * mrData.mPrimalVariableGradientDotDnDx[a];
 
         // adding LHS SUPG stabilization terms
@@ -279,7 +276,9 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
     VectorN& rResidual,
     const ProcessInfo& rProcessInfo)
 {
-    noalias(rResidual) = prod(mrData.mDiscreteDiffusionMatrix, mrData.mNodalPrimalVariableValues) * (mrData.mDiscreteUpwindOperatorCoefficient * mrData.mScalarMultiplier * -1.0);
+    rResidual.clear();
+    noalias(rResidual) -= prod(mrData.mDiscreteDiffusionMatrix, mrData.mNodalPrimalVariableValues) * (mrData.mDiscreteUpwindOperatorCoefficient * mrData.mScalarMultiplier);
+    noalias(rResidual) -= mrData.mNodalPrimalVariableValues * (mrData.mDiagonalPositivityPreservingCoefficient * mrData.mDiagonalCoefficient * mrData.mScalarMultiplier);
 }
 
 /***************************************************************************************************/
@@ -368,12 +367,9 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
     const double velocity_derivative_dot_primal_variable_gradient = inner_prod(velocity_derivative, mrData.mPrimalVariableGradient);
     const double velocity_dot_primal_variable_gradient_derivative = inner_prod(velocity, primal_variable_gradient_derivative);
 
-    const VectorN primal_variable_gradient_derivative_dot_dn_dx = prod(rdNdX, primal_variable_gradient_derivative);
-    const VectorN primal_variable_gradient_dot_dn_dx_derivative = prod(rdNdXDerivative, mrData.mPrimalVariableGradient);
-
     const MatrixNN dn_dx_dot_dn_dx_derivative = prod(rdNdX, trans(rdNdXDerivative));
 
-    MatrixNN& r_primal_matrix_derivative = mPrimalDampingMatrixDerivatives[TDerivativeDimension * NodeIndex + DirectionIndex];
+    MatrixNN& r_primal_damping_matrix_derivative = mPrimalDampingMatrixDerivatives[TDerivativeDimension * NodeIndex + DirectionIndex];
 
     // compute scalar multiplier derivative
     double& r_scalar_multiplier_derivative = mScalarMultiplierDerivatives[TDerivativeDimension * NodeIndex + DirectionIndex];
@@ -426,7 +422,7 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
             value += tau_operator * stabilization_tau_derivative * reaction_term * rN[b];
             value += tau_operator * mrData.mStabilizationTau * reaction_term_derivative * rN[b];
 
-            r_primal_matrix_derivative(a, b) += value * W;
+            r_primal_damping_matrix_derivative(a, b) += value * W;
         }
 
         // compute the residual derivative without discrete upwind operator and positivity preserving
@@ -441,31 +437,6 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
         value += tau_operator * stabilization_tau_derivative * source_term;
         value += tau_operator * mrData.mStabilizationTau * source_term_derivative;
 
-        // adding LHS derivative contributions
-        value -= rN[a] * velocity_derivative_dot_primal_variable_gradient;
-        value -= rN[a] * velocity_dot_primal_variable_gradient_derivative;
-        value -= rN[a] * mrData.mVelocityConvectiveTerms[NodeIndex] * TSelfWeight;
-
-        value -= rN[a] * reaction_term_derivative * mrData.mPrimalVariableValue;
-        value -= rN[a] * reaction_term * rN[NodeIndex] * TSelfWeight;
-
-        value -= viscosity_derivative * mrData.mPrimalVariableGradientDotDnDx[a];
-        value -= viscosity * primal_variable_gradient_derivative_dot_dn_dx[a];
-        value -= viscosity * primal_variable_gradient_dot_dn_dx_derivative[a];
-        value -= viscosity * mrData.mdNadNb(a, NodeIndex) * TSelfWeight;
-
-        // adding LHS SUPG stabilization terms derivatives
-        value -= tau_operator_derivative * mrData.mStabilizationTau * mrData.mPrimalVariableGradientDotVelocity;
-        value -= tau_operator * stabilization_tau_derivative * mrData.mPrimalVariableGradientDotVelocity;
-        value -= tau_operator * mrData.mStabilizationTau * velocity_derivative_dot_primal_variable_gradient;
-        value -= tau_operator * mrData.mStabilizationTau * velocity_dot_primal_variable_gradient_derivative;
-        value -= tau_operator * mrData.mStabilizationTau * mrData.mVelocityConvectiveTerms[NodeIndex] * TSelfWeight;
-
-        value -= tau_operator_derivative * mrData.mStabilizationTau * reaction_term * mrData.mPrimalVariableValue;
-        value -= tau_operator * stabilization_tau_derivative * reaction_term * mrData.mPrimalVariableValue;
-        value -= tau_operator * mrData.mStabilizationTau * reaction_term_derivative * mrData.mPrimalVariableValue;
-        value -= tau_operator * mrData.mStabilizationTau * reaction_term * rN[NodeIndex] * TSelfWeight;
-
         // add mass term derivatives
         value -= tau_operator_derivative * mrData.mStabilizationTau * mrData.mPrimalRelaxedVariableRateValue;
         value -= tau_operator * stabilization_tau_derivative * mrData.mPrimalRelaxedVariableRateValue;
@@ -473,7 +444,11 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
         rResidualDerivative[a] = value * W;
     }
 
-    mrData.AddDampingMatrixContributions(r_primal_matrix_derivative, WDerivative, rN, rdNdX);
+    noalias(rResidualDerivative) -= prod(r_primal_damping_matrix_derivative, mrData.mNodalPrimalVariableValues);
+    // for some reason linking fails if multiplication by 1.0 is removed. Thus, it is kept.
+    noalias(rResidualDerivative) -= column(mrData.mPrimalDampingMatrix, NodeIndex) * (TSelfWeight * 1.0);
+
+    mrData.AddDampingMatrixContributions(r_primal_damping_matrix_derivative, WDerivative, rN, rdNdX);
     mResidualWeightDerivativeContributions.AddResidualsContributions(rResidualDerivative, WDerivative, rN, rdNdX);
 
     KRATOS_CATCH("");

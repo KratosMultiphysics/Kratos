@@ -275,7 +275,6 @@ public:
         double mResidual;
         double mAbsoluteResidual;
         double mDiagonalCoefficient;
-        double mLumpedMass;
 
         ArrayD mPrimalVariableGradient;
 
