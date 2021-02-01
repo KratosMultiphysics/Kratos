@@ -165,7 +165,7 @@ public:
                 noalias(aux_initial_F) = (it_elem->GetGeometry()).GetValue(INITIAL_DEFORMATION_GRADIENT_MATRIX);
                 requires_unique_initial_state = true;
             }
-            if (requires_unique_initial_state = true)
+            if (requires_unique_initial_state)
                 p_initial_state = Kratos::make_intrusive<InitialState>(aux_initial_strain, aux_initial_stress, aux_initial_F);
 
             // Assign the values to the GP of the element

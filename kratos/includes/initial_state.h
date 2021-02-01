@@ -239,7 +239,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
         virtual void PrintInfo(std::ostream& rOStream) const  {rOStream << "InitialState";}
 
         /// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const  {}
+        virtual void PrintData(std::ostream& rOStream) const {}
 
         ///@}
 
