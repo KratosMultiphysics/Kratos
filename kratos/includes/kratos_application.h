@@ -461,6 +461,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // Modeler
     const Modeler mModeler;
     const CadIoModeler mCadIoModeler;
+    const CadTessellationModeler mCadTessellationModeler;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
