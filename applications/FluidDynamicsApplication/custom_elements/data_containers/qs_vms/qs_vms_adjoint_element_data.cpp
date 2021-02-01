@@ -46,18 +46,19 @@ std::vector<const Variable<double>*> GetQSVMSAdjointDofsList<3>()
 } // namespace
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int QSVMSAdjointElementData<TDim, TNumNodes>::Check(
-    const GeometryType& rGeometry,
+void QSVMSAdjointElementData<TDim, TNumNodes>::Check(
+    const Element& rElement,
     const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY
 
-    int value = TResidualDerivatives::Check(rGeometry, rProcessInfo);
+    TResidualsDerivatives::Check(rElement, rProcessInfo);
 
     const auto& dofs_list = GetDofVariablesList();
 
+    const auto& r_geometry = rElement.GetGeometry();
     for (IndexType c = 0; c < TNumNodes; ++c) {
-        const auto& r_node = rGeometry[c];
+        const auto& r_node = r_geometry[c];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_1, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_2, r_node);
@@ -70,15 +71,7 @@ int QSVMSAdjointElementData<TDim, TNumNodes>::Check(
         }
     }
 
-    return value;
-
     KRATOS_CATCH("");
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-GeometryData::IntegrationMethod QSVMSAdjointElementData<TDim, TNumNodes>::GetIntegrationMethod()
-{
-    return TResidualDerivatives::GetIntegrationMethod();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

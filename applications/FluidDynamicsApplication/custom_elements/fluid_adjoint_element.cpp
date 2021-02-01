@@ -185,7 +185,8 @@ Element::Pointer FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Clon
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 int FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    return TAdjointElementData::Check(this->GetGeometry(), rCurrentProcessInfo);
+    TAdjointElementData::Check(*this, rCurrentProcessInfo);
+    return 0;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
@@ -324,14 +325,8 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateLocalSy
     KRATOS_TRY
 
     // Resize and initialize output
-    if (rLeftHandSideMatrix.size1() != TElementLocalSize)
-        rLeftHandSideMatrix.resize(TElementLocalSize, TElementLocalSize, false);
-
-    if (rRightHandSideVector.size() != TElementLocalSize)
-        rRightHandSideVector.resize(TElementLocalSize, false);
-
-    rLeftHandSideMatrix.clear();
-    rRightHandSideVector.clear();
+    if (rLeftHandSideMatrix.size1() != 0)
+        rLeftHandSideMatrix.resize(0, 0, false);
 
     KRATOS_CATCH("");
 }
@@ -341,8 +336,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateLeftHan
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rLeftHandSideMatrix.size1() != TElementLocalSize ||
-        rLeftHandSideMatrix.size2() != TElementLocalSize) {
+    if (rLeftHandSideMatrix.size1() != TElementLocalSize || rLeftHandSideMatrix.size2() != TElementLocalSize) {
         rLeftHandSideMatrix.resize(TElementLocalSize, TElementLocalSize, false);
     }
 
@@ -368,35 +362,12 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateLocalVe
     VectorType &rRightHandSideVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
-    KRATOS_TRY
+    if (rRightHandSideVector.size() != TElementLocalSize)
+        rRightHandSideVector.resize(TElementLocalSize, false);
 
-    Vector gauss_weights;
-    Matrix shape_functions;
-    ShapeFunctionDerivativesArrayType shape_derivatives;
-    this->CalculateGeometryData(gauss_weights, shape_functions,
-                                shape_derivatives, TAdjointElementData::GetIntegrationMethod());
+    rRightHandSideVector.clear();
 
-    typename TAdjointElementData::Primal::Data element_data(*this, *mpFluidConstitutiveLaw);
-    typename TAdjointElementData::Primal::ResidualContributions residual_contributions(element_data);
-
-    residual_contributions.Initialize(rDampMatrix, rCurrentProcessInfo);
-    element_data.Initialize(rCurrentProcessInfo);
-
-    BoundedVector<double, TElementLocalSize> residual;
-    residual.clear();
-
-    for (IndexType g = 0; g < gauss_weights.size(); ++g) {
-        const Vector& N = row(shape_functions, g);
-        const Matrix& dNdX = shape_derivatives[g];
-        const double weight = gauss_weights[g];
-
-        element_data.CalculateGaussPointData(weight, N, dNdX);
-        residual_contributions.AddResidualContribution(residual, weight, N, dNdX);
-    }
-
-    noalias(rRightHandSideVector) = residual;
-
-    KRATOS_CATCH("");
+    AddFluidResidualsContributions(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
@@ -411,8 +382,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateFirstDe
 
     rLeftHandSideMatrix.clear();
 
-    AddVelocityPressureDerivatives<typename TAdjointElementData::StateDerivatives::FirstDerivatives>(
-        rLeftHandSideMatrix, TAdjointElementData::GetIntegrationMethod(), rCurrentProcessInfo);
+    AddFluidFirstDerivatives(rLeftHandSideMatrix, rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
@@ -427,8 +397,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateSecondD
 
     rLeftHandSideMatrix.clear();
 
-    AddVelocityPressureSecondDerivatives<typename TAdjointElementData::StateDerivatives::SecondDerivatives>(
-        rLeftHandSideMatrix, TAdjointElementData::GetIntegrationMethod(), rCurrentProcessInfo);
+    AddFluidSecondDerivatives(rLeftHandSideMatrix, rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
@@ -461,17 +430,12 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateSensiti
     KRATOS_TRY
 
     if (rSensitivityVariable == SHAPE_SENSITIVITY) {
-        using derivatives_type = typename TAdjointElementData::SensitivityDerivatives;
-        constexpr IndexType shape_derivatives_size =
-            TNumNodes * derivatives_type::ShapeSensitivities::TDerivativeDimension;
-
-        if (rOutput.size1() != shape_derivatives_size || rOutput.size2() != TElementLocalSize) {
-            rOutput.resize(shape_derivatives_size, TElementLocalSize, false);
+        if (rOutput.size1() != TCoordsLocalSize || rOutput.size2() != TElementLocalSize) {
+            rOutput.resize(TCoordsLocalSize, TElementLocalSize, false);
         }
 
         rOutput.clear();
-        AddVelocityPressureSensitivityDerivatives<derivatives_type>(
-            rOutput, TAdjointElementData::GetIntegrationMethod(), rCurrentProcessInfo);
+        AddFluidShapeDerivatives(rOutput, rCurrentProcessInfo);
     } else {
         KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
                      << " not supported." << std::endl;
@@ -503,49 +467,77 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::PrintData(std::o
 ///@}
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-template <class TDerivativesType>
-void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddVelocityPressureDerivatives(
-    MatrixType& rLeftHandSideMatrix,
-    const GeometryData::IntegrationMethod& rIntegrationMethod,
+void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidResidualsContributions(
+    VectorType& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    Vector gauss_weights;
-    Matrix shape_functions;
-    ShapeFunctionDerivativesArrayType shape_derivatives;
-    this->CalculateGeometryData(gauss_weights, shape_functions,
-                                shape_derivatives, rIntegrationMethod);
+    const auto& integration_method = TAdjointElementData::TResidualsDerivatives::GetIntegrationMethod();
 
-    typename TDerivativesType::Data element_data(*this, *mpFluidConstitutiveLaw);
-    typename TDerivativesType::Velocity velocity_derivatives(element_data);
-    typename TDerivativesType::Pressure pressure_derivatives(element_data);
+    Vector Ws;
+    Matrix Ns;
+    ShapeFunctionDerivativesArrayType dNdXs;
+    this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
 
-    velocity_derivatives.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
-    pressure_derivatives.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
-    element_data.Initialize(rCurrentProcessInfo);
+    typename TAdjointElementData::Primal::Data element_data(*this, *mpFluidConstitutiveLaw, rCurrentProcessInfo);
+    typename TAdjointElementData::Primal::ResidualsContributions residual_contributions(element_data);
+
+    VectorF residual = ZeroVector(TElementLocalSize);
+
+    for (IndexType g = 0; g < Ws.size(); ++g) {
+        const Vector& N = row(Ns, g);
+        const Matrix& dNdX = dNdXs[g];
+        const double W = Ws[g];
+
+        element_data.CalculateGaussPointData(W, N, dNdX);
+        residual_contributions.AddGaussPointResidualsContributions(residual, W, N, dNdX);
+    }
+
+    AssembleSubVectorToVector(rOutput, residual);
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
+void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidFirstDerivatives(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto& integration_method = TAdjointElementData::TResidualsDerivatives::GetIntegrationMethod();
+
+    Vector Ws;
+    Matrix Ns;
+    ShapeFunctionDerivativesArrayType dNdXs;
+    this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
+
+    using Derivatives = typename TAdjointElementData::StateDerivatives::FirstDerivatives;
+
+    typename Derivatives::Data     element_data(*this, *mpFluidConstitutiveLaw, rCurrentProcessInfo);
+    typename Derivatives::Velocity velocity_derivative(element_data);
+    typename Derivatives::Pressure pressure_derivative(element_data);
 
     BoundedVector<double, TElementLocalSize> residual;
     BoundedMatrix<double, TNumNodes, TDim> dNdXDerivative = ZeroMatrix(TNumNodes, TDim);
 
-    for (IndexType g = 0; g < gauss_weights.size(); ++g) {
-        const Vector& N = row(shape_functions, g);
-        const Matrix& dNdX = shape_derivatives[g];
-        const double weight = gauss_weights[g];
+    for (IndexType g = 0; g < Ws.size(); ++g) {
+        const double W = Ws[g];
+        const Vector& N = row(Ns, g);
+        const Matrix& dNdX = dNdXs[g];
 
-        element_data.CalculateGaussPointData(weight, N, dNdX);
+        element_data.CalculateGaussPointData(W, N, dNdX);
+
+        IndexType row = 0;
         for (IndexType c = 0; c < TNumNodes; ++c) {
-            const IndexType derivative_block = c * TBlockSize;
-
             for (IndexType k = 0; k < TDim; ++k) {
-                velocity_derivatives.CalculateResidualDerivative(
-                    residual, c, k, weight, N, dNdX, 0.0, 0.0, dNdXDerivative);
-                row(rLeftHandSideMatrix, derivative_block + k) += residual;
+                velocity_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, k, W, N, dNdX, 0.0, 0.0, dNdXDerivative);
+                AssembleSubVectorToMatrix(rLeftHandSideMatrix, row++, residual);
             }
 
-            pressure_derivatives.CalculateResidualDerivative(
-                residual, c, 0, weight, N, dNdX, 0.0, 0.0, dNdXDerivative);
-            row(rLeftHandSideMatrix, derivative_block + TDim) += residual;
+            pressure_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 0, W, N, dNdX, 0.0, 0.0, dNdXDerivative);
+            AssembleSubVectorToMatrix(rLeftHandSideMatrix, row++, residual);
         }
     }
 
@@ -553,93 +545,96 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddVelocityPress
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-template <class TDerivativesType>
-void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddVelocityPressureSecondDerivatives(
+void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidSecondDerivatives(
     MatrixType& rLeftHandSideMatrix,
-    const GeometryData::IntegrationMethod& rIntegrationMethod,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    Vector gauss_weights;
-    Matrix shape_functions;
-    ShapeFunctionDerivativesArrayType shape_derivatives;
-    this->CalculateGeometryData(gauss_weights, shape_functions,
-                                shape_derivatives, rIntegrationMethod);
+    const auto& integration_method = TAdjointElementData::TResidualsDerivatives::GetIntegrationMethod();
 
-    TDerivativesType element_data(*this, *mpFluidConstitutiveLaw);
+    Vector Ws;
+    Matrix Ns;
+    ShapeFunctionDerivativesArrayType dNdXs;
+    this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
 
-    element_data.Initialize(rLeftHandSideMatrix, rCurrentProcessInfo);
+    using Derivatives = typename TAdjointElementData::StateDerivatives::SecondDerivatives;
 
-    for (IndexType g = 0; g < gauss_weights.size(); ++g) {
-        const Vector& N = row(shape_functions, g);
-        const Matrix& dNdX = shape_derivatives[g];
-        const double weight = gauss_weights[g];
+    typename Derivatives::Data         element_data(*this, *mpFluidConstitutiveLaw, rCurrentProcessInfo);
+    typename Derivatives::Acceleration acceleration_derivative(element_data);
 
-        element_data.AddResidualDerivativeContributions(rLeftHandSideMatrix,
-                                                        weight, N, dNdX);
+    VectorF residual;
+
+    for (IndexType g = 0; g < Ws.size(); ++g) {
+        const double W = Ws[g];
+        const Vector& N = row(Ns, g);
+        const Matrix& dNdX = dNdXs[g];
+
+        element_data.CalculateGaussPointData(W, N, dNdX);
+
+        IndexType row = 0;
+        for (IndexType c = 0; c < TNumNodes; ++c) {
+            for (IndexType k = 0; k < TDim; ++k) {
+                acceleration_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, k, W, N, dNdX);
+                AssembleSubVectorToMatrix(rLeftHandSideMatrix, row++, residual);
+            }
+
+            // skip derivatives w.r.t. pressure time derivative
+            ++row;
+        }
     }
 
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
-template <class TDerivativesType>
-void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddVelocityPressureSensitivityDerivatives(
+void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidShapeDerivatives(
     Matrix& rOutput,
-    const GeometryData::IntegrationMethod& rIntegrationMethod,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    Vector gauss_weights;
-    Matrix shape_functions;
-    ShapeFunctionDerivativesArrayType shape_derivatives;
-    this->CalculateGeometryData(gauss_weights, shape_functions,
-                                shape_derivatives, rIntegrationMethod);
+    const auto& integration_method = TAdjointElementData::TResidualsDerivatives::GetIntegrationMethod();
 
-    typename TDerivativesType::Data element_data(*this, *mpFluidConstitutiveLaw);
-    typename TDerivativesType::ShapeSensitivities derivatives(element_data);
+    Vector Ws;
+    Matrix Ns;
+    ShapeFunctionDerivativesArrayType dNdXs;
+    this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
 
-    derivatives.Initialize(rOutput, rCurrentProcessInfo);
-    element_data.Initialize(rCurrentProcessInfo);
+    using Derivatives = typename TAdjointElementData::SensitivityDerivatives;
 
-    BoundedVector<double, TElementLocalSize> residual;
-    BoundedMatrix<double, TNumNodes, TDim> dNdXDerivative = ZeroMatrix(TNumNodes, TDim);
+    typename Derivatives::Data  element_data(*this, *mpFluidConstitutiveLaw, rCurrentProcessInfo);
+    typename Derivatives::Shape derivative(element_data);
 
-    for (IndexType g = 0; g < gauss_weights.size(); ++g) {
-        const Vector& N = row(shape_functions, g);
-        const Matrix& dNdX = shape_derivatives[g];
-        const double weight = gauss_weights[g];
+    VectorF residual;
 
-        element_data.CalculateGaussPointData(weight, N, dNdX);
+    for (IndexType g = 0; g < Ws.size(); ++g) {
+        const Vector& N = row(Ns, g);
+        const Matrix& dNdX = dNdXs[g];
+        const double W = Ws[g];
+
+        element_data.CalculateGaussPointData(W, N, dNdX);
 
         Geometry<Point>::JacobiansType J;
-        this->GetGeometry().Jacobian(J, rIntegrationMethod);
-        const auto& DN_De =
-            this->GetGeometry().ShapeFunctionsLocalGradients(rIntegrationMethod);
+        this->GetGeometry().Jacobian(J, integration_method);
+        const auto& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(integration_method);
 
-        GeometricalSensitivityUtility::ShapeFunctionsGradientType dNdX_deriv;
+        GeometricalSensitivityUtility::ShapeFunctionsGradientType dNdX_derivative;
         const Matrix& rJ = J[g];
         const Matrix& rDN_De = DN_De[g];
         const double inv_detJ = 1.0 / MathUtils<double>::DetMat(rJ);
         GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
 
         ShapeParameter deriv;
+        IndexType row = 0;
         for (deriv.NodeIndex = 0; deriv.NodeIndex < TNumNodes; ++deriv.NodeIndex) {
-            const IndexType derivative_row =
-                deriv.NodeIndex * TDerivativesType::ShapeSensitivities::TDerivativeDimension;
-            for (deriv.Direction = 0;
-                 deriv.Direction < TDerivativesType::ShapeSensitivities::TDerivativeDimension;
-                 ++deriv.Direction) {
-                double detJ_deriv;
-                geom_sensitivity.CalculateSensitivity(deriv, detJ_deriv, dNdX_deriv);
-                const double weight_deriv = detJ_deriv * inv_detJ * weight;
+            for (deriv.Direction = 0; deriv.Direction < TDim; ++deriv.Direction) {
+                double detJ_derivative;
+                geom_sensitivity.CalculateSensitivity(deriv, detJ_derivative, dNdX_derivative);
+                const double W_derivative = detJ_derivative * inv_detJ * W;
 
-                derivatives.CalculateResidualDerivative(
-                    residual, deriv.NodeIndex, deriv.Direction, weight, N, dNdX,
-                    weight_deriv, detJ_deriv, dNdX_deriv);
-                row(rOutput, derivative_row + deriv.Direction) += residual;
+                derivative.CalculateGaussPointResidualsDerivativeContributions(residual, deriv.NodeIndex, deriv.Direction, W, N, dNdX, W_derivative, detJ_derivative, dNdX_derivative);
+                AssembleSubVectorToMatrix(rOutput, row++, residual);
             }
         }
     }

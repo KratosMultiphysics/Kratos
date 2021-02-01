@@ -45,19 +45,15 @@ public:
 
     using GeometryType = Geometry<NodeType>;
 
-    using TResidualDerivatives = QSVMSResidualDerivatives<TDim, TNumNodes>;
-
-    static constexpr IndexType TBlockSize = TResidualDerivatives::TBlockSize;
+    using TResidualsDerivatives = QSVMSResidualDerivatives<TDim, TNumNodes>;
 
     ///@}
     ///@name Static Operations
     ///@{
 
-    static int Check(
-        const GeometryType& rGeometry,
+    static void Check(
+        const Element& rElement,
         const ProcessInfo& rProcessInfo);
-
-    static GeometryData::IntegrationMethod GetIntegrationMethod();
 
     static std::vector<const Variable<double>*> GetDofVariablesList();
 
@@ -71,9 +67,9 @@ public:
         ///@name Type Definitions
         ///@{
 
-        using Data = typename TResidualDerivatives::Data;
+        using Data = typename TResidualsDerivatives::Data;
 
-        using ResidualContributions = typename TResidualDerivatives::ResidualContributions;
+        using ResidualsContributions = typename TResidualsDerivatives::ResidualsContributions;
 
         ///@}
     };
@@ -84,7 +80,19 @@ public:
         ///@name Type Definitions
         ///@{
 
-        using SecondDerivatives = typename TResidualDerivatives::SecondDerivatives;
+        class SecondDerivatives
+        {
+        public:
+            ///@name Type Definitions
+            ///@{
+
+            using Data = typename TResidualsDerivatives::Data;
+
+            using Acceleration = typename TResidualsDerivatives::SecondDerivatives;
+
+            ///@}
+
+        };
 
         ///@}
         ///@name Classes
@@ -96,11 +104,11 @@ public:
             ///@name Type Definitions
             ///@{
 
-            using Data = typename TResidualDerivatives::Data;
+            using Data = typename TResidualsDerivatives::Data;
 
-            using Velocity = typename TResidualDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>, 0>;
+            using Velocity = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>>;
 
-            using Pressure = typename TResidualDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template PressureDerivative<TNumNodes>, 0>;
+            using Pressure = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template PressureDerivative<TNumNodes>>;
 
             ///@}
         };
@@ -114,9 +122,9 @@ public:
         ///@name Type Definitions
         ///@{
 
-        using Data = typename TResidualDerivatives::Data;
+        using Data = typename TResidualsDerivatives::Data;
 
-        using ShapeSensitivities = typename TResidualDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>, 0>;
+        using Shape = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>>;
 
         ///@}
     };
