@@ -1,6 +1,5 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.process_factory import KratosProcessFactory
 import KratosMultiphysics.StatisticsApplication as KratosStats
 
@@ -45,18 +44,19 @@ class SpatialStatisticsTestCase(statistics_test_case.StatisticsTestCase):
         self.__TestMethod(settings)
 
     def __TestMethod(self, settings):
-        factory = KratosProcessFactory(self.current_model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        InitializeProcesses(self)
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            factory = KratosProcessFactory(self.current_model)
+            self.process_list = factory.ConstructListOfProcesses(settings)
+            InitializeProcesses(self)
 
-        for step in range(0, 12, 2):
-            self.model_part.CloneTimeStep(step)
-            self.model_part.ProcessInfo[Kratos.STEP] = step
-            InitializeModelPartVariables(self.model_part, False)
-            ExecuteProcessFinalizeSolutionStep(self)
+            for step in range(0, 12, 2):
+                self.model_part.CloneTimeStep(step)
+                self.model_part.ProcessInfo[Kratos.STEP] = step
+                InitializeModelPartVariables(self.model_part, False)
+                ExecuteProcessFinalizeSolutionStep(self)
 
-        for process in self.process_list:
-            process.ExecuteFinalize()
+            for process in self.process_list:
+                process.ExecuteFinalize()
 
     @staticmethod
     def __GetDefaultParameters(container_name):
@@ -159,7 +159,7 @@ class SpatialStatisticsTestCase(statistics_test_case.StatisticsTestCase):
                         "write_time_stamp"       : false,
                         "output_file_settings"   : {
                             "file_name"  : "<model_part_name>_<container>_<norm_type>_<method_name>.dat",
-                            "folder_name": "spatial_statistics_process",
+                            "output_path": "spatial_statistics_process",
                             "write_buffer_size" : -1
                         }
                     }

@@ -765,7 +765,7 @@ private:
         CalculateBossakCoefficients();
 
         // Allocate auxiliary memory
-        const std::size_t num_threads = OpenMPUtils::GetNumThreads();
+        const std::size_t num_threads = ParallelUtilities::GetNumThreads();
 
         mVector.v.resize(num_threads);
         mVector.a.resize(num_threads);

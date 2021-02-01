@@ -27,7 +27,8 @@
         },
         "model_import_settings" : {
             "input_type"     : "mdpa",
-            "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
+            "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test",
+            "partition_in_memory" : true
         },
         "material_import_settings": {
             "materials_filename": "AdjointVMSSensitivity2DTest/cylinder_test_materials.json"
