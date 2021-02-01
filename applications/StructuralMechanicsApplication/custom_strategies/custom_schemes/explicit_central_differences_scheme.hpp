@@ -377,7 +377,7 @@ public:
                 const IndexType initial_j = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
 
                 for (IndexType kk = initial_j; kk < 3; ++kk) {
-                    if (nodal_inertia[kk] > numerical_limit)
+                    if (r_nodal_inertia[kk] > numerical_limit)
                         r_current_angular_acceleration[kk] = (r_current_residual_moment[kk] - r_nodal_rotational_damping[kk] * r_current_angular_velocity[kk]) / r_nodal_inertia[kk];
                     else
                         r_current_angular_acceleration[kk] = 0.0;
