@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -40,7 +38,7 @@ class ModalDerivativeSolver(MechanicalSolver):
     def __init__(self, model, custom_settings):
         """Initializes the solver."""
         # Construct the base solver.
-        super(ModalDerivativeSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[ModalDerivativeSolver]:: ", "Construction finished")
 
     @classmethod
@@ -53,7 +51,7 @@ class ModalDerivativeSolver(MechanicalSolver):
             "mass_orthonormalize"           : true,
             "rom_parameters_filename"       : "RomParameters.json"
         }""")
-        this_defaults.AddMissingParameters(super(ModalDerivativeSolver, cls).GetDefaultParameters())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def _create_solution_scheme(self):
@@ -61,11 +59,11 @@ class ModalDerivativeSolver(MechanicalSolver):
 
     def _create_builder_and_solver(self):
 
-        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool() is False:
+        if not self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             err_msg  = 'Modal derivative analysis is only available with block builder and solver!'
             raise Exception(err_msg)
 
-        return super(ModalDerivativeSolver, self)._create_builder_and_solver()
+        return super()._create_builder_and_solver()
 
     def _create_mechanical_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()

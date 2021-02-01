@@ -128,10 +128,6 @@ void VtkRomBasisOutput::WriteVectorRomBasisVariable(
     const std::string& rLabel,
     std::ofstream& rFileStream) const
 {
-    if (rNodes.size() == 0) {
-        KRATOS_WARNING("VtkRomBasisOutput") << "Empty container!" << std::endl;
-        return;
-    }
 
     const int res_size = static_cast<int>((rNodes.begin()->FastGetSolutionStepValue(rVariable)).size());
 
