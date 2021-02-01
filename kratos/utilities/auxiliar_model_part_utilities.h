@@ -286,12 +286,11 @@ public:
 
     /// To Export a Scalar data (Double/int/...)
     template<typename TDataType>
-    std::vector<TDataType> GetScalarData(
+    void GetScalarData(
         const Variable<TDataType>& rVariable,
-        const DataLocation DataLoc)
+        const DataLocation DataLoc,
+        std::vector<TDataType>& data) const
     {
-        std::vector<TDataType> data;
-
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
@@ -331,20 +330,16 @@ public:
             KRATOS_ERROR << "unknown Datalocation" << std::endl;
             break;
         }
-
         }
-
-        return data;
     }
 
     /// To Export a Vector data (std::vector/array/..)
     template<class TDataType>
-    std::vector<double> GetVectorData(
+    void GetVectorData(
         const Variable<TDataType>& rVariable,
-        const DataLocation DataLoc)
+        const DataLocation DataLoc,
+        std::vector<double>& data) const
     {
-        std::vector<double> data;
-
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
@@ -355,7 +350,7 @@ public:
 
             for(const auto& r_node : mrModelPart.Nodes()){
                 const auto& r_val = r_node.FastGetSolutionStepValue(rVariable);
-                for(int dim = 0 ; dim < TSize ; dim++){
+                for(std::size_t dim = 0 ; dim < TSize ; dim++){
                     data[counter++] = r_val[dim];
                 }
             }
@@ -384,7 +379,7 @@ public:
             data.resize(TSize);
             IndexType counter = 0;
             auto& r_val = mrModelPart[rVariable];
-            for(int dim = 0 ; dim < TSize ; dim++){
+            for(std::size_t dim = 0 ; dim < TSize ; dim++){
                     data[counter++] = r_val[dim];
                 }
             break;
@@ -394,7 +389,7 @@ public:
             data.resize(TSize);
             IndexType counter = 0;
             auto& r_val = mrModelPart.GetProcessInfo()[rVariable];
-            for(int dim = 0 ; dim < TSize ; dim++){
+            for(std::size_t dim = 0 ; dim < TSize ; dim++){
                     data[counter++] = r_val[dim];
                 }
             break;
@@ -403,9 +398,7 @@ public:
             KRATOS_ERROR << "unknown Datalocation" << std::endl;
             break;
         }
-
         }
-        return data;
     }
 
     /// To Import a Scalar data (Double/int/...)
@@ -475,7 +468,7 @@ public:
 
                 KRATOS_DEBUG_ERROR_IF(r_val.size() != size) << "mismatch in size!" << std::endl;
 
-                for(int dim = 0 ; dim < size ; dim++){
+                for(std::size_t dim = 0 ; dim < size ; dim++){
                     r_val[dim] = rData[counter++];
                 }
             }
@@ -500,7 +493,7 @@ public:
             const std::size_t size = mrModelPart[rVariable].size();
             IndexType counter = 0;
             auto& r_val = mrModelPart[rVariable];
-                for(int dim = 0 ; dim < size ; dim++){
+                for(std::size_t dim = 0 ; dim < size ; dim++){
                     r_val[dim] = rData[counter++];
                 }
             break;
@@ -509,7 +502,7 @@ public:
             const std::size_t size = mrModelPart.GetProcessInfo()[rVariable].size();
             IndexType counter = 0;
             auto& r_val = mrModelPart.GetProcessInfo()[rVariable];
-            for(int dim = 0 ; dim < size ; dim++){
+            for(std::size_t dim = 0 ; dim < size ; dim++){
                     r_val[dim] = rData[counter++];
                 }
             break;
@@ -589,7 +582,7 @@ private:
     ///@{
 
     template<typename TDataType, class TContainerType>
-    void GetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, std::vector<TDataType>& data)
+    void GetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, std::vector<TDataType>& data) const
     {
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
@@ -598,12 +591,12 @@ private:
     }
 
     template<typename TDataType, class TContainerType>
-    void GetVectorDataFromContainer(TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, std::vector<double>& data)
+    void GetVectorDataFromContainer(TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, std::vector<double>& data) const
     {
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
             const auto& r_val = r_entity.GetValue(rVariable);
-            for(int dim = 0 ; dim < TSize ; dim++){
+            for(std::size_t dim = 0 ; dim < TSize ; dim++){
                 data[(TSize*index) + dim] = r_val[dim];
             }
         });
@@ -625,7 +618,7 @@ private:
             auto& r_entity = *(rContainer.begin() + index);
             TDataType aux;
             KRATOS_DEBUG_ERROR_IF(aux.size() != size) << "mismatch in size!" << std::endl;
-            for(int dim = 0 ; dim < size ; dim++){
+            for(std::size_t dim = 0 ; dim < size ; dim++){
                 aux[dim] = rData[(size*index) + dim];
             }
             r_entity.SetValue(rVariable, aux);

@@ -236,9 +236,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Node_historic
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
+    std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::NodeHistorical, this_model_part, 1);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::NodeHistorical);
+    AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::NodeHistorical, data);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
@@ -248,9 +249,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Node_Nonhisto
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
+    std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::NodeNonHistorical, this_model_part, 1);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::NodeNonHistorical);
+    AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::NodeNonHistorical, data);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
@@ -260,9 +262,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Element, Krat
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
+    std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::Element, this_model_part, 1);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::Element);
+    AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::Element, data);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
@@ -272,9 +275,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Condition, Kr
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
+    std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::Condition, this_model_part, 1);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::Condition);
+    AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::Condition, data);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
@@ -284,9 +288,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_ModelPart, Kr
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
+    std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::ModelPart, this_model_part, 1);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::ModelPart);
+    AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::ModelPart, data);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
@@ -296,9 +301,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_ProcessInfo, 
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
+    std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::ProcessInfo, this_model_part, 1);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::ProcessInfo);
+    AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::ProcessInfo, data);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
@@ -308,9 +314,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Node_historic
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
+    std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::NodeHistorical, this_model_part, 3);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::NodeHistorical);
+    AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::NodeHistorical, data);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
@@ -320,9 +327,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Node_Nonhisto
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
+    std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::NodeNonHistorical, this_model_part, 3);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::NodeNonHistorical);
+    AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::NodeNonHistorical, data);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
@@ -332,9 +340,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Element, Krat
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
+    std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::Element, this_model_part, 3);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::Element);
+    AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::Element, data);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
@@ -344,9 +353,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Condition, Kr
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
+    std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::Condition, this_model_part, 3);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::Condition);
+    AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::Condition, data);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
@@ -356,9 +366,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_ModelPart, Kr
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
+    std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::ModelPart, this_model_part, 3);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::ModelPart);
+    AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::ModelPart, data);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
@@ -368,9 +379,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_ProcessInfo, 
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
     Initialise(this_model_part);
+    std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::ProcessInfo, this_model_part, 3);
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::ProcessInfo);
+    AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::ProcessInfo, data);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
