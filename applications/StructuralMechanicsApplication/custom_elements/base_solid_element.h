@@ -376,7 +376,7 @@ public:
     /**
      * @brief Calculate a boolean Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -388,7 +388,7 @@ public:
     /**
      * @brief Calculate a integer Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -400,7 +400,7 @@ public:
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -412,7 +412,7 @@ public:
     /**
      * @brief Calculate a 3 components array_1d on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -424,7 +424,7 @@ public:
     /**
      * @brief Calculate a 6 components array_1d on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -436,7 +436,7 @@ public:
     /**
      * @brief Calculate a Vector Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -448,7 +448,7 @@ public:
     /**
      * @brief Calculate a Matrix Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -913,7 +913,7 @@ private:
      * @brief This method gets a value directly in the CL
      * @details Avoids code repetition
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @tparam TType The type considered
      */
     template<class TType>
@@ -933,7 +933,7 @@ private:
      * @brief This method computes directly in the CL
      * @details Avoids code repetition
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      * @tparam TType The type considered
      */
