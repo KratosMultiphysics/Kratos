@@ -97,7 +97,7 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
     r_visualization_model_part.SetCommunicator(r_origin_model_part.pGetCommunicator());
 
     // If MPI, add the PARTITION_INDEX variable to the visualization model part variables
-    if (r_visualization_model_part.GetCommunicator().IsDistributed()) {
+    if (r_visualization_model_part.IsDistributed()) {
         r_visualization_variables_list.Add(PARTITION_INDEX);
     }
 
