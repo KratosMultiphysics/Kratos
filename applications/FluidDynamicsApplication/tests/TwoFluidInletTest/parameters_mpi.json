@@ -14,6 +14,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "TwoFluidInletTest/test_inlet"
         },
+        "material_import_settings": {
+            "materials_filename": "TwoFluidInletTest/materials.json"
+        },
 		"maximum_iterations"			: 3,
     	"formulation": {
         	"dynamic_tau": 1.0
@@ -63,16 +66,12 @@
                 "inlet_transition_radius": 0.5
             },
             "fluid_1_settings" : {
-                "model_part_name": "fluid_1_inlet",
-                "variable_name": "VELOCITY",
                 "modulus": "2.0*z",
                 "constrained": true,
                 "direction": [1.0,0.0,0.0],
                 "interval": [0.0,"End"]
             },
             "fluid_2_settings" : {
-                "model_part_name": "fluid_2_inlet",
-                "variable_name": "VELOCITY",
                 "modulus": 0.1,
                 "constrained": true,
                 "direction": [1.0,0.0,0.0],

@@ -40,6 +40,10 @@ class backward_coupling_single_particle_no_time_filter(BackwardCouplingTF.TestFa
      file_name = "backward_coupling_tests/cube_single_particle"
      file_parameters = "backward_coupling_tests/ProjectParametersCubeNoTimeFilter.json"
 
+class backward_coupling_two_balls_periodic_no_time_filter(BackwardCouplingTF.TestFactory):
+     file_name = "backward_coupling_tests/cube_two_balls_periodic"
+     file_parameters = "backward_coupling_tests/ProjectParametersCubeTwoBallsPeriodic.json"
+
 if candelier_imports_available:
      class candelier_no_history_test(CandelierTF.TestFactory):
           file_name = "candelier_tests/candelier"
@@ -72,6 +76,10 @@ class fluid_dem_coupling_one_way_test(FDEMTF.TestFactory):
 class CFD_DEM_two_way_test(FDEMTF.TestFactory):
      file_name = "CFD_DEM_two_way_tests/Two_way_testFluid"
      file_parameters = "CFD_DEM_two_way_tests/ProjectParameters.json"
+
+class CFD_DEM_two_way_test_DVMS(FDEMTF.TestFactory):
+     file_name = "CFD_DEM_two_way_tests/Two_way_testFluid_DVMS"
+     file_parameters = "CFD_DEM_two_way_tests/ProjectParameters_DVMS.json"
 
 available_tests = []
 available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]

@@ -281,6 +281,20 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Returns the polynomial degree of the parent geometry
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpGeometryParent)
+            << "Trying to call PolynomialDegree(LocalDirectionIndex) from quadrature point. "
+            << "Pointer to parent is not assigned." << std::endl;
+
+        return mpGeometryParent->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
     ///@name Coordinates
     ///@{
 
@@ -452,7 +466,7 @@ private:
 
     // quatrature point can be related to a parent geometry. To keep the connection,
     // this geometry is related to the integration point.
-    GeometryType* mpGeometryParent;
+    GeometryType* mpGeometryParent = nullptr;
 
     ///@}
     ///@name Serialization

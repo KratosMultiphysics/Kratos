@@ -27,7 +27,8 @@
         },
         "model_import_settings" : {
             "input_type"     : "mdpa",
-            "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
+            "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test",
+            "partition_in_memory" : true
         },
         "material_import_settings": {
             "materials_filename": "AdjointVMSSensitivity2DTest/cylinder_test_materials.json"
@@ -127,7 +128,7 @@
                 "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "mpi_cylinder_test_adjoint_probe1.dat",
-                    "folder_name": "AdjointVMSSensitivity2DTest",
+                    "output_path": "AdjointVMSSensitivity2DTest",
                     "write_buffer_size" : 1
                 },
                 "output_variables" : ["ADJOINT_FLUID_VECTOR_1_X", "ADJOINT_FLUID_VECTOR_1_Y"]
@@ -142,7 +143,7 @@
                 "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "mpi_cylinder_test_adjoint_probe2.dat",
-                    "folder_name": "AdjointVMSSensitivity2DTest",
+                    "output_path": "AdjointVMSSensitivity2DTest",
                     "write_buffer_size" : 1
                 },
                 "output_variables" : ["ADJOINT_FLUID_SCALAR_1"]
@@ -157,7 +158,7 @@
                 "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "mpi_cylinder_test_adjoint_probe3.dat",
-                    "folder_name": "AdjointVMSSensitivity2DTest",
+                    "output_path": "AdjointVMSSensitivity2DTest",
                     "write_buffer_size" : 1
                 },
                 "output_variables" : ["SHAPE_SENSITIVITY_X", "SHAPE_SENSITIVITY_Y"]

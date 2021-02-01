@@ -125,7 +125,12 @@ if(GIT_FOUND)
     COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
     OUTPUT_VARIABLE KratosMultiphysics_SHA1_NUMBER
     OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE SHA1_NOT_FOUND
   )
+  if(SHA1_NOT_FOUND)
+    message("Git did not find the SHA1 number. It will be set to 0.")
+    set (KratosMultiphysics_SHA1_NUMBER 0)
+  endif(SHA1_NOT_FOUND)
 else(GIT_FOUND)
   message("Git was not found on your system. SHA1 number will be set to 0.")
   set (KratosMultiphysics_SHA1_NUMBER 0)
@@ -296,14 +301,18 @@ if(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
 endif(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
 
 if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
-  message("Using OpenMP for shared memory parallelization")
-  add_definitions( -DKRATOS_SMP_OPENMP )
-
 	find_package(OpenMP)
 	if (OPENMP_FOUND)
+    message("Using OpenMP for shared memory parallelization")
+    add_definitions( -DKRATOS_SMP_OPENMP )
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+  else (OPENMP_FOUND)
+    message(FATAL_ERROR "OpenMP could not be found!")
+    # fallback solution => in future once better supported we can use the C++11 based parallelization instead
+    message("OpenMP could not be found, disabling shared memory parallelization!")
+    add_definitions( -DKRATOS_SMP_NONE )
 	endif (OPENMP_FOUND)
 
 elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11")

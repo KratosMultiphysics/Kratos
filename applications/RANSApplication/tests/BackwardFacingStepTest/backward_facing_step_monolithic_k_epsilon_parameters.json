@@ -57,8 +57,11 @@
                 },
                 "move_mesh_strategy": 0,
                 "move_mesh_flag": false,
-                "oss_switch": 0,
-                "dynamic_tau": 1.0
+                "flow_solver_formulation": {
+                    "element_type": "<FLOW_SOLVER_FORMULATION>",
+                    "use_orthogonal_subscales": false,
+                    "dynamic_tau": 1.0
+                }
             },
             "k_epsilon_solver_settings": {
                 "stabilization_method": "<STABILIZATION_METHOD>",
@@ -106,16 +109,6 @@
                     "model_part_name": "FluidModelPart",
                     "variable_name": "TURBULENT_KINETIC_ENERGY",
                     "value": 6.1e-4
-                }
-            },
-            {
-                "python_module": "process_factory",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "ApplyConstantScalarValueProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "variable_name": "KINEMATIC_VISCOSITY",
-                    "value": 100.0
                 }
             },
             {
@@ -260,7 +253,7 @@
                         "TURBULENT_ENERGY_DISSIPATION_RATE",
                         "TURBULENT_VISCOSITY"
                     ],
-                    "input_file_name": "backward_facing_step_monolithic_k_epsilon_flow_field_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_test_results.json",
+                    "input_file_name": "backward_facing_step_monolithic_k_epsilon_flow_field_<FLOW_SOLVER_FORMULATION>_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_test_results.json",
                     "model_part_name": "FluidModelPart.Parts_fluid",
                     "tolerance": 1e-9,
                     "relative_tolerance": 1e-12,
@@ -284,7 +277,7 @@
                     "TURBULENT_ENERGY_DISSIPATION_RATE",
                     "TURBULENT_VISCOSITY"
                 ],
-                "input_file_name": "backward_facing_step_monolithic_k_epsilon_flow_field_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_test_results.json",
+                "input_file_name": "backward_facing_step_monolithic_k_epsilon_flow_field_<FLOW_SOLVER_FORMULATION>_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_test_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "tolerance": 1e-9,
                 "relative_tolerance": 1e-12,
@@ -305,7 +298,7 @@
                     "TURBULENT_ENERGY_DISSIPATION_RATE",
                     "TURBULENT_VISCOSITY"
                 ],
-                "output_file_name": "backward_facing_step_monolithic_k_epsilon_flow_field_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_test_results.json",
+                "output_file_name": "backward_facing_step_monolithic_k_epsilon_flow_field_<FLOW_SOLVER_FORMULATION>_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_test_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "time_frequency": -2
             }

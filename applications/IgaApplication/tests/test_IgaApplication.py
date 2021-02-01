@@ -13,6 +13,8 @@ from iga_test_factory import LinearBeamShell3pTest as LinearBeamShell3pTest
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
+# Nurbs Geometry tests
+from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -31,7 +33,8 @@ def AssembleTestSuites():
         SinglePatchTest,
         ScordelisRoofShell3pTest,
         LinearBeamShell3pTest,
-        TTestModelers
+        TTestModelers,
+        TTestNurbsVolumeElements
         ]))
 
     nightSuite = suites['nightly']

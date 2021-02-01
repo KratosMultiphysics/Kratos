@@ -24,7 +24,6 @@
 #include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/post_process_utilities.h"
 #include "custom_utilities/bfecc_convection_utility.h"
-#include "custom_utilities/algebraic_flux_correction_utility.h"
 
 
 namespace Kratos
@@ -65,9 +64,9 @@ namespace Python
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
         .def("IdentifyWetDomain", &ShallowWaterUtilities::IdentifyWetDomain)
         .def("ResetDryDomain", &ShallowWaterUtilities::ResetDryDomain)
-        .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::NodesContainerType>)
-        .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ElementsContainerType>)
-        .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ConditionsContainerType>)
+        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ModelPart::NodesContainerType>)
+        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ModelPart::ElementsContainerType>)
+        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ModelPart::ConditionsContainerType>)
         .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
@@ -109,13 +108,6 @@ namespace Python
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
         ;
 
-    py::class_<AlgebraicFluxCorrectionUtility>(m,"AlgebraicFluxCorrectionUtility")
-        .def(py::init<ModelPart&, Parameters>())
-        .def("InitializeCorrection", &AlgebraicFluxCorrectionUtility::InitializeCorrection)
-        .def("GetHighOrderValues", &AlgebraicFluxCorrectionUtility::GetHighOrderValues)
-        .def("GetLowOrderValues", &AlgebraicFluxCorrectionUtility::GetLowOrderValues)
-        .def("ApplyCorrection", &AlgebraicFluxCorrectionUtility::ApplyCorrection)
-        ;
   }
 
 }  // namespace Python.
