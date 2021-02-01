@@ -545,9 +545,9 @@ public:
     /**
      * @return The initial state of strains/stresses/F
      */
-    void SetInitialState(InitialState& rInitialState)
+    void SetpInitialState(InitialState::Pointer pInitialState)
     {
-        mpInitialState = Kratos::make_shared<InitialState>(rInitialState);
+        mpInitialState = pInitialState;
     }
 
     /**

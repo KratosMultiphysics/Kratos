@@ -47,7 +47,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
         enum class InitialImposingType {StrainOnly = 0, StressOnly = 1, DeformationGradientOnly = 2, StrainAndStress = 3, DeformationGradientAndStress = 4};
 
         /// Pointer definition of NodeSearchUtility
-        KRATOS_CLASS_POINTER_DEFINITION(InitialState);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(InitialState);
 
         ///@}
         ///@name Life Cycle
@@ -152,6 +152,14 @@ class KRATOS_API(KRATOS_CORE) InitialState
         ///@}
         ///@name Operations
         ///@{
+        
+        //*********************************************
+        //public API of intrusive_ptr
+        unsigned int use_count() const noexcept
+        {
+            return mReferenceCounter;
+        }
+        //*********************************************
 
         /**
          * @brief This method sets the initial strain vector
@@ -242,6 +250,24 @@ class KRATOS_API(KRATOS_CORE) InitialState
         Vector mInitialStrainVector;
         Vector mInitialStressVector;
         Matrix mInitialDeformationGradientMatrix;
+
+
+    //*********************************************
+        //this block is needed for refcounting
+        mutable std::atomic<int> mReferenceCounter;
+        friend void intrusive_ptr_add_ref(const GeometricalObject* x)
+        {
+            x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
+        }
+
+        friend void intrusive_ptr_release(const GeometricalObject* x)
+        {
+            if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
+                std::atomic_thread_fence(std::memory_order_acquire);
+                delete x;
+            }
+        }
+    //*********************************************
 
 }; // class
 ///@}
