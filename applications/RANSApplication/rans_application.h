@@ -63,8 +63,12 @@
 #include "custom_conditions/data_containers/k_omega/omega_u_based_wall_condition_data.h"
 
 // constitutive laws
-#include "custom_constitutive/rans_newtonian_2d_law.h"
-#include "custom_constitutive/rans_newtonian_3d_law.h"
+#include "custom_constitutive/newtonian_2d_law.h"
+#include "custom_constitutive/newtonian_3d_law.h"
+#include "custom_constitutive/newtonian_law/newtonian_2d_adjoint_law.h"
+#include "custom_constitutive/newtonian_law/newtonian_3d_adjoint_law.h"
+#include "custom_constitutive/rans_k_epsilon_newtonian_adjoint_law.h"
+#include "custom_constitutive/rans_newtonian_law.h"
 
 // adjoint elements
 #include "custom_elements/two_equation_turbulence_model_adjoint_element.h"
@@ -241,8 +245,8 @@ private:
     const ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall3D3N;
 
     // constitutive laws
-    const RansNewtonian2DLaw mRansNewtonian2DLaw;
-    const RansNewtonian3DLaw mRansNewtonian3DLaw;
+    const RansNewtonianLaw<Newtonian2DLaw, RansKEpsilonNewtonianAdjointLaw<Newtonian2DAdjointLaw>> mRansKEpsilonNewtonian2DLaw;
+    const RansNewtonianLaw<Newtonian3DLaw, RansKEpsilonNewtonianAdjointLaw<Newtonian3DAdjointLaw>> mRansKEpsilonNewtonian3DLaw;
 
     // k-epsilon turbulence model adjoint elements
     const TwoEquationTurbulenceModelAdjointElement<2, 3, KEpsilonElementData::QSVMSRFCAdjointElementData<2, 3>> mRansKEpsilonQSVMSRFCAdjoint2D3N;

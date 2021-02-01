@@ -20,24 +20,31 @@
 #include "includes/checks.h"
 
 // Application includes
+#include "custom_constitutive/newtonian_2d_law.h"
+#include "custom_constitutive/newtonian_3d_law.h"
+#include "custom_constitutive/newtonian_law/newtonian_2d_adjoint_law.h"
+#include "custom_constitutive/newtonian_law/newtonian_3d_adjoint_law.h"
+#include "custom_constitutive/rans_k_epsilon_newtonian_adjoint_law.h"
 #include "custom_utilities/fluid_calculation_utilities.h"
 
 // Include base h
-#include "custom_constitutive/rans_newtonian_3d_law.h"
+#include "custom_constitutive/rans_newtonian_law.h"
 
 namespace Kratos
 {
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-RansNewtonian3DLaw::RansNewtonian3DLaw() : BaseType()
+template<class TPrimalBaseType, class TAdjointBaseType>
+RansNewtonianLaw<TPrimalBaseType, TAdjointBaseType>::RansNewtonianLaw() : BaseType()
 {
 }
 
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-RansNewtonian3DLaw::RansNewtonian3DLaw(const RansNewtonian3DLaw& rOther)
+template<class TPrimalBaseType, class TAdjointBaseType>
+RansNewtonianLaw<TPrimalBaseType, TAdjointBaseType>::RansNewtonianLaw(const RansNewtonianLaw& rOther)
     : BaseType(rOther)
 {
 }
@@ -45,19 +52,22 @@ RansNewtonian3DLaw::RansNewtonian3DLaw(const RansNewtonian3DLaw& rOther)
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer RansNewtonian3DLaw::Clone() const
+template<class TPrimalBaseType, class TAdjointBaseType>
+ConstitutiveLaw::Pointer RansNewtonianLaw<TPrimalBaseType, TAdjointBaseType>::Clone() const
 {
-    return Kratos::make_shared<RansNewtonian3DLaw>(*this);
+    return Kratos::make_shared<RansNewtonianLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-RansNewtonian3DLaw::~RansNewtonian3DLaw()
+template<class TPrimalBaseType, class TAdjointBaseType>
+RansNewtonianLaw<TPrimalBaseType, TAdjointBaseType>::~RansNewtonianLaw()
 {
 }
 
-int RansNewtonian3DLaw::Check(
+template<class TPrimalBaseType, class TAdjointBaseType>
+int RansNewtonianLaw<TPrimalBaseType, TAdjointBaseType>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo)
@@ -67,12 +77,12 @@ int RansNewtonian3DLaw::Check(
     // Check viscosity value
     KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0)
         << "Incorrect or missing DYNAMIC_VISCOSITY provided in material properties "
-           "for RansNewtonian3DLaw: "
+           "for RansNewtonianLaw: "
         << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
 
     KRATOS_ERROR_IF(rMaterialProperties[DENSITY] <= 0.0)
         << "Incorrect or missing DENSITY provided in material properties "
-           "for RansNewtonian3DLaw: "
+           "for RansNewtonianLaw: "
         << rMaterialProperties[DENSITY] << std::endl;
 
     for (IndexType i = 0; i < rElementGeometry.PointsNumber(); ++i) {
@@ -86,12 +96,20 @@ int RansNewtonian3DLaw::Check(
     KRATOS_CATCH("");
 }
 
-std::string RansNewtonian3DLaw::Info() const
+template<class TPrimalBaseType, class TAdjointBaseType>
+FluidAdjointConstitutiveLaw::Pointer RansNewtonianLaw<TPrimalBaseType, TAdjointBaseType>::GetAdjointConstitutiveLaw()
 {
-    return "RansNewtonian3DLaw";
+    return Kratos::make_shared<TAdjointBaseType>(*this);
 }
 
-double RansNewtonian3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const
+template<class TPrimalBaseType, class TAdjointBaseType>
+std::string RansNewtonianLaw<TPrimalBaseType, TAdjointBaseType>::Info() const
+{
+    return "Rans" + TPrimalBaseType::Info();
+}
+
+template<class TPrimalBaseType, class TAdjointBaseType>
+double RansNewtonianLaw<TPrimalBaseType, TAdjointBaseType>::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const
 {
     const Properties& r_prop = rParameters.GetMaterialProperties();
 
@@ -106,14 +124,20 @@ double RansNewtonian3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rP
     return mu + density * turbulent_nu;
 }
 
-void RansNewtonian3DLaw::save(Serializer& rSerializer) const
+template<class TPrimalBaseType, class TAdjointBaseType>
+void RansNewtonianLaw<TPrimalBaseType, TAdjointBaseType>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
 }
 
-void RansNewtonian3DLaw::load(Serializer& rSerializer)
+template<class TPrimalBaseType, class TAdjointBaseType>
+void RansNewtonianLaw<TPrimalBaseType, TAdjointBaseType>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
 }
+
+// template instantiations
+template class RansNewtonianLaw<Newtonian2DLaw, RansKEpsilonNewtonianAdjointLaw<Newtonian2DAdjointLaw>>;
+template class RansNewtonianLaw<Newtonian3DLaw, RansKEpsilonNewtonianAdjointLaw<Newtonian3DAdjointLaw>>;
 
 } // Namespace Kratos

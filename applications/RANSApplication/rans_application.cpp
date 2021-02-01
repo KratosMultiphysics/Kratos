@@ -253,8 +253,11 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall3D3N", mRansKOmegaOmegaUBasedWall3D3N);
 
     // registering constitutive laws
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansNewtonian2DLaw", mRansNewtonian2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansNewtonian3DLaw", mRansNewtonian3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansNewtonian2DLaw", mRansKEpsilonNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansNewtonian3DLaw", mRansKEpsilonNewtonian3DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKEpsilonNewtonian2DLaw", mRansKEpsilonNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKEpsilonNewtonian3DLaw", mRansKEpsilonNewtonian3DLaw);
 
     // registering adjoint elements
     KRATOS_REGISTER_ELEMENT("RansKEpsilonQSVMSRFCAdjoint2D3N", mRansKEpsilonQSVMSRFCAdjoint2D3N);
