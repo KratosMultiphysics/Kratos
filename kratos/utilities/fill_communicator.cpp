@@ -51,7 +51,7 @@ void FillCommunicator::PrintModelPartDebugInfo(const ModelPart& rModelPart)
     KRATOS_ERROR_IF_NOT(r_communicator.NeighbourIndices().size() == 0) << "There are not expected neighbour indices" << std::endl;
     KRATOS_ERROR_IF_NOT(r_communicator.GhostMesh().NumberOfNodes() == 0) << "There are unexpected nodes in the ghost mesh" << std::endl;
     KRATOS_ERROR_IF_NOT(r_communicator.InterfaceMesh().NumberOfNodes() == 0) << "There are unexpected nodes in the interface mesh." << std::endl;
-    
+
     KRATOS_CATCH("");
 }
 
