@@ -54,8 +54,6 @@ std::vector<int> DataBuffers::vector_connectivities;
 std::vector<int> DataBuffers::vector_types;
 
 
-enum class DataLocation { NodeHistorical, NodeNonHistorical, Element, Condition, ModelPart };
-
 void ExportMesh(
     CoSimIO::Info& rInfo,
     const ModelPart& rModelPart)
