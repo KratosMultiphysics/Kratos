@@ -107,13 +107,13 @@ void FluidAdjointTestUtilities::CalculateResidual(
 }
 
 template <>
-ModelPart::ElementsContainerType& FluidAdjointTestUtilities::GetContainer(ModelPart& rModelPart)
+ModelPart::ElementsContainerType& FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ElementsContainerType>::GetContainer(ModelPart& rModelPart)
 {
     return rModelPart.Elements();
 }
 
 template <>
-ModelPart::ConditionsContainerType& FluidAdjointTestUtilities::GetContainer(ModelPart& rModelPart)
+ModelPart::ConditionsContainerType& FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ConditionsContainerType>::GetContainer(ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
@@ -139,6 +139,13 @@ ModelPart& FluidAdjointTestUtilities::CreateTestModelPart(
         rAddDofsFunction(r_node);
     }
 
+    IndexType eq_id = 1;
+    for (auto& r_node : r_model_part.Nodes()) {
+        for (auto& p_dof : r_node.GetDofs()) {
+            p_dof->SetEquationId(eq_id++);
+        }
+    }
+
     auto p_elem_prop = rGetElementProperties(r_model_part);
 
     using nid_list = std::vector<ModelPart::IndexType>;
@@ -153,6 +160,152 @@ ModelPart& FluidAdjointTestUtilities::CreateTestModelPart(
     return r_model_part;
 }
 
+template <class TContainerType>
+void FluidAdjointTestUtilities::ContainerUtilities<TContainerType>::RunAdjointEntityGetDofListTest(
+    ModelPart& rModelPart,
+    const std::vector<const Variable<double>*>& rDofVariablesList)
+{
+    KRATOS_TRY
+
+    auto& r_container = GetContainer(rModelPart);
+    const auto& r_process_info = rModelPart.GetProcessInfo();
+
+    for (IndexType i = 0; i < r_container.size(); ++i) {
+        const auto& r_entity = *(r_container.begin() + i);
+
+        DofsVectorType dofs;
+        r_entity.GetDofList(dofs, r_process_info);
+
+        auto& r_geometry = r_entity.GetGeometry();
+
+        KRATOS_CHECK_EQUAL(dofs.size(), r_geometry.PointsNumber() * rDofVariablesList.size());
+
+        IndexType index = 0;
+        for (const auto& r_node : r_geometry) {
+            for (auto p_variable : rDofVariablesList) {
+                KRATOS_CHECK_EQUAL(r_node.pGetDof(*p_variable), dofs[index++]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <class TContainerType>
+void FluidAdjointTestUtilities::ContainerUtilities<TContainerType>::RunAdjointEntityEquationIdVectorTest(
+    ModelPart& rModelPart,
+    const std::vector<const Variable<double>*>& rDofVariablesList)
+{
+    KRATOS_TRY
+
+    auto& r_container = GetContainer(rModelPart);
+    const auto& r_process_info = rModelPart.GetProcessInfo();
+
+    for (IndexType i = 0; i < r_container.size(); ++i) {
+        const auto& r_entity = *(r_container.begin() + i);
+
+        EquationIdVectorType equation_ids;
+        r_entity.EquationIdVector(equation_ids, r_process_info);
+
+        auto& r_geometry = r_entity.GetGeometry();
+
+        KRATOS_CHECK_EQUAL(equation_ids.size(),r_geometry.PointsNumber() * rDofVariablesList.size());
+
+        IndexType index = 0;
+        for (const auto& r_node : r_geometry) {
+            for (auto p_variable : rDofVariablesList) {
+                KRATOS_CHECK_EQUAL(r_node.GetDof(*p_variable).EquationId(), equation_ids[index++]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <class TContainerType>
+void FluidAdjointTestUtilities::ContainerUtilities<TContainerType>::RunAdjointEntityGetValuesVectorTest(
+    ModelPart& rModelPart,
+    const std::vector<const Variable<double>*>& rDofVariablesList)
+{
+    KRATOS_TRY
+
+    auto& r_container = GetContainer(rModelPart);
+
+    for (IndexType i = 0; i < r_container.size(); ++i) {
+        const auto& r_entity = *(r_container.begin() + i);
+
+        Vector values;
+        r_entity.GetValuesVector(values);
+
+        auto& r_geometry = r_entity.GetGeometry();
+
+        KRATOS_CHECK_EQUAL(values.size(),r_geometry.PointsNumber() * rDofVariablesList.size());
+
+        IndexType index = 0;
+        for (const auto& r_node : r_geometry) {
+            for (auto p_variable : rDofVariablesList) {
+                KRATOS_CHECK_EQUAL(r_node.FastGetSolutionStepValue(*p_variable), values[index++]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <class TContainerType>
+void FluidAdjointTestUtilities::ContainerUtilities<TContainerType>::RunAdjointEntityGetFirstDerivativesVectorTest(
+    ModelPart& rModelPart,
+    const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod)
+{
+    KRATOS_TRY
+
+    auto& r_container = GetContainer(rModelPart);
+
+    for (IndexType i = 0; i < r_container.size(); ++i) {
+        const auto& r_entity = *(r_container.begin() + i);
+
+        Vector values;
+        r_entity.GetFirstDerivativesVector(values);
+
+        IndexType index = 0;
+        for (const auto& r_node : r_entity.GetGeometry()) {
+            const Vector& ref_values = rValueRetrievalMethod(r_node);
+            for (IndexType i = 0; i < ref_values.size(); ++i) {
+                KRATOS_CHECK_EQUAL(ref_values[i], values[index++]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <class TContainerType>
+void FluidAdjointTestUtilities::ContainerUtilities<TContainerType>::RunAdjointEntityGetSecondDerivativesVectorTest(
+    ModelPart& rModelPart,
+    const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod)
+{
+    KRATOS_TRY
+
+    auto& r_container = GetContainer(rModelPart);
+
+    for (IndexType i = 0; i < r_container.size(); ++i) {
+        const auto& r_entity = *(r_container.begin() + i);
+
+        Vector values;
+        r_entity.GetSecondDerivativesVector(values);
+
+        IndexType index = 0;
+        for (const auto& r_node : r_entity.GetGeometry()) {
+            const Vector& ref_values = rValueRetrievalMethod(r_node);
+            for (IndexType i = 0; i < ref_values.size(); ++i) {
+                KRATOS_CHECK_EQUAL(ref_values[i], values[index++]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
 //// Static Operations Template Instantiations ///////////////////////////////////////////
 
 template void FluidAdjointTestUtilities::CalculateResidual<ModelPart::ElementType>(
@@ -164,6 +317,10 @@ template void FluidAdjointTestUtilities::CalculateResidual<ModelPart::ConditionT
     Vector&,
     ModelPart::ConditionType&,
     const ProcessInfo&);
+
+template class FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ElementsContainerType>;
+
+template class FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ConditionsContainerType>;
 
 //// DataTypeUtilities Static Operations /////////////////////////////////////////////////
 
@@ -291,7 +448,7 @@ template class FluidAdjointTestUtilities::DataTypeUtilities<array_1d<double, 3>>
 //// ContainerDataTypeUtilities Static Operations /////////////////////////////////////////
 
 template <class TContainerType, class TDataType>
-void FluidAdjointTestUtilities::ContainerDataTypeUtilities<TContainerType, TDataType>::RunAdjointElementTest(
+void FluidAdjointTestUtilities::ContainerDataTypeUtilities<TContainerType, TDataType>::RunAdjointEntityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     const std::function<void(ModelPart&)>& rUpdateModelPart,
@@ -304,8 +461,8 @@ void FluidAdjointTestUtilities::ContainerDataTypeUtilities<TContainerType, TData
 {
     KRATOS_TRY
 
-    auto& r_primal_container = GetContainer<TContainerType>(rPrimalModelPart);
-    auto& r_adjoint_container = GetContainer<TContainerType>(rAdjointModelPart);
+    auto& r_primal_container = ContainerUtilities<TContainerType>::GetContainer(rPrimalModelPart);
+    auto& r_adjoint_container = ContainerUtilities<TContainerType>::GetContainer(rAdjointModelPart);
     rAdjointModelPart.GetProcessInfo()[DELTA_TIME] =
         rPrimalModelPart.GetProcessInfo()[DELTA_TIME] * -1.0;
 
@@ -351,8 +508,6 @@ void FluidAdjointTestUtilities::ContainerDataTypeUtilities<TContainerType, TData
         r_adjoint_element.CalculateLocalVelocityContribution(
             adjoint_primal_lhs, adjoint_primal_rhs, r_adjoint_process_info);
 
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(residual_ref, adjoint_primal_rhs, Tolerance);
-
         // TODO : Remove these casts once non const versions of the followings are removed from
         // the element and condition base classes.
         static_cast<const typename TContainerType::data_type&>(r_primal_element).Check(r_primal_process_info);
@@ -363,6 +518,16 @@ void FluidAdjointTestUtilities::ContainerDataTypeUtilities<TContainerType, TData
             adjoint_residual_derivatives.size2() / number_of_nodes;
         const IndexType adjoint_derivatives_block_size =
             adjoint_residual_derivatives.size1() / number_of_nodes;
+
+        // check residuals from adjoint and primal the same
+        for (IndexType c = 0; c < number_of_nodes; ++c) {
+            for (IndexType k = 0; k < residual_block_size; ++k) {
+                KRATOS_CHECK_RELATIVE_NEAR(
+                    residual_ref[c * residual_block_size + k],
+                    adjoint_primal_rhs[c * adjoint_equation_block_size + k + EquationOffset],
+                    Tolerance);
+            }
+        }
 
         for (IndexType c = 0; c < number_of_nodes; ++c) {
             auto& r_node = r_primal_element.GetGeometry()[c];
@@ -419,7 +584,7 @@ void FluidAdjointTestUtilities::ContainerDataTypeUtilities<TContainerType, TData
     const double MinValue,
     const double MaxValue)
 {
-    auto& container = GetContainer<TContainerType>(rModelPart);
+    auto& container = ContainerUtilities<TContainerType>::GetContainer(rModelPart);
     for (auto& item : container) {
         std::stringstream seed;
         seed << item.Id() << "_NonHistoricalV_" << rVariable.Name();
