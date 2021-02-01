@@ -92,12 +92,12 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
 
     // Set the origin model part as temporary communicator
     // This is required to perform all the IsDistributed checks that appear before creating the visualization mesh
-    // This will be updated by a proper one after the creation of the visualization entities
+    // Note that these checks might be required outside this process (i.e. in the creation of the visualization mesh output)
+    // This will be updated by a proper one by the ParallelFillCommunicator after the creation of the visualization entities
     r_visualization_model_part.SetCommunicator(r_origin_model_part.pGetCommunicator());
 
     // If MPI, add the PARTITION_INDEX variable to the visualization model part variables
-    // Note that check the IsDistributed with the default communicator as the visualization model part one is not set yet
-    if (ParallelEnvironment::GetDefaultDataCommunicator().IsDistributed()) {
+    if (r_visualization_model_part.GetCommunicator().IsDistributed()) {
         r_visualization_variables_list.Add(PARTITION_INDEX);
     }
 
@@ -536,7 +536,7 @@ array_1d<double,3>& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<false>(
 void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
 {
     // Copy the original nodes to the visualization model part
-    if (ParallelEnvironment::GetDefaultDataCommunicator().IsDistributed()) {
+    if (mrVisualizationModelPart.GetCommunicator().IsDistributed()) {
         this->CopyOriginNodes<true>();
     } else {
         this->CopyOriginNodes<false>();
