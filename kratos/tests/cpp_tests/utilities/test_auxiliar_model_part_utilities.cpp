@@ -30,7 +30,7 @@ namespace Testing {
 /* Helper Functions */
 /******************************************************************************************/
 
-void Initialise(ModelPart& this_model_part)
+void Initialize(ModelPart& this_model_part)
 {
     this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
@@ -52,7 +52,7 @@ std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& th
                 {
                     for(int j=0; j<dim; j++)
 		            {
-                        i_node.FastGetSolutionStepValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * (i+j));
+                        i_node.FastGetSolutionStepValue(DISPLACEMENT)[j] = (disp_test_value * (i+j));
                         test_values[i] = (disp_test_value * (i+j));
                         i++;
                     }
@@ -67,7 +67,7 @@ std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& th
 		            for(int j=0; j<dim; j++)
 		            {
                         //i_node.SetValue(DISPLACEMENT, test_vals);
-                        i_node.GetValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * (i+j));
+                        i_node.GetValue(DISPLACEMENT)[j] = (disp_test_value * (i+j));
                         test_values[i] = (disp_test_value * (i+j));
                         i++;
                     }
@@ -80,7 +80,7 @@ std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& th
                 {
                     for(int j=0; j<dim; j++)
 		            {
-                        i_elem.GetValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * (i+j));
+                        i_elem.GetValue(DISPLACEMENT)[j] = (disp_test_value * (i+j));
                         test_values[i] = (disp_test_value * (i+j));
                         i++;
                     }
@@ -93,7 +93,7 @@ std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& th
                 {
                     for(int j=0; j<dim; j++)
 		            {
-                        i_cond.GetValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * (i+j));
+                        i_cond.GetValue(DISPLACEMENT)[j] = (disp_test_value * (i+j));
                         test_values[i] = (disp_test_value * (i+j));
                         i++;
                     }
@@ -104,7 +104,7 @@ std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& th
                 test_values.resize(1 * dim);
                 for(int j=0; j<dim; j++)
 		            {
-                        this_model_part[DISPLACEMENT][j] = static_cast<double>(disp_test_value * (i+j));
+                        this_model_part[DISPLACEMENT][j] = (disp_test_value * (i+j));
                         test_values[i] = (disp_test_value * (i+j));
                         i++;
                     }
@@ -114,7 +114,7 @@ std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& th
                 test_values.resize(1 * dim);
                 for(int j=0; j<dim; j++)
 		            {
-                        this_model_part.GetProcessInfo()[DISPLACEMENT][j] = static_cast<double>(disp_test_value * (i+j));
+                        this_model_part.GetProcessInfo()[DISPLACEMENT][j] = (disp_test_value * (i+j));
                         test_values[i] = (disp_test_value * (i+j));
                         i++;
                     }
@@ -235,7 +235,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Node_historic
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
     std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::NodeHistorical, this_model_part, 1);
@@ -248,7 +248,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Node_Nonhisto
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
     std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::NodeNonHistorical, this_model_part, 1);
@@ -261,7 +261,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Element, Krat
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
     std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::Element, this_model_part, 1);
@@ -274,7 +274,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Condition, Kr
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
     std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::Condition, this_model_part, 1);
@@ -287,7 +287,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_ModelPart, Kr
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
     std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::ModelPart, this_model_part, 1);
@@ -300,7 +300,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_ProcessInfo, 
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
     std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::ProcessInfo, this_model_part, 1);
@@ -313,7 +313,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Node_historic
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
     std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::NodeHistorical, this_model_part, 3);
@@ -326,7 +326,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Node_Nonhisto
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
     std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::NodeNonHistorical, this_model_part, 3);
@@ -339,7 +339,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Element, Krat
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
     std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::Element, this_model_part, 3);
@@ -352,7 +352,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Condition, Kr
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
     std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::Condition, this_model_part, 3);
@@ -365,7 +365,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_ModelPart, Kr
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
     std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::ModelPart, this_model_part, 3);
@@ -378,7 +378,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_ProcessInfo, 
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
     std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::ProcessInfo, this_model_part, 3);
@@ -391,7 +391,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Node_historic
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
 
     auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 1); //To create an input Data "rData" to feed to SetScalarData()
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
@@ -405,7 +405,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Node_Nonhisto
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
 
     auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 1); //To create an input Data "rData" to feed to SetScalarData()
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::NodeNonHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
@@ -419,7 +419,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Element, Krat
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
 
     auto rData = PreComputeSetData(this_model_part.NumberOfElements(), 1); //To create an input Data "rData" to feed to SetScalarData()
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::Element, rData); //Run the Function SetVariable to Import a "rData" into the Model
@@ -433,7 +433,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Condition, Kr
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
 
     auto rData = PreComputeSetData(this_model_part.NumberOfConditions(), 1); //To create an input Data "rData" to feed to SetScalarData()
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::Condition, rData); //Run the Function SetVariable to Import a "rData" into the Model
@@ -447,7 +447,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_ModelPart, Kr
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
 
     auto rData = PreComputeSetData(1, 1); //To create an input Data "rData" to feed to SetScalarData()
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::ModelPart, rData); //Run the Function SetVariable to Import a "rData" into the Model
@@ -461,7 +461,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_ProcessInfo, 
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
 
     auto rData = PreComputeSetData(1, 1); //To create an input Data "rData" to feed to SetScalarData()
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::ProcessInfo, rData); //Run the Function SetVariable to Import a "rData" into the Model
@@ -475,7 +475,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Node_historic
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
 
     auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 3); //To create an input Data "rData" to feed to SetVectorData()
     AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
@@ -489,7 +489,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Node_Nonhisto
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
 
     auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 3); //To create an input Data "rData" to feed to SetVectorData()
     AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::NodeNonHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
@@ -503,7 +503,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Element, Krat
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
 
     auto rData = PreComputeSetData(this_model_part.NumberOfElements(), 3); //To create an input Data "rData" to feed to SetVectorData()
     AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::Element, rData); //Run the Function SetVariable to Import a "rData" into the Model
@@ -517,7 +517,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Condition, Kr
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
 
     auto rData = PreComputeSetData(this_model_part.NumberOfConditions(), 3); //To create an input Data "rData" to feed to SetVectorData()
     AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::Condition, rData); //Run the Function SetVariable to Import a "rData" into the Model
@@ -531,7 +531,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_ModelPart, Kr
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
 
     auto rData = PreComputeSetData(1, 3); //To create an input Data "rData" to feed to SetVectorData()
     AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::ModelPart, rData); //Run the Function SetVariable to Import a "rData" into the Model
@@ -545,7 +545,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_ProcessInfo, 
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    Initialise(this_model_part);
+    Initialize(this_model_part);
 
     auto rData = PreComputeSetData(1, 3); //To create an input Data "rData" to feed to SetVectorData()
     AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::ProcessInfo, rData); //Run the Function SetVariable to Import a "rData" into the Model
