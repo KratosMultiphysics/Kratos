@@ -255,12 +255,12 @@ class KRATOS_API(KRATOS_CORE) InitialState
     //*********************************************
         //this block is needed for refcounting
         mutable std::atomic<int> mReferenceCounter;
-        friend void intrusive_ptr_add_ref(const GeometricalObject* x)
+        friend void intrusive_ptr_add_ref(const InitialState* x)
         {
             x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
         }
 
-        friend void intrusive_ptr_release(const GeometricalObject* x)
+        friend void intrusive_ptr_release(const InitialState* x)
         {
             if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
                 std::atomic_thread_fence(std::memory_order_acquire);
