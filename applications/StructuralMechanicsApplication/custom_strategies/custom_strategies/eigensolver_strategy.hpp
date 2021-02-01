@@ -601,24 +601,24 @@ private:
         KRATOS_TRY
 
         const auto& rModelPart = BaseType::GetModelPart();
-        const auto& master_slave_constraints = rModelPart.MasterSlaveConstraints();
-        std::size_t number_of_constraints = rModelPart.NumberOfMasterSlaveConstraints();
-        std::size_t number_of_eigenvalues = rEigenvectors.size1();
+        const auto& r_master_slave_constraints = rModelPart.MasterSlaveConstraints();
+        const std::size_t number_of_constraints = rModelPart.NumberOfMasterSlaveConstraints();
+        const std::size_t number_of_eigenvalues = rEigenvectors.size1();
 
         for (std::size_t i_eigenvalue = 0; i_eigenvalue < number_of_eigenvalues; ++i_eigenvalue){
 
             // Reset slave dofs
             for (std::size_t i_const = 0; i_const < number_of_constraints; ++i_const) {
-                auto it_const = master_slave_constraints.begin() + i_const;
-                const auto& slave_dofs_vector = it_const->GetSlaveDofsVector();
-                for (IndexType i = 0; i < slave_dofs_vector.size(); ++i)
-                    rEigenvectors(i_eigenvalue, slave_dofs_vector[i]->EquationId()) = 0.0;
+                auto it_const = r_master_slave_constraints.begin() + i_const;
+                const auto& r_slave_dofs_vector = it_const->GetSlaveDofsVector();
+                for (IndexType i = 0; i < r_slave_dofs_vector.size(); ++i)
+                    rEigenvectors(i_eigenvalue, r_slave_dofs_vector[i]->EquationId()) = 0.0;
             }
             
             // Apply constraints
             for (std::size_t i_const = 0; i_const < number_of_constraints; ++i_const) {
                 
-                auto it_const = master_slave_constraints.begin() + i_const;
+                auto it_const = r_master_slave_constraints.begin() + i_const;
                 // Detect if the constraint is active or not. If the user did not make any choice the constraint
                 // It is active by default
                 bool constraint_is_active = true;
@@ -627,11 +627,11 @@ private:
                 if (constraint_is_active) {
                     
                     // Saving the master dofs values
-                    const auto& master_dofs_vector = it_const->GetMasterDofsVector();
-                    const auto& slave_dofs_vector = it_const->GetSlaveDofsVector();
-                    Vector master_dofs_values(master_dofs_vector.size());
-                    for (IndexType i = 0; i < master_dofs_vector.size(); ++i)
-                        master_dofs_values[i] = rEigenvectors(i_eigenvalue, master_dofs_vector[i]->EquationId());
+                    const auto& r_master_dofs_vector = it_const->GetMasterDofsVector();
+                    const auto& r_slave_dofs_vector = it_const->GetSlaveDofsVector();
+                    Vector master_dofs_values(r_master_dofs_vector.size());
+                    for (IndexType i = 0; i < r_master_dofs_vector.size(); ++i)
+                        master_dofs_values[i] = rEigenvectors(i_eigenvalue, r_master_dofs_vector[i]->EquationId());
                     // Apply the constraint to the slave dofs
                     Matrix relation_matrix;
                     Vector constant_vector;
@@ -641,7 +641,7 @@ private:
                         for(IndexType j = 0; j < relation_matrix.size2(); ++j) {
                             aux += relation_matrix(i,j) * master_dofs_values[j];
                         }
-                        rEigenvectors(i_eigenvalue, slave_dofs_vector[i]->EquationId()) += aux;
+                        rEigenvectors(i_eigenvalue, r_slave_dofs_vector[i]->EquationId()) += aux;
                     }
                 }
             }
@@ -824,4 +824,3 @@ private:
 } /* namespace Kratos */
 
 #endif /* KRATOS_EIGENSOLVER_STRATEGY  defined */
-
