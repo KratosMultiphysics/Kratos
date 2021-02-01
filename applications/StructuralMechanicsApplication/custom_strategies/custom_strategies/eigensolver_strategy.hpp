@@ -447,7 +447,7 @@ public:
                 << system_solve_time.ElapsedSeconds() << std::endl;
 
         if (master_slave_constraints_defined)
-            this->RecoverSolution(Eigenvectors);
+            this->ReconstructSolution(Eigenvectors);
 
         this->AssignVariables(Eigenvalues,Eigenvectors);
 
@@ -594,7 +594,7 @@ private:
      *  Beware that this implementation is only valid for Block B&S, since the master-slave constraints
      *  don't work with Elimination B&S yet.
      */
-    void RecoverSolution(
+    void ReconstructSolution(
         DenseMatrixType& rEigenvectors
     )
     {
