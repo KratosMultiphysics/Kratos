@@ -176,7 +176,7 @@ void ExportData_ModelPart_Scalar(
     KRATOS_TRY
 
     AuxiliarModelPartUtilities Aux_Model_Part = AuxiliarModelPartUtilities(rModelPart);
-    DataBuffers::vector_doubles = Aux_Model_Part.GetScalarData<double>(rVariable, (Kratos::DataLocation)DataLoc);
+    Aux_Model_Part.GetScalarData<double>(rVariable, (Kratos::DataLocation)DataLoc, DataBuffers::vector_doubles);
 
     CoSimIO::ExportData(rInfo, DataBuffers::vector_doubles);
 
@@ -208,7 +208,7 @@ void ExportData_ModelPart_Vector(
     KRATOS_TRY
 
     AuxiliarModelPartUtilities Aux_Model_Part = AuxiliarModelPartUtilities(rModelPart);
-    DataBuffers::vector_doubles = Aux_Model_Part.GetVectorData< array_1d<double, 3> >(rVariable, (Kratos::DataLocation)DataLoc);
+    Aux_Model_Part.GetVectorData< array_1d<double, 3> >(rVariable, (Kratos::DataLocation)DataLoc, DataBuffers::vector_doubles);
 
     CoSimIO::ExportData(rInfo, DataBuffers::vector_doubles);
 
@@ -317,12 +317,12 @@ void  AddCoSimIOToPython(pybind11::module& m)
     // // m_co_sim_io.def("ImportGeometry", CoSimIO_Wrappers::ImportGeometry); // This is not yet implemented in the CoSimIO
     // // m_co_sim_io.def("ExportGeometry", CoSimIO_Wrappers::ExportGeometry); // This is not yet implemented in the CoSimIO
 
-    py::enum_<CoSimIO_Wrappers::DataLocation>(m_co_sim_io,"DataLocation")
-        .value("NodeHistorical",    CoSimIO_Wrappers::DataLocation::NodeHistorical)
-        .value("NodeNonHistorical", CoSimIO_Wrappers::DataLocation::NodeNonHistorical)
-        .value("Element",           CoSimIO_Wrappers::DataLocation::Element)
-        .value("Condition",         CoSimIO_Wrappers::DataLocation::Condition)
-        .value("ModelPart",         CoSimIO_Wrappers::DataLocation::ModelPart)
+    py::enum_<DataLocation>(m_co_sim_io,"DataLocation")
+        .value("NodeHistorical",    DataLocation::NodeHistorical)
+        .value("NodeNonHistorical", DataLocation::NodeNonHistorical)
+        .value("Element",           DataLocation::Element)
+        .value("Condition",         DataLocation::Condition)
+        .value("ModelPart",         DataLocation::ModelPart)
         ;
 
     py::enum_<CoSimIO::ConnectionStatus>(m_co_sim_io,"ConnectionStatus")
