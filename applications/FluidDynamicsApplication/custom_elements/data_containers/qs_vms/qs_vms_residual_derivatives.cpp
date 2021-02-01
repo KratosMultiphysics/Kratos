@@ -32,13 +32,39 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int QSVMSResidualDerivatives<TDim, TNumNodes>::Check(
-    const GeometryType& rGeometry,
+void QSVMSResidualDerivatives<TDim, TNumNodes>::Check(
+    const Element& rElement,
     const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY
 
-    for (const auto& r_node : rGeometry) {
+    const auto& properties = rElement.GetProperties();
+    const auto& r_geometry = rElement.GetGeometry();
+
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DYNAMIC_TAU)) << "DYNAMIC_TAU is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(OSS_SWITCH)) << "OSS_SWITCH is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(properties.Has(DENSITY))
+        << "DENSITY is not found in element properties. [ Element Id = "
+        << rElement.Id() << ", Properties id = " << properties.Id() << " ].\n";
+
+    KRATOS_ERROR_IF_NOT(properties.Has(DYNAMIC_VISCOSITY))
+        << "DYNAMIC_VISCOSITY is not found in element properties. [ Element Id = "
+        << rElement.Id() << ", Properties id = " << properties.Id() << " ].\n";
+
+    KRATOS_ERROR_IF(rProcessInfo[OSS_SWITCH] == 1)
+        << "OSS Projection adjoints are not yet supported.\n";
+
+    KRATOS_ERROR_IF(properties[DYNAMIC_VISCOSITY] <= 0.0)
+        << "DYNAMIC_VISCOSITY cannot be zero or negative. [ DYNAMIC_VISCOSITY "
+           "= "
+        << properties[DYNAMIC_VISCOSITY] << " ].\n";
+
+    KRATOS_ERROR_IF(properties[DENSITY] <= 0.0)
+        << "DENSITY cannot be zero or negative. [ DENSITY "
+           "= "
+        << properties[DENSITY] << " ].\n";
+
+    for (const auto& r_node : r_geometry) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_node);
@@ -46,8 +72,6 @@ int QSVMSResidualDerivatives<TDim, TNumNodes>::Check(
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADVPROJ, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DIVPROJ, r_node);
     }
-
-    return 0;
 
     KRATOS_CATCH("");
 }
@@ -60,29 +84,21 @@ GeometryData::IntegrationMethod QSVMSResidualDerivatives<TDim, TNumNodes>::GetIn
 
 
 template <unsigned int TDim, unsigned int TNumNodes>
-QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualContributions::ResidualContributions(
+QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::ResidualsContributions(
     Data& rData)
     : mrData(rData)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualContributions::Initialize(
-    Matrix& rOutput,
-    const ProcessInfo& rProcessInfo)
-{
-    mBlockSize = rOutput.size2() / TNumNodes;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualContributions::AddResidualContribution(
-    BoundedVector<double, TElementLocalSize>& rResidual,
+void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddGaussPointResidualsContributions(
+    VectorF& rResidual,
     const double W,
     const Vector& rN,
     const Matrix& rdNdX)
 {
     for (IndexType a = 0; a < TNumNodes; ++a) {
-        const IndexType row = a * mBlockSize;
+        const IndexType row = a * TBlockSize;
 
         for (IndexType i = 0; i < TDim; ++i) {
 
@@ -126,12 +142,12 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualContributions::AddResidu
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualContributions::AddViscousTerms(
-    BoundedVector<double, TElementLocalSize>& rResidual,
+void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddViscousTerms(
+    VectorF& rResidual,
     const double W) const
 {
     for (IndexType a = 0; a < TNumNodes; ++a) {
-        const IndexType row = a * mBlockSize;
+        const IndexType row = a * TBlockSize;
         const IndexType local_row = a * TBlockSize;
 
         for (IndexType i = 0; i < TDim; ++i) {
@@ -144,121 +160,50 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualContributions::AddViscou
 
 template <unsigned int TDim, unsigned int TNumNodes>
 QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::SecondDerivatives(
-    const Element& rElement,
-    FluidConstitutiveLaw& rFluidConstitutiveLaw)
-    : mrElement(rElement),
-      mrFluidConstitutiveLaw(rFluidConstitutiveLaw)
+    Data& rData)
+    : mrData(rData)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::Initialize(
-    Matrix& rOutput,
-    const ProcessInfo& rProcessInfo)
-{
-    const auto& r_geometry = mrElement.GetGeometry();
-
-    const auto& properties = mrElement.GetProperties();
-    mDensity = properties.GetValue(DENSITY);
-    mDynamicViscosity = properties.GetValue(DYNAMIC_VISCOSITY);
-    mElementSize = ElementSizeCalculator<TDim, TNumNodes>::MinimumElementSize(r_geometry);
-
-    // setting up primal constitutive law
-    InitializeConstitutiveLaw(mConstitutiveLawValues, mStrainRate, mShearStress, mC,
-                              r_geometry, mrElement.GetProperties(), rProcessInfo);
-
-    mDynamicTau = rProcessInfo[DYNAMIC_TAU];
-    mDeltaTime = rProcessInfo[DELTA_TIME];
-    KRATOS_ERROR_IF(mDeltaTime > 0.0)
-        << "Adjoint is calculated in reverse time, therefore "
-           "DELTA_TIME should be negative. [ DELTA_TIME = "
-        << mDeltaTime << " ].\n";
-    mDeltaTime *= -1.0;
-
-    // filling nodal values
-    for (IndexType a = 0; a < TNumNodes; ++a) {
-        const auto& r_node = r_geometry[a];
-        for (IndexType i = 0; i < TDim; ++i) {
-            mNodalVelocity(a, i) = r_node.FastGetSolutionStepValue(VELOCITY)[i];
-        }
-    }
-
-    mBlockSize = rOutput.size2() / TNumNodes;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::AddResidualDerivativeContributions(
-    Matrix& rOutput,
+void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::CalculateGaussPointResidualsDerivativeContributions(
+    VectorF& rResidualDerivative,
+    const int NodeIndex,
+    const int DirectionIndex,
     const double W,
     const Vector& rN,
     const Matrix& rdNdX)
 {
-    using derivative_utilities = QSVMSDerivativeUtilities<TDim>;
+    rResidualDerivative.clear();
 
-    const auto& r_geometry = mrElement.GetGeometry();
-
-    array_1d<double, TDim> velocity, mesh_velocity;
-
-    // get gauss point evaluated values
-    FluidCalculationUtilities::EvaluateInPoint(
-        r_geometry, rN,
-        std::tie(velocity, VELOCITY),
-        std::tie(mesh_velocity, MESH_VELOCITY));
-
-    const array_1d<double, TDim> convective_velocity = velocity - mesh_velocity;
-    const double convective_velocity_norm = norm_2(convective_velocity);
-
-    const BoundedVector<double, TNumNodes> convective_velocity_dot_dn_dx = prod(rdNdX, convective_velocity);
-
-    double effective_viscosity;
-    derivative_utilities::CalculateStrainRate(
-        mStrainRate, mNodalVelocity, rdNdX);
-    mConstitutiveLawValues.SetShapeFunctionsValues(rN);
-    mrFluidConstitutiveLaw.CalculateMaterialResponseCauchy(mConstitutiveLawValues);
-    mrFluidConstitutiveLaw.CalculateValue(
-        mConstitutiveLawValues, EFFECTIVE_VISCOSITY, effective_viscosity);
-
-    double tau_one, tau_two;
-    CalculateTau(tau_one, tau_two, mElementSize, mDensity, effective_viscosity,
-                 convective_velocity_norm, mDynamicTau, mDeltaTime);
-
-    const double coeff_1 = W * mDensity;
-    const double coeff_2 = coeff_1 * tau_one;
+    const double coeff_1 = W * mrData.mDensity;
+    const double coeff_2 = coeff_1 * mrData.mTauOne;
 
     // Note: Dof order is (u,v,[w,]p) for each node
-    for (IndexType c = 0; c < TNumNodes; ++c) {
-        const IndexType row = c * mBlockSize;
-        for (IndexType a = 0; a < TNumNodes; ++a) {
-            const IndexType col = a * mBlockSize;
-            const double mass = coeff_1 * rN[a] * rN[c];
-            for (IndexType d = 0; d < TDim; ++d) {
-                double value = 0.0;
+    for (IndexType a = 0; a < TNumNodes; ++a) {
+        const IndexType col = a * TBlockSize;
 
-                value -= mass;
-                value -= coeff_2 * mDensity * convective_velocity_dot_dn_dx[a] * rN[c];
+        double value = 0.0;
 
-                rOutput(row + d, col + d) += value;
-                rOutput(row + d, col + TDim) -= coeff_2 * rdNdX(a, d) * rN[c];
-            }
-        }
+        value -= coeff_1 * rN[a] * rN[NodeIndex];
+        value -= coeff_2 * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * rN[NodeIndex];
+
+        rResidualDerivative[col + DirectionIndex] += value;
+        rResidualDerivative[col + TDim] -= coeff_2 * rdNdX(a, DirectionIndex) * rN[NodeIndex];
     }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Data(
     const Element& rElement,
-    FluidConstitutiveLaw& rFluidConstitutiveLaw)
+    FluidConstitutiveLaw& rFluidConstitutiveLaw,
+    const ProcessInfo& rProcessInfo)
     : mrElement(rElement),
       mrFluidConstitutiveLaw(rFluidConstitutiveLaw)
 {
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Initialize(const ProcessInfo& rProcessInfo)
-{
     KRATOS_TRY
 
-    // this method gathers values which are constatnts for all gauss points.
+    // this method gathers values which are constants for all gauss points.
 
     const auto& r_geometry = mrElement.GetGeometry();
 
