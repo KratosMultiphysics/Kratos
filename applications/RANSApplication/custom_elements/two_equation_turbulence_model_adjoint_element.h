@@ -82,10 +82,6 @@ public:
 
     using ShapeFunctionDerivativesArrayType = GeometryType::ShapeFunctionsGradientsType;
 
-    using VectorN = BoundedVector<double, TNumNodes>;
-
-    using MatrixND = BoundedMatrix<double, TNumNodes, TDim>;
-
     using FluidData = typename TAdjointElementData::Fluid;
 
     using TurbulenceModelEquation1Data = typename TAdjointElementData::TurbulenceModelEquation1;
@@ -94,9 +90,17 @@ public:
 
     constexpr static IndexType TBlockSize = TDim + 3;
 
+    constexpr static IndexType TCoordLocalSize = TDim * TNumNodes;
+
+    constexpr static IndexType TFluidLocalSize = (TDim + 1) * TNumNodes;
+
     constexpr static IndexType TElementLocalSize = TBlockSize * TNumNodes;
 
-    constexpr static IndexType TCoordLocalSize = TDim * TNumNodes;
+    using VectorF = BoundedVector<double, TFluidLocalSize>;
+
+    using VectorN = BoundedVector<double, TNumNodes>;
+
+    using MatrixND = BoundedMatrix<double, TNumNodes, TDim>;
 
     KRATOS_CLASS_POINTER_DEFINITION(TwoEquationTurbulenceModelAdjointElement);
 
@@ -274,35 +278,35 @@ protected:
     ///@{
 
     void AddFluidResidualsContributions(
-        Vector& rResidual,
+        Vector& rOutput,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddFluidFirstDerivatives(
-        MatrixType& rDerivativesMatrix,
+        MatrixType& rOutput,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddFluidSecondDerivatives(
-        MatrixType& rDerivativesMatrix,
+        MatrixType& rOutput,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddFluidShapeDerivatives(
-        Matrix& rDerivativesMatrix,
+        Matrix& rOutput,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddTurbulenceResidualsContributions(
-        Vector& rResidual,
+        Vector& rOutput,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddTurbulenceFirstDerivatives(
-        MatrixType& rDerivativesMatrix,
+        MatrixType& rOutput,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddTurbulenceSecondDerivatives(
-        MatrixType& rDerivativesMatrix,
+        MatrixType& rOutput,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddTurbulenceShapeDerivatives(
-        Matrix& rDerivativesMatrix,
+        Matrix& rOutput,
         const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateGeometryData(
@@ -311,26 +315,42 @@ protected:
         ShapeFunctionDerivativesArrayType& rDN_DX,
         const GeometryData::IntegrationMethod& rIntegrationMethod) const;
 
-    template<unsigned int TEquationOffset, unsigned int TSize>
-    void AssembleSubVectorToVector(Vector& rOutput, const BoundedVector<double, TSize>& rSubVector)
+    template<IndexType TSize>
+    void AssembleSubVectorToVector(
+        Vector& rOutput,
+        const IndexType Offset,
+        const BoundedVector<double, TSize>& rSubVector)
     {
+        KRATOS_TRY
+
         constexpr IndexType ValueBlockSize = TSize / TNumNodes;
         for (IndexType i = 0; i < TNumNodes; ++i) {
             for (IndexType j = 0; j < ValueBlockSize; ++j) {
-                rOutput[i * TBlockSize + j + TEquationOffset] += rSubVector[i * ValueBlockSize + j];
+                rOutput[i * TBlockSize + j + Offset] += rSubVector[i * ValueBlockSize + j];
             }
         }
+
+        KRATOS_CATCH("");
     }
 
-    template<unsigned int TEquationOffset, unsigned int TSize>
-    void AssembleSubVectorToMatrix(Matrix& rOutput, const BoundedVector<double, TSize>& rSubVector, const IndexType Row)
+    template<IndexType TSize>
+    void AssembleSubVectorToMatrix(
+        Matrix& rOutput,
+        const IndexType RowIndex,
+        const IndexType ColumnOffset,
+        const BoundedVector<double, TSize>& rSubVector)
     {
+        KRATOS_TRY
+
         constexpr IndexType ValueBlockSize = TSize / TNumNodes;
+
         for (IndexType i = 0; i < TNumNodes; ++i) {
             for (IndexType j = 0; j < ValueBlockSize; ++j) {
-                rOutput(Row, i * TBlockSize + j + TEquationOffset) += rSubVector[i * ValueBlockSize + j];
+                rOutput(RowIndex, i * TBlockSize + j + ColumnOffset) += rSubVector[i * ValueBlockSize + j];
             }
         }
+
+        KRATOS_CATCH("");
     }
 
     ///@}

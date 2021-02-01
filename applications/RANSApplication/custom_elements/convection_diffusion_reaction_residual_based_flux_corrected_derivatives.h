@@ -67,8 +67,8 @@ public:
     ///@name Static Operations
     ///@{
 
-    static int Check(
-        const GeometryType& rGeometry,
+    static void Check(
+        const Element& rElement,
         const ProcessInfo& rProcessInfo);
 
     static GeometryData::IntegrationMethod GetIntegrationMethod();
@@ -95,19 +95,14 @@ public:
         ///@name Operations
         ///@{
 
-        void Initialize(
-            const Vector& rResidual,
-            const ProcessInfo& rProcessInfo);
-
-        void AddResidualsContributions(
+        void AddGaussPointResidualsContributions(
             VectorN& rResidual,
             const double W,
             const Vector& rN,
             const Matrix& rdNdX);
 
-        void Finalize(
-            VectorN& rResidual,
-            const ProcessInfo& rProcessInfo);
+        void AddResidualsContributionsAfterGaussPointLoop(
+            VectorN& rResidual);
 
         ///@}
     private:
@@ -145,11 +140,7 @@ public:
         ///@name Operations
         ///@{
 
-        void Initialize(
-            const Vector& rResidualDerivative,
-            const ProcessInfo& rProcessInfo);
-
-        void CalculateResidualsDerivativeContributions(
+        void CalculateGaussPointResidualsDerivativeContributions(
             VectorN& rResidualDerivative,
             const int NodeIndex,
             const int DirectionIndex,
@@ -160,11 +151,10 @@ public:
             const double DetJDerivative,
             const Matrix& rdNdXDerivative);
 
-        void Finalize(
+        void CalculateResidualsDerivativeContributionsAfterGaussPointPointLoop(
             VectorN& rResidualDerivative,
             const int NodeIndex,
-            const int DirectionIndex,
-            const ProcessInfo& rProcessInfo);
+            const int DirectionIndex);
 
         ///@}
     private:
@@ -192,21 +182,16 @@ public:
         ///@name Operations
         ///@{
 
-        void Initialize(
-            const Vector& rResidualDerivative,
-            const ProcessInfo& rProcessInfo);
-
-        void CalculateResidualsDerivativeContributions(
+        void CalculateGaussPointResidualsDerivativeContributions(
             VectorN& rResidualDerivative,
             const int NodeIndex,
             const double W,
             const Vector& rN,
             const Matrix& rdNdX);
 
-        void Finalize(
+        void CalculateResidualsDerivativeContributionsAfterGaussPointPointLoop(
             VectorN& rResidualDerivative,
-            const int NodeIndex,
-            const ProcessInfo& rProcessInfo);
+            const int NodeIndex);
 
         ///@}
     private:
@@ -214,7 +199,6 @@ public:
         ///@{
 
         Data& mrData;
-        IndexType mBlockSize;
 
         BoundedVector<double, TNumNodes> mScalarMultiplierDerivatives;
 
@@ -241,13 +225,7 @@ public:
             const Matrix& rdNdX,
             const int Step = 0);
 
-        void AddDampingMatrixContributions(
-            MatrixNN& rDampingMatrix,
-            const double W,
-            const Vector& rN,
-            const Matrix& rdNdX) const;
-
-        void CalculateAfterGaussPointLoop();
+        void CalculateDataAfterGaussPointPointLoop();
 
         ///@}
     private:
@@ -289,6 +267,16 @@ public:
 
         double mDiscreteUpwindOperatorCoefficient;
         double mDiagonalPositivityPreservingCoefficient;
+
+        ///@}
+        ///@name Private Operations
+        ///@{
+
+        void AddDampingMatrixContributions(
+            MatrixNN& rDampingMatrix,
+            const double W,
+            const Vector& rN,
+            const Matrix& rdNdX) const;
 
         ///@}
         ///@name Private Friends

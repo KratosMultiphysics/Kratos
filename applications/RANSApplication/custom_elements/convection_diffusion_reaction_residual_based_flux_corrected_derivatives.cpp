@@ -47,11 +47,20 @@ namespace Kratos
 /***************************************************************************************************/
 
 template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
-int ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::Check(
-    const GeometryType& rGeometry,
+void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::Check(
+    const Element& rElement,
     const ProcessInfo& rProcessInfo)
 {
-    return 0;
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(BOSSAK_ALPHA)) << "BOSSAK_ALPHA is not found in process info. \n";
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DYNAMIC_TAU)) << "DYNAMIC_TAU is not found in process info. \n";
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT)) << "RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT is not found in process info. \n";
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT)) << "RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT is not found in process info. \n";
+
+    TElementDataType::Check(rElement, rProcessInfo);
+
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
@@ -195,7 +204,7 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
-void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::Data::CalculateAfterGaussPointLoop()
+void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::Data::CalculateDataAfterGaussPointPointLoop()
 {
     using namespace ConvectionDiffusionReactionStabilizationUtilities;
     double matrix_norm;
@@ -216,14 +225,7 @@ ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
-void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::ResidualsContributions::Initialize(
-    const Vector& rResidual,
-    const ProcessInfo& rProcessInfo)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
-void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::ResidualsContributions::AddResidualsContributions(
+void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::ResidualsContributions::AddGaussPointResidualsContributions(
     VectorN& rResidual,
     const double W,
     const Vector& rN,
@@ -272,11 +274,9 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
-void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::ResidualsContributions::Finalize(
-    VectorN& rResidual,
-    const ProcessInfo& rProcessInfo)
+void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::ResidualsContributions::AddResidualsContributionsAfterGaussPointLoop(
+    VectorN& rResidual)
 {
-    rResidual.clear();
     noalias(rResidual) -= prod(mrData.mDiscreteDiffusionMatrix, mrData.mNodalPrimalVariableValues) * (mrData.mDiscreteUpwindOperatorCoefficient * mrData.mScalarMultiplier);
     noalias(rResidual) -= mrData.mNodalPrimalVariableValues * (mrData.mDiagonalPositivityPreservingCoefficient * mrData.mDiagonalCoefficient * mrData.mScalarMultiplier);
 }
@@ -301,16 +301,7 @@ ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes
 
 template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
 template <class TDerivativesType>
-void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::VariableDerivatives<TDerivativesType>::Initialize(
-    const Vector& rResidualDerivative,
-    const ProcessInfo& rProcessInfo)
-{
-    mResidualWeightDerivativeContributions.Initialize(rResidualDerivative, rProcessInfo);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
-template <class TDerivativesType>
-void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::VariableDerivatives<TDerivativesType>::CalculateResidualsDerivativeContributions(
+void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::VariableDerivatives<TDerivativesType>::CalculateGaussPointResidualsDerivativeContributions(
     VectorN& rResidualDerivative,
     const int NodeIndex,
     const int DirectionIndex,
@@ -449,18 +440,17 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
     noalias(rResidualDerivative) -= column(mrData.mPrimalDampingMatrix, NodeIndex) * (TSelfWeight * 1.0);
 
     mrData.AddDampingMatrixContributions(r_primal_damping_matrix_derivative, WDerivative, rN, rdNdX);
-    mResidualWeightDerivativeContributions.AddResidualsContributions(rResidualDerivative, WDerivative, rN, rdNdX);
+    mResidualWeightDerivativeContributions.AddGaussPointResidualsContributions(rResidualDerivative, WDerivative, rN, rdNdX);
 
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
 template <class TDerivativesType>
-void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::VariableDerivatives<TDerivativesType>::Finalize(
+void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::VariableDerivatives<TDerivativesType>::CalculateResidualsDerivativeContributionsAfterGaussPointPointLoop(
     VectorN& rResidualDerivative,
     const int NodeIndex,
-    const int DirectionIndex,
-    const ProcessInfo& rProcessInfo)
+    const int DirectionIndex)
 {
     using namespace ConvectionDiffusionReactionStabilizationUtilities;
 
@@ -505,14 +495,7 @@ ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
-void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::SecondDerivatives::Initialize(
-    const Vector& rResidualDerivative,
-    const ProcessInfo& rProcessInfo)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
-void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::SecondDerivatives::CalculateResidualsDerivativeContributions(
+void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::SecondDerivatives::CalculateGaussPointResidualsDerivativeContributions(
     VectorN& rResidualDerivative,
     const int NodeIndex,
     const double W,
@@ -541,10 +524,9 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
-void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::SecondDerivatives::Finalize(
+void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::SecondDerivatives::CalculateResidualsDerivativeContributionsAfterGaussPointPointLoop(
     VectorN& rResidualDerivative,
-    const int NodeIndex,
-    const ProcessInfo& rProcessInfo)
+    const int NodeIndex)
 {
     rResidualDerivative.clear();
 

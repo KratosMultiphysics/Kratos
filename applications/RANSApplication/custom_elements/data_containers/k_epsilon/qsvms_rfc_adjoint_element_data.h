@@ -24,11 +24,14 @@
 #include "geometries/geometry_data.h"
 
 // Application includes
+#include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_derivatives.h"
+#include "custom_elements/data_containers/k_epsilon/epsilon_element_data_derivatives.h"
+#include "custom_elements/data_containers/k_epsilon/k_element_data_derivatives.h"
 #include "custom_elements/data_containers/qs_vms/qs_vms_derivative_utilities.h"
 #include "custom_elements/data_containers/qs_vms/qs_vms_residual_derivatives.h"
-#include "custom_elements/data_containers/k_epsilon/k_element_data_derivatives.h"
-#include "custom_elements/data_containers/k_epsilon/epsilon_element_data_derivatives.h"
-#include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_derivatives.h"
+#include "custom_elements/data_containers/qs_vms/rans_qs_vms_derivative_utilities.h"
+#include "custom_elements/data_containers/k_epsilon/k_element_data.h"
+#include "custom_elements/data_containers/k_epsilon/epsilon_element_data.h"
 
 namespace Kratos
 {
@@ -55,11 +58,9 @@ public:
     ///@name Static Operations
     ///@{
 
-    static int Check(
-        const GeometryType& rGeometry,
+    static void Check(
+        const Element& rElement,
         const ProcessInfo& rProcessInfo);
-
-    static GeometryData::IntegrationMethod GetIntegrationMethod();
 
     static std::vector<const Variable<double>*> GetDofVariablesList();
 
@@ -73,7 +74,7 @@ public:
         ///@name Type Definitions
         ///@{
 
-        using TResidualDerivatives = QSVMSResidualDerivatives<TDim, TNumNodes>;
+        using TResidualsDerivatives = QSVMSResidualDerivatives<TDim, TNumNodes>;
 
         ///@}
         ///@name Classes
@@ -85,9 +86,9 @@ public:
             ///@name Type Definitions
             ///@{
 
-            using Data = typename TResidualDerivatives::Data;
+            using Data = typename TResidualsDerivatives::Data;
 
-            using ResidualContributions = typename TResidualDerivatives::ResidualContributions;
+            using ResidualsContributions = typename TResidualsDerivatives::ResidualsContributions;
 
             ///@}
         };
@@ -98,7 +99,19 @@ public:
             ///@name Type Definitions
             ///@{
 
-            using SecondDerivatives = typename TResidualDerivatives::SecondDerivatives;
+            class SecondDerivatives
+            {
+            public:
+                ///@name Type Definitions
+                ///@{
+
+                using Data = typename TResidualsDerivatives::Data;
+
+                using Acceleration = typename TResidualsDerivatives::SecondDerivatives;
+
+                ///@}
+
+            };
 
             ///@}
             ///@name Classes
@@ -110,15 +123,15 @@ public:
                 ///@name Type Definitions
                 ///@{
 
-                using Data = typename TResidualDerivatives::Data;
+                using Data = typename TResidualsDerivatives::Data;
 
-                using Velocity = typename TResidualDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>, 0>;
+                using Velocity = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>>;
 
-                using Pressure = typename TResidualDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template PressureDerivative<TNumNodes>, 0>;
+                using Pressure = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template PressureDerivative<TNumNodes>>;
 
-                using TurbulenceModelVariable1 = typename TResidualDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template PressureDerivative<TNumNodes>, 0>;
+                using TurbulenceModelVariable1 = typename TResidualsDerivatives::template VariableDerivatives<typename RansQSVMSDerivativeUtilities<TDim>::template TurbulenceVariableDerivative<TNumNodes, KEpsilonElementData::KElementData<TDim>>>;
 
-                using TurbulenceModelVariable2 = typename TResidualDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template PressureDerivative<TNumNodes>, 0>;
+                using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename RansQSVMSDerivativeUtilities<TDim>::template TurbulenceVariableDerivative<TNumNodes, KEpsilonElementData::EpsilonElementData<TDim>>>;
 
                 ///@}
             };
@@ -132,9 +145,9 @@ public:
             ///@name Type Definitions
             ///@{
 
-            using Data = typename TResidualDerivatives::Data;
+            using Data = typename TResidualsDerivatives::Data;
 
-            using Shape = typename TResidualDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>, 0>;
+            using Shape = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>>;
 
             ///@}
         };
@@ -196,7 +209,7 @@ public:
 
                 using Data = typename TResidualsDerivatives::Data;
 
-                using TurbulenceModelVariable1 = typename TResidualsDerivatives::SecondDerivatives;
+                using TurbulenceModelVariableRate1 = typename TResidualsDerivatives::SecondDerivatives;
 
                 ///@}
 
@@ -275,10 +288,9 @@ public:
 
                 using Data = typename TResidualsDerivatives::Data;
 
-                using TurbulenceModelVariable2 = typename TResidualsDerivatives::SecondDerivatives;
+                using TurbulenceModelVariableRate2 = typename TResidualsDerivatives::SecondDerivatives;
 
                 ///@}
-
             };
 
             ///@}

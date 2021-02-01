@@ -58,7 +58,23 @@ void EpsilonElementDataDerivatives<TDim, TNumNodes>::Data::Check(
     KRATOS_TRY
 
     const auto& r_geometry = rElement.GetGeometry();
+    const auto& r_properties = rElement.GetProperties();
     const int number_of_nodes = r_geometry.PointsNumber();
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C1))
+        << "TURBULENCE_RANS_C1 is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C2))
+        << "TURBULENCE_RANS_C2 is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
+        << "TURBULENCE_RANS_C_MU is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA))
+        << "TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(r_properties.Has(DYNAMIC_VISCOSITY))
+        << "DYNAMIC_VISCOSITY is not found in element properties [ Element.Id() = "
+        << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
+    KRATOS_ERROR_IF_NOT(r_properties.Has(DENSITY))
+        << "DENSITY is not found in element properties [ Element.Id() = "
+        << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
 
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const auto& r_node = r_geometry[i_node];
