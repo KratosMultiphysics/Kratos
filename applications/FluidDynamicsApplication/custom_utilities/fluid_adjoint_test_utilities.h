@@ -15,6 +15,7 @@
 
 // System includes
 #include <functional>
+#include <vector>
 
 // External includes
 
@@ -39,6 +40,10 @@ public:
     using IndexType = std::size_t;
 
     using NodeType = ModelPart::NodeType;
+
+    using DofsVectorType =  std::vector<Dof<double>::Pointer>;
+
+    using EquationIdVectorType = std::vector<std::size_t>;
 
     ///@}
     ///@name Classes
@@ -80,7 +85,7 @@ public:
         ///@name Static Operations
         ///@{
 
-        static void RunAdjointElementTest(
+        static void RunAdjointEntityTest(
             ModelPart& rPrimalModelPart,
             ModelPart& rAdjointModelPart,
             const std::function<void(ModelPart&)>& rUpdateModelPart,
@@ -107,6 +112,38 @@ public:
         ///@}
     };
 
+    template<class TContainerType>
+    class ContainerUtilities
+    {
+    public:
+        ///@name Static Operations
+        ///@{
+
+        static void RunAdjointEntityGetDofListTest(
+            ModelPart& rModelPart,
+            const std::vector<const Variable<double>*>& rDofVariablesList);
+
+        static void RunAdjointEntityEquationIdVectorTest(
+            ModelPart& rModelPart,
+            const std::vector<const Variable<double>*>& rDofVariablesList);
+
+        static void RunAdjointEntityGetValuesVectorTest(
+            ModelPart& rModelPart,
+            const std::vector<const Variable<double>*>& rDofVariablesList);
+
+        static void RunAdjointEntityGetFirstDerivativesVectorTest(
+            ModelPart& rModelPart,
+            const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod);
+
+        static void RunAdjointEntityGetSecondDerivativesVectorTest(
+            ModelPart& rModelPart,
+            const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod);
+
+        static TContainerType& GetContainer(ModelPart& rModelPart);
+
+        ///@}
+    };
+
     ///@}
     ///@name Static operations
     ///@{
@@ -116,9 +153,6 @@ public:
         Vector& residual,
         TClassType& rClassTypeObject,
         const ProcessInfo& rProcessInfo);
-
-    template <class TContainerType>
-    static TContainerType& GetContainer(ModelPart& rModelPart);
 
     static ModelPart& CreateTestModelPart(
         Model& rModel,
