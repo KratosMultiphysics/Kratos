@@ -109,30 +109,9 @@ namespace Kratos
         if(rVariable==SHEAR_FORCE_1 || rVariable==SHEAR_FORCE_2)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-                // Compute Kinematics and Metric
-                KinematicVariables kinematic_variables(
-                    GetGeometry().WorkingSpaceDimension());
-                CalculateKinematics(
-                    point_number,
-                    kinematic_variables);
 
-                // Create constitutive law parameters:
-                ConstitutiveLaw::Parameters constitutive_law_parameters(
-                    GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-                ConstitutiveVariables constitutive_variables_membrane(3);
-                ConstitutiveVariables constitutive_variables_curvature(3);
-                CalculateConstitutiveVariables(
-                    point_number,
-                    kinematic_variables,
-                    constitutive_variables_membrane,
-                    constitutive_variables_curvature,
-                    constitutive_law_parameters,
-                    ConstitutiveLaw::StressMeasure_PK2);
-                
-                // shear force
                 array_1d<double, 2> q = ZeroVector(2);
-                CalculateShearForce(point_number, q, kinematic_variables, constitutive_variables_curvature);
+                CalculateShearForce(point_number, q, rCurrentProcessInfo);
 
                 if (rVariable==SHEAR_FORCE_1)
                 {
@@ -143,6 +122,105 @@ namespace Kratos
                     rOutput[point_number] = q[1];
                 }
             }
+        }
+        else if (rVariable==PK2_STRESS_XX || rVariable==PK2_STRESS_YY || rVariable==PK2_STRESS_XY)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                
+                array_1d<double, 3> membrane_stress_pk2_car;
+                array_1d<double, 3> bending_stress_pk2_car;
+
+                CalculatePK2Stress(point_number, membrane_stress_pk2_car, bending_stress_pk2_car, rCurrentProcessInfo);
+
+                if (rVariable==PK2_STRESS_XX)
+                {
+                    rOutput[point_number] = membrane_stress_pk2_car[0];
+                }
+                else if (rVariable==PK2_STRESS_YY)
+                {
+                    rOutput[point_number] = membrane_stress_pk2_car[1];
+                }
+                else if (rVariable==PK2_STRESS_XY)
+                {
+                    rOutput[point_number] = membrane_stress_pk2_car[2];
+                }
+            }
+        }
+        else if(rVariable==CAUCHY_STRESS_XX || rVariable==CAUCHY_STRESS_YY || rVariable==CAUCHY_STRESS_XY 
+            || rVariable==CAUCHY_STRESS_TOP_XX || rVariable==CAUCHY_STRESS_TOP_YY || rVariable==CAUCHY_STRESS_TOP_XY  
+            || rVariable==CAUCHY_STRESS_BOTTOM_XX || rVariable==CAUCHY_STRESS_BOTTOM_YY || rVariable==CAUCHY_STRESS_BOTTOM_XY
+            || rVariable==MEMBRANE_FORCE_XX || rVariable==MEMBRANE_FORCE_YY || rVariable==MEMBRANE_FORCE_XY 
+            || rVariable==INTERNAL_MOMENT_XX || rVariable==INTERNAL_MOMENT_YY || rVariable==INTERNAL_MOMENT_XY)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                
+                array_1d<double, 3> membrane_stress_cau_car;
+                array_1d<double, 3> bending_stress_cau_car;
+
+                CalculateCauchyStress(point_number, membrane_stress_cau_car, bending_stress_cau_car, rCurrentProcessInfo);
+                double thickness = this->GetProperties().GetValue(THICKNESS);
+
+                if (rVariable==CAUCHY_STRESS_XX)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[0];
+                }
+                else if (rVariable==CAUCHY_STRESS_YY)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[1];
+                }
+                else if (rVariable==CAUCHY_STRESS_XY)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[2];
+                }
+                else if (rVariable==CAUCHY_STRESS_TOP_XX) 
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[0] + thickness / 2 * bending_stress_cau_car[0];
+                }
+                else if (rVariable==CAUCHY_STRESS_TOP_YY) 
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[1] + thickness / 2 * bending_stress_cau_car[1];
+                }
+                else if (rVariable==CAUCHY_STRESS_TOP_XY) 
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[2] + thickness / 2 * bending_stress_cau_car[2];
+                }
+                else if (rVariable==CAUCHY_STRESS_BOTTOM_XX)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[0] - thickness / 2 * bending_stress_cau_car[0];
+                }
+                else if (rVariable==CAUCHY_STRESS_BOTTOM_YY)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[1] - thickness / 2 * bending_stress_cau_car[1];
+                }
+                else if (rVariable==CAUCHY_STRESS_BOTTOM_XY)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[2] - thickness / 2 * bending_stress_cau_car[2];
+                }
+                else if (rVariable==MEMBRANE_FORCE_XX)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[0] * thickness;
+                }
+                else if (rVariable==MEMBRANE_FORCE_YY)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[1] * thickness;
+                }
+                else if (rVariable==MEMBRANE_FORCE_XY)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[2] * thickness;
+                }
+                else if (rVariable==INTERNAL_MOMENT_XX)
+                {
+                    rOutput[point_number] = bending_stress_cau_car[0] * pow(thickness, 3) / 12;
+                }
+                else if (rVariable==INTERNAL_MOMENT_XX)
+                {
+                    rOutput[point_number] = bending_stress_cau_car[1] * pow(thickness, 3) / 12;
+                }
+                else if (rVariable==INTERNAL_MOMENT_XY)
+                {
+                    rOutput[point_number] = bending_stress_cau_car[2] * pow(thickness, 3) / 12;
+                }
+            } 
         }
     }
 
@@ -160,71 +238,50 @@ namespace Kratos
             rOutput.resize(r_integration_points.size());
         }
 
-        if(rVariable==PK2_STRESS || rVariable==CAUCHY_STRESS || rVariable==CAUCHY_STRESS_TOP || rVariable==CAUCHY_STRESS_BOTTOM 
+        if (rVariable==PK2_STRESS)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+
+                array_1d<double, 3> membrane_stress_pk2_car;
+                array_1d<double, 3> bending_stress_pk2_car;
+
+                CalculatePK2Stress(point_number, membrane_stress_pk2_car, bending_stress_pk2_car, rCurrentProcessInfo);
+                rOutput[point_number] = membrane_stress_pk2_car;
+            }
+        }
+        else if(rVariable==CAUCHY_STRESS || rVariable==CAUCHY_STRESS_TOP || rVariable==CAUCHY_STRESS_BOTTOM 
                 || rVariable==MEMBRANE_FORCE ||  rVariable==INTERNAL_MOMENT)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-                // Compute Kinematics and Metric
-                KinematicVariables kinematic_variables(
-                    GetGeometry().WorkingSpaceDimension());
-                CalculateKinematics(
-                    point_number,
-                    kinematic_variables);
 
-                // Create constitutive law parameters:
-                ConstitutiveLaw::Parameters constitutive_law_parameters(
-                    GetGeometry(), GetProperties(), rCurrentProcessInfo);
+                array_1d<double, 3> membrane_stress_cau_car;
+                array_1d<double, 3> bending_stress_cau_car;
 
-                ConstitutiveVariables constitutive_variables_membrane(3);
-                ConstitutiveVariables constitutive_variables_curvature(3);
-                CalculateConstitutiveVariables(
-                    point_number,
-                    kinematic_variables,
-                    constitutive_variables_membrane,
-                    constitutive_variables_curvature,
-                    constitutive_law_parameters,
-                    ConstitutiveLaw::StressMeasure_PK2);
-                
-                if (rVariable==PK2_STRESS)
+                CalculateCauchyStress(point_number, membrane_stress_cau_car, bending_stress_cau_car, rCurrentProcessInfo);
+                double thickness = this->GetProperties().GetValue(THICKNESS);
+
+                if (rVariable==CAUCHY_STRESS)
                 {
-                    rOutput[point_number] = constitutive_variables_membrane.StressVector;
+                    rOutput[point_number] = membrane_stress_cau_car;
                 }
-                else
+                else if (rVariable==CAUCHY_STRESS_TOP) 
                 {
-                    double thickness = this->GetProperties().GetValue(THICKNESS);
-
-                    // membrane and bending stress
-                    array_1d<double, 3> membrane_stress_pk2_car = constitutive_variables_membrane.StressVector;
-                    array_1d<double, 3> bending_stress_pk2_car = constitutive_variables_curvature.StressVector / pow(thickness, 2) * 12;
-                
-                    array_1d<double, 3> membrane_stress_cau_car;
-                    array_1d<double, 3> bending_stress_cau_car;
-
-                    CalculateCauchyStress(point_number, membrane_stress_cau_car, bending_stress_cau_car, membrane_stress_pk2_car, bending_stress_pk2_car, kinematic_variables);
-                    
-                    if (rVariable==CAUCHY_STRESS)
-                    {
-                        rOutput[point_number] = membrane_stress_cau_car;
-                    }
-                    else if (rVariable==CAUCHY_STRESS_TOP) 
-                    {
-                        rOutput[point_number] = membrane_stress_cau_car + thickness / 2 * bending_stress_cau_car;
-                    }
-                    else if (rVariable==CAUCHY_STRESS_BOTTOM)
-                    {
-                        rOutput[point_number] = membrane_stress_cau_car - thickness / 2 * bending_stress_cau_car;
-                    }
-                    else if (rVariable==MEMBRANE_FORCE)
-                    {
-                        rOutput[point_number] = membrane_stress_cau_car * thickness;
-                    }
-                    else if (rVariable==INTERNAL_MOMENT)
-                    {
-                        rOutput[point_number] = bending_stress_cau_car * pow(thickness, 3) / 12;
-                    }
+                    rOutput[point_number] = membrane_stress_cau_car + thickness / 2 * bending_stress_cau_car;
+                }
+                else if (rVariable==CAUCHY_STRESS_BOTTOM)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car - thickness / 2 * bending_stress_cau_car;
+                }
+                else if (rVariable==MEMBRANE_FORCE)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car * thickness;
+                }
+                else if (rVariable==INTERNAL_MOMENT)
+                {
+                    rOutput[point_number] = bending_stress_cau_car * pow(thickness, 3) / 12;
                 }
             }
-        }     
+        }
     }
 
 
@@ -775,17 +832,61 @@ namespace Kratos
     ///@name Stress recovery
     ///@{
     
+    void Shell3pElement::CalculatePK2Stress(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rPK2MembraneStressCartesian,
+        array_1d<double, 3>& rPK2BendingStressCartesian,
+        const ProcessInfo& rCurrentProcessInfo) const
+    {
+        // Compute Kinematics and Metric
+        KinematicVariables kinematic_variables(
+            GetGeometry().WorkingSpaceDimension());
+        CalculateKinematics(
+            IntegrationPointIndex,
+            kinematic_variables);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters constitutive_law_parameters(
+            GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+        ConstitutiveVariables constitutive_variables_membrane(3);
+        ConstitutiveVariables constitutive_variables_curvature(3);
+        CalculateConstitutiveVariables(
+            IntegrationPointIndex,
+            kinematic_variables,
+            constitutive_variables_membrane,
+            constitutive_variables_curvature,
+            constitutive_law_parameters,
+            ConstitutiveLaw::StressMeasure_PK2);
+        
+        double thickness = this->GetProperties().GetValue(THICKNESS);
+
+        rPK2MembraneStressCartesian = constitutive_variables_membrane.StressVector;
+        rPK2BendingStressCartesian = -1.0 * constitutive_variables_curvature.StressVector / pow(thickness, 2) * 12;
+    }
+    
     void Shell3pElement::CalculateCauchyStress(
         const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rCauchyMembraneStressesCartesian, 
         array_1d<double, 3>& rCauchyBendingStressesCartesian, 
-        const array_1d<double, 3>& rPK2MembraneStressCartesian,
-        const array_1d<double, 3>& rPK2BendingStressCartesian,
-        const KinematicVariables& rKinematicVariables) const
+        const ProcessInfo& rCurrentProcessInfo) const
     {
-        double detF = rKinematicVariables.dA / m_dA_vector[IntegrationPointIndex];
+        // Compute PK2 stress
+        array_1d<double, 3> membrane_stress_pk2_car;
+        array_1d<double, 3> bending_stress_pk2_car;
 
-        //Transformation matrix T from local cartesian coordinate system to covariant basis
+        CalculatePK2Stress(IntegrationPointIndex, membrane_stress_pk2_car, bending_stress_pk2_car, rCurrentProcessInfo);
+
+        // Compute Kinematics and Metric
+        KinematicVariables kinematic_variables(
+            GetGeometry().WorkingSpaceDimension());
+        CalculateKinematics(
+            IntegrationPointIndex,
+            kinematic_variables);
+
+        double detF = kinematic_variables.dA / m_dA_vector[IntegrationPointIndex];
+
+        // Compute Transformation matrix T from local cartesian coordinate system to covariant basis
         Matrix T_car_to_cov = ZeroMatrix(3,3);
         T_car_to_cov = trans(m_T_vector[IntegrationPointIndex]);
         for (IndexType i = 0; i < 3; i++)
@@ -793,15 +894,16 @@ namespace Kratos
             T_car_to_cov(2, i) = T_car_to_cov(i, 2) / 2;
         }
 
-        //Transformation matrix T from covariant basis to local cartesian coordinate system            
+        // Compute Transformation matrix T from covariant basis to local cartesian coordinate system            
         Matrix T_cov_to_car = ZeroMatrix(3,3);
-        CalculateTransformationFromCovariantToCartesian(rKinematicVariables, T_cov_to_car);
+        CalculateTransformationFromCovariantToCartesian(kinematic_variables, T_cov_to_car);
 
-        array_1d<double, 3> membrane_stress_pk2_cov = prod(T_car_to_cov, rPK2MembraneStressCartesian);
+        // Compute Cauchy stress
+        array_1d<double, 3> membrane_stress_pk2_cov = prod(T_car_to_cov, membrane_stress_pk2_car);
         array_1d<double, 3> membrane_stress_cau_cov = membrane_stress_pk2_cov / detF;
         array_1d<double, 3> membrane_stress_cau_car = prod(T_cov_to_car, membrane_stress_cau_cov);
 
-        array_1d<double, 3> bending_stress_pk2_cov = prod(T_car_to_cov, rPK2BendingStressCartesian);
+        array_1d<double, 3> bending_stress_pk2_cov = prod(T_car_to_cov, bending_stress_pk2_car);
         array_1d<double, 3> bending_stress_cau_cov = bending_stress_pk2_cov / detF;
         array_1d<double, 3> bending_stress_cau_car = prod(T_cov_to_car, bending_stress_cau_cov);
 
@@ -812,16 +914,30 @@ namespace Kratos
     void Shell3pElement::CalculateShearForce(
         const IndexType IntegrationPointIndex,
         array_1d<double, 2>& rq, 
-        const KinematicVariables& rKinematicVariables,
-        const ConstitutiveVariables& rConstitutiveVariablesCurvature) const
-    {   
-        //Transformation matrix T from local cartesian coordinate system to covariant basis
-        Matrix T_car_to_cov = ZeroMatrix(3,3);
-        T_car_to_cov = trans(m_T_vector[IntegrationPointIndex]);
-        for (IndexType i = 0; i < 3; i++)
-        {
-            T_car_to_cov(2, i) = T_car_to_cov(i, 2) / 2;
-        }
+        const ProcessInfo& rCurrentProcessInfo) const
+    {
+        // Compute Kinematics and Metric
+        KinematicVariables kinematic_variables(
+            GetGeometry().WorkingSpaceDimension());
+        CalculateKinematics(
+            IntegrationPointIndex,
+            kinematic_variables);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters constitutive_law_parameters(
+            GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+        ConstitutiveVariables constitutive_variables_membrane(3);
+        ConstitutiveVariables constitutive_variables_curvature(3);
+        CalculateConstitutiveVariables(
+            IntegrationPointIndex,
+            kinematic_variables,
+            constitutive_variables_membrane,
+            constitutive_variables_curvature,
+            constitutive_law_parameters,
+            ConstitutiveLaw::StressMeasure_PK2);
+        
+        double thickness = this->GetProperties().GetValue(THICKNESS);
 
         // Calculate Hessian Matrix at initial configuration
         const SizeType number_of_points = GetGeometry().size();
@@ -863,15 +979,15 @@ namespace Kratos
         // Calculate derivative of curvature w.r.t. theta1 and theta2 at actual configuration
         array_1d<double, 3> DCurvature_D1_actual = ZeroVector(3);
         array_1d<double, 3> DCurvature_D2_actual = ZeroVector(3);
-        CalculateDerivativeOfCurvatureActual(IntegrationPointIndex, DCurvature_D1_actual, DCurvature_D2_actual, H_actual, rKinematicVariables);
+        CalculateDerivativeOfCurvatureActual(IntegrationPointIndex, DCurvature_D1_actual, DCurvature_D2_actual, H_actual, kinematic_variables);
 
         std::vector<array_1d<double, 3>> Dk_con_Dalpha(2);
         Dk_con_Dalpha[0] = DCurvature_D1_initial - DCurvature_D1_actual;
         Dk_con_Dalpha[1] = DCurvature_D2_initial - DCurvature_D2_actual;
 
-        array_1d<double, 3> k_con = rKinematicVariables.b_ab_covariant - m_B_ab_covariant_vector[IntegrationPointIndex];
+        array_1d<double, 3> k_con = -1.0 * (kinematic_variables.b_ab_covariant - m_B_ab_covariant_vector[IntegrationPointIndex]);
         array_1d<double, 3> k_car = prod(m_T_vector[IntegrationPointIndex], k_con);
-        array_1d<double, 3> m_car = prod(rConstitutiveVariablesCurvature.ConstitutiveMatrix, k_car);
+        array_1d<double, 3> m_car = prod(constitutive_variables_curvature.ConstitutiveMatrix, k_car)*thickness;
 
         // derivative of the transformation matrix T_con_to_car (contravariant to local Cartesian basis)
         std::vector<Matrix> DT_con_to_car_init_Dalpha(2, ZeroMatrix(3, 3));
@@ -883,39 +999,47 @@ namespace Kratos
         std::vector<array_1d<double, 3>> Dm_cov_Dalpha(2);
         array_1d<double, 3> Dk_car_D1 = prod(m_T_vector[IntegrationPointIndex], Dk_con_Dalpha[0]) + prod(DT_con_to_car_init_Dalpha[0], k_con);
         array_1d<double, 3> Dk_car_D2 = prod(m_T_vector[IntegrationPointIndex], Dk_con_Dalpha[1]) + prod(DT_con_to_car_init_Dalpha[1], k_con);
-        Dm_car_Dalpha[0] = prod(rConstitutiveVariablesCurvature.ConstitutiveMatrix, Dk_car_D1);
-        Dm_car_Dalpha[1] = prod(rConstitutiveVariablesCurvature.ConstitutiveMatrix, Dk_car_D2);
+        Dm_car_Dalpha[0] = prod(constitutive_variables_curvature.ConstitutiveMatrix, Dk_car_D1)*thickness;
+        Dm_car_Dalpha[1] = prod(constitutive_variables_curvature.ConstitutiveMatrix, Dk_car_D2)*thickness;
+
+        //Transformation matrix T from local cartesian coordinate system to covariant basis
+        Matrix T_car_to_cov = ZeroMatrix(3,3);
+        T_car_to_cov = trans(m_T_vector[IntegrationPointIndex]);
+        for (IndexType i = 0; i < 3; i++)
+        {
+            T_car_to_cov(2, i) = T_car_to_cov(i, 2) / 2;
+        }
 
         Dm_cov_Dalpha[0] = prod(T_car_to_cov, Dm_car_Dalpha[0]) + prod(DT_car_to_cov_init_Dalpha[0], m_car);
         Dm_cov_Dalpha[1] = prod(T_car_to_cov, Dm_car_Dalpha[1]) + prod(DT_car_to_cov_init_Dalpha[1], m_car);
 
         array_1d<double, 2> q_pk2_cov;
-        q_pk2_cov[0] = Dm_cov_Dalpha[0](0) / std::sqrt(rKinematicVariables.a_ab_covariant[0]) + Dm_cov_Dalpha[1](2) / std::sqrt(rKinematicVariables.a_ab_covariant[1]);
-        q_pk2_cov[1] = Dm_cov_Dalpha[1](1) / std::sqrt(rKinematicVariables.a_ab_covariant[1]) + Dm_cov_Dalpha[0](2) / std::sqrt(rKinematicVariables.a_ab_covariant[0]);
-        double detF = rKinematicVariables.dA / m_dA_vector[IntegrationPointIndex];
+        q_pk2_cov[0] = Dm_cov_Dalpha[0](0) / std::sqrt(kinematic_variables.a_ab_covariant[0]) + Dm_cov_Dalpha[1](2) / std::sqrt(kinematic_variables.a_ab_covariant[1]);
+        q_pk2_cov[1] = Dm_cov_Dalpha[1](1) / std::sqrt(kinematic_variables.a_ab_covariant[1]) + Dm_cov_Dalpha[0](2) / std::sqrt(kinematic_variables.a_ab_covariant[0]);
+        double detF = kinematic_variables.dA / m_dA_vector[IntegrationPointIndex];
         array_1d<double, 2> q_cau_cov = q_pk2_cov / detF;
 
         //Contravariant metric g_ab_con
         double inv_det_g_ab = 1.0 /
-            (rKinematicVariables.a_ab_covariant[0] * rKinematicVariables.a_ab_covariant[1]
-                - rKinematicVariables.a_ab_covariant[2] * rKinematicVariables.a_ab_covariant[2]);
+            (kinematic_variables.a_ab_covariant[0] * kinematic_variables.a_ab_covariant[1]
+                - kinematic_variables.a_ab_covariant[2] * kinematic_variables.a_ab_covariant[2]);
 
         array_1d<double, 3> a_ab_contravariant;
-        a_ab_contravariant[0] =  inv_det_g_ab * rKinematicVariables.a_ab_covariant[1];
-        a_ab_contravariant[1] =  inv_det_g_ab * rKinematicVariables.a_ab_covariant[0];
-        a_ab_contravariant[2] = -inv_det_g_ab * rKinematicVariables.a_ab_covariant[2];
+        a_ab_contravariant[0] =  inv_det_g_ab * kinematic_variables.a_ab_covariant[1];
+        a_ab_contravariant[1] =  inv_det_g_ab * kinematic_variables.a_ab_covariant[0];
+        a_ab_contravariant[2] = -inv_det_g_ab * kinematic_variables.a_ab_covariant[2];
 
         //Contravariant base vectors
-        array_1d<double, 3> a_contravariant_2 = rKinematicVariables.a1*a_ab_contravariant[2] + rKinematicVariables.a2*a_ab_contravariant[1];
+        array_1d<double, 3> a_contravariant_2 = kinematic_variables.a1*a_ab_contravariant[2] + kinematic_variables.a2*a_ab_contravariant[1];
 
         //Local cartesian coordinates
-        double l_a1 = norm_2(rKinematicVariables.a1);
-        array_1d<double, 3> e1 = rKinematicVariables.a1 / l_a1;
+        double l_a1 = norm_2(kinematic_variables.a1);
+        array_1d<double, 3> e1 = kinematic_variables.a1 / l_a1;
         double l_a_contravariant_2 = norm_2(a_contravariant_2);
         array_1d<double, 3> e2 = a_contravariant_2 / l_a_contravariant_2;
 
-        rq[0] = inner_prod(e1, rKinematicVariables.a1) * q_cau_cov[0];
-        rq[1] = inner_prod(e2, rKinematicVariables.a2) * q_cau_cov[1];
+        rq[0] = inner_prod(e1, kinematic_variables.a1) * q_cau_cov[0];
+        rq[1] = inner_prod(e2, kinematic_variables.a2) * q_cau_cov[1];
     }
 
     void Shell3pElement::CalculateDerivativeOfCurvatureInitial(
@@ -983,11 +1107,11 @@ namespace Kratos
 
         MathUtils<double>::CrossProduct(cross1, Da1_D1, a2);
         MathUtils<double>::CrossProduct(cross2, a1, Da1_D2);
-        array_1d<double, 3> Da3_D1 = (m_dA_vector[IntegrationPointIndex] * (cross1 + cross2) - a3_tilde * norm_2(cross1 + cross2)) 
+        array_1d<double, 3> Da3_D1 = (m_dA_vector[IntegrationPointIndex] * (cross1 + cross2) - a3_tilde * inner_prod(a3,(cross1 + cross2))/m_dA_vector[IntegrationPointIndex]) 
             / pow(m_dA_vector[IntegrationPointIndex], 2);
         MathUtils<double>::CrossProduct(cross1, Da1_D2, a2);
         MathUtils<double>::CrossProduct(cross2, a1, Da2_D2);
-        array_1d<double, 3> Da3_D2 = (m_dA_vector[IntegrationPointIndex] * (cross1 + cross2) - a3_tilde * norm_2(cross1 + cross2))
+        array_1d<double, 3> Da3_D2 = (m_dA_vector[IntegrationPointIndex] * (cross1 + cross2) - a3_tilde * inner_prod(a3,(cross1 + cross2))/m_dA_vector[IntegrationPointIndex])
             / pow(m_dA_vector[IntegrationPointIndex], 2);
         rDCurvature_D1[0] = inner_prod(DDa1_DD11, a3) + inner_prod(Da1_D1, Da3_D1);
         rDCurvature_D1[1] = inner_prod(DDa2_DD21, a3) + inner_prod(Da2_D2, Da3_D1);
@@ -1030,11 +1154,11 @@ namespace Kratos
 
         MathUtils<double>::CrossProduct(cross1, Da1_D1, rKinematicVariables.a2);
         MathUtils<double>::CrossProduct(cross2, rKinematicVariables.a1, Da1_D2);
-        array_1d<double, 3> Da3_D1 = (rKinematicVariables.dA * (cross1 + cross2) - rKinematicVariables.a3_tilde * norm_2(cross1 + cross2)) 
+        array_1d<double, 3> Da3_D1 = (rKinematicVariables.dA * (cross1 + cross2) - rKinematicVariables.a3_tilde * inner_prod(rKinematicVariables.a3_tilde,(cross1 + cross2))/rKinematicVariables.dA) 
             / pow(rKinematicVariables.dA, 2);
         MathUtils<double>::CrossProduct(cross1, Da1_D2, rKinematicVariables.a2);
         MathUtils<double>::CrossProduct(cross2, rKinematicVariables.a1, Da2_D2);
-        array_1d<double, 3> Da3_D2 = (rKinematicVariables.dA * (cross1 + cross2) - rKinematicVariables.a3_tilde * norm_2(cross1 + cross2))
+        array_1d<double, 3> Da3_D2 = (rKinematicVariables.dA * (cross1 + cross2) - rKinematicVariables.a3_tilde * inner_prod(rKinematicVariables.a3_tilde,(cross1 + cross2))/rKinematicVariables.dA)
             / pow(rKinematicVariables.dA, 2);
         rDCurvature_D1[0] = inner_prod(DDa1_DD11, rKinematicVariables.a3) + inner_prod(Da1_D1, Da3_D1);
         rDCurvature_D1[1] = inner_prod(DDa2_DD21, rKinematicVariables.a3) + inner_prod(Da2_D2, Da3_D1);

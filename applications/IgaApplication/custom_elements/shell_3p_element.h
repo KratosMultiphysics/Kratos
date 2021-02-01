@@ -445,25 +445,25 @@ private:
         const Vector& rSD,
         const double IntegrationWeight) const;
 
-    
+    // Calculation of the PK2 stress
+    void CalculatePK2Stress(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rPK2MembraneStressCartesian,
+        array_1d<double, 3>& rPK2BendingStressCartesian,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
     // Calculation of the Cauchy stress by transforming the PK2 stress
     void CalculateCauchyStress(
         const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rCauchyMembraneStressesCartesian, 
         array_1d<double, 3>& rCauchyBendingStressesCartesian, 
-        const array_1d<double, 3>& rPK2MembraneStressCartesian,
-        const array_1d<double, 3>& rPK2BendingStressCartesian,
-        const KinematicVariables& rKinematicVariables) const;
+        const ProcessInfo& rCurrentProcessInfo) const;
 
-    /**
-     * @brief Calculation of the shear force, shear force = derivative of moment
-     * @detail based on Carat ElementShell_NURBS_KL.cpp
-     */
+    // Calculation of the shear force, shear force = derivative of moment
     void CalculateShearForce(
         const IndexType IntegrationPointIndex,
         array_1d<double, 2>& rq, 
-        const KinematicVariables& rKinematicVariables,
-        const ConstitutiveVariables& rConstitutiveVariablesCurvature) const;
+        const ProcessInfo& rCurrentProcessInfo) const;
 
     void CalculateDerivativeOfCurvatureInitial(
         const IndexType IntegrationPointIndex,
