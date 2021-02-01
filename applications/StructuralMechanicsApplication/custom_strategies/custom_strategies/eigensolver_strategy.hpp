@@ -400,10 +400,12 @@ public:
         // i.e. a BlockBuilder is used
         const bool matrix_contains_dirichlet_dofs = SparseSpaceType::Size1(rMassMatrix) == this->pGetBuilderAndSolver()->GetDofSet().size();
 
+        const bool master_slave_constraints_defined = rModelPart.NumberOfMasterSlaveConstraints() != 0;
+
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
         TSparseSpace::SetToZero(rMassMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
-        if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
+        if (master_slave_constraints_defined) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
         }
         if (matrix_contains_dirichlet_dofs) {
@@ -417,7 +419,7 @@ public:
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
         TSparseSpace::SetToZero(rStiffnessMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
-        if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
+        if (master_slave_constraints_defined) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rStiffnessMatrix, b);
         }
 
@@ -444,6 +446,8 @@ public:
         KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0)
                 << system_solve_time.ElapsedSeconds() << std::endl;
 
+        if (master_slave_constraints_defined)
+            this->RecoverSolution(Eigenvectors);
 
         this->AssignVariables(Eigenvalues,Eigenvectors);
 
@@ -582,6 +586,69 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /// Recover the solution related to the slave dofs in case of master-slave constraints.
+    /**
+     *  This function is an adaptation of the implementation in ConstraintUtilities,
+     *  since there the variables are assumed to be stored in SolutionStepValue.
+     *  Beware that this implementation is only valid for Block B&S, since the master-slave constraints
+     *  don't work with Elimination B&S yet.
+     */
+    void RecoverSolution(
+        DenseMatrixType& rEigenvectors
+    )
+    {
+        KRATOS_TRY
+
+        const auto& rModelPart = BaseType::GetModelPart();
+        const auto& master_slave_constraints = rModelPart.MasterSlaveConstraints();
+        std::size_t number_of_constraints = rModelPart.NumberOfMasterSlaveConstraints();
+        std::size_t number_of_eigenvalues = rEigenvectors.size1();
+
+        for (std::size_t i_eigenvalue = 0; i_eigenvalue < number_of_eigenvalues; ++i_eigenvalue){
+
+            // Reset slave dofs
+            for (std::size_t i_const = 0; i_const < number_of_constraints; ++i_const) {
+                auto it_const = master_slave_constraints.begin() + i_const;
+                const auto& slave_dofs_vector = it_const->GetSlaveDofsVector();
+                for (IndexType i = 0; i < slave_dofs_vector.size(); ++i)
+                    rEigenvectors(i_eigenvalue, slave_dofs_vector[i]->EquationId()) = 0.0;
+            }
+            
+            // Apply constraints
+            for (std::size_t i_const = 0; i_const < number_of_constraints; ++i_const) {
+                
+                auto it_const = master_slave_constraints.begin() + i_const;
+                // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                // It is active by default
+                bool constraint_is_active = true;
+                if (it_const->IsDefined(ACTIVE))
+                    constraint_is_active = it_const->Is(ACTIVE);
+                if (constraint_is_active) {
+                    
+                    // Saving the master dofs values
+                    const auto& master_dofs_vector = it_const->GetMasterDofsVector();
+                    const auto& slave_dofs_vector = it_const->GetSlaveDofsVector();
+                    Vector master_dofs_values(master_dofs_vector.size());
+                    for (IndexType i = 0; i < master_dofs_vector.size(); ++i)
+                        master_dofs_values[i] = rEigenvectors(i_eigenvalue, master_dofs_vector[i]->EquationId());
+                    // Apply the constraint to the slave dofs
+                    Matrix relation_matrix;
+                    Vector constant_vector;
+                    it_const->GetLocalSystem(relation_matrix, constant_vector, rModelPart.GetProcessInfo());
+                    for (IndexType i = 0; i < relation_matrix.size1(); ++i) {
+                        double aux = constant_vector[i];
+                        for(IndexType j = 0; j < relation_matrix.size2(); ++j) {
+                            aux += relation_matrix(i,j) * master_dofs_values[j];
+                        }
+                        rEigenvectors(i_eigenvalue, slave_dofs_vector[i]->EquationId()) += aux;
+                    }
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
 
     /// Apply Dirichlet boundary conditions without modifying dof pattern.
     /**
