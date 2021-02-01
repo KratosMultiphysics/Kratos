@@ -27,11 +27,11 @@ namespace Kratos
 
 void MPMParticleBaseCondition::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo )
+    const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     if (rResult.size() != dimension * number_of_nodes)
@@ -67,12 +67,12 @@ void MPMParticleBaseCondition::EquationIdVector(
 //***********************************************************************
 void MPMParticleBaseCondition::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension =  r_geometry.WorkingSpaceDimension();
     rElementalDofList.resize(0);
@@ -104,9 +104,9 @@ void MPMParticleBaseCondition::GetDofList(
 void MPMParticleBaseCondition::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;
@@ -133,9 +133,9 @@ void MPMParticleBaseCondition::GetValuesVector(
 void MPMParticleBaseCondition::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;
@@ -162,9 +162,9 @@ void MPMParticleBaseCondition::GetFirstDerivativesVector(
 void MPMParticleBaseCondition::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;
@@ -188,7 +188,7 @@ void MPMParticleBaseCondition::GetSecondDerivativesVector(
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticleBaseCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void MPMParticleBaseCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     // Calculation flags
     const bool CalculateStiffnessMatrixFlag = false;
@@ -200,7 +200,7 @@ void MPMParticleBaseCondition::CalculateRightHandSide( VectorType& rRightHandSid
 
 //************************************************************************************
 //************************************************************************************
-void MPMParticleBaseCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void MPMParticleBaseCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     const bool CalculateStiffnessMatrixFlag = true;
@@ -214,7 +214,7 @@ void MPMParticleBaseCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMa
 
 void MPMParticleBaseCondition::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rMassMatrix.size1() != 0)
@@ -228,7 +228,7 @@ void MPMParticleBaseCondition::CalculateMassMatrix(
 
 void MPMParticleBaseCondition::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rDampingMatrix.size1() != 0)
@@ -242,7 +242,7 @@ void MPMParticleBaseCondition::CalculateDampingMatrix(
 
 void MPMParticleBaseCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     bool CalculateStiffnessMatrixFlag,
     bool CalculateResidualVectorFlag
     )
@@ -253,13 +253,10 @@ void MPMParticleBaseCondition::CalculateAll(
 //***********************************************************************
 //***********************************************************************
 
-int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);
-
-    // Verify variable exists
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
 
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& r_node : this->GetGeometry().Points()) {

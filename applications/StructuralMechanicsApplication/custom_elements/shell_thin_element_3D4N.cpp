@@ -155,21 +155,21 @@ void ShellThinElement3D4N::Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_TRY
 
     const int points_number = GetGeometry().PointsNumber();
-
-    KRATOS_ERROR_IF_NOT(points_number == 4) <<"ShellThinElement3D4N - Wrong number of nodes"
-                                            << points_number << std::endl;
+    KRATOS_ERROR_IF_NOT(points_number == 4) <<"ShellThinElement3D4N - Wrong number of nodes" << points_number << std::endl;
 
     BaseShellElement::Initialize(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->Initialize();
-
-    this->SetupOrientationAngles();
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        mpCoordinateTransformation->Initialize();
+        this->SetupOrientationAngles();
+    }
 
     KRATOS_CATCH("")
 }
 
 void ShellThinElement3D4N::InitializeNonLinearIteration
-(ProcessInfo& rCurrentProcessInfo)
+(const ProcessInfo& rCurrentProcessInfo)
 {
     mpCoordinateTransformation->InitializeNonLinearIteration();
 
@@ -177,7 +177,7 @@ void ShellThinElement3D4N::InitializeNonLinearIteration
 }
 
 void ShellThinElement3D4N::FinalizeNonLinearIteration
-(ProcessInfo& rCurrentProcessInfo)
+(const ProcessInfo& rCurrentProcessInfo)
 {
     mpCoordinateTransformation->FinalizeNonLinearIteration();
 
@@ -185,7 +185,7 @@ void ShellThinElement3D4N::FinalizeNonLinearIteration
 }
 
 void ShellThinElement3D4N::InitializeSolutionStep
-(ProcessInfo& rCurrentProcessInfo)
+(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseInitializeSolutionStep(rCurrentProcessInfo);
 
@@ -193,7 +193,7 @@ void ShellThinElement3D4N::InitializeSolutionStep
 }
 
 void ShellThinElement3D4N::FinalizeSolutionStep
-(ProcessInfo& rCurrentProcessInfo)
+(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -201,7 +201,7 @@ void ShellThinElement3D4N::FinalizeSolutionStep
 }
 
 void ShellThinElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     if ((rMassMatrix.size1() != 24) || (rMassMatrix.size2() != 24)) {
         rMassMatrix.resize(24, 24, false);

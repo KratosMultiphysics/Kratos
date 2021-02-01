@@ -126,7 +126,7 @@ public:
          mpBDFUtility(Kratos::make_unique<TimeDiscretization::BDF>(Order))
     {
         // Allocate auxiliary memory
-        const std::size_t num_threads = OpenMPUtils::GetNumThreads();
+        const std::size_t num_threads = ParallelUtilities::GetNumThreads();
 
         mVector.dotun0.resize(num_threads);
         mVector.dot2un0.resize(num_threads);
@@ -458,16 +458,17 @@ protected:
         )
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const auto& r_const_obj_ref = rObject;
 
         // Adding inertia contribution
         if (rM.size1() != 0) {
-            rObject.GetSecondDerivativesVector(mVector.dot2un0[this_thread], 0);
+            r_const_obj_ref.GetSecondDerivativesVector(mVector.dot2un0[this_thread], 0);
             noalias(rRHS_Contribution) -= prod(rM, mVector.dot2un0[this_thread]);
         }
 
         // Adding damping contribution
         if (rD.size1() != 0) {
-            rObject.GetFirstDerivativesVector(mVector.dotun0[this_thread], 0);
+            r_const_obj_ref.GetFirstDerivativesVector(mVector.dotun0[this_thread], 0);
             noalias(rRHS_Contribution) -= prod(rD, mVector.dotun0[this_thread]);
         }
     }

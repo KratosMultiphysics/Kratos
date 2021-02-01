@@ -12,9 +12,12 @@ from iga_test_factory import SinglePatchTest as SinglePatchTest
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailImplicitDynamic as MembraneSinglePatchFourPointSailImplicitDynamic
+from iga_test_factory import ScordelisRoofShell3pTest as ScordelisRoofShell3pTest
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
+# Nurbs Geometry tests
+from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -35,8 +38,11 @@ def AssembleTestSuites():
         # Membrane tests
         MembraneSinglePatchFourPointSailLinearStatic,
         MembraneSinglePatchFourPointSailNonLinearStatic,
+        # Shell 3p tests
+        ScordelisRoofShell3pTest,
         # Modelers tests
-        TTestModelers
+        TTestModelers,
+        TTestNurbsVolumeElements
         ]))
 
     nightSuite = suites['nightly']

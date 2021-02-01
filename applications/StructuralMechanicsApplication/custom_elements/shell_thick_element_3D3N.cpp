@@ -146,50 +146,50 @@ void ShellThickElement3D3N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    const int points_number = GetGeometry().PointsNumber();
-
-    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThickElement3D3N - Wrong number of nodes"
-                                            << points_number << std::endl;
-
     BaseShellElement::Initialize(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->Initialize();
+    const int points_number = GetGeometry().PointsNumber();
+    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThickElement3D3N - Wrong number of nodes" << points_number << std::endl;
 
-    this->SetupOrientationAngles();
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        mpCoordinateTransformation->Initialize();
+        this->SetupOrientationAngles();
+    }
 
     KRATOS_CATCH("")
 }
 
 void ShellThickElement3D3N::InitializeNonLinearIteration
-(ProcessInfo& rCurrentProcessInfo)
+(const ProcessInfo& rCurrentProcessInfo)
 {
     mpCoordinateTransformation->InitializeNonLinearIteration();
 
     BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThickElement3D3N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void ShellThickElement3D3N::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     mpCoordinateTransformation->FinalizeNonLinearIteration();
 
     BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThickElement3D3N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void ShellThickElement3D3N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseInitializeSolutionStep(rCurrentProcessInfo);
 
     mpCoordinateTransformation->InitializeSolutionStep();
 }
 
-void ShellThickElement3D3N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void ShellThickElement3D3N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
     mpCoordinateTransformation->FinalizeSolutionStep();
 }
 
-void ShellThickElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ShellThickElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     if ((rMassMatrix.size1() != 18) || (rMassMatrix.size2() != 18)) {
         rMassMatrix.resize(18, 18, false);

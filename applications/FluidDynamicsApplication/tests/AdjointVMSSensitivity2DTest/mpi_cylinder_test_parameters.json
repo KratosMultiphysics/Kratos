@@ -10,7 +10,8 @@
         "solver_type"                  : "Monolithic",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
+            "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test",
+            "partition_in_memory" : true
         },
         "material_import_settings": {
             "materials_filename": "AdjointVMSSensitivity2DTest/cylinder_test_materials.json"
@@ -118,7 +119,7 @@
                 "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "mpi_cylinder_test_probe1.dat",
-                    "folder_name": "AdjointVMSSensitivity2DTest",
+                    "output_path": "AdjointVMSSensitivity2DTest",
                     "write_buffer_size" : 1
                 },
                 "output_variables" : [
@@ -136,7 +137,7 @@
                 "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "mpi_cylinder_test_probe2.dat",
-                    "folder_name": "AdjointVMSSensitivity2DTest",
+                    "output_path": "AdjointVMSSensitivity2DTest",
                     "write_buffer_size" : 1
                 },
                 "output_variables" : [

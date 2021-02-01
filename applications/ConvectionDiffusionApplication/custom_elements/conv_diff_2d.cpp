@@ -65,7 +65,9 @@ ConvDiff2D::~ConvDiff2D()
   //************************************************************************************
   //************************************************************************************
   
-  void ConvDiff2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  void ConvDiff2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
+                                        VectorType& rRightHandSideVector, 
+                                        const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
       
@@ -234,7 +236,8 @@ ConvDiff2D::~ConvDiff2D()
   //************************************************************************************
   //************************************************************************************
 
-    void ConvDiff2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void ConvDiff2D::CalculateRightHandSide(VectorType& rRightHandSideVector, 
+                                            const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_THROW_ERROR(std::logic_error, "method not implemented", "");
     }
@@ -244,7 +247,7 @@ ConvDiff2D::~ConvDiff2D()
     // this subroutine calculates the nodal contributions for the explicit steps of the
     // fractional step procedure
 
-    void ConvDiff2D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+    void ConvDiff2D::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
                 int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
@@ -308,7 +311,7 @@ ConvDiff2D::~ConvDiff2D()
     //************************************************************************************
     //************************************************************************************
 
-    void ConvDiff2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+    void ConvDiff2D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const 
     {
         ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
@@ -323,7 +326,7 @@ ConvDiff2D::~ConvDiff2D()
     //************************************************************************************
     //************************************************************************************
 
-    void ConvDiff2D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+    void ConvDiff2D::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
     {
         unsigned int number_of_nodes = GetGeometry().PointsNumber();
         ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);

@@ -12,13 +12,14 @@
 //
 
 // System includes
+
 // External includes
 
 // Project includes
-#include "utilities/openmp_utils.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/geometrical_transformation_utilities.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
@@ -145,7 +146,7 @@ void ApplyPeriodicConditionProcess::PrintInfo(std::ostream& rOStream) const
 template <int TDim>
 void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
 {
-    const double start_apply = OpenMPUtils::GetCurrentTime();
+    const auto timer = BuiltinTimer();
     const int num_vars = mParameters["variable_names"].size();
     BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(mrMasterModelPart);
     bin_based_point_locator.UpdateSearchDatabase();
@@ -174,7 +175,7 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
             {
                 const std::string var_name = mParameters["variable_names"][j].GetString();
                 // Checking if the variable is a vector variable
-                if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name + "_X"))
+                if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name))
                 {   // TODO: Look for a better alternative to do this.
                     ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
                 } else if (KratosComponents<VariableType>::Has(var_name))
@@ -185,8 +186,7 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
         }
     }
     KRATOS_WARNING_IF("ApplyPeriodicConditionProcess",num_slaves_found != mrSlaveModelPart.NumberOfNodes())<<"Periodic condition cannot be applied for all the nodes."<<std::endl;
-    const double end_apply = OpenMPUtils::GetCurrentTime();
-    KRATOS_INFO("ApplyPeriodicConditionProcess")<<"Applying periodic boundary conditions took : "<<end_apply - start_apply<<" seconds." <<std::endl;
+    KRATOS_INFO("ApplyPeriodicConditionProcess")<<"Applying periodic boundary conditions took : "<< timer.ElapsedSeconds() <<" seconds." <<std::endl;
 }
 
 template <int TDim>

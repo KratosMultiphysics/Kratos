@@ -47,5 +47,8 @@ class MembraneSinglePatchFourPointSailNonLinearStatic(IgaTestFactory):
 class MembraneSinglePatchFourPointSailImplicitDynamic(IgaTestFactory):
     file_name = "membrane_test/Membrane_single_patch_four_point_sail_implicit_dynamic"
 
+class ScordelisRoofShell3pTest(IgaTestFactory):
+    file_name = "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p"
+
 if __name__ == '__main__':
     KratosUnittest.main()

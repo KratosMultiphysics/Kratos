@@ -305,19 +305,19 @@ public:
      * Sets on rValues the nodal displacements
      */
     void GetValuesVector(Vector& rValues,
-			 int Step = 0 ) override;
+			 int Step = 0 ) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
     void GetFirstDerivativesVector(Vector& rValues,
-				   int Step = 0 ) override;
+				   int Step = 0 ) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(Vector& rValues,
-				    int Step = 0 ) override;
+				    int Step = 0 ) const override;
 
 
     //************* COMPUTING  METHODS
@@ -382,7 +382,7 @@ public:
      */
     void AddExplicitContribution(const VectorType& rRHS,
 					 const Variable<VectorType>& rRHSVariable,
-					 Variable<array_1d<double,3> >& rDestinationVariable,
+					 const Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -456,18 +456,18 @@ protected:
     /**
      * Check dof for a vector variable
      */
-    virtual bool HasVariableDof(VariableVectorType& rVariable);
+    virtual bool HasVariableDof(VariableVectorType& rVariable) const;
 
     /**
      * Check dof for a double variable
      */
-    virtual bool HasVariableDof(VariableScalarType& rVariable);
+    virtual bool HasVariableDof(VariableScalarType& rVariable) const;
 
 
     /**
      * Get condition size from the dofs
      */
-    virtual unsigned int GetDofsSize();
+    virtual unsigned int GetDofsSize() const;
 
     /**
      * Initialize System Matrices

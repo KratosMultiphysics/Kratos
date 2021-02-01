@@ -40,7 +40,6 @@ RansNutKEpsilonUpdateProcess::RansNutKEpsilonUpdateProcess(
 
     mEchoLevel = rParameters["echo_level"].GetInt();
     mModelPartName = rParameters["model_part_name"].GetString();
-    mCmu = rParameters["c_mu"].GetDouble();
     mMinValue = rParameters["min_value"].GetDouble();
 
     KRATOS_CATCH("");
@@ -49,14 +48,12 @@ RansNutKEpsilonUpdateProcess::RansNutKEpsilonUpdateProcess(
 RansNutKEpsilonUpdateProcess::RansNutKEpsilonUpdateProcess(
     Model& rModel,
     const std::string& rModelPartName,
-    const double Cmu,
     const double MinValue,
     const int EchoLevel)
-: mrModel(rModel),
-  mModelPartName(rModelPartName),
-  mCmu(Cmu),
-  mMinValue(MinValue),
-  mEchoLevel(EchoLevel)
+    : mrModel(rModel),
+      mModelPartName(rModelPartName),
+      mMinValue(MinValue),
+      mEchoLevel(EchoLevel)
 {
 }
 
@@ -102,6 +99,8 @@ void RansNutKEpsilonUpdateProcess::ExecuteAfterCouplingSolveStep()
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
     auto& r_nodes = r_model_part.Nodes();
 
+    const double c_mu = r_model_part.GetProcessInfo()[TURBULENCE_RANS_C_MU];
+
     block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
         const double epsilon =
             rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
@@ -110,13 +109,10 @@ void RansNutKEpsilonUpdateProcess::ExecuteAfterCouplingSolveStep()
 
         if (epsilon > 0.0) {
             const double tke = rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-            nu_t = mCmu * std::pow(tke, 2) / epsilon;
+            nu_t = c_mu * std::pow(tke, 2) / epsilon;
         } else {
             nu_t = mMinValue;
         }
-
-        rNode.FastGetSolutionStepValue(VISCOSITY) =
-            rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nu_t;
     });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
@@ -145,7 +141,6 @@ const Parameters RansNutKEpsilonUpdateProcess::GetDefaultParameters() const
         {
             "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "echo_level"      : 0,
-            "c_mu"            : 0.09,
             "min_value"       : 1e-15
         })");
     return default_parameters;

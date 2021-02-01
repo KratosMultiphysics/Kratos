@@ -99,7 +99,7 @@ public:
         :BaseType()
     {
         // Allocate auxiliary memory
-        const std::size_t num_threads = OpenMPUtils::GetNumThreads();
+        const std::size_t num_threads = ParallelUtilities::GetNumThreads();
 
         mMatrix.M.resize(num_threads);
         mMatrix.D.resize(num_threads);
@@ -203,7 +203,8 @@ public:
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        pCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
+        const auto& r_const_process_info = rCurrentProcessInfo;
+        pCurrentCondition->InitializeNonLinearIteration(r_const_process_info);
     }
 
     /**
@@ -216,7 +217,8 @@ public:
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        pCurrentElement->InitializeNonLinearIteration(rCurrentProcessInfo);
+        const auto& r_const_process_info = rCurrentProcessInfo;
+        pCurrentElement->InitializeNonLinearIteration(r_const_process_info);
     }
 
     /**

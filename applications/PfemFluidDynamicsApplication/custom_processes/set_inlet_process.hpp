@@ -24,7 +24,6 @@
 
 ///VARIABLES used:
 //Data:
-//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked)
 //          (set)
 //          (modified)
@@ -66,7 +65,7 @@ public:
                   int EchoLevel)
       : mrModelPart(rModelPart)
   {
-    KRATOS_INFO("SetInletProcess") << " inlet_management CONSTRUCTOR ";
+    KRATOS_INFO("SetInletProcess") << " activated "<< std::endl;
 
     mEchoLevel = EchoLevel;
   }

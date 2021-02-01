@@ -81,10 +81,11 @@ namespace Kratos {
             std::vector<ModelPart::IndexType> elem_nodes {1, 2, 3};
             Element::Pointer p_elem_1, p_elem_2;
             if (is_embedded){
-                p_elem_1 = rModelPart.CreateNewElement("EmbeddedSymbolicNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
-                p_elem_2 = rModelPart.CreateNewElement("EmbeddedSymbolicNavierStokesDiscontinuous2D3N", 2, elem_nodes, p_elem_prop);
+                rModelPart.GetProcessInfo().SetValue(SLIP_LENGTH, 1.0e-2);
+                p_elem_1 = rModelPart.CreateNewElement("EmbeddedWeaklyCompressibleNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
+                p_elem_2 = rModelPart.CreateNewElement("EmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D3N", 2, elem_nodes, p_elem_prop);
             } else {
-                p_elem_1 = rModelPart.CreateNewElement("SymbolicNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
+                p_elem_1 = rModelPart.CreateNewElement("WeaklyCompressibleNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
             }
             rModelPart.CreateNewCondition("NavierStokesWallCondition2D2N", 1, cond_nodes, p_elem_prop);
 
@@ -201,7 +202,7 @@ namespace Kratos {
             array_1d<double, 3> drag_force = drag_utilities.CalculateEmbeddedDrag(model_part);
 
             // Check computed values
-            KRATOS_CHECK_NEAR(drag_force[0], -0.06, 1e-2);
+            KRATOS_CHECK_NEAR(drag_force[0], 6.72, 1e-2);
             KRATOS_CHECK_NEAR(drag_force[1], 0.8325, 1e-4);
             KRATOS_CHECK_NEAR(drag_force[2], 0.0, 1e-6);
 	    }

@@ -236,10 +236,10 @@ namespace Kratos
       ///@{
 
 		void AddChunk() {
-			if (mThreadNumber != static_cast<std::size_t>(GetThreadNumber()))
+			if (mThreadNumber != static_cast<std::size_t>(OpenMPUtils::ThisThread()))
                 KRATOS_ERROR;
 
-			KRATOS_DEBUG_CHECK_EQUAL(mThreadNumber, static_cast<std::size_t>(GetThreadNumber()));
+			KRATOS_DEBUG_CHECK_EQUAL(mThreadNumber, static_cast<std::size_t>(OpenMPUtils::ThisThread()));
 
             mChunks.emplace_back(mBlockSizeInBytes, mChunkSize);
             Chunk* p_available_chunk = &(mChunks.back());
