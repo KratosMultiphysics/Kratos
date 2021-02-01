@@ -110,7 +110,6 @@ public:
         ///@{
 
         Data& mrData;
-        IndexType mBlockSize;
         MatrixNN mPrimalMatrix;
 
         ///@}
