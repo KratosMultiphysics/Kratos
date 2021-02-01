@@ -480,7 +480,8 @@ message("")
 message("***********************************************************************")
 message("")
 
-#message("List of upcoming api-breaking changes:")
+message("List of upcoming api-breaking changes:")
+message("\t Update of Element, Condition and Scheme Interface: https://github.com/KratosMultiphysics/Kratos/issues/7381")
 #message("\t XXXXXX: https://github.com/KratosMultiphysics/Kratos/pull/YYYY")
 
 #compiling the triangle library
