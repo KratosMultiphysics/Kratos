@@ -369,8 +369,8 @@ public:
                 const array_1d<double, 3>& r_current_angular_velocity = it_node->FastGetSolutionStepValue(ANGULAR_VELOCITY);
                 array_1d<double, 3>& r_current_angular_acceleration = it_node->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
-                const array_1d<double, 3>& nodal_inertia = it_node->GetValue(NODAL_INERTIA);
-                const array_1d<double, 3>& nodal_rotational_damping = it_node->GetValue(NODAL_ROTATION_DAMPING);
+                const array_1d<double, 3>& r_nodal_inertia = it_node->GetValue(NODAL_INERTIA);
+                const array_1d<double, 3>& r_nodal_rotational_damping = it_node->GetValue(NODAL_ROTATION_DAMPING);
                 const array_1d<double, 3>& r_current_residual_moment = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
 
 
@@ -378,7 +378,7 @@ public:
 
                 for (IndexType kk = initial_j; kk < 3; ++kk) {
                     if (nodal_inertia[kk] > numerical_limit)
-                        r_current_angular_acceleration[kk] = (r_current_residual_moment[kk] - nodal_rotational_damping[kk] * r_current_angular_velocity[kk]) / nodal_inertia[kk];
+                        r_current_angular_acceleration[kk] = (r_current_residual_moment[kk] - r_nodal_rotational_damping[kk] * r_current_angular_velocity[kk]) / r_nodal_inertia[kk];
                     else
                         r_current_angular_acceleration[kk] = 0.0;
                 }
