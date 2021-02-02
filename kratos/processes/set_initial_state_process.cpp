@@ -21,224 +21,109 @@
 namespace Kratos
 {
 
-    template<std::size_t TDim>
-    CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
-        ModelPart& rVolumePart,
-        ModelPart& rSkinPart)
-        : CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart)
+    template<SizeType TDim>
+    SetInitialStateProcess<TDim>::SetInitialStateProcess(
+        ModelPart& rModelPart) 
+            : mrModelPart(rModelPart)
     {
+        const SizeType voigt_size = (TDim == 3) ? 6 : 3;
+
+        mInitialStrain.resize(voigt_size, false);
+        mInitialStress.resize(voigt_size, false);
+        mInitialF.resize(TDim, TDim, false);
+
+        noalias(mInitialStrain) = ZeroVector(voigt_size);
+        noalias(mInitialStress) = ZeroVector(voigt_size);
+        noalias(mInitialF)      = ZeroMatrix(TDim, TDim);
     }
 
-    template<std::size_t TDim>
-    CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
-        ModelPart& rVolumePart,
-        ModelPart& rSkinPart,
-        const double RayCastingRelativeTolerance)
-        : CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart),
-        mRayCastingRelativeTolerance(RayCastingRelativeTolerance)
+
+    template<SizeType TDim>
+    SetInitialStateProcess<TDim>::SetInitialStateProcess(
+        ModelPart& rModelPart,
+        const Vector& rInitialStateVector, 
+        const int InitialStateType) 
+            : mrModelPart(rModelPart)
     {
-    }
+        const SizeType voigt_size = (TDim == 3) ? 6 : 3;
 
-    template<std::size_t TDim>
-    CalculateDistanceToSkinProcess<TDim>::~CalculateDistanceToSkinProcess()
-    {
-    }
+        mInitialStrain.resize(voigt_size, false);
+        mInitialStress.resize(voigt_size, false);
+        mInitialF.resize(TDim, TDim, false);
 
-    template<std::size_t TDim>
-    void CalculateDistanceToSkinProcess<TDim>::Initialize()
-    {
-        CalculateDiscontinuousDistanceToSkinProcess<TDim>::Initialize();
-        this->InitializeNodalDistances();
-    }
-
-    template<std::size_t TDim>
-    void CalculateDistanceToSkinProcess<TDim>::InitializeNodalDistances()
-    {
-        // Get the volume model part from the base discontinuous distance process
-        ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess).GetModelPart1();
-
-        // Calculate the domain characteristic length
-        const double char_length = this->CalculateCharacteristicLength();
-
-        // Initialize the nodal distance values to a maximum positive value
-        #pragma omp parallel for firstprivate(char_length)
-        for (int i_node = 0; i_node < static_cast<int>(ModelPart1.NumberOfNodes()); ++i_node) {
-            auto it_node = ModelPart1.NodesBegin() + i_node;
-            it_node->GetSolutionStepValue(DISTANCE) = char_length;
-        }
-    }
-
-    template<std::size_t TDim>
-    void CalculateDistanceToSkinProcess<TDim>::CalculateDistances(
-        std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
-    {
-        // Compute the discontinuous (elemental) distance field
-        const bool use_base_elemental_distance = false;
-        if (use_base_elemental_distance) {
-            // Use the base class elemental distance computation (includes plane optimization)
-            CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDistances(rIntersectedObjects);
+        if (InitialStateType == 0) {
+            noalias(mInitialStrain) = rInitialStateVector;
+            noalias(mInitialStress) = ZeroVector(voigt_size);
+        } else if (InitialStateType == 1) {
+            noalias(mInitialStrain) = ZeroVector(voigt_size);
+            noalias(mInitialStress) = rInitialStateVector;
         } else {
-            // Use a naive elemental distance computation (without plane optimization)
-            this->CalculateElementalDistances(rIntersectedObjects);
+            noalias(mInitialStrain) = ZeroVector(voigt_size);
+            noalias(mInitialStress) = ZeroVector(voigt_size);
         }
-        // Get the minimum elemental distance value for each node
-        this->CalculateNodalDistances();
-        // Perform raycasting to sign the previous distance field
-        this->CalculateRayDistances();
+        noalias(mInitialF) = ZeroMatrix(TDim, TDim);
     }
 
-    template<std::size_t TDim>
-    void CalculateDistanceToSkinProcess<TDim>::CalculateElementalDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
+    template<SizeType TDim>
+    SetInitialStateProcess<TDim>::SetInitialStateProcess(
+        ModelPart& rModelPart,
+        const Matrix& rInitialStateF) 
+            : mrModelPart(rModelPart)
     {
-        const int number_of_elements = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
-        auto& r_elements = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
+        const SizeType voigt_size = (TDim == 3) ? 6 : 3;
 
-        #pragma omp parallel for schedule(dynamic)
-        for (int i = 0; i < number_of_elements; ++i) {
-            Element &r_element = *(r_elements[i]);
-            PointerVector<GeometricalObject>& r_element_intersections = rIntersectedObjects[i];
+        mInitialStrain.resize(voigt_size, false);
+        mInitialStress.resize(voigt_size, false);
+        mInitialF.resize(TDim, TDim, false);
 
-            // Check if the element has intersections
-            if (r_element_intersections.empty()) {
-                r_element.Set(TO_SPLIT, false);
-            } else {
-                // This function assumes tetrahedra element and triangle intersected object as input at this moment
-                constexpr int number_of_tetrahedra_points = TDim + 1;
-                constexpr double epsilon = std::numeric_limits<double>::epsilon();
-                Vector &elemental_distances = r_element.GetValue(ELEMENTAL_DISTANCES);
+        noalias(mInitialStrain) = ZeroVector(voigt_size);
+        noalias(mInitialStress) = ZeroVector(voigt_size);
+        noalias(mInitialF)      = rInitialStateF;
+    }
 
-                if (elemental_distances.size() != number_of_tetrahedra_points){
-                    elemental_distances.resize(number_of_tetrahedra_points, false);
-                }
 
-                for (int i = 0; i < number_of_tetrahedra_points; i++) {
-                    elemental_distances[i] = this->CalculateDistanceToNode(r_element.GetGeometry()[i], r_element_intersections, epsilon);
-                }
+    template<SizeType TDim>
+    void SetInitialStateProcess<TDim>::ExecuteInitializeSolutionStep()
+    {
+        const auto it_elem_begin = mrModelPart.ElementsBegin();
+        const auto& r_integration_points = it_elem_begin->GetGeometry().IntegrationPoints(it_elem_begin->GetIntegrationMethod());
 
-                bool has_positive_distance = false;
-                bool has_negative_distance = false;
-                for (int i = 0; i < number_of_tetrahedra_points; i++){
-                    if (elemental_distances[i] > epsilon) {
-                        has_positive_distance = true;
-                    } else {
-                        has_negative_distance = true;
-                    }
-                }
+        Vector aux_initial_strain = mInitialStrain;
+        Vector aux_initial_stress = mInitialStress;
+        Matrix aux_initial_F      = mInitialF;
+        InitialState::Pointer p_initial_state = Kratos::make_intrusive<InitialState>(aux_initial_strain, aux_initial_stress, aux_initial_F);
 
-                r_element.Set(TO_SPLIT, has_positive_distance && has_negative_distance);
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
+            auto it_elem = it_elem_begin + i;
+
+            // If the values are set element-wise have priority
+            bool requires_unique_initial_state = false;
+            if (it_elem->GetGeometry().Has(INITIAL_STRAIN_VECTOR)) {
+                noalias(aux_initial_strain) = (it_elem->GetGeometry()).GetValue(INITIAL_STRAIN_VECTOR);
+                requires_unique_initial_state = true;
+            }
+            if (it_elem->GetGeometry().Has(INITIAL_STRESS_VECTOR)) {
+                noalias(aux_initial_stress) = (it_elem->GetGeometry()).GetValue(INITIAL_STRESS_VECTOR);
+                requires_unique_initial_state = true;
+            }
+            if (it_elem->GetGeometry().Has(INITIAL_DEFORMATION_GRADIENT_MATRIX)) {
+                noalias(aux_initial_F) = (it_elem->GetGeometry()).GetValue(INITIAL_DEFORMATION_GRADIENT_MATRIX);
+                requires_unique_initial_state = true;
+            }
+            if (requires_unique_initial_state)
+                p_initial_state = Kratos::make_intrusive<InitialState>(aux_initial_strain, aux_initial_stress, aux_initial_F);
+
+            // Assign the values to the GP of the element
+            std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;
+            it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, mrModelPart.GetProcessInfo());
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                constitutive_law_vector[point_number]->SetpInitialState(p_initial_state);
             }
         }
     }
 
-    template<std::size_t TDim>
-    double CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToNode(
-        Node<3> &rNode,
-        PointerVector<GeometricalObject>& rIntersectedObjects,
-        const double Epsilon)
-    {
-        // Initialize result distance value
-        double result_distance = std::numeric_limits<double>::max();
-
-        // For each intersecting object of the element, compute its nodal distance
-        for (auto it_int_obj : rIntersectedObjects.GetContainer()) {
-            // Compute the intersecting object distance to the current element node
-            const auto &r_int_obj_geom = it_int_obj->GetGeometry();
-            const double distance = this->CalculatePointDistance(r_int_obj_geom, rNode);
-
-            // Check that the computed distance is the minimum obtained one
-            if (std::abs(result_distance) > distance) {
-                if (distance < Epsilon) {
-                    result_distance = -Epsilon; // Avoid values near to 0.0
-                } else {
-                    result_distance = distance;
-                    std::vector<array_1d<double,3>> plane_pts;
-                    for (unsigned int i_node = 0; i_node < r_int_obj_geom.PointsNumber(); ++i_node){
-                        plane_pts.push_back(r_int_obj_geom[i_node]);
-                    }
-                    Plane3D plane = this->SetIntersectionPlane(plane_pts);
-
-                    // Check the distance sign using the distance to the intersection plane
-                    if (plane.CalculateSignedDistance(rNode) < 0.0){
-                        result_distance = -result_distance;
-                    }
-                }
-            }
-        }
-
-        return result_distance;
-    }
-
-    template<std::size_t TDim>
-    void CalculateDistanceToSkinProcess<TDim>::CalculateNodalDistances()
-    {
-        ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess).GetModelPart1();
-
-        constexpr int number_of_tetrahedra_points = TDim + 1;
-        for (auto& element : ModelPart1.Elements()) {
-            if (element.Is(TO_SPLIT)) {
-                const auto& r_elemental_distances = element.GetValue(ELEMENTAL_DISTANCES);
-                for (int i = 0; i < number_of_tetrahedra_points; i++) {
-                    Node<3>& r_node = element.GetGeometry()[i];
-                    double& r_distance = r_node.GetSolutionStepValue(DISTANCE);
-                    if (std::abs(r_distance) > std::abs(r_elemental_distances[i])){
-                        r_distance = r_elemental_distances[i];
-                    }
-                }
-            }
-        }
-    }
-
-    template<std::size_t TDim>
-    void CalculateDistanceToSkinProcess<TDim>::CalculateRayDistances()
-    {
-        ApplyRayCastingProcess<TDim> ray_casting_process(CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess, mRayCastingRelativeTolerance);
-        ray_casting_process.Execute();
-    }
-
-    template<>
-    double inline CalculateDistanceToSkinProcess<2>::CalculatePointDistance(
-        const Element::GeometryType &rIntObjGeom,
-        const Point &rDistancePoint)
-    {
-        return GeometryUtils::PointDistanceToLineSegment3D(
-            rIntObjGeom[0],
-            rIntObjGeom[1],
-            rDistancePoint);
-    }
-
-    template<>
-    double inline CalculateDistanceToSkinProcess<3>::CalculatePointDistance(
-        const Element::GeometryType &rIntObjGeom,
-        const Point &rDistancePoint)
-    {
-        return GeometryUtils::PointDistanceToTriangle3D(
-            rIntObjGeom[0],
-            rIntObjGeom[1],
-            rIntObjGeom[2],
-            rDistancePoint);
-    }
-
-    /// Turn back information as a string.
-    template<std::size_t TDim>
-    std::string CalculateDistanceToSkinProcess<TDim>::Info() const
-    {
-        return "CalculateDistanceToSkinProcess";
-    }
-
-    /// Print information about this object.
-    template<std::size_t TDim>
-    void CalculateDistanceToSkinProcess<TDim>::PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << Info();
-    }
-
-    /// Print object's data.
-    template<std::size_t TDim>
-    void CalculateDistanceToSkinProcess<TDim>::PrintData(std::ostream& rOStream) const
-    {
-    }
-
-    template class Kratos::CalculateDistanceToSkinProcess<2>;
-    template class Kratos::CalculateDistanceToSkinProcess<3>;
+    template class Kratos::SetInitialStateProcess<2>;
+    template class Kratos::SetInitialStateProcess<3>;
 
 }  // namespace Kratos.

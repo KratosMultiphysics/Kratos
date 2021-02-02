@@ -52,69 +52,30 @@ public:
 
     /// Default constructor.
     SetInitialStateProcess(ModelPart& rModelPart) :
-        mrModelPart(rModelPart)
-    {
-        const SizeType voigt_size = (TDim == 3) ? 6 : 3;
-
-        mInitialStrain.resize(voigt_size, false);
-        mInitialStress.resize(voigt_size, false);
-        mInitialF.resize(TDim, TDim, false);
-
-        noalias(mInitialStrain) = ZeroVector(voigt_size);
-        noalias(mInitialStress) = ZeroVector(voigt_size);
-        noalias(mInitialF)      = ZeroMatrix(TDim, TDim);
-    }
+        mrModelPart(rModelPart);
 
     /// Full constructor.
-    SetInitialStateProcess(ModelPart& rModelPart,
-                           const Vector& rInitialStrain,
-                           const Vector& rInitialStress,
-                           const Matrix& rInitialF) :
+    SetInitialStateProcess(
+        ModelPart& rModelPart,
+        const Vector& rInitialStrain,
+        const Vector& rInitialStress,
+        const Matrix& rInitialF) :
         mrModelPart(rModelPart), mInitialStrain(rInitialStrain), 
         mInitialStress(rInitialStress), mInitialF(rInitialF)
     {
     }
 
     /// Constructor with imposed vector.
-    SetInitialStateProcess(ModelPart& rModelPart,
-                           const Vector& rInitialStateVector, 
-                           const int InitialStateType) :
-        mrModelPart(rModelPart)
-    {
-        const SizeType voigt_size = (TDim == 3) ? 6 : 3;
-
-        mInitialStrain.resize(voigt_size, false);
-        mInitialStress.resize(voigt_size, false);
-        mInitialF.resize(TDim, TDim, false);
-
-        if (InitialStateType == 0) {
-            noalias(mInitialStrain) = rInitialStateVector;
-            noalias(mInitialStress) = ZeroVector(voigt_size);
-        } else if (InitialStateType == 1) {
-            noalias(mInitialStrain) = ZeroVector(voigt_size);
-            noalias(mInitialStress) = rInitialStateVector;
-        } else {
-            noalias(mInitialStrain) = ZeroVector(voigt_size);
-            noalias(mInitialStress) = ZeroVector(voigt_size);
-        }
-        noalias(mInitialF) = ZeroMatrix(TDim, TDim);
-    }
+    SetInitialStateProcess(
+        ModelPart& rModelPart,
+        const Vector& rInitialStateVector, 
+        const int InitialStateType) :
+        mrModelPart(rModelPart);
 
     /// Constructor with imposed F.
     SetInitialStateProcess(ModelPart& rModelPart,
-                           const Matrix& rInitialStateF) :
-        mrModelPart(rModelPart)
-    {
-        const SizeType voigt_size = (TDim == 3) ? 6 : 3;
-
-        mInitialStrain.resize(voigt_size, false);
-        mInitialStress.resize(voigt_size, false);
-        mInitialF.resize(TDim, TDim, false);
-
-        noalias(mInitialStrain) = ZeroVector(voigt_size);
-        noalias(mInitialStress) = ZeroVector(voigt_size);
-        noalias(mInitialF)      = rInitialStateF;
-    }
+        const Matrix& rInitialStateF) :
+        mrModelPart(rModelPart);
 
     /// Destructor.
     ~SetInitialStateProcess() override {}
@@ -137,45 +98,7 @@ public:
 
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep() override
-    {
-        const auto it_elem_begin = mrModelPart.ElementsBegin();
-        const auto& r_integration_points = it_elem_begin->GetGeometry().IntegrationPoints(it_elem_begin->GetIntegrationMethod());
-
-        Vector aux_initial_strain = mInitialStrain;
-        Vector aux_initial_stress = mInitialStress;
-        Matrix aux_initial_F      = mInitialF;
-        InitialState::Pointer p_initial_state = Kratos::make_intrusive<InitialState>(aux_initial_strain, aux_initial_stress, aux_initial_F);
-
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
-            auto it_elem = it_elem_begin + i;
-
-            // If the values are set element-wise have priority
-            bool requires_unique_initial_state = false;
-            if (it_elem->GetGeometry().Has(INITIAL_STRAIN_VECTOR)) {
-                noalias(aux_initial_strain) = (it_elem->GetGeometry()).GetValue(INITIAL_STRAIN_VECTOR);
-                requires_unique_initial_state = true;
-            }
-            if (it_elem->GetGeometry().Has(INITIAL_STRESS_VECTOR)) {
-                noalias(aux_initial_stress) = (it_elem->GetGeometry()).GetValue(INITIAL_STRESS_VECTOR);
-                requires_unique_initial_state = true;
-            }
-            if (it_elem->GetGeometry().Has(INITIAL_DEFORMATION_GRADIENT_MATRIX)) {
-                noalias(aux_initial_F) = (it_elem->GetGeometry()).GetValue(INITIAL_DEFORMATION_GRADIENT_MATRIX);
-                requires_unique_initial_state = true;
-            }
-            if (requires_unique_initial_state)
-                p_initial_state = Kratos::make_intrusive<InitialState>(aux_initial_strain, aux_initial_stress, aux_initial_F);
-
-            // Assign the values to the GP of the element
-            std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;
-            it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, mrModelPart.GetProcessInfo());
-            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-                constitutive_law_vector[point_number]->SetpInitialState(p_initial_state);
-            }
-        }
-    }
+    void ExecuteInitializeSolutionStep() override;
 
     ///@}
     ///@name Access
