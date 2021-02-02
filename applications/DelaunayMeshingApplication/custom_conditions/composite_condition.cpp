@@ -193,7 +193,7 @@ CompositeCondition::IntegrationMethod CompositeCondition::GetIntegrationMethod()
 //************************************************************************************
 //************************************************************************************
 
-void CompositeCondition::GetDofList( DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo )
+void CompositeCondition::GetDofList( DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo )
 {
   rConditionalDofList.resize(0);
 
