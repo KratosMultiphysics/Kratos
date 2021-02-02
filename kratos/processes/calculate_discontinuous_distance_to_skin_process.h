@@ -243,16 +243,16 @@ private:
      * method computes the edge intersections for a given element
      * @param rElement1 reference to the element of interest
      * @param rIntersectedObjects reference to the array containing the element of interest intersecting geometries
-     * @param rCutEdgesVector array that classifies the edges depending on their cut / uncut status
      * @param rCutEdgesRatioVector array that stores the relative positions from node zero of the average intersection points
+     * @param rCutExtraEdgesRatioVector array that stores the relative positions from node zero of the average intersection points of the extrapolated geometry
      * @param rIntersectionPointsArray array containing the edges intersection points
      * @return unsigned int number of cut edges
      */
     unsigned int ComputeEdgesIntersections(
         Element& rElement1,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
-        array_1d<unsigned int, (TDim == 2) ? 3 : 6>& rCutEdgesVector,
         array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector,
+        array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector,
         std::vector<array_1d <double,3> > &rIntersectionPointsArray);
 
     /**

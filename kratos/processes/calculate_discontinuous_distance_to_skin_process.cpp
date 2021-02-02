@@ -89,7 +89,23 @@ namespace Kratos
 		}
 
 		// Also initialize the embedded velocity of the fluid element and the TO_SPLIT flag.
-		if (mOptionEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)) {
+		if (mOptionExtraEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES)) {
+			// Initialize the edge distances vector
+			constexpr std::size_t num_edges = (TDim == 2) ? 3 : 6;
+			array_1d<double, num_edges> init_edge_dist_vect;
+			for (double& r_val : init_edge_dist_vect) {
+				r_val = -1.0;
+			}
+
+			block_for_each(mrVolumePart.Elements(), [&](Element& rElement){
+				rElement.Set(TO_SPLIT, false);
+				rElement.SetValue(EMBEDDED_VELOCITY, ZeroVector(3));
+				rElement.SetValue(ELEMENTAL_DISTANCES,init_dist_vect);
+				rElement.SetValue(ELEMENTAL_EDGE_DISTANCES, init_edge_dist_vect);
+				rElement.SetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES, init_edge_dist_vect);
+				rElement.SetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED,init_dist_vect);
+			});
+		} else if (mOptionEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)) {
 			// Initialize the edge distances vector
 			constexpr std::size_t num_edges = (TDim == 2) ? 3 : 6;
 			array_1d<double, num_edges> init_edge_dist_vect;
@@ -189,10 +205,10 @@ namespace Kratos
 
 		// Compute the number of intersected edges
 		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
-		array_1d<unsigned int, n_edges> cut_edges_vector;
 		array_1d<double, n_edges> cut_edges_ratio_vector;
+		array_1d<double, n_edges> cut_extra_edges_ratio_vector;
 		std::vector<array_1d <double,3> > int_pts_vector;
-		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_vector, cut_edges_ratio_vector, int_pts_vector);
+		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_ratio_vector, cut_extra_edges_ratio_vector, int_pts_vector);
 
 		// Check if there is intersection: 3 or more intersected edges for a tetrahedron
 		// If there is only 1 or 2 intersected edges, intersection is not considered
@@ -219,18 +235,47 @@ namespace Kratos
 
 		// Compute the number of intersected edges
 		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
-		array_1d<unsigned int, n_edges> cut_edges_vector;
 		array_1d<double, n_edges> cut_edges_ratio_vector;
+		array_1d<double, n_edges> cut_extra_edges_ratio_vector;
 		std::vector<array_1d <double,3> > int_pts_vector;
-		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_vector, cut_edges_ratio_vector, int_pts_vector);
+		const unsigned int n_cut_edges = ComputeEdgesIntersections(rElement1, rIntersectedObjects, cut_edges_ratio_vector, cut_extra_edges_ratio_vector, int_pts_vector);
 
 		// Save the cut edges ratios in the ELEMENTAL_EDGE_DISTANCES variable
 		SetElementalEdgeDistancesValues(rElement1, cut_edges_ratio_vector);
 
-		// Check if there is intersection: 3 or more intersected edges for a tetrahedron
-		// If there is only 1 or 2 intersected edges, intersection is not considered
-		// If there is intersection, calculate the elemental distances
-		const bool is_intersection = (n_cut_edges < rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
+		// Check if there is an intersection
+		bool is_intersection = false;
+		// Extrapolated edge distances were calculated (for Ausas incised elements)
+		if (mOptionExtraEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES)) {
+			// Save the cut edges ratios of the extrapolated geometry in the ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES variable
+			SetElementalExtrapolatedEdgeDistancesValues(rElement1, cut_extra_edges_ratio_vector);
+
+			// Check whether element is incised (this includes case, in which three edges of tetrahedron are intersected)
+			bool is_incised = false;
+			for (std::size_t i = 0; i < cut_extra_edges_ratio_vector.size(); i++) {
+				double tolerance = std::numeric_limits<double>::epsilon();
+				if ( std::abs(cut_extra_edges_ratio_vector[i] - (-1.0)) > tolerance ) {
+					is_incised = true;
+				}
+			}
+
+			// Calculate and save elemental (node) distances based on both: edge ratios of original and extrapolated geometry
+			if (is_incised) {
+				Vector elem_dist_extra_vector;
+				ConvertEdgeDistancesToElementalDistances(rElement1, rIntersectedObjects, cut_edges_ratio_vector, cut_extra_edges_ratio_vector, elem_dist_extra_vector);
+				SetElementalDistancesWithExtrapolatedValues(rElement1, elem_dist_extra_vector);
+			}
+			// If element is not incised, it is either not cut at all or completely intersected
+			else {
+				is_intersection = (n_cut_edges < rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
+			}
+		} else {
+			// 3D: 3 or more intersected edges for a tetrahedron
+			// 2D: 2 or more intersected edges for a triangle
+			is_intersection = (n_cut_edges < rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
+		}
+
+		// If there is an intersection, calculate the elemental distances (node-based)
 		if (is_intersection){
 			ComputeIntersectionPlaneElementalDistances(rElement1, rIntersectedObjects, int_pts_vector);
 		}
@@ -244,8 +289,8 @@ namespace Kratos
 	unsigned int CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeEdgesIntersections(
 		Element& rElement1,
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
-		array_1d<unsigned int, (TDim == 2) ? 3 : 6>& rCutEdgesVector,
 		array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector,
+		array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector,
       	std::vector<array_1d <double,3> > &rIntersectionPointsArray)
 	{
 		auto &r_geometry = rElement1.GetGeometry();
@@ -255,12 +300,17 @@ namespace Kratos
 		// Initialize cut edges vectors and points arrays
 		unsigned int n_cut_edges = 0;
 		rIntersectionPointsArray.clear();
-		rCutEdgesVector = array_1d<unsigned int, n_edges>(n_edges, 0);
+		array_1d<unsigned int, n_edges> cut_edges_vector = array_1d<unsigned int, n_edges>(n_edges, 0);
 		rCutEdgesRatioVector = array_1d<double, n_edges>(n_edges, -1.0);
+		rCutExtraEdgesRatioVector = array_1d<double, n_edges>(n_edges, -1.0);
 
-		// Check wich edges are intersected
+		// Initialize intersecting segments normal for extrapolated edge calculation
+		array_1d<double,3> extra_geom_normal = ZeroVector(3);
+
+		// Check which edges are intersected
 		for (std::size_t i_edge = 0; i_edge < n_edges; ++i_edge){
 			array_1d<double,3> avg_pt = ZeroVector(3);
+			array_1d<double,3> avg_extra_geom_normal = ZeroVector(3);
 			std::vector<array_1d<double,3> > aux_pts;
 			// Check against all candidates to count the number of current edge intersections
 			for (const auto &r_int_obj : rIntersectedObjects){
@@ -287,25 +337,42 @@ namespace Kratos
 						// Add the intersection pt. to the aux array pts.
 						aux_pts.push_back(int_pt);
 						// Increase the edge intersections counter
-						rCutEdgesVector[i_edge] += 1;
+						cut_edges_vector[i_edge] += 1;
 						// Save the intersection point for computing the average
 						avg_pt += int_pt;
+						// Get normal of intersecting segment for extrapolated cut edges calculation
+						if (mOptionExtraEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES)) {
+							array_1d<double,3> int_extra_geom_normal;
+							ComputeIntersectionNormalFromGeometry(r_int_obj_geom, int_extra_geom_normal);
+							avg_extra_geom_normal += int_extra_geom_normal;
+						}
 					}
 				}
 			}
 
 			// Collect the current edge information
-			if (rCutEdgesVector[i_edge] != 0){
+			if (cut_edges_vector[i_edge] != 0){
 				// Average the edge intersection point and save it
-				avg_pt /= rCutEdgesVector[i_edge];
+				avg_pt /= cut_edges_vector[i_edge];
 				rIntersectionPointsArray.push_back(avg_pt);
 				// Save the ratio location of the average intersection point
-				const double edge_length = r_edges_container[i_edge].Length();
-				const double dist_avg_pt = norm_2(r_edges_container[i_edge][0] - avg_pt);
-				rCutEdgesRatioVector[i_edge] = dist_avg_pt / edge_length;
+				rCutEdgesRatioVector[i_edge] = ConvertIntersectionPointToEdgeRatio(r_edges_container[i_edge], avg_pt);
 				// Increase the total intersected edges counter
 				n_cut_edges++;
+				// Get average normal of intersecting segments for the edge (for extrapolated cut edges calculation)
+				if (mOptionExtraEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES)) {
+					avg_extra_geom_normal /= cut_edges_vector[i_edge];
+					extra_geom_normal += avg_extra_geom_normal;
+				}
 			}
+		}
+
+		// Calculate extrapolated edge distances (for extrapolated cut edges calculation)
+		if (mOptionExtraEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES) && n_cut_edges > 0) {
+			// Get average normal of intersecting segments for all cut edges
+			extra_geom_normal /= n_cut_edges;
+			// Compute the intersections of the element's edges with the extrapolated averaged geometry
+			ComputeExtrapolatedEdgesIntersectionsIfIncised(rElement1, n_cut_edges, rCutEdgesRatioVector, extra_geom_normal, rCutExtraEdgesRatioVector);
 		}
 
 		return n_cut_edges;
