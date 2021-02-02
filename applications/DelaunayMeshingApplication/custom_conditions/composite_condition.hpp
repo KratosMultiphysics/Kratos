@@ -260,23 +260,6 @@ public:
      */
     void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    //GET:
-    /**
-     * Set on rVariable a double Value from the Condition Constitutive Law
-     */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Set on rVariable a Vector Value from the Condition Constitutive Law
-     */
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Set on rVariable a Matrix Value from the Condition Constitutive Law
-     */
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-
 
     //************* STARTING - ENDING  METHODS
 
