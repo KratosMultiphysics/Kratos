@@ -21,6 +21,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/dof.h"
+#include "includes/node.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/model_part.h"
@@ -91,6 +92,9 @@ public:
     typedef typename BaseType::DofIterator DofIterator;
     /// DoF constant iterator type definition
     typedef typename BaseType::DofConstantIterator DofConstantIterator;
+
+    /// Node pointers array tpye
+    typedef std::vector<Kratos::intrusive_ptr<Node<3>>> TNodePointerArrayType;
 
     /// Elements containers definition
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
@@ -406,9 +410,39 @@ protected:
     {
         KRATOS_TRY
 
-        // Loop over element nodes
-        for (auto& node_i : rElement.GetGeometry()) 
-            node_i.SetLock();
+        auto& element_nodes = rElement.GetGeometry();
+        TNodePointerArrayType element_locked_nodes;
+        element_locked_nodes.reserve(element_nodes.size());
+
+        bool all_nodes_locked{false};
+        auto it_node = element_nodes.begin();
+        while (!all_nodes_locked)
+        {   
+            auto& node_lock = it_node->GetLock();
+            // try to get a lock
+            if (node_lock.TestLock() == 0)
+            {
+                // if not successful: unlock all locked nodes and empty locked nodes vector
+                while (element_locked_nodes.size() != 0)
+                {
+                    element_locked_nodes.back()->UnSetLock();
+                    element_locked_nodes.pop_back();
+                }
+                    
+                // reset the iterator to the first node
+                it_node = element_nodes.begin();
+            } 
+            else
+            {
+                // if successful; add the node to the locked nodes vector and increment the node iterator
+                element_locked_nodes.push_back(Kratos::intrusive_ptr<Node<3>>(&(*it_node)));
+                ++it_node;
+
+                // check if all the nodes are locked
+                if (it_node == element_nodes.end())
+                    all_nodes_locked = true;
+            }
+        }
 
         KRATOS_CATCH("")
     }
