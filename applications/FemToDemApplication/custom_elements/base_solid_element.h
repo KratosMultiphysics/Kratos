@@ -531,6 +531,19 @@ public:
          const ProcessInfo& rCurrentProcessInfo
          ) override;
 
+    /**
+     * @brief Get on rVariable Constitutive Law from the element
+     * @param rVariable The variable we want to get
+     * @param rValues The results in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+            const Variable<ConstitutiveLaw::Pointer>& rVariable,
+            std::vector<ConstitutiveLaw::Pointer>& rValues,
+            const ProcessInfo& rCurrentProcessInfo
+            ) override;
+
+
      /**
       * @brief Set a array of 3 compoenents Value on the Element
       * @param rVariable The variable we want to set
