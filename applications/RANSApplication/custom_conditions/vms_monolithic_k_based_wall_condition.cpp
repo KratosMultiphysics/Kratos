@@ -129,7 +129,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
         // get fluid properties from parent element
         const auto& r_elem_properties = r_parent_element.GetProperties();
         const double rho = r_elem_properties[DENSITY];
-        ConstitutiveLaw::Parameters cl_parameters(r_geometry, r_elem_properties, rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters cl_parameters(r_parent_element.GetGeometry(), r_elem_properties, rCurrentProcessInfo);
 
         // get surface properties from condition
         const PropertiesType& r_cond_properties = this->GetProperties();
