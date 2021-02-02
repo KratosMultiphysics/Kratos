@@ -122,9 +122,7 @@ BinBasedDEMHomogenizationMapper(Parameters& rParameters)
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
     mHomogenizationType = mHomogenizationTypeStringToEnumMap[rParameters["homogenization_type"].GetString()];
-    //mTimeAveragingType = rParameters["forward_coupling"]["time_averaging_type"].GetInt();
 
-    mGravity = ZeroVector(3);
     mVariables = VariablesContainer();
 }
 
@@ -293,9 +291,7 @@ double mLastCouplingFromDEMTime;
 double mMaxNodalAreaInv;
 static std::map<std::string, HomogenizationType> mHomogenizationTypeStringToEnumMap;
 HomogenizationType mHomogenizationType;
-int mTimeAveragingType;
 int mNumberOfDEMSamplesSoFarInTheCurrentStep;
-array_1d<double, 3> mGravity;
 
 VariablesContainer mVariables;
 std::map<VariableData, double> mAlphas;

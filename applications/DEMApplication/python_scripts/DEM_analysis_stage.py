@@ -336,9 +336,9 @@ class DEMAnalysisStage(AnalysisStage):
 
         #TODO:Try to remove self.
         self.projected_homogenization_vars = []
-        self.projected_homogenization_vars += [POROSITY_PROJECTED]
+        self.projected_homogenization_vars += [VOLUME_SOLID_FRACTION]
+        self.projected_homogenization_vars += [MASS_SOLID_FRACTION]
         self.projected_homogenization_vars += [VELOCITY_PROJECTED]
-        self.projected_homogenization_vars += [DISPLACEMENT_PROJECTED]
         self.projected_homogenization_vars += [TIME_AVERAGED_ARRAY_3]
         self.projected_homogenization_vars += [NODAL_AREA]
         self.time_filtered_vars = []
