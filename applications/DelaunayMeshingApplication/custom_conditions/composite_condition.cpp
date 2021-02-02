@@ -802,15 +802,15 @@ void CompositeCondition::Calculate( const Variable<double>& rVariable, double& r
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int CompositeCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
+int  CompositeCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
   int check = 1;
   int child_check = 1;
-  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+  for (auto cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
   {
     child_check = cn->Check(rCurrentProcessInfo);
     if(child_check == 0)
-      return 0;
+      check = 0;
   }
 
   return check;
