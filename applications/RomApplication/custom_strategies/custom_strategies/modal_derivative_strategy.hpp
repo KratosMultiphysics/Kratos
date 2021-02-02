@@ -388,7 +388,8 @@ public:
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType basis;
         TSparseSpace::Resize(basis, p_builder_and_solver->GetDofSet().size());
-        
+        const bool master_slave_constraints_defined = r_model_part.MasterSlaveConstraints().size() != 0;
+
         /*
             BUILD_LEVEL = 1 : Scheme builds M
             BUILD_LEVEL = 2 : Scheme builds K
@@ -437,9 +438,6 @@ public:
                 // Dynamic derivatives are unsymmetric
                 basis_j_start_index = 0;
 
-                // // Add dynamic derivative constraint
-                // this->AddDynamicDerivativeConstraint(basis);
-
             } 
             else 
             {   // Static derivatives
@@ -449,7 +447,7 @@ public:
             }
 
             // Apply the master-slave constraints to LHS!
-            if(r_model_part.MasterSlaveConstraints().size() != 0) {
+            if(master_slave_constraints_defined) {
                 Timer::Start("Apply LHS Master-Slave Constraints");
                 p_builder_and_solver->ApplyConstraints(p_scheme, r_model_part, rA, rb);
                 Timer::Stop("Apply LHS Master-Slave Constraints");
@@ -486,7 +484,7 @@ public:
 
                 Timer::Start("Apply RHS Master-Slave Constraints");
                 // Apply the master-slave constraints to RHS only
-                if (r_model_part.MasterSlaveConstraints().size() != 0)
+                if (master_slave_constraints_defined)
                     p_builder_and_solver->ApplyRHSConstraints(p_scheme, r_model_part, rb);
                 Timer::Stop("Apply RHS Master-Slave Constraints");
 
@@ -494,7 +492,7 @@ public:
                 // Add dynamic derivative constraint
                 if (mDerivativeTypeFlag)
                     this->AddDynamicDerivativeConstraint(basis);
-                    
+
                 // Apply Dirichlet conditions
                 p_builder_and_solver->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
                 Timer::Stop("Apply Dirichlet Conditions");
@@ -509,6 +507,10 @@ public:
                 // Remove the constrained DOF related to the dynamic derivative
                 if (mDerivativeTypeFlag)
                     this->RemoveDynamicDerivativeConstraint();
+
+                // Reconstruct slave DOF solution
+                if (master_slave_constraints_defined)
+                    this->ReconstructSolution(rDx);
 
                 // Compute and add null space solution for dynamic derivatives
                 if (mDerivativeTypeFlag)
@@ -528,10 +530,6 @@ public:
                 r_model_part.GetProcessInfo()[DERIVATIVE_INDEX] += 1;
 
             }
-
-            // // Remove the constrained DOF related to the dynamic derivative
-            // if (mDerivativeTypeFlag)
-            //     this->RemoveDynamicDerivativeConstraint();
             
         }
 
@@ -918,6 +916,66 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Recover the solution related to the slave dofs in case of master-slave constraints.
+     * @details This function is an adaptation of the implementation in ConstraintUtilities,
+     *  since there the variables are assumed to be stored in SolutionStepValue.
+     *  Beware that this implementation is only valid for Block B&S, since the master-slave constraints
+     *  don't work with Elimination B&S yet.
+     */
+    void ReconstructSolution(
+        TSystemVectorType& rDx
+    )
+    {
+        KRATOS_TRY
+
+        const auto& rModelPart = BaseType::GetModelPart();
+        const auto& r_master_slave_constraints = rModelPart.MasterSlaveConstraints();
+        const std::size_t number_of_constraints = rModelPart.NumberOfMasterSlaveConstraints();
+        
+        // Reset slave dofs
+        for (std::size_t i_const = 0; i_const < number_of_constraints; ++i_const) {
+            auto it_const = r_master_slave_constraints.begin() + i_const;
+            const auto& r_slave_dofs_vector = it_const->GetSlaveDofsVector();
+            for (IndexType i = 0; i < r_slave_dofs_vector.size(); ++i)
+                rDx[r_slave_dofs_vector[i]->EquationId()] = 0.0;
+        }
+        
+        // Apply constraints
+        for (std::size_t i_const = 0; i_const < number_of_constraints; ++i_const) {
+            
+            auto it_const = r_master_slave_constraints.begin() + i_const;
+            // Detect if the constraint is active or not. If the user did not make any choice the constraint
+            // It is active by default
+            bool constraint_is_active = true;
+            if (it_const->IsDefined(ACTIVE))
+                constraint_is_active = it_const->Is(ACTIVE);
+            if (constraint_is_active) {
+                
+                // Saving the master dofs values
+                const auto& r_master_dofs_vector = it_const->GetMasterDofsVector();
+                const auto& r_slave_dofs_vector = it_const->GetSlaveDofsVector();
+                Vector master_dofs_values(r_master_dofs_vector.size());
+                for (IndexType i = 0; i < r_master_dofs_vector.size(); ++i)
+                    master_dofs_values[i] = rDx[r_master_dofs_vector[i]->EquationId()];
+                // Apply the constraint to the slave dofs
+                Matrix relation_matrix;
+                Vector constant_vector;
+                it_const->GetLocalSystem(relation_matrix, constant_vector, rModelPart.GetProcessInfo());
+                for (IndexType i = 0; i < relation_matrix.size1(); ++i) {
+                    double aux = constant_vector[i];
+                    for(IndexType j = 0; j < relation_matrix.size2(); ++j) {
+                        aux += relation_matrix(i,j) * master_dofs_values[j];
+                    }
+                    rDx[r_slave_dofs_vector[i]->EquationId()] += aux;
+                }
+            }
+        }
+        
+
+        KRATOS_CATCH("")
+    }
 
 
     ///@}
