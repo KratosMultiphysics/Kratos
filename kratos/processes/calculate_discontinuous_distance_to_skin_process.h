@@ -437,6 +437,32 @@ private:
         const array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector);
 
     /**
+     * @brief Set the ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES values
+     * This method saves the provided extrapolated cut edges ratios in the ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES variable
+     * For uncut elements and completely intersected elements, a value of -1 is set for all edges of the element
+     * For uncut edges and cut edges of incised elements, a value of -1 is set.
+     * For edges of incised elements cut only by the extrapolated geometry, the relative distance (wrt the edge length)
+     * from the 0 node of the edge to the intersection point of the extrapolated geometry is saved
+     * @param rElement The element to set the ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES
+     * @param rCutExtraEdgesRatioVector Array containing the cut edges ratio values of the extrapolated geometry
+     */
+    void SetElementalExtrapolatedEdgeDistancesValues(
+        Element& rElement,
+        const array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector);
+
+    /**
+     * @brief Set the ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED values
+     * This method saves the provided geometry and extrapolated intersecting geometry elemental distances in the
+     * ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED variable
+     * @param rElement The element to set the ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED
+     * @param rElementalDistancesExtraVector Array containing the elemental distances values of the intersecting geometry and
+     * the extrapolated geometry
+     */
+    void SetElementalDistancesWithExtrapolatedValues(
+        Element& rElement,
+        const Vector& rElementalDistancesExtraVector);
+
+    /**
      * @brief Set the TO_SPLIT Kratos flag
      * This function sets the TO_SPLIT flag in the provided element according to the ELEMENTAL_DISTANCES values
      * Note that the zero distance case is avoided by checking the positiveness and negativeness of the nodal values

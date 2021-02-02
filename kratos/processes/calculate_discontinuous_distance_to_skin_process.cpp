@@ -468,6 +468,39 @@ namespace Kratos
 	}
 
 	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::SetElementalExtrapolatedEdgeDistancesValues(
+        Element& rElement,
+        const array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector)
+	{
+		// Get reference to ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES and resize if necessary
+		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
+		Vector& r_extra_edge_distances = rElement.GetValue(ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES);
+		if (r_extra_edge_distances.size() != n_edges) {
+			r_extra_edge_distances.resize(n_edges, false);
+		}
+
+		// Save the obtained edge distances in the elemental variable
+		for (std::size_t i = 0; i < n_edges; ++i) {
+			r_extra_edge_distances[i] = rCutExtraEdgesRatioVector[i];
+		}
+	}
+
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::SetElementalDistancesWithExtrapolatedValues(
+        Element& rElement,
+        const Vector& rElementalDistancesExtraVector)
+	{
+		// Get reference to ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED and resize if necessary
+		constexpr std::size_t n_nodes = TDim + 1;
+		Vector& r_elemental_distances_extra = rElement.GetValue(ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED);
+		if (r_elemental_distances_extra.size() != n_nodes) {
+			r_elemental_distances_extra.resize(n_nodes, false);
+		}
+
+		r_elemental_distances_extra = rElementalDistancesExtraVector;
+	}
+
+	template<std::size_t TDim>
 	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::SetToSplitFlag(
 		Element& rElement,
 		const double ZeroTolerance)
