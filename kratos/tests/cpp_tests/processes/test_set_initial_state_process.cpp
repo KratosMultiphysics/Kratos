@@ -147,7 +147,7 @@ namespace Kratos
                     const auto& r_imposed_E = p_initial_state->GetInitialStrainVector();
                     const auto& r_imposed_S = p_initial_state->GetInitialStressVector();
 
-                    for (IndexType component = 0; component < 3; component++) {
+                    for (IndexType component = 0; component < 6; component++) {
                         KRATOS_CHECK_LESS_EQUAL(r_imposed_E(component) - initial_E(component), tolerance);
                         KRATOS_CHECK_LESS_EQUAL(r_imposed_S(component) - initial_S(component), tolerance);
                     }
@@ -159,8 +159,6 @@ namespace Kratos
                     KRATOS_CHECK_LESS_EQUAL(r_imposed_F(2,2) - initial_F(2,2), tolerance);
                 }
             }
-        }
-
         }
     } // namespace Testing
 }  // namespace Kratos.
