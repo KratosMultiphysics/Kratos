@@ -193,7 +193,7 @@ CompositeCondition::IntegrationMethod CompositeCondition::GetIntegrationMethod()
 //************************************************************************************
 //************************************************************************************
 
-void CompositeCondition::GetDofList( DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo )
+void CompositeCondition::GetDofList( DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
   rConditionalDofList.resize(0);
 
@@ -369,7 +369,7 @@ void CompositeCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
       SetValueToChildren(MASTER_ELEMENTS);
       SetValueToChildren(MASTER_NODES);
 
-      cn->Initialize();
+      cn->Initialize(rCurrentProcessInfo);
     }
 
 
@@ -416,7 +416,7 @@ void CompositeCondition::InitializeChildren()
 //************************************************************************************
 //************************************************************************************
 
-void CompositeCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void CompositeCondition::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
 
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
@@ -470,7 +470,7 @@ void CompositeCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInf
 //************************************************************************************
 //************************************************************************************
 
-void CompositeCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void CompositeCondition::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
@@ -484,7 +484,7 @@ void CompositeCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProc
 //************************************************************************************
 //************************************************************************************
 
-void CompositeCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void CompositeCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
@@ -516,7 +516,7 @@ void CompositeCondition::AddExplicitContribution(const VectorType& rRHS,
 //************************************************************************************
 //************************************************************************************
 
-CompositeCondition::SizeType CompositeCondition::GetDofsSize(ProcessInfo& rCurrentProcessInfo)
+CompositeCondition::SizeType CompositeCondition::GetDofsSize(const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -540,7 +540,7 @@ CompositeCondition::SizeType CompositeCondition::GetDofsSize(ProcessInfo& rCurre
 //************************************************************************************
 
 
-void CompositeCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void CompositeCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
   //std::cout<<" Calculate local system Skin "<<std::endl;

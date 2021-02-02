@@ -471,7 +471,7 @@ private:
     /**
      * Get element size from the dofs
      */
-    virtual SizeType GetDofsSize(ProcessInfo& rCurrentProcessInfo);
+    virtual SizeType GetDofsSize(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Private  Access
