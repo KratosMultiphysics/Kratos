@@ -293,7 +293,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
         double det_permeability = MathUtils<double>::Det(permeability);
         MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
-        Matrix sigma = nu * inv_permeability;
+        Matrix sigma = nu * rho * inv_permeability;
 
         const double convective1 = r_u1 * du11 + r_u2 * du12;
         const double convective2 = r_u1 * du21 + r_u2 * du22;
@@ -462,7 +462,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
         double det_permeability = MathUtils<double>::Det(permeability);
         MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
-        Matrix sigma = nu * inv_permeability;
+        Matrix sigma = nu * rho * inv_permeability;
 
         const double convective1 = r_u1 * du11 + r_u2 * du12;
         const double convective2 = r_u1 * du21 + r_u2 * du22;
