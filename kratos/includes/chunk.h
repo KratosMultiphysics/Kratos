@@ -59,16 +59,6 @@ namespace Kratos
 	  /// Copy constructor is deleted.
 	  Chunk(Chunk const& rOther) = delete;
 
-	  Chunk(Chunk&& rOther) noexcept
-		  : LockObject(std::move(rOther))
-		  , mpData(rOther.mpData)
-		  , mSize(rOther.mSize)
-		  , mBlockSizeInBytes(rOther.mBlockSizeInBytes)
-		  , mOwnerThread(rOther.mOwnerThread)
-	  {
-		  rOther.mpData = nullptr;
-	  }
-
 	  /// The constructor to be called
 	  Chunk(std::size_t BlockSizeInBytes, SizeType SizeInBytes) noexcept
 		  : LockObject()

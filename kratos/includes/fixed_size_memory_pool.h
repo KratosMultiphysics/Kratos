@@ -64,8 +64,9 @@ namespace Kratos
 		  : LockObject()
 		  , mChunkSize(ChunkSize)
 	  {
-		  for (int i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
-			  mThreadsPool.emplace_back(BlockSizeInBytes, ChunkSize, i_thread);
+		  for (int i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++) {
+			//   mThreadsPool.push_back(BlockSizeInBytes, ChunkSize, i_thread);
+		  }
 	  }
 
       /// Destructor
