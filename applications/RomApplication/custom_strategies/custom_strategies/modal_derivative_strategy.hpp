@@ -437,8 +437,8 @@ public:
                 // Dynamic derivatives are unsymmetric
                 basis_j_start_index = 0;
 
-                // Add dynamic derivative constraint
-                this->AddDynamicDerivativeConstraint(basis);
+                // // Add dynamic derivative constraint
+                // this->AddDynamicDerivativeConstraint(basis);
 
             } 
             else 
@@ -491,6 +491,10 @@ public:
                 Timer::Stop("Apply RHS Master-Slave Constraints");
 
                 Timer::Start("Apply Dirichlet Conditions");
+                // Add dynamic derivative constraint
+                if (mDerivativeTypeFlag)
+                    this->AddDynamicDerivativeConstraint(basis);
+                    
                 // Apply Dirichlet conditions
                 p_builder_and_solver->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
                 Timer::Stop("Apply Dirichlet Conditions");
@@ -501,6 +505,10 @@ public:
                 
                 // Compute particular solution
                 p_builder_and_solver->SystemSolve(rA, rDx, rb);
+
+                // Remove the constrained DOF related to the dynamic derivative
+                if (mDerivativeTypeFlag)
+                    this->RemoveDynamicDerivativeConstraint();
 
                 // Compute and add null space solution for dynamic derivatives
                 if (mDerivativeTypeFlag)
@@ -521,9 +529,9 @@ public:
 
             }
 
-            // Remove the constrained DOF related to the dynamic derivative
-            if (mDerivativeTypeFlag)
-                this->RemoveDynamicDerivativeConstraint();
+            // // Remove the constrained DOF related to the dynamic derivative
+            // if (mDerivativeTypeFlag)
+            //     this->RemoveDynamicDerivativeConstraint();
             
         }
 
