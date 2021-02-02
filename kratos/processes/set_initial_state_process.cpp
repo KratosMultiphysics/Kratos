@@ -21,6 +21,9 @@
 namespace Kratos
 {
 
+/***********************************************************************************/
+/***********************************************************************************/
+
     template<std::size_t TDim>
     SetInitialStateProcess<TDim>::SetInitialStateProcess(
         ModelPart& rModelPart) 
@@ -37,6 +40,8 @@ namespace Kratos
         noalias(mInitialF)      = ZeroMatrix(TDim, TDim);
     }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
     template<std::size_t TDim>
     SetInitialStateProcess<TDim>::SetInitialStateProcess(
@@ -49,6 +54,8 @@ namespace Kratos
     {
     }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
     template<std::size_t TDim>
     SetInitialStateProcess<TDim>::SetInitialStateProcess(
@@ -76,6 +83,9 @@ namespace Kratos
         noalias(mInitialF) = ZeroMatrix(TDim, TDim);
     }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
     template<std::size_t TDim>
     SetInitialStateProcess<TDim>::SetInitialStateProcess(
         ModelPart& rModelPart,
@@ -93,17 +103,21 @@ namespace Kratos
         noalias(mInitialF)      = rInitialStateF;
     }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
     template<std::size_t TDim>
     void SetInitialStateProcess<TDim>::ExecuteInitializeSolutionStep()
     {
         const auto it_elem_begin = mrModelPart.ElementsBegin();
-        const auto& r_integration_points = it_elem_begin->GetGeometry().IntegrationPoints(it_elem_begin->GetIntegrationMethod());
+        const auto& r_integration_points = it_elem_begin->GetGeometry().
+            IntegrationPoints(it_elem_begin->GetIntegrationMethod());
 
         Vector aux_initial_strain = mInitialStrain;
         Vector aux_initial_stress = mInitialStress;
         Matrix aux_initial_F      = mInitialF;
-        InitialState::Pointer p_initial_state = Kratos::make_intrusive<InitialState>(aux_initial_strain, aux_initial_stress, aux_initial_F);
+        InitialState::Pointer p_initial_state = Kratos::make_intrusive<InitialState>
+            (aux_initial_strain, aux_initial_stress, aux_initial_F);
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
@@ -134,6 +148,9 @@ namespace Kratos
             }
         }
     }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
     template class SetInitialStateProcess<2>;
     template class SetInitialStateProcess<3>;
