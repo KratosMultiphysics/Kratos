@@ -68,7 +68,7 @@ public:
     ///@name Type Definitions
     ///@{
     typedef TIndexType IndexType;
-    typedef DenseVector<std::unordered_set<IndexType> > GraphType; 
+    typedef DenseVector<std::unordered_set<IndexType> > GraphType;
     typedef typename GraphType::const_iterator const_row_iterator;
 
     /// Pointer definition of SparseContiguousRowGraph
@@ -86,7 +86,7 @@ public:
     SparseContiguousRowGraph(IndexType GraphSize)
     {
         mGraph.resize(GraphSize,false);
-        mLocks.resize(GraphSize);
+        mLocks = std::vector<LockObject>(GraphSize);
 
         // @RiccardoRossi why is this needed? isn't this done with resizing?
         //doing first touching
@@ -106,7 +106,7 @@ public:
     //     return *this;
     // }
 
-    /// Copy constructor. 
+    /// Copy constructor.
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
     {
         this->AddEntries(rOther);
@@ -227,11 +227,11 @@ public:
             rRowIndices[i] = 0;
         });
 
-        //count the entries 
+        //count the entries
         IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
             rRowIndices[i+1] = mGraph[i].size();
         });
-        
+
         //sum entries
         for(IndexType i = 1; i<static_cast<IndexType>(rRowIndices.size()); ++i){
             rRowIndices[i] += rRowIndices[i-1];
@@ -246,7 +246,7 @@ public:
             rColIndices[i] = 0;
         });
 
-        //count the entries 
+        //count the entries
         IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
 
             IndexType start = rRowIndices[i];
@@ -267,9 +267,9 @@ public:
     }
 
     //this function returns the Graph as a single vector
-    //in the form of 
-    //  RowIndex NumberOfEntriesInTheRow .... list of all Indices in the row 
-    //every row is pushed back one after the other 
+    //in the form of
+    //  RowIndex NumberOfEntriesInTheRow .... list of all Indices in the row
+    //every row is pushed back one after the other
     std::vector<IndexType> ExportSingleVectorRepresentation()
     {
         std::vector< IndexType > IJ;
@@ -446,7 +446,7 @@ private:
         IndexType size;
         rSerializer.load("GraphSize",size);
 
-        mLocks.resize(size);
+        mLocks = std::vector<LockObject>(size);
         mGraph.resize(size);
 
         for(IndexType I=0; I<size; ++I)
