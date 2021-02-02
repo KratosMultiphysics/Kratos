@@ -304,7 +304,7 @@
             "solver_type"                 : "MonolithicDEM",
             "model_import_settings"       : {
                 "input_type"     : "mdpa",
-                "input_filename" : "CFD_DEM_two_way_tests/Two_way_testFluid"
+                "input_filename" : "CFD_DEM_two_way_tests/Two_way_testFluid_DVMS"
             },
             "material_import_settings"    : {
                 "materials_filename" : "CFD_DEM_two_way_tests/FluidMaterials.json"
@@ -334,7 +334,7 @@
                 "time_step"           : 0.001
             },
             "formulation"                 : {
-                "element_type"             : "qsvmsDEM",
+                "element_type"             : "dvmsDEM",
                 "use_orthogonal_subscales" : false,
                 "dynamic_tau"              : 1.0
             },
