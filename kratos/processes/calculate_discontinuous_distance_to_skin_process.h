@@ -40,6 +40,7 @@ class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcessFlags
 {
 public:
     KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES); /// Local flag to switch on/off the elemental edge distances storage
+    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES); /// Local flag to switch on/off the extrapolated elemental edge distances storage
 };
 
 /// This only calculates the distance. Calculating the inside outside should be done by a derived class of this.
@@ -66,11 +67,18 @@ public:
         ModelPart& rVolumePart,
         ModelPart& rSkinPart);
 
+    /// Constructor with option
+    CalculateDiscontinuousDistanceToSkinProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart,
+        const Flags rOptionEdge);
+
     /// Constructor with options
     CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        const Flags rOptions);
+        const Flags rOptionEdge,
+        const Flags rOptionExtraEdge);
 
     /// Destructor.
     ~CalculateDiscontinuousDistanceToSkinProcess() override;
@@ -202,7 +210,8 @@ private:
     ModelPart& mrSkinPart;
     ModelPart& mrVolumePart;
 
-    Flags mOptions;
+    Flags mOptionEdge;
+    Flags mOptionExtraEdge;
 
     ///@}
     ///@name Private Operations
@@ -428,7 +437,7 @@ private:
         const array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector);
 
     /**
-     * @brief Set the TO_SPLIT Kratos flag 
+     * @brief Set the TO_SPLIT Kratos flag
      * This function sets the TO_SPLIT flag in the provided element according to the ELEMENTAL_DISTANCES values
      * Note that the zero distance case is avoided by checking the positiveness and negativeness of the nodal values
      * @param rElement Element to set the TO_SPLIT flag
