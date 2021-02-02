@@ -19,7 +19,6 @@
 #include <cmath>
 #include <algorithm>
 #include <array>
-#include <tuple>
 
 // Project includes
 #include "tree.h"
@@ -443,20 +442,21 @@ public:
    */
   void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
 
-    using tls_type = std::tuple<PointType, PointType, SearchStructureType>;
+    struct tls_type
+    {
+        PointType Low;
+        PointType High;
+        SearchStructureType Box;
+    };
 
     IndexPartition<std::size_t>(NumberOfObjects).for_each(tls_type(), [&](std::size_t i, tls_type& rTLS){
         ResultIteratorType ResultsPointer = Results[i].begin();
-        PointType& Low = std::get<0>(rTLS);
-        PointType& High = std::get<1>(rTLS);
-        SearchStructureType& Box = std::get<2>(rTLS);
-
         NumberOfResults[i] = 0;
 
-        TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
-        Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+        TConfigure::CalculateBoundingBox(ThisObjects[i], rTLS.Low, rTLS.High, Radius[i]);
+        rTLS.Box.Set( CalculateCell(rTLS.Low), CalculateCell(rTLS.High), mN );
 
-        SearchInRadius(ThisObjects[i], Radius[i], ResultsPointer, NumberOfResults[i], MaxNumberOfResults, Box );
+        SearchInRadius(ThisObjects[i], Radius[i], ResultsPointer, NumberOfResults[i], MaxNumberOfResults, rTLS.Box );
     });
   }
 
