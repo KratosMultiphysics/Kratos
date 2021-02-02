@@ -13,6 +13,8 @@
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
+#include "modified_shape_functions/triangle_2d_3_ausas_incised_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_ausas_incised_shape_functions.h"
 
 namespace Kratos {
 
@@ -157,7 +159,39 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
         AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
         AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
         AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+    } else if ( data.IsIncised() )
+    {
+        // Check if user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES, then use Ausas incised shape functions
+        if (data.IsAusasIncised()) {
+            // Add the base element boundary contribution on the positive interface
+            const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
+            const unsigned int number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
+            for (unsigned int g = 0; g < number_of_positive_interface_gauss_points; ++g){
+                const size_t gauss_pt_index = g + volume_gauss_points;
+                this->UpdateIntegrationPointData(data, gauss_pt_index, data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
+                this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
+            }
+
+            // Add the base element boundary contribution on the negative interface
+            const unsigned int number_of_negative_interface_gauss_points = data.NegativeInterfaceWeights.size();
+            for (unsigned int g = 0; g < number_of_negative_interface_gauss_points; ++g){
+                const size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
+                this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeInterfaceWeights[g], row(data.NegativeInterfaceN, g), data.NegativeInterfaceDNDX[g]);
+                this->AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
+            }
+
+            // Add the Nitsche Navier boundary condition implementation (Winter, 2018)
+            data.InitializeBoundaryConditionData(rCurrentProcessInfo);
+            AddNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+            AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+        }
+        else {
+            // Add penalty
+        }
     }
+
 }
 
 template <class TBaseElement>
@@ -275,8 +309,27 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
         }
     }
 
-    if (rData.IsCut()){
-        this->DefineCutGeometryData(rData);
+    // Number of intersected edges
+    for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
+        if (rData.ElementalEdgeDistances[i] > 0.0) {
+            rData.NumIntersectedEdges++;
+        }
+    }
+
+    // Number of edges cut by extrapolated geometry, if not empty
+    for (size_t i = 0; i < rData.ElementalExtrapolatedEdgeDistances.size(); ++i) {
+        if (rData.ElementalExtrapolatedEdgeDistances[i] > 0.0) {
+            rData.NumExtraIntersectedEdges++;
+        }
+    }
+
+    if (rData.IsCut()) {
+        this->DefineModifiedGeometryData(rData);
+    }
+    // Check whether element is incised and whether user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES,
+    // then use Ausas incised shape functions
+    else if (rData.IsAusasIncised()) {
+        this->DefineModifiedGeometryData(rData, true);
     } else {
         this->DefineStandardGeometryData(rData);
     }
@@ -291,15 +344,26 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineStandardGeometryData
 }
 
 template <class TBaseElement>
-void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineModifiedGeometryData(EmbeddedDiscontinuousElementData& rData, const bool& IsAusasIncised) const
 {
-    // Auxiliary distance vector for the element subdivision utility
-    Vector elemental_distances = rData.ElementalDistances;
-
-    ModifiedShapeFunctions::Pointer p_calculator =
-        EmbeddedDiscontinuousInternals::GetShapeFunctionCalculator<EmbeddedDiscontinuousElementData::Dim, EmbeddedDiscontinuousElementData::NumNodes>(
-            *this,
-            elemental_distances);
+    ModifiedShapeFunctions::Pointer p_calculator;
+    if (IsAusasIncised) {
+        // Auxiliary elemental and edge distance vectors of extrapolated intersecting geometry for the element subdivision utility
+        Vector elemental_distances_with_extrapolated = rData.ElementalDistancesWithExtrapolated;
+        Vector extrapolated_edge_distances = rData.ElementalExtrapolatedEdgeDistances;
+        p_calculator =
+            EmbeddedDiscontinuousInternals::GetIncisedShapeFunctionCalculator<EmbeddedDiscontinuousElementData::Dim, EmbeddedDiscontinuousElementData::NumNodes>(
+                *this,
+                elemental_distances_with_extrapolated,
+                extrapolated_edge_distances);
+    } else {
+        // Auxiliary distance vector for the element subdivision utility
+        Vector elemental_distances = rData.ElementalDistances;
+        p_calculator =
+            EmbeddedDiscontinuousInternals::GetShapeFunctionCalculator<EmbeddedDiscontinuousElementData::Dim, EmbeddedDiscontinuousElementData::NumNodes>(
+                *this,
+                elemental_distances);
+    }
 
     // Positive side volume
     p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
@@ -1172,6 +1236,22 @@ ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<3, 4>(
     const Vector& rElementalDistances)
 {
     return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement.pGetGeometry(), rElementalDistances));
+}
+
+template <>
+ModifiedShapeFunctions::Pointer GetIncisedShapeFunctionCalculator<2, 3>(const Element& rElement,
+    const Vector& rElementalDistancesWithExtrapolated, const Vector& rExtrapolatedEdgeDistances)
+{
+    return ModifiedShapeFunctions::Pointer(new Triangle2D3AusasIncisedShapeFunctions(rElement.pGetGeometry(),
+            rElementalDistancesWithExtrapolated, rExtrapolatedEdgeDistances));
+}
+
+template <>
+ModifiedShapeFunctions::Pointer GetIncisedShapeFunctionCalculator<3, 4>(const Element& rElement,
+    const Vector& rElementalDistancesWithExtrapolated, const Vector& rExtrapolatedEdgeDistances)
+{
+    return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4AusasIncisedShapeFunctions(rElement.pGetGeometry(),
+            rElementalDistancesWithExtrapolated, rExtrapolatedEdgeDistances));
 }
 
 }
