@@ -225,6 +225,9 @@ public:
                 );
 
         Solver solve(*pA, mprm);
+        if (mVerbosity > 1) {
+            std::cout << "AMGCL-NS Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
+        }
         return solve(*pA, rB, rX);
     }
 
@@ -260,6 +263,9 @@ public:
                 );
 
         Solver solve(*pA, mprm);
+        if (mVerbosity > 1) {
+            std::cout << "AMGCL-NS Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
+        }
         return solve(*pA, rB, rX);
     }
 
