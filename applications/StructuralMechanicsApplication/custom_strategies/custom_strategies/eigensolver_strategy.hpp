@@ -587,9 +587,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    /// Recover the solution related to the slave dofs in case of master-slave constraints.
     /**
-     *  This function is an adaptation of the implementation in ConstraintUtilities,
+     * @brief Recover the solution related to the slave dofs in case of master-slave constraints.
+     * @details This function is an adaptation of the implementation in ConstraintUtilities,
      *  since there the variables are assumed to be stored in SolutionStepValue.
      *  Beware that this implementation is only valid for Block B&S, since the master-slave constraints
      *  don't work with Elimination B&S yet.
