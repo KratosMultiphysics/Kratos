@@ -233,6 +233,56 @@ public:
     }
 
     /**
+     * Find the 3D intersection of a plane (no boundaries) with an edge (bounded line)
+     * @param rPlaneBasePoint Base point of the plane to intersect
+     * @param rPlaneNormal Normal vector of the plane to intersect
+     * @param rEdgePoint1 Coordinates of the first point of the intersecting edge
+     * @param rEdgePoint2 Coordinates of the second point of the intersecting edge
+     * @param rIntersectionPoint The intersection point coordinates
+     * @return The intersection type index:
+     * 0 (parallel or out of bounds - no intersection)
+     * 1 (unique intersection point)
+     * 2 (edge and plane coincide - no intersection)
+     */
+    static int ComputePlaneEdgeIntersection(
+        const array_1d<double,3>& rPlaneBasePoint,
+        const array_1d<double,3>& rPlaneNormal,
+        const array_1d<double,3>& rEdgePoint1,
+        const array_1d<double,3>& rEdgePoint2,
+        array_1d<double,3>& rIntersectionPoint,
+        const double epsilon = 1e-12)
+    {
+        // This is the adaption of the implemnetation provided in:
+        // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
+        // (Intersection of a Segment with a Plane)
+
+        // Get direction vector of edge
+        const array_1d<double,3> edge_dir = rEdgePoint2 - rEdgePoint1;
+
+        // Check if the edge is parallel to the plane or even coincides with it
+        const double a = inner_prod(rPlaneNormal,( rPlaneBasePoint - rEdgePoint1 ));
+        const double b = inner_prod(rPlaneNormal,edge_dir);
+        if (std::abs(b) < epsilon){
+            if (std::abs(a) < epsilon){
+                return 2;    // Edge lies in the plane
+            } else {
+                return 0;    // Edge does not lie in the plane, but is parallel to it
+            }
+        }
+
+        // Compute the intersection point and check if it is inside the bounds of the edge
+        const double r = a / b;
+        if (r < 0.0){
+            return 0;    // Intersection point lies outside the bounds of the edge
+        } else if (r > 1.0) {
+            return 0;    // Intersection point lies outside the bounds of the edge
+        }
+        rIntersectionPoint = rEdgePoint1 + r * edge_dir;
+
+        return 1;
+    }
+
+    /**
      * @brief Compute a segment box intersection
      * Provided the minimum and maximum points of a box cell, this method checks if
      * the segment intersects it. If it does intersect, it returns the rIntersectionPointpoint as well.
