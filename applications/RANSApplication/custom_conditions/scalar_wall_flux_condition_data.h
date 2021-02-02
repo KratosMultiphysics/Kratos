@@ -21,6 +21,7 @@
 #include "containers/variable.h"
 #include "geometries/geometry.h"
 #include "includes/constitutive_law.h"
+#include "includes/element.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
 #include "includes/properties.h"
