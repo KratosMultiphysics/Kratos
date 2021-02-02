@@ -309,6 +309,11 @@ public:
         mNodeLock.UnSetLock();
     }
 
+    inline int TestLock()
+    {
+        return mNodeLock.TestLock();
+    }
+
     ///@}
     ///@name Operators
     ///@{
