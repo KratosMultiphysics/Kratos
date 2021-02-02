@@ -40,10 +40,10 @@ class NodesOutputProcess(KM.Process):
         self.model_part = model[self.settings["model_part_name"].GetString()]
 
         # Retrieving the positions defining the line entity
-        start_point_position = settings["start_point"].GetVector()
+        start_point_position = self.settings["start_point"].GetVector()
         if start_point_position.Size() != 3:
             raise Exception('The start point position has to be provided with 3 coordinates!')
-        end_point_position = settings["end_point"].GetVector()
+        end_point_position = self.settings["end_point"].GetVector()
         if end_point_position.Size() != 3:
             raise Exception('The end point position has to be provided with 3 coordinates!')
         self.origin = start_point_position
@@ -71,6 +71,18 @@ class NodesOutputProcess(KM.Process):
         self.variables, self.names = self._GenerateVariablesList(self.settings["output_variables"])
         self.nonhist_variables, self.nonhist_names = self._GenerateVariablesList(self.settings["nonhistorical_variables"], False)
 
+    def Check(self):
+        """This check verifies if the two specified points are found inside the domain"""
+        start_point_position = self.settings["start_point"].GetVector()
+        end_point_position = self.settings["end_point"].GetVector()
+        start_point = KM.Point(start_point_position)
+        end_point = KM.Point(end_point_position)
+        locator = KM.BruteForcePointLocator(self.model_part)
+        if locator.FindNode(start_point, KM.Configuration.Initial, self._GetTolerance()) < 0:
+            raise Exception('The start point was not found in the domain. Please, check the geometry or the relative tolerance')
+        if locator.FindNode(end_point, KM.Configuration.Initial, self._GetTolerance()) < 0:
+            raise Exception('The end point was not found in the domain. Please, check the geometry or the relative tolerance')
+
     def IsOutputStep(self):
         """This method checks if the current time step is
         near enough to the specified printing times.
@@ -95,11 +107,13 @@ class NodesOutputProcess(KM.Process):
         file.close()
 
     def _GetTolerance(self):
-        elem_size = 0
-        for elem in self.model_part.Elements:
-            elem_size += elem.GetGeometry().Length()
-        elem_size /= self.model_part.NumberOfElements()
-        return self.rel_tolerance * elem_size
+        if not hasattr(self, 'tolerance'):
+            elem_size = 0
+            for elem in self.model_part.Elements:
+                elem_size += elem.GetGeometry().Length()
+            elem_size /= self.model_part.NumberOfElements()
+            self.tolerance = self.rel_tolerance * elem_size
+        return self.tolerance
 
     def _DistanceToLine(self, point):
         return np.linalg.norm(np.cross(self.direction, point - self.origin)) / np.linalg.norm(self.direction)
