@@ -100,6 +100,15 @@ namespace Kratos
 #endif
 		}
 
+    inline int TestLock() const
+    {
+      // returns successful lock if openMP is not present
+#ifdef KRATOS_SMP_OPENMP
+      return omp_test_lock(&mLock);
+#endif
+      return 1;
+    }
+
       ///@}
 
     private:
