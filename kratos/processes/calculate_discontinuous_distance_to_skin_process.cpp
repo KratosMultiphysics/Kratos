@@ -802,14 +802,13 @@ namespace Kratos
 		constexpr std::size_t n_edges = (TDim == 2) ? 3 : 6;
 		const auto r_edges_container = rGeometry.GenerateEdges();
 
-		// Initialize point array and points vector
-		array_1d<double,3> avg_pt = ZeroVector(3);
+		// Clear intersection points vector
 		rIntersectionPointsVector.clear();
 
 		// Calculate intersection point of each edge that is intersected
 		for (std::size_t i_edge = 0; i_edge < n_edges; ++i_edge){
 			if (rEdgeRatiosVector[i_edge] >= 0.0){
-				avg_pt = ConvertEdgeRatioToIntersectionPoint(r_edges_container[i_edge], rEdgeRatiosVector[i_edge]);
+				array_1d<double,3> avg_pt = ConvertEdgeRatioToIntersectionPoint(r_edges_container[i_edge], rEdgeRatiosVector[i_edge]);
 				rIntersectionPointsVector.push_back(avg_pt);
 			}
 		}
