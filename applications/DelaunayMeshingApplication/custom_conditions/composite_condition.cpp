@@ -598,7 +598,7 @@ void CompositeCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 //************************************************************************************
 
 
-void CompositeCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void CompositeCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
   //std::cout<<" Calculate local rhs system Skin "<<std::endl;
 
@@ -638,7 +638,7 @@ void CompositeCondition::CalculateRightHandSide( VectorType& rRightHandSideVecto
 //************************************************************************************
 
 
-void CompositeCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void CompositeCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
 
   SizeType size = this->GetDofsSize(rCurrentProcessInfo);
@@ -684,7 +684,7 @@ void CompositeCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 //************************************************************************************
 
-void CompositeCondition::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void CompositeCondition::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
   rMassMatrix.clear();
   rMassMatrix.resize(0,0,false);
@@ -695,7 +695,7 @@ void CompositeCondition::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInf
 //************************************************************************************
 
 
-void CompositeCondition::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+void CompositeCondition::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
   rDampingMatrix.clear();
   rDampingMatrix.resize(0,0,false);
@@ -802,7 +802,7 @@ void CompositeCondition::Calculate( const Variable<double>& rVariable, double& r
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  CompositeCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int  CompositeCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
   int check = 1;
   int child_check = 1;
