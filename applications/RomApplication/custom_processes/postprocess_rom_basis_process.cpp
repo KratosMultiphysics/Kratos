@@ -19,7 +19,7 @@
 #include "custom_processes/postprocess_rom_basis_process.h"
 #include "rom_application_variables.h"
 #include "custom_io/gid_rom_basis_io.h"
-// #include "custom_io/vtk_rom_basis_output.h"
+#include "custom_io/vtk_rom_basis_output.h"
 
 namespace Kratos
 {
@@ -108,36 +108,36 @@ private:
 
 };
 
-// struct VtkRomBasisOutputWrapper : public BaseRomBasisOutputWrapper
-// {
-// public:
-//     VtkRomBasisOutputWrapper(ModelPart& rModelPart, Parameters OutputParameters)
-//     {
-//         Parameters vtk_parameters(Parameters(R"({
-//             "file_format" : "binary"
-//         })" ));
+struct VtkRomBasisOutputWrapper : public BaseRomBasisOutputWrapper
+{
+public:
+    VtkRomBasisOutputWrapper(ModelPart& rModelPart, Parameters OutputParameters)
+    {
+        Parameters vtk_parameters(Parameters(R"({
+            "file_format" : "binary"
+        })" ));
 
-//         if (OutputParameters["result_file_format_use_ascii"].GetBool()) {
-//             vtk_parameters["file_format"].SetString("ascii");
-//         }
+        if (OutputParameters["result_file_format_use_ascii"].GetBool()) {
+            vtk_parameters["file_format"].SetString("ascii");
+        }
 
-//         mpVtkRomBasisOutput = Kratos::make_unique<VtkRomBasisOutput>(rModelPart, OutputParameters, vtk_parameters);
-//     }
+        mpVtkRomBasisOutput = Kratos::make_unique<VtkRomBasisOutput>(rModelPart, OutputParameters, vtk_parameters);
+    }
 
-//     void PrintOutput(
-//         const std::string& rLabel,
-//         const int AnimationStep,
-//         const std::vector<Variable<double>>& rRequestedDoubleResults,
-//         const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
-//     {
-//         mpVtkRomBasisOutput->PrintRomBasisOutput(rLabel, AnimationStep, rRequestedDoubleResults, rRequestedVectorResults);
-//     }
+    void PrintOutput(
+        const std::string& rLabel,
+        const int AnimationStep,
+        const std::vector<Variable<double>>& rRequestedDoubleResults,
+        const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
+    {
+        mpVtkRomBasisOutput->PrintRomBasisOutput(rLabel, AnimationStep, rRequestedDoubleResults, rRequestedVectorResults);
+    }
 
 
-// private:
-//     Kratos::unique_ptr<VtkRomBasisOutput> mpVtkRomBasisOutput;
+private:
+    Kratos::unique_ptr<VtkRomBasisOutput> mpVtkRomBasisOutput;
 
-// };
+};
 
 } // helpers namespace
 
@@ -175,8 +175,9 @@ void PostprocessRomBasisProcess::ExecuteFinalizeSolutionStep()
         KRATOS_ERROR << "\"file_format\" can only be \"vtk\" or \"gid\"" << std::endl;
     }
 
+    const auto& r_eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
     const auto nodes_begin = mrModelPart.NodesBegin();
-    const SizeType num_rom_basis = nodes_begin->GetValue(ROM_BASIS).size2();
+    const SizeType num_rom_basis = r_eigenvalue_vector.size();
     const SizeType num_animation_steps = mOutputParameters["animation_steps"].GetInt();
 
     std::vector<Variable<double>> requested_double_results;
@@ -195,17 +196,14 @@ void PostprocessRomBasisProcess::ExecuteFinalizeSolutionStep()
                 DofsContainerType& r_node_dofs = (nodes_begin+i_node)->GetDofs();
                 const Matrix& r_node_rom_basis = (nodes_begin+i_node)->GetValue(ROM_BASIS);
 
+                KRATOS_ERROR_IF_NOT(r_node_dofs.size() == r_node_rom_basis.size1())
+                    << "Number of results on node #" << (nodes_begin+i_node)->Id() << " is wrong" << std::endl;
+
                 SizeType l = 0;
                 for (auto& r_dof : r_node_dofs) {
                     r_dof->GetSolutionStepValue(0) = cos_angle * r_node_rom_basis(l++,i_rom_basis);
                 }
 
-            }
-
-            // Reconstruct the animation on slave-dofs
-            if (mrModelPart.NumberOfMasterSlaveConstraints() > 0) {
-                ConstraintUtilities::ResetSlaveDofs(mrModelPart);
-                ConstraintUtilities::ApplyConstraints(mrModelPart);
             }
 
             p_rom_basis_io_wrapper->PrintOutput(label, i_step, requested_double_results, requested_vector_results);
@@ -235,8 +233,6 @@ void PostprocessRomBasisProcess::GetVariables(std::vector<Variable<double>>& rRe
                 << variable << std::endl;
 
             rRequestedVectorResults.push_back(variable);
-        // } else if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) ) {
-        //     KRATOS_ERROR << "Vector Components cannot be querried, name: " << variable_name << std::endl;
         } else {
             KRATOS_ERROR << "Invalid Type of Variable, name: " << variable_name << std::endl;
         }
