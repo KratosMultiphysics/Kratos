@@ -51,7 +51,7 @@ jobs:
           export CC=/usr/lib/ccache/gcc
           export CXX=/usr/lib/ccache/g++
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_4d272bb -DINCLUDE_PMMG=ON"
-          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers -Werror"
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wall -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
           export CXX=clang++-9
