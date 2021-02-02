@@ -301,7 +301,6 @@ public:
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             auto it_node = (it_node_begin + i);
-            it_node->SetValue(NODAL_MASS, 0.0);
             Double3DArray& r_fractional_acceleration = it_node->FastGetSolutionStepValue(FRACTIONAL_ACCELERATION);
             r_fractional_acceleration  = ZeroVector(3);
         }
@@ -310,7 +309,6 @@ public:
             #pragma omp parallel for schedule(guided,512)
             for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
                 auto it_node = (it_node_begin + i);
-                it_node->SetValue(NODAL_INERTIA, zero_array);
                 Double3DArray& r_fractional_acceleration = it_node->FastGetSolutionStepValue(FRACTIONAL_ANGULAR_ACCELERATION);
                 r_fractional_acceleration  = ZeroVector(3);
             }
