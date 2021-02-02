@@ -25,28 +25,52 @@
 
 namespace Kratos
 {
-double AdjointUtilities::CalculateWallHeightDerivative(
-    const ConditionType& rCondition,
-    const array_1d<double, 3>& rNormal,
-    const array_1d<double, 3>& rNormalDerivative)
+
+array_1d<double, 3> AdjointUtilities::CalculateUnitVectorDerivative(
+    const double VectorMagnitude,
+    const array_1d<double, 3>& rUnitVector,
+    const array_1d<double, 3>& rVectorDerivative)
 {
-    KRATOS_TRY
+    if (VectorMagnitude > 0.0) {
+        return (rVectorDerivative - rUnitVector * inner_prod(rUnitVector, rVectorDerivative)) /
+               VectorMagnitude;
+    } else {
+        return ZeroVector(3);
+    }
+}
 
-    // for some weird reason, I cannot make the following array_1d<double, 3> to auto.
-    // Clang is compiling fine, and it works as it suppose to be. But in gcc, it compiles
-    // but all the tests start to fail not by crashing, but giving false values.
-    const array_1d<double, 3>& normal = rNormal / norm_2(rNormal);
-    const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
+double AdjointUtilities::CalculateWallHeightConditionDerivative(
+    const GeometryType& rConditionGeometry,
+    const GeometryType& rParentGeometry,
+    const IndexType DirectionIndex,
+    const array_1d<double, 3>& rUnitNormal,
+    const array_1d<double, 3>& rUnitNormalDerivative)
+{
+    const auto& condition_center = rConditionGeometry.Center();
+    const auto& parent_center = rParentGeometry.Center();
 
-    const auto& r_parent_geometry = r_parent_element.GetGeometry();
-    const auto& r_condition_geometry = rCondition.GetGeometry();
+    array_1d<double, 3> condition_center_derivative = ZeroVector(3);
+    condition_center_derivative[DirectionIndex] = 1.0 / rConditionGeometry.PointsNumber();
 
-    const auto& parent_center = r_parent_geometry.Center();
-    const auto& condition_center = r_condition_geometry.Center();
+    return inner_prod(condition_center - parent_center, rUnitNormalDerivative) +
+           inner_prod(condition_center_derivative, rUnitNormal);
+}
 
-    return inner_prod(condition_center - parent_center, normal);
+double AdjointUtilities::CalculateWallHeightParentElementDerivative(
+    const GeometryType& rConditionGeometry,
+    const GeometryType& rParentGeometry,
+    const IndexType DirectionIndex,
+    const array_1d<double, 3>& rUnitNormal,
+    const array_1d<double, 3>& rUnitNormalDerivative)
+{
+    const auto& condition_center = rConditionGeometry.Center();
+    const auto& parent_center = rParentGeometry.Center();
 
-    KRATOS_CATCH("");
+    array_1d<double, 3> parent_center_derivative = ZeroVector(3);
+    parent_center_derivative[DirectionIndex] = 1.0 / rParentGeometry.PointsNumber();
+
+    return inner_prod(condition_center - parent_center, rUnitNormalDerivative) -
+           inner_prod(parent_center_derivative, rUnitNormal);
 }
 
 void AdjointUtilities::CalculateYPlusAndUtauDerivative(

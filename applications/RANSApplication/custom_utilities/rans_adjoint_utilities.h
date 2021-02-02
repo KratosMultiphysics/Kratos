@@ -18,6 +18,7 @@
 #include <tuple>
 
 // Project includes
+#include "includes/node.h"
 #include "geometries/geometry.h"
 #include "geometries/geometry_data.h"
 #include "includes/model_part.h"
@@ -34,16 +35,34 @@ public:
     ///@name Type Definitions
     ///@{
 
+    using NodeType = Node<3>;
+
+    using GeometryType = Geometry<NodeType>;
+
     using ConditionType = ModelPart::ConditionType;
 
     ///@}
     ///@name Static Operations
     ///@{
 
-    static double CalculateWallHeightDerivative(
-        const ConditionType& rCondition,
-        const array_1d<double, 3>& rNormal,
-        const array_1d<double, 3>& rNormalDerivative);
+    static array_1d<double, 3> CalculateUnitVectorDerivative(
+        const double VectorMagnitude,
+        const array_1d<double, 3>& rUnitVector,
+        const array_1d<double, 3>& rVectorDerivative);
+
+    static double CalculateWallHeightConditionDerivative(
+        const GeometryType& rConditionGeometry,
+        const GeometryType& rParentGeometry,
+        const IndexType DirectionIndex,
+        const array_1d<double, 3>& rUnitNormal,
+        const array_1d<double, 3>& rUnitNormalDerivative);
+
+    static double CalculateWallHeightParentElementDerivative(
+        const GeometryType& rConditionGeometry,
+        const GeometryType& rParentGeometry,
+        const IndexType DirectionIndex,
+        const array_1d<double, 3>& rUnitNormal,
+        const array_1d<double, 3>& rUnitNormalDerivative);
 
     static void CalculateYPlusAndUtauDerivative(
         double& rYPlusDerivative,

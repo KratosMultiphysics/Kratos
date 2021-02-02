@@ -103,6 +103,43 @@ KRATOS_TEST_CASE_IN_SUITE(AdjointUtilitiesCalculateYPlusAndUtauDerivative, Krato
     KRATOS_CHECK_RELATIVE_NEAR(fd_u_tau_derivative, u_tau_derivative, 1e-6);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AdjointUtilitiesCalculateUnitVectorDerivative, KratosRansFastSuite)
+{
+    const auto& vector_method = [](const double x) -> array_1d<double, 3> {
+        array_1d<double, 3> result;
+        result[0] = x * x;
+        result[1] = 2.0 * x;
+        result[2] = 3.0 * x + x * x * x;
+        return result;
+    };
+
+    const auto& vector_derivative = [](const double x) -> array_1d<double, 3> {
+        array_1d<double, 3> result;
+        result[0] = 2.0 * x;
+        result[1] = 2.0;
+        result[2] = 3.0 + 3.0 * x * x;
+        return result;
+    };
+
+    double x = 2.0;
+    array_1d<double, 3> u, u_ref, unit_u_fd_sensitivity, unit_u_analytical_sensitivity;
+    u_ref = vector_method(x);
+    double u_ref_magnitude = norm_2(u_ref);
+    u_ref /= u_ref_magnitude;
+
+    unit_u_analytical_sensitivity = AdjointUtilities::CalculateUnitVectorDerivative(
+        u_ref_magnitude, u_ref, vector_derivative(x));
+
+    double delta = 1e-8;
+    x += delta;
+    u = vector_method(x);
+    u /= norm_2(u);
+
+    unit_u_fd_sensitivity = (u - u_ref) / delta;
+
+    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(unit_u_fd_sensitivity, unit_u_analytical_sensitivity, 1e-6);
+}
+
 } // namespace Testing
 
 } // namespace Kratos
