@@ -10,15 +10,15 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_AUSAS_MODIFIED_SHAPE_FUNCTIONS)
-#define KRATOS_AUSAS_MODIFIED_SHAPE_FUNCTIONS
+#if !defined(KRATOS_TETRAHEDRA_3D_4_AUSAS_INCISED_SHAPE_FUNCTIONS)
+#define KRATOS_TETRAHEDRA_3D_4_AUSAS_INCISED_SHAPE_FUNCTIONS
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "modified_shape_functions/modified_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
 
 namespace Kratos
 {
@@ -37,18 +37,18 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-class KRATOS_API(KRATOS_CORE) AusasModifiedShapeFunctions : public ModifiedShapeFunctions
+class KRATOS_API(KRATOS_CORE) Tetrahedra3D4AusasIncisedShapeFunctions : public Tetrahedra3D4AusasModifiedShapeFunctions
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of AusasModifiedShapeFunctions
-    KRATOS_CLASS_POINTER_DEFINITION(AusasModifiedShapeFunctions);
+    /// Pointer definition of Tetrahedra3D4AusasModifiedShapeFunctions
+    KRATOS_CLASS_POINTER_DEFINITION(Tetrahedra3D4AusasIncisedShapeFunctions);
 
     // General type definitions
-    typedef ModifiedShapeFunctions                             BaseType;
+    typedef AusasModifiedShapeFunctions                        BaseType;
     typedef BaseType::GeometryType                             GeometryType;
     typedef BaseType::GeometryPointerType                      GeometryPointerType;
     typedef BaseType::IntegrationMethodType                    IntegrationMethodType;
@@ -66,10 +66,11 @@ public:
     ///@{
 
     /// Default constructor
-    AusasModifiedShapeFunctions(const GeometryPointerType rpInputGeometry, const Vector& rNodalDistances);
+    Tetrahedra3D4AusasIncisedShapeFunctions(const GeometryPointerType rpInputGeometry,
+        const Vector& rNodalDistancesWithExtrapolated, const Vector& rExtrapolatedEdgeRatios);
 
     /// Destructor
-    ~AusasModifiedShapeFunctions();
+    ~Tetrahedra3D4AusasIncisedShapeFunctions();
 
     ///@}
     ///@name Access
@@ -100,6 +101,11 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+    * Returns a reference to the extrapolated edge ratios vector member variable.
+    */
+    const Vector& GetExtrapolatedEdgeRatios() const ;
+
     ///@}
 
 protected:
@@ -110,6 +116,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    // Arrays to get edge and node IDs of geometry from edge ID of splitting utility
+    const size_t edge_id_for_geometry [6] = {0, 2, 3, 1, 4, 5};
+    const size_t node_ids_for_geometry [6][2] = {{0,1}, {2,0}, {0,3}, {1,2}, {1,3}, {2,3}};
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -119,34 +129,36 @@ protected:
     ///@{
 
     /**
-    * Returns the intersection points condensation matrix for positive side Ausas sh functions.
-    * This matrix is used to extrapolate the subdivisions shape funtion values to the
-    * original geometry ones. It has size (nnodes+nedges)x(nnodes).
-    * @return rPosSideCondMatrix: Reference to the intersection points condensation matrix.
+    * Returns the intersection points and extrapolated intersection points condensation matrix for
+    * positive side Ausas shape functions for incised elements.
+    * This matrix is used to transform the subdivisions shape funtion values to the
+    * original geometry ones. It has size (n_nodes+n_edges)x(n_nodes).
+    * @param rPosSideCondMatrix: Reference to the extrapolated) intersection points condensation matrix to be changed.
     * @param rEdgeNodeI Integers array containing the nodes "I" that conform the edges.
     * @param rEdgeNodeJ Integers array containing the nodes "J" that conform the edges.
     * @param rSplitEdges Integers array containing the original nodes ids and the intersected edges nodes ones.
     */
-    virtual void SetPositiveSideCondensationMatrix(
+    void SetPositiveSideCondensationMatrix(
         Matrix& rPosSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
-        const std::vector<int>& rSplitEdges);
+        const std::vector<int>& rSplitEdges) override;
 
     /**
-    * Returns the intersection points condensation matrix for negative side Ausas sh functions.
-    * This matrix is used to extrapolate the subdivisions shape funtion values to the
-    * original geometry ones. It has size (nnodes+nedges)x(nnodes).
-    * @return rNegSideCondMatrix: Reference to the intersection points condensation matrix.
+    * Returns the intersection points and extrapolated intersection points condensation matrix for
+    * negative side Ausas shape functions for incised elements.
+    * This matrix is used to transform the subdivisions shape funtion values to the
+    * original geometry ones. It has size (n_nodes+n_edges)x(n_nodes).
+    * @param rNegSideCondMatrix: Reference to the (extrapolated) intersection points condensation matrix to be changed.
     * @param rEdgeNodeI Integers array containing the nodes "I" that conform the edges.
     * @param rEdgeNodeJ Integers array containing the nodes "J" that conform the edges.
     * @param rSplitEdges Integers array containing the original nodes ids and the intersected edges nodes ones.
     */
-    virtual void SetNegativeSideCondensationMatrix(
+    void SetNegativeSideCondensationMatrix(
         Matrix& rNegSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
-        const std::vector<int>& rSplitEdges);
+        const std::vector<int>& rSplitEdges) override;
 
     ///@}
     ///@name Protected  Access
@@ -169,6 +181,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+   const Vector mExtraEdgeRatios;
 
     ///@}
     ///@name Serialization
@@ -195,16 +209,17 @@ private:
     ///@{
 
     /// Assignment operator.
-    AusasModifiedShapeFunctions& operator=(AusasModifiedShapeFunctions const& rOther);
+    Tetrahedra3D4AusasIncisedShapeFunctions& operator=(Tetrahedra3D4AusasIncisedShapeFunctions const& rOther);
 
     /// Copy constructor.
-    AusasModifiedShapeFunctions(AusasModifiedShapeFunctions const& rOther) :
-        ModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {
+    Tetrahedra3D4AusasIncisedShapeFunctions(Tetrahedra3D4AusasIncisedShapeFunctions const& rOther) :
+        Tetrahedra3D4AusasModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()),
+        mExtraEdgeRatios(rOther.mExtraEdgeRatios) {
     };
 
     ///@}
 
-};// class AusasModifiedShapeFunctions
+};// class Tetrahedra3D4AusasIncisedShapeFunctions
 
 }
-#endif /* KRATOS_AUSAS_MODIFIED_SHAPE_FUNCTIONS defined */
+#endif /* KRATOS_TETRAHEDRA_3D_4_AUSAS_INCISED_SHAPE_FUNCTIONS defined */

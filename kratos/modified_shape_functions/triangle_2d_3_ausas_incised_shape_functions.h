@@ -10,15 +10,15 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_AUSAS_MODIFIED_SHAPE_FUNCTIONS)
-#define KRATOS_AUSAS_MODIFIED_SHAPE_FUNCTIONS
+#if !defined(KRATOS_TRIANGLE_2D_3_AUSAS_INCISED_SHAPE_FUNCTIONS)
+#define KRATOS_TRIANGLE_2D_3_AUSAS_INCISED_SHAPE_FUNCTIONS
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "modified_shape_functions/modified_shape_functions.h"
+#include "modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.h"
 
 namespace Kratos
 {
@@ -37,18 +37,18 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-class KRATOS_API(KRATOS_CORE) AusasModifiedShapeFunctions : public ModifiedShapeFunctions
+class KRATOS_API(KRATOS_CORE) Triangle2D3AusasIncisedShapeFunctions : public Triangle2D3AusasModifiedShapeFunctions
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of AusasModifiedShapeFunctions
-    KRATOS_CLASS_POINTER_DEFINITION(AusasModifiedShapeFunctions);
+    /// Pointer definition of Triangle2D3AusasIncisedShapeFunctions
+    KRATOS_CLASS_POINTER_DEFINITION(Triangle2D3AusasIncisedShapeFunctions);
 
     // General type definitions
-    typedef ModifiedShapeFunctions                             BaseType;
+    typedef AusasModifiedShapeFunctions                        BaseType;
     typedef BaseType::GeometryType                             GeometryType;
     typedef BaseType::GeometryPointerType                      GeometryPointerType;
     typedef BaseType::IntegrationMethodType                    IntegrationMethodType;
@@ -66,10 +66,11 @@ public:
     ///@{
 
     /// Default constructor
-    AusasModifiedShapeFunctions(const GeometryPointerType rpInputGeometry, const Vector& rNodalDistances);
+    Triangle2D3AusasIncisedShapeFunctions(const GeometryPointerType rpInputGeometry,
+        const Vector& rNodalDistancesWithExtrapolated, const Vector& rExtrapolatedEdgeRatios);
 
     /// Destructor
-    ~AusasModifiedShapeFunctions();
+    ~Triangle2D3AusasIncisedShapeFunctions();
 
     ///@}
     ///@name Access
@@ -100,6 +101,11 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+    * Returns a reference to the extrapolated edge ratios vector member variable.
+    */
+    const Vector& GetExtrapolatedEdgeRatios() const ;
+
     ///@}
 
 protected:
@@ -119,34 +125,36 @@ protected:
     ///@{
 
     /**
-    * Returns the intersection points condensation matrix for positive side Ausas sh functions.
-    * This matrix is used to extrapolate the subdivisions shape funtion values to the
-    * original geometry ones. It has size (nnodes+nedges)x(nnodes).
-    * @return rPosSideCondMatrix: Reference to the intersection points condensation matrix.
+    * Returns the intersection points and extrapolated intersection points condensation matrix for
+    * positive side Ausas shape functions for incised elements.
+    * This matrix is used to transform the subdivisions shape funtion values to the
+    * original geometry ones. It has size (n_nodes+n_edges)x(n_nodes).
+    * @param rPosSideCondMatrix: Reference to the extrapolated) intersection points condensation matrix to be changed.
     * @param rEdgeNodeI Integers array containing the nodes "I" that conform the edges.
     * @param rEdgeNodeJ Integers array containing the nodes "J" that conform the edges.
     * @param rSplitEdges Integers array containing the original nodes ids and the intersected edges nodes ones.
     */
-    virtual void SetPositiveSideCondensationMatrix(
+    void SetPositiveSideCondensationMatrix(
         Matrix& rPosSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
-        const std::vector<int>& rSplitEdges);
+        const std::vector<int>& rSplitEdges) override;
 
     /**
-    * Returns the intersection points condensation matrix for negative side Ausas sh functions.
-    * This matrix is used to extrapolate the subdivisions shape funtion values to the
-    * original geometry ones. It has size (nnodes+nedges)x(nnodes).
-    * @return rNegSideCondMatrix: Reference to the intersection points condensation matrix.
+    * Returns the intersection points and extrapolated intersection points condensation matrix for
+    * negative side Ausas shape functions for incised elements.
+    * This matrix is used to transform the subdivisions shape funtion values to the
+    * original geometry ones. It has size (n_nodes+n_edges)x(n_nodes).
+    * @param rNegSideCondMatrix: Reference to the (extrapolated) intersection points condensation matrix to be changed.
     * @param rEdgeNodeI Integers array containing the nodes "I" that conform the edges.
     * @param rEdgeNodeJ Integers array containing the nodes "J" that conform the edges.
     * @param rSplitEdges Integers array containing the original nodes ids and the intersected edges nodes ones.
     */
-    virtual void SetNegativeSideCondensationMatrix(
+    void SetNegativeSideCondensationMatrix(
         Matrix& rNegSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
-        const std::vector<int>& rSplitEdges);
+        const std::vector<int>& rSplitEdges) override;
 
     ///@}
     ///@name Protected  Access
@@ -169,6 +177,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    const Vector mExtraEdgeRatios;
 
     ///@}
     ///@name Serialization
@@ -195,16 +205,17 @@ private:
     ///@{
 
     /// Assignment operator.
-    AusasModifiedShapeFunctions& operator=(AusasModifiedShapeFunctions const& rOther);
+    Triangle2D3AusasIncisedShapeFunctions& operator=(Triangle2D3AusasModifiedShapeFunctions const& rOther);
 
     /// Copy constructor.
-    AusasModifiedShapeFunctions(AusasModifiedShapeFunctions const& rOther) :
-        ModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {
+    Triangle2D3AusasIncisedShapeFunctions(Triangle2D3AusasIncisedShapeFunctions const& rOther) :
+        Triangle2D3AusasModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()),
+        mExtraEdgeRatios(rOther.mExtraEdgeRatios) {
     };
 
     ///@}
 
-};// class AusasModifiedShapeFunctions
+};// class Triangle2D3AusasIncisedShapeFunctions
 
 }
-#endif /* KRATOS_AUSAS_MODIFIED_SHAPE_FUNCTIONS defined */
+#endif /* KRATOS_TRIANGLE_2D_3_AUSAS_INCISED_SHAPE_FUNCTIONS defined */
