@@ -357,7 +357,7 @@ void CompositeCondition::SetValuesOnIntegrationPoints( const Variable<Matrix>& r
 //************************************************************************************
 //************************************************************************************
 
-void CompositeCondition::Initialize()
+void CompositeCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
    KRATOS_TRY
 

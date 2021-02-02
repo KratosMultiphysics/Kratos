@@ -213,7 +213,7 @@ public:
     /**
      * Sets on rConditionalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
@@ -267,7 +267,7 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
