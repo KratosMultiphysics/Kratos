@@ -21,12 +21,12 @@
 namespace Kratos
 {
 
-    template<SizeType TDim>
+    template<std::size_t TDim>
     SetInitialStateProcess<TDim>::SetInitialStateProcess(
         ModelPart& rModelPart) 
             : mrModelPart(rModelPart)
     {
-        const SizeType voigt_size = (TDim == 3) ? 6 : 3;
+        const std::size_t voigt_size = (TDim == 3) ? 6 : 3;
 
         mInitialStrain.resize(voigt_size, false);
         mInitialStress.resize(voigt_size, false);
@@ -38,14 +38,26 @@ namespace Kratos
     }
 
 
-    template<SizeType TDim>
+    template<std::size_t TDim>
+    SetInitialStateProcess<TDim>::SetInitialStateProcess(
+        ModelPart& rModelPart,
+        const Vector& rInitialStrain,
+        const Vector& rInitialStress,
+        const Matrix& rInitialF) :
+        mrModelPart(rModelPart), mInitialStrain(rInitialStrain), 
+        mInitialStress(rInitialStress), mInitialF(rInitialF)
+    {
+    }
+
+
+    template<std::size_t TDim>
     SetInitialStateProcess<TDim>::SetInitialStateProcess(
         ModelPart& rModelPart,
         const Vector& rInitialStateVector, 
         const int InitialStateType) 
             : mrModelPart(rModelPart)
     {
-        const SizeType voigt_size = (TDim == 3) ? 6 : 3;
+        const std::size_t voigt_size = (TDim == 3) ? 6 : 3;
 
         mInitialStrain.resize(voigt_size, false);
         mInitialStress.resize(voigt_size, false);
@@ -64,13 +76,13 @@ namespace Kratos
         noalias(mInitialF) = ZeroMatrix(TDim, TDim);
     }
 
-    template<SizeType TDim>
+    template<std::size_t TDim>
     SetInitialStateProcess<TDim>::SetInitialStateProcess(
         ModelPart& rModelPart,
         const Matrix& rInitialStateF) 
             : mrModelPart(rModelPart)
     {
-        const SizeType voigt_size = (TDim == 3) ? 6 : 3;
+        const std::size_t voigt_size = (TDim == 3) ? 6 : 3;
 
         mInitialStrain.resize(voigt_size, false);
         mInitialStress.resize(voigt_size, false);
@@ -82,7 +94,7 @@ namespace Kratos
     }
 
 
-    template<SizeType TDim>
+    template<std::size_t TDim>
     void SetInitialStateProcess<TDim>::ExecuteInitializeSolutionStep()
     {
         const auto it_elem_begin = mrModelPart.ElementsBegin();
@@ -123,7 +135,7 @@ namespace Kratos
         }
     }
 
-    template class Kratos::SetInitialStateProcess<2>;
-    template class Kratos::SetInitialStateProcess<3>;
+    template class SetInitialStateProcess<2>;
+    template class SetInitialStateProcess<3>;
 
 }  // namespace Kratos.

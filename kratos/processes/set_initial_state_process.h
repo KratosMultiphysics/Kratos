@@ -36,12 +36,13 @@ namespace Kratos
 /** This Operation is a derived class from the process.h
  *  
 */
-template<SizeType TDim>
-class SetInitialStateProcess : public Process
+template<std::size_t TDim>
+class KRATOS_API(KRATOS_CORE) SetInitialStateProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
+
 
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION(SetInitialStateProcess);
@@ -51,31 +52,24 @@ public:
     ///@{
 
     /// Default constructor.
-    SetInitialStateProcess(ModelPart& rModelPart) :
-        mrModelPart(rModelPart);
+    SetInitialStateProcess(ModelPart& rModelPart);
 
     /// Full constructor.
     SetInitialStateProcess(
         ModelPart& rModelPart,
         const Vector& rInitialStrain,
         const Vector& rInitialStress,
-        const Matrix& rInitialF) :
-        mrModelPart(rModelPart), mInitialStrain(rInitialStrain), 
-        mInitialStress(rInitialStress), mInitialF(rInitialF)
-    {
-    }
+        const Matrix& rInitialF);
 
     /// Constructor with imposed vector.
     SetInitialStateProcess(
         ModelPart& rModelPart,
-        const Vector& rInitialStateVector, 
-        const int InitialStateType) :
-        mrModelPart(rModelPart);
+        const Vector& rInitialStateVector,
+        const int InitialStateType);
 
     /// Constructor with imposed F.
     SetInitialStateProcess(ModelPart& rModelPart,
-        const Matrix& rInitialStateF) :
-        mrModelPart(rModelPart);
+        const Matrix& rInitialStateF);
 
     /// Destructor.
     ~SetInitialStateProcess() override {}
