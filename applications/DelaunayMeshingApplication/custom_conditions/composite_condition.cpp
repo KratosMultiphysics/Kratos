@@ -802,7 +802,7 @@ void CompositeCondition::Calculate( const Variable<double>& rVariable, double& r
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  CompositeCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
+int CompositeCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
   int check = 1;
   int child_check = 1;
@@ -810,7 +810,7 @@ int  CompositeCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     child_check = cn->Check(rCurrentProcessInfo);
     if(child_check == 0)
-      check = 0;
+      return 0;
   }
 
   return check;
