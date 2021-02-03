@@ -414,8 +414,7 @@ public:
     void GetPhiElemental(
         Matrix &PhiElemental,
         const Element::DofsVectorType &dofs,
-        const Element::GeometryType &geom,
-        int element_id)
+        const Element::GeometryType &geom)
     {
         for(u_int k = 0; k < dofs.size(); ++k){
             auto variable_key = dofs[k]->GetVariable().Key();
@@ -544,7 +543,7 @@ public:
                         PhiElemental.resize(dofs.size(), mRomDofs,false);
                     if(aux.size1() != dofs.size() || aux.size2() != mRomDofs)
                         aux.resize(dofs.size(), mRomDofs,false);
-                    GetPhiElemental(PhiElemental, dofs, geom, k+1);
+                    GetPhiElemental(PhiElemental, dofs, geom);
                     noalias(aux) = prod(LHS_Contribution, PhiElemental);
                     double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
@@ -571,7 +570,7 @@ public:
                         PhiElemental.resize(dofs.size(), mRomDofs,false);
                     if(aux.size1() != dofs.size() || aux.size2() != mRomDofs)
                         aux.resize(dofs.size(), mRomDofs,false);
-                    GetPhiElemental(PhiElemental, dofs, geom, k);
+                    GetPhiElemental(PhiElemental, dofs, geom);
                     noalias(aux) = prod(LHS_Contribution, PhiElemental);
                     double h_rom_weight = it->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;

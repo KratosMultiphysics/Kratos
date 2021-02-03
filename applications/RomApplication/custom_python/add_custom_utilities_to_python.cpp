@@ -41,7 +41,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
     class_<RomResidualsUtility, typename RomResidualsUtility::Pointer>(m, "RomResidualsUtility")
-    .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) //
+    .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer, RomBases>()) //
     .def("GetResiduals",&RomResidualsUtility::Calculate) //
     ;
 

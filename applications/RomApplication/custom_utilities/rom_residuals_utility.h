@@ -21,6 +21,7 @@
 
 /* Application includes */
 #include "rom_application_variables.h"
+#include "custom_utilities/rom_bases.h"
 
 namespace Kratos
 {
@@ -38,7 +39,8 @@ namespace Kratos
         RomResidualsUtility(
         ModelPart& rModelPart,
         Parameters ThisParameters,
-        BaseSchemeType::Pointer pScheme
+        BaseSchemeType::Pointer pScheme,
+        RomBases ThisBases
         ): mpModelPart(rModelPart), mpScheme(pScheme){
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
@@ -49,17 +51,21 @@ namespace Kratos
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
+        mRomBases = ThisBases;
+
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();
 
         mNodalDofs = mNodalVariablesNames.size();
-        mRomDofs = ThisParameters["number_of_rom_dofs"][0].GetInt(); //hardcoding here and in the B&S to take the first component
+        for (u_int i=0;i<(ThisParameters["number_of_rom_dofs"]).size(); i++){
+            mRomDofsVector.push_back(ThisParameters["number_of_rom_dofs"][i].GetInt());
+        }
 
         // Setting up mapping: VARIABLE_KEY --> CORRECT_ROW_IN_BASIS
         for(int k=0; k<mNodalDofs; k++){
             if(KratosComponents<Variable<double>>::Has(mNodalVariablesNames[k]))
             {
                 const auto& var = KratosComponents<Variable<double>>::Get(mNodalVariablesNames[k]);
-                MapPhi[var.Key()] = k;
+                mMapPhi[var.Key()] = k;
             }
             else
                 KRATOS_ERROR << "variable \""<< mNodalVariablesNames[k] << "\" not valid" << std::endl;
@@ -70,30 +76,46 @@ namespace Kratos
         ~RomResidualsUtility()= default;
 
 
+        // void GetPhiElemental(
+        //     Matrix &PhiElemental,
+        //     const Element::DofsVectorType &dofs,
+        //     const Element::GeometryType &geom)
+        // {
+        //     const auto *pcurrent_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
+        //     int counter = 0;
+        //     for(unsigned int k = 0; k < dofs.size(); ++k){
+        //         auto variable_key = dofs[k]->GetVariable().Key();
+        //         if(k==0)
+        //             pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
+        //         else if(dofs[k]->Id() != dofs[k-1]->Id()){
+        //             counter++;
+        //             pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
+        //         }
+        //         if (dofs[k]->IsFixed())
+        //             noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
+        //         else
+        //             noalias(row(PhiElemental, k)) = row(*pcurrent_rom_nodal_basis, MapPhi[variable_key]);
+        //     }
+        // }
+
+
         void GetPhiElemental(
             Matrix &PhiElemental,
             const Element::DofsVectorType &dofs,
-            const Element::GeometryType &geom)
+            const Element::GeometryType &geom,
+            int current_cluster)
         {
-            const auto *pcurrent_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
-            int counter = 0;
-            for(unsigned int k = 0; k < dofs.size(); ++k){
+            for(u_int k = 0; k < dofs.size(); ++k){
                 auto variable_key = dofs[k]->GetVariable().Key();
-                if(k==0)
-                    pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
-                else if(dofs[k]->Id() != dofs[k-1]->Id()){
-                    counter++;
-                    pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
-                }
                 if (dofs[k]->IsFixed())
                     noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
                 else
-                    noalias(row(PhiElemental, k)) = row(*pcurrent_rom_nodal_basis, MapPhi[variable_key]);
+                    noalias(row(PhiElemental, k)) = row(*mRomBases.GetBasis(current_cluster)->GetNodalBasis(dofs[k]->Id()), mMapPhi[variable_key]);
             }
         }
 
 
-        Matrix Calculate()
+        Matrix Calculate(int current_cluster)
         {
             // Getting the number of elements and conditions from the model
             const int nelements = static_cast<int>(mpModelPart.Elements().size());
@@ -106,6 +128,12 @@ namespace Kratos
             //contributions to the system
             Matrix LHS_Contribution = ZeroMatrix(0, 0);
             Vector RHS_Contribution = ZeroVector(0);
+
+
+            mRomDofs = mRomDofsVector.at(current_cluster);
+
+            KRATOS_WATCH(mRomDofs);
+
 
             //vector containing the localization in the system of the different terms
             Element::EquationIdVectorType EquationId;
@@ -130,7 +158,7 @@ namespace Kratos
                         const auto& geom = it_el->GetGeometry();
                         if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
                             PhiElemental.resize(dofs.size(), mRomDofs,false);
-                        GetPhiElemental(PhiElemental, dofs, geom);
+                        GetPhiElemental(PhiElemental, dofs, geom, current_cluster);
                         noalias(row(MatrixResiduals, k)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
                     }
 
@@ -153,7 +181,7 @@ namespace Kratos
                         const auto& geom = it->GetGeometry();
                         if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
                             PhiElemental.resize(dofs.size(), mRomDofs,false);
-                        GetPhiElemental(PhiElemental, dofs, geom);
+                        GetPhiElemental(PhiElemental, dofs, geom, current_cluster);
                         noalias(row(MatrixResiduals, k+nelements)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
                     }
                 }
@@ -163,11 +191,13 @@ namespace Kratos
 
         protected:
             std::vector< std::string > mNodalVariablesNames;
-            int mNodalDofs;
+            std::vector<int> mRomDofsVector;
             unsigned int mRomDofs;
+            int mNodalDofs;
             BaseSchemeType::Pointer mpScheme;
             ModelPart& mpModelPart;
-            std::unordered_map<Kratos::VariableData::KeyType,int> MapPhi;
+            std::unordered_map<Kratos::VariableData::KeyType,int> mMapPhi;
+            RomBases mRomBases;
         };
 
 
