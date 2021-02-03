@@ -179,7 +179,7 @@ void FluidConstitutiveLaw::NewtonianConstitutiveMatrix2D(
 }
 
 void FluidConstitutiveLaw::NewtonianConstitutiveMatrix3D(
-    double BulkViscosity, double DynamicViscosity, Matrix& rC) {
+    double DynamicViscosity, double BulkViscosity, Matrix& rC) {
 
     rC.clear();
     
