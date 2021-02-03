@@ -41,6 +41,8 @@ public:
 
     using ConditionType = ModelPart::ConditionType;
 
+    using IndexType = std::size_t;
+
     ///@}
     ///@name Static Operations
     ///@{
@@ -82,6 +84,25 @@ public:
         const double Kappa,
         const double Beta,
         const double YPlusLimit);
+
+    ///@}
+    ///@name Classes
+    ///@{
+
+    template<unsigned int TDim, unsigned int TNumNodes>
+    class GeometricalDerivatives
+    {
+    public:
+        ///@name Static Operations
+        ///@{
+
+        static double DomainSizeDerivative(
+            const GeometryType& rGeometry,
+            const IndexType NodeIndex,
+            const IndexType DirectionIndex);
+
+        ///@}
+    };
 
     ///@}
 };

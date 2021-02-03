@@ -122,4 +122,42 @@ void RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
     KRATOS_CATCH("");
 }
 
+template<>
+double RansAdjointUtilities::GeometricalDerivatives<2, 2>::DomainSizeDerivative(
+    const GeometryType& rGeometry,
+    const IndexType NodeIndex,
+    const IndexType DirectionIndex)
+{
+    const double lx = rGeometry[0].X() - rGeometry[1].X();
+    const double lx_derivative = ((NodeIndex == 0) - (NodeIndex == 1)) * (DirectionIndex == 0);
+
+    const double ly = rGeometry[0].Y() - rGeometry[1].Y();
+    const double ly_derivative = ((NodeIndex == 0) - (NodeIndex == 1)) * (DirectionIndex == 1);
+
+    const double length = lx * lx + ly * ly;
+    const double length_derivative = 2.0 * lx * lx_derivative + 2.0 * ly * ly_derivative;
+
+    const double domain_size = std::sqrt(length);
+    const double domain_size_derivative = 0.5 * length_derivative / std::sqrt(length);
+
+    return domain_size_derivative;
+}
+
+template<>
+double RansAdjointUtilities::GeometricalDerivatives<3, 3>::DomainSizeDerivative(
+    const GeometryType& rGeometry,
+    const IndexType NodeIndex,
+    const IndexType DirectionIndex)
+{
+    // const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+    // // const double a_derivative =
+
+    // const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+    // const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+
+    // const double s = (a+b+c) / 2.0;
+
+    // return std::sqrt(s*(s-a)*(s-b)*(s-c));
+}
+
 } // namespace Kratos
