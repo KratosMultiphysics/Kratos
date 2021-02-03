@@ -37,7 +37,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::Initialize()
+  void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
     KRATOS_CATCH("");

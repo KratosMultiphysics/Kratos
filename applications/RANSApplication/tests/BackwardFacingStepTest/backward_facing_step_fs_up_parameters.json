@@ -4,7 +4,7 @@
         "parallel_type": "<PARALLEL_TYPE>",
         "echo_level": 0,
         "start_time": 0.0,
-        "end_time": 3.0
+        "end_time": 0.05
     },
     "output_processes": {},
     "solver_settings": {
@@ -25,7 +25,7 @@
         ],
         "time_stepping": {
             "automatic_time_step": false,
-            "time_step": 1.0
+            "time_step": 0.01
         },
         "time_scheme_settings": {
             "scheme_type": "<TIME_SCHEME_TYPE>"
@@ -35,25 +35,26 @@
         },
         "no_skin_parts": [],
         "formulation_settings": {
-            "formulation_name": "monolithic",
-            "maximum_iterations": 10,
+            "formulation_name": "fractional_step",
+            "predictor_corrector": false,
+            "maximum_velocity_iterations": 20,
+            "maximum_pressure_iterations": 1,
+            "velocity_tolerance": 1e-4,
+            "pressure_tolerance": 1e-3,
+            "dynamic_tau": 0.01,
+            "oss_switch": 0,
             "echo_level": 0,
+            "time_order": 2,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
-            "relative_velocity_tolerance": 1e-5,
-            "absolute_velocity_tolerance": 1e-7,
-            "relative_pressure_tolerance": 1e-5,
-            "absolute_pressure_tolerance": 1e-7,
-            "velocity_relaxation": 0.9,
-            "pressure_relaxation": 0.9,
-            "linear_solver_settings": {
+            "pressure_linear_solver_settings": {
                 "solver_type": "amgcl",
                 "tolerance": 1e-12
             },
-            "move_mesh_strategy": 0,
-            "move_mesh_flag": false,
-            "oss_switch": 0,
-            "dynamic_tau": 1.0
+            "velocity_linear_solver_settings": {
+                "solver_type": "amgcl",
+                "tolerance": 1e-12
+            }
         }
     },
     "processes": {
@@ -65,17 +66,7 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart",
                     "variable_name": "VISCOSITY",
-                    "value": 100.0
-                }
-            },
-            {
-                "python_module": "process_factory",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "ApplyConstantScalarValueProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "variable_name": "KINEMATIC_VISCOSITY",
-                    "value": 100.0
+                    "value": 1.0
                 }
             },
             {
@@ -85,7 +76,7 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart",
                     "variable_name": "VELOCITY",
-                    "modulus": 1.0,
+                    "modulus": 0.0,
                     "direction": [
                         1.0,
                         0.0,
@@ -111,7 +102,7 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
                     "variable_name": "VELOCITY",
-                    "modulus": 7.2954,
+                    "modulus": "1.0 * t / 3.0",
                     "direction": "automatic_inwards_normal",
                     "interval": [
                         0.0,
@@ -169,7 +160,7 @@
                             "VELOCITY_Y",
                             "PRESSURE"
                     ],
-                    "input_file_name": "backward_facing_step_monolithic_velocity_pressure_flow_field_<TIME_SCHEME_TYPE>_test_results.json",
+                    "input_file_name": "backward_facing_step_fs_up_field_<TIME_SCHEME_TYPE>_results.json",
                     "model_part_name": "FluidModelPart.Parts_fluid",
                     "tolerance": 1e-9,
                     "relative_tolerance": 1e-12,
@@ -190,7 +181,7 @@
                         "VELOCITY_Y",
                         "PRESSURE"
                 ],
-                "input_file_name": "backward_facing_step_monolithic_velocity_pressure_flow_field_<TIME_SCHEME_TYPE>_test_results.json",
+                "input_file_name": "backward_facing_step_fs_up_field_<TIME_SCHEME_TYPE>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "tolerance": 1e-9,
                 "relative_tolerance": 1e-12,
@@ -208,7 +199,7 @@
                         "VELOCITY_Y",
                         "PRESSURE"
                 ],
-                "output_file_name": "backward_facing_step_monolithic_velocity_pressure_flow_field_<TIME_SCHEME_TYPE>_test_results.json",
+                "output_file_name": "backward_facing_step_fs_up_field_<TIME_SCHEME_TYPE>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "time_frequency": -2
             }

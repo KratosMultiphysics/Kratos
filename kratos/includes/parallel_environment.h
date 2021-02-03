@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/data_communicator.h"
+#include "includes/fill_communicator.h"
 
 namespace Kratos
 {
@@ -89,6 +90,21 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     static void SetUpMPIEnvironment(EnvironmentManager::Pointer pEnvironmentManager);
 
+    /**
+     * @brief Registers the fill communicator factory
+     * This method takes the provided fill communicator pointer factory and saves it to be used later on 
+     * @param FillCommunicatorFactory Factory function returning a pointer to a (parrallel or serial) fill communicator
+     */
+    static void RegisterFillCommunicatorFactory(std::function<FillCommunicator::Pointer(ModelPart&)> FillCommunicatorFactory);
+
+    /**
+     * @brief Create a fill communicator object
+     * This method uses the previously registered fill communicator factory for the creation of a new fill communicator pointer
+     * @param rModelPart Model part to which the fill communicator will be applied
+     * @return FillCommunicator::Pointer Pointer to the new fill communicator instance
+     */
+    static FillCommunicator::Pointer CreateFillCommunicator(ModelPart& rModelPart);
+
     /// Add a new DataCommunicator instance to the ParallelEnvironment.
     /** @param rName The name to be used to identify the DataCommunicator within ParallelEnvironment.
      *  @param rPrototype The DataCommunicator instance.
@@ -154,6 +170,8 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     void SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer pEnvironmentManager);
 
+    void RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&)> FillCommunicatorFactory);
+
     void RegisterDataCommunicatorDetail(
         const std::string& Name,
         DataCommunicator::UniquePointer pPrototype,
@@ -205,6 +223,8 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     std::unordered_map<std::string, DataCommunicator::UniquePointer> mDataCommunicators;
 
     std::unordered_map<std::string, DataCommunicator::UniquePointer>::iterator mDefaultCommunicator;
+
+    std::function<FillCommunicator::Pointer(ModelPart&)> mFillCommunicatorFactory;
 
     int mDefaultRank;
     int mDefaultSize;
