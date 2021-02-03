@@ -86,9 +86,12 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKOmegaOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKOmegaOmegaUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKOmegaOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
-      // adjoint elements
+      // k-epsilon adjoint elements
       mRansKEpsilonQSVMSRFCAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mRansKEpsilonQSVMSRFCAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
+      mRansKEpsilonQSVMSRFCAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      // k-epsilon adjoint conditions
+      mRansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
 {
 }
 
@@ -259,8 +262,12 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKEpsilonNewtonian2DLaw", mRansKEpsilonNewtonian2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKEpsilonNewtonian3DLaw", mRansKEpsilonNewtonian3DLaw);
 
-    // registering adjoint elements
+    // registering k-epsilon adjoint elements
     KRATOS_REGISTER_ELEMENT("RansKEpsilonQSVMSRFCAdjoint2D3N", mRansKEpsilonQSVMSRFCAdjoint2D3N);
     KRATOS_REGISTER_ELEMENT("RansKEpsilonQSVMSRFCAdjoint3D4N", mRansKEpsilonQSVMSRFCAdjoint3D4N);
+
+    // registering k-epsilon adjoint conditions
+    KRATOS_REGISTER_CONDITION("RansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint2D2N", mRansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint2D2N);
+    KRATOS_REGISTER_CONDITION("RansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint3D3N", mRansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint3D3N);
 }
 } // namespace Kratos.
