@@ -347,7 +347,7 @@ public:
         block_for_each(GetModelPart().Nodes(), [](Node<3>& rNode){
             noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
             noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
-        })
+        });
 
         KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0) << " MESH MOVED " << std::endl;
 
