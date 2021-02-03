@@ -65,8 +65,6 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
         PlotFileIterAitken.write("       time           ITER\n")
         PlotFileIterAitken.close()
 
-        self.wave_cal = PFEM.CalculateWaveHeightProcess(self.PFEM_Solution.main_model_part, 1, 0, -30.0, 0.0, 0.5, "WaveHeight", 0.1)
-
 
 #============================================================================================================================
     def SolveSolutionStep(self):
@@ -153,8 +151,6 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
         else:
             PlotFileIterAitken.write("    " + "{0:.4e}".format(time).rjust(11) + "        " + str(aitken_iteration) + "  MAX iterations reached!" + "\n")
         PlotFileIterAitken.close()
-
-        self.wave_cal.Execute()
 
 #============================================================================================================================
     def UpdateAndRelaxSolution(self, solid_model_part):
