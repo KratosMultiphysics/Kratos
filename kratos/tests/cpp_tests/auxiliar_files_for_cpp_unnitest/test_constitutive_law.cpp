@@ -144,6 +144,7 @@ double& TestConstitutiveLaw::CalculateValue(
     double& rValue
     )
 {
+    return rValue;
 }
 
 /***********************************************************************************/
@@ -155,6 +156,7 @@ Vector& TestConstitutiveLaw::CalculateValue(
     Vector& rValue
     )
 {
+    return rValue;
 }
 
 /***********************************************************************************/
@@ -166,6 +168,7 @@ Matrix& TestConstitutiveLaw::CalculateValue(
     Matrix& rValue
     )
 {
+    return rValue;
 }
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
@@ -184,6 +187,7 @@ int TestConstitutiveLaw::Check(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    return 1;
 }
 
 /***********************************************************************************/
