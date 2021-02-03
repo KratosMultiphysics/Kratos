@@ -9,7 +9,6 @@ from KratosMultiphysics.RANSApplication.formulations.turbulence_models.scalar_tu
 from KratosMultiphysics.RANSApplication.formulations.turbulence_models.two_equation_turbulence_model_rans_formulation import TwoEquationTurbulenceModelRansFormulation
 
 # import utilities
-from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 from KratosMultiphysics.RANSApplication import RansWallDistanceCalculationProcess
 
 class KOmegaSSTKRansFormulation(ScalarTurbulenceModelRansFormulation):
@@ -76,7 +75,6 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.MESH_VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NORMAL)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VISCOSITY)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
@@ -115,17 +113,11 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         wall_distance_process = RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
         self.AddProcess(wall_distance_process)
 
-        a1 = process_info[KratosRANS.TURBULENCE_RANS_A1]
-        beta_star = process_info[KratosRANS.TURBULENCE_RANS_C_MU]
-
-        kappa = process_info[KratosRANS.WALL_VON_KARMAN]
         minimum_nut = settings["minimum_turbulent_viscosity"].GetDouble()
 
         nut_process = KratosRANS.RansNutKOmegaSSTUpdateProcess(
                                             model,
                                             self.GetBaseModelPart().Name,
-                                            a1,
-                                            beta_star,
                                             minimum_nut,
                                             self.echo_level)
         self.AddProcess(nut_process)
@@ -133,7 +125,6 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         nut_wall_process = KratosRANS.RansNutYPlusWallFunctionUpdateProcess(
                                             model,
                                             wall_model_part_name,
-                                            kappa,
                                             minimum_nut,
                                             self.echo_level)
         self.AddProcess(nut_wall_process)
@@ -144,7 +135,6 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         defaults = Kratos.Parameters('''{
             "wall_law_constants":{
                 "kappa": 0.41,
-                "beta" : 5.2,
                 "c_mu" : 0.09
             },
             "k_omega_constants": {
@@ -169,13 +159,9 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         process_info = self.GetBaseModelPart().ProcessInfo
         # wall law constants
         constants = settings["wall_law_constants"]
-        process_info.SetValue(KratosRANS.WALL_SMOOTHNESS_BETA, constants["beta"].GetDouble())
-        process_info.SetValue(KratosRANS.WALL_VON_KARMAN, constants["kappa"].GetDouble())
+        process_info.SetValue(KratosRANS.VON_KARMAN, constants["kappa"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, constants["c_mu"].GetDouble())
-        process_info.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, RansCalculationUtilities.CalculateLogarithmicYPlusLimit(
-                                                                                    process_info[KratosRANS.WALL_VON_KARMAN],
-                                                                                    process_info[KratosRANS.WALL_SMOOTHNESS_BETA]
-                                                                                    ))
+
         # k-omega constants
         constants = settings["k_omega_constants"]
         process_info.SetValue(KratosRANS.TURBULENT_KINETIC_ENERGY_SIGMA_1, constants["sigma_k"].GetDouble())

@@ -96,13 +96,13 @@ public:
      * Called at the beginning of each solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access Get Values
@@ -138,8 +138,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /// Calculate Shape Function Values in a given point
-    Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint) override;
+    /// Calculate Shape Function Values as a vector
+    virtual void MPMShapeFunctionPointValues(Vector& rResult) const override;
 
     ///@}
 

@@ -38,14 +38,14 @@ KRATOS_CLASS_POINTER_DEFINITION(ProductOfSines);
 
 ProductOfSines():VelocityField()
 {
-    unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+    unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
     ResizeVectorsForParallelism(number_of_threads);
     mOmega = Globals::Pi;
 }
 
 ProductOfSines(const double period)
 {
-    unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+    unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
     ResizeVectorsForParallelism(number_of_threads);
 
     KRATOS_ERROR_IF(period <= 0.0) << "The period must be non-negative." << std::endl;

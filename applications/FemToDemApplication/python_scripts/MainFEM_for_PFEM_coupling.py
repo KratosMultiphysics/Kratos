@@ -88,7 +88,6 @@ class FEM_for_PFEM_coupling_Solution(MainFEM_for_coupling.FEM_for_coupling_Solut
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.THETA_MOMENTUM)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.ACCELERATION_BACKUP)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_BACKUP)
