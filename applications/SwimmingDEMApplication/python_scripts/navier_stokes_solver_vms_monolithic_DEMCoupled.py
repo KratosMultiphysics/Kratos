@@ -24,6 +24,8 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
                 self._SetUpQSVMSDEM(settings)
             if formulation == "MonolithicDEM":
                 self._SetUpVMSDEM(settings)
+            if formulation == "dvmsDEM":
+                self._SetUpDVMSDEM(settings)
 
     def _SetUpQSVMSDEM(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -35,9 +37,8 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = settings["element_name"].GetString()
-        #TODO: THE QS-VMS ELEMENT DOES NOT REQUIRE NODAL PROPERTIES. WHY WAS THIS ACTIVE?
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY]
+        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY, KratosMultiphysics.PERMEABILITY]
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -55,6 +56,23 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
         self.element_name = settings["element_name"].GetString()
         self.element_has_nodal_properties = True
         self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY]
+
+        self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
+        use_oss = settings["use_orthogonal_subscales"].GetBool()
+        self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
+
+    def _SetUpDVMSDEM(self,settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "dvmsDEM",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau": 0.0,
+            "element_name": "DVMSDEMCoupled"
+        }""")
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = settings["element_name"].GetString()
+        self.element_has_nodal_properties = True
+        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY, KratosMultiphysics.PERMEABILITY]
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -155,5 +173,20 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         self.condition_name = self.formulation.condition_name
         self.element_integrates_in_time = self.formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
-        self.historical_nodal_properties_variables_list = self.formulation.historical_nodal_properties_variables_list 
+        self.historical_nodal_properties_variables_list = self.formulation.historical_nodal_properties_variables_list
         self.non_historical_nodal_properties_variables_list = self.formulation.non_historical_nodal_properties_variables_list
+
+    def _SetNodalProperties(self):
+        super(NavierStokesSolverMonolithicDEM, self)._SetNodalProperties()
+        set_permeability = KratosMultiphysics.PERMEABILITY in self.historical_nodal_properties_variables_list
+        for el in self.main_model_part.Elements:
+            # Get PERMEABILITY from properties
+            if set_permeability:
+                k = el.Properties.GetValue(KratosMultiphysics.PERMEABILITY)
+                break
+            else:
+                raise Exception("No fluid elements found in the main model part.")
+
+        # Transfer the obtained properties to the nodes
+        if set_permeability:
+            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.PERMEABILITY, k, self.main_model_part.Nodes)

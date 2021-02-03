@@ -921,16 +921,6 @@ int  ThermalElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
      KRATOS_TRY
 
-     // Check that all required variables have been registered
-     KRATOS_CHECK_VARIABLE_KEY(TEMPERATURE);
-
-     KRATOS_CHECK_VARIABLE_KEY(HEAT_CAPACITY);
-     KRATOS_CHECK_VARIABLE_KEY(HEAT_CONDUCTIVITY);
-
-     KRATOS_CHECK_VARIABLE_KEY(HEAT_SOURCE);
-     KRATOS_CHECK_VARIABLE_KEY(PLASTIC_DISSIPATION);
-     KRATOS_CHECK_VARIABLE_KEY(DELTA_PLASTIC_DISSIPATION);
-
      return 0;
 
      KRATOS_CATCH( "" );

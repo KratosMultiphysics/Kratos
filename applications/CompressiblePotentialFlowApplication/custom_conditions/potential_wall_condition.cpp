@@ -129,12 +129,6 @@ int PotentialWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPr
     }
     else
     {
-        // Check that all required variables have been registered
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY_POTENTIAL);
-        KRATOS_CHECK_VARIABLE_KEY(AUXILIARY_VELOCITY_POTENTIAL);
-
-        // Checks on nodes
-
         // Check that the element's nodes contain all required
         // SolutionStepData and Degrees of freedom
         for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
