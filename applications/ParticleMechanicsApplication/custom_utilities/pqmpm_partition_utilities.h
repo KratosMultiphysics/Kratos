@@ -113,6 +113,8 @@ namespace Kratos
         static bool CheckFixedNodesWithinBoundingBox(const PointerVector<Node<3>>& rNodesList,
             const Point& rPointHigh, const Point& rPointLow, const SizeType WorkingDim);
 
+        static bool CheckMPIsInInterfaceCell(const GeometryType& rCell);
+
         static GeometryNodePointerType CreateCustomQuadraturePoint(
             SizeType WorkingSpaceDimension,
             SizeType LocalSpaceDimension,

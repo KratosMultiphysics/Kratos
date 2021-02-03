@@ -41,6 +41,16 @@ namespace Kratos
 
         GeometryType& rParentGeom = pQuadraturePointGeometry->GetGeometryParent(0);
 
+        // Don't split FETI MP's that are within interface elements
+        if (CheckMPIsInInterfaceCell(rParentGeom)) {
+            CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                pQuadraturePointGeometry, rLocalCoords,
+                rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                rParentGeom);
+            return;
+        }
+
+
         // If axisymmetric make normal MP
         if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC)) {
             if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)) {
@@ -748,6 +758,29 @@ namespace Kratos
                     }
                 }
                 if (is_inside) return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    bool PQMPMPartitionUtilities::CheckMPIsInInterfaceCell(const GeometryType& rCell)
+    {
+        if (rCell[0].Has(IS_DEFORMING_INTERFACE_NODE))
+        {
+            SizeType interface_node_counter = 0;
+            for (size_t k = 0; k < rCell.size(); ++k)
+            {
+                if (rCell[k].Has(IS_DEFORMING_INTERFACE_NODE))
+                {
+                    if (rCell[k].GetValue(IS_DEFORMING_INTERFACE_NODE)) interface_node_counter++;
+                }
+            }
+            if (interface_node_counter == rCell.size())
+            {
+                KRATOS_INFO("NOT SPLIT");
+                return true;
             }
         }
 
