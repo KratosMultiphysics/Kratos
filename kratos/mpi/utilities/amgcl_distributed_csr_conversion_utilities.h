@@ -45,15 +45,15 @@ public:
 		IndexType chunk = rA.local_size1();
 
     	auto loc_a = amgcl::adapter::zero_copy(chunk, 
-                rA.GetDiagBlock().index1_data().data().begin(),
-                rA.GetDiagBlock().index2_data().data().begin(),
-                rA.GetDiagBlock().value_data().data().begin()
+                rA.GetDiagonalBlock().index1_data().data().begin(),
+                rA.GetDiagonalBlock().index2_data().data().begin(),
+                rA.GetDiagonalBlock().value_data().data().begin()
 			);
 
 		auto rem_a = amgcl::adapter::zero_copy(chunk, 
-			rA.GetOffDiagBlock().index1_data().data().begin(),
+			rA.GetOffDiagonalBlock().index1_data().data().begin(),
 			global_index2.data().begin(),
-			rA.GetOffDiagBlock().value_data().data().begin()
+			rA.GetOffDiagonalBlock().value_data().data().begin()
 		);
 
 		auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator( rA.GetComm());

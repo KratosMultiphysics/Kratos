@@ -509,17 +509,11 @@ KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
 
     A.SpMV(y,x); //x += A*y
 
-<<<<<<< HEAD
-
-    double sum = 0.0; //for this test the final value is 496
-    for(IndexType i=0; i!=x.size(); ++i){
-=======
     double sum = 0.0; //for this test the final value is 124
     for(SparseTestingInternals::IndexType i=0; i!=x.size(); ++i){
->>>>>>> master
         sum += x(i);
     }
-std::cout << " **********************" << sum << std::endl;
+    std::cout << " **********************" << sum << std::endl;
 
     double reference_sum = 0.0;
     for(auto& item : reference_A_map)
@@ -561,11 +555,10 @@ KRATOS_TEST_CASE_IN_SUITE(SystemVectorOperations, KratosCoreFastSuite)
         KRATOS_CHECK_NEAR(c[i], 10.0,1e-14);
 }
 
-<<<<<<< HEAD
 KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
 {
-    const auto connectivities = ElementConnectivities();
-    auto reference_A_map = GetReferenceMatrixAsMap();
+    const auto connectivities = SparseTestingInternals::ElementConnectivities();
+    auto reference_A_map = SparseTestingInternals::GetReferenceMatrixAsMap();
 
     SparseContiguousRowGraph<> Agraph(40);
     for(const auto& c : connectivities)
@@ -599,7 +592,6 @@ KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
 
     KRATOS_CHECK_EQUAL(sum,496);
 }
-=======
 KRATOS_TEST_CASE_IN_SUITE(RectangularMatrixConstruction, KratosCoreFastSuite)
 {
     
@@ -672,7 +664,6 @@ KRATOS_TEST_CASE_IN_SUITE(RectangularMatrixConstruction, KratosCoreFastSuite)
 }
 
 
->>>>>>> master
 
 } // namespace Testing
 } // namespace Kratos

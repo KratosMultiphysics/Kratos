@@ -277,17 +277,12 @@ std::vector<TIndexType> ComputeBounds( TIndexType N,
             };
     return bounds;
 }
+}
 
-<<<<<<< HEAD
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
-=======
-}
->>>>>>> master
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosMPICoreFastSuite)
-{
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     int world_size =rComm.Size();
     int my_rank = rComm.Rank();
@@ -596,14 +591,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMP
 
 }
 
-<<<<<<< HEAD
-KRATOS_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosMPICoreFastSuite)
-=======
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosMPICoreFastSuite)
->>>>>>> master
 {
-    
-
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
 
     DistTestingInternals::IndexType local_size = 4;
@@ -648,7 +637,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, Krat
 }
 
 
-<<<<<<< HEAD
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
@@ -658,7 +646,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosM
     int my_rank = rComm.Rank();
 
     IndexType max_size = 3;
-    auto dofs_bounds = ComputeBounds<IndexType>(max_size, world_size, my_rank);
+    auto dofs_bounds = DistTestingInternals::ComputeBounds<IndexType>(max_size, world_size, my_rank);
 
     Matrix local_matrix(2,2); //we will assemble a 1D laplacian
     local_matrix(0,0) = 1.0;  local_matrix(0,1) = -1.0; 
@@ -697,7 +685,5 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosM
 
 
 
-=======
->>>>>>> master
 } // namespace Testing
 } // namespace Kratos

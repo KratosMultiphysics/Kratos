@@ -117,55 +117,32 @@ public:
 
         //*******************************
         //construct diagonal block
-<<<<<<< HEAD
-        mDiagBlock.reserve(nlocal_rows, diag_nnz);
+        mDiagonalBlock.reserve(nlocal_rows, diag_nnz);
         if(diag_nnz == 0) //empty matrix
         {
-            mDiagBlock.index1_data()[0] = 0;
-            mDiagBlock.SetColSize(0); 
+            mDiagonalBlock.index1_data()[0] = 0;
+            mDiagonalBlock.SetColSize(0); 
         }
         else
         {
             counter = 0;
             for(const auto& entries : local_graph){
                 unsigned int k = 0;
-                IndexType row_begin = mDiagBlock.index1_data()[counter];
+                IndexType row_begin = mDiagonalBlock.index1_data()[counter];
                 for(auto global_j : entries){
                     
                     if(GetColNumbering().IsLocal(global_j)){
                         IndexType local_j = GetColNumbering().LocalId(global_j);
-                        mDiagBlock.index2_data()[row_begin+k] = local_j;
-                        mDiagBlock.value_data()[row_begin+k] = 0.0;
+                        mDiagonalBlock.index2_data()[row_begin+k] = local_j;
+                        mDiagonalBlock.value_data()[row_begin+k] = 0.0;
                         k++;
                     }
-=======
-        mDiagonalBlock.reserve(nlocal_rows, diag_nnz);
-        counter = 0;
-        for(const auto& entries : local_graph){
-            unsigned int k = 0;
-            IndexType row_begin = mDiagonalBlock.index1_data()[counter];
-            for(auto global_j : entries){
-                
-                if(GetColNumbering().IsLocal(global_j)){
-                    IndexType local_j = GetColNumbering().LocalId(global_j);
-                    mDiagonalBlock.index2_data()[row_begin+k] = local_j;
-                    mDiagonalBlock.value_data()[row_begin+k] = 0.0;
-                    k++;
->>>>>>> master
                 }
-                mDiagBlock.index1_data()[counter+1] = row_begin + k;
+                mDiagonalBlock.index1_data()[counter+1] = row_begin + k;
                 counter++;
             }
-<<<<<<< HEAD
-            mDiagBlock.SetColSize(GetColNumbering().LocalSize());
+            mDiagonalBlock.SetColSize(GetColNumbering().LocalSize());
         }        
-=======
-            mDiagonalBlock.index1_data()[counter+1] = row_begin + k;
-            counter++;
-        }
-        mDiagonalBlock.SetColSize(GetColNumbering().LocalSize());
-        
->>>>>>> master
 #ifdef KRATOS_DEBUG
         mDiagonalBlock.CheckColSize();
 #endif
@@ -182,53 +159,31 @@ public:
         //construct offdiagonal block
         
         //store off-diagonal block
-<<<<<<< HEAD
-        mOffDiagBlock.reserve(nlocal_rows, offdiag_nnz); 
+        mOffDiagonalBlock.reserve(nlocal_rows, offdiag_nnz); 
         if(diag_nnz == 0) //empty matrix
         {
-            mOffDiagBlock.index1_data()[0] = 0;
-            mOffDiagBlock.SetColSize(0); 
+            mOffDiagonalBlock.index1_data()[0] = 0;
+            mOffDiagonalBlock.SetColSize(0); 
         }
         else
         {
             counter = 0;
             for(const auto& entries : local_graph){
                 unsigned int k = 0;
-                IndexType row_begin = mOffDiagBlock.index1_data()[counter];
+                IndexType row_begin = mOffDiagonalBlock.index1_data()[counter];
                 for(auto global_j : entries){
                     if( ! GetColNumbering().IsLocal(global_j)){
-                        IndexType local_j = GetOffDiagLocalId(global_j);
-                        mOffDiagBlock.index2_data()[row_begin+k] = local_j;
-                        mOffDiagBlock.value_data()[row_begin+k] = 0.0;
+                        IndexType local_j = GetOffDiagonalBlockLocalId(global_j);
+                        mOffDiagonalBlock.index2_data()[row_begin+k] = local_j;
+                        mOffDiagonalBlock.value_data()[row_begin+k] = 0.0;
                         k++;
                     }
-=======
-        mOffDiagonalBlock.reserve(nlocal_rows, offdiag_nnz); 
-        counter = 0;
-        for(const auto& entries : local_graph){
-            unsigned int k = 0;
-            IndexType row_begin = mOffDiagonalBlock.index1_data()[counter];
-            for(auto global_j : entries){
-                if( ! GetColNumbering().IsLocal(global_j)){
-                    IndexType local_j = GetOffDiagonalBlockLocalId(global_j);
-                    mOffDiagonalBlock.index2_data()[row_begin+k] = local_j;
-                    mOffDiagonalBlock.value_data()[row_begin+k] = 0.0;
-                    k++;
->>>>>>> master
                 }
-                mOffDiagBlock.index1_data()[counter+1] = row_begin + k;
+                mOffDiagonalBlock.index1_data()[counter+1] = row_begin + k;
                 counter++;
             }
-<<<<<<< HEAD
-            mOffDiagBlock.SetColSize(mOffDiagonalLocalIds.size());
+            mOffDiagonalBlock.SetColSize(mOffDiagonalLocalIds.size());
         }
-=======
-            mOffDiagonalBlock.index1_data()[counter+1] = row_begin + k;
-            counter++;
-        }
-        mOffDiagonalBlock.SetColSize(mOffDiagonalLocalIds.size());
-
->>>>>>> master
 #ifdef KRATOS_DEBUG
         mOffDiagonalBlock.CheckColSize();
 #endif
@@ -313,11 +268,7 @@ public:
         return mDiagonalBlock.nnz();
     }
 
-<<<<<<< HEAD
     const DataCommunicator& GetComm() const {
-=======
-    const DataCommunicator& GetComm() const{
->>>>>>> master
         return mrComm;
     }
 
@@ -370,18 +321,18 @@ public:
 
     DenseVector<IndexType> GetDiagonalIndex2DataInGlobalNumbering() const
     {
-        DenseVector<IndexType> tmp(GetDiagBlock().index2_data().size());
+        DenseVector<IndexType> tmp(GetDiagonalBlock().index2_data().size());
         IndexPartition<IndexType>(tmp.size()).for_each([&](IndexType i){
-            tmp[i] = GetColNumbering().GlobalId(   GetDiagBlock().index2_data()[i]  );
+            tmp[i] = GetColNumbering().GlobalId(   GetDiagonalBlock().index2_data()[i]  );
         });
         return tmp;
     }
 
     DenseVector<IndexType> GetOffDiagonalIndex2DataInGlobalNumbering() const
     {
-        DenseVector<IndexType> tmp(GetOffDiagBlock().index2_data().size());
+        DenseVector<IndexType> tmp(GetOffDiagonalBlock().index2_data().size());
         IndexPartition<IndexType>(tmp.size()).for_each([&](IndexType i){
-            tmp[i] = GetOffDiaGlobalId(   GetOffDiagBlock().index2_data()[i]  );
+            tmp[i] = GetOffDiaGlobalId(   GetOffDiagonalBlock().index2_data()[i]  );
         });
         return tmp;
     }
@@ -660,14 +611,14 @@ public:
 
 
         std::cout << "--- Diagonal Block: ---" << std::endl;
-        std::cout << "index1_data : " << GetDiagBlock().index1_data() << std::endl;
+        std::cout << "index1_data : " << GetDiagonalBlock().index1_data() << std::endl;
         std::cout << "index2_data in global numbering: " << GetDiagonalIndex2DataInGlobalNumbering() << std::endl;
-        std::cout << "value_data  : " << GetDiagBlock().value_data() << std::endl;
+        std::cout << "value_data  : " << GetDiagonalBlock().value_data() << std::endl;
         std::cout << std::endl;
         std::cout << "--- OffDiagonal Block: ---" << std::endl;
-        std::cout << "index1_data : " << GetOffDiagBlock().index1_data() << std::endl;
+        std::cout << "index1_data : " << GetOffDiagonalBlock().index1_data() << std::endl;
         std::cout << "index2_data in global numbering: " << GetOffDiagonalIndex2DataInGlobalNumbering() << std::endl;
-        std::cout << "value_data  : " << GetOffDiagBlock().value_data() << std::endl;
+        std::cout << "value_data  : " << GetOffDiagonalBlock().value_data() << std::endl;
 
 
     }
