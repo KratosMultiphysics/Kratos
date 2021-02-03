@@ -112,7 +112,6 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
         base_model_part.AddNodalSolutionStepVariable(Kratos.Y_WALL)
         base_model_part.AddNodalSolutionStepVariable(Kratos.EXTERNAL_PRESSURE)
         base_model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
-        base_model_part.AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
         base_model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
         base_model_part.AddNodalSolutionStepVariable(Kratos.FRACT_VEL)
         base_model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE_OLD_IT)

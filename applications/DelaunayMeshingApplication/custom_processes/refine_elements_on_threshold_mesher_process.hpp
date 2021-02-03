@@ -186,7 +186,7 @@ private:
 	  double variable_value=0;
 	  std::vector<double> Value(1);
 
-	  (iii)->GetValueOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,CurrentProcessInfo);
+	  (iii)->CalculateOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,CurrentProcessInfo);
 
 	  //the expected returned value is an "specific" value (per unit of Area) (usually PlasticPower)
 	  //variable_value = Value[0] * iii->GetGeometry().Area();

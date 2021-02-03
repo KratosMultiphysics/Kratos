@@ -6,6 +6,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.testing.utilities  import ReadModelPart
 
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateDuplicateModelPart
 from KratosMultiphysics.FluidDynamicsApplication.check_and_prepare_model_process_fluid import CheckAndPrepareModelProcess
 
 
@@ -21,7 +22,6 @@ class CustomProcessTest(UnitTest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.REACTION)
-        cls.model_part.AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.NODAL_AREA)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
@@ -66,7 +66,6 @@ class CustomProcessTest(UnitTest.TestCase):
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.DISTANCE, 0.0, 100.0, 0)
 
         Kratos.VariableUtils().SetVariable(Kratos.DENSITY, 1.0, self.model_part.Nodes)
-        Kratos.VariableUtils().SetVariable(Kratos.KINEMATIC_VISCOSITY, 100.0, self.model_part.Nodes)
 
     def testCheckScalarBoundsProcess(self):
         settings = Kratos.Parameters(r'''
@@ -333,6 +332,14 @@ class CustomProcessTest(UnitTest.TestCase):
                 "Parameters" : {
                     "model_part_name"     : "FluidModelPart"
                 }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "NutNodalUpdateProcess",
+                "Parameters" : {
+                    "model_part_name"     : "FluidModelPart"
+                }
             }
         ]''')
 
@@ -351,6 +358,14 @@ class CustomProcessTest(UnitTest.TestCase):
                 "kratos_module" : "KratosMultiphysics.RANSApplication",
                 "python_module" : "cpp_process_factory",
                 "process_name"  : "NutKOmegaUpdateProcess",
+                "Parameters" : {
+                    "model_part_name"     : "FluidModelPart"
+                }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "NutNodalUpdateProcess",
                 "Parameters" : {
                     "model_part_name"     : "FluidModelPart"
                 }
@@ -373,7 +388,15 @@ class CustomProcessTest(UnitTest.TestCase):
                 "python_module" : "cpp_process_factory",
                 "process_name"  : "NutKOmegaSSTUpdateProcess",
                 "Parameters" : {
-                    "model_part_name"     : "FluidModelPart"
+                    "model_part_name"     : "k_omega_sst"
+                }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "NutNodalUpdateProcess",
+                "Parameters" : {
+                    "model_part_name"     : "k_omega_sst"
                 }
             }
         ]''')
@@ -387,6 +410,11 @@ class CustomProcessTest(UnitTest.TestCase):
         CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
         # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
+        test_model_part = CreateDuplicateModelPart(self.model_part, "k_omega_sst", "RansKOmegaSSTKRFC2D3N", "")
+
+        for element in test_model_part.Elements:
+            element.Initialize(self.model_part.ProcessInfo)
+
         self._RunProcessTest(settings)
 
     def testNutYPlusWallFunctionUpdateProcess(self):
@@ -399,6 +427,14 @@ class CustomProcessTest(UnitTest.TestCase):
                 "Parameters" : {
                     "model_part_name"     : "FluidModelPart"
                 }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "NutNodalUpdateProcess",
+                "Parameters" : {
+                    "model_part_name"     : "NutYPlusWallFunctionUpdate"
+                }
             }
         ]''')
 
@@ -410,6 +446,10 @@ class CustomProcessTest(UnitTest.TestCase):
         test_file_name = "nut_y_plus_wall_function_test_output"
         CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
         # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+
+        test_model_part = CreateDuplicateModelPart(self.model_part, "NutYPlusWallFunctionUpdate", "Element2D3N", "RansKEpsilonEpsilonKBasedWall2D2N")
+        for condition in test_model_part.Conditions:
+            condition.Initialize(self.model_part.ProcessInfo)
 
         self._RunProcessTest(settings)
 

@@ -254,7 +254,7 @@ public:
         }
 
         // Obtain the maximum and minimum nodal distance values of the nodes flagged as TO_SPLIT
-        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
+        const unsigned int num_threads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector nodes_partition;
         OpenMPUtils::DivideInPartitions(mrFluidModelPart.NumberOfNodes(), num_threads, nodes_partition);
 
