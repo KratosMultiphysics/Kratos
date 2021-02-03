@@ -22,7 +22,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "includes/checks.h"
-
+#include "processes/skin_detection_process.h"
 
 namespace Kratos
 {
@@ -69,20 +69,39 @@ namespace Kratos
         Check();
     }
 
-	StructuredMeshGeneratorProcess::~StructuredMeshGeneratorProcess() {
+StructuredMeshGeneratorProcess::~StructuredMeshGeneratorProcess()
+{
 
 	}
 
-	void StructuredMeshGeneratorProcess::Execute() {
-        if (mCreateSkinSubModelPart)
-            mrOutputModelPart.CreateSubModelPart("Skin");
-		if (mrGeometry.LocalSpaceDimension() == 2)
+void StructuredMeshGeneratorProcess::Execute()
+{
+    // Generate 3D mesh
+    if (mrGeometry.LocalSpaceDimension() == 2) {
 			Generate2DMesh();
-		else if (mrGeometry.LocalSpaceDimension() == 3)
+    } else if (mrGeometry.LocalSpaceDimension() == 3) {
             Generate3DMesh();
-		else
+    } else {
 			KRATOS_ERROR << "Not supported geometry is given" << std::endl;
+    }
 
+    // Generate skin if required
+    if (mCreateSkinSubModelPart) {
+        const Parameters skin_parameters = Parameters(R"(
+        {
+            "name_auxiliar_model_part"              : "Skin",
+            "name_auxiliar_condition"               : "Condition"
+        })" );
+        if (mConditionName != "PLEASE SPECIFY IT") {
+            skin_parameters["name_auxiliar_condition"].SetString(mConditionName);
+        } else {
+            KRATOS_WARNING("StructuredMeshGeneratorProcess") << "Condition name not specified. Default geometrical conditions will be generated" << std::endl;
+        }
+        if (mrGeometry.LocalSpaceDimension() == 2) {
+            SkinDetectionProcess<2>(mrOutputModelPart, skin_parameters).Execute();
+        } else {
+            SkinDetectionProcess<3>(mrOutputModelPart, skin_parameters).Execute();
+        }
 	}
 
 	Parameters StructuredMeshGeneratorProcess::GetIncompleteDefaultParameters()
@@ -103,19 +122,23 @@ namespace Kratos
     }
 
 
-	std::string StructuredMeshGeneratorProcess::Info() const {
+std::string StructuredMeshGeneratorProcess::Info() const
+{
 		return "StructuredMeshGeneratorProcess";
 	}
 
-	void StructuredMeshGeneratorProcess::PrintInfo(std::ostream& rOStream) const {
+void StructuredMeshGeneratorProcess::PrintInfo(std::ostream& rOStream) const
+{
 		rOStream << Info();
 	}
 
-	void StructuredMeshGeneratorProcess::PrintData(std::ostream& rOStream) const {
+void StructuredMeshGeneratorProcess::PrintData(std::ostream& rOStream) const
+{
 
 	}
 
-	void StructuredMeshGeneratorProcess::Generate2DMesh() {
+void StructuredMeshGeneratorProcess::Generate2DMesh()
+{
 		Point min_point(1.00, 1.00, 1.00);
 		Point max_point(-1.00, -1.00, -1.00);
 		GetLocalCoordinatesRange(min_point, max_point);
@@ -125,7 +148,8 @@ namespace Kratos
 		GenerateTriangularElements();
 	}
 
-	void StructuredMeshGeneratorProcess::Generate3DMesh() {
+void StructuredMeshGeneratorProcess::Generate3DMesh()
+{
 		Point min_point(1.00, 1.00, 1.00);
 		Point max_point(-1.00, -1.00, -1.00);
 		GetLocalCoordinatesRange(min_point, max_point);
@@ -135,7 +159,8 @@ namespace Kratos
 		GenerateTetrahedraElements();
 	}
 
-	void StructuredMeshGeneratorProcess::GenerateNodes2D(Point const& rMinPoint, Point const& rMaxPoint) {
+void StructuredMeshGeneratorProcess::GenerateNodes2D(Point const& rMinPoint, Point const& rMaxPoint)
+{
 		GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
 		local_element_size[0] /= mNumberOfDivisions[0];
 		local_element_size[1] /= mNumberOfDivisions[1];
@@ -149,12 +174,6 @@ namespace Kratos
 				local_coordinates[0] = rMinPoint[0] + (i * local_element_size[0]);
 				local_coordinates[1] = rMinPoint[1] + (j * local_element_size[1]);
 				mrGeometry.GlobalCoordinates(global_coordinates, local_coordinates);
-				if (mCreateSkinSubModelPart && (
-                    (i == 0) || (i == mNumberOfDivisions[0]) || (j == 0) || (j == mNumberOfDivisions[1])))  // Is on skin
-					mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0],
-                                                                                       global_coordinates[1],
-                                                                                       global_coordinates[2]);
-				else
 					mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0],
                                                                global_coordinates[1],
                                                                global_coordinates[2]);
@@ -162,7 +181,8 @@ namespace Kratos
 		}
 	}
 
-	void StructuredMeshGeneratorProcess::GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint) {
+void StructuredMeshGeneratorProcess::GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint)
+{
 		GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
 		local_element_size[0] /= mNumberOfDivisions[0];
 		local_element_size[1] /= mNumberOfDivisions[1];
@@ -178,13 +198,6 @@ namespace Kratos
 					local_coordinates[1] = rMinPoint[1] + (j * local_element_size[1]);
 					local_coordinates[2] = rMinPoint[2] + (k * local_element_size[2]);
 					mrGeometry.GlobalCoordinates(global_coordinates, local_coordinates);
-					if (mCreateSkinSubModelPart && (
-                        (i == 0) || (i == mNumberOfDivisions[0]) || (j == 0) ||
-                        (j == mNumberOfDivisions[1]) || (k == 0) || (k == mNumberOfDivisions[2])))  // Is on skin
-						mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0],
-                                                                                           global_coordinates[1],
-                                                                                           global_coordinates[2]);
-					else
 						mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0],
                                                                    global_coordinates[1],
                                                                    global_coordinates[2]);
@@ -193,7 +206,8 @@ namespace Kratos
 		}
 	}
 
-	void StructuredMeshGeneratorProcess::GenerateTriangularElements() {
+void StructuredMeshGeneratorProcess::GenerateTriangularElements()
+{
 		std::size_t element_id = mStartElementId;
 
 		Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
@@ -210,7 +224,8 @@ namespace Kratos
 		}
 	}
 
-	void StructuredMeshGeneratorProcess::GenerateTetrahedraElements() {
+void StructuredMeshGeneratorProcess::GenerateTetrahedraElements()
+{
 		Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
 
 		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
@@ -222,7 +237,8 @@ namespace Kratos
 		}
 	}
 
-	void  StructuredMeshGeneratorProcess::CreateCellTetrahedra(std::size_t I, std::size_t J, std::size_t K, Properties::Pointer pProperties) {
+void  StructuredMeshGeneratorProcess::CreateCellTetrahedra(std::size_t I, std::size_t J, std::size_t K, Properties::Pointer pProperties)
+{
 		using point_in_cell_position_type = std::array<std::size_t, 3>;
 		using tetrahedra_connectivity_in_cell_type = std::array<std::size_t, 4>;
 		constexpr std::size_t number_of_cases = 6;
@@ -248,7 +264,8 @@ namespace Kratos
 		return mStartNodeId + (K * (mNumberOfDivisions[1] + 1) * (mNumberOfDivisions[0] + 1)) + (J * (mNumberOfDivisions[0] + 1)) + I;
 	}
 
-    void StructuredMeshGeneratorProcess::GetLocalCoordinatesRange(Point& rMinPoint, Point& rMaxPoint) {
+void StructuredMeshGeneratorProcess::GetLocalCoordinatesRange(Point& rMinPoint, Point& rMaxPoint)
+{
 		const std::size_t local_space_dimension = mrGeometry.LocalSpaceDimension();
 		Matrix geometry_points_local_coordinates;
 		mrGeometry.PointsLocalCoordinates(geometry_points_local_coordinates);
@@ -284,19 +301,19 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    bool StructuredMeshGeneratorProcess::CheckDomainGeometry() {
+bool StructuredMeshGeneratorProcess::CheckDomainGeometry()
+{
         if (mrGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) {
             return CheckDomainGeometryConnectivityForQuadrilateral2D4();
-        }
-
-        else if (mrGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8) {
+    } else if (mrGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8) {
             return CheckDomainGeometryConnectivityForHexahedra3D8();
         }
 
         return true;
     }
 
-    bool StructuredMeshGeneratorProcess::CheckDomainGeometryConnectivityForQuadrilateral2D4() {
+bool StructuredMeshGeneratorProcess::CheckDomainGeometryConnectivityForQuadrilateral2D4()
+{
         using triangle_connectivity_in_cell_type = std::array<std::size_t, 3>;
         constexpr std::size_t number_of_cases = 2;
 
@@ -329,7 +346,8 @@ namespace Kratos
     }
 
 
-    bool StructuredMeshGeneratorProcess::CheckDomainGeometryConnectivityForHexahedra3D8() {
+bool StructuredMeshGeneratorProcess::CheckDomainGeometryConnectivityForHexahedra3D8()
+{
         using tetrahedra_connectivity_in_cell_type = std::array<std::size_t, 4>;
         constexpr std::size_t number_of_cases = 6;
 
