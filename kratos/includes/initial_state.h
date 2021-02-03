@@ -146,7 +146,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
         }
 
         /// Destructor.
-        ~InitialState() {}
+        virtual ~InitialState() {}
 
 
         ///@}
