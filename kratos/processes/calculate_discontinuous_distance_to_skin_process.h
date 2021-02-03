@@ -40,7 +40,7 @@ class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcessFlags
 {
 public:
     KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES); /// Local flag to switch on/off the elemental edge distances storage
-    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES); /// Local flag to switch on/off the extrapolated elemental edge distances storage
+    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED); /// Local flag to switch on/off the extrapolated elemental edge distances storage
 };
 
 /// This only calculates the distance. Calculating the inside outside should be done by a derived class of this.
@@ -382,7 +382,7 @@ private:
      * @param rCutExtraEdgesRatioVector array that stores the relative positions from node zero of the additional
      * average intersection points of the extrapolated geometry (ELEMENTAL_EXTRA_EDGE_DISTANCES)
      * @param rElementalDistancesExtraVector array for the calculated elemental (node) distances values of the geometry
-     * and the extrapolated intersecting geometry (ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED)
+     * and the extrapolated intersecting geometry (ELEMENTAL_DISTANCES)
      */
     void ConvertEdgeDistancesToElementalDistances(
         const Element& rElement,
@@ -409,7 +409,7 @@ private:
      * @return calculated relative positions of the intersection point along the edge from node zero
      */
     double ConvertIntersectionPointToEdgeRatio(
-        const Kratos::Geometry<Kratos::Node<3> >& rEdge,
+        const Geometry<Node<3> >& rEdge,
         const array_1d<double,3>& rIntersectionPoint);
 
     /**
@@ -419,7 +419,7 @@ private:
      * @return rIntersectionPoint calculated average intersection point at the edge
      */
     array_1d<double,3> ConvertEdgeRatioToIntersectionPoint(
-        const Kratos::Geometry<Kratos::Node<3> >& rEdge,
+        const Geometry<Node<3> >& rEdge,
         const double& rEdgeRatio);
 
     /**
@@ -530,13 +530,13 @@ private:
         const array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector);
 
     /**
-     * @brief Set the ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES values
-     * This method saves the provided extrapolated cut edges ratios in the ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES variable
+     * @brief Set the ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED values
+     * This method saves the provided extrapolated cut edges ratios in the ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED variable
      * For uncut elements and completely intersected elements, a value of -1 is set for all edges of the element
      * For uncut edges and cut edges of incised elements, a value of -1 is set.
      * For edges of incised elements cut only by the extrapolated geometry, the relative distance (wrt the edge length)
      * from the 0 node of the edge to the intersection point of the extrapolated geometry is saved
-     * @param rElement The element to set the ELEMENTAL_EXTRAPOLATED_EDGE_DISTANCES
+     * @param rElement The element to set the ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED
      * @param rCutExtraEdgesRatioVector Array containing the cut edges ratio values of the extrapolated geometry
      */
     void SetElementalExtrapolatedEdgeDistancesValues(
@@ -544,10 +544,10 @@ private:
         const array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector);
 
     /**
-     * @brief Set the ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED values
+     * @brief Set the ELEMENTAL_DISTANCES values
      * This method saves the provided geometry and extrapolated intersecting geometry elemental distances in the
-     * ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED variable
-     * @param rElement The element to set the ELEMENTAL_DISTANCES_WITH_EXTRAPOLATED
+     * ELEMENTAL_DISTANCES variable
+     * @param rElement The element to set the ELEMENTAL_DISTANCES with extrapolated intersections
      * @param rElementalDistancesExtraVector Array containing the elemental distances values of the intersecting geometry and
      * the extrapolated geometry
      */
