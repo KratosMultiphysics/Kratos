@@ -16,6 +16,8 @@
 
 // System includes
 #include <iostream>
+#include <limits>
+
 #include "containers/sparse_contiguous_row_graph.h"
 #include "containers/system_vector.h"
 #include "utilities/parallel_utilities.h"
@@ -50,7 +52,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// This function implements "serial" CSR matrix, including capabilities for FEM assembly
+/// This class implements "serial" CSR matrix, including capabilities for FEM assembly
 template< class TDataType=double, class TIndexType=std::size_t>
 class CsrMatrix
 {
@@ -70,11 +72,11 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    CsrMatrix()
+    CsrMatrix() //needs to be public, since one could use the low level API to construc the CSR matrix
     {
     }
 
-    /// Default constructor.
+    /// constructor.
     template<class TGraphType>
     CsrMatrix(const TGraphType& rSparseGraph)
     {
@@ -88,16 +90,34 @@ public:
         SetValue(0.0);
     }
 
+    explicit CsrMatrix(const CsrMatrix<TDataType,TIndexType>& rOtherMatrix)
+    {
+        mRowIndices.resize(rOtherMatrix.mRowIndices.size(),false);
+        mColIndices.resize(rOtherMatrix.mColIndices.size(),false);
+        mValuesVector.resize(rOtherMatrix.mValuesVector.size(),false);
+        mNrows = rOtherMatrix.mNrows;
+        mNcols = rOtherMatrix.mNcols;
+
+        IndexPartition<IndexType>(mRowIndices.size()).for_each( [&](IndexType i){
+            mRowIndices[i] = rOtherMatrix.mRowIndices[i];
+        });
+
+        IndexPartition<IndexType>(mColIndices.size()).for_each( [&](IndexType i){
+            mColIndices[i] = rOtherMatrix.mColIndices[i];
+        });
+
+        IndexPartition<IndexType>(mValuesVector.size()).for_each( [&](IndexType i){
+            mValuesVector[i] = rOtherMatrix.mValuesVector[i];
+        });
+    }
+
+
     /// Destructor.
     virtual ~CsrMatrix(){}
 
-    /// Assignment operator. TODO: decide if we do want to allow it
-    CsrMatrix& operator=(CsrMatrix const& rOther)=delete;
-    // {
-    //     this->AddEntries(rOther.GetGraph());
-    //     return *this;
-    // }
-
+    /// Assignment operator. 
+    CsrMatrix& operator=(CsrMatrix const& rOtherMatrix) = delete; //i really think this should not be allowed, too risky
+ 
     ///@}
     ///@name Operators
     ///@{
@@ -176,7 +196,15 @@ public:
         const IndexType row_begin = index1_data()[I];
         const IndexType row_end = index1_data()[I+1];
         IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
-        KRATOS_DEBUG_ERROR_IF(k<0) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(k==std::numeric_limits<IndexType>::max()) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
+        return value_data()[k];
+    }
+
+    const TDataType& operator()(IndexType I, IndexType J) const{
+        const IndexType row_begin = index1_data()[I];
+        const IndexType row_end = index1_data()[I+1];
+        IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+        KRATOS_DEBUG_ERROR_IF(k==std::numeric_limits<IndexType>::max()) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
         return value_data()[k];
     }
 
@@ -184,13 +212,15 @@ public:
         const IndexType row_begin = index1_data()[I];
         const IndexType row_end = index1_data()[I+1];
         IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
-        return k >= 0;
+        return k != std::numeric_limits<IndexType>::max();
     }
 
     // y += A*x  -- where A is *this
-    template<class TVec1, class TVec2>
-    void SpMV(TVec1& y, const TVec2& x) const
+    template<class TInputVectorType, class TOutputVectorType>
+    void SpMV(const TInputVectorType& x, TOutputVectorType& y) const
     {
+        KRATOS_ERROR_IF(size1() != y.size() ) << "SpMV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and destination vector size " << y.size() << std::endl;
+        KRATOS_ERROR_IF(size2() != x.size() ) << "SpmV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and input vector size " << x.size() << std::endl;
         IndexPartition<IndexType>(y.size()).for_each( [&](IndexType i){
             IndexType row_begin = index1_data()[i];
             IndexType row_end   = index1_data()[i+1];
@@ -199,6 +229,73 @@ public:
                 y(i) += value_data()[k] * x(col);
             }  
         });
+    }
+
+    //y = alpha*y + beta*A*x
+    template<class TInputVectorType, class TOutputVectorType>
+    void SpMV(const TDataType alpha,
+              const TInputVectorType& x, 
+              const TDataType beta,
+              TOutputVectorType& y) const
+    {
+        KRATOS_ERROR_IF(size1() != y.size() ) << "SpMV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and destination vector size " << y.size() << std::endl;
+        KRATOS_ERROR_IF(size2() != x.size() ) << "SpmV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and input vector size " << x.size() << std::endl;
+        IndexPartition<IndexType>(y.size()).for_each( [&](IndexType i){
+            IndexType row_begin = index1_data()[i];
+            IndexType row_end   = index1_data()[i+1];
+            TDataType aux = TDataType();
+            for(IndexType k = row_begin; k < row_end; ++k){
+                IndexType col = index2_data()[k];
+                aux += value_data()[k] * x(col);
+            }  
+            y(i) = beta*y(i) + alpha*aux;
+        });
+    }
+
+    // y += A^t*x  -- where A is *this    
+    template<class TInputVectorType, class TOutputVectorType>
+    void TransposeSpMV(const TInputVectorType& x, TOutputVectorType& y) const
+    {
+        KRATOS_ERROR_IF(size2() != y.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and destination vector size " << y.size() << std::endl;
+        KRATOS_ERROR_IF(size1() != x.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and input vector size " << x.size() << std::endl;
+        IndexPartition<IndexType>(size1()).for_each( [&](IndexType i){
+            IndexType row_begin = index1_data()[i];
+            IndexType row_end   = index1_data()[i+1];
+            for(IndexType k = row_begin; k < row_end; ++k){
+                IndexType j = index2_data()[k];
+                AtomicAdd(y(j), value_data()[k] * x(i) );
+            }  
+        });
+    }
+
+    //y = alpha*y + beta*A^t*x
+    template<class TInputVectorType, class TOutputVectorType>
+    void TransposeSpMV(const TDataType alpha,
+              const TInputVectorType& x, 
+              const TDataType beta,
+              TOutputVectorType& y) const
+    {
+        KRATOS_ERROR_IF(size2() != y.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and destination vector size " << y.size() << std::endl;
+        KRATOS_ERROR_IF(size1() != x.size() ) << "TransposeSpMV: mismatch between transpose matrix sizes : " << size2() << " " <<size1() << " and input vector size " << x.size() << std::endl;
+        y *= beta;
+        IndexPartition<IndexType>(size1()).for_each( [&](IndexType i)
+        {
+            IndexType row_begin = index1_data()[i];
+            IndexType row_end   = index1_data()[i+1];
+            TDataType aux = alpha*x(i);
+            for(IndexType k = row_begin; k < row_end; ++k){
+                IndexType j = index2_data()[k];
+                AtomicAdd(y(j), value_data()[k] * x(i) );
+            }  
+        });
+    }
+
+    TDataType NormFrobenius() const
+    {
+        auto sum2 = IndexPartition<TIndexType>(this->value_data().size()).template for_each< SumReduction<TDataType> >( [this](TIndexType i){
+                return std::pow(this->value_data()[i],2);
+            });
+        return std::sqrt(sum2);
     }
 
     ///@}
@@ -211,30 +308,13 @@ public:
     //-
     //*
 
-    template<class TOutputVector, class TInputVector>
-    static void MultAndAdd(
-        TOutputVector& rOutputVector,
-        const CsrMatrix& rA,
-        const TInputVector& rInputVector
-    )
-    {
-        IndexPartition<IndexType>(rA.index1_data().size()-1).for_each([&](IndexType i)
-        {
-            for(IndexType k=rA.index1_data()[i]; k<rA.index1_data()[i+1]; ++k)
-            {
-                auto j = rA.index2_data()[k];
-                rOutputVector[i] += rA.value_data()[k]*rInputVector[j];
-            }
-        });
-    }
-
-    void reserve(IndexType nrows, IndexType nnz){
-        index1_data().resize(nrows+1,false);
-        if(nrows > 0)
+    void reserve(IndexType NRows, IndexType nnz){
+        index1_data().resize(NRows+1,false);
+        if(NRows > 0)
             index1_data()[0] = 0;
         index2_data().resize(nnz,false);
         value_data().resize(nnz,false);
-        mNrows = nrows;
+        mNrows = NRows;
     }
 
     MatrixMapType ToMap() const
@@ -259,8 +339,11 @@ public:
     void FinalizeAssemble(){} //the SMP version does nothing. This function is there to be implemented in the MPI case
 
 
-
-
+    void Assemble(TDataType Value, IndexType GlobalI, IndexType GlobalJ)
+    {
+        IndexType k = BinarySearch(index2_data(), index1_data()[GlobalI], index1_data()[GlobalI+1], GlobalJ);
+        AtomicAdd(value_data()[k], Value);
+    }
 
     template<class TMatrixType, class TIndexVectorType >
     void Assemble(
@@ -416,7 +499,7 @@ protected:
     ///@{
     // A non-recursive binary search function. It returns 
     // location of x in given array arr[l..r] is present, 
-    // otherwise -1
+    // otherwise std::dec << std::numeric_limits<IndexType>::max()
     template< class TVectorType > 
     inline IndexType BinarySearch(const TVectorType& arr, 
                         IndexType l, IndexType r, IndexType x) const
@@ -438,7 +521,7 @@ protected:
         } 
     
         // if we reach here, then element was not present 
-        return -1; 
+        return std::numeric_limits<IndexType>::max(); 
     } 
 
     ///@}
@@ -471,9 +554,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    vector<IndexType> mRowIndices;
-    vector<IndexType> mColIndices;
-    vector<TDataType> mValuesVector;
+    DenseVector<IndexType> mRowIndices;
+    DenseVector<IndexType> mColIndices;
+    DenseVector<TDataType> mValuesVector;
     IndexType mNrows=0;
     IndexType mNcols=0;
 
@@ -562,4 +645,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_CSR_MATRIX_H_INCLUDED  defined
-

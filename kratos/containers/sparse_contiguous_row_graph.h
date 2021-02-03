@@ -68,7 +68,7 @@ public:
     ///@name Type Definitions
     ///@{
     typedef TIndexType IndexType;
-    typedef DenseVector<std::unordered_set<IndexType> > GraphType; //using a map since we need it ordered @RiccardoRossithis is outdated!!!
+    typedef DenseVector<std::unordered_set<IndexType> > GraphType; 
     typedef typename GraphType::const_iterator const_row_iterator;
 
     /// Pointer definition of SparseContiguousRowGraph
@@ -106,8 +106,7 @@ public:
     //     return *this;
     // }
 
-    /// Copy constructor. TODO: we need it otherwise the sendrecv does not work...
-    ///but i don't know why :-(
+    /// Copy constructor. 
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
     {
         this->AddEntries(rOther);
@@ -129,9 +128,7 @@ public:
     bool Has(const IndexType I, const IndexType J) const
     {
         const auto& row = mGraph[I];
-        if(row.find(J) != row.end())
-            return true;
-        return false;
+        return (row.find(J) != row.end());
     }
 
     const typename GraphType::value_type& operator[](const IndexType& Key) const
@@ -212,9 +209,10 @@ public:
         return mGraph;
     }
 
+    template<class TVectorType=DenseVector<IndexType>>
     IndexType ExportCSRArrays(
-        vector<IndexType>& rRowIndices,
-        vector<IndexType>& rColIndices
+        TVectorType& rRowIndices,
+        TVectorType& rColIndices
     ) const
     {
         //need to detect the number of rows this way since there may be gaps
@@ -274,6 +272,39 @@ public:
         });
 
         return nrows;
+    }
+
+    //this function returns the Graph as a single vector
+    //in the form of 
+    //  RowIndex NumberOfEntriesInTheRow .... list of all Indices in the row 
+    //every row is pushed back one after the other 
+    std::vector<IndexType> ExportSingleVectorRepresentation()
+    {
+        std::vector< IndexType > IJ;
+        IJ.push_back(GetGraph().size()); //number of rows
+        for(unsigned int I=0; I<GetGraph().size(); ++I)
+        {
+            IJ.push_back(I); //id of the row
+            IJ.push_back(mGraph[I].size()); //number of Js in the row
+            for(auto J : mGraph[I])
+                IJ.push_back(J); //J
+        }
+        return IJ;
+    }
+
+    void AddFromSingleVectorRepresentation(const std::vector<IndexType>& rSingleVectorRepresentation)
+    {
+        auto graph_size = rSingleVectorRepresentation[0];
+        KRATOS_ERROR_IF(graph_size > GetGraph().size() ) << "mismatching size - attempting to add a graph with more rows than the ones allowed in graph" << std::endl;
+        IndexType counter = 1;
+        while(counter < rSingleVectorRepresentation.size())
+        {
+            auto I = rSingleVectorRepresentation[counter++];
+            auto nrow = rSingleVectorRepresentation[counter++];
+            auto begin = &rSingleVectorRepresentation[counter];
+            AddEntries(I, begin, begin+nrow);
+            counter += nrow;
+        }
     }
 
     ///@}
@@ -410,10 +441,8 @@ private:
         rSerializer.save("GraphSize",N);
         for(IndexType I=0; I<N; ++I)
         {
-//            rSerializer.save("I",I);
-
-            IndexType Nr = mGraph[I].size();
-            rSerializer.save("Nr",Nr);
+            IndexType row_size = mGraph[I].size();
+            rSerializer.save("row_size",row_size);
             for(auto J : mGraph[I]){
                 rSerializer.save("J",J);
             }
@@ -430,12 +459,9 @@ private:
 
         for(IndexType I=0; I<size; ++I)
         {
-//            IndexType I;
-//            rSerializer.load("I",I);
-
-            IndexType Nr;
-            rSerializer.load("Nr",Nr);
-            for(IndexType k=0; k<Nr; ++k){
+            IndexType row_size;
+            rSerializer.load("row_size",row_size);
+            for(IndexType k=0; k<row_size; ++k){
                 IndexType J;
                 rSerializer.load("J",J);
                 AddEntry(I,J);

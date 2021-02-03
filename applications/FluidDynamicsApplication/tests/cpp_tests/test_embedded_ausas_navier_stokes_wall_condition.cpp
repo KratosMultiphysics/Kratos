@@ -121,9 +121,10 @@ namespace Kratos {
             Vector condRHS = ZeroVector(6);
             Matrix condLHS = ZeroMatrix(6,6);
 
-            pCondition->Initialize();
-			pCondition->InitializeSolutionStep(modelPart.GetProcessInfo());
-			pCondition->CalculateLocalSystem(condLHS, condRHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+            pCondition->Initialize(r_process_info);
+			pCondition->InitializeSolutionStep(r_process_info);
+			pCondition->CalculateLocalSystem(condLHS, condRHS, r_process_info);
 
 			const double tolerance = 1e-10;
 			KRATOS_CHECK_NEAR(condRHS(0), 0.0, tolerance);
@@ -226,9 +227,10 @@ namespace Kratos {
             Vector condRHS = ZeroVector(12);
             Matrix condLHS = ZeroMatrix(12,12);
 
-            pCondition->Initialize();
-			pCondition->InitializeSolutionStep(modelPart.GetProcessInfo());
-			pCondition->CalculateLocalSystem(condLHS, condRHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+            pCondition->Initialize(r_process_info);
+			pCondition->InitializeSolutionStep(r_process_info);
+			pCondition->CalculateLocalSystem(condLHS, condRHS, r_process_info);
 
 			const double tolerance = 1e-7;
 			KRATOS_CHECK_NEAR(condRHS(0),  0.0, tolerance);

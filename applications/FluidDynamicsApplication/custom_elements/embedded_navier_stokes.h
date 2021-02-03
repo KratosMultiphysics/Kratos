@@ -236,7 +236,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override {
+        const ProcessInfo& rCurrentProcessInfo) override {
 
         KRATOS_TRY;
 
@@ -360,7 +360,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override
     {
         KRATOS_TRY;
 

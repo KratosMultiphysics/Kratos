@@ -16,7 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
-
+#include <functional>
 
 // External includes
 
@@ -26,6 +26,7 @@
 #include "containers/distributed_system_vector.h"
 #include "containers/distributed_sparse_graph.h"
 #include "containers/distributed_numbering.h"
+#include "containers/distributed_vector_exporter.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 
@@ -79,76 +80,46 @@ public:
         mpNumbering = Kratos::make_unique< DistributedNumbering<IndexType> >( rGraph.GetRowNumbering());
 
         mLocalData.resize(rGraph.LocalSize(),false);
-        mNonLocalData.resize(mrComm.Size());
 
         //now add entries in nonlocal data;
         const auto& r_non_local_graphs = rGraph.GetNonLocalGraphs();
 
-        IndexPartition<IndexType>(r_non_local_graphs.size()).for_each([&](IndexType cpu_id)
+        for(IndexType cpu_id=0; cpu_id < r_non_local_graphs.size(); cpu_id++) //this loop cannot be done in parallel since we need to allocate memory in the unordered_map
         {
             const auto& graph = r_non_local_graphs[cpu_id];
-
             for(auto item=graph.begin(); item!=graph.end(); ++item)
             {
-                    IndexType row = item.GetRowIndex(); //note that this is a "remote local id"
-                    mNonLocalData[cpu_id][row] = TDataType(); //first touching of nonlocaldata
-                //}
-            }
-        });
-
-        //compute communication colors
-        const auto& nonlocal_graphs = rGraph.GetNonLocalGraphs();
-        std::vector<int> send_list;
-        for(unsigned int cpu_id = 0; cpu_id<nonlocal_graphs.size(); ++cpu_id)
-                if( !nonlocal_graphs[cpu_id].IsEmpty())
-                    send_list.push_back(cpu_id);
-
-        mfem_assemble_colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, GetComm());
-
-        //fill the list of indices to be received
-        for(auto color : mfem_assemble_colors)
-        {
-            if(color >= 0) //-1 would imply no communication
-            {
-                //compute the list of ids to send
-                std::vector<IndexType> send_ids;
-                for(const auto& item : mNonLocalData[color])
-                    send_ids.push_back(item.first);
-                mRecvIndicesByColor[color] = GetComm().SendRecv(send_ids, color, color); 
+                    IndexType global_id = GetNumbering().RemoteGlobalId(item.GetRowIndex(), cpu_id); 
+                    mNonLocalData[global_id] = TDataType(); //first touching of nonlocaldata
             }
         }
-
     }
 
     /// Copy constructor.
     explicit DistributedSystemVector(DistributedSystemVector const& rOther)
     :
-    mrComm(rOther.mrComm)
+    mrComm(rOther.GetComm())
     {
         mpNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(rOther.GetNumbering());
-
         KRATOS_ERROR_IF(LocalSize() != rOther.LocalSize());
-        KRATOS_ERROR_IF(TotalSize() != rOther.TotalSize());
-
+        KRATOS_ERROR_IF(Size() != rOther.Size());
         //copying the data
         mLocalData.resize(rOther.LocalSize(),false); 
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] = rOther[i];
         });
-
         mNonLocalData = rOther.mNonLocalData;
-        mfem_assemble_colors = rOther.mfem_assemble_colors;
-        mRecvIndicesByColor = rOther.mRecvIndicesByColor;
+        if(rOther.mpexporter != nullptr) //this will happen if Finalize was not called on the vector we construct from
+            mpexporter = Kratos::make_unique<DistributedVectorExporter<IndexType>>(rOther.GetExporter());
     }
 
+    //WARNING: if a Distributed vector is constructed using this constructor, it cannot be used for assembly (non local entries are not precomputed)
     DistributedSystemVector(const DistributedNumbering<IndexType>& rNumbering)
             :
             mrComm(rNumbering.GetComm())
     {
         mpNumbering = Kratos::make_unique< DistributedNumbering<IndexType> >( rNumbering );
-
         mLocalData.resize(rNumbering.LocalSize(),false);
-        mNonLocalData.resize(mrComm.Size());
     }
 
     /// Destructor.
@@ -157,7 +128,7 @@ public:
     ///@}
     ///@name Operators
     ///@{
-    const DataCommunicator& GetComm(){
+    const DataCommunicator& GetComm() const{
         return mrComm;
     }
 
@@ -195,8 +166,8 @@ public:
         return mLocalData[I];
     }
 
-    inline IndexType TotalSize() const{ //TODO discuss if this shall be called simply "Size"
-        return mpNumbering->TotalSize(); 
+    inline IndexType Size() const{ 
+        return mpNumbering->Size(); 
     }
 
     inline IndexType LocalSize() const{
@@ -210,6 +181,27 @@ public:
     const DenseVector<TDataType>& GetLocalData() const{
         return mLocalData;
     }
+
+    const DistributedVectorExporter<TIndexType>& GetExporter() const{
+        KRATOS_DEBUG_ERROR_IF(mpexporter==nullptr) << " mpexporter was not initialized, GetExporter() cannot be used" << std::endl;
+        return *mpexporter;
+    }
+
+    //function to add and empty entry to mNonLocalData
+    void AddEntry(TIndexType GlobalI) //WARNING: NOT THREADSAFE!
+    {
+        if( !GetNumbering().IsLocal(GlobalI))
+            mNonLocalData[GlobalI] = TDataType();
+    }
+
+    //function to add empty entries entry to mNonLocalData
+    template<class TIteratorType>
+    void AddEntries(TIteratorType it_begin, TIteratorType it_end) //WARNING: NOT THREADSAFE!
+    {
+        for(TIteratorType it=it_begin; it!=it_end; ++it)
+            AddEntry(*it);
+    }
+
 
     void Add(const double factor,
              const DistributedSystemVector& rOtherVector
@@ -269,49 +261,33 @@ public:
     ///@name Operations
     ///@{
     void BeginAssemble(){
-        //TODO set to zero nonlocal data prior to assembly
-        IndexPartition<IndexType>(mNonLocalData.size()).for_each([&](IndexType cpu_id){
-            for(auto & item : this->mNonLocalData[cpu_id])
-            {
-                item.second = 0.0;
-            }
-        });
 
+        //mount exporter. After this point it will be all threadsafe since we will consider as frozen the mNonLocalData structure
+        DenseVector<double> non_local_global_ids(mNonLocalData.size());
+        IndexType counter = 0;
+        for(auto & item : mNonLocalData) //cannot be done in parallel
+        {
+            non_local_global_ids[counter] = item.first;
+            item.second = 0.0; //set to zero prior to assmeply
+            counter++;
+        }
+        auto ptmp = Kratos::make_unique< DistributedVectorExporter<TIndexType> >(GetComm(), non_local_global_ids, GetNumbering());
+        mpexporter.swap(ptmp);
     } 
 
     //communicate data to finalize the assembly
-    void FinalizeAssemble(){
+    void FinalizeAssemble()
+    {
+        DenseVector<double> non_local_data(mNonLocalData.size());
 
-        std::vector<TDataType> send_buffer;
-        std::vector<TDataType> recv_buffer;
-
-        //sendrecv data
-        for(auto color : mfem_assemble_colors)
+        IndexType counter = 0;
+        for(auto & item : mNonLocalData) //cannot be done in parallel
         {
-            if(color >= 0) //-1 would imply no communication
-            {
-                const auto& recv_indices = mRecvIndicesByColor[color];
-                send_buffer.resize(mNonLocalData[color].size());
-                recv_buffer.resize(mRecvIndicesByColor[color].size());
-
-                IndexType counter = 0;
-                for(const auto& it : mNonLocalData[color])
-                {
-                    send_buffer[counter++] = it.second;
-                }
-
-                // //NOTE: this can be made nonblocking 
-                GetComm().SendRecv(send_buffer, color, 0, recv_buffer, color, 0); //TODO, we know all the sizes, we shall use that!
-
-                for(IndexType i=0; i<recv_buffer.size(); ++i)
-                {
-                    IndexType local_i = recv_indices[i];
-
-                    AtomicAdd( mLocalData[local_i] , recv_buffer[i]);
-                }
-            }
+            non_local_data[counter] = item.second;
+            counter++;
         }
 
+        mpexporter->Apply(*this,non_local_data);
     }
 
     template<class TVectorType, class TIndexVectorType >
@@ -332,10 +308,8 @@ public:
             }
             else
             {
-                auto owner_rank = GetNumbering().OwnerRank(global_i);
-                IndexType local_i = GetNumbering().RemoteLocalId(global_i, owner_rank);
-                auto it = (mNonLocalData[owner_rank].find( local_i ));
-                KRATOS_DEBUG_ERROR_IF(it == mNonLocalData[owner_rank].end()) << "global_i = "<< global_i << " not in mNonLocalData" << std::endl;
+                auto it = (mNonLocalData.find( global_i ));
+                KRATOS_DEBUG_ERROR_IF(it == mNonLocalData.end()) << "global_i = "<< global_i << " not in mNonLocalData. Please note that the mNonLocalData structure is assumed fixed after InitializeAssemble is called" << std::endl; //this error is needed for threadsafety
                 TDataType& value = (*it).second;
                 AtomicAdd(value , rVectorInput[i]);
             }
@@ -431,10 +405,9 @@ private:
     typename DistributedNumbering<IndexType>::UniquePointer mpNumbering;
 
     DenseVector<TDataType> mLocalData; //contains the local data
-    std::vector< std::unordered_map<IndexType, TDataType> > mNonLocalData;
-    std::vector<int> mfem_assemble_colors; //coloring of communication
+    std::unordered_map<IndexType, TDataType> mNonLocalData; //contains non local data as {global_id,value}
 
-    std::unordered_map<IndexType, std::vector<IndexType> > mRecvIndicesByColor;
+    typename DistributedVectorExporter<TIndexType>::UniquePointer mpexporter = nullptr; 
 
     ///@}
     ///@name Private Operators

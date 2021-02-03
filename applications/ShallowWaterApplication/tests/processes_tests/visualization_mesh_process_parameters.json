@@ -7,7 +7,7 @@
         "parallel_type"        : "OpenMP"
     },
     "solver_settings"      : {
-        "solver_type"              : "empty_solver_for_testing",
+        "solver_type"              : "testing.empty_solver_for_testing",
         "model_part_name"          : "main_model_part",
         "echo_level"               : 0,
         "domain_size"              : 2,
@@ -60,7 +60,7 @@
     "output_processes" : {
         "enforce_print_output_with_something" : [{
             "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
-            "python_module"   : "empty_output_process",
+            "python_module"   : "testing.empty_output_process",
             "Parameters"      : {}
         }]
     },

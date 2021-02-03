@@ -21,6 +21,7 @@
 #include "custom_elements/polyhedron_skin_spheric_particle.h"
 #include "custom_elements/nanoparticle.h"
 #include "custom_elements/analytic_spheric_particle.h"
+#include "custom_elements/beam_particle.h"
 #include "custom_elements/ice_continuum_particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
 #include "custom_elements/cluster3D.h"
@@ -93,6 +94,7 @@ private:
     const SphericContinuumParticle mSphericContinuumParticle3D;
     const PolyhedronSkinSphericParticle mPolyhedronSkinSphericParticle3D;
     const IceContinuumParticle mIceContinuumParticle3D;
+    const BeamParticle mBeamParticle3D;
     const ThermalSphericParticle<SphericContinuumParticle> mThermalSphericContinuumParticle3D;
     const ThermalSphericParticle<SphericParticle> mThermalSphericParticle3D;
     const SinteringSphericContinuumParticle mSinteringSphericContinuumParticle3D;

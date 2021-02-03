@@ -83,13 +83,10 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
             # Fix the VELOCITY, MESH_DISPLACEMENT and MESH_VELOCITY variables in all the fluid interface submodelparts
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_X, True, fl_interface_submodelpart.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Y, True, fl_interface_submodelpart.Nodes)
-            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_X, True, fl_interface_submodelpart.Nodes)
-            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_Y, True, fl_interface_submodelpart.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_X, True, fl_interface_submodelpart.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_Y, True, fl_interface_submodelpart.Nodes)
             if (self.domain_size == 3):
                 KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Z, True, fl_interface_submodelpart.Nodes)
-                KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_Z, True, fl_interface_submodelpart.Nodes)
                 KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_Z, True, fl_interface_submodelpart.Nodes)
 
             # Set the interface flag

@@ -32,7 +32,7 @@
             "time_step"           : 0.01
         },
         "linear_solver_settings" : {
-            "solver_type" : "ExternalSolversApplication.super_lu",
+            "solver_type" : "LinearSolversApplication.sparse_lu",
             "smoother_type" :"damped_jacobi",
             "krylov_type" : "lgmres",
             "coarsening_type" : "aggregation",

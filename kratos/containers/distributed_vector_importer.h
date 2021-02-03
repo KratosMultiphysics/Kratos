@@ -87,11 +87,11 @@ public:
             MpiIndexType owner_rank = mpNumbering->OwnerRank(global_i);
             IndexType remote_local_i = mpNumbering->RemoteLocalId(global_i, owner_rank);
 
-            mlocal_i_by_color[owner_rank].push_back(local_i);
+            mLocalIByColor[owner_rank].push_back(local_i);
             to_recv_by_color[owner_rank].push_back(remote_local_i);
         }
 
-        mIdOfLocallyOwnedTerms = mlocal_i_by_color[GetComm().Rank()];
+        mIdOfLocallyOwnedTerms = mLocalIByColor[GetComm().Rank()];
         mLocallyOwnedIds = to_recv_by_color[GetComm().Rank()];
 
         //compute communication plan
@@ -102,41 +102,53 @@ public:
             if(cpu_id != GetComm().Rank())
                 send_list.push_back(cpu_id);
         }
-        mvector_comm_colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, rComm);
+        mVectorCommColors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, rComm);
 
         //ensure that we have lists for all colors;
-        for(auto color : mvector_comm_colors)
+        for(auto color : mVectorCommColors)
         {
             if(color >= 0) //-1 would imply no communication
             {
-                mlocal_i_by_color[color]; //note that here we touch the entry and we create it if not existing
+                mLocalIByColor[color]; //note that here we touch the entry and we create it if not existing
                 to_recv_by_color[color];
             }
         }
 
         //communicate the remote_local_id so that the other node knows what to send
-        for(auto color : mvector_comm_colors)
+        for(auto color : mVectorCommColors)
         {
             if(color >= 0) //-1 would imply no communication
             {
                 //NOTE: this can be made nonblocking 
-                mto_send_by_color[color] = rComm.SendRecv(to_recv_by_color[color], color, color); //TODO, we know all the sizes, we shall use that!
+                mToSendByColor[color] = rComm.SendRecv(to_recv_by_color[color], color, color); //TODO, we know all the sizes, we shall use that!
             }
         }
     }
 
+    /// Copy constructor.
+    explicit DistributedVectorImporter(DistributedVectorImporter const& rOther)
+    :
+        mrComm(rOther.mrComm),
+        mpNumbering(make_unique<DistributedNumbering<IndexType>>(*rOther.mpNumbering)),
+        mLocalIByColor(rOther.mLocalIByColor),
+        mLocallyOwnedIds(rOther.mLocallyOwnedIds),
+        mIdOfLocallyOwnedTerms(rOther.mIdOfLocallyOwnedTerms),
+        mVectorCommColors(rOther.mVectorCommColors)
+    {}
+
+    ///this function returns a local array containing the values identified by the rGlobalIndices list passed in the constructor
     DenseVector<TDataType> ImportData(const DistributedSystemVector<TDataType, TIndexType>& data_vector) const
     {
         DenseVector<TDataType> ImportedData(mImportedDataSize);
 
         std::vector<TDataType> send_buffer;
         std::vector<TDataType> recv_buffer;
-        for(auto color : mvector_comm_colors)
+        for(auto color : mVectorCommColors)
         {
             if(color >= 0) //-1 would imply no communication
             {
-                const auto& local_ids = mlocal_i_by_color.find(color)->second;
-                const auto& to_send_ids = mto_send_by_color.find(color)->second; 
+                const auto& local_ids = mLocalIByColor.find(color)->second;
+                const auto& to_send_ids = mToSendByColor.find(color)->second; 
 
                 send_buffer.resize(to_send_ids.size());
                 recv_buffer.resize(local_ids.size());
@@ -154,7 +166,6 @@ public:
         }
         //treat local data
         for(IndexType i=0; i<mLocallyOwnedIds.size(); ++i )
-
             ImportedData(mIdOfLocallyOwnedTerms[i]) = data_vector( mLocallyOwnedIds[i] );
 
         return ImportedData;
@@ -261,11 +272,11 @@ private:
 
 
     IndexType mImportedDataSize;
-    std::unordered_map<int, std::vector<IndexType>> mto_send_by_color;
-    std::unordered_map<MpiIndexType, std::vector<IndexType>> mlocal_i_by_color;
+    std::unordered_map<int, std::vector<IndexType>> mToSendByColor;
+    std::unordered_map<MpiIndexType, std::vector<IndexType>> mLocalIByColor;
     std::vector<IndexType> mLocallyOwnedIds;
     std::vector<IndexType> mIdOfLocallyOwnedTerms;
-    std::vector<int> mvector_comm_colors;
+    std::vector<int> mVectorCommColors;
 
     ///@}
     ///@name Private Operators
@@ -294,8 +305,7 @@ private:
     /// Assignment operator.
     DistributedVectorImporter& operator=(DistributedVectorImporter const& rOther){}
 
-    /// Copy constructor.
-    DistributedVectorImporter(DistributedVectorImporter const& rOther){}
+
 
     ///@}
 

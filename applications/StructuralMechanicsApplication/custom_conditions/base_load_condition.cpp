@@ -16,6 +16,7 @@
 
 // Project includes
 #include "custom_conditions/base_load_condition.h"
+#include "includes/variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -233,7 +234,7 @@ void BaseLoadCondition::GetSecondDerivativesVector(
 
 void BaseLoadCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Calculation flags
@@ -249,7 +250,7 @@ void BaseLoadCondition::CalculateRightHandSide(
 void BaseLoadCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     //calculation flags
@@ -264,7 +265,7 @@ void BaseLoadCondition::CalculateLocalSystem(
 
 void BaseLoadCondition::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rMassMatrix.size1() != 0) {
@@ -277,7 +278,7 @@ void BaseLoadCondition::CalculateMassMatrix(
 
 void BaseLoadCondition::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rDampingMatrix.size1() != 0) {
@@ -306,9 +307,6 @@ int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
     // Base check
     Condition::Check(rCurrentProcessInfo);
 
-    // Verify variable exists
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& r_node : this->GetGeometry().Points()) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
@@ -319,6 +317,14 @@ int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
     }
 
     return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool BaseLoadCondition::HasRotDof() const
+{
+    return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);
 }
 
 /***********************************************************************************/

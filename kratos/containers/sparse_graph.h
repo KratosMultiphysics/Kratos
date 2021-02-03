@@ -77,37 +77,38 @@ public:
     ///@{
 
     SparseGraph(IndexType N)
-    : mGraphSize(N)
     {
-        mSizeIsAvailable = true;
     }
 
     /// Default constructor.
     SparseGraph()
-    : mGraphSize(0)
     {
-        mSizeIsAvailable = false;
     }
 
     /// Destructor.
     virtual ~SparseGraph(){}
 
-    /// Copy constructor. TODO: we need it otherwise the sendrecv does not work...
-    ///but i don't know why :-(
+    /// Copy constructor. 
     SparseGraph(const SparseGraph& rOther)
+    :
+        mGraph(rOther.mGraph)
     {
-        this->mGraph = rOther.mGraph;
-        mGraphSize = rOther.mGraphSize;
-        mSizeIsAvailable = rOther.mSizeIsAvailable;
+    }
+
+    SparseGraph(const std::vector<IndexType>& rSingleVectorRepresentation)
+    {
+        AddFromSingleVectorRepresentation(rSingleVectorRepresentation);
     }
 
     ///@}
     ///@name Operators
     ///@{
 
-    IndexType Size() const{
-        KRATOS_ERROR_IF(mSizeIsAvailable == false) << "SparseGraph Size method can only be called after Finalize, or if provided in the constructor" << std::endl;
-        return mGraphSize; //note that this is only valid after Finalize has been called
+    IndexType Size() const
+    {
+        if(!this->GetGraph().empty())
+            return (--(this->GetGraph().end()))->first + 1; //last key in the map + 1
+        return 0;
     }
 
     bool IsEmpty() const
@@ -133,8 +134,6 @@ public:
     void Clear()
     {
         mGraph.clear();
-        mSizeIsAvailable = false;
-        mGraphSize = 0;
     }
 
     void AddEntry(const IndexType RowIndex, const IndexType ColIndex)
@@ -182,23 +181,16 @@ public:
 
     void Finalize()
     {
-        if(!mSizeIsAvailable){
-            mGraphSize=0;
-            for(const auto& item : this->GetGraph())
-            {
-                mGraphSize = std::max(mGraphSize,item.first+1);
-            }
-            mSizeIsAvailable = true;
-        }
     }
 
     const GraphType& GetGraph() const{
         return mGraph;
     }
 
+    template<class TVectorType=DenseVector<IndexType>>
     IndexType ExportCSRArrays(
-        vector<IndexType>& rRowIndices,
-        vector<IndexType>& rColIndices
+        TVectorType& rRowIndices,
+        TVectorType& rColIndices
     ) const
     {
         //need to detect the number of rows this way since there may be gaps
@@ -218,6 +210,7 @@ public:
         {
             rRowIndices[item.first+1] = item.second.size();
         }
+
         //sum entries
         for(int i = 1; i<static_cast<int>(rRowIndices.size()); ++i){
             rRowIndices[i] += rRowIndices[i-1];
@@ -249,6 +242,45 @@ public:
             std::sort(rColIndices.begin()+rRowIndices[i], rColIndices.begin()+rRowIndices[i+1]);
         });
         return nrows;
+    }
+
+    //this function returns the Graph as a single vector
+    //in the form of 
+    //  RowIndex NumberOfEntriesInTheRow .... list of all Indices in the row 
+    //every row is pushed back one after the other 
+    std::vector<IndexType> ExportSingleVectorRepresentation() const
+    {
+        std::vector< IndexType > single_vector_representation;
+
+        IndexType nrows = this->Size(); //note that the number of non zero rows may be different from this one
+        single_vector_representation.push_back(nrows);
+
+        for(const auto& item : this->GetGraph()){
+            IndexType I = item.first;
+            single_vector_representation.push_back(I); //we store the index of the rows
+            single_vector_representation.push_back(item.second.size()); //the number of items in the row 
+            for(auto J : item.second)
+                single_vector_representation.push_back(J); //the columns
+        }
+        return single_vector_representation;
+    }
+
+    void AddFromSingleVectorRepresentation(const std::vector<IndexType>& rSingleVectorRepresentation)
+    {
+        //IndexType graph_size = rSingleVectorRepresentation[0]; 
+        //we actually do not need the graph_size since it will be reconstructed, 
+        //however it is important that the graph_size is stored to make the single_vector
+        //representation also compatible with the sparse_contiguous_row_graph
+        
+        IndexType counter = 1;
+        while(counter < rSingleVectorRepresentation.size())
+        {
+            auto I = rSingleVectorRepresentation[counter++];
+            auto nrow = rSingleVectorRepresentation[counter++];
+            auto begin = &rSingleVectorRepresentation[counter];
+            AddEntries(I, begin, begin+nrow);
+            counter += nrow;
+        }
     }
 
     ///@}
@@ -373,9 +405,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    IndexType mGraphSize = 0;
     GraphType mGraph;
-    bool mSizeIsAvailable = false;
 
 
     ///@}
@@ -384,47 +414,23 @@ private:
     friend class Serializer;
 
     void save(Serializer& rSerializer) const
-    {
-        std::vector< IndexType > IJ;
-        for(const auto& item : this->GetGraph()){
-            IndexType I = item.first;
-            IJ.push_back(I);
-            IJ.push_back(item.second.size());
-            for(auto J : item.second)
-                IJ.push_back(J);
-        }
+    {   
+        std::vector< IndexType > IJ = ExportSingleVectorRepresentation();
         rSerializer.save("IJ",IJ);
-        rSerializer.save("size",mGraphSize);
-        rSerializer.save("mSizeIsAvailable",mSizeIsAvailable);
     }
 
     void load(Serializer& rSerializer)
     {
         std::vector< IndexType > IJ;
         rSerializer.load("IJ",IJ);
-
-        if(IJ.size() != 0)
-        {
-            IndexType counter = 0;
-            while(counter < IJ.size())
-            {
-                auto I = IJ[counter++];
-                auto nrow = IJ[counter++];
-                auto begin = &IJ[counter];
-                AddEntries(I, begin, begin+nrow);
-                counter += nrow;
-            }
-        }
-
-        rSerializer.load("size",mGraphSize);
-        rSerializer.load("mSizeIsAvailable",mSizeIsAvailable);
-
+        AddFromSingleVectorRepresentation(IJ);
     }
 
 
     ///@}
     ///@name Private Operations
     ///@{
+
 
 
     ///@}

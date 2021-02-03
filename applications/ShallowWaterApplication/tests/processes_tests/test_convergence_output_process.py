@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 try:
-    import KratosMultiphysics.ShallowWaterApplication.convergence_output_process as convergence_output
+    import KratosMultiphysics.ShallowWaterApplication.benchmarks.convergence_output_process as convergence_output
     import h5py
 except ImportError:
     pass

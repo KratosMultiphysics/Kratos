@@ -25,7 +25,9 @@
 
 namespace Kratos {
 namespace Testing {
+namespace SparseTestingInternals {
 
+typedef std::size_t IndexType;
 typedef std::vector<std::vector<std::size_t>> ElementConnectivityType;
 typedef std::unordered_map<std::pair<std::size_t, std::size_t>,
                           double,
@@ -35,12 +37,12 @@ typedef std::unordered_map<std::pair<std::size_t, std::size_t>,
 
 
 ElementConnectivityType RandomElementConnectivities(
-    const IndexType block_size,
-    const IndexType nodes_in_elem,
-    const IndexType index_begin,
-    const IndexType index_end,
-    const IndexType ndof,
-    const IndexType standard_dev
+    const SparseTestingInternals::IndexType block_size,
+    const SparseTestingInternals::IndexType nodes_in_elem,
+    const SparseTestingInternals::IndexType index_begin,
+    const SparseTestingInternals::IndexType index_end,
+    const SparseTestingInternals::IndexType ndof,
+    const SparseTestingInternals::IndexType standard_dev
 )
 {
 
@@ -62,20 +64,20 @@ ElementConnectivityType RandomElementConnectivities(
             };
 
         for(int j = 0; j<static_cast<int>(nodes_in_elem); ++j){
-            //IndexType eq_id = dis(gen)*block_size;
-            IndexType eq_id;
+            //SparseTestingInternals::IndexType eq_id = dis(gen)*block_size;
+            SparseTestingInternals::IndexType eq_id;
             bool acceptable = false;
             while(!acceptable){
-                auto randomid = static_cast<IndexType>(dis(gen));
-                if(static_cast<IndexType>(randomid) > 0 &&
-                   static_cast<IndexType>(randomid) < ndof-1)
+                auto randomid = static_cast<SparseTestingInternals::IndexType>(dis(gen));
+                if(static_cast<SparseTestingInternals::IndexType>(randomid) > 0 &&
+                   static_cast<SparseTestingInternals::IndexType>(randomid) < ndof-1)
                 {
                     acceptable=true;
                     eq_id = randomid * block_size;
                 }
             }
 
-            for(IndexType k = 0; k<block_size; ++k){
+            for(SparseTestingInternals::IndexType k = 0; k<block_size; ++k){
                 connectivities[i][j*block_size+k] = eq_id+k;
             }
         }
@@ -198,16 +200,16 @@ bool CheckGraph(
 }
 
 bool CheckCSRGraphArrays(
-    const vector<IndexType>& rRowIndices,
-    const vector<IndexType>& rColIndices,
+    const vector<SparseTestingInternals::IndexType>& rRowIndices,
+    const vector<SparseTestingInternals::IndexType>& rColIndices,
     const MatrixMapType& rReferenceGraph)
 {
     auto N = rRowIndices.size()-1;
-    for (IndexType I = 0; I < N; ++I)
+    for (SparseTestingInternals::IndexType I = 0; I < N; ++I)
     {
         for (auto k = rRowIndices[I]; k < rRowIndices[I + 1]; ++k)
         {
-            IndexType J = rColIndices[k];
+            SparseTestingInternals::IndexType J = rColIndices[k];
             if (rReferenceGraph.find({I, J}) == rReferenceGraph.end()) //implies it is not present
                 KRATOS_ERROR << "Entry " << I << "," << J << "not present in A graph" << std::endl;
 
@@ -232,11 +234,11 @@ bool CheckCSRMatrix(
 
     KRATOS_CHECK_EQUAL(rReferenceGraph.size(), rA.nnz());
 
-    for (IndexType I = 0; I < N; ++I)
+    for (SparseTestingInternals::IndexType I = 0; I < N; ++I)
     {
         for (auto k = rRowIndices[I]; k < rRowIndices[I + 1]; ++k)
         {
-            IndexType J = rColIndices[k];
+            SparseTestingInternals::IndexType J = rColIndices[k];
             double value = rValues[k];
             if (rReferenceGraph.find({I, J}) == rReferenceGraph.end()) //implies it is not present
                 KRATOS_ERROR << "Entry " << I << "," << J << "not present in A graph" << std::endl;
@@ -257,7 +259,7 @@ bool CheckCSRMatrix(
 template<typename TGraphType>
 std::unique_ptr<TGraphType> AssembleGraph(
     ElementConnectivityType& rConnectivities,
-    IndexType GraphSize)
+    SparseTestingInternals::IndexType GraphSize)
 {
     std::unique_ptr<TGraphType> pAgraph(nullptr);
 
@@ -283,11 +285,13 @@ std::unique_ptr<TGraphType> AssembleGraph(
     return pAgraph;
 }
 
+}
+
 // Basic Type
 KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
 {
-    const auto connectivities = ElementConnectivities();
-    auto reference_A_map = GetReferenceMatrixAsMap();
+    const auto connectivities = SparseTestingInternals::ElementConnectivities();
+    auto reference_A_map = SparseTestingInternals::GetReferenceMatrixAsMap();
 
     SparseGraph<> Agraph;
     for(const auto& c : connectivities)
@@ -295,7 +299,7 @@ KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
 
     Agraph.Finalize();
 
-    CheckGraph(Agraph, reference_A_map);
+    SparseTestingInternals::CheckGraph(Agraph, reference_A_map);
 
     //check serialization
     StreamSerializer serializer;
@@ -303,27 +307,27 @@ KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
     serializer.save(tag_string, Agraph);
     Agraph.Clear();
     serializer.load(tag_string, Agraph);
-    CheckGraph(Agraph, reference_A_map);
+    SparseTestingInternals::CheckGraph(Agraph, reference_A_map);
 
     //check exporting
-    vector<IndexType> row_index, col_index;
+    vector<SparseTestingInternals::IndexType> row_index, col_index;
     Agraph.ExportCSRArrays(row_index, col_index);
 
-    CheckCSRGraphArrays(row_index, col_index, reference_A_map);
+    SparseTestingInternals::CheckCSRGraphArrays(row_index, col_index, reference_A_map);
 
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GraphContiguousRowConstruction, KratosCoreFastSuite)
 {
-    const auto connectivities = ElementConnectivities();
-    auto reference_A_map = GetReferenceMatrixAsMap();
+    const auto connectivities = SparseTestingInternals::ElementConnectivities();
+    auto reference_A_map = SparseTestingInternals::GetReferenceMatrixAsMap();
 
     SparseContiguousRowGraph<> Agraph(40);
     for(const auto& c : connectivities)
         Agraph.AddEntries(c);
     Agraph.Finalize();
 
-    CheckGraph(Agraph, reference_A_map);
+    SparseTestingInternals::CheckGraph(Agraph, reference_A_map);
 
     //check serialization
     StreamSerializer serializer;
@@ -331,10 +335,10 @@ KRATOS_TEST_CASE_IN_SUITE(GraphContiguousRowConstruction, KratosCoreFastSuite)
     serializer.save(tag_string, Agraph);
     Agraph.Clear();
     serializer.load(tag_string, Agraph);
-    CheckGraph(Agraph, reference_A_map);
+    SparseTestingInternals::CheckGraph(Agraph, reference_A_map);
 
     // //check exporting
-    // vector<IndexType> row_index, col_index;
+    // vector<SparseTestingInternals::IndexType> row_index, col_index;
     // Agraph.ExportCSRArrays(row_index, col_index);
 
     // CheckCSRGraphArrays(row_index, col_index, reference_A_map);
@@ -343,8 +347,9 @@ KRATOS_TEST_CASE_IN_SUITE(GraphContiguousRowConstruction, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(CSRConstruction, KratosCoreFastSuite)
 {
-    const auto connectivities = ElementConnectivities();
-    auto reference_A_map = GetReferenceMatrixAsMap();
+    
+    const auto connectivities = SparseTestingInternals::ElementConnectivities();
+    auto reference_A_map = SparseTestingInternals::GetReferenceMatrixAsMap();
 
     SparseContiguousRowGraph<> Agraph(40);
     for(const auto& c : connectivities)
@@ -361,7 +366,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSRConstruction, KratosCoreFastSuite)
     }
     A.FinalizeAssemble();
 
-    CheckCSRMatrix(A, reference_A_map);
+    SparseTestingInternals::CheckCSRMatrix(A, reference_A_map);
 
 
 
@@ -370,8 +375,9 @@ KRATOS_TEST_CASE_IN_SUITE(CSRConstruction, KratosCoreFastSuite)
 // Basic Type
 KRATOS_TEST_CASE_IN_SUITE(OpenMPGraphContiguousRowConstruction, KratosCoreFastSuite)
 {
-    const auto connectivities = ElementConnectivities();
-    auto reference_A_map = GetReferenceMatrixAsMap();
+    
+    const auto connectivities = SparseTestingInternals::ElementConnectivities();
+    auto reference_A_map = SparseTestingInternals::GetReferenceMatrixAsMap();
 
     std::unique_ptr<SparseContiguousRowGraph<>> pAgraph(nullptr);
 
@@ -394,20 +400,20 @@ KRATOS_TEST_CASE_IN_SUITE(OpenMPGraphContiguousRowConstruction, KratosCoreFastSu
 
     pAgraph->Finalize();
 
-    CheckGraph(*pAgraph, reference_A_map);
+    SparseTestingInternals::CheckGraph(*pAgraph, reference_A_map);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseGraph, KratosCoreFastSuite)
 {
-    const IndexType block_size = 4;
-    const IndexType nodes_in_elem = 4;
-    const IndexType nel = 1e6;
-    const IndexType ndof = nel/6;
-    const IndexType standard_dev = 100;
-    auto connectivities = RandomElementConnectivities(block_size,nodes_in_elem, 0,nel,ndof,standard_dev);
+    const SparseTestingInternals::IndexType block_size = 4;
+    const SparseTestingInternals::IndexType nodes_in_elem = 4;
+    const SparseTestingInternals::IndexType nel = 1e2; //set at least to 1e6 for a realistic benchmark
+    const SparseTestingInternals::IndexType ndof = nel/6;
+    const SparseTestingInternals::IndexType standard_dev = 100;
+    auto connectivities = SparseTestingInternals::RandomElementConnectivities(block_size,nodes_in_elem, 0,nel,ndof,standard_dev);
 
     double start_graph = OpenMPUtils::GetCurrentTime();
-    auto pAgraph = AssembleGraph<SparseGraph<>>(connectivities, ndof*block_size);
+    auto pAgraph = SparseTestingInternals::AssembleGraph<SparseGraph<>>(connectivities, ndof*block_size);
     double end_graph = OpenMPUtils::GetCurrentTime();
 
     std::cout << "SparseGraph time = " << end_graph-start_graph << std::endl;
@@ -415,12 +421,13 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseGraph, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCoreFastSuite)
 {
-    const IndexType block_size = 4;
-    const IndexType nodes_in_elem = 4;
-    const IndexType nel = 1e6;
-    const IndexType ndof = nel/6;
-    const IndexType standard_dev = 100;
-    auto connectivities = RandomElementConnectivities(block_size,nodes_in_elem,0, nel,ndof,standard_dev);
+    
+    const SparseTestingInternals::IndexType block_size = 4;
+    const SparseTestingInternals::IndexType nodes_in_elem = 4;
+    const SparseTestingInternals::IndexType nel = 1e2; //set this to at least 1e6 for a realistic benchmark
+    const SparseTestingInternals::IndexType ndof = nel/6;
+    const SparseTestingInternals::IndexType standard_dev = 100;
+    auto connectivities = SparseTestingInternals::RandomElementConnectivities(block_size,nodes_in_elem,0, nel,ndof,standard_dev);
 
     double start_graph = OpenMPUtils::GetCurrentTime();
 
@@ -437,8 +444,9 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCo
 
 KRATOS_TEST_CASE_IN_SUITE(SystemVectorAssembly, KratosCoreFastSuite)
 {
-    const auto connectivities = ElementConnectivities();
-    const auto reference_A_map = GetReferenceMatrixAsMap();
+    
+    const auto connectivities = SparseTestingInternals::ElementConnectivities();
+    const auto reference_A_map = SparseTestingInternals::GetReferenceMatrixAsMap();
 
 
     SparseContiguousRowGraph<> Agraph(40);
@@ -464,21 +472,20 @@ KRATOS_TEST_CASE_IN_SUITE(SystemVectorAssembly, KratosCoreFastSuite)
         reference_sum += c.size();
     }  
 
-std::cout << "{";
     double sum = 0.0; //for this test the final value is 124
-    for(IndexType i=0; i!=b.size(); ++i){
+    for(SparseTestingInternals::IndexType i=0; i!=b.size(); ++i){
         sum += b(i);
-        std::cout << b(i) << ",";
     }
-std::cout << std::endl;
+
     KRATOS_CHECK_EQUAL(sum, reference_sum);
 }
 
 
 KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
 {
-    const auto connectivities = ElementConnectivities();
-    auto reference_A_map = GetReferenceMatrixAsMap();
+    
+    const auto connectivities = SparseTestingInternals::ElementConnectivities();
+    auto reference_A_map = SparseTestingInternals::GetReferenceMatrixAsMap();
 
     SparseContiguousRowGraph<> Agraph(40);
     for(const auto& c : connectivities)
@@ -500,11 +507,16 @@ KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
     SystemVector<> y(Agraph);
     y.SetValue(1.0);
 
-    A.SpMV(x,y); //x += A*y
+    A.SpMV(y,x); //x += A*y
 
+<<<<<<< HEAD
 
     double sum = 0.0; //for this test the final value is 496
     for(IndexType i=0; i!=x.size(); ++i){
+=======
+    double sum = 0.0; //for this test the final value is 124
+    for(SparseTestingInternals::IndexType i=0; i!=x.size(); ++i){
+>>>>>>> master
         sum += x(i);
     }
 std::cout << " **********************" << sum << std::endl;
@@ -519,14 +531,15 @@ std::cout << " **********************" << sum << std::endl;
 
 KRATOS_TEST_CASE_IN_SUITE(SystemVectorOperations, KratosCoreFastSuite)
 {
-    IndexType vector_size = 4;
-    SystemVector<double,IndexType> a(vector_size);
+    
+    SparseTestingInternals::IndexType vector_size = 4;
+    SystemVector<double,SparseTestingInternals::IndexType> a(vector_size);
     a.SetValue(5.0);
 
-    SystemVector<double,IndexType> b(vector_size);
+    SystemVector<double,SparseTestingInternals::IndexType> b(vector_size);
     b.SetValue(3.0);
 
-    SystemVector<double,IndexType> c(a);
+    SystemVector<double,SparseTestingInternals::IndexType> c(a);
     c += b;
     for(unsigned int i=0; i<c.size(); ++i)
         KRATOS_CHECK_NEAR(c[i], 8.0,1e-14);
@@ -548,6 +561,7 @@ KRATOS_TEST_CASE_IN_SUITE(SystemVectorOperations, KratosCoreFastSuite)
         KRATOS_CHECK_NEAR(c[i], 10.0,1e-14);
 }
 
+<<<<<<< HEAD
 KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
 {
     const auto connectivities = ElementConnectivities();
@@ -585,6 +599,80 @@ KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
 
     KRATOS_CHECK_EQUAL(sum,496);
 }
+=======
+KRATOS_TEST_CASE_IN_SUITE(RectangularMatrixConstruction, KratosCoreFastSuite)
+{
+    
+    SparseTestingInternals::IndexType col_divider = 3;
+
+    //*************************************************************************
+    //compute reference solution - serial mode
+    const auto all_connectivities = SparseTestingInternals::ElementConnectivities();
+    SparseContiguousRowGraph<SparseTestingInternals::IndexType> Agraph(40);
+
+    IndexPartition<SparseTestingInternals::IndexType>(all_connectivities.size()).for_each([&](SparseTestingInternals::IndexType i)    {
+        std::vector<SparseTestingInternals::IndexType> row_ids = all_connectivities[i];
+        std::vector<SparseTestingInternals::IndexType> col_ids{row_ids[0]/col_divider, row_ids[1]/col_divider};
+        Agraph.AddEntries(row_ids, col_ids);
+    });
+    Agraph.Finalize();
+
+    CsrMatrix<double, SparseTestingInternals::IndexType> A(Agraph);
+
+    A.BeginAssemble();   
+    for(const auto& c : all_connectivities){   
+        std::vector<SparseTestingInternals::IndexType> row_ids = c;
+        std::vector<SparseTestingInternals::IndexType> col_ids{row_ids[0]/col_divider, row_ids[1]/col_divider};
+        Matrix data(row_ids.size(),col_ids.size(),1.0);
+        A.Assemble(data,row_ids, col_ids);
+    }
+    A.FinalizeAssemble();
+
+    auto reference_A_map = A.ToMap();
+
+    //constructing transpose Map to later verify TransposeSPMV
+    SparseTestingInternals::MatrixMapType reference_transpose_A_map;
+    for(const auto& item : reference_A_map)
+    {
+        const SparseTestingInternals::IndexType I = item.first.first;
+        const SparseTestingInternals::IndexType J = item.first.second;
+        const SparseTestingInternals::IndexType value = item.second;
+        reference_transpose_A_map[{J,I}] = value;
+    }
+
+    // //here we test SPMV by a vector of 1s
+    SystemVector<> y(A.size1()); //destination vector
+    y.SetValue(0.0);
+
+    SystemVector<> x(A.size2()); //origin vector
+    x.SetValue(1.0);
+
+    A.SpMV(x,y);
+
+    //test TransposeSpMV
+    y.SetValue(1.0);
+    x.SetValue(0.0);
+    A.TransposeSpMV(y,x); //x += Atranspose*y
+
+    SystemVector<> xtranspose_spmv_ref(A.size2()); //origin vector
+    xtranspose_spmv_ref.SetValue(0.0);
+    for(const auto& item : reference_transpose_A_map)
+    {
+        const SparseTestingInternals::IndexType I = item.first.first;
+        const SparseTestingInternals::IndexType J = item.first.second;
+        const SparseTestingInternals::IndexType Atranspose_ij = item.second;
+        xtranspose_spmv_ref[I] += Atranspose_ij*y[J];
+    }
+
+    for(SparseTestingInternals::IndexType i=0; i<x.size(); ++i)
+    {
+        KRATOS_CHECK_NEAR(x[i], xtranspose_spmv_ref[i], 1e-14);
+    }
+
+}
+
+
+>>>>>>> master
 
 } // namespace Testing
 } // namespace Kratos
