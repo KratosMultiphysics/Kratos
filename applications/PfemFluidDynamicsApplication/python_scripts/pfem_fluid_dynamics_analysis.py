@@ -495,8 +495,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         if not self.main_model_part.HasNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID):
             self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
 
-        if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.THETA_MOMENTUM):
-            self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.THETA_MOMENTUM)
 
 
 if __name__ == "__main__":
