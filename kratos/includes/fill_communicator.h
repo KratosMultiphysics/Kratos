@@ -91,7 +91,7 @@ public:
     virtual void Execute();
 
     /**
-     * @brief Function to print DETAILED mesh information 
+     * @brief Function to print DETAILED mesh information
      * WARNING: to be used for debugging only as many informations are plotted
      */
     void PrintDebugInfo();
@@ -245,5 +245,3 @@ inline std::ostream & operator <<(
 } // namespace Kratos.
 
 #endif // KRATOS_FILL_COMMUNICATOR_H_INCLUDED  defined
-
-

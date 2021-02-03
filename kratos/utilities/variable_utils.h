@@ -735,11 +735,9 @@ public:
     {
         KRATOS_TRY
 
-#pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            it_node->FastGetSolutionStepValue(rVariable) = rValue;
-        }
+        block_for_each(rNodes, [&](Node<3>& rNode) {
+            rNode.FastGetSolutionStepValue(rVariable) = rValue;
+        });
 
         KRATOS_CATCH("")
     }
