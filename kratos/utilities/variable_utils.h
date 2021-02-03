@@ -735,8 +735,8 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodes, [&](Node<3>& it_node) {
-            it_node.FastGetSolutionStepValue(rVariable) = rValue;
+        block_for_each(rNodes, [&](Node<3>& rNode) {
+            rNode.FastGetSolutionStepValue(rVariable) = rValue;
         });
 
         KRATOS_CATCH("")
