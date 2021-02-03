@@ -38,7 +38,9 @@ class EigenSolver(MechanicalSolver):
             },
             "eigensolver_diagonal_values" : { }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        base_parameters = super().GetDefaultParameters()
+        base_parameters.RemoveValue("linear_solver_settings")
+        this_defaults.AddMissingParameters(base_parameters)
         return this_defaults
 
     #### Private functions ####
