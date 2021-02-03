@@ -992,6 +992,13 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        ModelPart& r_fem_interface = (mOriginPhysics == SolverPhysics::FEM)
+            ? mrOriginInterfaceModelPart
+            : mrDestinationInterfaceModelPart;
+
+        KRATOS_ERROR_IF(mOriginPhysics == SolverPhysics::MPM && mDestinationPhysics == SolverPhysics::MPM)
+            << "MPM-MPM coupling isn't currently supported!\n";
+
         if (GetEchoLevel() == 1) KRATOS_INFO("FETI Utility") << "Deforming MPM Grid\n";
 
         auto start = std::chrono::system_clock::now();
@@ -1000,7 +1007,7 @@ namespace Kratos
 
         // Determine interface centroid, average displacement and rotation
         if (!mOldSlopeComputed && rotateGrid) {
-            mInterfaceSlopeOld = GetLinearRegressionSlope(rGridInterfaceMP);
+            mInterfaceSlopeOld = GetLinearRegressionSlope(r_fem_interface);
             mOldSlopeComputed = true;
         }
 
@@ -1025,7 +1032,7 @@ namespace Kratos
         const double interface_disp_norm = norm_2(interface_average_displacement);
 
         double interface_slope_new = 0.0;
-        if (rotateGrid) interface_slope_new = GetLinearRegressionSlope(rGridInterfaceMP);
+        if (rotateGrid) interface_slope_new = GetLinearRegressionSlope(r_fem_interface);
 
         // Compute angle between undeformed and deformed interface
         if (mInterfaceSlopeOld > 1e10 || interface_slope_new > 1e10) {
@@ -1044,7 +1051,8 @@ namespace Kratos
         double theta = theta_new - theta_old;
         if (std::abs(theta/2.0/3.14*360.0) > 10.0) // 0.174
         {
-            KRATOS_INFO("FETI Utility") << "MPM grid timestep rotations exceed 10 degrees!\n";
+            KRATOS_INFO("FETI Utility") << "MPM grid timestep rotations exceed 10 degrees - rotation skipped!\n";
+            rotateGrid = false;
         }
 
         mInterfaceSlopeOld = interface_slope_new;
