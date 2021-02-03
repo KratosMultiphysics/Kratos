@@ -445,12 +445,12 @@ namespace Kratos
                 accel_corrections *= (gamma * dt);
                 AddCorrectionToDomain(pDomainModelPart, VELOCITY, accel_corrections, is_implicit);
 
-                accel_corrections *= 2.0;
-                AddCorrectionToDomain(pDomainModelPart, MIDDLE_VELOCITY, accel_corrections, is_implicit);
+                //accel_corrections *= 2.0;
+                //AddCorrectionToDomain(pDomainModelPart, MIDDLE_VELOCITY, accel_corrections, is_implicit);
 
                 // Apply displacement correction
-                accel_corrections *= dt;
-                AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
+                //accel_corrections *= dt;
+                //AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
             }
             else if (physics == SolverPhysics::MPM)
             {
