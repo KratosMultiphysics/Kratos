@@ -29,7 +29,7 @@ namespace Kratos
 ///@name Kratos Globals
 ///@{
 
-class AdjointUtilities
+class RansAdjointUtilities
 {
 public:
     ///@name Type Definitions
@@ -45,6 +45,11 @@ public:
     ///@name Static Operations
     ///@{
 
+    static double CalculateVectorNormDerivative(
+        const double VectorNorm,
+        const array_1d<double, 3>& rVector,
+        const array_1d<double, 3>& rVectorDerivative);
+
     static array_1d<double, 3> CalculateUnitVectorDerivative(
         const double VectorMagnitude,
         const array_1d<double, 3>& rUnitVector,
@@ -52,14 +57,14 @@ public:
 
     static double CalculateWallHeightConditionDerivative(
         const GeometryType& rConditionGeometry,
-        const GeometryType& rParentGeometry,
+        const GeometryType& rParentElementGeometry,
         const IndexType DirectionIndex,
         const array_1d<double, 3>& rUnitNormal,
         const array_1d<double, 3>& rUnitNormalDerivative);
 
     static double CalculateWallHeightParentElementDerivative(
         const GeometryType& rConditionGeometry,
-        const GeometryType& rParentGeometry,
+        const GeometryType& rParentElementGeometry,
         const IndexType DirectionIndex,
         const array_1d<double, 3>& rUnitNormal,
         const array_1d<double, 3>& rUnitNormalDerivative);
@@ -67,8 +72,8 @@ public:
     static void CalculateYPlusAndUtauDerivative(
         double& rYPlusDerivative,
         double& rUTauDerivative,
-        const double rYPlus,
-        const double rUTau,
+        const double YPlus,
+        const double UTau,
         const double WallVelocity,
         const double WallVelocityDerivative,
         const double WallHeight,

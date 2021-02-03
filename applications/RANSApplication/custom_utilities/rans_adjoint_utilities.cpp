@@ -26,7 +26,19 @@
 namespace Kratos
 {
 
-array_1d<double, 3> AdjointUtilities::CalculateUnitVectorDerivative(
+double RansAdjointUtilities::CalculateVectorNormDerivative(
+    const double VectorNorm,
+    const array_1d<double, 3>& rVector,
+    const array_1d<double, 3>& rVectorDerivative)
+{
+    if (VectorNorm > 0.0) {
+        return inner_prod(rVector, rVectorDerivative) / VectorNorm;
+    } else {
+        return 0.0;
+    }
+}
+
+array_1d<double, 3> RansAdjointUtilities::CalculateUnitVectorDerivative(
     const double VectorMagnitude,
     const array_1d<double, 3>& rUnitVector,
     const array_1d<double, 3>& rVectorDerivative)
@@ -39,41 +51,44 @@ array_1d<double, 3> AdjointUtilities::CalculateUnitVectorDerivative(
     }
 }
 
-double AdjointUtilities::CalculateWallHeightConditionDerivative(
+double RansAdjointUtilities::CalculateWallHeightConditionDerivative(
     const GeometryType& rConditionGeometry,
-    const GeometryType& rParentGeometry,
+    const GeometryType& rParentElementGeometry,
     const IndexType DirectionIndex,
     const array_1d<double, 3>& rUnitNormal,
     const array_1d<double, 3>& rUnitNormalDerivative)
 {
     const auto& condition_center = rConditionGeometry.Center();
-    const auto& parent_center = rParentGeometry.Center();
+    const auto& parent_center = rParentElementGeometry.Center();
 
     array_1d<double, 3> condition_center_derivative = ZeroVector(3);
     condition_center_derivative[DirectionIndex] = 1.0 / rConditionGeometry.PointsNumber();
 
+    array_1d<double, 3> parent_center_derivative = ZeroVector(3);
+    parent_center_derivative[DirectionIndex] = 1.0 / rParentElementGeometry.PointsNumber();
+
     return inner_prod(condition_center - parent_center, rUnitNormalDerivative) +
-           inner_prod(condition_center_derivative, rUnitNormal);
+           inner_prod(condition_center_derivative - parent_center_derivative, rUnitNormal);
 }
 
-double AdjointUtilities::CalculateWallHeightParentElementDerivative(
+double RansAdjointUtilities::CalculateWallHeightParentElementDerivative(
     const GeometryType& rConditionGeometry,
-    const GeometryType& rParentGeometry,
+    const GeometryType& rParentElementGeometry,
     const IndexType DirectionIndex,
     const array_1d<double, 3>& rUnitNormal,
     const array_1d<double, 3>& rUnitNormalDerivative)
 {
     const auto& condition_center = rConditionGeometry.Center();
-    const auto& parent_center = rParentGeometry.Center();
+    const auto& parent_center = rParentElementGeometry.Center();
 
     array_1d<double, 3> parent_center_derivative = ZeroVector(3);
-    parent_center_derivative[DirectionIndex] = 1.0 / rParentGeometry.PointsNumber();
+    parent_center_derivative[DirectionIndex] = 1.0 / rParentElementGeometry.PointsNumber();
 
     return inner_prod(condition_center - parent_center, rUnitNormalDerivative) -
            inner_prod(parent_center_derivative, rUnitNormal);
 }
 
-void AdjointUtilities::CalculateYPlusAndUtauDerivative(
+void RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
     double& rYPlusDerivative,
     double& rUTauDerivative,
     const double YPlus,

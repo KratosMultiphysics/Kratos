@@ -27,7 +27,7 @@ namespace Kratos
 namespace Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(AdjointUtilitiesCalculateYPlusAndUtauDerivative, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansAdjointUtilitiesCalculateYPlusAndUtauDerivative, KratosRansFastSuite)
 {
     const double kappa = 0.41;
     const double beta = 5.2;
@@ -57,7 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdjointUtilitiesCalculateYPlusAndUtauDerivative, Krato
         std::tie(y_plus, u_tau) = y_plus_u_tau_method(x);
 
         double y_plus_derivative, u_tau_derivative;
-        AdjointUtilities::CalculateYPlusAndUtauDerivative(
+        RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
             y_plus_derivative, u_tau_derivative, y_plus, u_tau, u_method(x),
             u_derivative_method(x), y_method(x), y_derivative_method(x), nu,
             kappa, beta, y_plus_limit);
@@ -103,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdjointUtilitiesCalculateYPlusAndUtauDerivative, Krato
     KRATOS_CHECK_RELATIVE_NEAR(fd_u_tau_derivative, u_tau_derivative, 1e-6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdjointUtilitiesCalculateUnitVectorDerivative, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansAdjointUtilitiesCalculateUnitVectorDerivative, KratosRansFastSuite)
 {
     const auto& vector_method = [](const double x) -> array_1d<double, 3> {
         array_1d<double, 3> result;
@@ -127,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdjointUtilitiesCalculateUnitVectorDerivative, KratosR
     double u_ref_magnitude = norm_2(u_ref);
     u_ref /= u_ref_magnitude;
 
-    unit_u_analytical_sensitivity = AdjointUtilities::CalculateUnitVectorDerivative(
+    unit_u_analytical_sensitivity = RansAdjointUtilities::CalculateUnitVectorDerivative(
         u_ref_magnitude, u_ref, vector_derivative(x));
 
     double delta = 1e-8;
