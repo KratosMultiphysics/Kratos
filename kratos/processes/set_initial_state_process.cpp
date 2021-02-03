@@ -29,6 +29,8 @@ namespace Kratos
         ModelPart& rModelPart) 
             : mrModelPart(rModelPart)
     {
+        KRATOS_TRY
+
         const std::size_t voigt_size = (TDim == 3) ? 6 : 3;
 
         mInitialStrain.resize(voigt_size, false);
@@ -38,6 +40,8 @@ namespace Kratos
         noalias(mInitialStrain) = ZeroVector(voigt_size);
         noalias(mInitialStress) = ZeroVector(voigt_size);
         noalias(mInitialF)      = ZeroMatrix(TDim, TDim);
+
+        KRATOS_CATCH("")
     }
 
 /***********************************************************************************/
@@ -64,6 +68,8 @@ namespace Kratos
         const int InitialStateType) 
             : mrModelPart(rModelPart)
     {
+        KRATOS_TRY
+
         const std::size_t voigt_size = (TDim == 3) ? 6 : 3;
 
         mInitialStrain.resize(voigt_size, false);
@@ -81,6 +87,8 @@ namespace Kratos
             noalias(mInitialStress) = ZeroVector(voigt_size);
         }
         noalias(mInitialF) = ZeroMatrix(TDim, TDim);
+
+        KRATOS_CATCH("")
     }
 
 /***********************************************************************************/
@@ -92,6 +100,8 @@ namespace Kratos
         const Matrix& rInitialStateF) 
             : mrModelPart(rModelPart)
     {
+        KRATOS_TRY
+
         const std::size_t voigt_size = (TDim == 3) ? 6 : 3;
 
         mInitialStrain.resize(voigt_size, false);
@@ -101,6 +111,8 @@ namespace Kratos
         noalias(mInitialStrain) = ZeroVector(voigt_size);
         noalias(mInitialStress) = ZeroVector(voigt_size);
         noalias(mInitialF)      = rInitialStateF;
+
+        KRATOS_CATCH("")
     }
 
 /***********************************************************************************/
@@ -109,6 +121,7 @@ namespace Kratos
     template<std::size_t TDim>
     void SetInitialStateProcess<TDim>::ExecuteInitializeSolutionStep()
     {
+        KRATOS_TRY
         const auto it_elem_begin = mrModelPart.ElementsBegin();
         const auto& r_integration_points = it_elem_begin->GetGeometry().
             IntegrationPoints(it_elem_begin->GetIntegrationMethod());
@@ -147,6 +160,7 @@ namespace Kratos
                 constitutive_law_vector[point_number]->SetpInitialState(p_initial_state);
             }
         }
+        KRATOS_CATCH("")
     }
 
 /***********************************************************************************/

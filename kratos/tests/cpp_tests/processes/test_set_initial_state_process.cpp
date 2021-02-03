@@ -18,6 +18,7 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "utilities/cpp_tests_utilities.h"
+#include"tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
 
 /* Processes */
 #include "processes/set_initial_state_process.h"
@@ -44,10 +45,10 @@ namespace Kratos
 
             Properties::Pointer p_prop = this_model_part.CreateNewProperties(0);
 
-            auto cl_pointer = Kratos::make_shared<ConstitutiveLaw>();
-            p_prop->SetValue(CONSTITUTIVE_LAW, cl_pointer);
+            const auto &r_cl = TestConstitutiveLaw::TestConstitutiveLaw();
+            p_prop->SetValue(CONSTITUTIVE_LAW, r_cl.Clone());
 
-            CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
+            CppTestsUtilities::Create2DGeometry(this_model_part, "TestElement", true, true);
 
             Vector initial_E = ZeroVector(3);
             initial_E(0) = 0.01;
