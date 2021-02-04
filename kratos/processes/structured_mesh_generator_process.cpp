@@ -103,23 +103,23 @@ void StructuredMeshGeneratorProcess::Execute()
             SkinDetectionProcess<3>(mrOutputModelPart, skin_parameters).Execute();
         }
 	}
+}
 
-	Parameters StructuredMeshGeneratorProcess::GetIncompleteDefaultParameters()
-	{
-        Parameters default_parameters(R"(
-        {
-            "create_skin_sub_model_part": true,
-            "start_node_id":1,
-            "start_element_id":1,
-            "start_condition_id":1,
-            "elements_properties_id":0,
-            "conditions_properties_id":0,
-            "element_name": "PLEASE SPECIFY IT",
-            "condition_name": "PLEASE SPECIFY IT"
-        }  )");
-
-        return default_parameters;
-    }
+Parameters StructuredMeshGeneratorProcess::GetIncompleteDefaultParameters()
+{
+    Parameters default_parameters(R"(
+    {
+        "create_skin_sub_model_part": true,
+        "start_node_id":1,
+        "start_element_id":1,
+        "start_condition_id":1,
+        "elements_properties_id":0,
+        "conditions_properties_id":0,
+        "element_name": "PLEASE SPECIFY IT",
+        "condition_name": "PLEASE SPECIFY IT"
+    }  )");
+    return default_parameters;
+}
 
 
 std::string StructuredMeshGeneratorProcess::Info() const
