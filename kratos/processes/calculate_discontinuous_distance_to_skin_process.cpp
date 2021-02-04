@@ -708,7 +708,7 @@ namespace Kratos
 				array_1d<double,3> extra_int_pt;
 				const auto& edge_point_0 = r_edges_container[i_edge][0];
 				const auto& edge_point_1 = r_edges_container[i_edge][1];
-				int is_intersection = IntersectionUtilities::ComputePlaneEdgeIntersection(
+				int is_intersection = IntersectionUtilities::ComputePlaneLineIntersection(
 					avg_base_point, rExtraGeomNormal, edge_point_0.Coordinates(), edge_point_1.Coordinates(), extra_int_pt);
 
 				// Calculate intersection ratio of edge and save it
