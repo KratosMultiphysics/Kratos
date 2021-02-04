@@ -167,8 +167,7 @@ void PostprocessRomBasisProcess::ExecuteFinalizeSolutionStep()
     Kratos::unique_ptr<BaseRomBasisOutputWrapper> p_rom_basis_io_wrapper;
     const std::string file_format(mOutputParameters["file_format"].GetString());
     if (file_format == "vtk") {
-        KRATOS_ERROR << "\"vtk\" output is not implemented yet" << std::endl;
-        // p_rom_basis_io_wrapper = Kratos::make_unique<VtkRomBasisOutputWrapper>(mrModelPart, mOutputParameters);
+        p_rom_basis_io_wrapper = Kratos::make_unique<VtkRomBasisOutputWrapper>(mrModelPart, mOutputParameters);
     } else if (file_format == "gid") {
         p_rom_basis_io_wrapper = Kratos::make_unique<GidRomBasisOutputWrapper>(mrModelPart, mOutputParameters);
     } else {
@@ -192,7 +191,7 @@ void PostprocessRomBasisProcess::ExecuteFinalizeSolutionStep()
 
             #pragma omp parallel for
             for (int i_node=0; i_node<static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node) {
-                // Copy the eigenvector to the Solutionstepvariable. Credit to Michael Andre
+                // Copy the basis vector to the Solutionstepvariable. Credit to Michael Andre
                 DofsContainerType& r_node_dofs = (nodes_begin+i_node)->GetDofs();
                 const Matrix& r_node_rom_basis = (nodes_begin+i_node)->GetValue(ROM_BASIS);
 
@@ -239,11 +238,11 @@ void PostprocessRomBasisProcess::GetVariables(std::vector<Variable<double>>& rRe
     }
 }
 
-std::string PostprocessRomBasisProcess::GetLabel(const int NumberOfRomBasis) const
+std::string PostprocessRomBasisProcess::GetLabel(const std::size_t RomBasisIndex) const
 {
 
     std::stringstream parser;
-    parser << (NumberOfRomBasis + 1);
+    parser << (RomBasisIndex + 1);
     std::string label = parser.str();
 
     return label;

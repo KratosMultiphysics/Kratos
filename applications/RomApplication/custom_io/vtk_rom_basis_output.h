@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Altug Emiroglu, http://github.com/emirogluAltug Emiroglu
+//  Main authors:    Altug Emiroglu, http://github.com/emiroglu
 //
 //
 
@@ -24,7 +24,8 @@
 namespace Kratos
 {
 /** \brief VtkRomBasisOutput
-* A simple class to write Eigenresults in Vtk format
+* A simple class to write RomBasis in Vtk format
+* This class is adapted from VtkEigenOutput in StructuralMechanicsApplication
 */
 class KRATOS_API(ROM_APPLICATION) VtkRomBasisOutput : public VtkOutput
 {

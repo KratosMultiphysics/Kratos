@@ -8,7 +8,8 @@
 //                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Raul Bravo
-//                  Altug Emiroglu, https://github.com/emiroglu
+//
+//  Contributors:   Altug Emiroglu, https://github.com/emiroglu
 //
 
 

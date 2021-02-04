@@ -42,11 +42,10 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// GidIO extended for writting Eigenvalue Results
+  /// GidIO extended for writting Modal Derivative Results
 
-  /** The main functionality of this class is to write the custom format
-  * where the result label is customizable, i.e. it can contain e.g.
-  * the Eigenvalue or -frequency of the solution
+  /** 
+   * This class is adapter from GidEigenIO in StructrualMechanicsApplication
   */
 class GidRomBasisIO : public GidIO<>
 {
@@ -85,9 +84,8 @@ class GidRomBasisIO : public GidIO<>
     ///@{
 
     /**
-    * Write the post-processed eigensolver-results
+    * Write the post-processed modal derivative-results
     * for Variable of type "double"
-    * The label is can be e.g. the Eigenvalue or -frequency
     */
     void WriteRomBasis( ModelPart& rModelPart,
                             const Variable<double>& rVariable,
@@ -109,9 +107,8 @@ class GidRomBasisIO : public GidIO<>
     }
 
     /**
-    * Write the post-processed eigensolver-results
+    * Write the post-processed modal derivative-results
     * for Variable of type "array_1d<double, 3>""
-    * The label is can be e.g. the Eigenvalue or -frequency
     */
     void WriteRomBasis( ModelPart& rModelPart,
                             const Variable<array_1d<double, 3>>& rVariable,

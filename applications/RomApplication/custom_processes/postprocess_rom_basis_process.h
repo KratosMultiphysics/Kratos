@@ -31,11 +31,9 @@ namespace Kratos {
 ///@{
 
 /// Process to create the animated ROM_BASIS
-/** This process takes the results of an Eigenvalue Analysis and creates the
- * animated Eigenvectors (Eigenmodes) for GiD using the GidEigenIO, which
- * is customized for this case
- * The Input should be the ComputingModelPart! (Otherwise nodal results migth be messed up)
- * It is of particular importance that all Nodes have the same Dofs!
+/** This process takes the results of a Modal Derivative Analysis and creates the
+ * animated Basisvectors for GiD or VTK
+ * It is adapted from PostprocessEigenvaluesProcess in StructuralMechanicsApplication
  */
 class KRATOS_API(ROM_APPLICATION) PostprocessRomBasisProcess : public Process
 {
@@ -96,14 +94,14 @@ private:
     ///@name Private Operations
     ///@{
 
-    std::string GetLabel(const int NumberOfRomBasis) const;
+    std::string GetLabel(const std::size_t RomBasisIndex) const;
 
     void GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
                       std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) const;
 
     ///@}
 
-}; // Class PostprocessEigenvaluesProcess
+}; // Class PostprocessRomBasisProcess
 
 ///@}
 

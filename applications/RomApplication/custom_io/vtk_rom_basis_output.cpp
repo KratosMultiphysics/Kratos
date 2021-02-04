@@ -16,8 +16,8 @@
 // External includes
 
 // Project includes
-#include "vtk_rom_basis_output.h"
 #include "rom_application_variables.h"
+#include "vtk_rom_basis_output.h"
 
 namespace Kratos
 {
@@ -45,10 +45,10 @@ void VtkRomBasisOutput::PrintRomBasisOutput(
         Initialize(mrModelPart);
         WriteHeaderToFile(mrModelPart, output_file);
         WriteMeshToFile(mrModelPart, output_file);
-        const SizeType num_eigenvalues = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].size();
+        const SizeType num_basis = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].size();
 
         output_file << "POINT_DATA " << mrModelPart.NumberOfNodes() << "\n";
-        output_file << "FIELD FieldData " << num_eigenvalues * (rRequestedDoubleResults.size() + rRequestedVectorResults.size()) << "\n";
+        output_file << "FIELD FieldData " << num_basis * (rRequestedDoubleResults.size() + rRequestedVectorResults.size()) << "\n";
     } else {
         // Appending results to existing file
         ios_flags |= std::ios::app;
@@ -128,7 +128,6 @@ void VtkRomBasisOutput::WriteVectorRomBasisVariable(
     const std::string& rLabel,
     std::ofstream& rFileStream) const
 {
-
     const int res_size = static_cast<int>((rNodes.begin()->FastGetSolutionStepValue(rVariable)).size());
 
     rFileStream << rLabel << "_" << rVariable.Name() << " " << res_size << " " << rNodes.size() << "  float\n";
