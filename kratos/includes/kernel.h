@@ -70,7 +70,9 @@ class KRATOS_API(KRATOS_CORE) Kernel {
         @see KratosApplication
 
     */
-    Kernel(bool IsDistributedRun = false);
+    Kernel();
+
+    Kernel(bool IsDistributedRun);
 
     /// Copy constructor.
     /** This constructor is empty
@@ -99,7 +101,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     /// To be deprecated becuase variables have their own hash key.
     /** The keys of Variables are not sequencial anymore, so this method will be deprecated
     */
-    void Initialize() { }
+    void Initialize();
 
     /// Initializes and synchronizes the list of variables, elements and conditions in each application.
     /** This method gives the application the list of all variables, elements and condition which is registered
@@ -141,7 +143,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     ///@name Static Member Variables
     ///@{
 
-        KratosApplication::Pointer mpKratosCoreApplication;
+    KratosApplication::Pointer mpKratosCoreApplication;
 
     static bool mIsDistributedRun;
 

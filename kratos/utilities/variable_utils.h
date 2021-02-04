@@ -637,89 +637,6 @@ public:
 
     /**
      * @brief Sets the nodal value of a scalar variable
-     * @param rVariable reference to the scalar variable to be set
-     * @param Value Value to be set
-     * @param rNodes reference to the objective node set
-     */
-    template <class TVarType>
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
-    void SetScalarVar(
-        const TVarType &rVariable,
-        const double Value,
-        NodesContainerType &rNodes)
-    {
-        KRATOS_TRY
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            it_node->FastGetSolutionStepValue(rVariable) = Value;
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Sets the nodal value of a scalar variable (considering flag)
-     * @param rVariable reference to the scalar variable to be set
-     * @param Value Value to be set
-     * @param rNodes reference to the objective node set
-     * @param Flag The flag to be considered in the assignation
-     * @param Check What is checked from the flag
-     */
-    template< class TVarType >
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
-    void SetScalarVarForFlag(
-        const TVarType& rVariable,
-        const double Value,
-        NodesContainerType& rNodes,
-        const Flags Flag,
-        const bool Check = true
-        )
-    {
-        KRATOS_TRY
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            if (it_node->Is(Flag) == Check) it_node->FastGetSolutionStepValue(rVariable) = Value;
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Sets the nodal value of a vector variable
-     * @param rVariable reference to the vector variable to be set
-     * @param Value array containing the Value to be set
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
-    void SetVectorVar(
-        const ArrayVarType& rVariable,
-        const array_1d<double, 3 >& Value,
-        NodesContainerType& rNodes
-        );
-
-    /**
-     * @brief Sets the nodal value of a vector variable (considering flag)
-     * @param rVariable reference to the vector variable to be set
-     * @param Value array containing the Value to be set
-     * @param rNodes reference to the objective node set
-     * @param Flag The flag to be considered in the assignation
-     * @param Check What is checked from the flag
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
-    void SetVectorVarForFlag(
-        const ArrayVarType& rVariable,
-        const array_1d<double, 3 >& Value,
-        NodesContainerType& rNodes,
-        const Flags Flag,
-        const bool Check = true
-        );
-
-    /**
-     * @brief Sets the nodal value of a scalar variable
      * @tparam TDataType Variable data type
      * @tparam Variable<TDataType> Variable type
      * @param rVariable reference to the scalar variable to be set
@@ -735,11 +652,9 @@ public:
     {
         KRATOS_TRY
 
-#pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            it_node->FastGetSolutionStepValue(rVariable) = rValue;
-        }
+        block_for_each(rNodes, [&](Node<3>& rNode) {
+            rNode.FastGetSolutionStepValue(rVariable) = rValue;
+        });
 
         KRATOS_CATCH("")
     }
@@ -806,44 +721,6 @@ public:
         this->SetVariable(rVariable, rVariable.Zero(), rNodes);
         KRATOS_CATCH("")
     }
-
-    /**
-     * @brief Sets the nodal value of a scalar variable non historical
-     * @param rVariable reference to the scalar variable to be set
-     * @param Value Value to be set
-     * @param rNodes reference to the objective node set
-     */
-    template< class TVarType >
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable")
-    void SetNonHistoricalScalarVar(
-        const TVarType& rVariable,
-        const double Value,
-        NodesContainerType& rNodes
-        )
-    {
-        KRATOS_TRY
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            it_node->SetValue(rVariable, Value);
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Sets the nodal value of a vector non historical variable
-     * @param rVariable reference to the vector variable to be set
-     * @param Value array containing the Value to be set
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable")
-    void SetNonHistoricalVectorVar(
-        const ArrayVarType& rVariable,
-        const array_1d<double, 3 >& Value,
-        NodesContainerType& rNodes
-        );
 
     /**
      * @brief Sets the container value of any type of non historical variable
@@ -1020,32 +897,6 @@ public:
     }
 
     /**
-     * @brief Takes the value of a non-historical vector variable and sets it in other variable
-     * @param OriginVariable reference to the origin vector variable
-     * @param SavedVariable reference to the destination vector variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveVariable")
-    void SaveVectorVar(
-        const ArrayVarType& OriginVariable,
-        const ArrayVarType& SavedVariable,
-        NodesContainerType& rNodes
-        );
-
-    /**
-     * @brief Takes the value of a non-historical scalar variable and sets it in other variable
-     * @param OriginVariable reference to the origin scalar variable
-     * @param SavedVariable reference to the destination scalar variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveVariable")
-    void SaveScalarVar(
-        const DoubleVarType& OriginVariable,
-        const DoubleVarType& SavedVariable,
-        NodesContainerType& rNodes
-        );
-
-    /**
      * @brief Takes the value of a non-historical variable and saves it in another variable
      * For a nodal container, this takes the value of a non-historical variable and saves it in another one
      * @tparam TDataType The variable data type
@@ -1070,32 +921,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-    /**
-     * @brief Takes the value of a non-historical vector variable and sets it in other non-historical variable
-     * @param OriginVariable reference to the origin vector variable
-     * @param SavedVariable reference to the destination vector variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveNonHistoricalVariable")
-    void SaveVectorNonHistoricalVar(
-        const ArrayVarType& OriginVariable,
-        const ArrayVarType& SavedVariable,
-        NodesContainerType& rNodes
-        );
-
-    /**
-     * @brief Takes the value of a non-historical scalar variable and sets it in other non-historical variable
-     * @param OriginVariable reference to the origin scalar variable
-     * @param SavedVariable reference to the destination scalar variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveNonHistoricalVariable")
-    void SaveScalarNonHistoricalVar(
-        const DoubleVarType& OriginVariable,
-        const DoubleVarType& SavedVariable,
-        NodesContainerType& rNodes
-        );
 
     /**
      * @brief Takes the value of a non-historical variable and saves it in another historical variable
@@ -1124,31 +949,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-    /**
-     * @brief Takes the value of an historical vector variable and sets it in other variable
-     * @param OriginVariable reference to the origin vector variable
-     * @param DestinationVariable reference to the destination vector variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use CopyVariable")
-    void CopyVectorVar(
-        const ArrayVarType& OriginVariable,
-        const ArrayVarType& DestinationVariable,
-        NodesContainerType& rNodes
-        );
-
-    /**
-     * @brief Takes the value of an historical double variable and sets it in other variable
-     * @param OriginVariable reference to the origin double variable
-     * @param DestinationVariable reference to the destination double variable
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use CopyVariable")
-    void CopyScalarVar(
-        const DoubleVarType &OriginVariable,
-        const DoubleVarType &DestinationVariable,
-        NodesContainerType &rNodes);
 
     /**
      * @brief Takes the value of an historical variable and sets it in another variable
@@ -1544,7 +1344,6 @@ public:
         KRATOS_TRY
 
         // First we do a chek
-        KRATOS_CHECK_VARIABLE_KEY(rVar)
         if(rModelPart.NumberOfNodes() != 0)
             KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Solution step data ";
 
@@ -1574,9 +1373,6 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_CHECK_VARIABLE_KEY(rVar)
-        KRATOS_CHECK_VARIABLE_KEY(rReactionVar)
-
         if(rModelPart.NumberOfNodes() != 0) {
             KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: DoF Variable : " << rVar << "not included in the Soluttion step data ";
             KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rReactionVar)) << "ERROR:: Reaction Variable : " << rReactionVar << "not included in the Soluttion step data ";
@@ -1604,13 +1400,6 @@ public:
      * @return True if all the keys are correct
      */
     bool CheckVariableKeys();
-
-    /**
-     * @brief This method checks the dofs
-     * @param rModelPart reference to the model part that contains the objective element set
-     * @return True if all the DoFs are correct
-     */
-    bool CheckDofs(ModelPart& rModelPart);
 
     /**
      * @brief This method updates the current nodal coordinates back to the initial coordinates
@@ -1725,9 +1514,6 @@ private:
                 std::cout << var.first << var.second << std::endl;
             if (var.first != var.second->Name()) //name of registration does not correspond to the var name
                 std::cout << "Registration Name = " << var.first << " Variable Name = " << std::endl;
-
-            KRATOS_ERROR_IF((var.second)->Key() == 0) << (var.second)->Name() << " Key is 0." << std::endl \
-            << "Check that Kratos variables have been correctly registered and all required applications have been imported." << std::endl;
         }
 
         return true;

@@ -32,7 +32,8 @@ class BaseBenchmarkProcess(KM.Process):
         default_settings["benchmark_settings"] = self._GetBenchmarkDefaultSettings()
         settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
-        self.model_part = model[settings["model_part_name"].GetString()]
+        self.model = model
+        self.model_part = self.model[settings["model_part_name"].GetString()]
 
         self.variables = GenerateVariableListFromInput(settings["variables_list"])
         self.exact_variables = GenerateVariableListFromInput(settings["exact_variables_list"])
@@ -56,10 +57,12 @@ class BaseBenchmarkProcess(KM.Process):
             for (variable, exact_variable, error_variable) in zip(self.variables, self.exact_variables, self.error_variables):
                 if variable == SW.HEIGHT:
                     exact_value = self._Height(node, time)
-                elif variable == KM._VELOCITY:
+                elif variable == KM.VELOCITY:
                     exact_value = self._Velocity(node, time)
                 elif variable == KM.MOMENTUM:
                     exact_value = self._Momentum(node, time)
+                elif variable == SW.FREE_SURFACE_ELEVATION:
+                    exact_value = self._FreeSurfaceElevation(node, time)
 
                 fem_value = node.GetSolutionStepValue(variable)
 
@@ -99,3 +102,6 @@ class BaseBenchmarkProcess(KM.Process):
 
     def _Momentum(self, coordinates, time):
         return [self._Height(coordinates, time)*v for v in self._Velocity(coordinates, time)]
+
+    def _FreeSurfaceElevation(self, coordinates, time):
+        return self._Topography(coordinates) + self._Height(coordinates, time)

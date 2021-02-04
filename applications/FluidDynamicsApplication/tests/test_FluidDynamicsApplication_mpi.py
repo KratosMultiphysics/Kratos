@@ -1,22 +1,14 @@
-# import Kratos
-import KratosMultiphysics
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
+if not KM.IsDistributedRun():
+    raise Exception("This test script can only be executed in MPI!")
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-try:
-    import KratosMultiphysics.mpi as KratosMPI
-    import KratosMultiphysics.MetisApplication as MetisApplication
-    import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-except ImportError:
-    raise Exception("KratosMPI could not be imported!")
-
-if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
-    raise Exception("The MPI tests currently support only being run with 2 processors!")
-
 # Import the tests or test_classes to create the suits
 
-# Shell tests
 from adjoint_mpi_vms_sensitivity_2d import AdjointMPIVMSSensitivity
 
 def AssembleTestSuites():
@@ -35,15 +27,12 @@ def AssembleTestSuites():
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
-    nightlyMPISuite.addTest(AdjointMPIVMSSensitivity('testCylinder'))
     nightlyMPISuite.addTests(smallMPISuite)
+    nightlyMPISuite.addTest(AdjointMPIVMSSensitivity('testCylinder'))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']
     allMPISuite.addTests(nightlyMPISuite) # already contains the smallMPISuite
-
-    allSuite = suites['all']
-    allSuite.addTests(allMPISuite)
 
     return suites
 

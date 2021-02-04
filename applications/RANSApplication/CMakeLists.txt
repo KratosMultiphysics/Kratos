@@ -25,6 +25,7 @@ file(GLOB_RECURSE KRATOS_RANS_APPLICATION_CORE_UTILITIES
 file(GLOB_RECURSE KRATOS_RANS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
 )
@@ -48,11 +49,6 @@ pybind11_add_module(KratosRANSApplication MODULE THIN_LTO ${KRATOS_RANS_APPLICAT
 target_link_libraries(KratosRANSApplication PRIVATE KratosRANSCore)
 set_target_properties(KratosRANSApplication PROPERTIES PREFIX "")
 
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosRANSCore)
-    cotire(KratosRANSApplication)
-endif(USE_COTIRE MATCHES ON)
-
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosRANSApplication PROPERTIES SUFFIX .pyd)
@@ -62,6 +58,12 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosRANSApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+# Cotire
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosRANSCore)
+    cotire(KratosRANSApplication)
+endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/RANSApplication.py KratosMultiphysics/RANSApplication/__init__.py )

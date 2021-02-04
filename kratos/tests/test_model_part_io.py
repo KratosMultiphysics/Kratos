@@ -44,6 +44,14 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfElements(), 4)
         self.assertEqual(model_part.NumberOfConditions(), 5)
 
+        self.assertEqual(model_part[KratosMultiphysics.AMBIENT_TEMPERATURE], 250.0)
+        self.assertEqual(model_part[KratosMultiphysics.DISPLACEMENT_X], 2.1)
+        self.assertEqual(model_part[KratosMultiphysics.DISPLACEMENT_Y], 3.2)
+        self.assertEqual(model_part[KratosMultiphysics.DISPLACEMENT_Z], 4.3)
+        self.assertEqual(model_part[KratosMultiphysics.VELOCITY_X], 3.8)
+        self.assertEqual(model_part[KratosMultiphysics.VELOCITY_Y], 4.9)
+        self.assertEqual(model_part[KratosMultiphysics.VELOCITY_Z], 0.0)
+
         self.assertTrue(model_part.GetNode(1).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
         self.assertTrue(model_part.GetNode(2).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
         self.assertFalse(model_part.GetNode(3).IsFixed(KratosMultiphysics.DISPLACEMENT_X))

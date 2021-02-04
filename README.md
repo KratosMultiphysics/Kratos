@@ -2,7 +2,7 @@
 
 [![Release][release-image]][releases] [![License][license-image]][license] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI]
 
-[release-image]: https://img.shields.io/badge/release-8.0-green.svg?style=flat
+[release-image]: https://img.shields.io/badge/release-8.1-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
@@ -63,6 +63,9 @@ Organizations contributing to Kratos:
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
 </br><p>Altair Engineering</p>
 
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/Deltares_logo.png" width="128">
+</br><p>Deltares</p>
+
 # Our Users
 Some users of the technologies developed in Kratos are:
 
@@ -78,6 +81,7 @@ Some users of the technologies developed in Kratos are:
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/onera_logo.png" width="128">
 <p>ONERA, The French Aerospace Lab<br>Applied Aerodynamics Department</p>
 </span>
+
 
 Looking forward to seeing your logo here!
 
@@ -100,4 +104,4 @@ In applications:
 Please, use the following references when citing Kratos in your work.
 - Dadvand, P., Rossi, R. & Oñate, E. An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Arch Computat Methods Eng 17, 253–297 (2010). https://doi.org/10.1007/s11831-010-9045-2
 - Dadvand, P., Rossi, R., Gil, M., Martorell, X., Cotela, J., Juanpere, E., Idelsohn, S., Oñate, E. (2013). Migration of a generic multi-physics framework to HPC environments. Computers & Fluids. 80. 301–309. 10.1016/j.compfluid.2012.02.004.
-- Mataix Ferrándiz, V., Bucher, P., Rossi, R., Cotela, J., Carbonell, J. M., Zorrilla, R., … Tosi, R. (2020, May 29). KratosMultiphysics (Version 8.0). Zenodo. https://doi.org/10.5281/zenodo.3234644
+- Mataix Ferrándiz, V., Bucher, P., Rossi, R., Cotela, J., Carbonell, J. M., Zorrilla, R., … Tosi, R. (2020, November 27). KratosMultiphysics (Version 8.1). Zenodo. https://doi.org/10.5281/zenodo.3234644

@@ -154,7 +154,7 @@ public:
         BaseType::Initialize(rModelPart);
 
         // Allocate auxiliary memory.
-        int num_threads = OpenMPUtils::GetNumThreads();
+        int num_threads = ParallelUtilities::GetNumThreads();
         mLeftHandSide.resize(num_threads);
         mResponseGradient.resize(num_threads);
         mFirstDerivsLHS.resize(num_threads);
@@ -390,9 +390,84 @@ protected:
         double C7;
     };
 
+    AdjointResponseFunction::Pointer mpResponseFunction;
+
+    BossakConstants mBossak;
+
+    std::vector<LocalSystemMatrixType> mLeftHandSide;
+    std::vector<LocalSystemVectorType> mResponseGradient;
+    std::vector<LocalSystemMatrixType> mFirstDerivsLHS;
+    std::vector<LocalSystemVectorType> mFirstDerivsResponseGradient;
+    std::vector<LocalSystemMatrixType> mSecondDerivsLHS;
+    std::vector<LocalSystemVectorType> mSecondDerivsResponseGradient;
+    std::vector<LocalSystemVectorType> mAdjointValuesVector;
+    std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector2;
+    std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector3;
+    std::vector<std::vector<IndirectScalar<double>>> mAuxAdjointIndirectVector1;
+
     ///@}
     ///@name Protected Operations
     ///@{
+
+    virtual void CalculateGradientContributions(
+        Element& rElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityGradientContributions(
+            rElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
+
+    virtual void CalculateGradientContributions(
+        Condition& rCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityGradientContributions(
+            rCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
+
+    virtual void CalculateFirstDerivativeContributions(
+        Element& rElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityFirstDerivativeContributions(
+            rElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
+
+    virtual void CalculateFirstDerivativeContributions(
+        Condition& rCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityFirstDerivativeContributions(
+            rCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
+
+    virtual void CalculateSecondDerivativeContributions(
+        Element& rElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntitySecondDerivativeContributions(
+            rElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
+
+    virtual void CalculateSecondDerivativeContributions(
+        Condition& rCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntitySecondDerivativeContributions(
+            rCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
 
     /**
      * @brief Calculates elemental residual
@@ -516,6 +591,41 @@ protected:
             rCondition, rAdjointAuxiliaryValues, rCurrentProcessInfo);
     }
 
+    virtual void CheckAndResizeThreadStorage(unsigned SystemSize)
+    {
+        const int k = OpenMPUtils::ThisThread();
+
+        if (mLeftHandSide[k].size1() != SystemSize || mLeftHandSide[k].size2() != SystemSize)
+        {
+            mLeftHandSide[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mFirstDerivsLHS[k].size1() != SystemSize || mFirstDerivsLHS[k].size2() != SystemSize)
+        {
+            mFirstDerivsLHS[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mSecondDerivsLHS[k].size1() != SystemSize || mSecondDerivsLHS[k].size2() != SystemSize)
+        {
+            mSecondDerivsLHS[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mResponseGradient[k].size() != SystemSize)
+        {
+            mResponseGradient[k].resize(SystemSize, false);
+        }
+
+        if (mFirstDerivsResponseGradient[k].size() != SystemSize)
+        {
+            mFirstDerivsResponseGradient[k].resize(SystemSize, false);
+        }
+
+        if (mSecondDerivsResponseGradient[k].size() != SystemSize)
+        {
+            mSecondDerivsResponseGradient[k].resize(SystemSize, false);
+        }
+    }
+
     ///@}
 
 private:
@@ -526,21 +636,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    BossakConstants mBossak;
     typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
         TSparseSpace::CreateDofUpdater();
-    AdjointResponseFunction::Pointer mpResponseFunction;
-
-    std::vector<LocalSystemMatrixType> mLeftHandSide;
-    std::vector<LocalSystemVectorType> mResponseGradient;
-    std::vector<LocalSystemMatrixType> mFirstDerivsLHS;
-    std::vector<LocalSystemVectorType> mFirstDerivsResponseGradient;
-    std::vector<LocalSystemMatrixType> mSecondDerivsLHS;
-    std::vector<LocalSystemVectorType> mSecondDerivsResponseGradient;
-    std::vector<LocalSystemVectorType> mAdjointValuesVector;
-    std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector2;
-    std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector3;
-    std::vector<std::vector<IndirectScalar<double>>> mAuxAdjointIndirectVector1;
 
     ///@}
     ///@name Private Operations
@@ -588,7 +685,7 @@ private:
      * @param rCurrentProcessInfo       Current process info
      */
     template<class TEntityType>
-    void CalculateGradientContributions(
+    void CalculateEntityGradientContributions(
         TEntityType& rCurrentEntity,
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemVectorType& rRHS_Contribution,
@@ -617,7 +714,7 @@ private:
      * @param rCurrentProcessInfo       Current process info
      */
     template<class TEntityType>
-    void CalculateFirstDerivativeContributions(
+    void CalculateEntityFirstDerivativeContributions(
         TEntityType& rCurrentEntity,
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemVectorType& rRHS_Contribution,
@@ -648,7 +745,7 @@ private:
      * @param rCurrentProcessInfo       Current process info
      */
     template<class TEntityType>
-    void CalculateSecondDerivativeContributions(
+    void CalculateEntitySecondDerivativeContributions(
         TEntityType& rCurrentEntity,
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemVectorType& rRHS_Contribution,
@@ -1092,41 +1189,6 @@ private:
         KRATOS_CATCH("");
     }
 
-    void CheckAndResizeThreadStorage(unsigned SystemSize)
-    {
-        const int k = OpenMPUtils::ThisThread();
-
-        if (mLeftHandSide[k].size1() != SystemSize || mLeftHandSide[k].size2() != SystemSize)
-        {
-            mLeftHandSide[k].resize(SystemSize, SystemSize, false);
-        }
-
-        if (mFirstDerivsLHS[k].size1() != SystemSize || mFirstDerivsLHS[k].size2() != SystemSize)
-        {
-            mFirstDerivsLHS[k].resize(SystemSize, SystemSize, false);
-        }
-
-        if (mSecondDerivsLHS[k].size1() != SystemSize || mSecondDerivsLHS[k].size2() != SystemSize)
-        {
-            mSecondDerivsLHS[k].resize(SystemSize, SystemSize, false);
-        }
-
-        if (mResponseGradient[k].size() != SystemSize)
-        {
-            mResponseGradient[k].resize(SystemSize, false);
-        }
-
-        if (mFirstDerivsResponseGradient[k].size() != SystemSize)
-        {
-            mFirstDerivsResponseGradient[k].resize(SystemSize, false);
-        }
-
-        if (mSecondDerivsResponseGradient[k].size() != SystemSize)
-        {
-            mSecondDerivsResponseGradient[k].resize(SystemSize, false);
-        }
-    }
-
     static BossakConstants CalculateBossakConstants(double Alpha, double DeltaTime)
     {
         BossakConstants bc;
@@ -1183,7 +1245,7 @@ private:
         std::function<void(const AdjointExtensions&, std::vector<const VariableData*>&)> GetLocalVars)
     {
         KRATOS_TRY;
-        const int num_threads = OpenMPUtils::GetNumThreads();
+        const int num_threads = ParallelUtilities::GetNumThreads();
         std::vector<const VariableData*> local_vars;
         std::vector<std::unordered_set<const VariableData*, Hash, Pred>> thread_vars(num_threads);
 #pragma omp parallel for private(local_vars)

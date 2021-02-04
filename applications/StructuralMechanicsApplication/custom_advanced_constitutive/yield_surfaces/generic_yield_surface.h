@@ -19,9 +19,9 @@
 #include "includes/checks.h"
 #include "includes/serializer.h"
 #include "includes/properties.h"
+#include "includes/constitutive_law.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -34,7 +34,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -67,10 +67,10 @@ public:
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
-    
+
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
-    
+
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericYieldSurface);
 
