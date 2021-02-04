@@ -69,7 +69,7 @@ public:
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
-        const int nparticles = rModelPart.Nodes().size();
+        const unsigned int nparticles = rModelPart.Nodes().size();
 
         PointerVector< Element > elem_backward( rModelPart.Nodes().size());
         std::vector< Vector > Ns( rModelPart.Nodes().size());
@@ -164,7 +164,7 @@ public:
 
         //FIRST LOOP: estimate rVar(n+1)
         #pragma omp parallel for firstprivate(results,N,N_valid)
-        for (int i = 0; i < nparticles; i++)
+        for (unsigned int i = 0; i < nparticles; i++)
         {
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
@@ -210,7 +210,7 @@ public:
 
         //now obtain the value AT TIME STEP N by taking it from N+1
         #pragma omp parallel for firstprivate(results,N,N_valid)
-        for (int i = 0; i < nparticles; i++)
+        for (unsigned int i = 0; i < nparticles; i++)
         {
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
@@ -244,7 +244,7 @@ public:
         }
 
         #pragma omp parallel for
-        for (int i = 0; i < nparticles; i++)
+        for (unsigned int i = 0; i < nparticles; i++)
         {
             ModelPart::NodesContainerType::iterator it_particle = rModelPart.NodesBegin() + i;
             bool is_found = found[i];
