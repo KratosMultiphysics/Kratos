@@ -655,7 +655,7 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(
     // Operation performed: add Kg to the rLefsHandSideMatrix
     if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
     {
-        CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+        UpdatedLagrangianUP::CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
     }
 
     // Operation performed: add Kup to the rLefsHandSideMatrix
