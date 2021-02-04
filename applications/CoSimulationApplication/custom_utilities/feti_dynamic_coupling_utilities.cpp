@@ -988,9 +988,11 @@ namespace Kratos
 
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::DeformMPMGrid(ModelPart& rGridMP,
-        ModelPart& rGridInterfaceMP, const double radTotalDef, const double radNoDef, bool rotateGrid)
+        ModelPart& rGridInterfaceMP, const double radTotalDef, const double radNoDef, bool rotateGrid, const bool is_explicit)
     {
         KRATOS_TRY
+
+        const double rotation_limit = (is_explicit) ? 0.1 : 10.0;
 
         ModelPart& r_fem_interface = (mOriginPhysics == SolverPhysics::FEM)
             ? mrOriginInterfaceModelPart
@@ -1049,13 +1051,21 @@ namespace Kratos
 
         const double tan_theta = std::abs((mInterfaceSlopeOld - interface_slope_new) / (1.0 + mInterfaceSlopeOld * interface_slope_new));
         double theta = theta_new - theta_old;
-        if (std::abs(theta/2.0/3.14*360.0) > 10.0) // 0.174
+        if (std::abs(theta/2.0/3.14*360.0) > rotation_limit) // 0.174
         {
-            KRATOS_INFO("FETI Utility") << "MPM grid timestep rotations exceed 10 degrees - rotation skipped!\n";
+            KRATOS_INFO("FETI Utility") << "MPM grid timestep rotations exceed limits - rotation skipped!\n";
             rotateGrid = false;
         }
 
         mInterfaceSlopeOld = interface_slope_new;
+
+
+        double explicit_average_interface_nodal_mass = 0.0;
+        if (is_explicit)
+        {
+            for (auto& node_it: rGridInterfaceMP.Nodes())explicit_average_interface_nodal_mass += node_it.FastGetSolutionStepValue(NODAL_MASS);
+            explicit_average_interface_nodal_mass /= double(rGridInterfaceMP.NumberOfNodes());
+        }
 
         block_for_each(rGridMP.Nodes(), [&](Node<3>& rNode)
             {
@@ -1070,23 +1080,32 @@ namespace Kratos
                             distance = norm_2(interface_centroid - r_coords);
                             if (distance < radNoDef)
                             {
-                                array_1d<double, 3> r_disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+                                array_1d<double, 3> disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
                                 double rotation_angle = theta;
-                                if (rNode.IsNot(ACTIVE)) r_disp = interface_average_displacement;
+                                if (rNode.IsNot(ACTIVE)) disp = interface_average_displacement;
+                                else if (is_explicit)
+                                {
+                                    double mass_ratio = explicit_average_interface_nodal_mass / rNode.FastGetSolutionStepValue(NODAL_MASS);
+                                    if (mass_ratio > 1000.0)
+                                    {
+                                        disp = interface_average_displacement;
+                                        rNode.Reset(ACTIVE);
+                                    }
+                                }
 
                                 if (distance > radTotalDef)
                                 {
-                                    const double deformation_fraction = 1.0 - (distance - radTotalDef) / (radNoDef - radTotalDef);
-                                    r_disp *= deformation_fraction;
+                                    double deformation_fraction = 1.0 - (distance - radTotalDef) / (radNoDef - radTotalDef);
+                                    disp *= deformation_fraction;
                                     rotation_angle *= deformation_fraction;
                                 }
 
                                 if (rotateGrid  && rNode.IsNot(ACTIVE)) RotateNodeAboutPoint(rNode, interface_centroid, rotation_angle);
 
-                                r_coords += r_disp;
-                                rNode.X0() += r_disp[0];
-                                rNode.Y0() += r_disp[1];
-                                rNode.Z0() += r_disp[2];
+                                r_coords += disp;
+                                rNode.X0() += disp[0];
+                                rNode.Y0() += disp[1];
+                                rNode.Z0() += disp[2];
                             }
                         }
                     }

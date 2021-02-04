@@ -91,7 +91,16 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
                 solver.FinalizeSolutionStep()
                 solver_type = str(solver._ClassName())
                 if solver_type == "ParticleMechanicsWrapper":
-                    self.__DeformBackgroundGrid(solver)
+                    beta = 0.0
+                    solver_index = self._solver_origin_dest_dict[solver_name]
+                    if solver_index == CoSim.FetiSolverIndexType.Origin:
+                        beta = self.settings["origin_newmark_beta"].GetDouble()
+                    else:
+                        beta = self.settings["destination_newmark_beta"].GetDouble()
+                    is_explicit = False
+                    if abs(beta) < 1e-9:
+                        is_explicit = True
+                    self.__DeformBackgroundGrid(solver,is_explicit)
 
 
         for coupling_op_name, coupling_op in self.coupling_operations_dict.items():
@@ -271,7 +280,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         else:
             return True #only restrict coupling operations for outputs
 
-    def __DeformBackgroundGrid(self, solver):
+    def __DeformBackgroundGrid(self, solver,is_explicit):
         grid_mp = solver.model.GetModelPart("Background_Grid")
         grid_interface_mp = solver.model.GetModelPart("coupling_nodes")
 
@@ -279,7 +288,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         radius_of_full_deformation = self.settings["deform_mpm_grid_settings"]["radius_of_full_deformation"].GetDouble()
         radius_of_zero_deformation = self.settings["deform_mpm_grid_settings"]["radius_of_zero_deformation"].GetDouble()
         rotate_grid = self.settings["deform_mpm_grid_settings"]["rotate_grid"].GetBool()
-        self.feti_coupling.DeformMPMGrid(grid_mp,grid_interface_mp, radius_of_full_deformation,radius_of_zero_deformation, rotate_grid)
+        self.feti_coupling.DeformMPMGrid(grid_mp,grid_interface_mp, radius_of_full_deformation,radius_of_zero_deformation, rotate_grid,is_explicit)
 
 
     @classmethod

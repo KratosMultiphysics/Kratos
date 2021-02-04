@@ -184,8 +184,6 @@ public:
                 auto& r_geometry = p_elem->GetGeometry();
                 r_geometry.PointLocalCoordinates(local_coordinates, coordinates);
 
-                for (size_t k = 0; k < r_geometry.size(); k++) r_geometry[k].SetValue(IS_DEFORMING_INTERFACE_NODE, true);
-
                 Vector N;
                 r_geometry.ShapeFunctionsValues(N, local_coordinates);
 

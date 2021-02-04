@@ -51,6 +51,8 @@ namespace Kratos
             ? p_model_mpm->GetModelPart("Background_Grid")
             : p_model_mpm->CreateModelPart("Background_Grid");
 
+        background_grid_model_part.GetProcessInfo().SetValue(IS_COSIM_COUPLED, true);
+
         KRATOS_ERROR_IF(background_grid_model_part.NumberOfElements() == 0) << "Background_Grid model part has zero elements!\n";
 
         // create coupling conditions on interface depending on the dimension

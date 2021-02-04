@@ -42,7 +42,7 @@ namespace Kratos
         GeometryType& rParentGeom = pQuadraturePointGeometry->GetGeometryParent(0);
 
         // Don't split FETI MP's that are within interface elements
-        if (CheckMPIsInInterfaceCell(rParentGeom)) {
+        if (CheckMPIsInInterfaceCell(rParentGeom, rBackgroundGridModelPart)) {
             CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                 pQuadraturePointGeometry, rLocalCoords,
                 rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
@@ -184,6 +184,26 @@ namespace Kratos
             return;
         }
 
+        // Check if any active nodes are CoSim interface nodes
+        if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_COSIM_COUPLED))
+        {
+            if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_COSIM_COUPLED))
+            {
+                for (auto& node_it : nodes_list_active)
+                {
+                    if (node_it.Has(INTERFACE_EQUATION_ID))
+                    {
+                        CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                            pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                            rParentGeom);
+                            return;
+                    }
+                }
+            }
+        }
+
+
+
         // Check volume fractions sum to unity
         double vol_sum = 0.0;
         for (size_t i = 0; i < ips_active.size(); ++i) vol_sum += ips_active[i].Weight();
@@ -224,7 +244,7 @@ namespace Kratos
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(ThisDefaultMethod,
             ips_container, shape_function_container, shape_function_derivatives_container);
 
-        for (size_t i = 0; i < nodes_list_active.size(); ++i) nodes_list_active[i].Set(ACTIVE);
+        for (auto& node_it : nodes_list_active) node_it.Set(ACTIVE);
         if (pQuadraturePointGeometry->IntegrationPointsNumber() == 1) {
             pQuadraturePointGeometry = CreateCustomQuadraturePoint(working_dim, pQuadraturePointGeometry->LocalSpaceDimension(),
                 data_container, nodes_list_active, &rParentGeom);
@@ -631,7 +651,7 @@ namespace Kratos
                 }
             }
             if (nonzero_entries != 1) {
-                KRATOS_INFO("MPMSearchElementUtility::Check - ") << "There must be only one nonzero entry per shape function column!"
+                KRATOS_INFO("PQMPMSearchElementUtility::Check - ") << "There must be only one nonzero entry per shape function column!"
                     << "\nrN = " << rN;
                 KRATOS_ERROR << "ERROR";
             }
@@ -765,22 +785,13 @@ namespace Kratos
     }
 
 
-    bool PQMPMPartitionUtilities::CheckMPIsInInterfaceCell(const GeometryType& rCell)
+    bool PQMPMPartitionUtilities::CheckMPIsInInterfaceCell(const GeometryType& rCell, const ModelPart& rBackgroundGridModelPart)
     {
-        if (rCell[0].Has(IS_DEFORMING_INTERFACE_NODE))
-        {
-            SizeType interface_node_counter = 0;
-            for (size_t k = 0; k < rCell.size(); ++k)
-            {
-                if (rCell[k].Has(IS_DEFORMING_INTERFACE_NODE))
-                {
-                    if (rCell[k].GetValue(IS_DEFORMING_INTERFACE_NODE)) interface_node_counter++;
+        if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_COSIM_COUPLED)) {
+            if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_COSIM_COUPLED)) {
+                for (size_t k = 0; k < rCell.PointsNumber(); ++k) {
+                    if (rCell[k].Has(INTERFACE_EQUATION_ID)) return true;
                 }
-            }
-            if (interface_node_counter == rCell.size())
-            {
-                KRATOS_INFO("NOT SPLIT");
-                return true;
             }
         }
 
