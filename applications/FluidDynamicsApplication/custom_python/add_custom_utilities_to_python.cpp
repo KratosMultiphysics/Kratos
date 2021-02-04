@@ -38,7 +38,7 @@
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
-
+#include "custom_utilities/mass_conservation_utility.h"
 #include "utilities/split_tetrahedra.h"
 
 
@@ -173,6 +173,19 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<>())
         .def("CalculateFlow", &FluidPostProcessUtilities::CalculateFlow)
         ;
+
+    py::class_< MassConservationUtility > (m,"MassConservationUtility")
+        .def(py::init< ModelPart&, Parameters >())
+        .def("Initialize", &MassConservationUtility::Initialize)
+        .def("ComputeBalancedVolume", &MassConservationUtility::ComputeBalancedVolume)
+        .def("GetVolumeError", &MassConservationUtility::GetVolumeError)
+        .def("OrthogonalFlowIntoAir", &MassConservationUtility::OrthogonalFlowIntoAir)
+        .def("ReCheckTheMassConservation", &MassConservationUtility::ReCheckTheMassConservation)
+        .def("RestoreDistanceValues", &MassConservationUtility::RestoreDistanceValues)
+        .def("ComputeTimeStepForConvection", &MassConservationUtility::ComputeTimeStepForConvection)
+        .def("RevertVelocityDirection", &MassConservationUtility::RevertVelocityDirection)
+        ;
+
 
 }
 
