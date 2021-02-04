@@ -205,6 +205,9 @@ private:
 
     Flags mOptions;
 
+    static const std::size_t mNumNodes = TDim + 1;
+	static const std::size_t mNumEdges = (TDim == 2) ? 3 : 6;
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -243,8 +246,8 @@ private:
     unsigned int ComputeEdgesIntersections(
         Element& rElement1,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
-        array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector,
-        array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector,
+        array_1d<double,mNumEdges>& rCutEdgesRatioVector,
+        array_1d<double,mNumEdges>& rCutExtraEdgesRatioVector,
         std::vector<array_1d <double,3> > &rIntersectionPointsArray);
 
     /**
@@ -345,9 +348,9 @@ private:
     void ComputeExtrapolatedEdgesIntersectionsIfIncised(
         const Element& rElement,
         unsigned int &rNumCutEdges,
-		array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector,
+		array_1d<double,mNumEdges>& rCutEdgesRatioVector,
 		array_1d<double,3> &rExtraGeomNormal,
-		array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector);
+		array_1d<double,mNumEdges>& rCutExtraEdgesRatioVector);
 
     /**
      * @brief Computes the uncut edges intersections of one element with an averaged and extrapolated geometry.
@@ -363,9 +366,9 @@ private:
 	void ComputeExtrapolatedGeometryIntersections(
         const Element& rElement,
         unsigned int& rNumCutEdges,
-		array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector,
+		array_1d<double,mNumEdges>& rCutEdgesRatioVector,
 		array_1d<double,3>& rExtraGeomNormal,
-		array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector);
+		array_1d<double,mNumEdges>& rCutExtraEdgesRatioVector);
 
     /**
      * @brief Converts edge ratios and edge ratios of the extrapolated geometry to elemental (node) distances
@@ -379,8 +382,8 @@ private:
     void ConvertEdgeDistancesToElementalDistances(
         const Element& rElement,
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
-		const array_1d<double, (TDim == 2) ? 3 : 6> &rCutEdgesRatioVector,
-        const array_1d<double, (TDim == 2) ? 3 : 6> &rCutExtraEdgesRatioVector,
+		const array_1d<double,mNumEdges> &rCutEdgesRatioVector,
+        const array_1d<double,mNumEdges> &rCutExtraEdgesRatioVector,
         Vector &rElementalDistancesExtraVector);
 
     /**
@@ -391,7 +394,7 @@ private:
      */
     void ConvertRatiosToIntersectionPoints(
         const Element::GeometryType& rGeometry,
-        const array_1d<double, (TDim == 2) ? 3 : 6> &rEdgeRatiosVector,
+        const array_1d<double,mNumEdges> &rEdgeRatiosVector,
         std::vector<array_1d <double,3> > &rIntersectionPointsVector);
 
     /**
@@ -422,7 +425,7 @@ private:
      */
     bool CheckIfCutEdgesShareNode(
         const Element& rElement,
-        const array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector) const;
+        const array_1d<double,mNumEdges>& rCutEdgesRatioVector) const;
 
     /**
      * @brief Computes the value of any embedded variable
@@ -519,7 +522,7 @@ private:
      */
     void SetElementalEdgeDistancesValues(
         Element& rElement,
-        const array_1d<double, (TDim == 2) ? 3 : 6>& rCutEdgesRatioVector);
+        const array_1d<double,mNumEdges>& rCutEdgesRatioVector);
 
     /**
      * @brief Set the ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED values
@@ -533,7 +536,7 @@ private:
      */
     void SetElementalExtrapolatedEdgeDistancesValues(
         Element& rElement,
-        const array_1d<double, (TDim == 2) ? 3 : 6>& rCutExtraEdgesRatioVector);
+        const array_1d<double,mNumEdges>& rCutExtraEdgesRatioVector);
 
     /**
      * @brief Set the ELEMENTAL_DISTANCES values
