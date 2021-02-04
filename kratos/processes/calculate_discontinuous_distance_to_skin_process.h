@@ -238,6 +238,7 @@ private:
      * method computes the edge intersections for a given element
      * @param rElement1 reference to the element of interest
      * @param rIntersectedObjects reference to the array containing the element of interest intersecting geometries
+     * @param rEdgesContainer reference to the array containing the edges of the element of interest
      * @param rCutEdgesRatioVector array that stores the relative positions from node zero of the average intersection points
      * @param rCutExtraEdgesRatioVector array that stores the relative positions from node zero of the average intersection points of the extrapolated geometry
      * @param rIntersectionPointsArray array containing the edges intersection points
@@ -246,8 +247,9 @@ private:
     unsigned int ComputeEdgesIntersections(
         Element& rElement1,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
-        array_1d<double,mNumEdges>& rCutEdgesRatioVector,
-        array_1d<double,mNumEdges>& rCutExtraEdgesRatioVector,
+        const Element::GeometryType::GeometriesArrayType& rEdgesContainer,
+        array_1d<double,mNumEdges> &rCutEdgesRatioVector,
+        array_1d<double,mNumEdges> &rCutExtraEdgesRatioVector,
         std::vector<array_1d <double,3> > &rIntersectionPointsArray);
 
     /**
@@ -354,6 +356,7 @@ private:
      * with an averaged and extrapolated geometry. Therefore it calls 'ComputeExtrapolatedGeometryIntersections'.
      * Note: for uncut or completely cut elements no ratios of the extrapolated geometry will be calculated.
      * @param rElement reference to the element of interest
+     * @param rEdgesContainer reference to the array containing the edges of the element of interest
      * @param rNumCutEdges number of cut edges of the element (by the non-extrapolated geometry)
      * @param rCutEdgesRatioVector array that stores the relative positions from node zero of the average intersection points
      * @param rExtraGeomNormal array as normal vector of the averaged and extrapolated geometry
@@ -362,6 +365,7 @@ private:
      */
     void ComputeExtrapolatedEdgesIntersectionsIfIncised(
         const Element& rElement,
+        const Element::GeometryType::GeometriesArrayType& rEdgesContainer,
         unsigned int &rNumCutEdges,
 		array_1d<double,mNumEdges>& rCutEdgesRatioVector,
 		array_1d<double,3> &rExtraGeomNormal,
@@ -372,6 +376,7 @@ private:
      * Therefore it calls 'IntersectionUtilities'.
      * It saves the edge intersections as ratios of the edge's length in rCutExtraEdgesRatioVector.
      * @param rElement reference to the element of interest
+     * @param rEdgesContainer reference to the array containing the edges of the element of interest
      * @param rNumCutEdges number of cut edges of the element
      * @param rCutEdgesRatioVector array that stores the relative positions from node zero of the average intersection points
      * @param rExtraGeomNormal normal of the averaged and extrapolated geometry
@@ -380,6 +385,7 @@ private:
      */
 	void ComputeExtrapolatedGeometryIntersections(
         const Element& rElement,
+        const Element::GeometryType::GeometriesArrayType& rEdgesContainer,
         unsigned int& rNumCutEdges,
 		array_1d<double,mNumEdges>& rCutEdgesRatioVector,
 		array_1d<double,3>& rExtraGeomNormal,
@@ -387,6 +393,9 @@ private:
 
     /**
      * @brief Converts edge ratios and edge ratios of the extrapolated geometry to elemental (node) distances
+     * @param rElement reference to the element of interest
+     * @param rIntersectedObjects reference to the array containing the element of interest intersecting geometries
+     * @param rEdgesContainer reference to the array containing the edges of the element of interest
      * @param rCutEdgesRatioVector array that stores the relative positions from node zero of the average intersection points
      * (ELEMENTAL_EDGE_DISTANCES)
      * @param rCutExtraEdgesRatioVector array that stores the relative positions from node zero of the additional
@@ -397,6 +406,7 @@ private:
     void ConvertEdgeDistancesToElementalDistances(
         const Element& rElement,
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
+        const Element::GeometryType::GeometriesArrayType& rEdgesContainer,
 		const array_1d<double,mNumEdges> &rCutEdgesRatioVector,
         const array_1d<double,mNumEdges> &rCutExtraEdgesRatioVector,
         Vector &rElementalDistancesExtraVector);
@@ -404,11 +414,13 @@ private:
     /**
      * @brief Computes the intersection points from the intersection ratios of the edges of the element of interest
      * @param rGeometry reference to geometry of the element of interest
+     * @param rEdgesContainer reference to the array containing the edges of the element of interest
      * @param rEdgeRatiosVector array containing the intersection ratios of an element's edges
      * @param rIntersectionPointsVector vector containing the intersection point arrays
      */
     void ConvertRatiosToIntersectionPoints(
         const Element::GeometryType& rGeometry,
+        const Element::GeometryType::GeometriesArrayType& rEdgesContainer,
         const array_1d<double,mNumEdges> &rEdgeRatiosVector,
         std::vector<array_1d <double,3> > &rIntersectionPointsVector);
 
@@ -435,11 +447,13 @@ private:
     /**
      * @brief Checks whether the edges of an element, which are cut, all share one node
      * @param rElement reference to the element of interest
+     * @param rEdgesContainer reference to the array containing the edges of the element of interest
      * @param rCutEdgesRatioVector array that stores the relative positions from node zero of the average intersection points
      * @return boolean true if cut edges share one node
      */
     bool CheckIfCutEdgesShareNode(
         const Element& rElement,
+        const Element::GeometryType::GeometriesArrayType& rEdgesContainer,
         const array_1d<double,mNumEdges>& rCutEdgesRatioVector) const;
 
     /**
