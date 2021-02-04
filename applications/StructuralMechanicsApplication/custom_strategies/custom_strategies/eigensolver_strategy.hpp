@@ -447,7 +447,7 @@ public:
                 << system_solve_time.ElapsedSeconds() << std::endl;
 
         if (master_slave_constraints_defined){
-            this->ReconstructSolution(Eigenvectors);
+            this->ReconstructSlaveSolution(Eigenvectors);
         }
 
         this->AssignVariables(Eigenvalues,Eigenvectors);
@@ -595,7 +595,7 @@ private:
      *  Beware that this implementation is only valid for Block B&S, since the master-slave constraints
      *  don't work with Elimination B&S yet.
      */
-    void ReconstructSolution(
+    void ReconstructSlaveSolution(
         DenseMatrixType& rEigenvectors
     )
     {
@@ -616,7 +616,8 @@ private:
             block_for_each(r_model_part.MasterSlaveConstraints(), [&i_eigenvalue, &rEigenvectors](const MasterSlaveConstraint& r_master_slave_constraint){
                 const auto& r_slave_dofs_vector = r_master_slave_constraint.GetSlaveDofsVector();
                 for (const auto& r_slave_dof: r_slave_dofs_vector){
-                    rEigenvectors(i_eigenvalue, r_slave_dof->EquationId()) = 0.0;
+                    #pragma omp atomic
+                    rEigenvectors(i_eigenvalue, r_slave_dof->EquationId()) *= 0.0;
                 }
             });
 
