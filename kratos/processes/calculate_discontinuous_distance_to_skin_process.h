@@ -206,7 +206,7 @@ private:
     Flags mOptions;
 
     static const std::size_t mNumNodes = TDim + 1;
-	static const std::size_t mNumEdges = (TDim == 2) ? 3 : 6;
+    static const std::size_t mNumEdges = (TDim == 2) ? 3 : 6;
 
     ///@}
     ///@name Private Operations
@@ -367,9 +367,9 @@ private:
         const Element& rElement,
         const Element::GeometryType::GeometriesArrayType& rEdgesContainer,
         unsigned int &rNumCutEdges,
-		array_1d<double,mNumEdges>& rCutEdgesRatioVector,
-		array_1d<double,3> &rExtraGeomNormal,
-		array_1d<double,mNumEdges>& rCutExtraEdgesRatioVector);
+        array_1d<double,mNumEdges>& rCutEdgesRatioVector,
+        array_1d<double,3> &rExtraGeomNormal,
+        array_1d<double,mNumEdges>& rCutExtraEdgesRatioVector);
 
     /**
      * @brief Computes the uncut edges intersections of one element with an averaged and extrapolated geometry.
@@ -383,13 +383,13 @@ private:
      * @param rCutExtraEdgesRatioVector array that stores the relative positions from node zero of the additional
      * average intersection points of the extrapolated geometry
      */
-	void ComputeExtrapolatedGeometryIntersections(
+    void ComputeExtrapolatedGeometryIntersections(
         const Element& rElement,
         const Element::GeometryType::GeometriesArrayType& rEdgesContainer,
         unsigned int& rNumCutEdges,
-		array_1d<double,mNumEdges>& rCutEdgesRatioVector,
-		array_1d<double,3>& rExtraGeomNormal,
-		array_1d<double,mNumEdges>& rCutExtraEdgesRatioVector);
+        array_1d<double,mNumEdges>& rCutEdgesRatioVector,
+        array_1d<double,3>& rExtraGeomNormal,
+        array_1d<double,mNumEdges>& rCutExtraEdgesRatioVector);
 
     /**
      * @brief Converts edge ratios and edge ratios of the extrapolated geometry to elemental (node) distances
@@ -405,11 +405,11 @@ private:
      */
     void ConvertEdgeDistancesToElementalDistances(
         const Element& rElement,
-		const PointerVector<GeometricalObject>& rIntersectedObjects,
+        const PointerVector<GeometricalObject>& rIntersectedObjects,
         const Element::GeometryType::GeometriesArrayType& rEdgesContainer,
-		const array_1d<double,mNumEdges> &rCutEdgesRatioVector,
+        const array_1d<double,mNumEdges> &rCutEdgesRatioVector,
         const array_1d<double,mNumEdges> &rCutExtraEdgesRatioVector,
-        Vector &rElementalDistancesExtraVector);
+        Vector& rElementalDistancesExtraVector);
 
     /**
      * @brief Computes the intersection points from the intersection ratios of the edges of the element of interest
@@ -467,53 +467,53 @@ private:
      * @param rEmbeddedVariable elemental variable in the volume mesh to be computed
      */
     template<class TVarType>
-	void CalculateEmbeddedVariableFromSkinSpecialization(
-		const Variable<TVarType> &rVariable,
-		const Variable<TVarType> &rEmbeddedVariable)
-	{
-		const auto &r_int_obj_vect= this->GetIntersections();
-		const int n_elems = mrVolumePart.NumberOfElements();
+    void CalculateEmbeddedVariableFromSkinSpecialization(
+        const Variable<TVarType> &rVariable,
+        const Variable<TVarType> &rEmbeddedVariable)
+    {
+        const auto &r_int_obj_vect= this->GetIntersections();
+        const int n_elems = mrVolumePart.NumberOfElements();
 
-		KRATOS_ERROR_IF((mrSkinPart.NodesBegin())->SolutionStepsDataHas(rVariable) == false)
-			<< "Skin model part solution step data missing variable: " << rVariable << std::endl;
+        KRATOS_ERROR_IF((mrSkinPart.NodesBegin())->SolutionStepsDataHas(rVariable) == false)
+            << "Skin model part solution step data missing variable: " << rVariable << std::endl;
 
-		// Initialize embedded variable value
-		#pragma omp parallel for
-		for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-			auto it_elem = mrVolumePart.ElementsBegin() + i_elem;
-			it_elem->SetValue(rEmbeddedVariable, rEmbeddedVariable.Zero());
-		}
+        // Initialize embedded variable value
+        #pragma omp parallel for
+        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+            auto it_elem = mrVolumePart.ElementsBegin() + i_elem;
+            it_elem->SetValue(rEmbeddedVariable, rEmbeddedVariable.Zero());
+        }
 
-		// Compute the embedded variable value for each element
-		#pragma omp parallel for schedule(dynamic)
-		for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-			// Check if the current element has intersecting entities
-			if (r_int_obj_vect[i_elem].size() != 0) {
-				// Initialize the element values
-				unsigned int n_int_edges = 0;
-				auto it_elem = mrVolumePart.ElementsBegin() + i_elem;
-				auto &r_geom = it_elem->GetGeometry();
-				const auto edges = r_geom.GenerateEdges();
+        // Compute the embedded variable value for each element
+        #pragma omp parallel for schedule(dynamic)
+        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+            // Check if the current element has intersecting entities
+            if (r_int_obj_vect[i_elem].size() != 0) {
+                // Initialize the element values
+                unsigned int n_int_edges = 0;
+                auto it_elem = mrVolumePart.ElementsBegin() + i_elem;
+                auto &r_geom = it_elem->GetGeometry();
+                const auto edges = r_geom.GenerateEdges();
 
-				// Loop the element of interest edges
-				for (unsigned int i_edge = 0; i_edge < r_geom.EdgesNumber(); ++i_edge) {
-					// Initialize edge values
-					unsigned int n_int_obj = 0;
-					TVarType i_edge_val = rEmbeddedVariable.Zero();
+                // Loop the element of interest edges
+                for (unsigned int i_edge = 0; i_edge < r_geom.EdgesNumber(); ++i_edge) {
+                    // Initialize edge values
+                    unsigned int n_int_obj = 0;
+                    TVarType i_edge_val = rEmbeddedVariable.Zero();
 
-					// Check the edge intersection against all the candidates
-					for (auto &r_int_obj : r_int_obj_vect[i_elem]) {
-						Point intersection_point;
-						const int is_intersected = this->ComputeEdgeIntersection(
-							r_int_obj.GetGeometry(),
-							edges[i_edge][0],
-							edges[i_edge][1],
-							intersection_point);
+                    // Check the edge intersection against all the candidates
+                    for (auto &r_int_obj : r_int_obj_vect[i_elem]) {
+                        Point intersection_point;
+                        const int is_intersected = this->ComputeEdgeIntersection(
+                            r_int_obj.GetGeometry(),
+                            edges[i_edge][0],
+                            edges[i_edge][1],
+                            intersection_point);
 
-						// Compute the variable value in the intersection point
+                        // Compute the variable value in the intersection point
                         if (is_intersected == 1) {
-							n_int_obj++;
-							array_1d<double,3> local_coords;
+                            n_int_obj++;
+                            array_1d<double,3> local_coords;
                             r_int_obj.GetGeometry().PointLocalCoordinates(local_coords, intersection_point);
                             Vector int_obj_N;
                             r_int_obj.GetGeometry().ShapeFunctionsValues(int_obj_N, local_coords);
@@ -521,25 +521,25 @@ private:
                                 i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(rVariable) * int_obj_N[i_node];
                             }
                         }
-					}
+                    }
 
-					// Check if the edge is intersected
-					if (n_int_obj != 0) {
-						// Update the element intersected edges counter
-						n_int_edges++;
-						// Add the average edge value (there might exist cases in where
-						// more than one geometry intersects the edge of interest).
-						it_elem->GetValue(rEmbeddedVariable) += i_edge_val / n_int_obj;
-					}
-				}
+                    // Check if the edge is intersected
+                    if (n_int_obj != 0) {
+                        // Update the element intersected edges counter
+                        n_int_edges++;
+                        // Add the average edge value (there might exist cases in where
+                        // more than one geometry intersects the edge of interest).
+                        it_elem->GetValue(rEmbeddedVariable) += i_edge_val / n_int_obj;
+                    }
+                }
 
-				// Average between all the intersected edges
-				if (n_int_edges != 0) {
-					it_elem->GetValue(rEmbeddedVariable) /= n_int_edges;
-				}
-			}
-		}
-	};
+                // Average between all the intersected edges
+                if (n_int_edges != 0) {
+                    it_elem->GetValue(rEmbeddedVariable) /= n_int_edges;
+                }
+            }
+        }
+    };
 
     /**
      * @brief Set the ELEMENTAL_EDGE_DISTANCES values
@@ -566,18 +566,6 @@ private:
     void SetElementalExtrapolatedEdgeDistancesValues(
         Element& rElement,
         const array_1d<double,mNumEdges>& rCutExtraEdgesRatioVector);
-
-    /**
-     * @brief Set the ELEMENTAL_DISTANCES values
-     * This method saves the provided geometry and extrapolated intersecting geometry elemental distances in the
-     * ELEMENTAL_DISTANCES variable
-     * @param rElement The element to set the ELEMENTAL_DISTANCES with extrapolated intersections
-     * @param rElementalDistancesExtraVector Array containing the elemental distances values of the intersecting geometry and
-     * the extrapolated geometry
-     */
-    void SetElementalDistancesWithExtrapolatedValues(
-        Element& rElement,
-        const Vector& rElementalDistancesExtraVector);
 
     /**
      * @brief Set the TO_SPLIT Kratos flag
