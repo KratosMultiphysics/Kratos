@@ -93,13 +93,11 @@ void EpsilonKBasedWallConditionDataDerivatives<TDim>::Data::Check(
 
 template <unsigned int TDim>
 EpsilonKBasedWallConditionDataDerivatives<TDim>::Data::Data(
-    const IndexType NumberOfGaussPoints,
     const GeometryType& rGeometry,
     const Properties& rProperties,
     const ProcessInfo& rProcessInfo)
     : BaseType(rGeometry, rProperties, rProcessInfo),
-      mrParentElementGeometry(rGeometry.GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry()),
-      mNumberOfGaussPoints(NumberOfGaussPoints)
+      mrParentElementGeometry(rGeometry.GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry())
 {
     KRATOS_TRY
 
@@ -130,8 +128,6 @@ const Variable<double>& EpsilonKBasedWallConditionDataDerivatives<TDim>::Data::G
 template <unsigned int TDim>
 void EpsilonKBasedWallConditionDataDerivatives<TDim>::Data::CalculateGaussPointData(
     const Vector& rN,
-    const Vector& rParentElementN,
-    const Matrix& rParentElementdNdX,
     const int Step)
 {
     auto& cl_parameters = this->GetConstitutiveLawParameters();
@@ -165,13 +161,7 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::UDerivative::CalculateWa
     const Vector& rN,
     const double WDerivative,
     const double DetJDerivative,
-    const IndexType ParentElementNodeIndex,
-    const double ParentElementW,
-    const Vector& rParentElementN,
-    const Matrix& rParentElementdNdX,
-    const double ParentElementWDerivative,
-    const double ParentElementDetJDerivative,
-    const Matrix& ParentElementdNdXDerivative) const
+    const IndexType ParentElementNodeIndex) const
 {
     double y_plus_derivative = 0.0;
     if (mrData.mWallVelocityMagnitude > 1e-16) {
@@ -187,7 +177,6 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::UDerivative::CalculateWa
 
         // this does not have any effect since mNumberOfGaussPoints is 1.
         // otherwise this may result in undesired behaviour
-        y_plus_derivative /= mrData.mNumberOfGaussPoints;
     }
 
     return (mrData.mKinematicViscosity +
@@ -202,13 +191,7 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::UDerivative::CalculateWa
     const IndexType DirectionIndex,
     const double W,
     const Vector& rN,
-    const IndexType ParentElementNodeIndex,
-    const double ParentElementW,
-    const Vector& rParentElementN,
-    const Matrix& rParentElementdNdX,
-    const double ParentElementWDerivative,
-    const double ParentElementDetJDerivative,
-    const Matrix& ParentElementdNdXDerivative) const
+    const IndexType ParentElementNodeIndex) const
 {
     return 0.0;
 }
@@ -225,13 +208,7 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::KDerivative::CalculateWa
     const Vector& rN,
     const double WDerivative,
     const double DetJDerivative,
-    const IndexType ParentElementNodeIndex,
-    const double ParentElementW,
-    const Vector& rParentElementN,
-    const Matrix& rParentElementdNdX,
-    const double ParentElementWDerivative,
-    const double ParentElementDetJDerivative,
-    const Matrix& ParentElementdNdXDerivative) const
+    const IndexType ParentElementNodeIndex) const
 {
     double u_tau_derivative = 0.0;
     double nu_t_derivative = 0.0;
@@ -264,13 +241,7 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::KDerivative::CalculateWa
     const IndexType DirectionIndex,
     const double W,
     const Vector& rN,
-    const IndexType ParentElementNodeIndex,
-    const double ParentElementW,
-    const Vector& rParentElementN,
-    const Matrix& rParentElementdNdX,
-    const double ParentElementWDerivative,
-    const double ParentElementDetJDerivative,
-    const Matrix& ParentElementdNdXDerivative) const
+    const IndexType ParentElementNodeIndex) const
 {
     // zero because wall velocity is computed only with the condition geometry nodes
     return 0.0;
@@ -288,13 +259,7 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::EpsilonDerivative::Calcu
     const Vector& rN,
     const double WDerivative,
     const double DetJDerivative,
-    const IndexType ParentElementNodeIndex,
-    const double ParentElementW,
-    const Vector& rParentElementN,
-    const Matrix& rParentElementdNdX,
-    const double ParentElementWDerivative,
-    const double ParentElementDetJDerivative,
-    const Matrix& ParentElementdNdXDerivative) const
+    const IndexType ParentElementNodeIndex) const
 {
     // here we compute derivatives w.r.t. condition nodes
     const auto& r_node = mrData.GetGeometry()[ConditionNodeIndex];
@@ -316,13 +281,7 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::EpsilonDerivative::Calcu
     const IndexType DirectionIndex,
     const double W,
     const Vector& rN,
-    const IndexType ParentElementNodeIndex,
-    const double ParentElementW,
-    const Vector& rParentElementN,
-    const Matrix& rParentElementdNdX,
-    const double ParentElementWDerivative,
-    const double ParentElementDetJDerivative,
-    const Matrix& ParentElementdNdXDerivative) const
+    const IndexType ParentElementNodeIndex) const
 {
     // zero because wall velocity is computed only with the condition geometry nodes
     return 0.0;
@@ -340,13 +299,7 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::ShapeDerivative::Calcula
     const Vector& rN,
     const double WDerivative,
     const double DetJDerivative,
-    const IndexType ParentElementNodeIndex,
-    const double ParentElementW,
-    const Vector& rParentElementN,
-    const Matrix& rParentElementdNdX,
-    const double ParentElementWDerivative,
-    const double ParentElementDetJDerivative,
-    const Matrix& ParentElementdNdXDerivative) const
+    const IndexType ParentElementNodeIndex) const
 {
     // here we compute derivatives w.r.t. condition nodes
     double y_plus_derivative = 0.0;
@@ -374,7 +327,6 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::ShapeDerivative::Calcula
 
         // this does not have any effect since mNumberOfGaussPoints is 1.
         // otherwise this may result in undesired behaviour
-        y_plus_derivative /= mrData.mNumberOfGaussPoints;
     }
 
     return (mrData.mKinematicViscosity +
@@ -389,13 +341,7 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::ShapeDerivative::Calcula
     const IndexType DirectionIndex,
     const double W,
     const Vector& rN,
-    const IndexType ParentElementNodeIndex,
-    const double ParentElementW,
-    const Vector& rParentElementN,
-    const Matrix& rParentElementdNdX,
-    const double ParentElementWDerivative,
-    const double ParentElementDetJDerivative,
-    const Matrix& ParentElementdNdXDerivative) const
+    const IndexType ParentElementNodeIndex) const
 {
     // here we compute derivatives w.r.t. parent element nodes
     double y_plus_derivative = 0.0;
@@ -413,7 +359,6 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::ShapeDerivative::Calcula
 
         // this does not have any effect since mNumberOfGaussPoints is 1.
         // otherwise this may result in undesired behaviour
-        y_plus_derivative /= mrData.mNumberOfGaussPoints;
     }
 
     return (mrData.mKinematicViscosity +

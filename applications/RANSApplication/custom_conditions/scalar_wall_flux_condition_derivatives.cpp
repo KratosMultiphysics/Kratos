@@ -65,14 +65,12 @@ GeometryData::IntegrationMethod ScalarWallFluxConditionDerivatives<TDim, TNumNod
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConditionDataType>
 ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::Data::Data(
-    const IndexType NumberOfGaussPoints,
     const Condition& rCondition,
     const Element& rParentElement,
     const ProcessInfo& rProcessInfo)
     : mrCondition(rCondition),
       mrParentElement(rParentElement),
-      mNumberOfGaussPoints(NumberOfGaussPoints),
-      mrConditionData(mNumberOfGaussPoints, rCondition.GetGeometry(), rCondition.GetProperties(), rProcessInfo)
+      mrConditionData(rCondition.GetGeometry(), rCondition.GetProperties(), rProcessInfo)
 {
     KRATOS_TRY
 
@@ -85,14 +83,11 @@ template <unsigned int TDim, unsigned int TNumNodes, class TConditionDataType>
 void ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::Data::CalculateGaussPointData(
     const double W,
     const Vector& rN,
-    const double ParentElementW,
-    const Vector& rParentElementN,
-    const Matrix& rParentElementdNdX,
     const int Step)
 {
     KRATOS_TRY
 
-    mrConditionData.CalculateGaussPointData(rN, rParentElementN, rParentElementdNdX, Step);
+    mrConditionData.CalculateGaussPointData(rN, Step);
 
     KRATOS_CATCH("");
 }
@@ -112,10 +107,7 @@ template <unsigned int TDim, unsigned int TNumNodes, class TConditionDataType>
 void ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::ResidualsContributions::AddGaussPointResidualsContributions(
     VectorN& rResidual,
     const double W,
-    const Vector& rN,
-    const double ParentElementW,
-    const Vector& rParentElementN,
-    const Matrix& ParentElementdNdX)
+    const Vector& rN)
 {
     noalias(rResidual) += rN * (W * mrData.mrConditionData.GetWallFlux());
 }
@@ -143,13 +135,7 @@ void ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::Va
     const Vector& rN,
     const double WDerivative,
     const double DetJDerivative,
-    const IndexType ParentElementNodeIndex,
-    const double ParentElementW,
-    const Vector& rParentElementN,
-    const Matrix& rParentElementdNdX,
-    const double ParentElementWDerivative,
-    const double ParentElementDetJDerivative,
-    const Matrix& ParentElementdNdXDerivative)
+    const IndexType ParentElementNodeIndex)
 {
     KRATOS_TRY
 
@@ -157,12 +143,11 @@ void ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::Va
 
     const double flux_derivative = derivative.CalculateWallFluxDerivative(
         ConditionNodeIndex, DirectionIndex, W, rN, WDerivative, DetJDerivative,
-        ParentElementNodeIndex, ParentElementW, rParentElementN, rParentElementdNdX,
-        ParentElementWDerivative, ParentElementDetJDerivative, ParentElementdNdXDerivative);
+        ParentElementNodeIndex);
 
     rResidualDerivative = rN * (W * flux_derivative);
 
-    mResidualWeightDerivativeContributions.AddGaussPointResidualsContributions(rResidualDerivative, WDerivative, rN, ParentElementW, rParentElementN, rParentElementdNdX);
+    mResidualWeightDerivativeContributions.AddGaussPointResidualsContributions(rResidualDerivative, WDerivative, rN);
 
     KRATOS_CATCH("");
 }
@@ -174,22 +159,14 @@ void ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::Va
     const IndexType DirectionIndex,
     const double W,
     const Vector& rN,
-    const IndexType ParentElementNodeIndex,
-    const double ParentElementW,
-    const Vector& rParentElementN,
-    const Matrix& rParentElementdNdX,
-    const double ParentElementWDerivative,
-    const double ParentElementDetJDerivative,
-    const Matrix& ParentElementdNdXDerivative)
+    const IndexType ParentElementNodeIndex)
 {
     KRATOS_TRY
 
     const TDerivativesType derivative(mrData.mrConditionData);
 
     const double flux_derivative = derivative.CalculateWallFluxDerivative(
-        DirectionIndex, W, rN, ParentElementNodeIndex, ParentElementW,
-        rParentElementN, rParentElementdNdX, ParentElementWDerivative,
-        ParentElementDetJDerivative, ParentElementdNdXDerivative);
+        DirectionIndex, W, rN, ParentElementNodeIndex);
 
     rResidualDerivative = rN * (W * flux_derivative);
 

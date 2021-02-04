@@ -83,25 +83,13 @@ public:
             const Vector& rN,
             const double WDerivative,
             const double DetJDerivative,
-            const IndexType ParentElementNodeIndex,
-            const double ParentElementW,
-            const Vector& rParentElementN,
-            const Matrix& rParentElementdNdX,
-            const double ParentElementWDerivative,
-            const double ParentElementDetJDerivative,
-            const Matrix& ParentElementdNdXDerivative) const;
+            const IndexType ParentElementNodeIndex) const;
 
         double CalculateWallFluxDerivative(
             const IndexType DirectionIndex,
             const double W,
             const Vector& rN,
-            const IndexType ParentElementNodeIndex,
-            const double ParentElementW,
-            const Vector& rParentElementN,
-            const Matrix& rParentElementdNdX,
-            const double ParentElementWDerivative,
-            const double ParentElementDetJDerivative,
-            const Matrix& ParentElementdNdXDerivative) const;
+            const IndexType ParentElementNodeIndex) const;
 
         ///@}
 
@@ -143,25 +131,13 @@ public:
             const Vector& rN,
             const double WDerivative,
             const double DetJDerivative,
-            const IndexType ParentElementNodeIndex,
-            const double ParentElementW,
-            const Vector& rParentElementN,
-            const Matrix& rParentElementdNdX,
-            const double ParentElementWDerivative,
-            const double ParentElementDetJDerivative,
-            const Matrix& ParentElementdNdXDerivative) const;
+            const IndexType ParentElementNodeIndex) const;
 
         double CalculateWallFluxDerivative(
             const IndexType DirectionIndex,
             const double W,
             const Vector& rN,
-            const IndexType ParentElementNodeIndex,
-            const double ParentElementW,
-            const Vector& rParentElementN,
-            const Matrix& rParentElementdNdX,
-            const double ParentElementWDerivative,
-            const double ParentElementDetJDerivative,
-            const Matrix& ParentElementdNdXDerivative) const;
+            const IndexType ParentElementNodeIndex) const;
 
         ///@}
 
@@ -203,25 +179,13 @@ public:
             const Vector& rN,
             const double WDerivative,
             const double DetJDerivative,
-            const IndexType ParentElementNodeIndex,
-            const double ParentElementW,
-            const Vector& rParentElementN,
-            const Matrix& rParentElementdNdX,
-            const double ParentElementWDerivative,
-            const double ParentElementDetJDerivative,
-            const Matrix& ParentElementdNdXDerivative) const;
+            const IndexType ParentElementNodeIndex) const;
 
         double CalculateWallFluxDerivative(
             const IndexType DirectionIndex,
             const double W,
             const Vector& rN,
-            const IndexType ParentElementNodeIndex,
-            const double ParentElementW,
-            const Vector& rParentElementN,
-            const Matrix& rParentElementdNdX,
-            const double ParentElementWDerivative,
-            const double ParentElementDetJDerivative,
-            const Matrix& ParentElementdNdXDerivative) const;
+            const IndexType ParentElementNodeIndex) const;
 
         ///@}
 
@@ -263,25 +227,13 @@ public:
             const Vector& rN,
             const double WDerivative,
             const double DetJDerivative,
-            const IndexType ParentElementNodeIndex,
-            const double ParentElementW,
-            const Vector& rParentElementN,
-            const Matrix& rParentElementdNdX,
-            const double ParentElementWDerivative,
-            const double ParentElementDetJDerivative,
-            const Matrix& ParentElementdNdXDerivative) const;
+            const IndexType ParentElementNodeIndex) const;
 
         double CalculateWallFluxDerivative(
             const IndexType DirectionIndex,
             const double W,
             const Vector& rN,
-            const IndexType ParentElementNodeIndex,
-            const double ParentElementW,
-            const Vector& rParentElementN,
-            const Matrix& rParentElementdNdX,
-            const double ParentElementWDerivative,
-            const double ParentElementDetJDerivative,
-            const Matrix& ParentElementdNdXDerivative) const;
+            const IndexType ParentElementNodeIndex) const;
 
         ///@}
 
@@ -309,7 +261,6 @@ public:
         ///@{
 
         Data(
-            const IndexType NumberOfGaussPoints,
             const GeometryType& rGeometry,
             const Properties& rProperties,
             const ProcessInfo& rProcessInfo);
@@ -334,8 +285,6 @@ public:
 
         void CalculateGaussPointData(
             const Vector& rN,
-            const Vector& rParentElementN,
-            const Matrix& rParentElementdNdX,
             const int Step = 0);
 
         double GetWallFlux() const { return mWallFlux; }
@@ -347,7 +296,6 @@ public:
         ///@{
 
         const GeometryType& mrParentElementGeometry;
-        const IndexType mNumberOfGaussPoints;
 
         using  BaseType::mEpsilonSigma;
         using  BaseType::mKappa;

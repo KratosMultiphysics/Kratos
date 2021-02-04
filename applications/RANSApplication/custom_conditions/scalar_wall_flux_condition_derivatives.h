@@ -145,13 +145,7 @@ public:
             const IndexType DirectionIndex,
             const double W,
             const Vector& rN,
-            const IndexType ParentElementNodeIndex,
-            const double ParentElementW,
-            const Vector& rParentElementN,
-            const Matrix& rParentElementdNdX,
-            const double ParentElementWDerivative,
-            const double ParentElementDetJDerivative,
-            const Matrix& ParentElementdNdXDerivative);
+            const IndexType ParentElementNodeIndex);
 
         ///@}
     private:
@@ -171,7 +165,6 @@ public:
         ///@{
 
         Data(
-            const IndexType NumberOfGaussPoints,
             const Condition& rCondition,
             const Element& rParentElement,
             const ProcessInfo& rProcessInfo);
@@ -183,9 +176,6 @@ public:
         void CalculateGaussPointData(
             const double W,
             const Vector& rN,
-            const double ParentElementW,
-            const Vector& rParentElementN,
-            const Matrix& rParentElementdNdX,
             const int Step = 0);
 
         ///@}
@@ -195,7 +185,6 @@ public:
 
         const Condition& mrCondition;
         const Element& mrParentElement;
-        const IndexType mNumberOfGaussPoints;
         TConditionDataType mrConditionData;
 
         ///@}
