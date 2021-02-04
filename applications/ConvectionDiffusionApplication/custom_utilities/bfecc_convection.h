@@ -105,7 +105,7 @@ public:
         mLimiter.resize(nparticles);
 
         #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node){
+        for (unsigned int i_node = 0; i_node < nparticles; ++i_node){
             auto it_node = rModelPart.NodesBegin() + i_node;
             const auto X_i = it_node->Coordinates();
             const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
@@ -130,7 +130,7 @@ public:
         }
 
         #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node){
+        for (unsigned int i_node = 0; i_node < nparticles; ++i_node){
             auto it_node = rModelPart.NodesBegin() + i_node;
             const double distance_i = it_node->FastGetSolutionStepValue(rVar);
             const auto X_i = it_node->Coordinates();

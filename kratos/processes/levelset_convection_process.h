@@ -260,11 +260,11 @@ public:
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
                     auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
-                    const array_1d<double,3>& v = mVelocity[i_node];
-                    const array_1d<double,3>& v_old = mVelocityOld[i_node];
+                    const array_1d<double,3>& r_v = mVelocity[i_node];
+                    const array_1d<double,3>& r_v_old = mVelocityOld[i_node];
 
-                    it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * v_old + Nnew * v;
-                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * v_old + Nnew_before * v;
+                    it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * r_v_old + Nnew * r_v;
+                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * r_v_old + Nnew_before * r_v;
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
                 }
             }
@@ -273,11 +273,11 @@ public:
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
                     auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
-                    const array_1d<double,3>& v = mVelocity[i_node];
-                    const array_1d<double,3>& v_old = mVelocityOld[i_node];
+                    const array_1d<double,3>& r_v = mVelocity[i_node];
+                    const array_1d<double,3>& r_v_old = mVelocityOld[i_node];
 
-                    it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * v_old + Nnew * v;
-                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * v_old + Nnew_before * v;
+                    it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * r_v_old + Nnew * r_v;
+                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * r_v_old + Nnew_before * r_v;
                     const double dist = it_node->FastGetSolutionStepValue(mrLevelSetVar);
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = dist;
                     it_node->SetValue(mrLevelSetVar, dist);
@@ -295,7 +295,7 @@ public:
                 mProjectedGradientProcess.Execute();
 
                 #pragma omp parallel for
-                for (unsigned int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
                     auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
                     const auto X_i = it_node->Coordinates();
                     const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
@@ -321,7 +321,7 @@ public:
 
                 //Calculating beta_ij in a way that the linearity is preserved on non-symmetrical meshes
                 #pragma omp parallel for
-                for (unsigned int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
                     auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
                     const double distance_i = it_node->FastGetSolutionStepValue(mrLevelSetVar);
                     const auto X_i = it_node->Coordinates();
@@ -361,11 +361,11 @@ public:
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
                     auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
-                    const array_1d<double,3>& v = mVelocity[i_node];
-                    const array_1d<double,3>& v_old = mVelocityOld[i_node];
+                    const array_1d<double,3>& r_v = mVelocity[i_node];
+                    const array_1d<double,3>& r_v_old = mVelocityOld[i_node];
 
-                    it_node->FastGetSolutionStepValue(mrConvectVar) = -(Nold * v_old + Nnew * v);
-                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = -(Nold_before * v_old + Nnew_before * v);
+                    it_node->FastGetSolutionStepValue(mrConvectVar) = -(Nold * r_v_old + Nnew * r_v);
+                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = -(Nold_before * r_v_old + Nnew_before * r_v);
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
                 }
 
@@ -383,11 +383,11 @@ public:
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
                     auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
-                    const array_1d<double,3>& v = mVelocity[i_node];
-                    const array_1d<double,3>& v_old = mVelocityOld[i_node];
+                    const array_1d<double,3>& r_v = mVelocity[i_node];
+                    const array_1d<double,3>& r_v_old = mVelocityOld[i_node];
 
-                    it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * v_old + Nnew * v;
-                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * v_old + Nnew_before * v;
+                    it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * r_v_old + Nnew * r_v;
+                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * r_v_old + Nnew_before * r_v;
                     const double phi_n_star = it_node->GetValue(mrLevelSetVar) + mLimiter[i_node]*mError[i_node];
                     it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
