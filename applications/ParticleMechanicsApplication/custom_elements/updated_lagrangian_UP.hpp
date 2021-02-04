@@ -286,10 +286,9 @@ protected:
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    using UpdatedLagrangian::CalculateAndAddKuug;
-    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                             GeneralVariables& rVariables,
-                             const double& rIntegrationWeight);
+    void CalculateAndAddKuugUP(MatrixType& rLeftHandSideMatrix,
+                               GeneralVariables& rVariables,
+                               const double& rIntegrationWeight);
 
     /**
      * Calculation of the Kup matrix
