@@ -52,7 +52,7 @@ public:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    void BFECCConvectPartially(
+    void BFECCconvectPartially(
         ModelPart& rModelPart,
         const Variable< double >& rVar,
         const Variable<array_1d<double,3> >& conv_var,
@@ -78,9 +78,8 @@ public:
         block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
             rNode.SetValue(rVar, 0.0);
             auto &r_old_velocity = rNode.FastGetSolutionStepValue(conv_var, 1);
-            const auto &r_current_velocity = rNode.FastGetSolutionStepValue(conv_var);
             rNode.SetValue(conv_var, r_old_velocity);
-            r_old_velocity = DtFactor*r_old_velocity + (1.0 - DtFactor)*r_current_velocity;
+            noalias(r_old_velocity) = DtFactor*r_old_velocity + (1.0 - DtFactor)*rNode.FastGetSolutionStepValue(conv_var);
         });
 
         //FIRST LOOP: estimate rVar(n+1)
@@ -163,7 +162,7 @@ public:
             }
         }
 
-         #pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i < nparticles; i++)
         {
             ModelPart::NodesContainerType::iterator it_particle = rModelPart.NodesBegin() + i;
