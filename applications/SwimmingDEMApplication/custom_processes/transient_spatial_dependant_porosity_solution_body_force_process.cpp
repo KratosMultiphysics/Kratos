@@ -110,7 +110,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAnd
 
     double permeability = mPermeability;
 
-    this->CalculatePermeability(mDamkohlerNumber, dynamic_viscosity, permeability);
+    this->CalculatePermeability(mDamKohlerNumber, dynamic_viscosity, permeability);
 
 }
 
@@ -124,7 +124,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CalculateKinemat
 }
 
 void TransientSpatialDependantPorositySolutionBodyForceProcess::CalculatePermeability(
-    double &rDamkohlerNumber,
+    double &rDamKohlerNumber,
     double &dynamic_viscosity,
     double &permeability)
 {
@@ -227,10 +227,10 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CalculatePermeab
 
     double norm_u = std::sqrt(std::pow(avg_u1,2) + std::pow(avg_u2,2));
     double norm_convective = std::sqrt(std::pow(avg_convective1,2) + std::pow(avg_convective2,2));
-    double norm_div_of_sym_grad = 2 * nu * std::sqrt(std::pow(div_of_sym_grad1,2) + std::pow(div_of_sym_grad2,2));
-    double norm_grad_of_div = (2.0/3.0) * nu * std::sqrt(std::pow(grad_of_div1,2) + std::pow(grad_of_div2,2));
+    double norm_div_of_sym_grad = 2 * nu * std::sqrt(std::pow(avg_div_of_sym_grad1,2) + std::pow(avg_div_of_sym_grad2,2));
+    double norm_grad_of_div = (2.0/3.0) * nu * std::sqrt(std::pow(avg_grad_of_div1,2) + std::pow(avg_grad_of_div2,2));
 
-    permeability = dynamic_viscosity * norm_u / (rDamkohlerNumber * (norm_convective + norm_div_of_sym_grad + norm_grad_of_div));
+    permeability = dynamic_viscosity * norm_u / (rDamKohlerNumber * (norm_convective + norm_div_of_sym_grad + norm_grad_of_div));
 
 }
 
@@ -244,7 +244,6 @@ const Parameters TransientSpatialDependantPorositySolutionBodyForceProcess::GetD
                 "benchmark_parameters"     : {
                                                 "velocity"    : 1.0,
                                                 "length"      : 1.0,
-                                                "viscosity"   : 0.1,
                                                 "density"     : 1.0,
                                                 "frequency"   : 1.0,
                                                 "alpha0"      : 0.7,
@@ -252,10 +251,13 @@ const Parameters TransientSpatialDependantPorositySolutionBodyForceProcess::GetD
                                                 "period"      : 0.1,
                                                 "delta_alpha" : 0.25,
                                                 "squeeze_amplitude" : 0.425,
-                                                "x1_origin" : 0.5,
-                                                "x2_origin" : 0.5,
-                                                "omega" : 5.0,
-                                                "n_safety" : 1.0
+                                                "x1_origin"   : 0.5,
+                                                "x2_origin"   : 0.5,
+                                                "omega"       : 5.0,
+                                                "n_safety"    : 1.0,
+                                                "n_reynolds"  : 1000.0,
+                                                "n_dam"       : 0.0001,
+                                                "u_char"      : 100.0
                 },
                 "compute_nodal_error"      : true,
                 "print_convergence_output" : false,

@@ -136,7 +136,7 @@ public:
         double &viscosity);
 
     void CalculatePermeability(
-        double &rDamkohlerNumber,
+        double &rDamKohlerNumber,
         double &dynamic_viscosity,
         double &permeability);
 
