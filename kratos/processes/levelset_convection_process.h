@@ -93,14 +93,14 @@ public:
         const double max_cfl = 1.0,
         const double cross_wind_stabilization_factor = 0.7,
         const unsigned int max_substeps = 0,
-        const unsigned int bfecc_order = 0)
+        const bool is_bfecc = false)
         : mrBaseModelPart(rBaseModelPart),
           mrModel(rBaseModelPart.GetModel()),
           mrLevelSetVar(rLevelSetVar),
           mrConvectVar(rConvectVar),
           mMaxAllowedCFL(max_cfl),
           mMaxSubsteps(max_substeps),
-          mBfeccOrder(bfecc_order),
+          mIsBfecc(is_bfecc),
           mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
         KRATOS_TRY
@@ -248,7 +248,7 @@ public:
             const double Nnew_before = 1.0 - Nold_before;
 
             // Emulate clone time step by copying the new distance onto the old one
-            if (mBfeccOrder == 0){
+            if (!mIsBfecc){
                 #pragma omp parallel for
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
                     auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
@@ -279,7 +279,7 @@ public:
 
             mpSolvingStrategy->Solve(); // forward convection to reach phi_n+1
 
-            if (mBfeccOrder > 0) {// Error Compensation and Correction
+            if (mIsBfecc) {// Error Compensation and Correction
                 #pragma omp parallel for
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
                     auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
@@ -329,10 +329,10 @@ public:
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(VELOCITY) = mVelocity[i_node];
-#ifdef KRATOS_DEBUG
+
             KRATOS_ERROR_IF(dt_factor < 1.0e-12)
                 << "ERROR: dt_factor shoild be larger than zero." <<std::endl;
-#endif
+
             it_node->FastGetSolutionStepValue(VELOCITY,1) = (mVelocityOld[i_node] - (1.0 - dt_factor)*mVelocity[i_node])/dt_factor;
             it_node->FastGetSolutionStepValue(mrLevelSetVar,1) = mOldDistance[i_node];
         }
@@ -358,7 +358,7 @@ public:
         mVelocityOld.clear();
         mOldDistance.clear();
 
-        if (mBfeccOrder > 0){
+        if (mIsBfecc){
             mError.clear();
         }
     }
@@ -418,7 +418,7 @@ protected:
 
 	const unsigned int mMaxSubsteps;
 
-    const unsigned int mBfeccOrder;
+    const bool mIsBfecc;
 
     std::vector< double > mOldDistance;
     std::vector< double > mError;
@@ -448,7 +448,7 @@ protected:
           mrConvectVar(VELOCITY),
           mMaxAllowedCFL(MaxCFL),
           mMaxSubsteps(MaxSubSteps),
-          mBfeccOrder(0),
+          mIsBfecc(false),
           mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
         mDistancePartIsInitialized = false;
@@ -510,7 +510,7 @@ protected:
         mVelocityOld.resize(n_nodes);
         mOldDistance.resize(n_nodes);
 
-        if (mBfeccOrder > 0){
+        if (mIsBfecc){
             mError.resize(n_nodes);
         }
 

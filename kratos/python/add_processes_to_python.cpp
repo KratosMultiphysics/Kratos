@@ -277,7 +277,7 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
-        .def(py::init<Variable<double>&, Variable<array_1d<double, 3 > >&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int, const unsigned int>())
+        .def(py::init<Variable<double>&, Variable<array_1d<double, 3 > >&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int, const bool>())
         .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
         .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
         .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
@@ -285,7 +285,7 @@ void  AddProcessesToPython(pybind11::module& m)
         .def("ExecutePartially",&LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::ExecutePartially)
     ;
     py::class_<LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess3D")
-        .def(py::init<Variable<double>&, Variable<array_1d<double, 3 > >&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int, const unsigned int>())
+        .def(py::init<Variable<double>&, Variable<array_1d<double, 3 > >&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int, const bool>())
         .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
         .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
         .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
