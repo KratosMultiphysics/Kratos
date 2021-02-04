@@ -71,14 +71,7 @@ public:
     CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        const Flags rOptionEdge);
-
-    /// Constructor with options
-    CalculateDiscontinuousDistanceToSkinProcess(
-        ModelPart& rVolumePart,
-        ModelPart& rSkinPart,
-        const Flags rOptionEdge,
-        const Flags rOptionExtraEdge);
+        const Flags rOptions);
 
     /// Destructor.
     ~CalculateDiscontinuousDistanceToSkinProcess() override;
@@ -210,8 +203,7 @@ private:
     ModelPart& mrSkinPart;
     ModelPart& mrVolumePart;
 
-    Flags mOptionEdge;
-    Flags mOptionExtraEdge;
+    Flags mOptions;
 
     ///@}
     ///@name Private Operations

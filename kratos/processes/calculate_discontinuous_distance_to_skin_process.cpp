@@ -28,7 +28,7 @@
 namespace Kratos
 {
 	KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, CALCULATE_ELEMENTAL_EDGE_DISTANCES, 0);
-	KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, 0);
+	KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, 1);
 
 	template<std::size_t TDim>
 	CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(
@@ -37,8 +37,8 @@ namespace Kratos
 		: mFindIntersectedObjectsProcess(rVolumePart, rSkinPart)
 		, mrSkinPart(rSkinPart)
 		, mrVolumePart(rVolumePart)
-		, mOptionEdge(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES.AsFalse())
-		, mOptionExtraEdge(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED.AsFalse())
+		, mOptions(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES.AsFalse()
+             | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED.AsFalse())
 	{
 	}
 
@@ -46,26 +46,11 @@ namespace Kratos
 	CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(
 		ModelPart& rVolumePart,
 		ModelPart& rSkinPart,
-		const Flags rOptionEdge)
+		const Flags rOptions)
 		: mFindIntersectedObjectsProcess(rVolumePart, rSkinPart)
 		, mrSkinPart(rSkinPart)
 		, mrVolumePart(rVolumePart)
-		, mOptionEdge(rOptionEdge)
-		, mOptionExtraEdge(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED.AsFalse())
-	{
-	}
-
-	template<std::size_t TDim>
-	CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(
-		ModelPart& rVolumePart,
-		ModelPart& rSkinPart,
-		const Flags rOptionEdge,
-		const Flags rOptionExtraEdge)
-		: mFindIntersectedObjectsProcess(rVolumePart, rSkinPart)
-		, mrSkinPart(rSkinPart)
-		, mrVolumePart(rVolumePart)
-		, mOptionEdge(rOptionEdge)
-		, mOptionExtraEdge(rOptionExtraEdge)
+		, mOptions(rOptions)
 	{
 	}
 
@@ -89,7 +74,7 @@ namespace Kratos
 		}
 
 		// Also initialize the embedded velocity of the fluid element and the TO_SPLIT flag.
-		if (mOptionExtraEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)) {
+		if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)) {
 			// Initialize the edge distances vector
 			constexpr std::size_t num_edges = (TDim == 2) ? 3 : 6;
 			array_1d<double, num_edges> init_edge_dist_vect;
@@ -104,7 +89,7 @@ namespace Kratos
 				rElement.SetValue(ELEMENTAL_EDGE_DISTANCES, init_edge_dist_vect);
 				rElement.SetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, init_edge_dist_vect);
 			});
-		} else if (mOptionEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)) {
+		} else if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)) {
 			// Initialize the edge distances vector
 			constexpr std::size_t num_edges = (TDim == 2) ? 3 : 6;
 			array_1d<double, num_edges> init_edge_dist_vect;
@@ -145,7 +130,7 @@ namespace Kratos
 		const int number_of_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
 		auto& r_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
 
-		if (mOptionEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)) {
+		if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)) {
 			#pragma omp parallel for schedule(dynamic)
 			for (int i = 0; i < number_of_elements; ++i) {
 				CalculateElementalAndEdgeDistances(*(r_elements[i]), rIntersectedObjects[i]);
@@ -245,7 +230,7 @@ namespace Kratos
 		// Check if there is an intersection
 		bool is_intersection = false;
 		// Extrapolated edge distances were calculated (for Ausas incised elements)
-		if (mOptionExtraEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)) {
+		if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)) {
 			// Save the cut edges ratios of the extrapolated geometry in the ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED variable
 			SetElementalExtrapolatedEdgeDistancesValues(rElement1, cut_extra_edges_ratio_vector);
 
@@ -340,7 +325,7 @@ namespace Kratos
 						// Save the intersection point for computing the average
 						avg_pt += int_pt;
 						// Get normal of intersecting segment for extrapolated cut edges calculation
-						if (mOptionExtraEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)) {
+						if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)) {
 							array_1d<double,3> int_extra_geom_normal;
 							ComputeIntersectionNormalFromGeometry(r_int_obj_geom, int_extra_geom_normal);
 							avg_extra_geom_normal += int_extra_geom_normal;
@@ -359,7 +344,7 @@ namespace Kratos
 				// Increase the total intersected edges counter
 				n_cut_edges++;
 				// Get average normal of intersecting segments for the edge (for extrapolated cut edges calculation)
-				if (mOptionExtraEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)) {
+				if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)) {
 					avg_extra_geom_normal /= cut_edges_vector[i_edge];
 					extra_geom_normal += avg_extra_geom_normal;
 				}
@@ -367,7 +352,7 @@ namespace Kratos
 		}
 
 		// Calculate extrapolated edge distances (for extrapolated cut edges calculation)
-		if (mOptionExtraEdge.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED) && n_cut_edges > 0) {
+		if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED) && n_cut_edges > 0) {
 			// Get average normal of intersecting segments for all cut edges
 			extra_geom_normal /= n_cut_edges;
 			// Compute the intersections of the element's edges with the extrapolated averaged geometry

@@ -154,9 +154,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 12, { 2,5,6 }, p_properties);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
-        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
+        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES
+            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
         // Check elemental distances
@@ -852,9 +852,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
-        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
+        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES
+            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
         // Count intersected and incised elements
@@ -950,9 +950,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 2, {{3,2,4}}, p_properties_1);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
-        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
+        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES
+            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
         // Count intersected and incised elements
@@ -1068,9 +1068,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
-        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
+        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES
+            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
         // Count intersected and incised elements
@@ -1212,9 +1212,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags optionEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
-        Flags optionExtraEdge = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
-        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, optionEdge, optionExtraEdge);
+        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES
+            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
         // Count intersected and incised elements
