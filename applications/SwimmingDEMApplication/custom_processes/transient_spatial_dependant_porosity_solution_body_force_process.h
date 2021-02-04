@@ -96,6 +96,7 @@ public:
     ModelPart&                                       mrModelPart;
     double                                              mDensity;
     double                                            mViscosity;
+    double                                          mPermability;
     double                                                mUchar;
     double                                           mDeltaAlpha;
     double                                               mLength;
