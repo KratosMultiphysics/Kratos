@@ -103,8 +103,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self._levelset_dt_factor = 1.0 # this is used to identify the splitting of LS convection (Strang splitting idea)
         if (self.settings.Has("split_levelset")):
-            if (self.settings["split_levelset"].GetBool()):
-                self._levelset_dt_factor = 0.5
+            self._levelset_dt_factor = 0.5 if self.settings["split_levelset"].GetBool() else 1.0
 
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
