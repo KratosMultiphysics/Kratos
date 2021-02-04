@@ -60,7 +60,7 @@ public:
         const double DtFactor)
     {
         KRATOS_TRY
-        const double dt = dt_factor*rModelPart.GetProcessInfo()[DELTA_TIME];
+        const double dt = DtFactor*rModelPart.GetProcessInfo()[DELTA_TIME];
 
         //do movement
         Vector N(TDim + 1);
@@ -74,13 +74,13 @@ public:
         std::vector< Vector > Ns( rModelPart.Nodes().size());
         std::vector< bool > found( rModelPart.Nodes().size());
 
-        // Allocate non-historical variables and update old velocity as per dt_factor
-        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+        // Allocate non-historical variables and update old velocity as per DtFactor
+        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
             rNode.SetValue(rVar, 0.0);
-            const auto &r_old_velocity = rNode.FastGetSolutionStepValue(conv_var, 1);
-            const auto current_velocity = rNode.FastGetSolutionStepValue(conv_var);
+            auto &r_old_velocity = rNode.FastGetSolutionStepValue(conv_var, 1);
+            const auto &r_current_velocity = rNode.FastGetSolutionStepValue(conv_var);
             rNode.SetValue(conv_var, r_old_velocity);
-            r_old_velocity = dt_factor*r_old_velocity + (1.0 - dt_factor)*current_velocity;
+            r_old_velocity = DtFactor*r_old_velocity + (1.0 - DtFactor)*r_current_velocity;
         });
 
         //FIRST LOOP: estimate rVar(n+1)
@@ -187,9 +187,14 @@ public:
         KRATOS_CATCH("")
     }
 
-    void BFECCconvect(ModelPart& rModelPart, const Variable< double >& rVar, const Variable<array_1d<double,3> >& conv_var, const double substeps)
+    void BFECCconvect(
+        ModelPart& rModelPart,
+        const Variable< double >& rVar,
+        const Variable<array_1d<double,3> >& conv_var,
+        const double substeps)
     {
-        BFECCconvectPartially(rModelPart, rVar, conv_var, substeps, 1.0);
+        const double dt_factor = 1.0;
+        BFECCconvectPartially(rModelPart, rVar, conv_var, substeps, dt_factor);
     }
 
     bool ConvectBySubstepping(
