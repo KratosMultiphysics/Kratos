@@ -792,6 +792,8 @@ namespace Kratos
         const array_1d<double,3>& rIntersectionPoint)
 	{
 		const double edge_length = rEdge.Length();
+        KRATOS_ERROR_IF(edge_length < std::numeric_limits<double>::epsilon())
+			<< "Edge length of incised element is close to zero." << std::endl;
 		const double dist_avg_pt = norm_2(rEdge[0] - rIntersectionPoint);
 		return dist_avg_pt / edge_length;
 	}
