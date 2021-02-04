@@ -31,6 +31,7 @@
 #include "utilities/timer.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -69,15 +70,13 @@ public:
         std::vector< bool > found( rModelPart.Nodes().size());
 
         // Allocate non-historical variables and update old velocity as per dt_factor
-        #pragma omp parallel for
-        for (int i = 0; i < nparticles; i++) {
-            auto iparticle = rModelPart.NodesBegin() + i;
-            iparticle->SetValue(rVar, 0.0);
-            const auto old_velocity = iparticle->FastGetSolutionStepValue(conv_var, 1);
-            const auto current_velocity = iparticle->FastGetSolutionStepValue(conv_var);
-            iparticle->SetValue(conv_var, old_velocity);
-            iparticle->FastGetSolutionStepValue(conv_var, 1) = dt_factor*old_velocity + (1.0 - dt_factor)*current_velocity;
-        }
+        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+            rNode.SetValue(rVar, 0.0);
+            const auto old_velocity = rNode.FastGetSolutionStepValue(conv_var, 1);
+            const auto current_velocity = rNode.FastGetSolutionStepValue(conv_var);
+            rNode.SetValue(conv_var, old_velocity);
+            rNode.FastGetSolutionStepValue(conv_var, 1) = dt_factor*old_velocity + (1.0 - dt_factor)*current_velocity;
+        });
 
         //FIRST LOOP: estimate rVar(n+1)
         #pragma omp parallel for firstprivate(results,N,N_valid)
