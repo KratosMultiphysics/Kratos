@@ -52,7 +52,12 @@ public:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    void BFECCconvectPartially(ModelPart& rModelPart, const Variable< double >& rVar, const Variable<array_1d<double,3> >& conv_var, const double substeps, const double dt_factor)
+    void BFECCConvectPartially(
+        ModelPart& rModelPart,
+        const Variable< double >& rVar,
+        const Variable<array_1d<double,3> >& conv_var,
+        const double substeps,
+        const double DtFactor)
     {
         KRATOS_TRY
         const double dt = dt_factor*rModelPart.GetProcessInfo()[DELTA_TIME];
