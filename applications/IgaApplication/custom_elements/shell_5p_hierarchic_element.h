@@ -199,7 +199,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     std::string Info() const override
     {
