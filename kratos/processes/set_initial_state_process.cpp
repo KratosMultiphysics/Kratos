@@ -150,14 +150,19 @@ namespace Kratos
                 noalias(aux_initial_F) = (it_elem->GetGeometry()).GetValue(INITIAL_DEFORMATION_GRADIENT_MATRIX);
                 requires_unique_initial_state = true;
             }
-            if (requires_unique_initial_state)
-                p_initial_state = Kratos::make_intrusive<InitialState>(aux_initial_strain, aux_initial_stress, aux_initial_F);
 
-            // Assign the values to the GP of the element
             std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;
             it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, mrModelPart.GetProcessInfo());
-            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-                constitutive_law_vector[point_number]->SetpInitialState(p_initial_state);
+
+            if (requires_unique_initial_state) {
+                InitialState::Pointer p_initial_state_custom = Kratos::make_intrusive<InitialState>(aux_initial_strain, aux_initial_stress, aux_initial_F);
+                for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                    constitutive_law_vector[point_number]->SetpInitialState(p_initial_state_custom);
+                }
+            } else {
+                for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                    constitutive_law_vector[point_number]->SetpInitialState(p_initial_state);
+                }
             }
         }
         KRATOS_CATCH("")

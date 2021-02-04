@@ -48,8 +48,9 @@ namespace Kratos
 
             Properties::Pointer p_prop = this_model_part.CreateNewProperties(0);
 
-            const auto &r_cl = TestConstitutiveLaw::TestConstitutiveLaw();
-            p_prop->SetValue(CONSTITUTIVE_LAW, r_cl.Clone());
+            const auto cl = TestConstitutiveLaw::TestConstitutiveLaw();
+            TestConstitutiveLaw r_clone_cl = TestConstitutiveLaw::TestConstitutiveLaw();
+            p_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
             auto p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
             auto p_node_2 = this_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
@@ -62,8 +63,14 @@ namespace Kratos
             geom[2] = p_node_3;
             geom[3] = p_node_4;
             auto pgeom = Kratos::make_shared<Quadrilateral2D4<NodeType>>(PointerVector<NodeType>{geom});
-            Element::Pointer pelem = Kratos::make_intrusive<TestElement>(1, pgeom, TestElement::ResidualType::LINEAR);
-            this_model_part.AddElement(pelem);
+
+            auto elem = TestElement::TestElement(0, pgeom, p_prop, TestElement::ResidualType::LINEAR);
+            auto p_elem = Kratos::make_intrusive<TestElement>( 0, pgeom, p_prop, TestElement::ResidualType::LINEAR );
+            this_model_part.AddElement(p_elem);
+
+            const auto& r_process_info = this_model_part.GetProcessInfo();
+            for (auto& r_elem : this_model_part.Elements())
+                r_elem.Initialize(r_process_info);
 
             Vector initial_E = ZeroVector(3);
             initial_E(0) = 0.01;
@@ -80,8 +87,6 @@ namespace Kratos
             initial_F(0,1) = 0.0001;
             initial_F(1,0) = initial_F(0,1);
             initial_F(1,1) = 0.002;
-
-            KRATOS_WATCH(initial_F);
 
             // Set the initial state
             auto process = SetInitialStateProcess<2>(this_model_part, initial_E, initial_S, initial_F);
