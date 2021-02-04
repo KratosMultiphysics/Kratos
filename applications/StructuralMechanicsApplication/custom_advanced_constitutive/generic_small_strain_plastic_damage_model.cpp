@@ -788,8 +788,8 @@ CalculateIncrementsPlasticDamageCase(
 {
     const Vector effective_stress_vector = prod(rElasticMatrix, rParameters.StrainVector - rParameters.PlasticStrain);
     const Vector stress_vector = (1.0 - rParameters.Damage) * effective_stress_vector;
-    const double inner_fluxdamage_eff_stress = inner_prod(rParameters.DamageYieldFLux, effective_stress_vector);
-	const double inner_fluxplast_eff_stress = inner_prod(rParameters.PlasticityFFLux, effective_stress_vector);
+    const double inner_fluxdamage_eff_stress = inner_prod(rParameters.PlasticityFFLux, effective_stress_vector);
+	const double inner_fluxplast_eff_stress = inner_prod(rParameters.DamageYieldFLux, effective_stress_vector);
     double fact1 = 0.0, inner_normstress_gflux = 0.0;
 
     const Vector normalized_stress = stress_vector / rParameters.UniaxialStressPlasticity;
