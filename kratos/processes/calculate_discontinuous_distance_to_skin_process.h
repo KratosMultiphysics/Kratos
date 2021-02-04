@@ -281,8 +281,7 @@ private:
 
     /**
      * @brief Computes the nodal distances to the intersection plane
-     * This methods calculates the nodal distances to the intersection plane
-     * In presence of multiple intersections, it performs a least squares approximation of the intersection plane
+     * This methods calculates the nodal distances to the intersection plane.
      * @param rElement Element to calculate the ELEMENTAL_DISTANCES
      * @param rIntersectedObjects Intersected objects container
      * @param rIntersectionPointsCoordinates The edges intersection points coordinates
@@ -291,6 +290,22 @@ private:
         Element& rElement,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
         const std::vector<array_1d<double,3>>& rIntersectionPointsCoordinates);
+
+    /**
+     * @brief Creates a plane from the intersection points and calculates node distances to the plane.
+     * This methods creates a plane from the intersection points and then calculates the nodal distances
+     * to the intersection plane.
+     * In presence of multiple intersections, it performs a least squares approximation of the intersection plane.
+     * @param rGeometry reference to the geometry of the element of interest
+     * @param rIntersectedObjects Intersected objects container
+     * @param rIntersectionPointsCoordinates The edges intersection points coordinates
+     * @param rElementalDistances array containing the ELEMENTAL_DISTANCES values to be calculated
+     */
+    void CreatePlaneAndCalculateDistances(
+        const Element& rElement,
+        const PointerVector<GeometricalObject>& rIntersectedObjects,
+        const std::vector<array_1d<double,3>>& rIntersectionPointsCoordinates,
+        Vector& rElementalDistances);
 
     /**
      * @brief Computes the intersection plane approximation
