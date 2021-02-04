@@ -95,7 +95,7 @@ public:
 
     ModelPart&                                       mrModelPart;
     double                                              mDensity;
-    double                                            mViscosity;
+    double                                                mUchar;
     double                                           mDeltaAlpha;
     double                                               mLength;
     double                                   mMaxSqueezeFraction;
@@ -104,6 +104,8 @@ public:
     double                                              mNSafety;
     double                                             mX1Origin;
     double                                             mX2Origin;
+    double                                       mReynoldsNumber;
+    double                                      mDamKohlerNumber;
     ///@}
 
     ///@name Operators
