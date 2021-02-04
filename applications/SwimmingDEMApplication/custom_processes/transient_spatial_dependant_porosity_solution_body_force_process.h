@@ -69,14 +69,16 @@ public:
     /// Constructor.
     TransientSpatialDependantPorositySolutionBodyForceProcess(
         ModelPart& rModelPart,
-        const double Density,
-        const double Viscosity,
-        const double DeltaAlpha,
-        const double Length,
-        const double SqueezeAmplitude,
-        const double NSafety,
-        const double X1Origin,
-        const double X2Origin);
+        double Density,
+        double Uchar,
+        double DeltaAlpha,
+        double Length,
+        double SqueezeAmplitude,
+        double NSafety,
+        double X1Origin,
+        double X2Origin,
+        double ReynoldsNumber,
+        double DamKohlerNumber);
 
     /// Constructor with Kratos parameters.
     TransientSpatialDependantPorositySolutionBodyForceProcess(
