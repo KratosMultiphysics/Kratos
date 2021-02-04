@@ -72,10 +72,10 @@ public:
         // Allocate non-historical variables and update old velocity as per dt_factor
         block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
             rNode.SetValue(rVar, 0.0);
-            const auto old_velocity = rNode.FastGetSolutionStepValue(conv_var, 1);
+            const auto &r_old_velocity = rNode.FastGetSolutionStepValue(conv_var, 1);
             const auto current_velocity = rNode.FastGetSolutionStepValue(conv_var);
-            rNode.SetValue(conv_var, old_velocity);
-            rNode.FastGetSolutionStepValue(conv_var, 1) = dt_factor*old_velocity + (1.0 - dt_factor)*current_velocity;
+            rNode.SetValue(conv_var, r_old_velocity);
+            r_old_velocity = dt_factor*r_old_velocity + (1.0 - dt_factor)*current_velocity;
         });
 
         //FIRST LOOP: estimate rVar(n+1)
@@ -84,13 +84,13 @@ public:
         {
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-            ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator it_particle = rModelPart.NodesBegin() + i;
 
             Element::Pointer pelement;
             Element::Pointer pelement_valid;
 
-            array_1d<double,3> bckPos = iparticle->Coordinates();
-            const array_1d<double,3>& vel = iparticle->FastGetSolutionStepValue(conv_var);
+            array_1d<double,3> bckPos = it_particle->Coordinates();
+            const array_1d<double,3>& vel = it_particle->FastGetSolutionStepValue(conv_var);
             bool has_valid_elem_pointer = false;
             bool is_found = ConvectBySubstepping(dt,bckPos,vel, N,N_valid, pelement,pelement_valid, result_begin, max_results, -1.0, substeps, conv_var, has_valid_elem_pointer);
             found[i] = is_found;
@@ -106,7 +106,7 @@ public:
                     phi1 += N[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
                 }
 
-                iparticle->FastGetSolutionStepValue(rVar) = phi1;
+                it_particle->FastGetSolutionStepValue(rVar) = phi1;
             }
             else if(has_valid_elem_pointer)
             {
@@ -120,7 +120,7 @@ public:
                     phi1 += N_valid[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
                 }
 
-                iparticle->FastGetSolutionStepValue(rVar) = phi1;
+                it_particle->FastGetSolutionStepValue(rVar) = phi1;
             }
         }
 
@@ -130,13 +130,13 @@ public:
         {
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-            ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator it_particle = rModelPart.NodesBegin() + i;
 
             Element::Pointer pelement;
             Element::Pointer pelement_valid;
 
-            array_1d<double,3> fwdPos = iparticle->Coordinates();
-            const array_1d<double,3>& vel = iparticle->FastGetSolutionStepValue(conv_var,1);
+            array_1d<double,3> fwdPos = it_particle->Coordinates();
+            const array_1d<double,3>& vel = it_particle->FastGetSolutionStepValue(conv_var,1);
             bool has_valid_elem_pointer = false;
             bool is_found = ConvectBySubstepping(dt,fwdPos,vel, N, N_valid, pelement, pelement_valid, result_begin, max_results, 1.0, substeps, conv_var,has_valid_elem_pointer);
 
@@ -149,19 +149,19 @@ public:
                 }
 
                 //store correction
-                iparticle->GetValue(rVar) = 1.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5 * phi_old;
+                it_particle->GetValue(rVar) = 1.5*it_particle->FastGetSolutionStepValue(rVar,1) - 0.5 * phi_old;
 //                 iparticle->FastGetSolutionStepValue(rVar) = iparticle->GetValue(rVar) - 0.5 * (phi2 - iparticle->FastGetSolutionStepValue(rVar,1));
             }
             else
             {
-                iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1);
+                it_particle->GetValue(rVar) = it_particle->FastGetSolutionStepValue(rVar,1);
             }
         }
 
          #pragma omp parallel for
         for (int i = 0; i < nparticles; i++)
         {
-            ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator it_particle = rModelPart.NodesBegin() + i;
             bool is_found = found[i];
             if(is_found) {
                 Vector N = Ns[i];
@@ -171,12 +171,12 @@ public:
                     phi1 += N[k] * ( geom[k].GetValue(rVar) );
                 }
 
-                iparticle->FastGetSolutionStepValue(rVar) = phi1;
+                it_particle->FastGetSolutionStepValue(rVar) = phi1;
             }
 //             else
 //                 std::cout << "it should find it" << std::endl;
 
-            iparticle->FastGetSolutionStepValue(conv_var, 1) = iparticle->GetValue(conv_var); // Restoring the old velocity
+            it_particle->FastGetSolutionStepValue(conv_var, 1) = it_particle->GetValue(conv_var); // Restoring the old velocity
         }
 
         KRATOS_CATCH("")
