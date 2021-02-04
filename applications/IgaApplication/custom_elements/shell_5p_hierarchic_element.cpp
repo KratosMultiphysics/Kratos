@@ -1289,7 +1289,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    int Shell5pHierarchicElement::Check(const ProcessInfo& rCurrentProcessInfo)
+    int Shell5pHierarchicElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
 
         // Check whether ConstitutiveLaw is 3D
