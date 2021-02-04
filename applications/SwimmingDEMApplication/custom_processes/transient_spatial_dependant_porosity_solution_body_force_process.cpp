@@ -303,6 +303,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
     const double x20 = mX2Origin;
     const double c_min = (1 - squeeze_amplitude);
     const double R = (c_min * L/2) / n_safety;
+    const double scalar_permeability = mPermeability;
     Matrix inv_permeability = ZeroMatrix(dim,dim);
 
     const double c = (1 + squeeze_amplitude * std::sin(omega * time));
@@ -334,7 +335,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
         if (this->IsInsideEllipticalSupport(x1, x2, c, R)){
 
             for (unsigned int d = 0; d < dim; ++d){
-                permeability(d,d) = 100;
+                permeability(d,d) = mPermeability;
             }
 
             permeability(dim-1,dim-1) = 1.0e+30;
@@ -470,6 +471,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
     const double x20 = mX2Origin;
     const double c_min = (1 - squeeze_amplitude);
     const double R = (c_min * L/2) / n_safety;
+    double scalar_permeability = mPermeability;
     Matrix inv_permeability = ZeroMatrix(dim,dim);
 
 
@@ -502,7 +504,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
         if (this->IsInsideEllipticalSupport(x1, x2, c, R)){
 
             for (unsigned int d = 0; d < dim; ++d){
-                permeability(d,d) = 100;
+                permeability(d,d) = scalar_permeability;
             }
 
             permeability(dim-1,dim-1) = 1.0e+30;
