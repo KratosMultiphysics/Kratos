@@ -102,11 +102,13 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAnd
     mReynoldsNumber = rParameters["benchmark_parameters"]["n_reynolds"].GetDouble();
     mDamKohlerNumber = rParameters["benchmark_parameters"]["n_dam"].GetDouble();
 
-    double &nu = mViscosity;
+    double &r_nu = mViscosity;
 
-    this->CalculateKinematicViscosity(mReynoldsNumber, nu);
+    this->CalculateKinematicViscosity(mReynoldsNumber, r_nu);
 
-    double dynamic_viscosity = nu * mDensity;
+    double dynamic_viscosity = r_nu * mDensity;
+
+    double permeability = mPermeability;
 
     this->CalculatePermeability(mDamkohlerNumber, dynamic_viscosity, permeability);
 
@@ -126,7 +128,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CalculatePermeab
     double &dynamic_viscosity,
     double &permeability)
 {
-    const double time = mrModelPart.GetProcessInfo()[TIME];
+    const double time = 0.0;
     const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double delta_alpha = mDeltaAlpha;
     const double omega = mOmega;

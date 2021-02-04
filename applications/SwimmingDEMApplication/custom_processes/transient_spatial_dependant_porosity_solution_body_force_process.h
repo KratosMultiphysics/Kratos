@@ -95,6 +95,7 @@ public:
 
     ModelPart&                                       mrModelPart;
     double                                              mDensity;
+    double                                            mViscosity;
     double                                                mUchar;
     double                                           mDeltaAlpha;
     double                                               mLength;
@@ -128,6 +129,15 @@ public:
     void CheckDefaultsAndProcessSettings(Parameters &rParameters);
 
     const Parameters GetDefaultParameters() const override;
+
+    void CalculateKinematicViscosity(
+        double &rReynoldsNumber,
+        double &viscosity);
+
+    void CalculatePermeability(
+        double &rDamkohlerNumber,
+        double &dynamic_viscosity,
+        double &permeability);
 
     void SetInitialBodyForceAndPorosityField();
 
