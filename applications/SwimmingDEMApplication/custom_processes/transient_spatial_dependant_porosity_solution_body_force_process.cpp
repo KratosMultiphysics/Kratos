@@ -91,7 +91,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAnd
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
     mDensity     = rParameters["benchmark_parameters"]["density"].GetDouble();
-    mUchar   = rParameters["benchmark_parameters"]["characteristic_velocity"].GetDouble();
+    mUchar   = rParameters["benchmark_parameters"]["u_char"].GetDouble();
     mDeltaAlpha  = rParameters["benchmark_parameters"]["delta_alpha"].GetDouble();
     mLength      = rParameters["benchmark_parameters"]["length"].GetDouble();
     mOmega       = rParameters["benchmark_parameters"]["omega"].GetDouble();
@@ -108,7 +108,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAnd
 
     double dynamic_viscosity = r_nu * mDensity;
 
-    double permeability = mPermeability;
+    double &permeability = mPermeability;
 
     this->CalculatePermeability(mDamKohlerNumber, dynamic_viscosity, permeability);
 
@@ -498,7 +498,6 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
     const double R = (c_min * L/2) / n_safety;
     Matrix inv_permeability = ZeroMatrix(dim,dim);
 
-
     const double c = (1 + squeeze_amplitude * std::sin(omega * time));
 
     double du1dt, du2dt, du11, du12, du111, du112, du121, du122, du21, du22, du211, du212, du221, du222;
@@ -530,7 +529,6 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
             for (unsigned int d = 0; d < dim; ++d){
                 permeability(d,d) = mPermeability;
             }
-
             permeability(dim-1,dim-1) = 1.0e+30;
 
             r_alpha = -delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1;
