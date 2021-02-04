@@ -181,7 +181,7 @@ protected:
     /**
      * Get element size from the dofs
      */
-    SizeType GetDofsSize() override;
+    SizeType GetDofsSize() const override;
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law

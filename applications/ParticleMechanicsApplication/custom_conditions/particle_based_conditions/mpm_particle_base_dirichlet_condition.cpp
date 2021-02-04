@@ -21,7 +21,7 @@
 namespace Kratos
 {
 
-void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MPMParticleBaseDirichletCondition::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
@@ -35,7 +35,7 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
 
     // Prepare variables
     GeneralVariables Variables;
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+    MPMShapeFunctionPointValues(Variables.N);
 
     // Get NODAL_AREA from MPC_Area
     GeometryType& r_geometry = GetGeometry();
@@ -54,7 +54,7 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
 
 }
 
-void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     // Update the MPC Position
     m_xg += m_imposed_displacement;
@@ -118,11 +118,11 @@ void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
     }
 }
 
-Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
+void MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult ) const
 {
     KRATOS_TRY
 
-    rResult = MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult, rPoint);
+    MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult);
 
     // Additional check to modify zero shape function values
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -138,8 +138,6 @@ Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& 
     }
 
     rResult = rResult / denominator;
-
-    return rResult;
 
     KRATOS_CATCH( "" )
 }

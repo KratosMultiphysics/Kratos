@@ -7,15 +7,15 @@ import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
 # Import base class file
-from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_base_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_solver
 
 def CreateSolver(model, custom_settings):
     return ConvectionDiffusionSemiImplicitSolver(model, custom_settings)
 
-class ConvectionDiffusionSemiImplicitSolver(convection_diffusion_base_solver.ConvectionDiffusionBaseSolver):
+class ConvectionDiffusionSemiImplicitSolver(convection_diffusion_solver.ConvectionDiffusionSolver):
     """The semi-eulerian class for convection-diffusion solvers.
 
-    See convection_diffusion_base_solver.py for more information.
+    See convection_diffusion_solver.py for more information.
     """
 
     def __init__(self, model, custom_settings):

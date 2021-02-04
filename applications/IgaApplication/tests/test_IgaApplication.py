@@ -10,6 +10,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from iga_test_factory import SinglePatchTest as SinglePatchTest
 # 3p Shell KL
 from iga_test_factory import ScordelisRoofShell3pTest as ScordelisRoofShell3pTest
+from iga_test_factory import LinearBeamShell3pTest as LinearBeamShell3pTest
 # 5p Shell Hierarchic
 from iga_test_factory import Shell5pHierarchicLinearThickBeamTest as TShell5pHierarchicLinearThickBeamTest
 from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHierarchicLinearScordelisTest
@@ -17,6 +18,8 @@ from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5p
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
+# Nurbs Geometry tests
+from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -35,11 +38,13 @@ def AssembleTestSuites():
         SinglePatchTest,
         # 3p Shell KL
         ScordelisRoofShell3pTest,
+        LinearBeamShell3pTest,
         # 5p Shell Hierarchic
         TShell5pHierarchicLinearThickBeamTest,
         TShell5pHierarchicLinearScordelisTest,
         TShell5pHierarchicNonLinearThickBeamTest,
-        TTestModelers
+        TTestModelers,
+        TTestNurbsVolumeElements
         ]))
 
     nightSuite = suites['nightly']

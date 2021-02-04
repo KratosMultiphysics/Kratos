@@ -272,7 +272,6 @@ int ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::Check(
 {
     const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-    KRATOS_CHECK_VARIABLE_KEY(VISCOUS_PARAMETER);
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(VISCOUS_PARAMETER)) << "VISCOUS_PARAMETER is not a defined value" << std::endl;
 
     KRATOS_ERROR_IF_NOT(VoigtSize == this->GetStrainSize()) << "You are combining not compatible constitutive laws" << std::endl;

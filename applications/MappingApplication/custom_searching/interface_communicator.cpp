@@ -252,13 +252,13 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
     KRATOS_ERROR_IF(mSearchRadius < 0.0) << "Search-Radius has to be larger than 0.0!"
         << std::endl;
 
+    int sum_num_results = 0;
+    int sum_num_searched_objects = 0;
+
     if (num_interface_obj_bin > 0) { // this partition has a bin structure
         InterfaceObjectConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
         std::vector<double> neighbor_distances(num_interface_obj_bin);
         auto interface_obj(Kratos::make_shared<InterfaceObject>(array_1d<double, 3>(0.0)));
-
-        int sum_num_results = 0;
-        int sum_num_searched_objects = 0;
 
         for (auto& r_interface_infos_rank : mMapperInterfaceInfosContainer) { // loop the ranks
             // #pragma omp parallel for // TODO this requires to make some things thread-local!
@@ -295,17 +295,17 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
                 }
             }
         }
+    }
 
-        if (mEchoLevel > 1) {
-            const auto& r_data_comm = rComm.GetDataCommunicator();
-            sum_num_results = r_data_comm.Sum(sum_num_results, 0);
-            sum_num_searched_objects = r_data_comm.Sum(sum_num_searched_objects, 0);
+    if (mEchoLevel > 1) {
+        const auto& r_data_comm = rComm.GetDataCommunicator();
+        sum_num_results = r_data_comm.Sum(sum_num_results, 0);
+        sum_num_searched_objects = r_data_comm.Sum(sum_num_searched_objects, 0);
 
-            const double avg_num_results = sum_num_results / static_cast<double>(sum_num_searched_objects);
+        const double avg_num_results = sum_num_results / static_cast<double>(sum_num_searched_objects);
 
-            KRATOS_INFO_IF("Mapper", mEchoLevel > 1) << "An average of " << avg_num_results << " objects was found while searching" << std::endl;
-            KRATOS_WARNING_IF("Mapper", avg_num_results > 200) << "Many search results are found, consider adjusting the search settings for improving performance" << std::endl;
-        }
+        KRATOS_INFO_IF("Mapper", mEchoLevel > 1) << "An average of " << avg_num_results << " objects was found while searching" << std::endl;
+        KRATOS_WARNING_IF("Mapper", avg_num_results > 200) << "Many search results are found, consider adjusting the search settings for improving performance" << std::endl;
     }
 }
 

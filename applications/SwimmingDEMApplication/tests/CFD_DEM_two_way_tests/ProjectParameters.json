@@ -40,7 +40,8 @@
             "min_fluid_fraction"                         : 0.2,
             "fluid_fraction_grad_type"                   : 1,
             "calculate_diffusivity_option"               : false,
-            "viscosity_modification_type"                : 0
+            "viscosity_modification_type"                : 0,
+            "averaging_time_interval"                    : 1
         }
     },
     "custom_dem"              : {
@@ -140,7 +141,7 @@
                         },
                         "file_label"                  : "time",
                         "output_control_type"         : "time",
-                        "output_interval"            : 1.0,
+                        "output_interval"             : 1.0,
                         "body_output"                 : true,
                         "node_output"                 : false,
                         "skin_output"                 : false,

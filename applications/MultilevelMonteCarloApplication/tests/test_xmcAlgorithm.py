@@ -1,25 +1,24 @@
-# Import python class test
+# Import Python libraries
 import unittest
-
-# Import python libraries
 import json
 import sys
 import os
 
-# Import xmc classes
+# Import XMC, distributed environment
 import xmc
-
 from xmc.distributedEnvironmentFramework import get_value_from_remote
-
 
 def kratosFound():
     try:
-        import KratosMultiphysics
-
-        return True
+        from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+        return CheckIfApplicationsAvailable(
+            "ConvectionDiffusionApplication",
+            "LinearSolversApplication",
+            "MeshingApplication",
+            "MultilevelMonteCarloApplication",
+        )
     except ImportError:
         return False
-
 
 class TestXMCAlgorithm(unittest.TestCase):
     def test_mc_Kratos(self):
@@ -41,7 +40,7 @@ class TestXMCAlgorithm(unittest.TestCase):
                 parameters = json.load(parameter_file)
             # add path of the problem folder to python path
             problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
-            sys.path.append(os.path.join("poisson_square_2d_xmc"))
+            sys.path.append(os.path.join("poisson_square_2d"))
             # SampleGenerator
             samplerInputDictionary = parameters["samplerInputDictionary"]
             samplerInputDictionary["randomGeneratorInputDictionary"] = parameters[
@@ -55,17 +54,17 @@ class TestXMCAlgorithm(unittest.TestCase):
             monteCarloIndexInputDictionary["samplerInputDictionary"] = samplerInputDictionary
             # Moment Estimators
             if "qoiEstimatorInputDictionary" not in monteCarloIndexInputDictionary.keys():
-                numberQoI = parameters["solverWrapperInputDictionary"]["numberQoI"]
+                numberMomentEstimator = parameters["solverWrapperInputDictionary"]["numberMomentEstimator"]
                 monteCarloIndexInputDictionary["qoiEstimator"] = [
-                    monteCarloIndexInputDictionary["qoiEstimator"][0] for _ in range(numberQoI)
+                    monteCarloIndexInputDictionary["qoiEstimator"][0] for _ in range(numberMomentEstimator)
                 ]
                 monteCarloIndexInputDictionary["qoiEstimatorInputDictionary"] = [
                     parameters["qoiEstimatorInputDictionary"]
-                ] * numberQoI
+                ] * numberMomentEstimator
             # combined estimators
             if "combinedEstimator" in monteCarloIndexInputDictionary.keys():
                 numberCombinedQoI = parameters["solverWrapperInputDictionary"][
-                    "numberCombinedQoi"
+                    "numberCombinedMomentEstimator"
                 ]
                 monteCarloIndexInputDictionary["combinedEstimator"] = [
                     monteCarloIndexInputDictionary["combinedEstimator"][0]
@@ -158,14 +157,15 @@ class TestXMCAlgorithm(unittest.TestCase):
             "parameters/parameters_xmc_test_mlmc_Kratos_poisson_2d.json",
             "parameters/parameters_xmc_test_mlmc_Kratos_poisson_2d_with_combined_power_sums.json",
             "parameters/poisson_multi-moment_mlmc.json",
-            "parameters/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_with_combined_power_sums_multi.json"
+            "parameters/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_with_combined_power_sums_multi.json",
+            "parameters/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_DAR.json"
         ]
         for parametersPath in parametersList:
             with open(parametersPath, "r") as parameter_file:
                 parameters = json.load(parameter_file)
             # add path of the problem folder to python path
             problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
-            sys.path.append(os.path.join("poisson_square_2d_xmc"))
+            sys.path.append(os.path.join("poisson_square_2d"))
             # SampleGenerator
             samplerInputDictionary = parameters["samplerInputDictionary"]
             samplerInputDictionary["randomGeneratorInputDictionary"] = parameters[
@@ -179,17 +179,17 @@ class TestXMCAlgorithm(unittest.TestCase):
             monteCarloIndexInputDictionary["samplerInputDictionary"] = samplerInputDictionary
             # Moment Estimators
             if "qoiEstimatorInputDictionary" not in monteCarloIndexInputDictionary.keys():
-                numberQoI = parameters["solverWrapperInputDictionary"]["numberQoI"]
+                numberMomentEstimator = parameters["solverWrapperInputDictionary"]["numberMomentEstimator"]
                 monteCarloIndexInputDictionary["qoiEstimator"] = [
-                    monteCarloIndexInputDictionary["qoiEstimator"][0] for _ in range(numberQoI)
+                    monteCarloIndexInputDictionary["qoiEstimator"][0] for _ in range(numberMomentEstimator)
                 ]
                 monteCarloIndexInputDictionary["qoiEstimatorInputDictionary"] = [
                     parameters["qoiEstimatorInputDictionary"]
-                ] * numberQoI
+                ] * numberMomentEstimator
             # combined estimators
             if "combinedEstimator" in monteCarloIndexInputDictionary.keys():
                 numberCombinedQoI = parameters["solverWrapperInputDictionary"][
-                    "numberCombinedQoi"
+                    "numberCombinedMomentEstimator"
                 ]
                 monteCarloIndexInputDictionary["combinedEstimator"] = [
                     monteCarloIndexInputDictionary["combinedEstimator"][0]

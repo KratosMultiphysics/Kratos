@@ -394,20 +394,19 @@ void ShellThickElement3D4N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     const auto& r_geom = GetGeometry();
 
-    KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(GetIntegrationMethod())).size() == 4)
-            << "ShellThickElement3D4N - needs a full integration scheme" << std::endl;
+    KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(GetIntegrationMethod())).size() == 4) << "ShellThickElement3D4N - needs a full integration scheme" << std::endl;
 
     const int points_number = r_geom.PointsNumber();
-    KRATOS_ERROR_IF_NOT(points_number == 4) << "ShellThickElement3D4N - Wrong number of nodes"
-                                            << points_number << std::endl;
+    KRATOS_ERROR_IF_NOT(points_number == 4) << "ShellThickElement3D4N - Wrong number of nodes" << points_number << std::endl;
 
     BaseShellElement::Initialize(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->Initialize();
-
-    this->SetupOrientationAngles();
-
-    mEASStorage.Initialize(r_geom);
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        mpCoordinateTransformation->Initialize();
+        this->SetupOrientationAngles();
+        mEASStorage.Initialize(r_geom);
+    }
 
     KRATOS_CATCH("")
 }

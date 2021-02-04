@@ -198,7 +198,7 @@ namespace Kratos {
         int dimension = r_process_info[DOMAIN_SIZE];
 
         std::vector<unsigned int> ElementPartition;
-        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
         typedef ElementsArrayType::iterator ElementIterator;
         // This vector collects the ids of the particles that have been dettached
         // so that their id can be removed from the mOriginInletSubmodelPartIndexes map
@@ -307,7 +307,7 @@ namespace Kratos {
     void DEM_Inlet::CheckDistanceAndSetFlag(ModelPart& r_modelpart)
     {
             std::vector<unsigned int> ElementPartition;
-            OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
+            OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
             typedef ElementsArrayType::iterator ElementIterator;
             #pragma omp parallel
             {
