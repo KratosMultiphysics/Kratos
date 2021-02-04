@@ -22,6 +22,7 @@
 // Project includes
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/atomic_utilities.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -642,8 +643,7 @@ private:
                         for(IndexType j = 0; j < rTLS.relation_matrix.size2(); ++j) {
                             aux += rTLS.relation_matrix(i,j) * rTLS.master_dofs_values[j];
                         }
-                        #pragma omp atomic
-                        rEigenvectors(i_eigenvalue, r_slave_dofs_vector[i]->EquationId()) += aux;
+                        AtomicAdd(rEigenvectors(i_eigenvalue, r_slave_dofs_vector[i]->EquationId()), aux);
                     }
                 }
             });            
