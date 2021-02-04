@@ -30,6 +30,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "processes/compute_nodal_gradient_process.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos
@@ -101,7 +102,13 @@ public:
           mMaxAllowedCFL(max_cfl),
           mMaxSubsteps(max_substeps),
           mIsBfecc(is_bfecc),
-          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
+          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart"),
+          mProjectedGradientProcess(ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(
+            rBaseModelPart,
+            rLevelSetVar,
+            DISTANCE_GRADIENT,      // TODO: Should be set as an input
+            NODAL_AREA,             // TODO: Should be set as an input
+            false))
     {
         KRATOS_TRY
 
@@ -182,7 +189,7 @@ public:
             max_cfl,
             cross_wind_stabilization_factor,
             max_substeps,
-            0) {}
+            false) {}
 
     /// Destructor.
     ~LevelSetConvectionProcess() override
@@ -277,6 +284,76 @@ public:
                 }
             }
 
+            // ****************************************************************************************
+            // ****************************************************************************************
+            // Calculating nodal limiter using \beta_ij = 1 (works fine on symmetric structural meshes)
+            // D. Kuzmin et al. / Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41
+            if (mIsBfecc){
+                const double epsilon = 1.0e-15;
+                const double power_bfecc = 2.0;
+
+                mProjectedGradientProcess.Execute();
+
+                #pragma omp parallel for
+                for (unsigned int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+                    const auto X_i = it_node->Coordinates();
+                    const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+
+                    double S_plus = 0.0;
+                    double S_minus = 0.0;
+
+                    for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
+                        j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+
+                        if (it_node->Id() == j_node->Id())
+                            continue;
+
+                        const auto X_j = j_node->Coordinates();
+
+                        S_plus += std::max(0.0, inner_prod(grad_i, X_i-X_j));
+                        S_minus += std::min(0.0, inner_prod(grad_i, X_i-X_j));
+                    }
+
+                    mSigmaPlus[i_node] = std::min(1.0, (std::abs(S_minus)+epsilon)/(S_plus+epsilon));
+                    mSigmaMinus[i_node] = std::min(1.0, (S_plus+epsilon)/(std::abs(S_minus)+epsilon));
+                }
+
+                //Calculating beta_ij in a way that the linearity is preserved on non-symmetrical meshes
+                #pragma omp parallel for
+                for (unsigned int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+                    const double distance_i = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                    const auto X_i = it_node->Coordinates();
+                    const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+
+                    double numerator = 0.0;
+                    double denominator = 0.0;
+
+                    for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
+                        j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+
+                        if (it_node->Id() == j_node->Id())
+                            continue;
+
+                        const double distance_j = j_node->FastGetSolutionStepValue(mrLevelSetVar);
+                        const auto X_j = j_node->Coordinates();
+
+                        double beta_ij = 1.0;
+                        if (inner_prod(grad_i, X_i-X_j) > 0)
+                            beta_ij = mSigmaPlus[i_node];
+                        else if (inner_prod(grad_i, X_i-X_j) < 0)
+                            beta_ij = mSigmaMinus[i_node];
+
+                        numerator += beta_ij*(distance_i - distance_j);
+                        denominator += beta_ij*std::abs(distance_i - distance_j);
+                    }
+
+                    const double fraction = (std::abs(numerator)/*  + epsilon */) / (denominator + epsilon);
+                    mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
+                }
+            }
+
             mpSolvingStrategy->Solve(); // forward convection to reach phi_n+1
 
             if (mIsBfecc) {// Error Compensation and Correction
@@ -311,7 +388,7 @@ public:
 
                     it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * v_old + Nnew * v;
                     it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * v_old + Nnew_before * v;
-                    const double phi_n_star = it_node->GetValue(mrLevelSetVar) + mError[i_node];
+                    const double phi_n_star = it_node->GetValue(mrLevelSetVar) + mLimiter[i_node]*mError[i_node];
                     it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
                 }
@@ -360,6 +437,9 @@ public:
 
         if (mIsBfecc){
             mError.clear();
+            mSigmaPlus.clear();
+            mSigmaMinus.clear();
+            mLimiter.clear();
         }
     }
 
@@ -423,10 +503,14 @@ protected:
     std::vector< double > mOldDistance;
     std::vector< double > mError;
     std::vector< array_1d<double,3> > mVelocity, mVelocityOld;
+    std::vector< double > mSigmaPlus, mSigmaMinus;
+    std::vector< double > mLimiter;
 
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
     std::string mAuxModelPartName;
+
+    ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> mProjectedGradientProcess;
 
     ///@}
     ///@name Protected Operators
@@ -512,6 +596,9 @@ protected:
 
         if (mIsBfecc){
             mError.resize(n_nodes);
+            mSigmaPlus.resize(n_nodes);
+            mSigmaMinus.resize(n_nodes);
+            mLimiter.resize(n_nodes);
         }
 
         mDistancePartIsInitialized = true;
