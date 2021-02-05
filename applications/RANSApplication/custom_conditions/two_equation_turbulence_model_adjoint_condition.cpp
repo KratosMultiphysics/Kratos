@@ -603,7 +603,6 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
         IndexType row = 0;
         for (IndexType c = 0; c < parent_element_number_of_nodes; ++c) {
             auto p_index = rParentElementNodesToConditionNodesMap.find(c);
-            KRATOS_WATCH(c);
             for (IndexType k = 0; k < TDim; ++k) {
                 if (p_index->second >= 0) {
                     // compute derivative w.r.t. condition nodes
@@ -611,11 +610,9 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
                     CalculateGeometryDataDerivative(W_derivative, detJ_derivative, p_index->second, k, g, integration_method);
 
                     derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, p_index->second, k, W, N, W_derivative, detJ_derivative, c);
-                    std::cout << "\nCondition deriv_RHS = " << residual_derivative << "\n";
                 } else {
                     // compute derivatives w.r.t. parent element only nodes
                     derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, k, W, N, c);
-                    std::cout << "\nElement deriv_RHS = " << residual_derivative << "\n";
                 }
                 AssembleSubVectorToMatrix(rOutput, row++, 0, residual_derivative);
             }
