@@ -30,6 +30,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/indirect_scalar.h"
 #include "utilities/adjoint_extensions.h"
+#include "utilities/atomic_utilities.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
@@ -918,8 +919,7 @@ private:
             for (unsigned j = 0; j < r_geometry.PointsNumber(); ++j) {
                 double& r_num_neighbour =
                     r_geometry[j].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-#pragma omp atomic
-                r_num_neighbour += 1.0;
+                AtomicAdd(r_num_neighbour, 1.0);
             }
         });
 
