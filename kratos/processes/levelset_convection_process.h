@@ -102,13 +102,13 @@ public:
           mMaxAllowedCFL(max_cfl),
           mMaxSubsteps(max_substeps),
           mIsBfecc(is_bfecc),
-          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart"),
+          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")/* ,
           mProjectedGradientProcess(ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(
             rBaseModelPart,
             rLevelSetVar,
             DISTANCE_GRADIENT,      // TODO: Should be set as an input
             NODAL_AREA,             // TODO: Should be set as an input
-            false))
+            false)) */
     {
         KRATOS_TRY
 
@@ -209,7 +209,7 @@ public:
     ///@name Operations
     ///@{
 
-    void ExecutePartially(const double dt_factor)
+    void Execute() override
     {
         KRATOS_TRY;
 
@@ -224,6 +224,7 @@ public:
         ProcessInfo& rCurrentProcessInfo = mpDistanceModelPart->GetProcessInfo();
         const auto & r_previous_var = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->GetUnknownVariable();
         const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
+        const double dt_factor = rModelPart.GetProcessInfo()[DELTA_TIME_FACTOR];
         const double levelset_delta_time = dt_factor * previous_delta_time;
 
         // Save current level set value and current and previous step velocity values
@@ -292,7 +293,7 @@ public:
                 const double epsilon = 1.0e-15;
                 const double power_bfecc = 2.0;
 
-                mProjectedGradientProcess.Execute();
+                //mProjectedGradientProcess.Execute();
 
                 #pragma omp parallel for
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
@@ -417,11 +418,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Execute() override
-    {
-        ExecutePartially(1.0);
-    }
-
     void Clear() override{
         mpDistanceModelPart->Nodes().clear();
         mpDistanceModelPart->Conditions().clear();
@@ -510,7 +506,7 @@ protected:
 
     std::string mAuxModelPartName;
 
-    ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> mProjectedGradientProcess;
+    //ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> mProjectedGradientProcess;
 
     ///@}
     ///@name Protected Operators

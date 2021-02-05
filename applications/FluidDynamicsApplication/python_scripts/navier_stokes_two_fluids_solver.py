@@ -101,7 +101,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self._eulerian_error_compensation = self.settings["eulerian_error_compensation"].GetBool()
 
         # this is used to identify the splitting of LS convection (Strang splitting idea)
-        self._levelset_dt_factor = 0.5 if self.settings["levelset_splitting"].GetBool() else 1.0
+        dt_factor = 0.5 if self.settings["levelset_splitting"].GetBool() else 1.0
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, dt_factor)
+        self._levelset_dt_factor = dt_factor
 
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
@@ -190,14 +192,16 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:
-                self._GetLevelSetConvectionProcess().BFECCconvectPartially(
+                self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
+                self._GetLevelSetConvectionProcess().BFECCconvect(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
                     KratosMultiphysics.VELOCITY,
-                    self.settings["bfecc_number_substeps"].GetInt(),
-                    self._levelset_dt_factor)
+                    self.settings["bfecc_number_substeps"].GetInt())
             else:
-                self._GetLevelSetConvectionProcess().ExecutePartially(self._levelset_dt_factor)
+                if (self._eulerian_error_compensation):
+                    self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
+                self._GetLevelSetConvectionProcess().Execute()
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
@@ -247,20 +251,22 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
 
         if (self._levelset_dt_factor < 1.0):
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, (1.0 - self._levelset_dt_factor))
             # Perform the level-set convection to complete the solution step
             if self._bfecc_convection:
                 self._GetLevelSetConvectionProcess().CopyScalarVarToPreviousTimeStep(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE)
-
-                self._GetLevelSetConvectionProcess().BFECCconvectPartially(
+                self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
+                self._GetLevelSetConvectionProcess().BFECCconvect(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
                     KratosMultiphysics.VELOCITY,
-                    self.settings["bfecc_number_substeps"].GetInt(),
-                    1.0 - self._levelset_dt_factor)
+                    self.settings["bfecc_number_substeps"].GetInt())
             else:
-                self._GetLevelSetConvectionProcess().ExecutePartially(1.0 - self._levelset_dt_factor)
+                if (self._eulerian_error_compensation):
+                    self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
+                self._GetLevelSetConvectionProcess().Execute()
 
         if self._TimeBufferIsInitialized():
             self._GetSolutionStrategy().FinalizeSolutionStep()
@@ -352,6 +358,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._level_set_convection_process = self._CreateLevelSetConvectionProcess()
         return self._level_set_convection_process
 
+    def _GetLevelsetGradientProcess(self):
+        if not hasattr(self, '_levelset_gradient_process'):
+            self._levelset_gradient_process = self._CreateLevelsetGradientProcess()
+        return self._levelset_gradient_process
+
     def _GetDistanceReinitializationProcess(self):
         if not hasattr(self, '_distance_reinitialization_process'):
             self._distance_reinitialization_process = self._CreateDistanceReinitializationProcess()
@@ -430,6 +441,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     self._eulerian_error_compensation)
 
         return level_set_convection_process
+
+    def _CreateLevelsetGradientProcess(self):
+        distance_gradient_process = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
+                self.main_model_part,
+                KratosMultiphysics.DISTANCE,
+                KratosMultiphysics.DISTANCE_GRADIENT,
+                KratosMultiphysics.NODAL_AREA)
+
+        return levelset_gradient_process
 
     def _CreateDistanceReinitializationProcess(self):
         # Construct the variational distance calculation process

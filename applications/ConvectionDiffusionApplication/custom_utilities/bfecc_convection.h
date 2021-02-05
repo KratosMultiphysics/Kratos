@@ -53,15 +53,15 @@ public:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    void BFECCconvectPartially(
+    void BFECCconvect(
         ModelPart& rModelPart,
         const Variable< double >& rVar,
         const Variable<array_1d<double,3> >& conv_var,
-        const double substeps,
-        const double DtFactor)
+        const double substeps)
     {
         KRATOS_TRY
-        const double dt = DtFactor*rModelPart.GetProcessInfo()[DELTA_TIME];
+        const double dt_factor = rModelPart.GetProcessInfo()[DELTA_TIME_FACTOR];
+        const double dt = dt_factor*rModelPart.GetProcessInfo()[DELTA_TIME];
 
         //do movement
         Vector N(TDim + 1);
@@ -75,19 +75,19 @@ public:
         std::vector< Vector > Ns( rModelPart.Nodes().size());
         std::vector< bool > found( rModelPart.Nodes().size());
 
-        // Allocate non-historical variables and update old velocity as per DtFactor
+        // Allocate non-historical variables and update old velocity as per dt_factor
         block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
             rNode.SetValue(rVar, 0.0);
             auto &r_old_velocity = rNode.FastGetSolutionStepValue(conv_var, 1);
             rNode.SetValue(conv_var, r_old_velocity);
-            noalias(r_old_velocity) = DtFactor*r_old_velocity + (1.0 - DtFactor)*rNode.FastGetSolutionStepValue(conv_var);
+            noalias(r_old_velocity) = dt_factor*r_old_velocity + (1.0 - dt_factor)*rNode.FastGetSolutionStepValue(conv_var);
         });
 
         // ****************************************************************************************
         // ****************************************************************************************
         // Calculating nodal limiter using \beta_ij = 1 (works fine on symmetric structural meshes)
         // D. Kuzmin et al. / Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41
-        auto ProjectedGradientProcess =
+        /* auto ProjectedGradientProcess =
             ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(
             rModelPart,
             rVar,
@@ -95,7 +95,7 @@ public:
             NODAL_AREA,             // TODO: Should be set as an input
             false);
 
-        ProjectedGradientProcess.Execute();
+        ProjectedGradientProcess.Execute(); */
 
         const double epsilon = 1.0e-15;
         const double power = 2.0;
@@ -265,16 +265,6 @@ public:
         }
 
         KRATOS_CATCH("")
-    }
-
-    void BFECCconvect(
-        ModelPart& rModelPart,
-        const Variable< double >& rVar,
-        const Variable<array_1d<double,3> >& conv_var,
-        const double substeps)
-    {
-        const double dt_factor = 1.0;
-        BFECCconvectPartially(rModelPart, rVar, conv_var, substeps, dt_factor);
     }
 
     bool ConvectBySubstepping(
