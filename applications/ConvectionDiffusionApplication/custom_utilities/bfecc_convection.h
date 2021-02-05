@@ -414,11 +414,11 @@ public:
         }
 
 protected:
-    const bool mPartialDt;
     std::vector< double > mSigmaPlus, mSigmaMinus, mLimiter;
 
 private:
     typename BinBasedFastPointLocator<TDim>::Pointer mpSearchStructure;
+    const bool mPartialDt;
 
 
 
