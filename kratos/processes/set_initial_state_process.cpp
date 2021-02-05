@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo
@@ -26,7 +26,7 @@ namespace Kratos
 
     template<std::size_t TDim>
     SetInitialStateProcess<TDim>::SetInitialStateProcess(
-        ModelPart& rModelPart) 
+        ModelPart& rModelPart)
             : mrModelPart(rModelPart)
     {
         KRATOS_TRY
@@ -53,7 +53,7 @@ namespace Kratos
         const Vector& rInitialStrain,
         const Vector& rInitialStress,
         const Matrix& rInitialF) :
-        mrModelPart(rModelPart), mInitialStrain(rInitialStrain), 
+        mrModelPart(rModelPart), mInitialStrain(rInitialStrain),
         mInitialStress(rInitialStress), mInitialF(rInitialF)
     {
     }
@@ -64,8 +64,8 @@ namespace Kratos
     template<std::size_t TDim>
     SetInitialStateProcess<TDim>::SetInitialStateProcess(
         ModelPart& rModelPart,
-        const Vector& rInitialStateVector, 
-        const int InitialStateType) 
+        const Vector& rInitialStateVector,
+        const int InitialStateType)
             : mrModelPart(rModelPart)
     {
         KRATOS_TRY
@@ -97,7 +97,7 @@ namespace Kratos
     template<std::size_t TDim>
     SetInitialStateProcess<TDim>::SetInitialStateProcess(
         ModelPart& rModelPart,
-        const Matrix& rInitialStateF) 
+        const Matrix& rInitialStateF)
             : mrModelPart(rModelPart)
     {
         KRATOS_TRY

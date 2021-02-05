@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo
@@ -34,7 +34,7 @@ namespace Kratos
 
 /// The SetInitialStateProcess.
 /** This Operation is a derived class from the process.h
- *  
+ *
 */
 template<std::size_t TDim>
 class KRATOS_API(KRATOS_CORE) SetInitialStateProcess : public Process
@@ -148,6 +148,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif //  defined 
+#endif //  defined
 
 
