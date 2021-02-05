@@ -151,9 +151,6 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CalculatePermeab
     double avg_div_of_sym_grad1 = 0.0;
     double avg_div_of_sym_grad2 = 0.0;
 
-    double avg_grad_of_div1 = 0.0;
-    double avg_grad_of_div2 = 0.0;
-
     const double c = (1 + squeeze_amplitude * std::sin(omega * time));
 
     double u1, u2, du11, du12, du111, du112, du121, du122, du21, du22, du211, du212, du221, du222;
@@ -235,8 +232,6 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CalculatePermeab
         avg_div_of_sym_grad1 += (1.0/2.0) * (2 * du111 + du212 + du122);
         avg_div_of_sym_grad2 += (1.0/2.0) * (du121 + du211 + 2 * du222);
 
-        avg_grad_of_div1 += du111 + du221;
-        avg_grad_of_div2 += du112 + du222;
     }
     avg_u1 /= num_nodes;
     avg_u2 /= num_nodes;
@@ -247,15 +242,11 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CalculatePermeab
     avg_div_of_sym_grad1 /= num_nodes;
     avg_div_of_sym_grad2 /= num_nodes;
 
-    avg_grad_of_div1 /= num_nodes;
-    avg_grad_of_div2 /= num_nodes;
-
     double norm_u = std::sqrt(std::pow(avg_u1,2) + std::pow(avg_u2,2));
     double norm_convective = std::sqrt(std::pow(avg_convective1,2) + std::pow(avg_convective2,2));
     double norm_div_of_sym_grad = 2 * nu * std::sqrt(std::pow(avg_div_of_sym_grad1,2) + std::pow(avg_div_of_sym_grad2,2));
-    double norm_grad_of_div = (2.0/3.0) * nu * std::sqrt(std::pow(avg_grad_of_div1,2) + std::pow(avg_grad_of_div2,2));
 
-    permeability = dynamic_viscosity * norm_u / (rDamKohlerNumber * (norm_convective + norm_div_of_sym_grad + norm_grad_of_div));
+    permeability = dynamic_viscosity * norm_u / (rDamKohlerNumber * (norm_convective + norm_div_of_sym_grad));
 
 }
 
