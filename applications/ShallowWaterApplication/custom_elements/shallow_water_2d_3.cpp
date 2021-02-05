@@ -806,7 +806,7 @@ void ShallowWater2D3::AlgebraicResidual(
     const array_1d<double,3> friction = rData.gravity * rData.manning2 * norm_2(rData.flow_rate) * rData.flow_rate / (std::pow(rData.height, 2.333333333333333)+e);
     const array_1d<double,3> flux = prod(rData.velocity, trans(rFlowGrad)) + vel_div * rData.flow_rate;
 
-    rFlowResidual = flow_acc + flux + c2 * (rHeightGrad - topography_grad) + friction + rData.height * mesh_acc;
+    rFlowResidual = flow_acc + flux + c2 * (rHeightGrad + topography_grad) + friction + rData.height * mesh_acc;
     rHeightresidual = height_acc + flow_div + rain;
 }
 
