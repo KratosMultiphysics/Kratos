@@ -283,7 +283,9 @@ private:
 
     /**
      * @brief Computes the nodal distances to the intersection plane
-     * This methods calculates the nodal distances to the intersection plane.
+     * This methods creates a plane from the intersection points and then calculates the nodal distances
+     * to the intersection plane.
+     * In presence of multiple intersections, it performs a least squares approximation of the intersection plane.
      * @param rElement Element to calculate the ELEMENTAL_DISTANCES
      * @param rIntersectedObjects Intersected objects container
      * @param rIntersectionPointsCoordinates The edges intersection points coordinates
@@ -292,22 +294,6 @@ private:
         Element& rElement,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
         const std::vector<array_1d<double,3>>& rIntersectionPointsCoordinates);
-
-    /**
-     * @brief Creates a plane from the intersection points and calculates node distances to the plane.
-     * This methods creates a plane from the intersection points and then calculates the nodal distances
-     * to the intersection plane.
-     * In presence of multiple intersections, it performs a least squares approximation of the intersection plane.
-     * @param rGeometry reference to the geometry of the element of interest
-     * @param rIntersectedObjects Intersected objects container
-     * @param rIntersectionPointsCoordinates The edges intersection points coordinates
-     * @param rElementalDistances array containing the ELEMENTAL_DISTANCES values to be calculated
-     */
-    void CreatePlaneAndCalculateDistances(
-        const Element& rElement,
-        const PointerVector<GeometricalObject>& rIntersectedObjects,
-        const std::vector<array_1d<double,3>>& rIntersectionPointsCoordinates,
-        Vector& rElementalDistances);
 
     /**
      * @brief Computes the intersection plane approximation
@@ -400,16 +386,13 @@ private:
      * (ELEMENTAL_EDGE_DISTANCES)
      * @param rCutExtraEdgesRatioVector array that stores the relative positions from node zero of the additional
      * average intersection points of the extrapolated geometry (ELEMENTAL_EXTRA_EDGE_DISTANCES)
-     * @param rElementalDistancesExtraVector array for the calculated elemental (node) distances values of the geometry
-     * and the extrapolated intersecting geometry (ELEMENTAL_DISTANCES)
      */
-    void ConvertEdgeDistancesToElementalDistances(
-        const Element& rElement,
+    void ComputeElementalDistancesFromEdgeRatios(
+        Element& rElement,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
         const Element::GeometryType::GeometriesArrayType& rEdgesContainer,
         const array_1d<double,mNumEdges> &rCutEdgesRatioVector,
-        const array_1d<double,mNumEdges> &rCutExtraEdgesRatioVector,
-        Vector& rElementalDistancesExtraVector);
+        const array_1d<double,mNumEdges> &rCutExtraEdgesRatioVector);
 
     /**
      * @brief Computes the intersection points from the intersection ratios of the edges of the element of interest
@@ -540,32 +523,6 @@ private:
             }
         }
     };
-
-    /**
-     * @brief Set the ELEMENTAL_EDGE_DISTANCES values
-     * This method saves the provided cut edges ratios in the ELEMENTAL_EDGE_DISTANCES variable
-     * For uncut edges, a value (-1) is set.
-     * For cut edges, the relative distance (wrt the edge length) from the 0 node of the edge to the intersection point is saved
-     * @param rElement The element to set the ELEMENTAL_EDGE_DISTANCES
-     * @param rCutEdgesRatioVector Array containing the cut edges ratio values
-     */
-    void SetElementalEdgeDistancesValues(
-        Element& rElement,
-        const array_1d<double,mNumEdges>& rCutEdgesRatioVector);
-
-    /**
-     * @brief Set the ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED values
-     * This method saves the provided extrapolated cut edges ratios in the ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED variable
-     * For uncut elements and completely intersected elements, a value of -1 is set for all edges of the element
-     * For uncut edges and cut edges of incised elements, a value of -1 is set.
-     * For edges of incised elements cut only by the extrapolated geometry, the relative distance (wrt the edge length)
-     * from the 0 node of the edge to the intersection point of the extrapolated geometry is saved
-     * @param rElement The element to set the ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED
-     * @param rCutExtraEdgesRatioVector Array containing the cut edges ratio values of the extrapolated geometry
-     */
-    void SetElementalExtrapolatedEdgeDistancesValues(
-        Element& rElement,
-        const array_1d<double,mNumEdges>& rCutExtraEdgesRatioVector);
 
     /**
      * @brief Set the TO_SPLIT Kratos flag
