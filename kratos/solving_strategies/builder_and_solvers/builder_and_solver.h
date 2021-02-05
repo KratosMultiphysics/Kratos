@@ -591,6 +591,19 @@ public:
     }
 
     /**
+     * @brief It reconstructs the solution vector at slave DOFs
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     * @param rDx The vector of unkowns
+     */
+    virtual void ReconstructSlaveSolution(
+        ModelPart& rModelPart,
+        TSystemVectorType& rDx,
+        )
+    {
+    }
+
+    /**
      * @brief This function is intended to be called at the end of the solution step to clean up memory
     storage not needed
      */
