@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "utilities/timer.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/atomic_utilities.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -510,7 +511,7 @@ public:
 
                 // Reconstruct slave DOF solution
                 if (master_slave_constraints_defined)
-                    this->ReconstructSolution(rDx);
+                    this->ReconstructSlaveSolution(rDx);
 
                 // Compute and add null space solution for dynamic derivatives
                 if (mDerivativeTypeFlag)
@@ -924,55 +925,63 @@ private:
      *  Beware that this implementation is only valid for Block B&S, since the master-slave constraints
      *  don't work with Elimination B&S yet.
      */
-    void ReconstructSolution(
+    void ReconstructSlaveSolution(
         TSystemVectorType& rDx
     )
     {
         KRATOS_TRY
 
-        const auto& rModelPart = BaseType::GetModelPart();
-        const auto& r_master_slave_constraints = rModelPart.MasterSlaveConstraints();
-        const std::size_t number_of_constraints = rModelPart.NumberOfMasterSlaveConstraints();
+        auto& r_model_part = BaseType::GetModelPart();
+        auto& r_master_slave_constraints = r_model_part.MasterSlaveConstraints();
         
         // Reset slave dofs
-        for (std::size_t i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = r_master_slave_constraints.begin() + i_const;
-            const auto& r_slave_dofs_vector = it_const->GetSlaveDofsVector();
-            for (IndexType i = 0; i < r_slave_dofs_vector.size(); ++i)
-                rDx[r_slave_dofs_vector[i]->EquationId()] = 0.0;
-        }
-        
+        block_for_each(r_master_slave_constraints, [&rDx](const MasterSlaveConstraint &r_master_slave_constraint) {
+            const auto &r_slave_dofs_vector = r_master_slave_constraint.GetSlaveDofsVector();
+            for (const auto &r_slave_dof : r_slave_dofs_vector)
+            {
+                #pragma omp atomic
+                rDx[r_slave_dof->EquationId()] *= 0.0;
+            }
+        });
+
         // Apply constraints
-        for (std::size_t i_const = 0; i_const < number_of_constraints; ++i_const) {
-            
-            auto it_const = r_master_slave_constraints.begin() + i_const;
+        struct TLS
+        {
+            Matrix relation_matrix;
+            Vector constant_vector;
+            Vector master_dofs_values;
+        };
+
+        block_for_each(r_master_slave_constraints, TLS(), [&rDx, &r_model_part](const MasterSlaveConstraint &r_master_slave_constraint, TLS &rTLS) {
             // Detect if the constraint is active or not. If the user did not make any choice the constraint
             // It is active by default
             bool constraint_is_active = true;
-            if (it_const->IsDefined(ACTIVE))
-                constraint_is_active = it_const->Is(ACTIVE);
-            if (constraint_is_active) {
-                
+            if (r_master_slave_constraint.IsDefined(ACTIVE))
+                constraint_is_active = r_master_slave_constraint.Is(ACTIVE);
+            if (constraint_is_active)
+            {
                 // Saving the master dofs values
-                const auto& r_master_dofs_vector = it_const->GetMasterDofsVector();
-                const auto& r_slave_dofs_vector = it_const->GetSlaveDofsVector();
-                Vector master_dofs_values(r_master_dofs_vector.size());
+                const auto &r_master_dofs_vector = r_master_slave_constraint.GetMasterDofsVector();
+                const auto &r_slave_dofs_vector = r_master_slave_constraint.GetSlaveDofsVector();
+                rTLS.master_dofs_values.resize(r_master_dofs_vector.size());
                 for (IndexType i = 0; i < r_master_dofs_vector.size(); ++i)
-                    master_dofs_values[i] = rDx[r_master_dofs_vector[i]->EquationId()];
+                {
+                    rTLS.master_dofs_values[i] = rDx[r_master_dofs_vector[i]->EquationId()];
+                }
                 // Apply the constraint to the slave dofs
-                Matrix relation_matrix;
-                Vector constant_vector;
-                it_const->GetLocalSystem(relation_matrix, constant_vector, rModelPart.GetProcessInfo());
-                for (IndexType i = 0; i < relation_matrix.size1(); ++i) {
-                    double aux = constant_vector[i];
-                    for(IndexType j = 0; j < relation_matrix.size2(); ++j) {
-                        aux += relation_matrix(i,j) * master_dofs_values[j];
+                r_master_slave_constraint.GetLocalSystem(rTLS.relation_matrix, rTLS.constant_vector, r_model_part.GetProcessInfo());
+                double aux;
+                for (IndexType i = 0; i < rTLS.relation_matrix.size1(); ++i)
+                {
+                    aux = rTLS.constant_vector[i];
+                    for (IndexType j = 0; j < rTLS.relation_matrix.size2(); ++j)
+                    {
+                        aux += rTLS.relation_matrix(i, j) * rTLS.master_dofs_values[j];
                     }
-                    rDx[r_slave_dofs_vector[i]->EquationId()] += aux;
+                    AtomicAdd(rDx[r_slave_dofs_vector[i]->EquationId()],aux);
                 }
             }
-        }
-        
+        });
 
         KRATOS_CATCH("")
     }
