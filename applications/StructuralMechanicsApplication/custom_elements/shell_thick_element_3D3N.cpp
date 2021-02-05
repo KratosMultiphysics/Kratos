@@ -1993,7 +1993,4 @@ void ShellThickElement3D3N::load(Serializer& rSerializer)
     rSerializer.load("CTr", *mpCoordinateTransformation);
 }
 
-// template class ShellThickElement3D3N< false >; // linear
-// template class ShellThickElement3D3N< true  >; // non-linear aka corotational
-
 } // namespace Kratos
