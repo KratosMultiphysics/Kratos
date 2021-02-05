@@ -20,6 +20,7 @@
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shellt3_local_coordinate_system.hpp"
 
 namespace Kratos
@@ -31,8 +32,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 ///@}
-
-class ShellT3_CoordinateTransformation;
 
 ///@name  Enum's
 ///@{
@@ -67,8 +66,13 @@ Shell formulation reference:
     Pages 420-431.
 */
 
-
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N : public BaseShellElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N :
+    public BaseShellElement<ShellT3_CoordinateTransformation>
+// template <bool NLinGeom>
+// class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N :
+//     public BaseShellElement<std::conditional<NLinGeom,
+//     ShellT3_CorotationalCoordinateTransformation,
+//     ShellT3_CoordinateTransformation>>
 {
 public:
 
@@ -76,6 +80,8 @@ public:
     ///@{
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D3N);
+
+    using BaseType = BaseShellElement<ShellT3_CoordinateTransformation>;
 
     typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
 

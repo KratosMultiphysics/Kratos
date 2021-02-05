@@ -20,6 +20,8 @@
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
+#include "custom_utilities/shellq4_local_coordinate_system.hpp"
 
 namespace Kratos
 {
@@ -30,10 +32,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 ///@}
-
-class ShellQ4_CoordinateTransformation;
-
-class ShellQ4_LocalCoordinateSystem;
 
 ///@name  Enum's
 ///@{
@@ -58,7 +56,7 @@ class ShellQ4_LocalCoordinateSystem;
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N : public BaseShellElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N : public BaseShellElement<ShellQ4_CoordinateTransformation>
 {
 public:
 
@@ -66,6 +64,8 @@ public:
     ///@{
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D4N);
+
+    using BaseType = BaseShellElement<ShellQ4_CoordinateTransformation>;
 
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 

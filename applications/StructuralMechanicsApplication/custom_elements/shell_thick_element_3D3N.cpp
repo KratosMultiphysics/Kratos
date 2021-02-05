@@ -11,7 +11,6 @@
 //
 
 #include "shell_thick_element_3D3N.hpp"
-#include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 
 #include "custom_utilities/shell_utilities.h"
 
@@ -94,7 +93,7 @@ ShellThickElement3D3N::CalculationData::CalculationData
 ShellThickElement3D3N::ShellThickElement3D3N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         bool NLGeom)
-    : BaseShellElement(NewId, pGeometry)
+    : BaseType(NewId, pGeometry)
     , mpCoordinateTransformation(NLGeom ?
                                  new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
                                  new ShellT3_CoordinateTransformation(pGeometry))
@@ -105,7 +104,7 @@ ShellThickElement3D3N::ShellThickElement3D3N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         bool NLGeom)
-    : BaseShellElement(NewId, pGeometry, pProperties)
+    : BaseType(NewId, pGeometry, pProperties)
     , mpCoordinateTransformation(NLGeom ?
                                  new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
                                  new ShellT3_CoordinateTransformation(pGeometry))
@@ -116,7 +115,7 @@ ShellThickElement3D3N::ShellThickElement3D3N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         CoordinateTransformationBasePointerType pCoordinateTransformation)
-    : BaseShellElement(NewId, pGeometry, pProperties)
+    : BaseType(NewId, pGeometry, pProperties)
     , mpCoordinateTransformation(pCoordinateTransformation)
 {
 }
@@ -146,7 +145,7 @@ void ShellThickElement3D3N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    BaseShellElement::Initialize(rCurrentProcessInfo);
+    BaseType::Initialize(rCurrentProcessInfo);
 
     const int points_number = GetGeometry().PointsNumber();
     KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThickElement3D3N - Wrong number of nodes" << points_number << std::endl;
@@ -462,11 +461,11 @@ void ShellThickElement3D3N::CalculateOnIntegrationPoints(const Variable<array_1d
     if (rVariable == LOCAL_AXIS_1 ||
             rVariable == LOCAL_AXIS_2 ||
             rVariable == LOCAL_AXIS_3) {
-        BaseShellElement::ComputeLocalAxis(rVariable, rOutput, mpCoordinateTransformation);
+        BaseType::ComputeLocalAxis(rVariable, rOutput, mpCoordinateTransformation);
     } else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
                rVariable == LOCAL_MATERIAL_AXIS_2 ||
                rVariable == LOCAL_MATERIAL_AXIS_3) {
-        BaseShellElement::ComputeLocalMaterialAxis(rVariable, rOutput, mpCoordinateTransformation);
+        BaseType::ComputeLocalMaterialAxis(rVariable, rOutput, mpCoordinateTransformation);
     }
 }
 
@@ -1975,7 +1974,7 @@ ShellCrossSection::SectionBehaviorType ShellThickElement3D3N::GetSectionBehavior
 
 void ShellThickElement3D3N::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     bool is_corotational = (nullptr != dynamic_cast<ShellT3_CorotationalCoordinateTransformation*>(mpCoordinateTransformation.get()));
     rSerializer.save("is_corotational", is_corotational);
     rSerializer.save("CTr", *mpCoordinateTransformation);
@@ -1983,7 +1982,7 @@ void ShellThickElement3D3N::save(Serializer& rSerializer) const
 
 void ShellThickElement3D3N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseShellElement);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     bool is_corotational;
     rSerializer.load("is_corotational", is_corotational);
     if (is_corotational) {
@@ -1993,5 +1992,8 @@ void ShellThickElement3D3N::load(Serializer& rSerializer)
     }
     rSerializer.load("CTr", *mpCoordinateTransformation);
 }
+
+// template class ShellThickElement3D3N< false >; // linear
+// template class ShellThickElement3D3N< true  >; // non-linear aka corotational
 
 } // namespace Kratos
