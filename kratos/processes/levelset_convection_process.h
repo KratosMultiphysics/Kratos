@@ -361,7 +361,7 @@ public:
                 }
             }
 
-            mpSolvingStrategy->Solve(); // forward convection to reach phi_n+1
+            mpSolvingStrategy->SolveSolutionStep(); // forward convection to reach phi_n+1
 
             if (mIsBfecc) {// Error Compensation and Correction
                 #pragma omp parallel for
@@ -376,7 +376,7 @@ public:
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
                 }
 
-                mpSolvingStrategy->Solve(); // backward convetion to obtain phi_n*
+                mpSolvingStrategy->SolveSolutionStep(); // backward convetion to obtain phi_n*
 
                 // Calculating the raw error without a limiter, etc.
                 #pragma omp parallel for
@@ -400,7 +400,7 @@ public:
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
                 }
 
-                mpSolvingStrategy->Solve(); // forward convection to obtain the corrected phi_n+1
+                mpSolvingStrategy->SolveSolutionStep(); // forward convection to obtain the corrected phi_n+1
             }
         }
 
