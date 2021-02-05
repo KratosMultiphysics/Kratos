@@ -10,8 +10,8 @@
 //  Main authors:    Altug Emiroglu, http://github.com/emiroglu
 //
 
-#if !defined(KRATOS_POSTPROCESS_ROM_BASIS_H_INCLUDED )
-#define  KRATOS_POSTPROCESS_ROM_BASIS_H_INCLUDED
+#if !defined(KRATOS_ROM_POSTPROCESS_ROM_BASIS_H_INCLUDED )
+#define  KRATOS_ROM_POSTPROCESS_ROM_BASIS_H_INCLUDED
 
 // System includes
 

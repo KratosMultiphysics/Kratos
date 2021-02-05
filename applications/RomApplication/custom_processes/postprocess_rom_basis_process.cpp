@@ -44,6 +44,7 @@ public:
     GidRomBasisOutputWrapper(ModelPart& rModelPart, Parameters OutputParameters)
         : mrModelPart(rModelPart)
     {
+        KRATOS_TRY
         std::string result_file_name = OutputParameters["result_file_name"].GetString();
 
         if (result_file_name == "") { // use the name of the ModelPart in case nothing was assigned
@@ -80,6 +81,7 @@ public:
         mpGidRomBasisIO->WriteNodeMesh(mrModelPart.GetMesh());
         mpGidRomBasisIO->FinalizeMesh();
         mpGidRomBasisIO->InitializeResults(0.0, mrModelPart.GetMesh());
+        KRATOS_CATCH("")
     }
 
     ~GidRomBasisOutputWrapper()
@@ -93,6 +95,7 @@ public:
         const std::vector<Variable<double>>& rRequestedDoubleResults,
         const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
     {
+        KRATOS_TRY
         for (const auto& r_variable : rRequestedDoubleResults) {
             mpGidRomBasisIO->WriteRomBasis(mrModelPart, r_variable, rLabel, AnimationStep);
         }
@@ -100,6 +103,7 @@ public:
         for (const auto& r_variable : rRequestedVectorResults) {
             mpGidRomBasisIO->WriteRomBasis(mrModelPart, r_variable, rLabel, AnimationStep);
         }
+        KRATOS_CATCH("")
     }
 
 private:
@@ -113,6 +117,7 @@ struct VtkRomBasisOutputWrapper : public BaseRomBasisOutputWrapper
 public:
     VtkRomBasisOutputWrapper(ModelPart& rModelPart, Parameters OutputParameters)
     {
+        KRATOS_TRY
         Parameters vtk_parameters(Parameters(R"({
             "file_format" : "binary"
         })" ));
@@ -122,6 +127,7 @@ public:
         }
 
         mpVtkRomBasisOutput = Kratos::make_unique<VtkRomBasisOutput>(rModelPart, OutputParameters, vtk_parameters);
+        KRATOS_CATCH("")
     }
 
     void PrintOutput(
@@ -130,7 +136,9 @@ public:
         const std::vector<Variable<double>>& rRequestedDoubleResults,
         const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
     {
+        KRATOS_TRY
         mpVtkRomBasisOutput->PrintRomBasisOutput(rLabel, AnimationStep, rRequestedDoubleResults, rRequestedVectorResults);
+        KRATOS_CATCH("")
     }
 
 
@@ -146,6 +154,7 @@ PostprocessRomBasisProcess::PostprocessRomBasisProcess(ModelPart& rModelPart,
                                                                 : mrModelPart(rModelPart),
                                                                 mOutputParameters(OutputParameters)
 {
+    KRATOS_TRY
     Parameters default_parameters(R"(
         {
             "result_file_name"              : "Structure",
@@ -160,10 +169,12 @@ PostprocessRomBasisProcess::PostprocessRomBasisProcess(ModelPart& rModelPart,
     );
 
     mOutputParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    KRATOS_CATCH("")
 }
 
 void PostprocessRomBasisProcess::ExecuteFinalizeSolutionStep()
 {
+    KRATOS_TRY
     Kratos::unique_ptr<BaseRomBasisOutputWrapper> p_rom_basis_io_wrapper;
     const std::string file_format(mOutputParameters["file_format"].GetString());
     if (file_format == "vtk") {
@@ -208,11 +219,13 @@ void PostprocessRomBasisProcess::ExecuteFinalizeSolutionStep()
             p_rom_basis_io_wrapper->PrintOutput(label, i_step, requested_double_results, requested_vector_results);
         }
     }
+    KRATOS_CATCH("")
 }
 
 void PostprocessRomBasisProcess::GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
                                                 std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) const
 {
+    KRATOS_TRY
     for (SizeType i=0; i<mOutputParameters["list_of_result_variables"].size(); ++i) {
         const std::string variable_name = mOutputParameters["list_of_result_variables"].GetArrayItem(i).GetString();
 
@@ -236,16 +249,18 @@ void PostprocessRomBasisProcess::GetVariables(std::vector<Variable<double>>& rRe
             KRATOS_ERROR << "Invalid Type of Variable, name: " << variable_name << std::endl;
         }
     }
+    KRATOS_CATCH("")
 }
 
 std::string PostprocessRomBasisProcess::GetLabel(const std::size_t RomBasisIndex) const
 {
-
+    KRATOS_TRY
     std::stringstream parser;
     parser << (RomBasisIndex + 1);
     std::string label = parser.str();
 
     return label;
+    KRATOS_CATCH("")
 }
 
 }  // namespace Kratos.
