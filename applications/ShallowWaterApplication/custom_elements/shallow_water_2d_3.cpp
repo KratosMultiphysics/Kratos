@@ -286,11 +286,12 @@ void ShallowWater2D3::AddShockCapturingTerm(
     double art_diff;
     ShockCapturingParameters(art_visc, art_diff, rData, rDN_DX);
 
-    BoundedMatrix<double,9,9> aux_matrix;
-    ComputeOrthogonalViscosityMatrix(aux_matrix, rDN_DX, rData.velocity, art_visc);
-    rLHS += aux_matrix;
-    ComputeOrthogonalDiffusionMatrix(aux_matrix, rDN_DX, rData.velocity, art_diff);
-    rLHS += aux_matrix;
+    BoundedMatrix<double,9,9> visc_matrix;
+    BoundedMatrix<double,9,9> diff_matrix;
+    ComputeOrthogonalViscosityMatrix(visc_matrix, rDN_DX, rData.velocity, art_visc);
+    ComputeOrthogonalDiffusionMatrix(diff_matrix, rDN_DX, rData.velocity, art_diff);
+    rLHS += visc_matrix;
+    rLHS += diff_matrix;
 }
 
 void ShallowWater2D3::AddDesingularizationTerm(
@@ -648,7 +649,7 @@ void ShallowWater2D3::ShockCapturingParameters(
 
     const double q_residual_norm = norm_2(flow_residual);
     const double q_grad_frobenius = norm_frobenius(flow_grad);
-    const double q_slope = norm_2(rData.velocity) * slope;
+    const double q_slope = std::max(norm_2(rData.velocity) * slope, slope);
     const double q_gradient_norm = std::max(q_grad_frobenius, q_slope);
     rArtViscosity = 0.5 * rData.shock_stab_factor * length * q_residual_norm / (q_gradient_norm);
 
@@ -719,7 +720,7 @@ void ShallowWater2D3::ComputeOrthogonalDiffusionMatrix(
 
             const size_t j_block = 3 * j;
 
-            rMatrix(i_block + 2, j_block + 2) += inner_prod(bj, prod(crosswind_tensor, bi));
+            rMatrix(i_block + 2, j_block + 2) = inner_prod(bj, prod(crosswind_tensor, bi));
         }
     }
 }
