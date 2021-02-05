@@ -272,27 +272,33 @@ protected:
 
     void AddFluidResidualsContributions(
         Vector& rOutput,
+        const Element& rParentElement,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddFluidFirstDerivatives(
         MatrixType& rOutput,
+        const Element& rParentElement,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddFluidShapeDerivatives(
         Matrix& rOutput,
+        const Element& rParentElement,
         const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddTurbulenceResidualsContributions(
         Vector& rOutput,
+        const Element& rParentElement,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddTurbulenceFirstDerivatives(
         MatrixType& rOutput,
+        const Element& rParentElement,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddTurbulenceShapeDerivatives(
         Matrix& rOutput,
+        const Element& rParentElement,
         const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
         const ProcessInfo& rCurrentProcessInfo);
 

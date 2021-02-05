@@ -377,8 +377,9 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     rRightHandSideVector.clear();
 
     if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-        AddFluidResidualsContributions(rRightHandSideVector, rCurrentProcessInfo);
-        AddTurbulenceResidualsContributions(rRightHandSideVector, rCurrentProcessInfo);
+        const auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
+        AddFluidResidualsContributions(rRightHandSideVector, r_parent_element, rCurrentProcessInfo);
+        AddTurbulenceResidualsContributions(rRightHandSideVector, r_parent_element, rCurrentProcessInfo);
     }
 }
 
@@ -395,8 +396,9 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     rLeftHandSideMatrix.clear();
 
     if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-        AddFluidFirstDerivatives(rLeftHandSideMatrix, rCurrentProcessInfo);
-        AddTurbulenceFirstDerivatives(rLeftHandSideMatrix, rCurrentProcessInfo);
+        const auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
+        AddFluidFirstDerivatives(rLeftHandSideMatrix, r_parent_element, rCurrentProcessInfo);
+        AddTurbulenceFirstDerivatives(rLeftHandSideMatrix, r_parent_element, rCurrentProcessInfo);
     }
 }
 
@@ -457,8 +459,8 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
                 parent_elements_to_condition_nodes_map, this->GetGeometry(),
                 r_parent_elemnet.GetGeometry());
 
-            AddFluidShapeDerivatives(rOutput, parent_elements_to_condition_nodes_map, rCurrentProcessInfo);
-            AddTurbulenceShapeDerivatives(rOutput, parent_elements_to_condition_nodes_map, rCurrentProcessInfo);
+            AddFluidShapeDerivatives(rOutput, r_parent_elemnet, parent_elements_to_condition_nodes_map, rCurrentProcessInfo);
+            AddTurbulenceShapeDerivatives(rOutput, r_parent_elemnet, parent_elements_to_condition_nodes_map, rCurrentProcessInfo);
         }
     } else {
         KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
@@ -491,6 +493,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddFluidResidualsContributions(
     Vector& rOutput,
+    const Element& rParentElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -503,7 +506,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
     using Primal = typename FluidData::Primal;
 
-    typename Primal::Data                   element_data(*this, this->GetValue(NEIGHBOUR_ELEMENTS)[0], rCurrentProcessInfo);
+    typename Primal::Data                   element_data(*this, rParentElement, rCurrentProcessInfo);
     typename Primal::ResidualsContributions residual_contributions(element_data);
 
     VectorF residual = ZeroVector(TFluidLocalSize);
@@ -524,6 +527,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddFluidFirstDerivatives(
     MatrixType& rOutput,
+    const Element& rParentElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -536,7 +540,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
     using Derivatives = typename FluidData::StateDerivatives::FirstDerivatives;
 
-    typename Derivatives::Data                     element_data(*this, this->GetValue(NEIGHBOUR_ELEMENTS)[0], rCurrentProcessInfo);
+    typename Derivatives::Data                     element_data(*this, rParentElement, rCurrentProcessInfo);
     typename Derivatives::Velocity                 velocity_derivative(element_data);
     typename Derivatives::TurbulenceModelVariable1 turbulence_equation_1_derivative(element_data);
     typename Derivatives::TurbulenceModelVariable2 turbulence_equation_2_derivative(element_data);
@@ -574,6 +578,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddFluidShapeDerivatives(
     Matrix& rOutput,
+    const Element& rParentElement,
     const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -587,12 +592,12 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
     using Derivatives = typename FluidData::SensitivityDerivatives;
 
-    typename Derivatives::Data  element_data(*this, this->GetValue(NEIGHBOUR_ELEMENTS)[0], rCurrentProcessInfo);
+    typename Derivatives::Data  element_data(*this, rParentElement, rCurrentProcessInfo);
     typename Derivatives::Shape derivative(element_data);
 
     VectorF residual_derivative;
 
-    const IndexType parent_element_number_of_nodes = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry().PointsNumber();
+    const IndexType parent_element_number_of_nodes = rParentElement.GetGeometry().PointsNumber();
 
     for (IndexType g = 0; g < Ws.size(); ++g) {
         const Vector& N = row(Ns, g);
@@ -625,6 +630,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddTurbulenceResidualsContributions(
     Vector& rOutput,
+    const Element& rParentElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& integration_method = TurbulenceModelEquation2Data::TResidualsDerivatives::GetIntegrationMethod();
@@ -636,7 +642,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     using Equation1Primal= typename TurbulenceModelEquation2Data::Primal;
 
     // create data holders for turbulence equations
-    typename Equation1Primal::Data eq_2_data(*this, this->GetValue(NEIGHBOUR_ELEMENTS)[0], rCurrentProcessInfo);
+    typename Equation1Primal::Data eq_2_data(*this, rParentElement, rCurrentProcessInfo);
 
     // create equation residual data holders
     typename Equation1Primal::ResidualsContributions eq_2_residuals(eq_2_data);
@@ -657,6 +663,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddTurbulenceFirstDerivatives(
     MatrixType& rOutput,
+    const Element& rParentElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -670,7 +677,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     using Equation2Derivatives = typename TurbulenceModelEquation2Data::StateDerivatives::FirstDerivatives;
 
     // create data holders for turbulence equations
-    typename Equation2Derivatives::Data eq_2_data(*this, this->GetValue(NEIGHBOUR_ELEMENTS)[0], rCurrentProcessInfo);
+    typename Equation2Derivatives::Data eq_2_data(*this, rParentElement, rCurrentProcessInfo);
 
     // create equation derivative data holders
     typename Equation2Derivatives::Velocity                 eq_2_derivative_0(eq_2_data);
@@ -715,6 +722,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddTurbulenceShapeDerivatives(
     Matrix& rOutput,
+    const Element& rParentElement,
     const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -728,12 +736,12 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
     using Derivatives = typename TurbulenceModelEquation2Data::SensitivityDerivatives;
 
-    typename Derivatives::Data  element_data(*this, this->GetValue(NEIGHBOUR_ELEMENTS)[0], rCurrentProcessInfo);
+    typename Derivatives::Data  element_data(*this, rParentElement, rCurrentProcessInfo);
     typename Derivatives::Shape derivative(element_data);
 
     VectorN residual_derivative;
 
-    const IndexType parent_element_number_of_nodes = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry().PointsNumber();
+    const IndexType parent_element_number_of_nodes = rParentElement.GetGeometry().PointsNumber();
 
     for (IndexType g = 0; g < Ws.size(); ++g) {
         const Vector& N = row(Ns, g);
