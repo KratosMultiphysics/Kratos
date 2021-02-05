@@ -320,12 +320,12 @@ protected:
     /**
      * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
      */
-    void ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
+    void ComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
      */
-    void AuxComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
+    void AuxComputeEdgeNeighbours(const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this returns the elements that share an edge -> gets the mEdgeNeighboursContainer
@@ -395,11 +395,6 @@ protected:
 
     std::size_t GetStrainSize() const;
 
-    void GetValueOnIntegrationPoints(
-        const Variable<double> &rVariable,
-        std::vector<double> &rValues,
-        const ProcessInfo &rCurrentProcessInfo) override;
-
     void SetValuesOnIntegrationPoints(
         const Variable<double> &rVariable,
         std::vector<double> &rValues,
@@ -422,14 +417,15 @@ protected:
 
 
     virtual void CheckIfEraseElement(
-        ProcessInfo &rCurrentProcessInfo, 
+        const ProcessInfo &rCurrentProcessInfo, 
         const Properties& rProperties)
     {
         if (mDamage >= 0.98) {
             this->Set(ACTIVE, false);
             mDamage = 0.98;
             // We set a "flag" to generate the DEM 
-            rCurrentProcessInfo[GENERATE_DEM] = true;
+            // rCurrentProcessInfo[GENERATE_DEM] = true;
+            this->SetValue(GENERATE_DEM, true);
         }
     }
 
@@ -466,17 +462,17 @@ private:
     /**
      * this is called in the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called at the end of each solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**

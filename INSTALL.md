@@ -18,7 +18,6 @@
   * [Compilation Performance](#compilation-performance)
   * [MPI-Parallelism](#parallelism)
   * [External Libraries](#external-libraries)
-    * [Metis](#metis)
     * [Trilinos](#trilinos)
 
 ## Cloning Kratos
@@ -119,7 +118,7 @@ Compilation Type. Options are `Release`,`RelWithDebInfo`,`Debug`,`FullDebug`,`Cu
 
 **Debug**: Debug build with no optimization flags.
 
-**FullDebug**: Debug build with no optimization falgs, extended debug info and extremly low performance.
+**FullDebug**: Debug build with no optimization flags, extended debug info and extremly low performance.
 
 **Custom**: No flags are automatically added.
 
@@ -130,7 +129,7 @@ Ubuntu users need to be extra careful with this as default versions tends to be 
 
 `BOOST_ROOT`
 
-Path to boost root directory.
+Don't use this unless you have problems during the compilation. Path to boost root directory, set it if you downloaded but without using apt-get.
 
 ## Configuration scripts examples
 
@@ -468,16 +467,6 @@ Enables or Disables(default) the modules and code for mpi. This option is needed
 Enables colored output of the Logger. If switched on, e.g. warning level messages will be printed in yellow to the terminal. Please notice that colored output is not supported by all terminals.
 
 ### External libraries
-#### Metis
-
-`-DUSE_METIS_5=ON/OFF`
-
-Specifies if the metis version is 5 or greater (ON by default). Note that using metis 4 is deprecated and will be removed in the future.
-
-`-DMETIS_ROOT_DIR=String`
-
-Root directory for Metis library
-
 #### Trilinos
 From Ubuntu 18.04 onwards, the following command installs the necessary files:
 
@@ -509,4 +498,3 @@ If trilinos was installed using the package manager usually the following lines 
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
 ```
-

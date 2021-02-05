@@ -8,9 +8,13 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Iga test factory tests
 from iga_test_factory import SinglePatchTest as SinglePatchTest
+from iga_test_factory import ScordelisRoofShell3pTest as ScordelisRoofShell3pTest
+from iga_test_factory import LinearBeamShell3pTest as LinearBeamShell3pTest
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
+# Nurbs Geometry tests
+from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -27,7 +31,10 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         SinglePatchTest,
-        TTestModelers
+        ScordelisRoofShell3pTest,
+        LinearBeamShell3pTest,
+        TTestModelers,
+        TTestNurbsVolumeElements
         ]))
 
     nightSuite = suites['nightly']

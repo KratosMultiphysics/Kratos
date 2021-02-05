@@ -394,32 +394,31 @@ void ShellThickElement3D4N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     const auto& r_geom = GetGeometry();
 
-    KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(GetIntegrationMethod())).size() == 4)
-            << "ShellThickElement3D4N - needs a full integration scheme" << std::endl;
+    KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(GetIntegrationMethod())).size() == 4) << "ShellThickElement3D4N - needs a full integration scheme" << std::endl;
 
     const int points_number = r_geom.PointsNumber();
-    KRATOS_ERROR_IF_NOT(points_number == 4) << "ShellThickElement3D4N - Wrong number of nodes"
-                                            << points_number << std::endl;
+    KRATOS_ERROR_IF_NOT(points_number == 4) << "ShellThickElement3D4N - Wrong number of nodes" << points_number << std::endl;
 
     BaseShellElement::Initialize(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->Initialize();
-
-    this->SetupOrientationAngles();
-
-    mEASStorage.Initialize(r_geom);
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        mpCoordinateTransformation->Initialize();
+        this->SetupOrientationAngles();
+        mEASStorage.Initialize(r_geom);
+    }
 
     KRATOS_CATCH("")
 }
 
-void ShellThickElement3D4N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void ShellThickElement3D4N::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     mpCoordinateTransformation->InitializeNonLinearIteration();
 
     BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThickElement3D4N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void ShellThickElement3D4N::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     mpCoordinateTransformation->FinalizeNonLinearIteration();
 
@@ -433,7 +432,7 @@ void ShellThickElement3D4N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProc
     BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThickElement3D4N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void ShellThickElement3D4N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseInitializeSolutionStep(rCurrentProcessInfo);
 
@@ -442,7 +441,7 @@ void ShellThickElement3D4N::InitializeSolutionStep(ProcessInfo& rCurrentProcessI
     mEASStorage.InitializeSolutionStep();
 }
 
-void ShellThickElement3D4N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void ShellThickElement3D4N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -451,7 +450,7 @@ void ShellThickElement3D4N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInf
     mEASStorage.FinalizeSolutionStep();
 }
 
-void ShellThickElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ShellThickElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     if ((rMassMatrix.size1() != 24) || (rMassMatrix.size2() != 24)) {
         rMassMatrix.resize(24, 24, false);

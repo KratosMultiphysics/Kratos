@@ -171,7 +171,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \},"
     puts $FileVar "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
     puts $FileVar "            \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
-    puts $FileVar "            \"output_frequency\":     [GiD_AccessValue get gendata Output_frequency],"
+    puts $FileVar "            \"output_interval\":     [GiD_AccessValue get gendata Output_frequency],"
     puts $FileVar "            \"body_output\":          [GiD_AccessValue get gendata Body_output],"
     puts $FileVar "            \"node_output\":          [GiD_AccessValue get gendata Node_output],"
     puts $FileVar "            \"skin_output\":          [GiD_AccessValue get gendata Skin_output],"

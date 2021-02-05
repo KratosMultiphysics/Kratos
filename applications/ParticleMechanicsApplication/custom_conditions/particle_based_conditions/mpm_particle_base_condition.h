@@ -128,8 +128,8 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -138,8 +138,8 @@ public:
      */
     void GetDofList(
         DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -149,7 +149,7 @@ public:
     void GetValuesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * Sets on rValues the nodal velocities
@@ -159,7 +159,7 @@ public:
     void GetFirstDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * Sets on rValues the nodal accelerations
@@ -169,7 +169,7 @@ public:
     void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * This function provides a more general interface to the element.
@@ -182,7 +182,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -192,7 +192,7 @@ public:
       */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -202,7 +202,7 @@ public:
       */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -213,7 +213,7 @@ public:
       */
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -223,7 +223,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Check if Rotational Dof existant
@@ -321,7 +321,7 @@ protected:
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         );
@@ -332,10 +332,10 @@ protected:
     virtual double GetIntegrationWeight();
 
     /**
-     * Calculate Shape Function Values in a given point
+     * Calculate Shape Function Values as a vector
      */
 
-    virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint);
+    virtual void MPMShapeFunctionPointValues(Vector& rResult) const;
 
     /**
      * Calculation of the Current Displacement

@@ -17,7 +17,6 @@
 // Project includes
 #include "custom_elements/generic_small_strain_femdem_element.hpp"
 #include "fem_to_dem_application_variables.h"
-#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -99,7 +98,7 @@ Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Clone(
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIteration(
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY
@@ -282,7 +281,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -664,7 +663,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();

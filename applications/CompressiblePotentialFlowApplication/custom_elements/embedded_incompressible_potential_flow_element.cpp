@@ -129,7 +129,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
             auto neighbour_elem = this->GetGeometry()[i_node].GetValue(NEIGHBOUR_ELEMENTS);
             KRATOS_ERROR_IF(neighbour_elem.size() == 0) << this->Info() << " neighbour elements were not computed\n";
 
-            for (const auto r_elem : neighbour_elem){
+            for (const auto& r_elem : neighbour_elem){
 
                 BoundedVector<double,NumNodes> neighbour_distances;
                 for(unsigned int i = 0; i<NumNodes; i++){
@@ -218,7 +218,7 @@ ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<3,4>:
 // Inquiry
 
 template <int Dim, int NumNodes>
-int EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

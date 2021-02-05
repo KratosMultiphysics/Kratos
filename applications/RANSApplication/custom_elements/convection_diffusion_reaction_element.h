@@ -299,7 +299,7 @@ public:
      * @param rCurrentProcessInfo
      * this method is: MANDATORY
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
@@ -323,6 +323,9 @@ public:
     ///@}
 
 protected:
+    ///@name Protected operations
+    ///@{
+
     /**
      * @brief Get the Values Array
      *
@@ -370,8 +373,6 @@ protected:
         const array_1d<double, 3>& rVector,
         const Matrix& rShapeDerivatives) const;
 
-    ///@name Protected Operations
-    ///@{
     /**
      * @brief Calculates shape function data for this element
      *

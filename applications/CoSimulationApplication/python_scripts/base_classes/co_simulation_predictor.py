@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-class CoSimulationPredictor(object):
+class CoSimulationPredictor:
     """Baseclass for the predictors used for CoSimulation
     It predicts the solution of the next step at the beginning of a step
     """

@@ -210,8 +210,8 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
 
             noalias(kin_hard_stress_vector) = rPredictiveStressVector - rBackStressVector;
             threshold_indicator = CalculatePlasticParameters(kin_hard_stress_vector, rStrainVector, rUniaxialStress, rThreshold,
-                                       rPlasticDenominator, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDissipation, rPlasticStrainIncrement,
-                                       rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
+                                        rPlasticDenominator, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDissipation, rPlasticStrainIncrement,
+                                        rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
 
             if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
@@ -269,8 +269,8 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor);
         CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor, rPlasticStrainIncrement,rPlasticDissipation, h_capa, rValues, CharacteristicLength);
         CalculateEquivalentPlasticStrain(rPredictiveStressVector, rUniaxialStress, rPlasticStrain, tensile_indicator_factor, rValues, equivalent_plastic_strain);
-        CalculateEquivalentStressThreshold(rPlasticDissipation, tensile_indicator_factor,compression_indicator_factor, rThreshold, slope, rValues, equivalent_plastic_strain);
-        CalculateHardeningParameter(rYieldSurfaceDerivative, slope, h_capa, hardening_parameter);
+        CalculateEquivalentStressThreshold(rPlasticDissipation, tensile_indicator_factor,compression_indicator_factor, rThreshold, slope, rValues, equivalent_plastic_strain, CharacteristicLength);
+        CalculateHardeningParameter(rDerivativePlasticPotential, slope, h_capa, hardening_parameter);
         CalculatePlasticDenominator(rYieldSurfaceDerivative, rDerivativePlasticPotential, rConstitutiveMatrix, hardening_parameter, rPlasticDenominator, rBackStressVector, rValues);
 
         return rUniaxialStress - rThreshold;
@@ -278,7 +278,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
 
     /**
      * @brief This method calculates the derivative of the yield surface
-     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rPredictiveStressVector The predictive stress vector S = C : (E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the deviatoric part of the stress vector
      * @param rDerivativeYieldSurface The derivative of the yield surface
@@ -497,6 +497,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rValues Parameters of the constitutive law
      * @param EquivalentPlasticStrain The equivalent plastic strain
+     * @param CharacteristicLength Characteristic length of the finite element
      */
     static void CalculateEquivalentStressThreshold(
         const double PlasticDissipation,
@@ -505,7 +506,8 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         double& rEquivalentStressThreshold,
         double& rSlope,
         ConstitutiveLaw::Parameters& rValues,
-        const double EquivalentPlasticStrain
+        const double EquivalentPlasticStrain,
+        const double CharacteristicLength
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -515,46 +517,46 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         for (IndexType i = 0; i < 2; ++i) { // i:0 Tension ; i:1 compression
             switch (static_cast<HardeningCurveType>(curve_type))
             {
-              case HardeningCurveType::LinearSoftening:
-                CalculateEquivalentStressThresholdHardeningCurveLinearSoftening(
-                    PlasticDissipation, TensileIndicatorFactor,
-                    CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
-                    rValues);
-                break;
+                case HardeningCurveType::LinearSoftening:
+                    CalculateEquivalentStressThresholdHardeningCurveLinearSoftening(
+                        PlasticDissipation, TensileIndicatorFactor,
+                        CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
+                        rValues);
+                    break;
 
-              case HardeningCurveType::ExponentialSoftening:
-                CalculateEquivalentStressThresholdHardeningCurveExponentialSoftening(
-                    PlasticDissipation, TensileIndicatorFactor,
-                    CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
-                    rValues);
-                break;
+                case HardeningCurveType::ExponentialSoftening:
+                    CalculateEquivalentStressThresholdHardeningCurveExponentialSoftening(
+                        PlasticDissipation, TensileIndicatorFactor,
+                        CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
+                        rValues);
+                    break;
 
-              case HardeningCurveType::InitialHardeningExponentialSoftening:
-                CalculateEquivalentStressThresholdHardeningCurveInitialHardeningExponentialSoftening(
-                    PlasticDissipation, TensileIndicatorFactor,
-                    CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
-                    rValues);
-                break;
+                case HardeningCurveType::InitialHardeningExponentialSoftening:
+                    CalculateEquivalentStressThresholdHardeningCurveInitialHardeningExponentialSoftening(
+                        PlasticDissipation, TensileIndicatorFactor,
+                        CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
+                        rValues);
+                    break;
 
-              case HardeningCurveType::PerfectPlasticity:
-                CalculateEquivalentStressThresholdHardeningCurvePerfectPlasticity(
-                    PlasticDissipation, TensileIndicatorFactor,
-                    CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
-                    rValues);
-                break;
+                case HardeningCurveType::PerfectPlasticity:
+                    CalculateEquivalentStressThresholdHardeningCurvePerfectPlasticity(
+                        PlasticDissipation, TensileIndicatorFactor,
+                        CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
+                        rValues);
+                    break;
 
-              case HardeningCurveType::CurveFittingHardening: // Only for VonMises + Tresca!
-                CalculateEquivalentStressThresholdCurveFittingHardening(
-                    PlasticDissipation, TensileIndicatorFactor,
-                    CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
-                    rValues, EquivalentPlasticStrain);
-                break;
+                case HardeningCurveType::CurveFittingHardening: // Only for VonMises + Tresca!
+                    CalculateEquivalentStressThresholdCurveFittingHardening(
+                        PlasticDissipation, TensileIndicatorFactor,
+                        CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
+                        rValues, EquivalentPlasticStrain, CharacteristicLength);
+                    break;
 
                 // Add more cases...
 
-              default:
-                KRATOS_ERROR << " The HARDENING_CURVE of plasticity is not set or wrong..." << curve_type << std::endl;
-                break;
+                default:
+                    KRATOS_ERROR << " The HARDENING_CURVE of plasticity is not set or wrong..." << curve_type << std::endl;
+                    break;
             }
         }
 
@@ -568,7 +570,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param TensileIndicatorFactor The tensile indicator
      * @param CompressionIndicatorFactor The compressive indicator
-     * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
+     * @param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rValues Parameters of the constitutive law
      */
@@ -593,7 +595,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param TensileIndicatorFactor The tensile indicator
      * @param CompressionIndicatorFactor The compressive indicator
-     * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
+     * @param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rValues Parameters of the constitutive law
      */
@@ -610,7 +612,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         GetInitialUniaxialThreshold(rValues, initial_threshold);
 
         rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
-        rSlope = -0.5 * initial_threshold;
+        rSlope = - initial_threshold;
     }
 
     /**
@@ -618,7 +620,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param TensileIndicatorFactor The tensile indicator
      * @param CompressionIndicatorFactor The compressive indicator
-     * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
+     * @param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rValues Parameters of the constitutive law
      */
@@ -657,7 +659,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param TensileIndicatorFactor The tensile indicator
      * @param CompressionIndicatorFactor The compressive indicator
-     * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
+     * @param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rValues Parameters of the constitutive law
      */
@@ -682,10 +684,11 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param TensileIndicatorFactor The tensile indicator
      * @param CompressionIndicatorFactor The compressive indicator
-     * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
+     * @param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rValues Parameters of the constitutive law
-     * @param rPlasticStrain The Plastic Strain internal variable
+     * @param EquivalentPlasticStrain The Plastic Strain internal variable
+     * @param CharacteristicLength Characteristic length of the finite element
      */
     static void CalculateEquivalentStressThresholdCurveFittingHardening(
         const double PlasticDissipation,
@@ -694,13 +697,19 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         double& rEquivalentStressThreshold,
         double& rSlope,
         ConstitutiveLaw::Parameters& rValues,
-        const double EquivalentPlasticStrain
+        const double EquivalentPlasticStrain,
+        const double CharacteristicLength
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
         const Vector& curve_fitting_parameters = r_material_properties[CURVE_FITTING_PARAMETERS];
+
+        const bool has_tangency_linear_region = r_material_properties.Has(TANGENCY_REGION2);
+        const bool tangency_linear_region = has_tangency_linear_region ? r_material_properties[TANGENCY_REGION2] : false;
+
         const Vector& plastic_strain_indicators = r_material_properties[PLASTIC_STRAIN_INDICATORS];
         const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
+        const double volumetric_fracture_energy = fracture_energy / CharacteristicLength;
 
         const SizeType order_polinomial = curve_fitting_parameters.size();
         const double plastic_strain_indicator_1 = plastic_strain_indicators[0];
@@ -708,15 +717,17 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
 
         // Compute the initial and the final stresses
         double stress_indicator_1 = curve_fitting_parameters[0];
-        double dS_dEp_slope = 0.0;
+        double dS_dEp = 0.0;
 
         for (IndexType i = 1; i < order_polinomial; ++i) {
             stress_indicator_1 += curve_fitting_parameters[i] * (std::pow(plastic_strain_indicator_1, i));
-            dS_dEp_slope += i * curve_fitting_parameters[i] * std::pow(plastic_strain_indicator_1, i - 1);
+            dS_dEp += i * curve_fitting_parameters[i] * std::pow(plastic_strain_indicator_1, i - 1);
         }
 
-        double dKp_dEp = stress_indicator_1 / fracture_energy;
-        double dS_dEp = 0.0; // initial slope is zero
+        double dKp_dEp = stress_indicator_1 / volumetric_fracture_energy;
+        if (!tangency_linear_region){
+            dS_dEp = 0.0; // initial slope is zero, else the slope is the tangent of the polinomial region.
+        }
 
         const double stress_indicator_2 =  stress_indicator_1 +  dS_dEp * (plastic_strain_indicator_2 - plastic_strain_indicator_1);
 
@@ -725,13 +736,13 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         for (IndexType i = 0; i < order_polinomial; ++i) {
             Gt1 += curve_fitting_parameters[i] * (std::pow(plastic_strain_indicator_1, i + 1)) / (i + 1);
         }
-        const double Gt2 = (stress_indicator_1 * stress_indicator_2) * (plastic_strain_indicator_2 - plastic_strain_indicator_1) * 0.5;
-        const double Gt3 = fracture_energy - Gt2 - Gt1;
+        const double Gt2 = (stress_indicator_1 + stress_indicator_2) * (plastic_strain_indicator_2 - plastic_strain_indicator_1) * 0.5;
+        const double Gt3 = volumetric_fracture_energy - Gt2 - Gt1;
 
         KRATOS_ERROR_IF(Gt3 < 0.0) << "Fracture energy too low in CurveFittingHardening of plasticity..."  << std::endl;
 
         // Compute segment threshold
-        const double segment_threshold = (Gt2 + Gt1) / fracture_energy;
+        const double segment_threshold = (Gt2 + Gt1) / volumetric_fracture_energy;
 
         if (PlasticDissipation <= segment_threshold) {
             const double Eps = EquivalentPlasticStrain;
@@ -743,18 +754,14 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                     S_Ep += curve_fitting_parameters[i] * std::pow(Eps, i);
                     dS_dEp += i *  curve_fitting_parameters[i] * std::pow(Eps, i - 1);
                 }
-                dKp_dEp = S_Ep / fracture_energy;
+                dKp_dEp = S_Ep / volumetric_fracture_energy;
 
                 rEquivalentStressThreshold = S_Ep;
                 rSlope = dS_dEp / dKp_dEp;
             } else { // Linear region
-                const double alpha =  std::pow(stress_indicator_1, 2);
-                const double beta = (std::pow(stress_indicator_2, 2) - alpha) / (plastic_strain_indicator_2 - plastic_strain_indicator_1);
-
-                const double S_Ep = std::sqrt(alpha + beta * (Eps - plastic_strain_indicator_1));
-
-                dS_dEp = 0.5 * (beta) / S_Ep;
-                dKp_dEp = S_Ep / fracture_energy;
+                const double S_Ep = stress_indicator_1 + (stress_indicator_2 - stress_indicator_1) / (plastic_strain_indicator_2 - plastic_strain_indicator_1) * (Eps - plastic_strain_indicator_1);
+                double dS_dEp = (stress_indicator_2 - stress_indicator_1) / (plastic_strain_indicator_2 - plastic_strain_indicator_1);
+                dKp_dEp = S_Ep / volumetric_fracture_energy;
 
                 rEquivalentStressThreshold = S_Ep;
                 rSlope = dS_dEp / dKp_dEp;
@@ -768,9 +775,9 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             const double plastic_dissipation_region_3 = PlasticDissipation - segment_threshold;
 
             const double beta2 = 1.5 * S_Ep / Gt3;
-            const double alpha2 = std::sqrt((plastic_dissipation_region_3 * 2.0 * beta2 * fracture_energy / S_Ep) + 1.0);
+            const double alpha2 = std::sqrt((plastic_dissipation_region_3 * 2.0 * beta2 * volumetric_fracture_energy / S_Ep) + 1.0);
             rEquivalentStressThreshold = S_Ep * alpha2 * (2.0 - alpha2);
-            rSlope = 2.0 * beta2 * fracture_energy * (1.0 / alpha2 - 1.0);
+            rSlope = 2.0 * beta2 * volumetric_fracture_energy * (1.0 / alpha2 - 1.0);
         }
     }
 
@@ -920,16 +927,6 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        // Checking is registered
-        KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
-        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
-        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_TENSION);
-        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
-        KRATOS_CHECK_VARIABLE_KEY(HARDENING_CURVE);
-        KRATOS_CHECK_VARIABLE_KEY(MAXIMUM_STRESS);
-        KRATOS_CHECK_VARIABLE_KEY(MAXIMUM_STRESS_POSITION);
-        KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
-
         // Checking is defined
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "HARDENING_CURVE is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(HARDENING_CURVE)) << "HARDENING_CURVE is not a defined value" << std::endl;
