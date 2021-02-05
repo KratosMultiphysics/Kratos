@@ -500,9 +500,9 @@ protected:
 
 	const unsigned int mMaxSubsteps;
 
-    const bool mIsBfecc;
+    const bool mIsBfecc = false;
 
-    const bool mPartialDt;
+    const bool mPartialDt = false;
 
     std::vector< double > mOldDistance;
     std::vector< double > mError;
