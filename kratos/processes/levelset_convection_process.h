@@ -94,7 +94,8 @@ public:
         const double max_cfl = 1.0,
         const double cross_wind_stabilization_factor = 0.7,
         const unsigned int max_substeps = 0,
-        const bool is_bfecc = false)
+        const bool is_bfecc = false,
+        const bool partial_dt = false)
         : mrBaseModelPart(rBaseModelPart),
           mrModel(rBaseModelPart.GetModel()),
           mrLevelSetVar(rLevelSetVar),
@@ -102,6 +103,7 @@ public:
           mMaxAllowedCFL(max_cfl),
           mMaxSubsteps(max_substeps),
           mIsBfecc(is_bfecc),
+          mPartialDt(partial_dt),
           mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")/* ,
           mProjectedGradientProcess(ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(
             rBaseModelPart,
@@ -189,6 +191,7 @@ public:
             max_cfl,
             cross_wind_stabilization_factor,
             max_substeps,
+            false,
             false) {}
 
     /// Destructor.
@@ -224,7 +227,10 @@ public:
         ProcessInfo& rCurrentProcessInfo = mpDistanceModelPart->GetProcessInfo();
         const auto & r_previous_var = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->GetUnknownVariable();
         const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
-        const double dt_factor = rModelPart.GetProcessInfo()[DELTA_TIME_FACTOR];
+        double dt_factor = 1.0;
+        if (mPartialDt){
+            dt_factor = rModelPart.GetProcessInfo()[DELTA_TIME_FACTOR];
+        }
         const double levelset_delta_time = dt_factor * previous_delta_time;
 
         // Save current level set value and current and previous step velocity values
@@ -495,6 +501,8 @@ protected:
 	const unsigned int mMaxSubsteps;
 
     const bool mIsBfecc;
+
+    const bool mPartialDt;
 
     std::vector< double > mOldDistance;
     std::vector< double > mError;

@@ -42,8 +42,10 @@ template<std::size_t TDim> class BFECCConvection
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BFECCConvection<TDim>);
 
-    BFECCConvection(typename BinBasedFastPointLocator<TDim>::Pointer pSearchStructure)
-        : mpSearchStructure(pSearchStructure)
+    BFECCConvection(
+        typename BinBasedFastPointLocator<TDim>::Pointer pSearchStructure, 
+        const bool partial_dt = false)
+        : mpSearchStructure(pSearchStructure), mPartialDt(partial_dt)
     {
     }
 
@@ -60,7 +62,10 @@ public:
         const double substeps)
     {
         KRATOS_TRY
-        const double dt_factor = rModelPart.GetProcessInfo()[DELTA_TIME_FACTOR];
+        double dt_factor = 1.0;
+        if (mPartialDt){
+            dt_factor = rModelPart.GetProcessInfo()[DELTA_TIME_FACTOR];
+        }
         const double dt = dt_factor*rModelPart.GetProcessInfo()[DELTA_TIME];
 
         //do movement
@@ -409,6 +414,7 @@ public:
         }
 
 protected:
+    const bool mPartialDt;
     std::vector< double > mSigmaPlus, mSigmaMinus, mLimiter;
 
 private:
