@@ -48,6 +48,37 @@ public:
         return pAmgcl;
 	}
 
+    template< class TDataType, class TIndexType >
+	static void ConvertToCsrMatrix(
+			const typename amgcl::backend::builtin<TDataType>::matrix& rA,
+            CsrMatrix<TDataType, TIndexType>& rAconverted
+			)
+	{
+        //TODO: find a way to avoid this copying!! the prolem as of now is that ublas does not allow initializing by moving data
+        rAconverted.index1_data().resize(rA.nrows+1,false);
+        rAconverted.index2_data().resize(rA.nnz,false);
+        rAconverted.value_data().resize(rA.nnz,false);
+
+        rAconverted.SetRowSize(rA.nrows);
+        rAconverted.SetColSize(rA.ncols);
+
+        IndexPartition<IndexType>(rAconverted.index1_data().size()).for_each( [&](IndexType i){
+            rAconverted.index1_data()[i] = rA.ptr[i];
+        });
+
+        IndexPartition<IndexType>(rAconverted.index2_data().size()).for_each( [&](IndexType i){
+            rAconverted.index2_data()[i] = rA.col[i];
+        });
+
+        IndexPartition<IndexType>(rAconverted.value_data().size()).for_each( [&](IndexType i){
+            rAconverted.value_data()[i] = rA.val[i];
+        });
+
+        //A->own_data = false;
+	}	
+
+
+
 };
 
 }
