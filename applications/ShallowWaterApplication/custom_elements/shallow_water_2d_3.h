@@ -441,6 +441,8 @@ protected:
 
     double StabilizationParameter(const ElementData& rData);
 
+    double HeightInverse(double Height, double Epsilon);
+
     double WetFraction(double Height, double Epsilon);
 
     array_1d<double,3> CharacteristicLength(const ElementData& rData);

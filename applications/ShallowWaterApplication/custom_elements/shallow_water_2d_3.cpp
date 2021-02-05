@@ -265,8 +265,10 @@ void ShallowWater2D3::AddSourceTerms(
 
     // Friction term
     const double abs_vel = norm_2(rData.velocity);
-    const double height4_3 = std::pow(rData.height, 1.33333333333) + 1e-6;
-    rLHS += rData.gravity * rData.manning2 * abs_vel / height4_3 * flow_mass_matrix;
+    const double epsilon = rData.rel_dry_height * GetGeometry().Length();
+    const double inv_height = HeightInverse(rData.height, epsilon);
+    const double inv_height4_3 = std::pow(inv_height, 1.33333333333);
+    rLHS += rData.gravity * rData.manning2 * abs_vel * inv_height4_3 * flow_mass_matrix;
 
     // Rain and mesh acceleration
     const double lumping_factor = 1.0 / 3.0;
@@ -802,8 +804,8 @@ void ShallowWater2D3::AlgebraicResidual(
     rain *= lumping_factor;
 
     const double c2 = rData.gravity * rData.height;
-    const double e = 1e-6; // big value to avoid division by zero
-    const array_1d<double,3> friction = rData.gravity * rData.manning2 * norm_2(rData.flow_rate) * rData.flow_rate / (std::pow(rData.height, 2.333333333333333)+e);
+    const double e = rData.rel_dry_height * r_geom.Length();
+    const array_1d<double,3> friction = rData.gravity * rData.manning2 * norm_2(rData.flow_rate) * rData.flow_rate * std::pow(HeightInverse(rData.height,e), 2.333333333333333);
     const array_1d<double,3> flux = prod(rData.velocity, trans(rFlowGrad)) + vel_div * rData.flow_rate;
 
     rFlowResidual = flow_acc + flux + c2 * (rHeightGrad + topography_grad) + friction + rData.height * mesh_acc;
@@ -842,12 +844,16 @@ array_1d<double,3> ShallowWater2D3::CharacteristicLength(const ElementData& rDat
     return char_length * rData.flow_rate / (norm_2(rData.flow_rate) + e);
 }
 
-double ShallowWater2D3::WetFraction(double Height, double Epsilon)
+double ShallowWater2D3::HeightInverse(double Height, double Epsilon)
 {
-    const double h2 = std::pow(Height, 2);
     const double h4 = std::pow(Height, 4);
     const double e4 = std::pow(Epsilon, 4);
-    return std::sqrt(2) * h2 / std::sqrt(h4 + std::max(h4, e4));
+    return std::sqrt(2) * std::max(0.0, Height) / std::sqrt(h4 + std::max(h4, e4));
+}
+
+double ShallowWater2D3::WetFraction(double Height, double Epsilon)
+{
+    return Height * HeightInverse(Height, Epsilon);
 }
 
 } // namespace kratos
