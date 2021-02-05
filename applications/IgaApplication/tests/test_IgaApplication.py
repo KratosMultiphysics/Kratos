@@ -39,16 +39,18 @@ def AssembleTestSuites():
         # 3p Shell KL
         ScordelisRoofShell3pTest,
         LinearBeamShell3pTest,
-        # 5p Shell Hierarchic
-        TShell5pHierarchicLinearThickBeamTest,
-        TShell5pHierarchicLinearScordelisTest,
-        TShell5pHierarchicNonLinearThickBeamTest,
         TTestModelers,
         TTestNurbsVolumeElements
         ]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        # 5p Shell Hierarchic
+        TShell5pHierarchicLinearThickBeamTest,
+        TShell5pHierarchicLinearScordelisTest,
+        TShell5pHierarchicNonLinearThickBeamTest
+        ]))
 
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
