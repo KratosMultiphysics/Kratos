@@ -43,9 +43,9 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(BFECCConvection<TDim>);
 
     BFECCConvection(
-        typename BinBasedFastPointLocator<TDim>::Pointer pSearchStructure, 
-        const bool partial_dt = false)
-        : mpSearchStructure(pSearchStructure), mPartialDt(partial_dt)
+        typename BinBasedFastPointLocator<TDim>::Pointer pSearchStructure,
+        const bool PartialDt = false)
+        : mpSearchStructure(pSearchStructure), mPartialDt(PartialDt)
     {
     }
 

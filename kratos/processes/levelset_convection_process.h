@@ -229,7 +229,7 @@ public:
         const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
         double dt_factor = 1.0;
         if (mPartialDt){
-            dt_factor = rModelPart.GetProcessInfo()[DELTA_TIME_FACTOR];
+            dt_factor = rCurrentProcessInfo.GetValue(DELTA_TIME_FACTOR);
         }
         const double levelset_delta_time = dt_factor * previous_delta_time;
 
