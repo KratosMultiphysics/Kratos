@@ -172,6 +172,7 @@ public:
 
         //TODO: check flag DO_EXPENSIVE_CHECKS
         mpSolvingStrategy->Check();
+        mpSolvingStrategy->Initialize();
 
         KRATOS_CATCH("")
     }
@@ -361,7 +362,10 @@ public:
                 }
             }
 
+            mpSolvingStrategy->InitializeSolutionStep();
+            mpSolvingStrategy->Predict();
             mpSolvingStrategy->SolveSolutionStep(); // forward convection to reach phi_n+1
+            mpSolvingStrategy->FinalizeSolutionStep();
 
             if (mIsBfecc) {// Error Compensation and Correction
                 #pragma omp parallel for
@@ -376,7 +380,10 @@ public:
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
                 }
 
+                mpSolvingStrategy->InitializeSolutionStep();
+                mpSolvingStrategy->Predict();
                 mpSolvingStrategy->SolveSolutionStep(); // backward convetion to obtain phi_n*
+                mpSolvingStrategy->FinalizeSolutionStep();
 
                 // Calculating the raw error without a limiter, etc.
                 #pragma omp parallel for
@@ -400,7 +407,10 @@ public:
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
                 }
 
+                mpSolvingStrategy->InitializeSolutionStep();
+                mpSolvingStrategy->Predict();
                 mpSolvingStrategy->SolveSolutionStep(); // forward convection to obtain the corrected phi_n+1
+                mpSolvingStrategy->FinalizeSolutionStep();
             }
         }
 
