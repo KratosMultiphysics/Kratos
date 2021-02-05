@@ -50,7 +50,7 @@ public:
 
     template< class TDataType, class TIndexType >
 	static void ConvertToCsrMatrix(
-			const typename amgcl::backend::builtin<TDataType>::matrix& rA,
+			typename amgcl::backend::builtin<TDataType>::matrix& rA,
             CsrMatrix<TDataType, TIndexType>& rAconverted
 			)
 	{
@@ -74,7 +74,7 @@ public:
             rAconverted.value_data()[i] = rA.val[i];
         });
 
-        //A->own_data = false;
+        rA.free_data();
 	}	
 
 
