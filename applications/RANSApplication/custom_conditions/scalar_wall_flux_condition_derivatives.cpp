@@ -168,7 +168,7 @@ void ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::Va
     const double flux_derivative = derivative.CalculateWallFluxDerivative(
         DirectionIndex, W, rN, ParentElementNodeIndex);
 
-    rResidualDerivative = rN * (W * flux_derivative);
+    noalias(rResidualDerivative) = rN * (W * flux_derivative);
 
     KRATOS_CATCH("");
 }

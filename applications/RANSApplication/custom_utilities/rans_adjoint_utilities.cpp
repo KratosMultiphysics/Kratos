@@ -113,8 +113,9 @@ void RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
     } else {
         // compute linear wall law derivatives
         rUTauDerivative =
-            (WallVelocityDerivative - std::pow(u_tau, 2) * WallHeightDerivative / KinematicViscosity) /
-            (u_tau * (WallHeight / KinematicViscosity + WallVelocity / std::pow(u_tau, 2)));
+            (WallVelocityDerivative / WallHeight -
+             WallVelocity * WallHeightDerivative / std::pow(WallHeight, 2)) *
+            KinematicViscosity / (2 * u_tau);
     }
 
     rYPlusDerivative =

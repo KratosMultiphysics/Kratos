@@ -292,15 +292,14 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallCondit
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UX, KratosRansFastSuite1)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UX, KratosRansFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
                                         const ProcessInfo& rProcessInfo) {
         rCondition.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rMatrix, rProcessInfo);
-        KRATOS_WATCH(rMatrix);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", SHAPE_SENSITIVITY, derivatives_method, 0, 0, 1e-5, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", SHAPE_SENSITIVITY, derivatives_method, 0, 0, 1e-10, 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionSecondDerivativesLHS_U, KratosRansFastSuite)
@@ -351,6 +350,16 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallCondit
     };
 
     RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", TURBULENT_ENERGY_DISSIPATION_RATE, derivatives_method, 4, 4, 1e-7, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EX, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", SHAPE_SENSITIVITY, derivatives_method, 4, 0, 1e-10, 1e-5);
 }
 
 } // namespace Testing

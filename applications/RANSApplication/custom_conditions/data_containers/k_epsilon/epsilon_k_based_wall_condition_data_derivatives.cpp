@@ -303,29 +303,30 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::ShapeDerivative::Calcula
     // here we compute derivatives w.r.t. condition nodes
     double y_plus_derivative = 0.0;
     if (mrData.mWallVelocityMagnitude > 1e-16) {
+        if (mrData.mYPlus > mrData.mYPlusLimit) {
+            const Vector& temp = row(mrData.GetGeometry().GetValue(NORMAL_SHAPE_DERIVATIVE), ConditionNodeIndex * TDim + DirectionIndex);
+            array_1d<double, 3> normal_derivative = ZeroVector(3);
+            for (IndexType i = 0; i < TDim; ++i) {
+                normal_derivative[i] = temp[i];
+            }
 
-        const Vector& temp = row(mrData.GetGeometry().GetValue(NORMAL_SHAPE_DERIVATIVE), ConditionNodeIndex * TDim + DirectionIndex);
-        array_1d<double, 3> normal_derivative = ZeroVector(3);
-        for (IndexType i = 0; i < TDim; ++i) {
-            normal_derivative[i] = temp[i];
+            const auto& unit_normal_derivative = RansAdjointUtilities::CalculateUnitVectorDerivative(
+                mrData.mNormalMagnitude, mrData.mUnitNormal, normal_derivative);
+
+            const double wall_height_derivative =
+                RansAdjointUtilities::CalculateWallHeightConditionDerivative(
+                    mrData.GetGeometry(), mrData.mrParentElementGeometry,
+                    DirectionIndex, mrData.mUnitNormal, unit_normal_derivative);
+
+            double u_tau_derivative;
+            RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
+                y_plus_derivative, u_tau_derivative, mrData.mYPlus,
+                mrData.mWallVelocityMagnitude, 0.0, mrData.mWallHeight, wall_height_derivative,
+                mrData.mKinematicViscosity, mrData.mKappa, mrData.mBeta, mrData.mYPlusLimit);
+
+            // this does not have any effect since mNumberOfGaussPoints is 1.
+            // otherwise this may result in undesired behaviour
         }
-
-        const auto& unit_normal_derivative = RansAdjointUtilities::CalculateUnitVectorDerivative(
-            mrData.mNormalMagnitude, mrData.mUnitNormal, normal_derivative);
-
-        const double wall_height_derivative =
-            RansAdjointUtilities::CalculateWallHeightConditionDerivative(
-                mrData.GetGeometry(), mrData.mrParentElementGeometry,
-                DirectionIndex, mrData.mUnitNormal, unit_normal_derivative);
-
-        double u_tau_derivative;
-        RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
-            y_plus_derivative, u_tau_derivative, mrData.mYPlus,
-            mrData.mWallVelocityMagnitude, 0.0, mrData.mWallHeight, wall_height_derivative,
-            mrData.mKinematicViscosity, mrData.mKappa, mrData.mBeta, mrData.mYPlusLimit);
-
-        // this does not have any effect since mNumberOfGaussPoints is 1.
-        // otherwise this may result in undesired behaviour
     }
 
     return (mrData.mKinematicViscosity +
@@ -345,19 +346,21 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::ShapeDerivative::Calcula
     // here we compute derivatives w.r.t. parent element nodes
     double y_plus_derivative = 0.0;
     if (mrData.mWallVelocityMagnitude > 1e-16) {
-        const double wall_height_derivative =
-            RansAdjointUtilities::CalculateWallHeightParentElementDerivative(
-                mrData.GetGeometry(), mrData.mrParentElementGeometry,
-                DirectionIndex, mrData.mUnitNormal, ZeroVector(3));
+        if (mrData.mYPlus > mrData.mYPlusLimit) {
+            const double wall_height_derivative =
+                RansAdjointUtilities::CalculateWallHeightParentElementDerivative(
+                    mrData.GetGeometry(), mrData.mrParentElementGeometry,
+                    DirectionIndex, mrData.mUnitNormal, ZeroVector(3));
 
-        double u_tau_derivative;
-        RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
-            y_plus_derivative, u_tau_derivative, mrData.mYPlus,
-            mrData.mWallVelocityMagnitude, 0.0, mrData.mWallHeight, wall_height_derivative,
-            mrData.mKinematicViscosity, mrData.mKappa, mrData.mBeta, mrData.mYPlusLimit);
+            double u_tau_derivative;
+            RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
+                y_plus_derivative, u_tau_derivative, mrData.mYPlus,
+                mrData.mWallVelocityMagnitude, 0.0, mrData.mWallHeight, wall_height_derivative,
+                mrData.mKinematicViscosity, mrData.mKappa, mrData.mBeta, mrData.mYPlusLimit);
 
-        // this does not have any effect since mNumberOfGaussPoints is 1.
-        // otherwise this may result in undesired behaviour
+            // this does not have any effect since mNumberOfGaussPoints is 1.
+            // otherwise this may result in undesired behaviour
+        }
     }
 
     return (mrData.mKinematicViscosity +
