@@ -67,12 +67,7 @@ Shell formulation reference:
 */
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N :
-    public BaseShellElement<ShellT3_CoordinateTransformation>
-// template <bool NLinGeom>
-// class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N :
-//     public BaseShellElement<std::conditional<NLinGeom,
-//     ShellT3_CorotationalCoordinateTransformation,
-//     ShellT3_CoordinateTransformation>>
+    public BaseShellElement<ShellT3_CoordinateTransformation> // template arg is not yet used
 {
 public:
 

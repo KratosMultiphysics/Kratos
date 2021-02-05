@@ -79,7 +79,7 @@ quadrilateral thin flat layered shell element for the modeling of reinforced
 concrete walls". Dissertation. Los Angeles, California: University of
 Southern California, 2012. */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public BaseShellElement<ShellQ4_CoordinateTransformation>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public BaseShellElement<ShellQ4_CoordinateTransformation> // template arg is not yet used
 {
 public:
 
