@@ -66,6 +66,7 @@ public:
         if (mPartialDt){
             dt_factor = rModelPart.GetProcessInfo()[DELTA_TIME_FACTOR];
         }
+        KRATOS_ERROR_IF(dt_factor < 1.0e-12) << "ERROR: DELTA_TIME_FACTOR shoild be larger than zero." <<std::endl;
         const double dt = dt_factor*rModelPart.GetProcessInfo()[DELTA_TIME];
 
         //do movement
