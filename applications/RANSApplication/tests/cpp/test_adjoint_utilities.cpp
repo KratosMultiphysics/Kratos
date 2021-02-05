@@ -15,7 +15,10 @@
 // External includes
 
 // Project includes
+#include "geometries/line_2d_2.h"
+#include "geometries/triangle_3d_3.h"
 #include "includes/checks.h"
+#include "includes/node.h"
 #include "testing/testing.h"
 
 // Application includes
@@ -58,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansAdjointUtilitiesCalculateYPlusAndUtauDerivative, K
 
         double y_plus_derivative, u_tau_derivative;
         RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
-            y_plus_derivative, u_tau_derivative, y_plus, u_tau, u_method(x),
+            y_plus_derivative, u_tau_derivative, y_plus, u_method(x),
             u_derivative_method(x), y_method(x), y_derivative_method(x), nu,
             kappa, beta, y_plus_limit);
 
@@ -138,6 +141,63 @@ KRATOS_TEST_CASE_IN_SUITE(RansAdjointUtilitiesCalculateUnitVectorDerivative, Kra
     unit_u_fd_sensitivity = (u - u_ref) / delta;
 
     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(unit_u_fd_sensitivity, unit_u_analytical_sensitivity, 1e-6);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansAdjointUtilitiesDomainSizeDerivative2D2N, KratosRansFastSuite)
+{
+    constexpr std::size_t dimension = 2;
+    constexpr std::size_t nodes = 2;
+    auto p_n1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
+    auto p_n2 = Kratos::make_intrusive<Node<3>>(2, 1.0, 0.0, 0.0);
+
+    Line2D2<Node<3>> geometry(p_n1, p_n2);
+
+    const double ref_domain_size = geometry.DomainSize();
+    const double delta = 1e-7;
+
+    for (std::size_t c = 0; c < nodes; ++c) {
+        for (std::size_t k = 0; k < dimension; ++k) {
+            const double domain_size_analytical_derivative = RansAdjointUtilities::GeometricalDerivatives<dimension, nodes>::DomainSizeDerivative(geometry, c, k);
+
+            geometry[c].Coordinates()[k] += delta;
+            const double domain_size = geometry.DomainSize();
+
+            const double domain_size_fd_derivative = (domain_size - ref_domain_size) / delta;
+
+            KRATOS_CHECK_RELATIVE_NEAR(domain_size_fd_derivative, domain_size_analytical_derivative, 1e-7);
+
+            geometry[c].Coordinates()[k] -= delta;
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansAdjointUtilitiesDomainSizeDerivative3D3N, KratosRansFastSuite)
+{
+    constexpr std::size_t dimension = 3;
+    constexpr std::size_t nodes = 3;
+    auto p_n1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
+    auto p_n2 = Kratos::make_intrusive<Node<3>>(2, 1.0, 0.0, 0.0);
+    auto p_n3 = Kratos::make_intrusive<Node<3>>(3, 0.0, 1.0, 0.0);
+
+    Triangle3D3<Node<3>> geometry(p_n1, p_n2, p_n3);
+
+    const double ref_domain_size = geometry.DomainSize();
+    const double delta = 1e-7;
+
+    for (std::size_t c = 0; c < nodes; ++c) {
+        for (std::size_t k = 0; k < dimension; ++k) {
+            const double domain_size_analytical_derivative = RansAdjointUtilities::GeometricalDerivatives<dimension, nodes>::DomainSizeDerivative(geometry, c, k);
+
+            geometry[c].Coordinates()[k] += delta;
+            const double domain_size = geometry.DomainSize();
+
+            const double domain_size_fd_derivative = (domain_size - ref_domain_size) / delta;
+
+            KRATOS_CHECK_RELATIVE_NEAR(domain_size_fd_derivative, domain_size_analytical_derivative, 1e-7);
+
+            geometry[c].Coordinates()[k] -= delta;
+        }
+    }
 }
 
 } // namespace Testing
