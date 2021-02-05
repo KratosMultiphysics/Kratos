@@ -35,7 +35,7 @@
             "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
         },
         "formulation_settings": {
-            "formulation_name": "monolithic_k_epsilon",
+            "formulation_name": "monolithic_k_omega",
             "monolithic_flow_solver_settings": {
                 "maximum_iterations": 1,
                 "echo_level": 0,
@@ -58,8 +58,8 @@
                     "dynamic_tau": 1.0
                 }
             },
-            "k_epsilon_solver_settings": {
-                "stabilization_method": "<STABILIZATION_METHOD>",
+            "k_omega_solver_settings": {
+                "stabilization_method": "algebraic_flux_corrected",
                 "turbulent_kinetic_energy_solver_settings": {
                     "relative_tolerance": 5e-16,
                     "absolute_tolerance": 1e-4,
@@ -67,17 +67,19 @@
                     "echo_level": 0,
                     "relaxation_factor": 0.9,
                     "linear_solver_settings": {
-                        "solver_type": "<LINEAR_SOLVER_TYPE>"
+                        "solver_type": "<LINEAR_SOLVER_TYPE>",
+                        "verbosity": 0
                     }
                 },
-                "turbulent_energy_dissipation_rate_solver_settings": {
+                "turbulent_specific_energy_dissipation_rate_solver_settings": {
                     "relative_tolerance": 5e-16,
                     "absolute_tolerance": 1e-4,
                     "max_iterations": 5,
                     "echo_level": 0,
                     "relaxation_factor": 0.9,
                     "linear_solver_settings": {
-                        "solver_type": "<LINEAR_SOLVER_TYPE>"
+                        "solver_type": "<LINEAR_SOLVER_TYPE>",
+                        "verbosity": 0
                     }
                 },
                 "echo_level": 0,
@@ -114,7 +116,7 @@
                 "process_name": "ApplyConstantScalarValueProcess",
                 "Parameters": {
                     "model_part_name": "FluidModelPart",
-                    "variable_name": "TURBULENT_ENERGY_DISSIPATION_RATE",
+                    "variable_name": "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
                     "value": 1564.06
                 }
             },
@@ -244,10 +246,10 @@
                             "VELOCITY_Y",
                             "PRESSURE",
                             "TURBULENT_KINETIC_ENERGY",
-                            "TURBULENT_ENERGY_DISSIPATION_RATE",
+                            "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
                             "TURBULENT_VISCOSITY"
                     ],
-                    "input_file_name": "channel_flow_monolithic_k_epsilon_flow_field_<FLOW_SOLVER_FORMULATION>_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_test_results.json",
+                    "input_file_name": "channel_flow_mon_kw_flow_<FLOW_SOLVER_FORMULATION>_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_results.json",
                     "model_part_name": "FluidModelPart.Parts_fluid",
                     "tolerance": 1e-9,
                     "relative_tolerance": 1e-12,
@@ -268,10 +270,10 @@
                         "VELOCITY_Y",
                         "PRESSURE",
                         "TURBULENT_KINETIC_ENERGY",
-                        "TURBULENT_ENERGY_DISSIPATION_RATE",
+                        "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
                         "TURBULENT_VISCOSITY"
                 ],
-                "input_file_name": "channel_flow_monolithic_k_epsilon_flow_field_<FLOW_SOLVER_FORMULATION>_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_test_results.json",
+                "input_file_name": "channel_flow_mon_kw_flow_<FLOW_SOLVER_FORMULATION>_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "tolerance": 1e-9,
                 "relative_tolerance": 1e-12,
@@ -289,10 +291,10 @@
                         "VELOCITY_Y",
                         "PRESSURE",
                         "TURBULENT_KINETIC_ENERGY",
-                        "TURBULENT_ENERGY_DISSIPATION_RATE",
+                        "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
                         "TURBULENT_VISCOSITY"
                 ],
-                "output_file_name": "channel_flow_monolithic_k_epsilon_flow_field_<FLOW_SOLVER_FORMULATION>_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_test_results.json",
+                "output_file_name": "channel_flow_mon_kw_flow_<FLOW_SOLVER_FORMULATION>_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "time_frequency": -2
             }
