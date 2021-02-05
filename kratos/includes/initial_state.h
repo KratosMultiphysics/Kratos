@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo
@@ -22,7 +22,7 @@
 
 // Project includes
 
-namespace Kratos 
+namespace Kratos
 {
 ///@addtogroup KratosCore
 ///@{
@@ -67,12 +67,12 @@ class KRATOS_API(KRATOS_CORE) InitialState
 
             noalias(mInitialStressVector) = ZeroVector(voigt_size);
             noalias(mInitialStrainVector) = ZeroVector(voigt_size);
-            noalias(mInitialDeformationGradientMatrix) = ZeroMatrix(Dimension, Dimension); 
+            noalias(mInitialDeformationGradientMatrix) = ZeroMatrix(Dimension, Dimension);
         }
 
         // Full constructor
-        InitialState(const Vector& rInitialStrainVector,  
-                     const Vector& rInitialStressVector, 
+        InitialState(const Vector& rInitialStrainVector,
+                     const Vector& rInitialStressVector,
                      const Matrix& rInitialDeformationGradientMatrix)
         {
             const SizeType voigt_size = rInitialStrainVector.size();
@@ -107,7 +107,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
             if (InitialImposingType == static_cast<int>(InitialImposingType::StrainOnly)) {
                 noalias(mInitialStrainVector) = rImposingEntity;
             } else if (InitialImposingType == static_cast<int>(InitialImposingType::StressOnly)) {
-                noalias(mInitialStressVector) = rImposingEntity;       
+                noalias(mInitialStressVector) = rImposingEntity;
             }
         }
 
@@ -152,7 +152,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
         ///@}
         ///@name Operations
         ///@{
-        
+
         //*********************************************
         //public API of intrusive_ptr
         unsigned int use_count() const noexcept
@@ -168,7 +168,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
         void SetInitialStrainVector(const Vector& rInitialStrainVector) {
             const SizeType voigt_size = rInitialStrainVector.size();
             KRATOS_ERROR_IF(voigt_size <= 0) << "The imposed vector is null..." << std::endl;
-            
+
             mInitialStrainVector.resize(voigt_size, false);
             noalias(mInitialStrainVector) = rInitialStrainVector;
         }
@@ -180,7 +180,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
         void SetInitialStressVector(const Vector& rInitialStressVector) {
             const SizeType voigt_size = rInitialStressVector.size();
             KRATOS_ERROR_IF(voigt_size <= 0) << "The imposed vector is null..." << std::endl;
-            
+
             mInitialStressVector.resize(voigt_size, false);
             noalias(mInitialStressVector) = rInitialStressVector;
         }
@@ -192,7 +192,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
         void SetInitialDeformationGradientMatrix(const Matrix& rInitialDeformationGradientMatrix) {
             const SizeType dimension = rInitialDeformationGradientMatrix.size1();
             KRATOS_ERROR_IF(dimension <= 0) << "The imposed Matrix is null..." << std::endl;
-            
+
             mInitialDeformationGradientMatrix.resize(dimension, dimension, false);
             noalias(mInitialDeformationGradientMatrix) = rInitialDeformationGradientMatrix;
         }
