@@ -92,32 +92,27 @@ namespace Kratos
             auto process = SetInitialStateProcess<2>(this_model_part, initial_E, initial_S, initial_F);
             process.ExecuteInitializeSolutionStep();
 
-            // KRATOS_WATCH(this_model_part.NumberOfElements());
+            const double tolerance = 1.0e-4;
+            std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;
+            for (auto i_element = this_model_part.ElementsBegin(); i_element != this_model_part.ElementsEnd(); i_element++) {
+                const auto& r_integration_points = i_element->GetGeometry().IntegrationPoints(i_element->GetIntegrationMethod());
+                i_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, this_model_part.GetProcessInfo());
 
-            // const double tolerance = 1.0e-4;
-            // std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;
-            // for (auto i_element = this_model_part.ElementsBegin(); i_element != this_model_part.ElementsEnd(); i_element++) {
-            //     const auto& r_integration_points = i_element->GetGeometry().IntegrationPoints(i_element->GetIntegrationMethod());
-            //     i_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, this_model_part.GetProcessInfo());
+                for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                    auto p_initial_state = constitutive_law_vector[point_number]->pGetpInitialState();
+                    const auto& r_imposed_F = p_initial_state->GetInitialDeformationGradientMatrix();
+                    const auto& r_imposed_E = p_initial_state->GetInitialStrainVector();
+                    const auto& r_imposed_S = p_initial_state->GetInitialStressVector();
 
-            //     KRATOS_WATCH(this_model_part.NumberOfElements());
-                
-            //     for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-            //         auto p_initial_state = constitutive_law_vector[point_number]->pGetpInitialState();
-            //         const auto& r_imposed_F = p_initial_state->GetInitialDeformationGradientMatrix();
-            //         const auto& r_imposed_E = p_initial_state->GetInitialStrainVector();
-            //         const auto& r_imposed_S = p_initial_state->GetInitialStressVector();
-            //         KRATOS_WATCH(r_imposed_F);
-
-            //         for (IndexType component = 0; component < 3; component++) {
-            //             KRATOS_CHECK_LESS_EQUAL(r_imposed_E(component) - initial_E(component), tolerance);
-            //             KRATOS_CHECK_LESS_EQUAL(r_imposed_S(component) - initial_S(component), tolerance);
-            //         }
-            //         KRATOS_CHECK_LESS_EQUAL(r_imposed_F(0,0) - initial_F(0,0)+1.0, tolerance);
-            //         KRATOS_CHECK_LESS_EQUAL(r_imposed_F(0,1) - initial_F(0,1), tolerance);
-            //         KRATOS_CHECK_LESS_EQUAL(r_imposed_F(1,1) - initial_F(1,1), tolerance);
-            //     }
-            // }
+                    for (IndexType component = 0; component < 3; component++) {
+                        KRATOS_CHECK_LESS_EQUAL(r_imposed_E(component) - initial_E(component), tolerance);
+                        KRATOS_CHECK_LESS_EQUAL(r_imposed_S(component) - initial_S(component), tolerance);
+                    }
+                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(0,0) - initial_F(0,0), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(0,1) - initial_F(0,1), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(r_imposed_F(1,1) - initial_F(1,1), tolerance);
+                }
+            }
         }
 
         /**
@@ -173,7 +168,7 @@ namespace Kratos
         //     for (auto i_element = this_model_part.ElementsBegin(); i_element != this_model_part.ElementsEnd(); i_element++) {
         //         const auto& r_integration_points = i_element->GetGeometry().IntegrationPoints(i_element->GetIntegrationMethod());
         //         i_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, this_model_part.GetProcessInfo());
-                
+
         //         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
         //             auto p_initial_state = constitutive_law_vector[point_number]->pGetpInitialState();
         //             const auto& r_imposed_F = p_initial_state->GetInitialDeformationGradientMatrix();
