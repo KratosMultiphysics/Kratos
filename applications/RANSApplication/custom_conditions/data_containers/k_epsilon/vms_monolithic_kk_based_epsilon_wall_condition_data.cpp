@@ -66,9 +66,8 @@ void VMSMonolithicKBasedEpsilonKBasedWallConditionData<TDim, TNumNodes>::Check(
 {
     KRATOS_TRY
 
-    // Fluid::TResidualsDerivatives::Check(rCondition, rProcessInfo);
-    // TurbulenceModelEquation1::TResidualsDerivatives::Check(rCondition, rProcessInfo);
-    // TurbulenceModelEquation2::TResidualsDerivatives::Check(rCondition, rProcessInfo);
+    Fluid::TResidualsDerivatives::Check(rCondition, rProcessInfo);
+    TurbulenceModelEquation2::TResidualsDerivatives::Check(rCondition, rProcessInfo);
 
     KRATOS_CATCH("");
 }

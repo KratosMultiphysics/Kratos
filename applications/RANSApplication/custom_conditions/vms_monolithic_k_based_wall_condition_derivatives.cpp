@@ -19,6 +19,7 @@
 #include "geometries/geometry.h"
 #include "geometries/geometry_data.h"
 #include "includes/cfd_variables.h"
+#include "includes/checks.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
 #include "includes/ublas_interface.h"
@@ -51,28 +52,25 @@ void VMSMonolithicKBasedWallConditionDerivatives<TDim, TNumNodes>::Check(
 
     KRATOS_ERROR_IF_NOT(rProcessInfo.Has(TURBULENCE_RANS_C_MU))
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
-
     KRATOS_ERROR_IF_NOT(rProcessInfo.Has(VON_KARMAN))
         << "VON_KARMAN is not found in process info.\n";
 
     KRATOS_ERROR_IF_NOT(rCondition.Has(NEIGHBOUR_ELEMENTS))
         << "NEIGHBOUR_ELEMENTS is not found for condition. [ Condition.Id() = "
         << rCondition.Id() << " ].\n";
-
     KRATOS_ERROR_IF(rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() != 1)
         << "There can be only one parent element for the condition in "
            "NEIGHBOUR_ELEMENTS variable. [ Condition.Id() = "
         << rCondition.Id() << ", NEIGHBOUR_ELEMENTS.size() = "
         << rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() << " ].\n";
 
-    const auto& r_element_properties = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
-
+    const auto& r_element_properties =
+        rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
     KRATOS_ERROR_IF_NOT(r_element_properties.Has(DENSITY))
         << "DENSITY is not found in parent element properties. [ "
            "Condition.Id() = "
         << rCondition.Id()
         << ", Properties.Id() = " << r_element_properties.Id() << " ].\n";
-
     KRATOS_ERROR_IF_NOT(r_element_properties.Has(DYNAMIC_VISCOSITY))
         << "DYNAMIC_VISCOSITY is not found in parent element properties. [ "
            "Condition.Id() = "
@@ -80,9 +78,13 @@ void VMSMonolithicKBasedWallConditionDerivatives<TDim, TNumNodes>::Check(
         << ", Properties.Id() = " << r_element_properties.Id() << " ].\n";
 
     const auto& r_condition_properties = rCondition.GetProperties();
-
     KRATOS_ERROR_IF_NOT(r_condition_properties.Has(WALL_SMOOTHNESS_BETA))
         << "WALL_SMOOTHNESS_BETA is not found in condition properties. [ "
+           "Condition.Id() = "
+        << rCondition.Id()
+        << ", Properties.Id() = " << r_condition_properties.Id() << " ].\n";
+    KRATOS_ERROR_IF_NOT(r_condition_properties.Has(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT))
+        << "RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT is not found in condition properties. [ "
            "Condition.Id() = "
         << rCondition.Id()
         << ", Properties.Id() = " << r_condition_properties.Id() << " ].\n";
@@ -99,6 +101,13 @@ void VMSMonolithicKBasedWallConditionDerivatives<TDim, TNumNodes>::Check(
         << "NORMAL_SHAPE_DERIVATIVE is not found in condition. [ "
            "Condition.Id() = "
         << rCondition.Id() << " ].\n";
+
+    const auto& r_geometry = rCondition.GetGeometry();
+    for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
+        const auto& r_node = r_geometry[i_node];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
+    }
 
     KRATOS_CATCH("");
 }

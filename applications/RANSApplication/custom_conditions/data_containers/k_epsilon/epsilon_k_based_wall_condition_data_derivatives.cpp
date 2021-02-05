@@ -56,18 +56,23 @@ void EpsilonKBasedWallConditionDataDerivatives<TDim>::Data::Check(
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA))
         << "TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(VON_KARMAN))
+        << "VON_KARMAN is not found in process info.\n";
+
     KRATOS_ERROR_IF_NOT(r_element_properties.Has(DYNAMIC_VISCOSITY))
         << "DYNAMIC_VISCOSITY is not found in element properties [ Element.Id() = "
         << r_element.Id() << ", Properties.Id() = " << r_element_properties.Id() << " ].\n";
     KRATOS_ERROR_IF_NOT(r_element_properties.Has(DENSITY))
         << "DENSITY is not found in element properties [ Element.Id() = "
         << r_element.Id() << ", Properties.Id() = " << r_element_properties.Id() << " ].\n";
+
     KRATOS_ERROR_IF_NOT(r_condition_properties.Has(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT))
         << "RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT is not found in condition properties [ Condition.Id() = "
         << rCondition.Id() << ", Properties.Id() = " << r_condition_properties.Id() << " ].\n";
     KRATOS_ERROR_IF_NOT(r_condition_properties.Has(WALL_SMOOTHNESS_BETA))
         << "WALL_SMOOTHNESS_BETA is not found in condition properties [ Condition.Id() = "
         << rCondition.Id() << ", Properties.Id() = " << r_condition_properties.Id() << " ].\n";
+
     KRATOS_ERROR_IF_NOT(r_geometry.Has(NORMAL))
         << "NORMAL is not found in condition [ Condition.Id() = " << rCondition.Id()
         << " ].\n";
@@ -79,7 +84,7 @@ void EpsilonKBasedWallConditionDataDerivatives<TDim>::Data::Check(
         const auto& r_node = r_geometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);;
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
 
         KRATOS_CHECK_DOF_IN_NODE(RANS_SCALAR_2_ADJOINT_1, r_node);
     }
