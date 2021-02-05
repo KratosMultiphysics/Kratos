@@ -31,6 +31,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
+        const bool is_fast_pqmpm = true;
+
         if (rMasterMaterialPoint.GetGeometry().Id() != pQuadraturePointGeometry->Id())
         {
             #pragma omp critical
@@ -110,47 +112,116 @@ namespace Kratos
         IndexType active_subpoint_index = 0;
         IntegrationPoint<3> trial_subpoint;
 
-        // Loop over all intersected grid elements and make subpoints in each
-        for (size_t i = 0; i < intersected_geometries.size(); ++i) {
-            Matrix DN_De(intersected_geometries[i]->PointsNumber(), working_dim);
-            Vector N(intersected_geometries[i]->PointsNumber());
+        if (is_fast_pqmpm)
+        {
+            // Hardcoded to quad grid elements!
+            // Assumes 2D mp square domain and places sub-points at gauss locations
+            const double xi = 1.0/std::sqrt(3.0);
+            const double xg_to_gp = xi * side_half_length;
+            std::vector<array_1d<double, 3>> gauss_xg(4);
 
-            if (working_dim == 2) {
-                Determine2DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
-                sub_point_position[2] = rCoordinates[2]; // set z coord of sub point to that of the master
-            }
-            else Determine3DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
+            gauss_xg[0] = rCoordinates;
+            gauss_xg[0][0] -= xg_to_gp;
+            gauss_xg[0][1] -= xg_to_gp;
 
-            // Transfer local data to containers
-            if (sub_point_volume / mp_volume_vec[0] > pqmpm_min_fraction) {
-                if (std::abs(sub_point_volume - mp_volume_vec[0]) < Tolerance) {
-                    CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                        pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
-                        rParentGeom);
-                    return;
-                }
-                else {
-                    trial_subpoint = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume_vec[0],
-                        *intersected_geometries[i], N, DN_De);
-                    ips[active_subpoint_index] = trial_subpoint;
-                    DN_De_vector[active_subpoint_index] = DN_De;
-                    for (size_t j = 0; j < N.size(); ++j) {
-                        N_matrix(active_subpoint_index, active_node_index) = N[j];
-                        nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
+            gauss_xg[1] = rCoordinates;
+            gauss_xg[1][0] += xg_to_gp;
+            gauss_xg[1][1] -= xg_to_gp;
 
-                        active_node_index += 1;
+            gauss_xg[2] = rCoordinates;
+            gauss_xg[2][0] += xg_to_gp;
+            gauss_xg[2][1] += xg_to_gp;
+
+            gauss_xg[3] = rCoordinates;
+            gauss_xg[3][0] -= xg_to_gp;
+            gauss_xg[3][1] += xg_to_gp;
+
+
+            array_1d<double, 3> local_coordinates;
+
+            // Dodgy resize of containers
+            number_of_nodes = 16; // max of four gauss points each linking to quad grid nodes - bad hardcode!
+            nodes_list.resize(number_of_nodes);
+            ips.resize(4);
+            N_matrix = Matrix(4, number_of_nodes, -1.0);
+            DN_De_vector.resize(4);
+
+            for (size_t gauss_point_index = 0; gauss_point_index < 4; ++gauss_point_index)
+            {
+                for (size_t i = 0; i < intersected_geometries.size(); ++i)
+                {
+                    if (intersected_geometries[i]->IsInside(gauss_xg[gauss_point_index],local_coordinates))
+                    {
+                        Matrix DN_De(intersected_geometries[i]->PointsNumber(), working_dim);
+                        Vector N(intersected_geometries[i]->PointsNumber());
+
+                        intersected_geometries[i]->ShapeFunctionsValues(N, local_coordinates);
+                        intersected_geometries[i]->ShapeFunctionsLocalGradients(DN_De, local_coordinates);
+
+                        trial_subpoint =  IntegrationPoint<3>(local_coordinates, 0.25); // hardcoded to 0.25
+
+                        ips[active_subpoint_index] = trial_subpoint;
+                        DN_De_vector[active_subpoint_index] = DN_De;
+                        for (size_t j = 0; j < N.size(); ++j) {
+                            N_matrix(active_subpoint_index, active_node_index) = N[j];
+                            nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
+
+                            active_node_index += 1;
+                        }
+                        active_subpoint_index += 1;
+
+                        break;
                     }
-                    active_subpoint_index += 1;
                 }
+            }
 
+        }
+        else
+        {
+            // Loop over all intersected grid elements and make subpoints in each
+            for (size_t i = 0; i < intersected_geometries.size(); ++i) {
+                Matrix DN_De(intersected_geometries[i]->PointsNumber(), working_dim);
+                Vector N(intersected_geometries[i]->PointsNumber());
+
+                if (working_dim == 2) {
+                    Determine2DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
+                    sub_point_position[2] = rCoordinates[2]; // set z coord of sub point to that of the master
+                }
+                else Determine3DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
+
+                // Transfer local data to containers
+                if (sub_point_volume / mp_volume_vec[0] > pqmpm_min_fraction) {
+                    if (std::abs(sub_point_volume - mp_volume_vec[0]) < Tolerance) {
+                        CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                            pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                            rParentGeom);
+                        return;
+                    }
+                    else {
+                        trial_subpoint = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume_vec[0],
+                            *intersected_geometries[i], N, DN_De);
+                        ips[active_subpoint_index] = trial_subpoint;
+                        DN_De_vector[active_subpoint_index] = DN_De;
+                        for (size_t j = 0; j < N.size(); ++j) {
+                            N_matrix(active_subpoint_index, active_node_index) = N[j];
+                            nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
+
+                            active_node_index += 1;
+                        }
+                        active_subpoint_index += 1;
+                    }
+
+                }
+            }
+            if (active_subpoint_index == 1) {
+                CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                    pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                    rParentGeom);
+                return;
             }
         }
-        if (active_subpoint_index == 1) {
-            CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
-                rParentGeom);
-            return;
-        }
+
+
 
         IntegrationPointsArrayType ips_active(active_subpoint_index);
         PointerVector<Node<3>> nodes_list_active(active_node_index);
