@@ -23,6 +23,7 @@
 #include "utilities/indirect_scalar.h"
 
 // Application includes
+#include "custom_utilities/rans_adjoint_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "fluid_dynamics_application_variables.h"
 #include "rans_application_variables.h"
@@ -226,19 +227,38 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     DofsVectorType& rConditionalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    if (rConditionalDofList.size() != TConditionLocalSize) {
-        rConditionalDofList.resize(TConditionLocalSize);
-    }
-
     const auto& r_variables_list = TAdjointConditionData::GetDofVariablesList();
 
-    IndexType local_index = 0;
-    for (IndexType i = 0; i < TNumNodes; ++i) {
-        const auto& r_node = this->GetGeometry()[i];
-        for (const auto p_variable : r_variables_list) {
-            rConditionalDofList[local_index++] = r_node.pGetDof(*p_variable);
+    if (rCurrentProcessInfo[FRACTIONAL_STEP] == 200) {
+        // add dofs for the shape sensitivity calculation
+        const auto& r_parent_element_geometry = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry();
+        const IndexType coords_size = (TDim + 3) * r_parent_element_geometry.size();
+        if (rConditionalDofList.size() != coords_size) {
+            rConditionalDofList.resize(coords_size);
+        }
+
+        IndexType local_index = 0;
+        for (IndexType i = 0; i < r_parent_element_geometry.size(); ++i) {
+            const auto& r_node = r_parent_element_geometry[i];
+            for (const auto p_variable : r_variables_list) {
+                rConditionalDofList[local_index++] = r_node.pGetDof(*p_variable);
+            }
+        }
+    } else {
+        if (rConditionalDofList.size() != TConditionLocalSize) {
+            rConditionalDofList.resize(TConditionLocalSize);
+        }
+
+        IndexType local_index = 0;
+        for (IndexType i = 0; i < TNumNodes; ++i) {
+            const auto& r_node = this->GetGeometry()[i];
+            for (const auto p_variable : r_variables_list) {
+                rConditionalDofList[local_index++] = r_node.pGetDof(*p_variable);
+            }
         }
     }
+
+
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
@@ -423,14 +443,22 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     KRATOS_TRY
 
     if (rSensitivityVariable == SHAPE_SENSITIVITY) {
-        if (rOutput.size1() != TCoordLocalSize || rOutput.size2() != TConditionLocalSize) {
-            rOutput.resize(TCoordLocalSize, TConditionLocalSize, false);
+        const auto& r_parent_elemnet = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
+        const IndexType coords_size = TDim * r_parent_elemnet.GetGeometry().PointsNumber();
+
+        if (rOutput.size1() != coords_size || rOutput.size2() != TConditionLocalSize) {
+            rOutput.resize(coords_size, TConditionLocalSize, false);
         }
 
         rOutput.clear();
         if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-            AddFluidShapeDerivatives(rOutput, rCurrentProcessInfo);
-            AddTurbulenceShapeDerivatives(rOutput, rCurrentProcessInfo);
+            std::unordered_map<int, int> parent_elements_to_condition_nodes_map;
+            ComputeParentElementNodesToConditionNodesMap(
+                parent_elements_to_condition_nodes_map, this->GetGeometry(),
+                r_parent_elemnet.GetGeometry());
+
+            AddFluidShapeDerivatives(rOutput, parent_elements_to_condition_nodes_map, rCurrentProcessInfo);
+            AddTurbulenceShapeDerivatives(rOutput, parent_elements_to_condition_nodes_map, rCurrentProcessInfo);
         }
     } else {
         KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
@@ -546,56 +574,55 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddFluidShapeDerivatives(
     Matrix& rOutput,
+    const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // KRATOS_TRY
+    KRATOS_TRY
 
-    // const auto& integration_method = FluidData::TResidualsDerivatives::GetIntegrationMethod();
+    const auto& integration_method = FluidData::TResidualsDerivatives::GetIntegrationMethod();
 
-    // Vector Ws;
-    // Matrix Ns;
-    // ShapeFunctionDerivativesArrayType dNdXs;
-    // this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
+    Vector Ws;
+    Matrix Ns;
+    this->CalculateGeometryData(Ws, Ns, integration_method);
 
-    // using Derivatives = typename FluidData::SensitivityDerivatives;
+    using Derivatives = typename FluidData::SensitivityDerivatives;
 
-    // typename Derivatives::Data  element_data(*this, *mpFluidConstitutiveLaw, rCurrentProcessInfo);
-    // typename Derivatives::Shape derivative(element_data);
+    typename Derivatives::Data  element_data(*this, this->GetValue(NEIGHBOUR_ELEMENTS)[0], rCurrentProcessInfo);
+    typename Derivatives::Shape derivative(element_data);
 
-    // VectorF residual;
+    VectorF residual_derivative;
 
-    // for (IndexType g = 0; g < Ws.size(); ++g) {
-    //     const Vector& N = row(Ns, g);
-    //     const Matrix& dNdX = dNdXs[g];
-    //     const double W = Ws[g];
+    const IndexType parent_element_number_of_nodes = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry().PointsNumber();
 
-    //     element_data.CalculateGaussPointData(W, N, dNdX);
+    for (IndexType g = 0; g < Ws.size(); ++g) {
+        const Vector& N = row(Ns, g);
+        const double W = Ws[g];
 
-    //     Geometry<Point>::JacobiansType J;
-    //     this->GetGeometry().Jacobian(J, integration_method);
-    //     const auto& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+        element_data.CalculateGaussPointData(W, N);
 
-    //     GeometricalSensitivityUtility::ShapeFunctionsGradientType dNdX_derivative;
-    //     const Matrix& rJ = J[g];
-    //     const Matrix& rDN_De = DN_De[g];
-    //     const double inv_detJ = 1.0 / MathUtils<double>::DetMat(rJ);
-    //     GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
+        IndexType row = 0;
+        for (IndexType c = 0; c < parent_element_number_of_nodes; ++c) {
+            auto p_index = rParentElementNodesToConditionNodesMap.find(c);
+            KRATOS_WATCH(c);
+            for (IndexType k = 0; k < TDim; ++k) {
+                if (p_index->second >= 0) {
+                    // compute derivative w.r.t. condition nodes
+                    double detJ_derivative, W_derivative;
+                    CalculateGeometryDataDerivative(W_derivative, detJ_derivative, p_index->second, k, g, integration_method);
 
-    //     ShapeParameter deriv;
-    //     IndexType row = 0;
-    //     for (deriv.NodeIndex = 0; deriv.NodeIndex < TNumNodes; ++deriv.NodeIndex) {
-    //         for (deriv.Direction = 0; deriv.Direction < TDim; ++deriv.Direction) {
-    //             double detJ_derivative;
-    //             geom_sensitivity.CalculateSensitivity(deriv, detJ_derivative, dNdX_derivative);
-    //             const double W_derivative = detJ_derivative * inv_detJ * W;
+                    derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, p_index->second, k, W, N, W_derivative, detJ_derivative, c);
+                    std::cout << "\nCondition deriv_RHS = " << residual_derivative << "\n";
+                } else {
+                    // compute derivatives w.r.t. parent element only nodes
+                    derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, k, W, N, c);
+                    std::cout << "\nElement deriv_RHS = " << residual_derivative << "\n";
+                }
+                AssembleSubVectorToMatrix(rOutput, row++, 0, residual_derivative);
+            }
+        }
+    }
 
-    //             derivative.CalculateGaussPointResidualsDerivativeContributions(residual, deriv.NodeIndex, deriv.Direction, W, N, dNdX, W_derivative, detJ_derivative, dNdX_derivative);
-    //             AssembleSubVectorToMatrix(rOutput, row++, 0, residual);
-    //         }
-    //     }
-    // }
-
-    // KRATOS_CATCH("");
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
@@ -603,47 +630,31 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     Vector& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // const auto& integration_method = TurbulenceModelEquation1Data::TResidualsDerivatives::GetIntegrationMethod();
+    const auto& integration_method = TurbulenceModelEquation2Data::TResidualsDerivatives::GetIntegrationMethod();
 
-    // Vector Ws;
-    // Matrix Ns;
-    // ShapeFunctionDerivativesArrayType dNdXs;
-    // this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
+    Vector Ws;
+    Matrix Ns;
+    this->CalculateGeometryData(Ws, Ns, integration_method);
 
-    // using Equation1Primal= typename TurbulenceModelEquation1Data::Primal;
-    // using Equation2Primal= typename TurbulenceModelEquation2Data::Primal;
+    using Equation1Primal= typename TurbulenceModelEquation2Data::Primal;
 
-    // // create data holders for turbulence equations
-    // typename Equation1Primal::Data eq_1_data(*this, rCurrentProcessInfo);
-    // typename Equation2Primal::Data eq_2_data(*this, rCurrentProcessInfo);
+    // create data holders for turbulence equations
+    typename Equation1Primal::Data eq_2_data(*this, this->GetValue(NEIGHBOUR_ELEMENTS)[0], rCurrentProcessInfo);
 
-    // // create equation residual data holders
-    // typename Equation1Primal::ResidualsContributions eq_1_residuals(eq_1_data);
-    // typename Equation2Primal::ResidualsContributions eq_2_residuals(eq_2_data);
+    // create equation residual data holders
+    typename Equation1Primal::ResidualsContributions eq_2_residuals(eq_2_data);
 
-    // VectorN residuals_1 = ZeroVector(TNumNodes);
-    // VectorN residuals_2 = ZeroVector(TNumNodes);
+    VectorN residuals = ZeroVector(TNumNodes);
 
-    // for (IndexType g = 0; g < Ws.size(); ++g) {
-    //     const double W = Ws[g];
-    //     const Vector& N = row(Ns, g);
-    //     const Matrix& dNdX = dNdXs[g];
+    for (IndexType g = 0; g < Ws.size(); ++g) {
+        const double W = Ws[g];
+        const Vector& N = row(Ns, g);
 
-    //     eq_1_data.CalculateGaussPointData(W, N, dNdX);
-    //     eq_2_data.CalculateGaussPointData(W, N, dNdX);
+        eq_2_data.CalculateGaussPointData(W, N);
+        eq_2_residuals.AddGaussPointResidualsContributions(residuals, W, N);
+    }
 
-    //     eq_1_residuals.AddGaussPointResidualsContributions(residuals_1, W, N, dNdX);
-    //     eq_2_residuals.AddGaussPointResidualsContributions(residuals_2, W, N, dNdX);
-    // }
-
-    // eq_1_data.CalculateDataAfterGaussPointPointLoop();
-    // eq_2_data.CalculateDataAfterGaussPointPointLoop();
-
-    // eq_1_residuals.AddResidualsContributionsAfterGaussPointLoop(residuals_1);
-    // eq_2_residuals.AddResidualsContributionsAfterGaussPointLoop(residuals_2);
-
-    // AssembleSubVectorToVector(rOutput, TDim + 1, residuals_1);
-    // AssembleSubVectorToVector(rOutput, TDim + 2, residuals_2);
+    AssembleSubVectorToVector(rOutput, TDim + 2, residuals);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
@@ -651,185 +662,63 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     MatrixType& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // KRATOS_TRY
+    KRATOS_TRY
 
-    // const auto& integration_method = TurbulenceModelEquation1Data::TResidualsDerivatives::GetIntegrationMethod();
+    const auto& integration_method = TurbulenceModelEquation2Data::TResidualsDerivatives::GetIntegrationMethod();
 
-    // Vector Ws;
-    // Matrix Ns;
-    // ShapeFunctionDerivativesArrayType dNdXs;
-    // this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
+    Vector Ws;
+    Matrix Ns;
+    this->CalculateGeometryData(Ws, Ns, integration_method);
 
-    // using Equation1Derivatives = typename TurbulenceModelEquation1Data::StateDerivatives::FirstDerivatives;
-    // using Equation2Derivatives = typename TurbulenceModelEquation2Data::StateDerivatives::FirstDerivatives;
+    using Equation2Derivatives = typename TurbulenceModelEquation2Data::StateDerivatives::FirstDerivatives;
 
-    // // create data holders for turbulence equations
-    // typename Equation1Derivatives::Data eq_1_data(*this, rCurrentProcessInfo);
-    // typename Equation2Derivatives::Data eq_2_data(*this, rCurrentProcessInfo);
+    // create data holders for turbulence equations
+    typename Equation2Derivatives::Data eq_2_data(*this, this->GetValue(NEIGHBOUR_ELEMENTS)[0], rCurrentProcessInfo);
 
-    // // create equation derivative data holders
-    // typename Equation1Derivatives::Velocity                 eq_1_derivative_0(eq_1_data);
-    // typename Equation1Derivatives::TurbulenceModelVariable1 eq_1_derivative_1(eq_1_data);
-    // typename Equation1Derivatives::TurbulenceModelVariable2 eq_1_derivative_2(eq_1_data);
+    // create equation derivative data holders
+    typename Equation2Derivatives::Velocity                 eq_2_derivative_0(eq_2_data);
+    typename Equation2Derivatives::TurbulenceModelVariable1 eq_2_derivative_1(eq_2_data);
+    typename Equation2Derivatives::TurbulenceModelVariable2 eq_2_derivative_2(eq_2_data);
 
-    // typename Equation2Derivatives::Velocity                 eq_2_derivative_0(eq_2_data);
-    // typename Equation2Derivatives::TurbulenceModelVariable1 eq_2_derivative_1(eq_2_data);
-    // typename Equation2Derivatives::TurbulenceModelVariable2 eq_2_derivative_2(eq_2_data);
+    MatrixND dNdX_derivative = ZeroMatrix(TNumNodes, TDim);
+    VectorN residual_derivatives;
 
-    // MatrixND dNdX_derivative = ZeroMatrix(TNumNodes, TDim);
-    // VectorN residual_derivatives;
+    IndexType row_index = 0;
+    for (IndexType g = 0; g < Ws.size(); ++g) {
+        const double W = Ws[g];
+        const Vector& N = row(Ns, g);
 
-    // IndexType row_index = 0;
-    // for (IndexType g = 0; g < Ws.size(); ++g) {
-    //     const double W = Ws[g];
-    //     const Vector& N = row(Ns, g);
-    //     const Matrix& dNdX = dNdXs[g];
+        eq_2_data.CalculateGaussPointData(W, N);
 
-    //     eq_1_data.CalculateGaussPointData(W, N, dNdX);
-    //     eq_2_data.CalculateGaussPointData(W, N, dNdX);
+        row_index = 0;
+        for (IndexType c = 0; c < TNumNodes; ++c) {
 
-    //     row_index = 0;
-    //     for (IndexType c = 0; c < TNumNodes; ++c) {
+            // add derivatives w.r.t velocity
+            for (IndexType k = 0; k < TDim; ++k) {
+                eq_2_derivative_0.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, k, W, N, 0, 0, c);
+                AssembleSubVectorToMatrix(rOutput, row_index++, TDim + 2, residual_derivatives);
+            }
 
-    //         // add derivatives w.r.t velocity
-    //         for (IndexType k = 0; k < TDim; ++k) {
-    //             eq_1_derivative_0.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, k, W, N, dNdX, 0, 0, dNdX_derivative);
-    //             AssembleSubVectorToMatrix(rOutput, row_index, TDim + 1, residual_derivatives);
-    //             eq_2_derivative_0.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, k, W, N, dNdX, 0, 0, dNdX_derivative);
-    //             AssembleSubVectorToMatrix(rOutput, row_index, TDim + 2, residual_derivatives);
-    //             ++row_index;
-    //         }
+            // skip derivatives w.r.t. pressure
+            ++row_index;
 
-    //         // skip derivatives w.r.t. pressure
-    //         ++row_index;
+            // add derivatives w.r.t. turbulence variable 1
+            eq_2_derivative_1.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, 0, 0, c);
+            AssembleSubVectorToMatrix(rOutput, row_index++, TDim + 2, residual_derivatives);
 
-    //         // add derivatives w.r.t. turbulence variable 1
-    //         eq_1_derivative_1.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, dNdX, 0, 0, dNdX_derivative);
-    //         AssembleSubVectorToMatrix(rOutput, row_index, TDim + 1, residual_derivatives);
-    //         eq_2_derivative_1.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, dNdX, 0, 0, dNdX_derivative);
-    //         AssembleSubVectorToMatrix(rOutput, row_index, TDim + 2, residual_derivatives);
-    //         ++row_index;
+            // add derivative w.r.t. turbulence variable 2
+            eq_2_derivative_2.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, 0, 0, c);
+            AssembleSubVectorToMatrix(rOutput, row_index++, TDim + 2, residual_derivatives);
+        }
+    }
 
-    //         // add derivative w.r.t. turbulence variable 2
-    //         eq_1_derivative_2.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, dNdX, 0, 0, dNdX_derivative);
-    //         AssembleSubVectorToMatrix(rOutput, row_index, TDim + 1, residual_derivatives);
-    //         eq_2_derivative_2.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, dNdX, 0, 0, dNdX_derivative);
-    //         AssembleSubVectorToMatrix(rOutput, row_index, TDim + 2, residual_derivatives);
-    //         ++row_index;
-    //     }
-    // }
-
-    // eq_1_data.CalculateDataAfterGaussPointPointLoop();
-    // eq_2_data.CalculateDataAfterGaussPointPointLoop();
-
-    // // finalize derivative data holders
-    // row_index = 0;
-    // for (IndexType c = 0; c < TNumNodes; ++c) {
-    //     for (IndexType k = 0; k < TDim; ++k) {
-    //         eq_1_derivative_0.CalculateResidualsDerivativeContributionsAfterGaussPointPointLoop(residual_derivatives, c, k);
-    //         AssembleSubVectorToMatrix(rOutput, row_index, TDim + 1, residual_derivatives);
-    //         eq_2_derivative_0.CalculateResidualsDerivativeContributionsAfterGaussPointPointLoop(residual_derivatives, c, k);
-    //         AssembleSubVectorToMatrix(rOutput, row_index, TDim + 2, residual_derivatives);
-    //         ++row_index;
-    //     }
-
-    //     // skip derivative w.r.t. pressure
-    //     ++row_index;
-
-    //     // initializing derivative row w.r.t. turbulence variable 1
-    //     eq_1_derivative_1.CalculateResidualsDerivativeContributionsAfterGaussPointPointLoop(residual_derivatives, c, 0);
-    //     AssembleSubVectorToMatrix(rOutput, row_index, TDim + 1, residual_derivatives);
-    //     eq_2_derivative_1.CalculateResidualsDerivativeContributionsAfterGaussPointPointLoop(residual_derivatives, c, 0);
-    //     AssembleSubVectorToMatrix(rOutput, row_index, TDim + 2, residual_derivatives);
-    //     ++row_index;
-
-    //     // initializing derivative row w.r.t. turbulence variable 2
-    //     eq_1_derivative_2.CalculateResidualsDerivativeContributionsAfterGaussPointPointLoop(residual_derivatives, c, 0);
-    //     AssembleSubVectorToMatrix(rOutput, row_index, TDim + 1, residual_derivatives);
-    //     eq_2_derivative_2.CalculateResidualsDerivativeContributionsAfterGaussPointPointLoop(residual_derivatives, c, 0);
-    //     AssembleSubVectorToMatrix(rOutput, row_index, TDim + 2, residual_derivatives);
-    //     ++row_index;
-    // }
-
-    // KRATOS_CATCH("");
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
-void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddTurbulenceSecondDerivatives(
-    MatrixType& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    // KRATOS_TRY
-
-    // const auto& integration_method = TurbulenceModelEquation1Data::TResidualsDerivatives::GetIntegrationMethod();
-
-    // Vector Ws;
-    // Matrix Ns;
-    // ShapeFunctionDerivativesArrayType dNdXs;
-    // this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
-
-    // using Equation1Derivatives = typename TurbulenceModelEquation1Data::StateDerivatives::SecondDerivatives;
-    // using Equation2Derivatives = typename TurbulenceModelEquation2Data::StateDerivatives::SecondDerivatives;
-
-    // // create data holders for turbulence equations
-    // typename Equation1Derivatives::Data eq_1_data(*this, rCurrentProcessInfo);
-    // typename Equation2Derivatives::Data eq_2_data(*this, rCurrentProcessInfo);
-
-    // // create equation derivative data holders
-    // typename Equation1Derivatives::TurbulenceModelVariableRate1  eq_1_derivative(eq_1_data);
-    // typename Equation2Derivatives::TurbulenceModelVariableRate2  eq_2_derivative(eq_2_data);
-
-    // MatrixND dNdX_derivative = ZeroMatrix(TNumNodes, TDim);
-    // VectorN residual_derivatives;
-
-    // IndexType row_index = 0;
-    // for (IndexType g = 0; g < Ws.size(); ++g) {
-    //     const double W = Ws[g];
-    //     const Vector& N = row(Ns, g);
-    //     const Matrix& dNdX = dNdXs[g];
-
-    //     eq_1_data.CalculateGaussPointData(W, N, dNdX);
-    //     eq_2_data.CalculateGaussPointData(W, N, dNdX);
-
-    //     row_index = 0;
-    //     for (IndexType c = 0; c < TNumNodes; ++c) {
-    //         // skip derivative terms w.r.t. velocity and pressure
-    //         row_index += TDim + 1;
-
-    //         // add derivatives w.r.t. turbulence variable 1
-    //         eq_1_derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, W, N, dNdX);
-    //         AssembleSubVectorToMatrix(rOutput, row_index++, TDim + 1, residual_derivatives);
-
-    //         // add derivative w.r.t. turbulence variable 2
-    //         eq_2_derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, W, N, dNdX);
-    //         AssembleSubVectorToMatrix(rOutput, row_index++, TDim + 2, residual_derivatives);
-    //     }
-    // }
-
-    // eq_1_data.CalculateDataAfterGaussPointPointLoop();
-    // eq_2_data.CalculateDataAfterGaussPointPointLoop();
-
-    // // finalize derivative data holders
-    // row_index = 0;
-    // for (IndexType c = 0; c < TNumNodes; ++c) {
-    //     // skip derivative terms w.r.t. velocity and pressure
-    //     row_index += TDim + 1;
-
-    //     // initializing derivative row w.r.t. turbulence variable 1
-    //     eq_1_derivative.CalculateResidualsDerivativeContributionsAfterGaussPointPointLoop(residual_derivatives, c);
-    //     AssembleSubVectorToMatrix(rOutput, row_index++, TDim + 1, residual_derivatives);
-
-    //     // initializing derivative row w.r.t. turbulence variable 2
-    //     eq_2_derivative.CalculateResidualsDerivativeContributionsAfterGaussPointPointLoop(residual_derivatives, c);
-    //     AssembleSubVectorToMatrix(rOutput, row_index++, TDim + 2, residual_derivatives);
-    // }
-
-    // KRATOS_CATCH("");
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddTurbulenceShapeDerivatives(
     Matrix& rOutput,
+    const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // KRATOS_TRY
@@ -910,12 +799,48 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
+void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::ComputeParentElementNodesToConditionNodesMap(
+    std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
+    const GeometryType& rConditionGeometry,
+    const GeometryType& rParentElementGeometry) const
+{
+    for (IndexType a = 0; a < rParentElementGeometry.PointsNumber(); ++a) {
+        rParentElementNodesToConditionNodesMap[a] = -1; // this is returned if no condition node is found for parent element node
+
+        for (IndexType b = 0; b < rConditionGeometry.PointsNumber(); ++b) {
+            if (rConditionGeometry[b].Id() == rParentElementGeometry[a].Id()) {
+                rParentElementNodesToConditionNodesMap[a] = b;
+                break;
+            }
+        }
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::CalculateGeometryData(
     Vector& rGaussWeights,
     Matrix& rNContainer,
     const GeometryData::IntegrationMethod& rIntegrationMethod) const
 {
     RansCalculationUtilities::CalculateConditionGeometryData(this->GetGeometry(), rIntegrationMethod, rGaussWeights, rNContainer);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
+void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::CalculateGeometryDataDerivative(
+    double& WDerivative,
+    double& DetJDerivative,
+    const IndexType NodeIndex,
+    const IndexType DirectionIndex,
+    const IndexType GaussPointIndex,
+    const GeometryData::IntegrationMethod& rIntegrationMethod) const
+{
+    const auto& integration_points = this->GetGeometry().IntegrationPoints(rIntegrationMethod);
+
+    const double domain_size_derivative = RansAdjointUtilities::GeometricalDerivatives<TDim, TNumNodes>::DomainSizeDerivative(this->GetGeometry(), NodeIndex, DirectionIndex);
+
+    // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
+    DetJDerivative = (TDim == 2) ? 0.5 * domain_size_derivative : 2.0 * domain_size_derivative;
+    WDerivative = DetJDerivative * integration_points[GaussPointIndex].Weight();
 }
 
 // template instantiations

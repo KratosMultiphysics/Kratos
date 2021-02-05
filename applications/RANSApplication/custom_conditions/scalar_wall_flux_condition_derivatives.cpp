@@ -145,7 +145,7 @@ void ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::Va
         ConditionNodeIndex, DirectionIndex, W, rN, WDerivative, DetJDerivative,
         ParentElementNodeIndex);
 
-    rResidualDerivative = rN * (W * flux_derivative);
+    noalias(rResidualDerivative) = rN * (W * flux_derivative);
 
     mResidualWeightDerivativeContributions.AddGaussPointResidualsContributions(rResidualDerivative, WDerivative, rN);
 

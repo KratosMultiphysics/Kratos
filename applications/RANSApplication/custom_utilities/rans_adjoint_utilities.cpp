@@ -92,7 +92,6 @@ void RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
     double& rYPlusDerivative,
     double& rUTauDerivative,
     const double YPlus,
-    const double UTau,
     const double WallVelocity,
     const double WallVelocityDerivative,
     const double WallHeight,
@@ -104,20 +103,22 @@ void RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
 {
     KRATOS_TRY
 
+    const double u_tau = YPlus * KinematicViscosity / WallHeight;
+
     if (YPlus > YPlusLimit) {
         // compute logarithmic wall law derivatives
         rUTauDerivative = (WallVelocityDerivative -
-                           UTau * WallHeightDerivative / (Kappa * WallHeight)) /
-                          (1 / Kappa + WallVelocity / UTau);
+                           u_tau * WallHeightDerivative / (Kappa * WallHeight)) /
+                          (1 / Kappa + WallVelocity / u_tau);
     } else {
         // compute linear wall law derivatives
         rUTauDerivative =
-            (WallVelocityDerivative - std::pow(UTau, 2) * WallHeightDerivative / KinematicViscosity) /
-            (UTau * (WallHeight / KinematicViscosity + WallVelocity / std::pow(UTau, 2)));
+            (WallVelocityDerivative - std::pow(u_tau, 2) * WallHeightDerivative / KinematicViscosity) /
+            (u_tau * (WallHeight / KinematicViscosity + WallVelocity / std::pow(u_tau, 2)));
     }
 
     rYPlusDerivative =
-        (rUTauDerivative * WallHeight + UTau * WallHeightDerivative) / KinematicViscosity;
+        (rUTauDerivative * WallHeight + u_tau * WallHeightDerivative) / KinematicViscosity;
 
     KRATOS_CATCH("");
 }
@@ -137,7 +138,6 @@ double RansAdjointUtilities::GeometricalDerivatives<2, 2>::DomainSizeDerivative(
     const double length = lx * lx + ly * ly;
     const double length_derivative = 2.0 * lx * lx_derivative + 2.0 * ly * ly_derivative;
 
-    const double domain_size = std::sqrt(length);
     const double domain_size_derivative = 0.5 * length_derivative / std::sqrt(length);
 
     return domain_size_derivative;
@@ -149,15 +149,41 @@ double RansAdjointUtilities::GeometricalDerivatives<3, 3>::DomainSizeDerivative(
     const IndexType NodeIndex,
     const IndexType DirectionIndex)
 {
-    // const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-    // // const double a_derivative =
+    const array_1d<double, 3>& a1 = rGeometry[0] - rGeometry[1];
+    array_1d<double, 3> a1_derivative = ZeroVector(3);
+    a1_derivative[DirectionIndex] = (NodeIndex == 0) - (NodeIndex == 1);
 
-    // const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-    // const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+    const double a = norm_2(a1);
+    const double a_derivative = CalculateVectorNormDerivative(a, a1, a1_derivative);
 
-    // const double s = (a+b+c) / 2.0;
+    const array_1d<double, 3>& b1 = rGeometry[1] - rGeometry[2];
+    array_1d<double, 3> b1_derivative = ZeroVector(3);
+    b1_derivative[DirectionIndex] = (NodeIndex == 1) - (NodeIndex == 2);
 
-    // return std::sqrt(s*(s-a)*(s-b)*(s-c));
+    const double b = norm_2(b1);
+    const double b_derivative = CalculateVectorNormDerivative(b, b1, b1_derivative);
+
+    const array_1d<double, 3>& c1 = rGeometry[2] - rGeometry[0];
+    array_1d<double, 3> c1_derivative = ZeroVector(3);
+    c1_derivative[DirectionIndex] = (NodeIndex == 2) - (NodeIndex == 0);
+
+    const double c = norm_2(c1);
+    const double c_derivative = CalculateVectorNormDerivative(c, c1, c1_derivative);
+
+    const double s = (a+b+c)/2.0;
+    const double s_derivative = (a_derivative+b_derivative+c_derivative)/2.0;
+
+    const double value = std::sqrt(s*(s-a)*(s-b)*(s-c));
+    double value_derivative = 0.0;
+
+    value_derivative += s_derivative*(s-a)*(s-b)*(s-c);
+    value_derivative += s*(s_derivative-a_derivative)*(s-b)*(s-c);
+    value_derivative += s*(s-a)*(s_derivative-b_derivative)*(s-c);
+    value_derivative += s*(s-a)*(s-b)*(s_derivative-c_derivative);
+
+    value_derivative *= 0.5 / value;
+
+    return value_derivative;
 }
 
 } // namespace Kratos

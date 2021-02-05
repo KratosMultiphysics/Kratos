@@ -14,6 +14,7 @@
 #define KRATOS_TWO_EQUATION_TURBULENCE_MODEL_ADJOINT_CONDITION_H
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
@@ -84,9 +85,7 @@ public:
 
     using FluidData = typename TAdjointConditionData::Fluid;
 
-    // using TurbulenceModelEquation1Data = typename TAdjointConditionData::TurbulenceModelEquation1;
-
-    // using TurbulenceModelEquation2Data = typename TAdjointConditionData::TurbulenceModelEquation2;
+    using TurbulenceModelEquation2Data = typename TAdjointConditionData::TurbulenceModelEquation2;
 
     constexpr static IndexType TBlockSize = TDim + 3;
 
@@ -281,6 +280,7 @@ protected:
 
     void AddFluidShapeDerivatives(
         Matrix& rOutput,
+        const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddTurbulenceResidualsContributions(
@@ -291,18 +291,28 @@ protected:
         MatrixType& rOutput,
         const ProcessInfo& rCurrentProcessInfo);
 
-    void AddTurbulenceSecondDerivatives(
-        MatrixType& rOutput,
-        const ProcessInfo& rCurrentProcessInfo);
-
     void AddTurbulenceShapeDerivatives(
         Matrix& rOutput,
+        const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
         const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateGeometryData(
         Vector& rGaussWeights,
         Matrix& rNContainer,
         const GeometryData::IntegrationMethod& rIntegrationMethod) const;
+
+    void CalculateGeometryDataDerivative(
+        double& WDerivative,
+        double& DetJDerivative,
+        const IndexType NodeIndex,
+        const IndexType DirectionIndex,
+        const IndexType GaussPointIndex,
+        const GeometryData::IntegrationMethod& rIntegrationMethod) const;
+
+    void ComputeParentElementNodesToConditionNodesMap(
+        std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
+        const GeometryType& rConditionGeometry,
+        const GeometryType& rParentElementGeometry) const;
 
     template<IndexType TSize>
     void AssembleSubVectorToVector(

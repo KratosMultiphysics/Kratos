@@ -144,6 +144,8 @@ void EpsilonKBasedWallConditionDataDerivatives<TDim>::Data::CalculateGaussPointD
 
     mUTau = mCmu25 * std::sqrt(std::max(mTurbulentKineticEnergy, 0.0));
 
+    mWallVelocityMagnitude = norm_2(mWallVelocity);
+
     mWallFlux =
         (mKinematicViscosity + mTurbulentKinematicViscosity / mEpsilonSigma) *
         std::pow(mUTau, 5) / (mKappa * std::pow(mYPlus * mKinematicViscosity, 2));
@@ -166,24 +168,21 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::UDerivative::CalculateWa
     double y_plus_derivative = 0.0;
     if (mrData.mWallVelocityMagnitude > 1e-16) {
 
-        const double wall_velocity_derivative =
-            mrData.mWallVelocity[DirectionIndex] * rN[ConditionNodeIndex] / mrData.mWallVelocityMagnitude;
+        const double wall_velocity_magnitude_derivative = mrData.mWallVelocity[DirectionIndex] * rN[ConditionNodeIndex] / mrData.mWallVelocityMagnitude;
 
+        if (mrData.mYPlus > mrData.mYPlusLimit) {
         double u_tau_derivative;
         RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
-            y_plus_derivative, u_tau_derivative, mrData.mYPlus, mrData.mUTau,
-            mrData.mWallVelocityMagnitude, wall_velocity_derivative, mrData.mWallHeight, 0.0,
-            mrData.mKinematicViscosity, mrData.mKappa, mrData.mBeta, mrData.mYPlusLimit);
+            y_plus_derivative, u_tau_derivative, mrData.mYPlus,
+            mrData.mWallVelocityMagnitude, wall_velocity_magnitude_derivative, mrData.mWallHeight, 0.0, mrData.mKinematicViscosity, mrData.mKappa, mrData.mBeta, mrData.mYPlusLimit);
+        }
 
         // this does not have any effect since mNumberOfGaussPoints is 1.
         // otherwise this may result in undesired behaviour
     }
 
-    return (mrData.mKinematicViscosity +
-            mrData.mTurbulentKinematicViscosity / mrData.mEpsilonSigma) *
-           std::pow(mrData.mUTau, 5) *
-           (-2.0 * y_plus_derivative / std::pow(mrData.mYPlus, 3)) /
-           (mrData.mKappa * std::pow(mrData.mKinematicViscosity, 2));
+    return (mrData.mKinematicViscosity +  mrData.mTurbulentKinematicViscosity / mrData.mEpsilonSigma) * std::pow(mrData.mUTau, 5) *
+           (-2.0 * y_plus_derivative / std::pow(mrData.mYPlus, 3)) / (mrData.mKappa * std::pow(mrData.mKinematicViscosity, 2));
 }
 
 template <unsigned int TDim>
@@ -321,7 +320,7 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::ShapeDerivative::Calcula
 
         double u_tau_derivative;
         RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
-            y_plus_derivative, u_tau_derivative, mrData.mYPlus, mrData.mUTau,
+            y_plus_derivative, u_tau_derivative, mrData.mYPlus,
             mrData.mWallVelocityMagnitude, 0.0, mrData.mWallHeight, wall_height_derivative,
             mrData.mKinematicViscosity, mrData.mKappa, mrData.mBeta, mrData.mYPlusLimit);
 
@@ -353,7 +352,7 @@ double EpsilonKBasedWallConditionDataDerivatives<TDim>::ShapeDerivative::Calcula
 
         double u_tau_derivative;
         RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
-            y_plus_derivative, u_tau_derivative, mrData.mYPlus, mrData.mUTau,
+            y_plus_derivative, u_tau_derivative, mrData.mYPlus,
             mrData.mWallVelocityMagnitude, 0.0, mrData.mWallHeight, wall_height_derivative,
             mrData.mKinematicViscosity, mrData.mKappa, mrData.mBeta, mrData.mYPlusLimit);
 

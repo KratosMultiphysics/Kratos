@@ -255,7 +255,7 @@ void VMSMonolithicKBasedWallConditionDerivatives<TDim, TNumNodes>::VariableDeriv
 
         double y_plus_derivative, u_tau_derivative;
         RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
-            y_plus_derivative, u_tau_derivative, mrData.mYPlus, mrData.mUTau,
+            y_plus_derivative, u_tau_derivative, mrData.mYPlus,
             mrData.mWallVelocityMagnitude, wall_velocity_magnitude_derivative,
             mrData.mWallHeight, wall_height_derivative, mrData.mKinematicViscosity,
             mrData.mKappa, mrData.mBeta, mrData.mYPlusLimit);
@@ -309,7 +309,7 @@ void VMSMonolithicKBasedWallConditionDerivatives<TDim, TNumNodes>::VariableDeriv
 
         double y_plus_derivative, u_tau_derivative;
         RansAdjointUtilities::CalculateYPlusAndUtauDerivative(
-            y_plus_derivative, u_tau_derivative, mrData.mYPlus, mrData.mUTau,
+            y_plus_derivative, u_tau_derivative, mrData.mYPlus,
             mrData.mWallVelocityMagnitude, 0.0,
             mrData.mWallHeight, wall_height_derivative, mrData.mKinematicViscosity,
             mrData.mKappa, mrData.mBeta, mrData.mYPlusLimit);

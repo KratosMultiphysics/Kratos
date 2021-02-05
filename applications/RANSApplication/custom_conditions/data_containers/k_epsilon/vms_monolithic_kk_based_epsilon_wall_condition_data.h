@@ -27,6 +27,9 @@
 #include "custom_conditions/vms_monolithic_k_based_wall_condition_derivatives.h"
 #include "custom_conditions/vms_monolithic_k_based_wall_condition_derivative_utilities.h"
 
+#include "custom_conditions/scalar_wall_flux_condition_derivatives.h"
+#include "custom_conditions/data_containers/k_epsilon/epsilon_k_based_wall_condition_data_derivatives.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -113,178 +116,86 @@ public:
             ///@}
         };
 
-        // class SensitivityDerivatives
-        // {
-        // public:
-        //     ///@name Type Definitions
-        //     ///@{
+        class SensitivityDerivatives
+        {
+        public:
+            ///@name Type Definitions
+            ///@{
 
-        //     using Data = typename TResidualsDerivatives::Data;
+            using Data = typename TResidualsDerivatives::Data;
 
-        //     using Shape = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>>;
+            using Shape = typename TResidualsDerivatives::template VariableDerivatives<typename VMSMonolithicKBasedWallConditionDerivativeUtilities<TDim>::ShapeDerivative>;
 
-        //     ///@}
-        // };
+            ///@}
+        };
 
     ///@}
     };
 
-    // class TurbulenceModelEquation1
-    // {
-    // public:
-    //     ///@name Classes
-    //     ///@{
+    class TurbulenceModelEquation2
+    {
+    public:
+        ///@name Classes
+        ///@{
 
-    //     using EquationDataType = KEpsilonWallConditionData::KConditionDataDerivatives<TDim, TNumNodes>;
+        using EquationDataType = KEpsilonWallConditionData::EpsilonKBasedWallConditionDataDerivatives<TDim>;
 
-    //     using TResidualsDerivatives = ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, typename EquationDataType::Data>;
+        using TResidualsDerivatives = ScalarWallFluxConditionDerivatives<TDim, TNumNodes, typename EquationDataType::Data>;
 
-    //     class Primal
-    //     {
-    //     public:
-    //         ///@name Type Definitions
-    //         ///@{
+        class Primal
+        {
+        public:
+            ///@name Type Definitions
+            ///@{
 
-    //         using Data = typename TResidualsDerivatives::Data;
+            using Data = typename TResidualsDerivatives::Data;
 
-    //         using ResidualsContributions = typename TResidualsDerivatives::ResidualsContributions;
+            using ResidualsContributions = typename TResidualsDerivatives::ResidualsContributions;
 
-    //         ///@}
-    //     };
+            ///@}
+        };
 
-    //     class StateDerivatives
-    //     {
-    //     public:
-    //         ///@name Classes
-    //         ///@{
+        class StateDerivatives
+        {
+        public:
+            ///@name Classes
+            ///@{
 
-    //         class FirstDerivatives
-    //         {
-    //         public:
-    //             ///@name Type Definitions
-    //             ///@{
+            class FirstDerivatives
+            {
+            public:
+                ///@name Type Definitions
+                ///@{
 
-    //             using Data = typename TResidualsDerivatives::Data;
+                using Data = typename TResidualsDerivatives::Data;
 
-    //             using Velocity = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::UDerivative>;
+                using Velocity = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::UDerivative>;
 
-    //             using TurbulenceModelVariable1 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::KDerivative>;
+                using TurbulenceModelVariable1 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::KDerivative>;
 
-    //             using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::EpsilonDerivative>;
+                using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::EpsilonDerivative>;
 
-    //             ///@}
-    //         };
+                ///@}
+            };
 
-    //         class SecondDerivatives
-    //         {
-    //         public:
-    //             ///@name Type Definitions
-    //             ///@{
+            ///@}
+        };
 
-    //             using Data = typename TResidualsDerivatives::Data;
+        class SensitivityDerivatives
+        {
+        public:
+            ///@name Type Definitions
+            ///@{
 
-    //             using TurbulenceModelVariableRate1 = typename TResidualsDerivatives::SecondDerivatives;
+            using Data = typename TResidualsDerivatives::Data;
 
-    //             ///@}
+            using Shape = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::ShapeDerivative>;
 
-    //         };
+            ///@}
+        };
 
-    //         ///@}
-    //     };
-
-    //     class SensitivityDerivatives
-    //     {
-    //     public:
-    //         ///@name Type Definitions
-    //         ///@{
-
-    //         using Data = typename TResidualsDerivatives::Data;
-
-    //         using Shape = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::ShapeDerivative>;
-
-    //         ///@}
-    //     };
-
-    //     ///@}
-    // };
-
-    // class TurbulenceModelEquation2
-    // {
-    // public:
-    //     ///@name Classes
-    //     ///@{
-
-    //     using EquationDataType = KEpsilonWallConditionData::EpsilonConditionDataDerivatives<TDim, TNumNodes>;
-
-    //     using TResidualsDerivatives = ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, typename EquationDataType::Data>;
-
-    //     class Primal
-    //     {
-    //     public:
-    //         ///@name Type Definitions
-    //         ///@{
-
-    //         using Data = typename TResidualsDerivatives::Data;
-
-    //         using ResidualsContributions = typename TResidualsDerivatives::ResidualsContributions;
-
-    //         ///@}
-    //     };
-
-    //     class StateDerivatives
-    //     {
-    //     public:
-    //         ///@name Classes
-    //         ///@{
-
-    //         class FirstDerivatives
-    //         {
-    //         public:
-    //             ///@name Type Definitions
-    //             ///@{
-
-    //             using Data = typename TResidualsDerivatives::Data;
-
-    //             using Velocity = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::UDerivative>;
-
-    //             using TurbulenceModelVariable1 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::KDerivative>;
-
-    //             using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::EpsilonDerivative>;
-
-    //             ///@}
-    //         };
-
-    //         class SecondDerivatives
-    //         {
-    //         public:
-    //             ///@name Type Definitions
-    //             ///@{
-
-    //             using Data = typename TResidualsDerivatives::Data;
-
-    //             using TurbulenceModelVariableRate2 = typename TResidualsDerivatives::SecondDerivatives;
-
-    //             ///@}
-    //         };
-
-    //         ///@}
-    //     };
-
-    //     class SensitivityDerivatives
-    //     {
-    //     public:
-    //         ///@name Type Definitions
-    //         ///@{
-
-    //         using Data = typename TResidualsDerivatives::Data;
-
-    //         using Shape = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::ShapeDerivative>;
-
-    //         ///@}
-    //     };
-
-    //     ///@}
-    // };
+        ///@}
+    };
 
     ///@}
 };

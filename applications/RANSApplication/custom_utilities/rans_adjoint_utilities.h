@@ -75,7 +75,6 @@ public:
         double& rYPlusDerivative,
         double& rUTauDerivative,
         const double YPlus,
-        const double UTau,
         const double WallVelocity,
         const double WallVelocityDerivative,
         const double WallHeight,
