@@ -75,6 +75,9 @@ public:
         });
 
         rA.free_data();
+        rA.nnz = 0;
+        rA.ncols = 0;
+        rA.nrows = 0;
 	}	
 
 
