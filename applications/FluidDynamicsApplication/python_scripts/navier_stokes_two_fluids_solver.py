@@ -446,7 +446,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         return level_set_convection_process
 
     def _CreateLevelsetGradientProcess(self):
-        distance_gradient_process = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
+        levelset_gradient_process = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
                 self.main_model_part,
                 KratosMultiphysics.DISTANCE,
                 KratosMultiphysics.DISTANCE_GRADIENT,
