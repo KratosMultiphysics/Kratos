@@ -247,6 +247,8 @@ namespace Kratos
             const ProcessInfo& rCurrentProcessInfo
             ) override;
 
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
         ///@}
         ///@name Access
         ///@{

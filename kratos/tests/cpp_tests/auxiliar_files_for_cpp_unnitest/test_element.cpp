@@ -381,6 +381,26 @@ namespace Kratos
     //************************************************************************************//
     //************************************************************************************//
 
+    void TestElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+    {
+        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+        //Constitutive Law initialisation
+        if ( mConstitutiveLawVector.size() != integration_points.size() )
+            mConstitutiveLawVector.resize( integration_points.size() );
+
+        const GeometryType& r_geometry = GetGeometry();
+        const Properties& r_properties = GetProperties();
+        const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[point_number]->InitializeMaterial( r_properties, r_geometry, row(N_values , point_number ));
+        }
+    }
+
+    //************************************************************************************//
+    //************************************************************************************//
 
     void TestElement::save( Serializer& rSerializer ) const
     {
