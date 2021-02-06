@@ -22,6 +22,8 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
+#include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -71,10 +73,6 @@ int RansNutKOmegaUpdateProcess::Check()
         << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE is not found in nodal solution step variables list of "
         << mModelPartName << ".";
 
-    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(TURBULENT_VISCOSITY))
-        << "TURBULENT_VISCOSITY is not found in nodal solution step variables list of "
-        << mModelPartName << ".";
-
     return 0;
 
     KRATOS_CATCH("");
@@ -96,22 +94,51 @@ void RansNutKOmegaUpdateProcess::ExecuteAfterCouplingSolveStep()
 {
     KRATOS_TRY
 
+    using IndexType = std::size_t;
+
+    using NodeType = Node<3>;
+
+    using GeometryType = Geometry<NodeType>;
+
+    using ShapeFunctionDerivativesArrayType = GeometryType::ShapeFunctionsGradientsType;
+
+    using ElementType = ModelPart::ElementType;
+
+    using tls_type = std::tuple<Vector, Matrix, ShapeFunctionDerivativesArrayType>;
+
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-    auto& r_nodes = r_model_part.Nodes();
 
-    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
-        const double omega =
-            rNode.FastGetSolutionStepValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
-        const double tke = rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+    // setting element nu_t values
+    block_for_each(r_model_part.Elements(), tls_type(), [&](ElementType& rElement, tls_type& rTLS) {
+        auto& Ws = std::get<0>(rTLS);
+        auto& Ns = std::get<1>(rTLS);
+        auto& dNdXs = std::get<2>(rTLS);
 
-        double& nu_t = rNode.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+        const auto& r_integration_method = rElement.GetIntegrationMethod();
+        double nu_t = 0.0;
 
-        if (tke > 0.0 && omega > 0.0) {
-            nu_t = tke / omega;
-        } else {
-            nu_t = mMinValue;
+        RansCalculationUtilities::CalculateGeometryData(
+            rElement.GetGeometry(), r_integration_method, Ws, Ns, dNdXs);
+
+        for (IndexType g = 0; g < Ws.size(); ++g) {
+            const Vector& N = row(Ns, g);
+
+            double tke, omega;
+            FluidCalculationUtilities::EvaluateInPoint(rElement.GetGeometry(), N,
+                std::tie(tke, TURBULENT_KINETIC_ENERGY),
+                std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
+
+            if (tke > 0.0 && omega > 0.0) {
+                nu_t += tke / omega;
+            }
         }
+
+        nu_t = std::max(nu_t / Ws.size(), mMinValue);
+        rElement.SetValue(TURBULENT_VISCOSITY, nu_t);
     });
+
+    // setting wall nu_t values
+    RansCalculationUtilities::CalculateWallTurbulentViscosity(r_model_part, mMinValue);
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << "Calculated nu_t for nodes in " << mModelPartName << ".\n";
