@@ -597,8 +597,11 @@ public:
      * @param rDx The vector of unkowns
      */
     virtual void ReconstructSlaveSolution(
+        typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
+        TSystemMatrixType& rA,
         TSystemVectorType& rDx,
+        TSystemVectorType& rb
         )
     {
     }
