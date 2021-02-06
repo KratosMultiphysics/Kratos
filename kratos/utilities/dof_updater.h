@@ -16,6 +16,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -111,15 +112,14 @@ public:
         DofsArrayType& rDofSet,
         const SystemVectorType& rDx)
     {
-        const int num_dof = static_cast<int>(rDofSet.size());
-
-        #pragma omp parallel for
-        for(int i = 0;  i < num_dof; ++i) {
-            auto it_dof = rDofSet.begin() + i;
-
-			if (it_dof->IsFree())
-                it_dof->GetSolutionStepValue() += TSparseSpace::GetValue(rDx,it_dof->EquationId());
-        }
+        block_for_each(
+            rDofSet,
+            [&rDx](DofType& r_dof)
+            {
+                if (r_dof.IsFree())
+                    r_dof.GetSolutionStepValue() += TSparseSpace::GetValue(rDx,r_dof.EquationId());
+            }
+        );
     }
 
     /// Assign new values for the problem's degrees of freedom using the vector rX.
@@ -131,15 +131,14 @@ public:
      */
     virtual void AssignDofs(DofsArrayType& rDofSet, const SystemVectorType& rX)
     {
-      const int num_dof = static_cast<int>(rDofSet.size());
-
-      #pragma omp parallel for
-      for(int i = 0;  i < num_dof; ++i)
-      {
-        auto it_dof = rDofSet.begin() + i;
-        if (it_dof->IsFree())
-          it_dof->GetSolutionStepValue() = TSparseSpace::GetValue(rX,it_dof->EquationId());
-      }
+        block_for_each(
+            rDofSet,
+            [&rX](DofType& r_dof)
+            {
+                if (r_dof.IsFree())
+                    r_dof.GetSolutionStepValue() = TSparseSpace::GetValue(rX, r_dof.EquationId());
+            }
+        );
     }
 
     ///@}
