@@ -85,8 +85,6 @@ public:
 
     int Check() override;
 
-    void ExecuteInitialize() override;
-
     void ExecuteInitializeSolutionStep() override;
 
     void ExecuteAfterCouplingSolveStep() override;
