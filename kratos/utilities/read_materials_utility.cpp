@@ -453,14 +453,14 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 
     block_for_each(
         r_elements_array,
-        [&p_prop](ModelPart::ElementType& r_element)
-        { r_element.SetProperties(p_prop); }
+        [&p_prop](Element& rElement)
+        { rElement.SetProperties(p_prop); }
     );
 
     block_for_each(
         r_conditions_array,
-        [&p_prop](ModelPart::ConditionType& r_condition)
-        { r_condition.SetProperties(p_prop); }
+        [&p_prop](Condition& rCondition)
+        { rCondition.SetProperties(p_prop); }
     );
 
     // Assigning the materials
