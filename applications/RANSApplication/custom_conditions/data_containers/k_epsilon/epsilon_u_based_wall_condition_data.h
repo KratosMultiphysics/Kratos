@@ -75,6 +75,7 @@ protected:
     double mBeta;
     double mYPlus;
     double mDensity;
+    double mTurbulentViscosity;
 };
 
 ///@}
