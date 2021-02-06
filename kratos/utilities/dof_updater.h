@@ -114,10 +114,11 @@ public:
     {
         block_for_each(
             rDofSet,
-            [&rDx](DofType& r_dof)
+            [&rDx](DofType& rDof)
             {
-                if (r_dof.IsFree())
-                    r_dof.GetSolutionStepValue() += TSparseSpace::GetValue(rDx,r_dof.EquationId());
+                if (rDof.IsFree()) {
+                    rDof.GetSolutionStepValue() += TSparseSpace::GetValue(rDx, rDof.EquationId());
+		}
             }
         );
     }
@@ -133,10 +134,11 @@ public:
     {
         block_for_each(
             rDofSet,
-            [&rX](DofType& r_dof)
+            [&rX](DofType& rDof)
             {
-                if (r_dof.IsFree())
-                    r_dof.GetSolutionStepValue() = TSparseSpace::GetValue(rX, r_dof.EquationId());
+                if (rDof.IsFree()) {
+                    rDof.GetSolutionStepValue() = TSparseSpace::GetValue(rX, rDof.EquationId());
+		}
             }
         );
     }
