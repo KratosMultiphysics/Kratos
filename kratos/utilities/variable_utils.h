@@ -729,11 +729,6 @@ public:
     {
         KRATOS_TRY
 
-        /* IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
-            auto it_cont = rContainer.begin() + index;
-            it_cont->SetValue(rVariable, Value);
-        }); */
-
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
             rEntity.SetValue(rVariable, Value);
         });
@@ -760,14 +755,6 @@ public:
     {
         KRATOS_TRY
 
-        /* #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = rContainer.begin() + k;
-            if (it_cont->Is(Flag) == Check) {
-                it_cont->SetValue(rVariable, rValue);
-            }
-        } */
-
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
             if(rEntity.Is(Flag) == Check){
                 rEntity.SetValue(rVariable, rValue);}
@@ -784,14 +771,6 @@ public:
     void ClearNonHistoricalData(TContainerType& rContainer)
     {
         KRATOS_TRY
-
-        //const auto it_cont_begin = rContainer.begin();
-
-        /* #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = it_cont_begin + k;
-            it_cont->Data().Clear();
-        } */
 
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
                 rEntity.Data().Clear();
@@ -840,14 +819,6 @@ public:
     {
         KRATOS_TRY
 
-        /* const auto it_cont_begin = rContainer.begin();
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = it_cont_begin + k;
-            it_cont->Set(rFlag, rFlagValue);
-        } */
-
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
                 rEntity.Set(rFlag, rFlagValue);
         });
@@ -869,14 +840,6 @@ public:
     {
         KRATOS_TRY
 
-        /* const auto it_cont_begin = rContainer.begin();
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = it_cont_begin + k;
-            it_cont->Reset(rFlag);
-        } */
-
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
                 rEntity.Reset(rFlag);
         });
@@ -896,14 +859,6 @@ public:
         )
     {
         KRATOS_TRY
-
-        /* const auto it_cont_begin = rContainer.begin();
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = it_cont_begin + k;
-            it_cont->Flip(rFlag);
-        } */
 
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
                 rEntity.Flip(rFlag);
@@ -929,11 +884,9 @@ public:
     {
         KRATOS_TRY
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(rNodesContainer.size()); ++i_node) {
-            auto it_node = rNodesContainer.begin() + i_node;
-            it_node->SetValue(rSavedVariable, it_node->FastGetSolutionStepValue(rOriginVariable));
-        }
+        block_for_each(rNodesContainer, [&](Node<3>& rNode){
+            rNode.SetValue(rSavedVariable, rNode.FastGetSolutionStepValue(rOriginVariable));
+        });
 
         KRATOS_CATCH("")
     }
@@ -957,11 +910,10 @@ public:
     {
         KRATOS_TRY
 
-#pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rContainer.size()); ++i) {
-            auto it_cont = rContainer.begin() + i;
-            it_cont->SetValue(rSavedVariable, it_cont->GetValue(rOriginVariable));
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+            rEntity.SetValue(rSavedVariable, rEntity.GetValue(rOriginVariable));
         }
+        );
 
         KRATOS_CATCH("")
     }
@@ -984,11 +936,9 @@ public:
     {
         KRATOS_TRY
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(rNodesContainer.size()); ++i_node) {
-            auto it_node = rNodesContainer.begin() + i_node;
-            it_node->FastGetSolutionStepValue(rDestinationVariable) = it_node->FastGetSolutionStepValue(rOriginVariable);
-        }
+        block_for_each(rNodesContainer, [&](Node<3>& rNode){
+            rNode.FastGetSolutionStepValue(rDestinationVariable) = rNode.FastGetSolutionStepValue(rOriginVariable);
+        });
 
         KRATOS_CATCH("")
     }
@@ -1056,17 +1006,13 @@ public:
             CheckVariableExists(rVar, rNodes);
 
             if (IsFixed) {
-                #pragma omp parallel for
-                for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-                    NodesContainerType::iterator it_node = rNodes.begin() + k;
-                    it_node->pGetDof(rVar)->FixDof();
-                }
+                block_for_each(rNodes,[&](Node<3>& rNode){
+                    rNode.pGetDof(rVar)->FixDof();
+                });
             } else {
-                #pragma omp parallel for
-                for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-                    NodesContainerType::iterator it_node = rNodes.begin() + k;
-                    it_node->pGetDof(rVar)->FreeDof();
-                }
+                block_for_each(rNodes,[&](Node<3>& rNode){
+                    rNode.pGetDof(rVar)->FreeDof();
+                });
             }
         }
 
@@ -1158,11 +1104,10 @@ public:
             // First we do a check
             CheckVariableExists(rVar, rNodes);
 
-            #pragma omp parallel for
-            for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-                NodesContainerType::iterator it_node = rNodes.begin() + k;
-                it_node->FastGetSolutionStepValue(rVar) = rData[k];
-            }
+            IndexPartition<std::size_t>(rNodes.size()).for_each([&](std::size_t index){
+                NodesContainerType::iterator it_node = rNodes.begin() + index;
+                it_node->FastGetSolutionStepValue(rVar) = rData[index];
+            });
         } else
             KRATOS_ERROR  << "There is a mismatch between the size of data array and the number of nodes ";
 
@@ -1365,11 +1310,9 @@ public:
 
         rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar);
 
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
-            auto it_node = rModelPart.NodesBegin() + k;
-            it_node->AddDof(rVar);
-        }
+        block_for_each(rModelPart.Nodes(),[&](Node<3>& rNode){
+            rNode.AddDof(rVar);
+        });
 
         KRATOS_CATCH("")
     }
@@ -1402,11 +1345,9 @@ public:
 
         rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar, &rReactionVar);
 
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
-            auto it_node = rModelPart.NodesBegin() + k;
-            it_node->AddDof(rVar,rReactionVar);
-        }
+        block_for_each(rModelPart.Nodes(),[&](Node<3>& rNode){
+            rNode.AddDof(rVar,rReactionVar);
+        });
 
         KRATOS_CATCH("")
     }
