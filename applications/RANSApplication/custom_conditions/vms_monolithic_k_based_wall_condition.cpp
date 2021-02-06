@@ -48,7 +48,6 @@ int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(
         const auto& r_node = r_geometry[i_node];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
     }
 
