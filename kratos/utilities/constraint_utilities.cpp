@@ -78,7 +78,7 @@ void ResetSlaveDofs(ModelPart& rModelPart)
     // Setting to zero the slave dofs
     block_for_each(
         rModelPart.MasterSlaveConstraints(),
-        [&r_current_process_info](ModelPart::MasterSlaveConstraintType& r_constraint)
+        [&r_current_process_info](MasterSlaveConstraint& rConstraint)
         {
             // Detect if the constraint is active or not. If the user did not make any choice the constraint
             // It is active by default
