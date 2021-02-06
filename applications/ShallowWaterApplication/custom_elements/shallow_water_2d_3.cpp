@@ -290,8 +290,8 @@ void ShallowWater2D3::AddShockCapturingTerm(
 
     BoundedMatrix<double,9,9> visc_matrix;
     BoundedMatrix<double,9,9> diff_matrix;
-    ComputeOrthogonalViscosityMatrix(visc_matrix, rDN_DX, rData.velocity, art_visc);
-    ComputeOrthogonalDiffusionMatrix(diff_matrix, rDN_DX, rData.velocity, art_diff);
+    ShockCapturingViscosityMatrix(visc_matrix, art_visc, rData, rDN_DX);
+    ShockCapturingDiffusionMatrix(diff_matrix, art_diff, rData, rDN_DX);
     rLHS += visc_matrix;
     rLHS += diff_matrix;
 }
@@ -647,7 +647,7 @@ void ShallowWater2D3::ShockCapturingParameters(
 
     // Final assembly of the parameters
     const double length = this->GetGeometry().Length();
-    const double slope = 1e-1;
+    const double slope = 5.0;
 
     const double q_residual_norm = norm_2(flow_residual);
     const double q_grad_frobenius = norm_frobenius(flow_grad);
@@ -664,11 +664,11 @@ void ShallowWater2D3::ShockCapturingParameters(
     rArtDiffusion = 0.5 * rData.shock_stab_factor * length * h_residual_norm / (h_gradient_norm);
 }
 
-void ShallowWater2D3::ComputeOrthogonalViscosityMatrix(
+void ShallowWater2D3::ShockCapturingViscosityMatrix(
     BoundedMatrix<double,9,9>& rMatrix,
-    const BoundedMatrix<double,3,2>& rDN_DX,
-    const array_1d<double,3>& rVelocity,
-    const double& rViscosity)
+    const double& rViscosity,
+    const ElementData& rData,
+    const BoundedMatrix<double,3,2>& rDN_DX)
 {
     // The derivatives matrix
     BoundedMatrix<double,3,9> b = ZeroMatrix(3,9);
@@ -681,26 +681,47 @@ void ShallowWater2D3::ComputeOrthogonalViscosityMatrix(
         b(2, i_block + 1) = rDN_DX(i,0);
     }
 
+    // The viscosity previously added by the stabilization
+    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
+    const double stab_viscosity = StabilizationParameter(rData) * std::pow(eigenvalue,2);
+
     // The orthogonal fourth order tensor
     BoundedMatrix<double,3,3> crosswind_tensor;
-    CrossWindTensor(crosswind_tensor, rVelocity);
+    CrossWindTensor(crosswind_tensor, rData.velocity);
     crosswind_tensor *= rViscosity;
 
+    // The streamline fourth order tensor
+    BoundedMatrix<double,3,3> streamline_tensor;
+    StreamLineTensor(streamline_tensor, rData.velocity);
+    streamline_tensor *= std::max(0.0, rViscosity - stab_viscosity);
+
     // Assembly of the viscosity matrix
-    BoundedMatrix<double,3,9> tmp = prod(crosswind_tensor, b);
+    BoundedMatrix<double,3,9> tmp = prod(crosswind_tensor + streamline_tensor, b);
     rMatrix = prod(trans(b), tmp);
 }
 
-void ShallowWater2D3::ComputeOrthogonalDiffusionMatrix(
+void ShallowWater2D3::ShockCapturingDiffusionMatrix(
     BoundedMatrix<double,9,9>& rMatrix,
-    const BoundedMatrix<double,3,2>& rDN_DX,
-    const array_1d<double,3>& rVelocity,
-    const double& rDiffusivity)
+    const double& rDiffusivity,
+    const ElementData& rData,
+    const BoundedMatrix<double,3,2>& rDN_DX)
 {
+    // Output initialization
     rMatrix = ZeroMatrix(9,9);
+
+    // The viscosity previously added by the stabilization
+    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
+    const double stab_diffusivity = StabilizationParameter(rData) * std::pow(eigenvalue,2);
+
+    // The second order crosswind tensor
     BoundedMatrix<double,2,2> crosswind_tensor;
-    CrossWindTensor(crosswind_tensor, rVelocity);
+    CrossWindTensor(crosswind_tensor, rData.velocity);
     crosswind_tensor *= rDiffusivity;
+
+    // The second order streamline tensor
+    BoundedMatrix<double,2,2> streamline_tensor;
+    StreamLineTensor(streamline_tensor, rData.velocity);
+    streamline_tensor *= std::max(0.0, rDiffusivity - stab_diffusivity);
 
     // Assembly of the diffusion matrix
     for (size_t i = 0; i < 3; ++i)
@@ -714,7 +735,7 @@ void ShallowWater2D3::ComputeOrthogonalDiffusionMatrix(
 
             const size_t j_block = 3 * j;
 
-            rMatrix(i_block + 2, j_block + 2) = inner_prod(bj, prod(crosswind_tensor, bi));
+            rMatrix(i_block + 2, j_block + 2) = inner_prod(bj, prod(crosswind_tensor + streamline_tensor, bi));
         }
     }
 }

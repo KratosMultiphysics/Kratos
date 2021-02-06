@@ -404,17 +404,17 @@ protected:
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
-    void ComputeOrthogonalViscosityMatrix(
+    void ShockCapturingViscosityMatrix(
         BoundedMatrix<double,9,9>& rMatrix,
-        const BoundedMatrix<double,3,2>& rDN_DX,
-        const array_1d<double,3>& rVelocity,
-        const double& rViscosity);
+        const double& rViscosity,
+        const ElementData& rData,
+        const BoundedMatrix<double,3,2>& rDN_DX);
 
-    void ComputeOrthogonalDiffusionMatrix(
+    void ShockCapturingDiffusionMatrix(
         BoundedMatrix<double,9,9>& rMatrix,
-        const BoundedMatrix<double,3,2>& rDN_DX,
-        const array_1d<double,3>& rVelocity,
-        const double& rDiffusivity);
+        const double& rDiffusivity,
+        const ElementData& rData,
+        const BoundedMatrix<double,3,2>& rDN_DX);
 
     void ComputeCrossWindDiffusivityTensors(
         BoundedMatrix<double,2,2>& rK1,
