@@ -26,7 +26,6 @@
 #include "custom_processes/rans_formulation_process.h"
 #include "custom_processes/rans_wall_function_update_process.h"
 #include "custom_processes/rans_k_turbulent_intensity_inlet_process.h"
-#include "custom_processes/rans_nut_y_plus_wall_function_update_process.h"
 #include "custom_processes/rans_epsilon_turbulent_mixing_length_inlet_process.h"
 #include "custom_processes/rans_nut_k_epsilon_update_process.h"
 #include "custom_processes/rans_omega_turbulent_mixing_length_inlet_process.h"
@@ -97,10 +96,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<Model&, const std::string&, const double, const int>());
 
     py::class_<RansNutKOmegaUpdateProcess, RansNutKOmegaUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKOmegaUpdateProcess")
-        .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const int>());
-
-    py::class_<RansNutYPlusWallFunctionUpdateProcess, RansNutYPlusWallFunctionUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutYPlusWallFunctionUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const int>());
 
