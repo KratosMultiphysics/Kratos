@@ -416,13 +416,6 @@ protected:
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
-    void ComputeCrossWindDiffusivityTensors(
-        BoundedMatrix<double,2,2>& rK1,
-        BoundedMatrix<double,2,2>& rK2,
-        BoundedMatrix<double,2,2>& rKh,
-        const ElementData& rData,
-        const BoundedMatrix<double,3,2>& rDN_DX);
-
     void AlgebraicResidual(
         array_1d<double,3>& rFlowResidual,
         double& rHeightresidual,
@@ -452,8 +445,6 @@ protected:
     double HeightInverse(double Height, double Epsilon);
 
     double WetFraction(double Height, double Epsilon);
-
-    array_1d<double,3> CharacteristicLength(const ElementData& rData);
 
     ///@}
     ///@name Protected  Access

@@ -740,34 +740,6 @@ void ShallowWater2D3::ShockCapturingDiffusionMatrix(
     }
 }
 
-void ShallowWater2D3::ComputeCrossWindDiffusivityTensors(
-    BoundedMatrix<double,2,2>& rK1,
-    BoundedMatrix<double,2,2>& rK2,
-    BoundedMatrix<double,2,2>& rKh,
-    const ElementData& rData,
-    const BoundedMatrix<double,3,2>& rDN_DX)
-{
-    // Computation of the residuals and gradients
-    array_1d<double,3> flow_residual;
-    double height_residual;
-    BoundedMatrix<double,3,3> flow_grad;
-    array_1d<double,3> height_grad;
-    AlgebraicResidual(flow_residual, height_residual, flow_grad, height_grad, rData, rDN_DX);
-
-    // Computation of the gradient direction tensor
-    BoundedMatrix<double,2,2> cross_wind;
-    CrossWindTensor(cross_wind, rData.velocity);
-
-    // Final assembly of the tensors
-    const double length = this->GetGeometry().Length();
-    const double f1_grad = std::max(std::sqrt(std::pow(flow_grad(0,0),2)+std::pow(flow_grad(1,0),2)), rData.dt_inv);
-    const double f2_grad = std::max(std::sqrt(std::pow(flow_grad(0,1),2)+std::pow(flow_grad(1,1),2)), rData.dt_inv);
-    const double h_grad = std::max(norm_2(height_grad), 1.0);
-    rK1 = 0.5 * rData.shock_stab_factor * length * std::abs(flow_residual[0]) / f1_grad * cross_wind;
-    rK2 = 0.5 * rData.shock_stab_factor * length * std::abs(flow_residual[1]) / f2_grad * cross_wind;
-    rKh = 0.5 * rData.shock_stab_factor * length * std::abs(height_residual) / h_grad * cross_wind;
-}
-
 void ShallowWater2D3::AlgebraicResidual(
     array_1d<double,3>& rFlowResidual,
     double& rHeightresidual,
@@ -867,14 +839,6 @@ double ShallowWater2D3::StabilizationParameter(const ElementData& rData)
     const double wet_fraction = WetFraction(rData.height, rData.rel_dry_height * length);
 
     return length * wet_fraction * rData.stab_factor / (eigenvalue + e);
-}
-
-array_1d<double,3> ShallowWater2D3::CharacteristicLength(const ElementData& rData)
-{
-    const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
-    const double length = this->GetGeometry().Length();
-    const double char_length = 0.5 * length * rData.stab_factor;
-    return char_length * rData.flow_rate / (norm_2(rData.flow_rate) + e);
 }
 
 double ShallowWater2D3::HeightInverse(double Height, double Epsilon)
