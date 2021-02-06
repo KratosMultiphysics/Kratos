@@ -203,6 +203,9 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
                 msg += "\tlogarithmic_region_only\n"
                 raise Exception(msg)
 
+    def ElementHasNodalProperties(self):
+        return False
+
     def _CreateAlgebraicFluxCorrectedSteadyScalarScheme(self, relaxation_factor):
         if (self.IsPeriodic()):
             return GetKratosObjectPrototype("AlgebraicFluxCorrectedSteadyScalarScheme")(relaxation_factor, GetBoundaryFlags(self.GetParameters()["boundary_flags"]), KratosCFD.PATCH_INDEX)

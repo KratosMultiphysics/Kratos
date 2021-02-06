@@ -58,12 +58,9 @@ class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
             KEpsilonEpsilonRansFormulation(model_part, settings["turbulent_energy_dissipation_rate_solver_settings"]))
 
     def AddVariables(self):
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DENSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.MESH_VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NORMAL)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VISCOSITY)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE)
@@ -94,13 +91,6 @@ class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
                                             minimum_nut,
                                             self.echo_level)
         self.AddProcess(nut_process)
-
-        nut_wall_process = KratosRANS.RansNutYPlusWallFunctionUpdateProcess(
-                                            model,
-                                            wall_model_part_name,
-                                            minimum_nut,
-                                            self.echo_level)
-        self.AddProcess(nut_wall_process)
 
         super().Initialize()
 
