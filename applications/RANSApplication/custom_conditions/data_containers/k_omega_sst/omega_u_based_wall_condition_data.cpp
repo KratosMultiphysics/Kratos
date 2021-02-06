@@ -56,6 +56,7 @@ void OmegaUBasedWallConditionData<TDim>::Check(
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(VON_KARMAN))
         << "VON_KARMAN is not found in process info.\n";
+
     KRATOS_ERROR_IF_NOT(r_properties.Has(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT))
         << "RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT is not found in condition properties [ Condition.Id() = "
         << rCondition.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
@@ -63,11 +64,16 @@ void OmegaUBasedWallConditionData<TDim>::Check(
         << "WALL_SMOOTHNESS_BETA is not found in condition properties [ Condition.Id() = "
         << rCondition.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
 
+    KRATOS_ERROR_IF_NOT(rCondition.Has(TURBULENT_VISCOSITY))
+        << "TURBULENT_VISCOSITY value is not set at in condition with id " << rCondition.Id() << "\n";
+    KRATOS_ERROR_IF_NOT(rCondition.Has(RANS_Y_PLUS))
+        << "RANS_Y_PLUS value is not set at in condition with id " << rCondition.Id() << "\n";
+
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
         const auto& r_node = r_geometry[i_node];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, r_node);
 
@@ -88,14 +94,11 @@ void OmegaUBasedWallConditionData<TDim>::CalculateConstants(
 {
     KRATOS_TRY
 
-    const double beta_star = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    const double sigma_omega_1 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1];
-    const double sigma_omega_2 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2];
+    mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    mSigmaOmega1 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1];
+    mSigmaOmega2 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2];
     mKappa = rCurrentProcessInfo[VON_KARMAN];
-    mCmu25 = std::pow(beta_star, 0.25);
-
-    KRATOS_ERROR_IF(!(this->GetGeometry().Has(RANS_Y_PLUS)))
-        << "RANS_Y_PLUS value is not set at " << this->GetGeometry() << "\n";
+    mCmu25 = std::pow(mBetaStar, 0.25);
 
     mDensity = this->GetElementProperties()[DENSITY];
 
@@ -104,47 +107,13 @@ void OmegaUBasedWallConditionData<TDim>::CalculateConstants(
     const double y_plus_limit = r_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
 
     mInvKappa = 1.0 / mKappa;
-    mYPlus = std::max(this->GetGeometry().GetValue(RANS_Y_PLUS), y_plus_limit);
+    const auto& r_geometry = this->GetGeometry();
+    mYPlus = std::max(r_geometry.GetValue(RANS_Y_PLUS), y_plus_limit);
+    mTurbulentViscosity = r_geometry.GetValue(TURBULENT_VISCOSITY);
 
-    // Blended sigma is computed on the center of the condition, therefore
-    // it will be a constant for all gauss point evaluations
-    const auto& parent_element_geometry = this->GetGeometry().GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry();
-    Vector W;
-    Matrix N;
-    ShapeFunctionDerivativesArrayType dNdX;
-    RansCalculationUtilities::CalculateGeometryData(
-        parent_element_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1, W, N, dNdX);
-
-    const Vector& r_N = row(N, 0);
-
-    auto& cl_parameters = this->GetConstitutiveLawParameters();
-    cl_parameters.SetShapeFunctionsValues(r_N);
-
-    double tke, omega, nu, wall_distance;
-    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
-    nu /= mDensity;
-
-    FluidCalculationUtilities::EvaluateInPoint(
-        parent_element_geometry, r_N,
-        std::tie(tke, TURBULENT_KINETIC_ENERGY),
-        std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
-        std::tie(wall_distance, DISTANCE));
-
-    array_1d<double, TDim> k_gradient, epsilon_gradient;
-    FluidCalculationUtilities::EvaluateGradientInPoint(
-        parent_element_geometry, dNdX[0],
-        std::tie(k_gradient, TURBULENT_KINETIC_ENERGY),
-        std::tie(epsilon_gradient, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
-
-    const double cross_diffusion =
-        KOmegaSSTElementData::CalculateCrossDiffusionTerm<TDim>(
-            sigma_omega_2, omega, k_gradient, epsilon_gradient);
-
-    const double f1 = KOmegaSSTElementData::CalculateF1(
-        tke, omega, nu, wall_distance, beta_star, cross_diffusion, sigma_omega_2);
-
-    mBlendedSigmaOmega =
-        KOmegaSSTElementData::CalculateBlendedPhi(sigma_omega_1, sigma_omega_2, f1);
+    auto normal = r_geometry.GetValue(NORMAL);
+    normal /= norm_2(normal);
+    mWallHeight = inner_prod(r_geometry.Center() - r_geometry.GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry().Center(), normal);
 
     KRATOS_CATCH("");
 }
@@ -164,7 +133,7 @@ double OmegaUBasedWallConditionData<TDim>::CalculateWallFlux(
     auto& cl_parameters = this->GetConstitutiveLawParameters();
     cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
 
-    double nu, nu_t;
+    double nu, tke, omega;
     array_1d<double, 3> velocity;
 
     this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
@@ -172,15 +141,22 @@ double OmegaUBasedWallConditionData<TDim>::CalculateWallFlux(
 
     FluidCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rShapeFunctions,
-        std::tie(nu_t, TURBULENT_VISCOSITY),
-        std::tie(velocity, VELOCITY));
+        std::tie(velocity, VELOCITY),
+        std::tie(tke, TURBULENT_KINETIC_ENERGY),
+        std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
 
     const double velocity_magnitude = norm_2(velocity);
 
     const double u_tau = velocity_magnitude / (mInvKappa * std::log(mYPlus) + mBeta);
 
-    return (nu + mBlendedSigmaOmega * nu_t) * std::pow(u_tau, 3) /
-           (mKappa * std::pow(mCmu25 * mYPlus * nu, 2));
+    const double f1 = KOmegaSSTElementData::CalculateF1(
+        tke, omega, nu, mWallHeight, mBetaStar, 1e-10, mSigmaOmega2);
+
+    const double blended_sigma_omega =
+        KOmegaSSTElementData::CalculateBlendedPhi(mSigmaOmega1, mSigmaOmega2, f1);
+
+    return (nu + blended_sigma_omega * mTurbulentViscosity) *
+           std::pow(u_tau, 3) / (mKappa * std::pow(mCmu25 * mYPlus * nu, 2));
 }
 
 // template instantiations
