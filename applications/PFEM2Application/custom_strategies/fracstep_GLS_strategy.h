@@ -190,24 +190,20 @@ namespace Kratos
 	  //computation of the fractional vel velocity (first step)
 	  //3 dimensional case
 	  //typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3 > > > VarComponent;
-	  typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 	  typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
 	  //initializing fractional velocity solution step
 	  typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;
 	  typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
-	  BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pNewVelocityLinearSolver));
-
-
-	  this->mpfracvel_strategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (model_part, pscheme, pNewVelocityLinearSolver, vel_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+	  
+    this->mpfracvel_strategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (model_part, pscheme, pNewVelocityLinearSolver, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
 
 	  this->mpfracvel_strategy->SetEchoLevel(1);
 
 
-	  BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pNewPressureLinearSolver, PRESSURE));
-
-	  this->mppressurestep = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (model_part, pscheme,pNewPressureLinearSolver, pressure_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+	  
+    this->mppressurestep = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (model_part, pscheme,pNewPressureLinearSolver, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
 	  this->mppressurestep->SetEchoLevel(2);
 
 	  this->m_step = 1;

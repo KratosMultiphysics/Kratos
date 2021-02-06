@@ -67,23 +67,23 @@ namespace Kratos
 
      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-     void AddExplicitContribution(ProcessInfo& CurrentProcessInfo) override;
+     void AddExplicitContribution(ProcessInfo& CurrentProcessInfo);
 
-     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
+     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
 
-     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo);
 
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo);
 
    protected:
 

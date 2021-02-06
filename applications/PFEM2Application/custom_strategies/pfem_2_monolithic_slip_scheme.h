@@ -221,7 +221,7 @@ namespace Kratos {
                                           LocalSystemMatrixType& LHS_Contribution,
                                           LocalSystemVectorType& RHS_Contribution,
                                           Element::EquationIdVectorType& EquationId,
-                                          ProcessInfo& CurrentProcessInfo) override
+                                          ProcessInfo& CurrentProcessInfo)
         {
             KRATOS_TRY
 
@@ -243,7 +243,7 @@ namespace Kratos {
         void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
                                         LocalSystemVectorType& RHS_Contribution,
                                         Element::EquationIdVectorType& EquationId,
-                                        ProcessInfo& CurrentProcessInfo) override
+                                        ProcessInfo& CurrentProcessInfo)
         {
 
             //Initializing the non linear iteration for the current element
@@ -267,7 +267,7 @@ namespace Kratos {
                                                             LocalSystemMatrixType& LHS_Contribution,
                                                             LocalSystemVectorType& RHS_Contribution,
                                                             Element::EquationIdVectorType& EquationId,
-                                                            ProcessInfo& CurrentProcessInfo) override
+                                                            ProcessInfo& CurrentProcessInfo)
         {
             KRATOS_TRY
 
@@ -286,7 +286,7 @@ namespace Kratos {
         virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
                                                           LocalSystemVectorType& RHS_Contribution,
                                                           Element::EquationIdVectorType& EquationId,
-                                                          ProcessInfo& rCurrentProcessInfo) override
+                                                          ProcessInfo& rCurrentProcessInfo)
         {
             KRATOS_TRY;
 
