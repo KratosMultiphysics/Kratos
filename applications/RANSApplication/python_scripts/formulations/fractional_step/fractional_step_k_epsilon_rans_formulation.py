@@ -42,10 +42,11 @@ class FractionalStepKEpsilonRansFormulation(RansFormulation):
         self.k_epsilon_formulation.SetConstants(settings)
 
     def Initialize(self):
-        super().Initialize()
-
         nut_nodal_update_process = KratosRANS.RansNutNodalUpdateProcess(
                                             self.GetBaseModelPart().GetModel(),
                                             self.GetBaseModelPart().Name,
                                             self.k_epsilon_formulation.echo_level)
+
         self.k_epsilon_formulation.AddProcess(nut_nodal_update_process)
+
+        super().Initialize()

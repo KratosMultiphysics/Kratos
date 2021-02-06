@@ -42,11 +42,11 @@ class MonolithicKOmegaRansFormulation(RansFormulation):
         self.k_omega_formulation.SetConstants(settings)
 
     def Initialize(self):
-        super().Initialize()
-
         if (self.monolithic_formulation.ElementHasNodalProperties()):
             nut_nodal_update_process = KratosRANS.RansNutNodalUpdateProcess(
                                                 self.GetBaseModelPart().GetModel(),
                                                 self.GetBaseModelPart().Name,
                                                 self.k_omega_formulation.echo_level)
             self.k_omega_formulation.AddProcess(nut_nodal_update_process)
+
+        super().Initialize()
