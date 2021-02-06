@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "includes/dof.h"
 #include "containers/model.h"
 #include "includes/checks.h"
 #include "includes/model_part.h"
@@ -150,12 +151,16 @@ ModelPart& FluidAdjointTestUtilities::CreateTestModelPart(
 
     using nid_list = std::vector<ModelPart::IndexType>;
 
-    r_model_part.CreateNewElement(rElementName, 1, nid_list{3, 2, 1}, p_elem_prop);
+    auto p_element = r_model_part.CreateNewElement(rElementName, 1, nid_list{3, 2, 1}, p_elem_prop);
 
     auto p_cond_prop = rGetConditionProperties(r_model_part);
-    r_model_part.CreateNewCondition(rConditionName, 1, nid_list{1, 2}, p_cond_prop);
-    r_model_part.CreateNewCondition(rConditionName, 2, nid_list{2, 3}, p_cond_prop);
-    r_model_part.CreateNewCondition(rConditionName, 3, nid_list{3, 1}, p_cond_prop);
+    auto p_condition_1 = r_model_part.CreateNewCondition(rConditionName, 1, nid_list{2, 1}, p_cond_prop);
+    auto p_condition_2 = r_model_part.CreateNewCondition(rConditionName, 2, nid_list{2, 3}, p_cond_prop);
+    auto p_condition_3 = r_model_part.CreateNewCondition(rConditionName, 3, nid_list{3, 1}, p_cond_prop);
+
+    p_condition_1->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>({p_element}));
+    p_condition_2->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>({p_element}));
+    p_condition_3->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>({p_element}));
 
     return r_model_part;
 }
@@ -499,6 +504,20 @@ void FluidAdjointTestUtilities::ContainerDataTypeUtilities<TContainerType, TData
         rCalculateElementResidualDerivatives(
             adjoint_residual_derivatives, r_adjoint_element, r_adjoint_process_info);
 
+        // compute the dofs vector
+        std::vector<Dof<double>::Pointer> dofs;
+        static_cast<const typename TContainerType::data_type&>(r_adjoint_element).GetDofList(dofs, r_adjoint_process_info);
+
+        // get derivative node ids
+        std::vector<int> derivative_node_ids;
+        for (IndexType i = 0; i < dofs.size(); ++i) {
+            if (std::find(derivative_node_ids.begin(), derivative_node_ids.end(), dofs[i]->Id()) == derivative_node_ids.end()) {
+                derivative_node_ids.push_back(dofs[i]->Id());
+            }
+        }
+
+        const IndexType number_of_derivative_nodes = derivative_node_ids.size();
+
         // calculate primal reference residuals
         rUpdateModelPart(rPrimalModelPart);
         CalculateResidual(residual_ref, r_primal_element, r_primal_process_info);
@@ -517,7 +536,7 @@ void FluidAdjointTestUtilities::ContainerDataTypeUtilities<TContainerType, TData
         const IndexType adjoint_equation_block_size =
             adjoint_residual_derivatives.size2() / number_of_nodes;
         const IndexType adjoint_derivatives_block_size =
-            adjoint_residual_derivatives.size1() / number_of_nodes;
+            adjoint_residual_derivatives.size1() / number_of_derivative_nodes;
 
         // check residuals from adjoint and primal the same
         for (IndexType c = 0; c < number_of_nodes; ++c) {
@@ -529,8 +548,8 @@ void FluidAdjointTestUtilities::ContainerDataTypeUtilities<TContainerType, TData
             }
         }
 
-        for (IndexType c = 0; c < number_of_nodes; ++c) {
-            auto& r_node = r_primal_element.GetGeometry()[c];
+        for (IndexType c = 0; c < number_of_derivative_nodes; ++c) {
+            auto& r_node = rPrimalModelPart.GetNode(derivative_node_ids[c]);
             for (IndexType k = 0; k < derivative_dimension; ++k) {
                 perturbation_method(r_node, k) += Delta;
 
@@ -549,7 +568,7 @@ void FluidAdjointTestUtilities::ContainerDataTypeUtilities<TContainerType, TData
                             fd_derivatives[a * residual_block_size + b];
 
                         KRATOS_CHECK_RELATIVE_NEAR(
-                            fd_derivative_value, adjoint_derivative_value, Tolerance);
+                            adjoint_derivative_value, fd_derivative_value, Tolerance);
                     }
                 }
 
