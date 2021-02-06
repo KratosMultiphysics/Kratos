@@ -199,7 +199,7 @@ void AuxiliarModelPartUtilities::RemoveElementsAndBelongings(Flags IdentifierFla
 
         block_for_each(
             i_mesh->Elements(),
-            [&IdentifierFlag](ModelPart::ElementType& r_element)
+            [&IdentifierFlag](Element& rElement)
             {
                 if (r_element.IsNot(IdentifierFlag))
                     for (auto& r_node : r_element.GetGeometry())
