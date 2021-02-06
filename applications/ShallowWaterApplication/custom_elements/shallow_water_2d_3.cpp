@@ -681,17 +681,9 @@ void ShallowWater2D3::ComputeOrthogonalViscosityMatrix(
         b(2, i_block + 1) = rDN_DX(i,0);
     }
 
-    // The orthogonal second order tensor
-    BoundedMatrix<double,2,2> crosswind_direction;
-    CrossWindTensor(crosswind_direction, rVelocity);
-
     // The orthogonal fourth order tensor
-    BoundedMatrix<double,3,3> crosswind_tensor = ZeroMatrix(3,3);
-    crosswind_tensor(0,0) = crosswind_direction(0,0);
-    crosswind_tensor(1,1) = crosswind_direction(1,1);
-    crosswind_tensor(0,1) = crosswind_direction(0,1);
-    crosswind_tensor(1,0) = crosswind_direction(0,1);
-    crosswind_tensor(2,2) = 1 + crosswind_direction(0,1);
+    BoundedMatrix<double,3,3> crosswind_tensor;
+    CrossWindTensor(crosswind_tensor, rVelocity);
     crosswind_tensor *= rViscosity;
 
     // Assembly of the viscosity matrix
@@ -821,9 +813,29 @@ void ShallowWater2D3::StreamLineTensor(BoundedMatrix<double,2,2>& rTensor, const
 
 void ShallowWater2D3::CrossWindTensor(BoundedMatrix<double,2,2>& rTensor, const array_1d<double,3>& rVector)
 {
-    const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
-    const auto aux_vector = static_cast<array_1d<double,2>>(rVector);
-    rTensor = IdentityMatrix(2) - outer_prod(aux_vector, aux_vector) / (inner_prod(rVector, rVector) + e);
+    StreamLineTensor(rTensor, rVector);
+    rTensor = IdentityMatrix(2) - rTensor;
+}
+
+void ShallowWater2D3::StreamLineTensor(BoundedMatrix<double,3,3>& rTensor, const array_1d<double,3>& rVector)
+{
+    BoundedMatrix<double,2,2> stream_line_tensor;
+    StreamLineTensor(stream_line_tensor, rVector);
+    rTensor(0,0) = stream_line_tensor(0,0);
+    rTensor(1,1) = stream_line_tensor(1,1);
+    rTensor(0,1) = stream_line_tensor(0,1);
+    rTensor(1,0) = stream_line_tensor(0,1);
+    rTensor(2,2) = stream_line_tensor(0,1);
+    rTensor(0,2) = 0.0;
+    rTensor(1,2) = 0.0;
+    rTensor(2,0) = 0.0;
+    rTensor(2,1) = 0.0;
+}
+
+void ShallowWater2D3::CrossWindTensor(BoundedMatrix<double,3,3>& rTensor, const array_1d<double,3>& rVector)
+{
+    StreamLineTensor(rTensor, rVector);
+    rTensor = IdentityMatrix(3) - rTensor;
 }
 
 double ShallowWater2D3::StabilizationParameter(const ElementData& rData)
