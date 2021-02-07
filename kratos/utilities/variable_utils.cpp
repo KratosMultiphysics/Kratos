@@ -177,7 +177,7 @@ bool VariableUtils::CheckVariableKeys()
 void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
-    auto rNodes_local = rNodes;
+    auto& rNodes_local = rNodes;
     block_for_each(rNodes_local, [](ModelPart::NodeType& rNode){
         noalias(rNode.Coordinates()) = rNode.GetInitialPosition();
     });
@@ -191,7 +191,7 @@ void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesCo
 void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
-    auto rNodes_local = rNodes;
+    auto& rNodes_local = rNodes;
     block_for_each(rNodes_local, [&](Node<3>& rNode){
         noalias(rNode.GetInitialPosition().Coordinates()) = rNode.Coordinates();
     });
@@ -210,7 +210,7 @@ void VariableUtils::UpdateCurrentPosition(
 {
     KRATOS_TRY;
 
-    auto rNodes_local = rNodes;
+    auto& rNodes_local = rNodes;
     block_for_each(rNodes_local, [&](Node<3>& rNode){
         const auto& r_update_coords = rNode.FastGetSolutionStepValue(rUpdateVariable, BufferPosition);
         noalias(rNode.Coordinates()) = (rNode.GetInitialPosition()).Coordinates() + r_update_coords;
