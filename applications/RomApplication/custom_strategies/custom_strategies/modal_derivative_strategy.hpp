@@ -885,30 +885,28 @@ public:
     {
         KRATOS_TRY
         
-        ModelPart& r_model_part = BaseType::GetModelPart();
-
-        const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
-
-        std::size_t derivative_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
+        auto& r_model_part = BaseType::GetModelPart();
         
-        for (ModelPart::NodeIterator itNode = r_model_part.NodesBegin(); itNode!= r_model_part.NodesEnd(); itNode++) {
-            ModelPart::NodeType::DofsContainerType& NodeDofs = itNode->GetDofs();
-            const std::size_t NumNodeDofs = NodeDofs.size();
-            Matrix& rRomBasis = itNode->GetValue(ROM_BASIS);
+        block_for_each(r_model_part.Nodes(), [&](Node<3>& r_node) {
+
+            const auto derivative_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
+            const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
+            const auto& node_dofs = r_node.GetDofs();
 
             // fill the ROM_BASIS
-            for (std::size_t iDOF = 0; iDOF < NumNodeDofs; iDOF++)
+            std::size_t dof_ctr = 0;
+            for (const auto& rp_node_dof : node_dofs)
             {
-                const auto itDof = std::begin(NodeDofs) + iDOF;
-                bool is_active = !(r_dof_set.find(**itDof) == r_dof_set.end());
-                if ((*itDof)->IsFree() && is_active) {
-                   rRomBasis(iDOF,derivative_index) = rDx((*itDof)->EquationId());
+                bool is_active = !(r_dof_set.find(*rp_node_dof) == r_dof_set.end());
+                if (rp_node_dof->IsFree() && is_active) {
+                    r_node.GetValue(ROM_BASIS)(dof_ctr,derivative_index) = rDx(rp_node_dof->EquationId());
                 }
                 else {
-                   rRomBasis(iDOF,derivative_index) = 0.0;
+                    r_node.GetValue(ROM_BASIS)(dof_ctr,derivative_index) = 0.0;
                 }
-            }            
-        }
+                dof_ctr += 1;
+            }
+        });
 
         KRATOS_CATCH("")
     }
