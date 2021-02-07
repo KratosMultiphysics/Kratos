@@ -278,7 +278,7 @@ public:
         const std::size_t dimension = 3;
         
         // Derivative of basis_i
-        const std::size_t basis_i = rCurrentProcessInfo[BASIS_I];
+        const auto basis_i = rCurrentProcessInfo[BASIS_I];
 
         // Get elemental_global_gof_size
         std::size_t elemental_global_gof_size = 0;
@@ -288,14 +288,14 @@ public:
         // Get elemental_local_dof_size
         std::vector<Dof<double>::Pointer> r_elemental_dof_list;
         rElement.GetDofList(r_elemental_dof_list, rCurrentProcessInfo);
-        const std::size_t elemental_local_dof_size = r_elemental_dof_list.size();
+        const auto elemental_local_dof_size = r_elemental_dof_list.size();
 
         // Compute element LHS derivative
         Matrix element_matrix_derivative;
         element_matrix_derivative.resize(elemental_local_dof_size,elemental_local_dof_size,false);
 
         // Derivative wrt basis_j
-        const std::size_t basis_j = rCurrentProcessInfo[BASIS_J];
+        const auto basis_j = rCurrentProcessInfo[BASIS_J];
 
         if (mFiniteDifferenceTypeFlag) // Central Difference
             this->CentralDifferencingWithBasis(rElement, element_matrix_derivative, basis_j, rCurrentProcessInfo);
@@ -311,7 +311,7 @@ public:
         for (auto& node_i : rElement.GetGeometry()) {
             auto& node_i_dofs = node_i.GetDofs();
             
-            const Matrix *p_phi_nodal = &(node_i.GetValue(ROM_BASIS));
+            const auto* p_phi_nodal = &(node_i.GetValue(ROM_BASIS));
             for (std::size_t node_i_glob_dof_ctr = 0; node_i_glob_dof_ctr < p_phi_nodal->size1(); node_i_glob_dof_ctr++)
             {
                 phi_elemental_global[elem_glob_dof_ctr + node_i_glob_dof_ctr] = (*p_phi_nodal)(node_i_glob_dof_ctr, basis_i);
@@ -335,7 +335,7 @@ public:
         } 
         else if (elemental_global_gof_size == elemental_local_dof_size && elemental_global_gof_size / rElement.GetGeometry().size() == 6)
         {   // there are disp and rot dofs both in global and in local dof sets. reorder phi_elemental_global into phi_elemental_local
-            const std::size_t disp_shifter = dimension;
+            const auto disp_shifter = dimension;
             std::size_t dof_shifter = 0;
             for (auto& node_i : rElement.GetGeometry()) {
                 auto& node_i_dofs = node_i.GetDofs();
@@ -353,8 +353,8 @@ public:
 
         } else if (elemental_global_gof_size != elemental_local_dof_size) 
         {   // there are disp dofs in element dof set and both disp and rot dofs in the global dof set. filter out only disp dofs
-            const std::size_t disp_shifter = dimension;
-            const std::size_t nodal_dof_size = elemental_global_gof_size / rElement.GetGeometry().size();
+            const auto disp_shifter = dimension;
+            const auto nodal_dof_size = elemental_global_gof_size / rElement.GetGeometry().size();
             for (std::size_t iNode = 0; iNode < rElement.GetGeometry().size(); iNode++)
             {
                 for (std::size_t iXYZ = 0; iXYZ < dimension; iXYZ++)
@@ -468,7 +468,7 @@ protected:
         // Lock element nodes for OMP parallelism
         this->LockElementNodes(rElement);
 
-        std::size_t matrix_size = rElementMatrixDerivative.size1();
+        const auto matrix_size = rElementMatrixDerivative.size1();
 
         // Positive perturbation
         LocalSystemMatrixType element_matrix_p_perturbed;
@@ -504,7 +504,7 @@ protected:
         // Lock element nodes for OMP parallelism
         this->LockElementNodes(rElement);
 
-        std::size_t matrix_size = rElementMatrixDerivative.size1();
+        const auto matrix_size = rElementMatrixDerivative.size1();
 
         // Positive perturbation
         LocalSystemMatrixType element_matrix_p_perturbed;
@@ -541,7 +541,7 @@ protected:
 
         // Initialize is necessary for updating the section properties of shell elements
         rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
-        const std::size_t disp_shifter = 3;
+        const auto disp_shifter = 3;
 
         // Loop over element nodes
         for (auto& node_i : rElement.GetGeometry()) {
