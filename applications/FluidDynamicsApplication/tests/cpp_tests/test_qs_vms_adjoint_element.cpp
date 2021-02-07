@@ -173,7 +173,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointGetDofListTest, FluidDynamicsApplicationFa
     Model model;
     auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "primal", "QSVMSAdjoint2D3N");
 
-    FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityGetDofListTest(
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetDofListTest(
         model_part,
         {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_SCALAR_1});
 }
@@ -183,7 +183,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointEquationIdVectorTest, FluidDynamicsApplica
     Model model;
     auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "primal", "QSVMSAdjoint2D3N");
 
-    FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityEquationIdVectorTest(
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityEquationIdVectorTest(
         model_part,
         {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_SCALAR_1});
 }
@@ -193,7 +193,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointGetValuesVectorTest, FluidDynamicsApplicat
     Model model;
     auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "primal", "QSVMSAdjoint2D3N");
 
-    FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityGetValuesVectorTest(
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetValuesVectorTest(
         model_part,
         {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_SCALAR_1});
 }
@@ -203,7 +203,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointGetFirstDerivativesVectorTest, FluidDynami
     Model model;
     auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "primal", "QSVMSAdjoint2D3N");
 
-    FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityGetFirstDerivativesVectorTest(
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetFirstDerivativesVectorTest(
         model_part,
         [](const ModelPart::NodeType& rNode) -> Vector { return ZeroVector(3); });
 }
@@ -214,7 +214,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointGetSecondDerivativesVectorTest, FluidDynam
     auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "primal", "QSVMSAdjoint2D3N");
 
     Vector temp(3);
-    FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityGetSecondDerivativesVectorTest(
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetSecondDerivativesVectorTest(
         model_part,
         [&](const ModelPart::NodeType& rNode) -> Vector {
             const auto& value = rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);

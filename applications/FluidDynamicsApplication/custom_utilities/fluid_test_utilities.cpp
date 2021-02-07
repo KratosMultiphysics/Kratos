@@ -101,8 +101,8 @@ ModelPart& FluidTestUtilities::CreateTestModelPart(
     auto p_cond_prop = r_model_part.CreateNewProperties(2);
     rSetConditionProperties(*p_cond_prop);
     auto p_condition_1 = r_model_part.CreateNewCondition(rConditionName, 1, nid_list{2, 1}, p_cond_prop);
-    auto p_condition_2 = r_model_part.CreateNewCondition(rConditionName, 2, nid_list{2, 3}, p_cond_prop);
-    auto p_condition_3 = r_model_part.CreateNewCondition(rConditionName, 3, nid_list{3, 1}, p_cond_prop);
+    auto p_condition_2 = r_model_part.CreateNewCondition(rConditionName, 2, nid_list{3, 2}, p_cond_prop);
+    auto p_condition_3 = r_model_part.CreateNewCondition(rConditionName, 3, nid_list{1, 3}, p_cond_prop);
 
     p_condition_1->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>({p_element}));
     p_condition_2->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>({p_element}));
@@ -144,6 +144,164 @@ void FluidTestUtilities::RandomFillContainerNonHistoricalVariable(
     }
 }
 
+template<class TContainerType>
+void FluidTestUtilities::Testing<TContainerType>::RunEntityGetDofListTest(
+    ModelPart& rModelPart,
+    const std::vector<const Variable<double>*>& rDofVariablesList)
+{
+    KRATOS_TRY
+
+    auto& r_container = GetContainer(rModelPart);
+    const auto& r_process_info = rModelPart.GetProcessInfo();
+
+    for (IndexType i = 0; i < r_container.size(); ++i) {
+        const auto& r_entity = *(r_container.begin() + i);
+
+        DofsVectorType dofs;
+        r_entity.GetDofList(dofs, r_process_info);
+
+        auto& r_geometry = r_entity.GetGeometry();
+
+        KRATOS_CHECK_EQUAL(dofs.size(), r_geometry.PointsNumber() * rDofVariablesList.size());
+
+        IndexType index = 0;
+        for (const auto& r_node : r_geometry) {
+            for (auto p_variable : rDofVariablesList) {
+                KRATOS_CHECK_EQUAL(r_node.pGetDof(*p_variable), dofs[index++]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
+void FluidTestUtilities::Testing<TContainerType>::RunEntityEquationIdVectorTest(
+    ModelPart& rModelPart,
+    const std::vector<const Variable<double>*>& rDofVariablesList)
+{
+    KRATOS_TRY
+
+    auto& r_container = GetContainer(rModelPart);
+    const auto& r_process_info = rModelPart.GetProcessInfo();
+
+    for (IndexType i = 0; i < r_container.size(); ++i) {
+        const auto& r_entity = *(r_container.begin() + i);
+
+        EquationIdVectorType equation_ids;
+        r_entity.EquationIdVector(equation_ids, r_process_info);
+
+        auto& r_geometry = r_entity.GetGeometry();
+
+        KRATOS_CHECK_EQUAL(equation_ids.size(),r_geometry.PointsNumber() * rDofVariablesList.size());
+
+        IndexType index = 0;
+        for (const auto& r_node : r_geometry) {
+            for (auto p_variable : rDofVariablesList) {
+                KRATOS_CHECK_EQUAL(r_node.GetDof(*p_variable).EquationId(), equation_ids[index++]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
+void FluidTestUtilities::Testing<TContainerType>::RunEntityGetValuesVectorTest(
+    ModelPart& rModelPart,
+    const std::vector<const Variable<double>*>& rDofVariablesList)
+{
+    KRATOS_TRY
+
+    auto& r_container = GetContainer(rModelPart);
+
+    for (IndexType i = 0; i < r_container.size(); ++i) {
+        const auto& r_entity = *(r_container.begin() + i);
+
+        Vector values;
+        r_entity.GetValuesVector(values);
+
+        auto& r_geometry = r_entity.GetGeometry();
+
+        KRATOS_CHECK_EQUAL(values.size(),r_geometry.PointsNumber() * rDofVariablesList.size());
+
+        IndexType index = 0;
+        for (const auto& r_node : r_geometry) {
+            for (auto p_variable : rDofVariablesList) {
+                KRATOS_CHECK_EQUAL(r_node.FastGetSolutionStepValue(*p_variable), values[index++]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
+void FluidTestUtilities::Testing<TContainerType>::RunEntityGetFirstDerivativesVectorTest(
+    ModelPart& rModelPart,
+    const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod)
+{
+    KRATOS_TRY
+
+    auto& r_container = GetContainer(rModelPart);
+
+    for (IndexType i = 0; i < r_container.size(); ++i) {
+        const auto& r_entity = *(r_container.begin() + i);
+
+        Vector values;
+        r_entity.GetFirstDerivativesVector(values);
+
+        IndexType index = 0;
+        for (const auto& r_node : r_entity.GetGeometry()) {
+            const Vector& ref_values = rValueRetrievalMethod(r_node);
+            for (IndexType i = 0; i < ref_values.size(); ++i) {
+                KRATOS_CHECK_EQUAL(ref_values[i], values[index++]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
+void FluidTestUtilities::Testing<TContainerType>::RunEntityGetSecondDerivativesVectorTest(
+    ModelPart& rModelPart,
+    const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod)
+{
+    KRATOS_TRY
+
+    auto& r_container = GetContainer(rModelPart);
+
+    for (IndexType i = 0; i < r_container.size(); ++i) {
+        const auto& r_entity = *(r_container.begin() + i);
+
+        Vector values;
+        r_entity.GetSecondDerivativesVector(values);
+
+        IndexType index = 0;
+        for (const auto& r_node : r_entity.GetGeometry()) {
+            const Vector& ref_values = rValueRetrievalMethod(r_node);
+            for (IndexType i = 0; i < ref_values.size(); ++i) {
+                KRATOS_CHECK_EQUAL(ref_values[i], values[index++]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <>
+ModelPart::ElementsContainerType& FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::GetContainer(ModelPart& rModelPart)
+{
+    return rModelPart.Elements();
+}
+
+template <>
+ModelPart::ConditionsContainerType& FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::GetContainer(ModelPart& rModelPart)
+{
+    return rModelPart.Conditions();
+}
+
 //// Static Operations Template Instantiations //////////////////////////
 
 template void FluidTestUtilities::RandomFillNodalHistoricalVariable<double>(ModelPart&, const Variable<double>&, const double, const double, const int);
@@ -157,5 +315,8 @@ template void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<Model
 
 template void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ElementsContainerType, double>(ModelPart::ElementsContainerType&, const Variable<double>&, const std::size_t, const double, const double);
 template void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>(ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const std::size_t, const double, const double);
+
+template class FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>;
+template class FluidTestUtilities::Testing<ModelPart::ElementsContainerType>;
 
 } // namespace Kratos

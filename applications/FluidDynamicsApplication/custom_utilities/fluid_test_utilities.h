@@ -40,6 +40,10 @@ public:
 
     using PropertiesType = ModelPart::PropertiesType;
 
+    using DofsVectorType =  std::vector<Dof<double>::Pointer>;
+
+    using EquationIdVectorType = std::vector<std::size_t>;
+
     ///@}
     ///@name Static operations
     ///@{
@@ -78,6 +82,42 @@ public:
         const IndexType DomainSize,
         const double MinValue = 0.0,
         const double MaxValue = 1.0);
+
+    ///@}
+    ///@name Classes
+    ///@{
+
+    template<class TContainerType>
+    class Testing
+    {
+    public:
+        ///@name Static Operations
+        ///@{
+
+        static void RunEntityGetDofListTest(
+            ModelPart& rModelPart,
+            const std::vector<const Variable<double>*>& rDofVariablesList);
+
+        static void RunEntityEquationIdVectorTest(
+            ModelPart& rModelPart,
+            const std::vector<const Variable<double>*>& rDofVariablesList);
+
+        static void RunEntityGetValuesVectorTest(
+            ModelPart& rModelPart,
+            const std::vector<const Variable<double>*>& rDofVariablesList);
+
+        static void RunEntityGetFirstDerivativesVectorTest(
+            ModelPart& rModelPart,
+            const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod);
+
+        static void RunEntityGetSecondDerivativesVectorTest(
+            ModelPart& rModelPart,
+            const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod);
+
+        static TContainerType& GetContainer(ModelPart& rModelPart);
+
+        ///@}
+    };
 
     ///@}
 };

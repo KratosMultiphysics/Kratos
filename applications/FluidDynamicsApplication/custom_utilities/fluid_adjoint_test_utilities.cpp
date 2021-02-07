@@ -107,19 +107,6 @@ IndexType FluidAdjointTestUtilities::GetVariableDimension(
     return rProcessInfo[DOMAIN_SIZE];
 }
 
-template <>
-ModelPart::ElementsContainerType& FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::GetContainer(ModelPart& rModelPart)
-{
-    return rModelPart.Elements();
-}
-
-template <>
-ModelPart::ConditionsContainerType& FluidAdjointTestUtilities::Testing<ModelPart::ConditionsContainerType>::GetContainer(ModelPart& rModelPart)
-{
-    return rModelPart.Conditions();
-}
-
-
 template<class TContainerType>
 void FluidAdjointTestUtilities::Testing<TContainerType>::CalculateResidual(
     Vector& residual,
@@ -195,152 +182,6 @@ void FluidAdjointTestUtilities::Testing<TContainerType>::CalculateResidual(
 }
 
 template<class TContainerType>
-void FluidAdjointTestUtilities::Testing<TContainerType>::RunAdjointEntityGetDofListTest(
-    ModelPart& rModelPart,
-    const std::vector<const Variable<double>*>& rDofVariablesList)
-{
-    KRATOS_TRY
-
-    auto& r_container = GetContainer(rModelPart);
-    const auto& r_process_info = rModelPart.GetProcessInfo();
-
-    for (IndexType i = 0; i < r_container.size(); ++i) {
-        const auto& r_entity = *(r_container.begin() + i);
-
-        DofsVectorType dofs;
-        r_entity.GetDofList(dofs, r_process_info);
-
-        auto& r_geometry = r_entity.GetGeometry();
-
-        KRATOS_CHECK_EQUAL(dofs.size(), r_geometry.PointsNumber() * rDofVariablesList.size());
-
-        IndexType index = 0;
-        for (const auto& r_node : r_geometry) {
-            for (auto p_variable : rDofVariablesList) {
-                KRATOS_CHECK_EQUAL(r_node.pGetDof(*p_variable), dofs[index++]);
-            }
-        }
-    }
-
-    KRATOS_CATCH("");
-}
-
-template<class TContainerType>
-void FluidAdjointTestUtilities::Testing<TContainerType>::RunAdjointEntityEquationIdVectorTest(
-    ModelPart& rModelPart,
-    const std::vector<const Variable<double>*>& rDofVariablesList)
-{
-    KRATOS_TRY
-
-    auto& r_container = GetContainer(rModelPart);
-    const auto& r_process_info = rModelPart.GetProcessInfo();
-
-    for (IndexType i = 0; i < r_container.size(); ++i) {
-        const auto& r_entity = *(r_container.begin() + i);
-
-        EquationIdVectorType equation_ids;
-        r_entity.EquationIdVector(equation_ids, r_process_info);
-
-        auto& r_geometry = r_entity.GetGeometry();
-
-        KRATOS_CHECK_EQUAL(equation_ids.size(),r_geometry.PointsNumber() * rDofVariablesList.size());
-
-        IndexType index = 0;
-        for (const auto& r_node : r_geometry) {
-            for (auto p_variable : rDofVariablesList) {
-                KRATOS_CHECK_EQUAL(r_node.GetDof(*p_variable).EquationId(), equation_ids[index++]);
-            }
-        }
-    }
-
-    KRATOS_CATCH("");
-}
-
-template<class TContainerType>
-void FluidAdjointTestUtilities::Testing<TContainerType>::RunAdjointEntityGetValuesVectorTest(
-    ModelPart& rModelPart,
-    const std::vector<const Variable<double>*>& rDofVariablesList)
-{
-    KRATOS_TRY
-
-    auto& r_container = GetContainer(rModelPart);
-
-    for (IndexType i = 0; i < r_container.size(); ++i) {
-        const auto& r_entity = *(r_container.begin() + i);
-
-        Vector values;
-        r_entity.GetValuesVector(values);
-
-        auto& r_geometry = r_entity.GetGeometry();
-
-        KRATOS_CHECK_EQUAL(values.size(),r_geometry.PointsNumber() * rDofVariablesList.size());
-
-        IndexType index = 0;
-        for (const auto& r_node : r_geometry) {
-            for (auto p_variable : rDofVariablesList) {
-                KRATOS_CHECK_EQUAL(r_node.FastGetSolutionStepValue(*p_variable), values[index++]);
-            }
-        }
-    }
-
-    KRATOS_CATCH("");
-}
-
-template<class TContainerType>
-void FluidAdjointTestUtilities::Testing<TContainerType>::RunAdjointEntityGetFirstDerivativesVectorTest(
-    ModelPart& rModelPart,
-    const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod)
-{
-    KRATOS_TRY
-
-    auto& r_container = GetContainer(rModelPart);
-
-    for (IndexType i = 0; i < r_container.size(); ++i) {
-        const auto& r_entity = *(r_container.begin() + i);
-
-        Vector values;
-        r_entity.GetFirstDerivativesVector(values);
-
-        IndexType index = 0;
-        for (const auto& r_node : r_entity.GetGeometry()) {
-            const Vector& ref_values = rValueRetrievalMethod(r_node);
-            for (IndexType i = 0; i < ref_values.size(); ++i) {
-                KRATOS_CHECK_EQUAL(ref_values[i], values[index++]);
-            }
-        }
-    }
-
-    KRATOS_CATCH("");
-}
-
-template<class TContainerType>
-void FluidAdjointTestUtilities::Testing<TContainerType>::RunAdjointEntityGetSecondDerivativesVectorTest(
-    ModelPart& rModelPart,
-    const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod)
-{
-    KRATOS_TRY
-
-    auto& r_container = GetContainer(rModelPart);
-
-    for (IndexType i = 0; i < r_container.size(); ++i) {
-        const auto& r_entity = *(r_container.begin() + i);
-
-        Vector values;
-        r_entity.GetSecondDerivativesVector(values);
-
-        IndexType index = 0;
-        for (const auto& r_node : r_entity.GetGeometry()) {
-            const Vector& ref_values = rValueRetrievalMethod(r_node);
-            for (IndexType i = 0; i < ref_values.size(); ++i) {
-                KRATOS_CHECK_EQUAL(ref_values[i], values[index++]);
-            }
-        }
-    }
-
-    KRATOS_CATCH("");
-}
-
-template<class TContainerType>
 template<class TDataType>
 void FluidAdjointTestUtilities::Testing<TContainerType>::RunAdjointEntityDerivativesTest(
     ModelPart& rPrimalModelPart,
@@ -355,8 +196,8 @@ void FluidAdjointTestUtilities::Testing<TContainerType>::RunAdjointEntityDerivat
 {
     KRATOS_TRY
 
-    auto& r_primal_container = GetContainer(rPrimalModelPart);
-    auto& r_adjoint_container = GetContainer(rAdjointModelPart);
+    auto& r_primal_container = FluidTestUtilities::Testing<TContainerType>::GetContainer(rPrimalModelPart);
+    auto& r_adjoint_container = FluidTestUtilities::Testing<TContainerType>::GetContainer(rAdjointModelPart);
     rAdjointModelPart.GetProcessInfo()[DELTA_TIME] =
         rPrimalModelPart.GetProcessInfo()[DELTA_TIME] * -1.0;
 
