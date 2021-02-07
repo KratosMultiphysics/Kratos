@@ -62,6 +62,15 @@ ModelPart& CreateFluidQSVMSAdjointModelPart(
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 1);
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 1);
 
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 1);
+
         // following values do not need to be set when OSS projections are supported by Adjoints
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADVPROJ, 2.0, 3.0, 0);
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, DIVPROJ, 2.0, 3.0, 0);

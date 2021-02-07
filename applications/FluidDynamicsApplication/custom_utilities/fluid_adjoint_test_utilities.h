@@ -113,6 +113,38 @@ public:
         ///@}
     };
 
+    template<class TContainerType>
+    class ContainerUtilities
+    {
+    public:
+        ///@name Static Operations
+        ///@{
+
+        static void RunAdjointEntityGetDofListTest(
+            ModelPart& rModelPart,
+            const std::vector<const Variable<double>*>& rDofVariablesList);
+
+        static void RunAdjointEntityEquationIdVectorTest(
+            ModelPart& rModelPart,
+            const std::vector<const Variable<double>*>& rDofVariablesList);
+
+        static void RunAdjointEntityGetValuesVectorTest(
+            ModelPart& rModelPart,
+            const std::vector<const Variable<double>*>& rDofVariablesList);
+
+        static void RunAdjointEntityGetFirstDerivativesVectorTest(
+            ModelPart& rModelPart,
+            const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod);
+
+        static void RunAdjointEntityGetSecondDerivativesVectorTest(
+            ModelPart& rModelPart,
+            const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod);
+
+        static TContainerType& GetContainer(ModelPart& rModelPart);
+
+        ///@}
+    };
+
     ///@}
 private:
     ///@name Private Operations
