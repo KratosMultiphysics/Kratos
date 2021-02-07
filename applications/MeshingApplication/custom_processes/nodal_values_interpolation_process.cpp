@@ -352,20 +352,20 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
         }
     }
 
+    // Iterate over nodes
     NodesArrayType& r_nodes_array = rModelPart.Nodes();
-    const int num_nodes = static_cast<int>(r_nodes_array.size());
     const auto it_node_begin = r_nodes_array.begin();
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [&it_node_begin](std::size_t i) {
+            auto it_node = it_node_begin + i;
 
-    #pragma omp parallel for
-    for(int i = 0; i < num_nodes; ++i) {
-        auto it_node = it_node_begin + i;
+            array_1d<double, 3>& r_normal = it_node->GetValue(NORMAL);
+            const double norm_normal = norm_2(r_normal);
 
-        array_1d<double, 3>& normal = it_node->GetValue(NORMAL);
-        const double norm_normal = norm_2(normal);
-
-        if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
-        else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
-    }
+            if (norm_normal > std::numeric_limits<double>::epsilon()) r_normal /= norm_normal;
+            else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
+        }
+    );
 }
 
 /***********************************************************************************/
