@@ -74,8 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_GetDofList
     auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3NSetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestGetDofList<ModelPart::ElementsContainerType>(
-        r_model_part, VELOCITY_POTENTIAL);
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetDofListTest(r_model_part, {&VELOCITY_POTENTIAL});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateLocalSystem,

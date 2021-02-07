@@ -39,11 +39,6 @@ KRATOS_API(RANS_APPLICATION) ModelPart& CreateScalarVariableTestModelPart(
     const bool DoInitializeElements = true,
     const bool DoInitializeConditions = true);
 
-template <class TContainerType>
-KRATOS_API(RANS_APPLICATION) void TestGetDofList(
-    ModelPart& rModelPart,
-    const Variable<double>& rVariable);
-
 KRATOS_API(RANS_APPLICATION) void CheckElementsAndConditions(
     const ModelPart& rModelPart);
 

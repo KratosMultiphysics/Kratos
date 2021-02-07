@@ -68,23 +68,6 @@ ModelPart& CreateScalarVariableTestModelPart(
     return r_model_part;
 }
 
-template <class TContainerType>
-void TestGetDofList(
-    ModelPart& rModelPart,
-    const Variable<double>& rVariable)
-{
-    auto dofs = Element::DofsVectorType{};
-    for (const auto& r_item : RansCalculationUtilities::GetContainer<TContainerType>(rModelPart)) {
-        r_item.GetDofList(dofs, rModelPart.GetProcessInfo());
-        KRATOS_CHECK_EQUAL(dofs.size(), r_item.GetGeometry().PointsNumber());
-        const auto& r_geometry = r_item.GetGeometry();
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
-            KRATOS_CHECK_EQUAL(dofs[i_node]->GetVariable(), rVariable);
-            KRATOS_CHECK_EQUAL(dofs[i_node]->EquationId(), r_geometry[i_node].Id());
-        }
-    }
-}
-
 void CheckElementsAndConditions(
     const ModelPart& rModelPart)
 {
@@ -97,15 +80,6 @@ void CheckElementsAndConditions(
         r_condition.Check(r_process_info);
     }
 }
-
-// template instantiations
-template void TestGetDofList<ModelPart::ElementsContainerType>(
-    ModelPart&,
-    const Variable<double>&);
-
-template void TestGetDofList<ModelPart::ConditionsContainerType>(
-    ModelPart&,
-    const Variable<double>&);
 
 } // namespace RansApplicationTestUtilities
 } // namespace Kratos

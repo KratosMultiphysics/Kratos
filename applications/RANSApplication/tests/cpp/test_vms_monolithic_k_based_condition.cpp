@@ -111,26 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_GetDofList, KratosRans
     auto& r_model_part = RansVMSMonolithicKBasedWall2D2NSetUp(model);
 
     // Test:
-    auto dofs = Element::DofsVectorType{};
-    for (const auto& r_condition : r_model_part.Conditions())
-    {
-        r_condition.GetDofList(dofs, r_model_part.GetProcessInfo());
-        KRATOS_CHECK_EQUAL(dofs.size(), r_condition.GetGeometry().PointsNumber() * 3);
-        const auto& r_geometry = r_condition.GetGeometry();
-        IndexType local_index = 0;
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-        {
-            KRATOS_CHECK_EQUAL(dofs[local_index]->GetVariable(), VELOCITY_X);
-            KRATOS_CHECK_EQUAL(dofs[local_index++]->EquationId(),
-                               r_geometry[i_node].Id() * 4);
-            KRATOS_CHECK_EQUAL(dofs[local_index]->GetVariable(), VELOCITY_Y);
-            KRATOS_CHECK_EQUAL(dofs[local_index++]->EquationId(),
-                               r_geometry[i_node].Id() * 4 + 1);
-            KRATOS_CHECK_EQUAL(dofs[local_index]->GetVariable(), PRESSURE);
-            KRATOS_CHECK_EQUAL(dofs[local_index++]->EquationId(),
-                               r_geometry[i_node].Id() * 4 + 3);
-        }
-    }
+    FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunEntityGetDofListTest(r_model_part, {&VELOCITY_X, &VELOCITY_Y, &PRESSURE});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalSystem, KratosRansFastSuite)
