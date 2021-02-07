@@ -68,8 +68,8 @@ ModelPart& FluidTestUtilities::CreateTestModelPart(
     const std::string& rModelPartName,
     const std::string& rElementName,
     const std::string& rConditionName,
-    const std::function<ModelPart::PropertiesType::Pointer(ModelPart&)>& rGetElementProperties,
-    const std::function<ModelPart::PropertiesType::Pointer(ModelPart&)>& rGetConditionProperties,
+    const std::function<void(PropertiesType&)>& rSetElementProperties,
+    const std::function<void(PropertiesType&)>& rSetConditionProperties,
     const std::function<void(ModelPart&)>& rAddNodalSolutionStepVariablesFuncion,
     const std::function<void(NodeType&)>& rAddDofsFunction,
     const int BufferSize)
@@ -92,13 +92,14 @@ ModelPart& FluidTestUtilities::CreateTestModelPart(
         }
     }
 
-    auto p_elem_prop = rGetElementProperties(r_model_part);
-
     using nid_list = std::vector<ModelPart::IndexType>;
 
+    auto p_elem_prop = r_model_part.CreateNewProperties(1);
+    rSetElementProperties(*p_elem_prop);
     auto p_element = r_model_part.CreateNewElement(rElementName, 1, nid_list{3, 2, 1}, p_elem_prop);
 
-    auto p_cond_prop = rGetConditionProperties(r_model_part);
+    auto p_cond_prop = r_model_part.CreateNewProperties(2);
+    rSetConditionProperties(*p_cond_prop);
     auto p_condition_1 = r_model_part.CreateNewCondition(rConditionName, 1, nid_list{2, 1}, p_cond_prop);
     auto p_condition_2 = r_model_part.CreateNewCondition(rConditionName, 2, nid_list{2, 3}, p_cond_prop);
     auto p_condition_3 = r_model_part.CreateNewCondition(rConditionName, 3, nid_list{3, 1}, p_cond_prop);

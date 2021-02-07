@@ -112,30 +112,24 @@ ModelPart& CreateFluidQSVMSAdjointModelPart(
         rNode.AddDof(ADJOINT_FLUID_VECTOR_1_Z);
     };
 
-    const auto& get_element_properties = [](ModelPart& rModelPart) {
-        Properties::Pointer p_element_properties = rModelPart.CreateNewProperties(0);
-
+    const auto& set_element_properties = [](Properties& rProperties) {
         Parameters cl_parameters(R"(
         {
             "name"              : "Newtonian2DLaw"
         })");
-        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get("Newtonian2DLaw").Create(cl_parameters, *p_element_properties);
+        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get("Newtonian2DLaw").Create(cl_parameters, rProperties);
 
-        p_element_properties->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
-        p_element_properties->SetValue(DYNAMIC_VISCOSITY, 1.5);
-        p_element_properties->SetValue(DENSITY, 1.8);
-
-        return p_element_properties;
+        rProperties.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+        rProperties.SetValue(DYNAMIC_VISCOSITY, 1.5);
+        rProperties.SetValue(DENSITY, 1.8);
     };
 
-    const auto& get_condition_properties = [](ModelPart& rModelPart) {
-        Properties::Pointer p_cond_properties = rModelPart.CreateNewProperties(1);
-        return p_cond_properties;
+    const auto& set_condition_properties = [](Properties& rProperties) {
     };
 
     auto& r_model_part = FluidTestUtilities::CreateTestModelPart(
-        rModel, rModelPartName, rElementName, "LineCondition2D2N", get_element_properties,
-        get_condition_properties, add_solution_step_variables, add_dofs);
+        rModel, rModelPartName, rElementName, "LineCondition2D2N", set_element_properties,
+        set_condition_properties, add_solution_step_variables, add_dofs);
     set_variable_values(r_model_part);
 
     return r_model_part;
