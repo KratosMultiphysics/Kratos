@@ -126,8 +126,6 @@ public:
 
         mFiniteDifferenceStepSize = InputParameters["finite_difference_step_size"].GetDouble();
 
-        mSchemeIsInitialized = false;
-
         KRATOS_CATCH("")
     }
 
@@ -276,23 +274,25 @@ public:
         ) override
     {
         KRATOS_TRY
+
+        const std::size_t dimension = 3;
         
         // Derivative of basis_i
         const std::size_t basis_i = rCurrentProcessInfo[BASIS_I];
 
-        // Get elementalGlobalDofSize
-        std::size_t elementalGlobalDofSize = 0;
+        // Get elemental_global_gof_size
+        std::size_t elemental_global_gof_size = 0;
         for (auto& node_i : rElement.GetGeometry())
-            elementalGlobalDofSize += node_i.GetDofs().size();
+            elemental_global_gof_size += node_i.GetDofs().size();
         
-        // Get elementalLocalDofSize
-        std::vector<Dof<double>::Pointer> rElementalDofList;
-        rElement.GetDofList(rElementalDofList, rCurrentProcessInfo);
-        std::size_t elementalLocalDofSize = rElementalDofList.size();
+        // Get elemental_local_dof_size
+        std::vector<Dof<double>::Pointer> r_elemental_dof_list;
+        rElement.GetDofList(r_elemental_dof_list, rCurrentProcessInfo);
+        const std::size_t elemental_local_dof_size = r_elemental_dof_list.size();
 
         // Compute element LHS derivative
         Matrix element_matrix_derivative;
-        element_matrix_derivative.resize(elementalLocalDofSize,elementalLocalDofSize,false);
+        element_matrix_derivative.resize(elemental_local_dof_size,elemental_local_dof_size,false);
 
         // Derivative wrt basis_j
         const std::size_t basis_j = rCurrentProcessInfo[BASIS_J];
@@ -302,68 +302,68 @@ public:
         else // Forward difference
             this->ForwardDifferencingWithBasis(rElement, element_matrix_derivative, basis_j, rCurrentProcessInfo);
 
-        // Create PhiElementalGlobal 
-        LocalSystemVectorType PhiElementalGlobal;
-        PhiElementalGlobal.resize(elementalGlobalDofSize);
+        // Create phi_elemental_global 
+        LocalSystemVectorType phi_elemental_global;
+        phi_elemental_global.resize(elemental_global_gof_size);
         // Get PhiElemental
         std::size_t elem_glob_dof_ctr = 0;
         // Loop over nodes
         for (auto& node_i : rElement.GetGeometry()) {
             auto& node_i_dofs = node_i.GetDofs();
             
-            const Matrix *pPhiNodal = &(node_i.GetValue(ROM_BASIS));
-            for (std::size_t node_i_glob_dof_ctr = 0; node_i_glob_dof_ctr < pPhiNodal->size1(); node_i_glob_dof_ctr++)
+            const Matrix *p_phi_nodal = &(node_i.GetValue(ROM_BASIS));
+            for (std::size_t node_i_glob_dof_ctr = 0; node_i_glob_dof_ctr < p_phi_nodal->size1(); node_i_glob_dof_ctr++)
             {
-                PhiElementalGlobal[elem_glob_dof_ctr + node_i_glob_dof_ctr] = (*pPhiNodal)(node_i_glob_dof_ctr, basis_i);
+                phi_elemental_global[elem_glob_dof_ctr + node_i_glob_dof_ctr] = (*p_phi_nodal)(node_i_glob_dof_ctr, basis_i);
             }
 
             elem_glob_dof_ctr += node_i_dofs.size();
         }
 
-        // Create PhiElementalLocal
-        LocalSystemVectorType PhiElementalLocal;
-        PhiElementalLocal.resize(elementalLocalDofSize);        
+        // Create phi_elemental_local
+        LocalSystemVectorType phi_elemental_local;
+        phi_elemental_local.resize(elemental_local_dof_size);        
 
         // Initialize RHS contribution
-        rRHS_Contribution.resize(elementalLocalDofSize);
+        rRHS_Contribution.resize(elemental_local_dof_size);
         rRHS_Contribution.clear();
 
         // Build RHS contribution
-        if (elementalGlobalDofSize == elementalLocalDofSize && elementalGlobalDofSize / rElement.GetGeometry().size() == 3)
+        if (elemental_global_gof_size == elemental_local_dof_size && elemental_global_gof_size / rElement.GetGeometry().size() == dimension)
         {   // there are only disp dofs both in global and in local dof sets
-            rRHS_Contribution -= prod(element_matrix_derivative, PhiElementalGlobal);
+            rRHS_Contribution -= prod(element_matrix_derivative, phi_elemental_global);
         } 
-        else if (elementalGlobalDofSize == elementalLocalDofSize && elementalGlobalDofSize / rElement.GetGeometry().size() == 6)
-        {   // there are disp and rot dofs both in global and in local dof sets. reorder PhiElementalGlobal into PhiElementalLocal
-            const std::size_t disp_shifter = 3;
+        else if (elemental_global_gof_size == elemental_local_dof_size && elemental_global_gof_size / rElement.GetGeometry().size() == 6)
+        {   // there are disp and rot dofs both in global and in local dof sets. reorder phi_elemental_global into phi_elemental_local
+            const std::size_t disp_shifter = dimension;
             std::size_t dof_shifter = 0;
             for (auto& node_i : rElement.GetGeometry()) {
                 auto& node_i_dofs = node_i.GetDofs();
                 
                 for (auto& dof_i : node_i_dofs) {
                     if (dof_i->GetVariable().GetSourceVariable() == DISPLACEMENT){
-                        PhiElementalLocal[dof_shifter + dof_i->GetVariable().GetComponentIndex()] = PhiElementalGlobal(dof_shifter + disp_shifter + dof_i->GetVariable().GetComponentIndex());
+                        phi_elemental_local[dof_shifter + dof_i->GetVariable().GetComponentIndex()] = phi_elemental_global(dof_shifter + disp_shifter + dof_i->GetVariable().GetComponentIndex());
                     } else {
-                        PhiElementalLocal[dof_shifter + disp_shifter + dof_i->GetVariable().GetComponentIndex()] = PhiElementalGlobal(dof_shifter + dof_i->GetVariable().GetComponentIndex());
+                        phi_elemental_local[dof_shifter + disp_shifter + dof_i->GetVariable().GetComponentIndex()] = phi_elemental_global(dof_shifter + dof_i->GetVariable().GetComponentIndex());
                     }
                 }
                 dof_shifter += node_i_dofs.size();
             }
-            rRHS_Contribution -= prod(element_matrix_derivative, PhiElementalLocal);
+            rRHS_Contribution -= prod(element_matrix_derivative, phi_elemental_local);
 
-        } else if (elementalGlobalDofSize != elementalLocalDofSize) 
+        } else if (elemental_global_gof_size != elemental_local_dof_size) 
         {   // there are disp dofs in element dof set and both disp and rot dofs in the global dof set. filter out only disp dofs
-            const std::size_t disp_shifter = 3;
-            const std::size_t nodal_dof_size = elementalGlobalDofSize / rElement.GetGeometry().size();
+            const std::size_t disp_shifter = dimension;
+            const std::size_t nodal_dof_size = elemental_global_gof_size / rElement.GetGeometry().size();
             for (std::size_t iNode = 0; iNode < rElement.GetGeometry().size(); iNode++)
             {
-                for (std::size_t iXYZ = 0; iXYZ < 3; iXYZ++)
+                for (std::size_t iXYZ = 0; iXYZ < dimension; iXYZ++)
                 {
-                    PhiElementalLocal[iNode * 3 + iXYZ] = PhiElementalGlobal[iNode * nodal_dof_size + disp_shifter + iXYZ];
+                    phi_elemental_local[iNode * dimension + iXYZ] = phi_elemental_global[iNode * nodal_dof_size + disp_shifter + iXYZ];
                 }
             }
 
-            rRHS_Contribution -= prod(element_matrix_derivative, PhiElementalLocal);
+            rRHS_Contribution -= prod(element_matrix_derivative, phi_elemental_local);
         }
 
         rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
@@ -541,7 +541,7 @@ protected:
 
         // Initialize is necessary for updating the section properties of shell elements
         rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
-        std::size_t disp_shifter = 3;
+        const std::size_t disp_shifter = 3;
 
         // Loop over element nodes
         for (auto& node_i : rElement.GetGeometry()) {
@@ -554,8 +554,7 @@ protected:
                 // Compute and assign the perturbation
                 const double dof_perturbation = Step*mFiniteDifferenceStepSize*node_i.GetValue(ROM_BASIS)(dof_idx, basis_j);
 
-                // Some elements need solution step value while others need the current coordinate.
-                // Thus perturb all
+                // Some elements need solution step value while others need the current coordinate. Thus perturb all!
                 // Update solution step value
                 (*it_dof_i)->GetSolutionStepValue() += dof_perturbation;
 
@@ -601,8 +600,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    bool mSchemeIsInitialized;
 
     double mFiniteDifferenceStepSize;
 
