@@ -303,9 +303,11 @@ public:
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                  BaseType::GetModelPart());
                 
-                // if (mDerivativeTypeFlag || mMassOrthonormalizeFlag)
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMassMatrix, mpDx, mpb,
+                if (mDerivativeTypeFlag || mMassOrthonormalizeFlag)
+                {
+                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMassMatrix, mpDx, mpb,
                                                                  BaseType::GetModelPart());
+                }
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpStiffnessMatrix, mpDx, mpb,
                                                                  BaseType::GetModelPart());
                 
