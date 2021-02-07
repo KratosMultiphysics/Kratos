@@ -38,6 +38,8 @@ public:
 
     using NodeType = ModelPart::NodeType;
 
+    using PropertiesType = ModelPart::PropertiesType;
+
     ///@}
     ///@name Static operations
     ///@{
@@ -55,8 +57,8 @@ public:
         const std::string& rModelPartName,
         const std::string& rElementName,
         const std::string& rConditionName,
-        const std::function<ModelPart::PropertiesType::Pointer(ModelPart&)>& rGetElementProperties,
-        const std::function<ModelPart::PropertiesType::Pointer(ModelPart&)>& rGetConditionProperties,
+        const std::function<void(PropertiesType&)>& rSetElementProperties,
+        const std::function<void(PropertiesType&)>& rSetConditionProperties,
         const std::function<void(ModelPart&)>& rAddNodalSolutionStepVariablesFuncion,
         const std::function<void(NodeType&)>& rAddDofsFunction,
         const int BufferSize = 2);
