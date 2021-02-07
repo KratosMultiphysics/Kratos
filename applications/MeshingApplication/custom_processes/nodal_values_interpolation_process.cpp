@@ -265,9 +265,11 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
         }
     }
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(point_list_destination.size()); ++i)
-        point_list_destination[i]->UpdatePoint();
+    // Update point
+    IndexPartition<std::size_t>(point_list_destination.size()).for_each(
+        [&point_list_destination](std::size_t i)
+        { point_list_destination[i]->UpdatePoint(); }
+    );
 
     // Create a tree
     // It will use a copy of mNodeList (a std::vector which contains pointers)
