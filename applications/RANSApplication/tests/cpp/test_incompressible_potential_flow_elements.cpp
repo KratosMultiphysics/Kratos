@@ -92,9 +92,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateL
         LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] = -5.1041666666666670e+00;
-    ref_RHS[1] = 1.2165570175438596e+01;
-    ref_RHS[2] = -7.0614035087719298e+00;
+    ref_RHS[0] = 1.3295291530269968e+00;
+    ref_RHS[1] = 8.9192309670427861e-01;
+    ref_RHS[2] = -2.2214522497312754e+00;
     ref_LHS(0, 0) = 5.0000000000000000e-01;
     ref_LHS(0, 1) = -5.0000000000000000e-01;
     ref_LHS(1, 0) = -5.0000000000000000e-01;
@@ -146,9 +146,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateR
         RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] = -5.1041666666666670e+00;
-    ref_RHS[1] = 1.2165570175438596e+01;
-    ref_RHS[2] = -7.0614035087719298e+00;
+    ref_RHS[0] = 1.3295291530269968e+00;
+    ref_RHS[1] = 8.9192309670427861e-01;
+    ref_RHS[2] = -2.2214522497312754e+00;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }
