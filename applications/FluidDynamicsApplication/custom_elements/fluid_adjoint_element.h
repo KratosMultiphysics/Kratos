@@ -82,9 +82,13 @@ public:
 
     using ShapeFunctionDerivativesArrayType = GeometryType::ShapeFunctionsGradientsType;
 
-    constexpr static IndexType TBlockSize = TAdjointElementData::TBlockSize;
+    constexpr static IndexType TBlockSize = TDim + 1;
 
     constexpr static IndexType TElementLocalSize = TBlockSize * TNumNodes;
+
+    constexpr static IndexType TCoordsLocalSize = TDim * TNumNodes;
+
+    using VectorF = BoundedVector<double, TElementLocalSize>;
 
     KRATOS_CLASS_POINTER_DEFINITION(FluidAdjointElement);
 
@@ -261,22 +265,20 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    template<class TDerivativesType>
-    void AddVelocityPressureDerivatives(
-        MatrixType& rLeftHandSideMatrix,
-        const GeometryData::IntegrationMethod& rIntegrationMethod,
+    void AddFluidResidualsContributions(
+        VectorType& rResidual,
         const ProcessInfo& rCurrentProcessInfo);
 
-    template<class TDerivativesType>
-    void AddVelocityPressureSecondDerivatives(
-        MatrixType& rLeftHandSideMatrix,
-        const GeometryData::IntegrationMethod& rIntegrationMethod,
+    void AddFluidFirstDerivatives(
+        MatrixType& rDerivativesMatrix,
         const ProcessInfo& rCurrentProcessInfo);
 
-    template<class TDerivativesType>
-    void AddVelocityPressureSensitivityDerivatives(
-        Matrix& rOutput,
-        const GeometryData::IntegrationMethod& rIntegrationMethod,
+    void AddFluidSecondDerivatives(
+        MatrixType& rDerivativesMatrix,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void AddFluidShapeDerivatives(
+        MatrixType& rDerivativesMatrix,
         const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateGeometryData(
@@ -284,6 +286,28 @@ protected:
         Matrix& rNContainer,
         ShapeFunctionDerivativesArrayType& rDN_DX,
         const GeometryData::IntegrationMethod& rIntegrationMethod) const;
+
+    template<IndexType TSize>
+    void AssembleSubVectorToVector(Vector& rOutput, const BoundedVector<double, TSize>& rSubVector)
+    {
+        constexpr IndexType ValueBlockSize = TSize / TNumNodes;
+        for (IndexType i = 0; i < TNumNodes; ++i) {
+            for (IndexType j = 0; j < ValueBlockSize; ++j) {
+                rOutput[i * TBlockSize + j] += rSubVector[i * ValueBlockSize + j];
+            }
+        }
+    }
+
+    template<IndexType TSize>
+    void AssembleSubVectorToMatrix(Matrix& rOutput, const IndexType Row, const BoundedVector<double, TSize>& rSubVector)
+    {
+        constexpr IndexType ValueBlockSize = TSize / TNumNodes;
+        for (IndexType i = 0; i < TNumNodes; ++i) {
+            for (IndexType j = 0; j < ValueBlockSize; ++j) {
+                rOutput(Row, i * TBlockSize + j) += rSubVector[i * ValueBlockSize + j];
+            }
+        }
+    }
 
     ///@}
 };
