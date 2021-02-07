@@ -45,8 +45,8 @@ ModelPart& RansIncompressiblePotentialFlowVelocityInlet2D2NSetUp(
 
     auto& r_model_part = CreateScalarVariableTestModelPart(
         rModel, "Element2D3N",
-        "RansIncompressiblePotentialFlowVelocityInlet2D2N",
-        add_variables_function, set_properties, VELOCITY_POTENTIAL, 1);
+        "RansIncompressiblePotentialFlowVelocityInlet2D2N", set_properties,
+        set_properties, add_variables_function, VELOCITY_POTENTIAL, 1);
 
     // set nodal historical variables
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);

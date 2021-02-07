@@ -24,6 +24,7 @@
 
 // Application includes
 #include "custom_utilities/fluid_test_utilities.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "rans_application_variables.h"
 
@@ -50,13 +51,16 @@ ModelPart& RansKOmegaSSTK2D3NSetUp(
     const auto set_properties = [](Properties& rProperties) {
         rProperties.SetValue(DENSITY, 1.0);
         rProperties.SetValue(DYNAMIC_VISCOSITY, 1e-2);
+        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansNewtonian2DLaw").Clone());
     };
 
     using namespace RansApplicationTestUtilities;
 
     auto& r_model_part = CreateScalarVariableTestModelPart(
-        rModel, rElementName, "LineCondition2D2N", add_variables_function, set_properties,
-        TURBULENT_KINETIC_ENERGY, 1);
+        rModel, rElementName, "LineCondition2D2N", set_properties,
+        [](Properties&) {}, add_variables_function, TURBULENT_KINETIC_ENERGY, 1);
+
+    RansVariableUtilities::SetElementConstitutiveLaws(r_model_part.Elements());
 
     // set nodal historical variables
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
@@ -95,13 +99,16 @@ ModelPart& RansKOmegaSSTOmega2D3NSetUp(
     const auto set_properties = [](Properties& rProperties) {
         rProperties.SetValue(DENSITY, 1.0);
         rProperties.SetValue(DYNAMIC_VISCOSITY, 1e-2);
+        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansNewtonian2DLaw").Clone());
     };
 
     using namespace RansApplicationTestUtilities;
 
     auto& r_model_part = CreateScalarVariableTestModelPart(
-        rModel, rElementName, "LineCondition2D2N", add_variables_function, set_properties,
-        TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1);
+        rModel, rElementName, "LineCondition2D2N", set_properties, [](Properties&) {},
+        add_variables_function, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1);
+
+    RansVariableUtilities::SetElementConstitutiveLaws(r_model_part.Elements());
 
     // set nodal historical variables
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
