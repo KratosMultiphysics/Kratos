@@ -477,10 +477,11 @@ public:
                 const double deigenvalue_i_dbasis_j = -inner_prod(basis, rb);
                 r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]] = deigenvalue_i_dbasis_j;
 
-                
                 // Dynamic derivative RHS
                 if (mDerivativeTypeFlag)
+                {
                     rb += deigenvalue_i_dbasis_j * prod(rMassMatrix, basis);
+                }
 
                 Timer::Stop("BuildRHS");
                 KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "Build time RHS: " << build_rhs.ElapsedSeconds() << std::endl;
@@ -494,7 +495,9 @@ public:
                 Timer::Start("Apply Dirichlet Conditions");
                 // Add dynamic derivative constraint
                 if (mDerivativeTypeFlag)
+                {
                     this->AddDynamicDerivativeConstraint(basis);
+                }
 
                 // Apply Dirichlet conditions
                 p_builder_and_solver->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
@@ -509,22 +512,30 @@ public:
 
                 // Remove the constrained DOF related to the dynamic derivative
                 if (mDerivativeTypeFlag)
+                {
                     this->RemoveDynamicDerivativeConstraint();
+                }
 
                 // Reconstruct slave DOF solution
                 if (master_slave_constraints_defined)
+                {
                     this->ReconstructSlaveSolution(rDx);
+                }
 
                 // Compute and add null space solution for dynamic derivatives
                 if (mDerivativeTypeFlag)
+                {
                     this->ComputeAndAddNullSpaceSolution(rDx, basis);
+                }
 
                 Timer::Stop("Solve");
                 KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "System solve time: " << solve.ElapsedSeconds() << std::endl;
 
                 // Mass orthonormalization
                 if (mMassOrthonormalizeFlag)
+                {
                     this->MassOrthonormalize(rDx);
+                }
                 
                 // Assign solution to ROM_BASIS
                 this->AssignVariables(rDx);
