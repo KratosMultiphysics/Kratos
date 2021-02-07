@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "custom_processes/metric_fast_init_process.h"
 
 namespace Kratos
@@ -27,14 +28,17 @@ void MetricFastInit<TDim>::Execute()
     const TensorArrayType zero_array(3 * (TDim - 1), 0.0);
 
     // We iterate over the nodes
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
 
     // Tensor variable definition
-    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
+    const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-        (nodes_array.begin() + i)->SetValue(tensor_variable, zero_array);
+    // Iterate over nodes
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [&it_node_begin,&r_tensor_variable,&zero_array](std::size_t i_node)
+        { (it_node_begin + i_node)->SetValue(r_tensor_variable, zero_array); }
+    );
 
     KRATOS_CATCH("");
 }
