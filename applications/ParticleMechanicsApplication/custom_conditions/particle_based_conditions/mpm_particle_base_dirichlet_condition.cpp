@@ -35,7 +35,7 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( const ProcessInf
 
     // Prepare variables
     GeneralVariables Variables;
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+    MPMShapeFunctionPointValues(Variables.N);
 
     // Get NODAL_AREA from MPC_Area
     GeometryType& r_geometry = GetGeometry();
@@ -118,11 +118,11 @@ void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
     }
 }
 
-Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
+void MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult ) const
 {
     KRATOS_TRY
 
-    rResult = MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult, rPoint);
+    MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult);
 
     // Additional check to modify zero shape function values
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -138,8 +138,6 @@ Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& 
     }
 
     rResult = rResult / denominator;
-
-    return rResult;
 
     KRATOS_CATCH( "" )
 }
