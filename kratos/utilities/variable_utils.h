@@ -135,8 +135,8 @@ public:
 
         IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index){
             auto it_dest_node = rDestinationModelPart.NodesBegin() + index;
-            const auto &it_orig_node = rOriginModelPart.NodesBegin() + index;
-            const auto &r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
+            const auto it_orig_node = rOriginModelPart.NodesBegin() + index;
+            const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
             it_dest_node->FastGetSolutionStepValue(rDestinationVariable, BuffStep) = r_value;
         });
     }
@@ -178,8 +178,8 @@ public:
 
         IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index){
             auto it_dest_node = rDestinationModelPart.NodesBegin() + index;
-            const auto &it_orig_node = rOriginModelPart.NodesBegin() + index;
-            const auto &r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
+            const auto it_orig_node = rOriginModelPart.NodesBegin() + index;
+            const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
             it_dest_node->GetValue(rDestinationVariable) = r_value;
         });
     }
@@ -626,8 +626,8 @@ public:
 
         IndexPartition<std::size_t>(n_orig_elems).for_each([&](std::size_t index){
         auto it_dest_elems = rDestinationModelPart.ElementsBegin() + index;
-        const auto &it_orig_elems = rOriginModelPart.ElementsBegin() + index;
-        const auto &r_value = it_orig_elems->GetValue(rVariable);
+        const auto it_orig_elems = rOriginModelPart.ElementsBegin() + index;
+        const auto& r_value = it_orig_elems->GetValue(rVariable);
         it_dest_elems->SetValue(rVariable,r_value);
         });
     }
