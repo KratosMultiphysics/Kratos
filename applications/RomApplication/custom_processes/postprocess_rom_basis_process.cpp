@@ -163,7 +163,7 @@ PostprocessRomBasisProcess::PostprocessRomBasisProcess(ModelPart& rModelPart,
             "result_file_format_use_ascii"  : false,
             "folder_name"                   : "RomBasis",
             "save_output_files_in_folder"   : true,
-            "animation_steps"               : 20,
+            "animation_steps"               : 1,
             "list_of_result_variables"      : ["DISPLACEMENT"]
         }  )"
     );
