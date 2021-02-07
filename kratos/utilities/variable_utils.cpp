@@ -177,14 +177,10 @@ bool VariableUtils::CheckVariableKeys()
 void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
-    const int num_nodes = static_cast<int>(rNodes.size());
-    const auto it_node_begin = rNodes.begin();
-
-    #pragma omp parallel for
-    for (int i=0; i<num_nodes; i++) {
-        const auto it_node  = it_node_begin + i;
-        noalias(it_node->Coordinates()) = it_node->GetInitialPosition();
-    }
+    auto rNodes_local = rNodes;
+    block_for_each(rNodes_local, [](ModelPart::NodeType& rNode){
+        noalias(rNode.Coordinates()) = rNode.GetInitialPosition();
+    });
 
     KRATOS_CATCH("");
 }
@@ -195,14 +191,10 @@ void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesCo
 void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
-    const int num_nodes = static_cast<int>(rNodes.size());
-    const auto it_node_begin = rNodes.begin();
-
-    #pragma omp parallel for
-    for (int i=0; i<num_nodes; i++) {
-        const auto it_node  = it_node_begin + i;
-        noalias(it_node->GetInitialPosition().Coordinates()) = it_node->Coordinates();
-    }
+    auto rNodes_local = rNodes;
+    block_for_each(rNodes_local, [&](Node<3>& rNode){
+        noalias(rNode.GetInitialPosition().Coordinates()) = rNode.Coordinates();
+    });
 
     KRATOS_CATCH("");
 }
@@ -218,15 +210,11 @@ void VariableUtils::UpdateCurrentPosition(
 {
     KRATOS_TRY;
 
-    const int num_nodes = static_cast<int>(rNodes.size());
-    const auto it_node_begin = rNodes.begin();
-
-    #pragma omp parallel for
-    for (int i_node = 0; i_node < num_nodes; ++i_node) {
-        const auto it_node  = it_node_begin + i_node;
-        const auto& r_update_coords = it_node->FastGetSolutionStepValue(rUpdateVariable, BufferPosition);
-        noalias(it_node->Coordinates()) = (it_node->GetInitialPosition()).Coordinates() + r_update_coords;
-    }
+    auto rNodes_local = rNodes;
+    block_for_each(rNodes_local, [&](Node<3>& rNode){
+        const auto& r_update_coords = rNode.FastGetSolutionStepValue(rUpdateVariable, BufferPosition);
+        noalias(rNode.Coordinates()) = (rNode.GetInitialPosition()).Coordinates() + r_update_coords;
+    });
 
     KRATOS_CATCH("");
 }
