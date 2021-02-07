@@ -18,6 +18,7 @@
 #include "containers/model.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/skin_detection_process.h"
@@ -153,39 +154,20 @@ void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
 template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::GenerateBoundary(const std::string& rAuxiliarNameModelPart)
 {
-    // Auxiliar zero array
-    const array_1d<double, 3> zero_array = ZeroVector(3);
-
     // Initialize values of Normal
     /* Origin model part */
     NodesArrayType& r_nodes_array_origin = mrOriginMainModelPart.Nodes();
-    const int num_nodes_origin = static_cast<int>(r_nodes_array_origin.size());
-    const auto it_node_begin_origin = r_nodes_array_origin.begin();
     NodesArrayType& r_nodes_array_destiny = mrDestinationMainModelPart.Nodes();
-    const int num_nodes_destiny = static_cast<int>(r_nodes_array_destiny.size());
-    const auto it_node_begin_destination = r_nodes_array_destiny.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < num_nodes_origin; ++i)
-        (it_node_begin_origin + i)->SetValue(NORMAL, zero_array);
-    #pragma omp parallel for
-    for(int i = 0; i < num_nodes_destiny; ++i)
-        (it_node_begin_destination + i)->SetValue(NORMAL, zero_array);
+    VariableUtils().SetNonHistoricalVariableToZero(NORMAL, r_nodes_array_origin);
+    VariableUtils().SetNonHistoricalVariableToZero(NORMAL, r_nodes_array_destiny);
 
     /* Destination model part */
     ConditionsArrayType& r_conditions_array_origin = mrOriginMainModelPart.Conditions();
-    const int num_conditions_origin = static_cast<int>(r_conditions_array_origin.size());
-    const auto it_cond_begin_origin = r_conditions_array_origin.begin();
     ConditionsArrayType& r_conditions_array_destiny = mrDestinationMainModelPart.Conditions();
-    const int num_conditions_destiny = static_cast<int>(r_conditions_array_destiny.size());
-    const auto it_cond_begin_destiny = r_conditions_array_destiny.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < num_conditions_origin; ++i)
-        (it_cond_begin_origin + i)->SetValue(NORMAL, zero_array);
-    #pragma omp parallel for
-    for(int i = 0; i < num_conditions_destiny; ++i)
-        (it_cond_begin_destiny + i)->SetValue(NORMAL, zero_array);
+    VariableUtils().SetNonHistoricalVariableToZero(NORMAL, r_conditions_array_origin);
+    VariableUtils().SetNonHistoricalVariableToZero(NORMAL, r_conditions_array_destiny);
 
     Parameters skin_parameters = Parameters(R"(
     {
