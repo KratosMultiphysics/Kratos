@@ -35,61 +35,6 @@ namespace Kratos
 {
 namespace RansApplicationTestUtilities
 {
-int RandomGenerator(const int X0, const int A, const int M, const int C, const int L, const int Count = 0)
-{
-    if (Count >= L) {
-        return X0;
-    } else {
-        return RandomGenerator((X0 * A + C) % M, A, M, C, L, Count + 1);
-    }
-}
-
-template <>
-void AssignRandomValues(
-    double& rValue,
-    const std::string& rSeed,
-    const double MinValue,
-    const double MaxValue)
-{
-    int v_seed = 0;
-    for (unsigned int i = 0; i < rSeed.length(); ++i) {
-        v_seed += static_cast<double>(rSeed[i] - '0');
-    }
-
-    const int a = static_cast<int>(rSeed[0] - '0');
-    int m = static_cast<int>(rSeed[1] - '0');
-    m = (m == 0) ? 23 : m;
-    const int c = static_cast<int>(rSeed[2] - '0');
-
-    const double v1 = RandomGenerator(v_seed, a, m, c, v_seed % 10);
-    const double v2 = RandomGenerator(v1, a, m, c, v_seed % 10 + 1);
-    const double v3 = RandomGenerator(v2, a, m, c, v_seed % 10 + 2);
-
-    const double v_max = std::max(v1, std::max(v2, v3));
-    const double v_min = std::min(v1, std::min(v2, v3));
-    const double v =
-        (v1 != v_max && v1 != v_min) ? v1 : (v2 != v_max && v2 != v_min) ? v2 : v3;
-
-    double u_gap{ v - v_min}, l_gap{v_max - v_min};
-    if (l_gap == 0.0) {
-        l_gap = 100.0;
-        u_gap = 0.5 * std::max(std::min(a * (m + c), 100), 1);
-    }
-
-    rValue = MinValue + (MaxValue - MinValue) * u_gap / l_gap;
-}
-
-template <>
-void AssignRandomValues(
-    array_1d<double, 3>& rValue,
-    const std::string& rSeed,
-    const double MinValue,
-    const double MaxValue)
-{
-    AssignRandomValues<double>(rValue[0], rSeed + "_X", MinValue, MaxValue);
-    AssignRandomValues<double>(rValue[1], rSeed + "_Y", MinValue, MaxValue);
-    AssignRandomValues<double>(rValue[2], rSeed + "_Z", MinValue, MaxValue);
-}
 
 ModelPart& CreateTestModelPart(
     Model& rModel,
@@ -159,39 +104,6 @@ ModelPart& CreateScalarVariableTestModelPart(
     return r_model_part;
 }
 
-template <class TDataType>
-void RandomFillNodalHistoricalVariable(
-    ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const double MinValue,
-    const double MaxValue,
-    const int Step)
-{
-    for (auto& node : rModelPart.Nodes()) {
-        std::stringstream seed;
-        seed << node.Id() << "_HistoricalV_" << rVariable.Name();
-        TDataType& value = node.FastGetSolutionStepValue(rVariable, Step);
-        AssignRandomValues<TDataType>(value, seed.str(), MinValue, MaxValue);
-    }
-}
-
-template <class TContainerType, class TDataType>
-void RandomFillContainerVariable(
-    ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const double MinValue,
-    const double MaxValue)
-{
-    auto& container = RansCalculationUtilities::GetContainer<TContainerType>(rModelPart);
-    for (auto& item : container) {
-        std::stringstream seed;
-        seed << item.Id() << "_NonHistoricalV_" << rVariable.Name();
-        TDataType value = rVariable.Zero();
-        AssignRandomValues<TDataType>(value, seed.str(), MinValue, MaxValue);
-        item.SetValue(rVariable, value);
-    }
-}
-
 template <class TContainerType>
 void TestEquationIdVector(
     ModelPart& rModelPart)
@@ -250,56 +162,6 @@ template void TestGetDofList<ModelPart::ElementsContainerType>(
 template void TestGetDofList<ModelPart::ConditionsContainerType>(
     ModelPart&,
     const Variable<double>&);
-
-template KRATOS_API(RANS_APPLICATION) void RandomFillNodalHistoricalVariable<double>(
-    ModelPart&,
-    const Variable<double>&,
-    const double,
-    const double,
-    const int);
-
-template KRATOS_API(RANS_APPLICATION) void RandomFillNodalHistoricalVariable<array_1d<double, 3>>(
-    ModelPart&,
-    const Variable<array_1d<double, 3>>&,
-    const double,
-    const double,
-    const int);
-
-template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::NodesContainerType, array_1d<double, 3>>(
-    ModelPart&,
-    const Variable<array_1d<double, 3>>&,
-    const double,
-    const double);
-
-template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>(
-    ModelPart&,
-    const Variable<array_1d<double, 3>>&,
-    const double,
-    const double);
-
-template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>(
-    ModelPart&,
-    const Variable<array_1d<double, 3>>&,
-    const double,
-    const double);
-
-template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::NodesContainerType, double>(
-    ModelPart&,
-    const Variable<double>&,
-    const double,
-    const double);
-
-template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::ConditionsContainerType, double>(
-    ModelPart&,
-    const Variable<double>&,
-    const double,
-    const double);
-
-template KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable<ModelPart::ElementsContainerType, double>(
-    ModelPart&,
-    const Variable<double>&,
-    const double,
-    const double);
 
 } // namespace RansApplicationTestUtilities
 } // namespace Kratos

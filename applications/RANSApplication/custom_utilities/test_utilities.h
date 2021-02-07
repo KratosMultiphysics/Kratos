@@ -27,13 +27,6 @@ namespace RansApplicationTestUtilities
 {
 using IndexType = std::size_t;
 
-template <class TDataType>
-KRATOS_API(RANS_APPLICATION) void AssignRandomValues(
-    TDataType& rValue,
-    const std::string& rSeed,
-    const double MinValue = 0.0,
-    const double MaxValue = 1.0);
-
 KRATOS_API(RANS_APPLICATION) ModelPart& CreateTestModelPart(
     Model& rModel,
     const std::string& rElementName,
@@ -53,21 +46,6 @@ KRATOS_API(RANS_APPLICATION) ModelPart& CreateScalarVariableTestModelPart(
     const int BufferSize = 2,
     const bool DoInitializeElements = true,
     const bool DoInitializeConditions = true);
-
-template <class TDataType>
-KRATOS_API(RANS_APPLICATION) void RandomFillNodalHistoricalVariable(
-    ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const double MinValue = 0.0,
-    const double MaxValue = 1.0,
-    const int Step = 0);
-
-template <class TContainerType, class TDataType>
-KRATOS_API(RANS_APPLICATION) void RandomFillContainerVariable(
-    ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const double MinValue = 0.0,
-    const double MaxValue = 1.0);
 
 template <class TContainerType>
 KRATOS_API(RANS_APPLICATION) void TestEquationIdVector(

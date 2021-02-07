@@ -55,17 +55,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
     m.def_submodule("RansCalculationUtilities")
         .def("CalculateLogarithmicYPlusLimit", &RansCalculationUtilities::CalculateLogarithmicYPlusLimit, py::arg("kappa"), py::arg("beta"), py::arg("max_iterations") = 20, py::arg("tolerance") = 1e-6);
-
-    m.def_submodule("RansTestUtilities")
-        .def("RandomFillNodalHistoricalVariable", &RansApplicationTestUtilities::RandomFillNodalHistoricalVariable<double>)
-        .def("RandomFillNodalHistoricalVariable", &RansApplicationTestUtilities::RandomFillNodalHistoricalVariable<array_1d<double, 3>>)
-        .def("RandomFillNodalNonHistoricalVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::NodesContainerType, double>)
-        .def("RandomFillNodalNonHistoricalVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::NodesContainerType, array_1d<double, 3>>)
-        .def("RandomFillConditionVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::ConditionsContainerType, double>)
-        .def("RandomFillConditionVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
-        .def("RandomFillElementVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::ElementsContainerType, double>)
-        .def("RandomFillElementVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>)
-        ;
 }
 
 } // namespace Python.
