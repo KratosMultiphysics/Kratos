@@ -18,22 +18,6 @@ class ModalDerivativeSolver(MechanicalSolver):
     This class creates the modal derivative solver for computing modal derivatives.
 
     See structural_mechanics_solver.py for more information.
-
-    _create_solution_scheme -> implement a new scheme
-    _create_convergence_criterion -> not necessary
-    _create_linear_solver -> use from base class
-    _create_builder_and_solver -> do i need a new builder and solver?
-    _create_mechanical_solution_strategy -> implement a new strategy
-
-    The mechanical_solution_strategy, builder_and_solver, etc. should alway be retrieved
-    using the getter functions get_mechanical_solution_strategy, get_builder_and_solver,
-    etc. from this base class.
-
-    Only the member variables listed below should be accessed directly.
-
-    Public member variables:
-    model -- the model containing the modelpart used to construct the solver.
-    settings -- Kratos parameters containing solver settings.
     """
     def __init__(self, model, custom_settings):
         """Initializes the solver."""
@@ -67,11 +51,11 @@ class ModalDerivativeSolver(MechanicalSolver):
 
     def _create_mechanical_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
+        modal_derivative_scheme = self.get_solution_scheme()
         builder_and_solver = self.get_builder_and_solver()
 
         return RomApplication.ModalDerivativeStrategy(computing_model_part,
-                                                          mechanical_scheme,
+                                                          modal_derivative_scheme,
                                                           builder_and_solver,
                                                           self.settings)
     
