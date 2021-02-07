@@ -605,7 +605,7 @@ protected:
      * @return Returns the default parameters
      */
 
-    Parameters GetDefaultParameters()
+    Parameters GetDefaultParameters() const override
     {
         Parameters default_parameters = Parameters(R"(
         {
