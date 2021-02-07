@@ -22,6 +22,7 @@
 
 // Application includes
 #include "custom_utilities/fluid_adjoint_test_utilities.h"
+#include "custom_utilities/fluid_test_utilities.h"
 #include "includes/cfd_variables.h"
 #include "fluid_dynamics_application_variables.h"
 
@@ -35,34 +36,44 @@ namespace
 
 ModelPart& CreateFluidQSVMSAdjointModelPart(
     Model& rModel,
+    const std::string& rModelPartName,
     const std::string& rElementName)
 {
     const auto& set_variable_values = [](ModelPart& rModelPart) {
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 50.0, 100.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 5.0, 10.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 50.0, 100.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 5.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 1);
 
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 1);
+
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 1);
 
         // following values do not need to be set when OSS projections are supported by Adjoints
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADVPROJ, 2.0, 3.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, DIVPROJ, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADVPROJ, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, DIVPROJ, 2.0, 3.0, 0);
 
         auto& r_process_info = rModelPart.GetProcessInfo();
         r_process_info.SetValue(DOMAIN_SIZE, 2);
@@ -122,8 +133,8 @@ ModelPart& CreateFluidQSVMSAdjointModelPart(
         return p_cond_properties;
     };
 
-    auto& r_model_part = FluidAdjointTestUtilities::CreateTestModelPart(
-        rModel, rElementName, "LineCondition2D2N", get_element_properties,
+    auto& r_model_part = FluidTestUtilities::CreateTestModelPart(
+        rModel, rModelPartName, rElementName, "LineCondition2D2N", get_element_properties,
         get_condition_properties, add_solution_step_variables, add_dofs);
     set_variable_values(r_model_part);
 
@@ -142,10 +153,10 @@ void RunFluidQSVMSAdjointElementTest(
     Model model;
 
     // prepare primal model part
-    auto& r_primal_model_part = CreateFluidQSVMSAdjointModelPart(model, "QSVMS2D3N");
+    auto& r_primal_model_part = CreateFluidQSVMSAdjointModelPart(model, "primal", "QSVMS2D3N");
 
     // prepare adjoint model part
-    auto& r_adjoint_model_part = CreateFluidQSVMSAdjointModelPart(model, "QSVMSAdjoint2D3N");
+    auto& r_adjoint_model_part = CreateFluidQSVMSAdjointModelPart(model, "adjoint", "QSVMSAdjoint2D3N");
 
     const auto& update_function = [](ModelPart& rModelPart) {
         const int number_of_nodes = rModelPart.NumberOfNodes();
@@ -153,11 +164,11 @@ void RunFluidQSVMSAdjointElementTest(
 
         for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
             auto& r_node = *(rModelPart.NodesBegin() + i_node);
-            r_node.SetValue(RELAXED_ACCELERATION, FluidAdjointTestUtilities::DataTypeUtilities<array_1d<double, 3>>::ComputeRelaxedVariableRate(bossak_alpha, ACCELERATION, r_node));
+            r_node.SetValue(RELAXED_ACCELERATION, FluidAdjointTestUtilities::CalculateRelaxedVariableRate(bossak_alpha, ACCELERATION, r_node));
         }
     };
 
-    FluidAdjointTestUtilities::ContainerDataTypeUtilities<ModelPart::ElementsContainerType, TDataType>::RunAdjointEntityTest(
+    FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityDerivativesTest(
         r_primal_model_part, r_adjoint_model_part, update_function, rVariable,
         rDerivativesRetrievalFunction, EquationOffset, DerivativesOffset, Delta, Tolerance);
 }
@@ -166,9 +177,9 @@ void RunFluidQSVMSAdjointElementTest(
 KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointGetDofListTest, FluidDynamicsApplicationFastSuite)
 {
     Model model;
-    auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "QSVMSAdjoint2D3N");
+    auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "primal", "QSVMSAdjoint2D3N");
 
-    FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ElementsContainerType>::RunAdjointEntityGetDofListTest(
+    FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityGetDofListTest(
         model_part,
         {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_SCALAR_1});
 }
@@ -176,9 +187,9 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointGetDofListTest, FluidDynamicsApplicationFa
 KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointEquationIdVectorTest, FluidDynamicsApplicationFastSuite)
 {
     Model model;
-    auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "QSVMSAdjoint2D3N");
+    auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "primal", "QSVMSAdjoint2D3N");
 
-    FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ElementsContainerType>::RunAdjointEntityEquationIdVectorTest(
+    FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityEquationIdVectorTest(
         model_part,
         {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_SCALAR_1});
 }
@@ -186,9 +197,9 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointEquationIdVectorTest, FluidDynamicsApplica
 KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointGetValuesVectorTest, FluidDynamicsApplicationFastSuite)
 {
     Model model;
-    auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "QSVMSAdjoint2D3N");
+    auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "primal", "QSVMSAdjoint2D3N");
 
-    FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ElementsContainerType>::RunAdjointEntityGetValuesVectorTest(
+    FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityGetValuesVectorTest(
         model_part,
         {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_SCALAR_1});
 }
@@ -196,9 +207,9 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointGetValuesVectorTest, FluidDynamicsApplicat
 KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointGetFirstDerivativesVectorTest, FluidDynamicsApplicationFastSuite)
 {
     Model model;
-    auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "QSVMSAdjoint2D3N");
+    auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "primal", "QSVMSAdjoint2D3N");
 
-    FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ElementsContainerType>::RunAdjointEntityGetFirstDerivativesVectorTest(
+    FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityGetFirstDerivativesVectorTest(
         model_part,
         [](const ModelPart::NodeType& rNode) -> Vector { return ZeroVector(3); });
 }
@@ -206,10 +217,10 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointGetFirstDerivativesVectorTest, FluidDynami
 KRATOS_TEST_CASE_IN_SUITE(QSVMSAdjointGetSecondDerivativesVectorTest, FluidDynamicsApplicationFastSuite)
 {
     Model model;
-    auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "QSVMSAdjoint2D3N");
+    auto& model_part = CreateFluidQSVMSAdjointModelPart(model, "primal", "QSVMSAdjoint2D3N");
 
     Vector temp(3);
-    FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ElementsContainerType>::RunAdjointEntityGetSecondDerivativesVectorTest(
+    FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityGetSecondDerivativesVectorTest(
         model_part,
         [&](const ModelPart::NodeType& rNode) -> Vector {
             const auto& value = rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);

@@ -31,7 +31,7 @@ namespace Kratos
 ///@name Classes
 ///@{
 
-class FluidAdjointTestUtilities
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidAdjointTestUtilities
 {
 public:
     ///@name Type Definitions
@@ -46,46 +46,48 @@ public:
     using EquationIdVectorType = std::vector<std::size_t>;
 
     ///@}
+    ///@name Static Operations
+    ///@{
+
+    template<class TDataType>
+    static TDataType CalculateRelaxedVariableRate(
+        const double BossakAlpha,
+        const Variable<TDataType>& rVariable,
+        const NodeType& rNode);
+
+    ///@}
     ///@name Classes
     ///@{
 
-    template <class TDataType>
-    class DataTypeUtilities
+    template<class TContainerType>
+    class Testing
     {
     public:
         ///@name Static Operations
         ///@{
 
-        static TDataType ComputeRelaxedVariableRate(
-            const double BossakAlpha,
-            const Variable<TDataType>& rVariable,
-            const NodeType& rNode);
+        static void RunAdjointEntityGetDofListTest(
+            ModelPart& rModelPart,
+            const std::vector<const Variable<double>*>& rDofVariablesList);
 
-        static std::function<double&(NodeType&, const IndexType)> GetPerturbationMethod(
-            const Variable<TDataType>& rPerturbationVariable);
+        static void RunAdjointEntityEquationIdVectorTest(
+            ModelPart& rModelPart,
+            const std::vector<const Variable<double>*>& rDofVariablesList);
 
-        static IndexType GetVariableDimension(
-            const Variable<TDataType>& rVariable,
-            const ProcessInfo& rProcessInfo);
+        static void RunAdjointEntityGetValuesVectorTest(
+            ModelPart& rModelPart,
+            const std::vector<const Variable<double>*>& rDofVariablesList);
 
-        static void AssignRandomValues(
-            TDataType& rValue,
-            const std::string& rSeed,
-            const IndexType DomainSize,
-            const double MinValue = 0.0,
-            const double MaxValue = 1.0);
+        static void RunAdjointEntityGetFirstDerivativesVectorTest(
+            ModelPart& rModelPart,
+            const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod);
 
-        ///@}
-    };
+        static void RunAdjointEntityGetSecondDerivativesVectorTest(
+            ModelPart& rModelPart,
+            const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod);
 
-    template<class TContainerType, class TDataType>
-    class ContainerDataTypeUtilities
-    {
-    public:
-        ///@name Static Operations
-        ///@{
-
-        static void RunAdjointEntityTest(
+        template<class TDataType>
+        static void RunAdjointEntityDerivativesTest(
             ModelPart& rPrimalModelPart,
             ModelPart& rAdjointModelPart,
             const std::function<void(ModelPart&)>& rUpdateModelPart,
@@ -96,18 +98,17 @@ public:
             const double Delta,
             const double Tolerance);
 
-        static void RandomFillNodalHistoricalVariable(
-            ModelPart& rModelPart,
-            const Variable<TDataType>& rVariable,
-            const double MinValue = 0.0,
-            const double MaxValue = 1.0,
-            const int Step = 0);
+        ///@}
+    private:
+        ///@name Private Operations
+        ///@{
 
-        static void RandomFillContainerVariable(
-            ModelPart& rModelPart,
-            const Variable<TDataType>& rVariable,
-            const double MinValue = 0.0,
-            const double MaxValue = 1.0);
+        static TContainerType& GetContainer(ModelPart& rModelPart);
+
+        static void CalculateResidual(
+            Vector& residual,
+            typename TContainerType::data_type& rEntity,
+            const ProcessInfo& rProcessInfo);
 
         ///@}
     };
@@ -145,36 +146,18 @@ public:
     };
 
     ///@}
-    ///@name Static operations
+private:
+    ///@name Private Operations
     ///@{
 
-    template <class TClassType>
-    static void CalculateResidual(
-        Vector& residual,
-        TClassType& rClassTypeObject,
-        const ProcessInfo& rProcessInfo);
-
-    static ModelPart& CreateTestModelPart(
-        Model& rModel,
-        const std::string& rElementName,
-        const std::string& rConditionName,
-        const std::function<ModelPart::PropertiesType::Pointer(ModelPart&)>& rGetElementProperties,
-        const std::function<ModelPart::PropertiesType::Pointer(ModelPart&)>& rGetConditionProperties,
-        const std::function<void(ModelPart&)>& rAddNodalSolutionStepVariablesFuncion,
-        const std::function<void(NodeType&)>& rAddDofsFunction,
-        const int BufferSize = 2);
+    template<class TDataType>
+    static std::function<double&(NodeType&, const IndexType)> GetPerturbationMethod(
+        const Variable<TDataType>& rPerturbationVariable);
 
     template<class TDataType>
-    static void RandomFillNodalHistoricalVariable(
-        ModelPart& rModelPart,
+    static IndexType GetVariableDimension(
         const Variable<TDataType>& rVariable,
-        const double MinValue = 0.0,
-        const double MaxValue = 1.0,
-        const int Step = 0)
-    {
-        ContainerDataTypeUtilities<ModelPart::ElementsContainerType, TDataType>::RandomFillNodalHistoricalVariable(
-            rModelPart, rVariable, MinValue, MaxValue, Step);
-    }
+        const ProcessInfo& rProcessInfo);
 
     ///@}
 };
