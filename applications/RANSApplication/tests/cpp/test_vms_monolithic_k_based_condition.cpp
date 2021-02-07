@@ -21,6 +21,7 @@
 #include "utilities/variable_utils.h"
 
 // Application includes
+#include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "includes/cfd_variables.h"
 #include "rans_application_variables.h"
@@ -64,15 +65,14 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
         1);
 
     // set nodal historical variables
-    RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
-    RandomFillNodalHistoricalVariable(r_model_part, PRESSURE, 10.0, 100.0);
-    RandomFillNodalHistoricalVariable(r_model_part, MESH_VELOCITY, 1e-3, 1e-1);
-    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
-    RandomFillNodalHistoricalVariable(r_model_part, ACCELERATION, 1.0, 1000.0);
-    RandomFillNodalHistoricalVariable(r_model_part, EXTERNAL_PRESSURE, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, PRESSURE, 10.0, 100.0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, MESH_VELOCITY, 1e-3, 1e-1);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ACCELERATION, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, EXTERNAL_PRESSURE, 1.0, 1000.0);
 
-    RandomFillContainerVariable<ModelPart::ConditionsContainerType>(
-        r_model_part, NORMAL, -2.0, -1.0);
+    FluidTestUtilities::RandomFillContainerNonHistoricalVariable(r_model_part.Conditions(), NORMAL, 2, -2.0, -1.0);
 
     auto& r_condition = r_model_part.Conditions().front();
     auto& r_element = r_model_part.Elements().front();

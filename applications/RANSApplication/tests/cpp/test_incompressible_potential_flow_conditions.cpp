@@ -19,6 +19,7 @@
 #include "testing/testing.h"
 
 // Application includes
+#include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "includes/cfd_variables.h"
 #include "rans_application_variables.h"
@@ -48,11 +49,10 @@ ModelPart& RansIncompressiblePotentialFlowVelocityInlet2D2NSetUp(
         add_variables_function, set_properties, VELOCITY_POTENTIAL, 1);
 
     // set nodal historical variables
-    RandomFillNodalHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);
-    RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -5.0, 5.0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -5.0, 5.0);
 
-    RandomFillContainerVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>(
-        r_model_part, NORMAL, 1.0, 10.0);
+    FluidTestUtilities::RandomFillContainerNonHistoricalVariable(r_model_part.Conditions(), NORMAL, 2, -2.0, -1.0);
 
     RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
 

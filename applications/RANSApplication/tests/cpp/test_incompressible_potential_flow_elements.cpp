@@ -19,6 +19,7 @@
 #include "testing/testing.h"
 
 // Application includes
+#include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "includes/cfd_variables.h"
 #include "rans_application_variables.h"
@@ -46,7 +47,7 @@ ModelPart& RansIncompressiblePotentialFlowVelocity2D3NSetUp(
         "LineCondition2D2N", add_variables_function, set_properties, VELOCITY_POTENTIAL, 1);
 
     // set nodal historical variables
-    RandomFillNodalHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);
 
     RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
 
