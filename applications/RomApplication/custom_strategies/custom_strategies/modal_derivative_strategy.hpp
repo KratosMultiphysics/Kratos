@@ -227,9 +227,10 @@ public:
     {
         KRATOS_TRY;
 
+        TBuilderAndSolverPointerType& p_builder_and_solver = this->pGetBuilderAndSolver();
         // if the preconditioner is saved between solves, it
         // should be cleared here.
-        this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
+        p_builder_and_solver->GetLinearSystemSolver()->Clear();
         if (mpA != nullptr){
             TSparseSpace::Clear(mpA);
             mpA = nullptr;
@@ -254,11 +255,9 @@ public:
         }
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
-        this->pGetBuilderAndSolver()->Clear();
+        p_builder_and_solver->SetDofSetIsInitializedFlag(false);
+        p_builder_and_solver->Clear();
         this->pGetScheme()->Clear();
-
-        mInitializeWasPerformed = false;
-        mSolutionStepIsInitialized = false;
 
         KRATOS_CATCH("")
     }
@@ -275,46 +274,50 @@ public:
         {
             //pointers needed in the solution
             TSchemePointerType& p_scheme = this->pGetScheme();
-            TBuilderAndSolverPointerType p_builder_and_solver = this->pGetBuilderAndSolver();
+            TBuilderAndSolverPointerType& p_builder_and_solver = this->pGetBuilderAndSolver();
+            ModelPart& r_model_part = BaseType::GetModelPart();
             
-            const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+            const int rank = r_model_part.GetCommunicator().MyPID();
 
             //set up the system, operation performed just once unless it is required
             //to reform the dof set at each iteration
             BuiltinTimer system_construction_time;
-            // if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
-            //         mReformDofSetAtEachStep == true)
-            if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false)
+            if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
+                p_builder_and_solver->GetReshapeMatrixFlag() == true)
             {
-                //setting up the list of the DOFs to be solved
+                // Setting up the list of DOFs to be solved
                 BuiltinTimer setup_dofs_time;
-                p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
+                p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
                 KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << setup_dofs_time.ElapsedSeconds() << std::endl;
 
-                //shaping correctly the system
+                // Set global equation ids
                 BuiltinTimer setup_system_time;
-                p_builder_and_solver->SetUpSystem(BaseType::GetModelPart());
+                p_builder_and_solver->SetUpSystem(r_model_part);
                 KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << setup_system_time.ElapsedSeconds() << std::endl;
 
-                //setting up the Vectors involved to the correct size
+                // Setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
+                // System matrix necessary in both static and dynamic cases
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
-                                                                 BaseType::GetModelPart());
+                                                                 r_model_part);
                 
-                if (mDerivativeTypeFlag || mMassOrthonormalizeFlag)
-                {
+                if (mDerivativeTypeFlag)
+                {   // Dynamic derivatives need both mass and stiffness to be built separately
                     p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMassMatrix, mpDx, mpb,
-                                                                 BaseType::GetModelPart());
-                }
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpStiffnessMatrix, mpDx, mpb,
-                                                                 BaseType::GetModelPart());
+                                                                 r_model_part);
+                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpStiffnessMatrix, mpDx, mpb,
+                                                                 r_model_part);
+                } 
+                else if (!mDerivativeTypeFlag && mMassOrthonormalizeFlag)
+                {   // Static derivatives need mass matrix only if mass orthonormalization is necessary
+                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMassMatrix, mpDx, mpb,
+                                                                 r_model_part);
+                }                
                 
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
-
-                
             }
 
             KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
@@ -325,10 +328,10 @@ public:
             TSystemVectorType& rb  = *mpb;
 
             //initial operations ... things that are constant over the Solution Step
-            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
+            p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 
             //initial operations ... things that are constant over the Solution Step
-            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
+            p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 
             mSolutionStepIsInitialized = true;
         }
@@ -349,24 +352,24 @@ public:
             <<  "Entering FinalizeSolutionStep" << std::endl;
 
         TSchemePointerType& p_scheme = this->pGetScheme();
-        TBuilderAndSolverPointerType p_builder_and_solver = this->pGetBuilderAndSolver();
+        TBuilderAndSolverPointerType& p_builder_and_solver = this->pGetBuilderAndSolver();
+        ModelPart& r_model_part = BaseType::GetModelPart();
 
-        TSystemMatrixType &rA  = *mpA;
-        TSystemVectorType &rDx = *mpDx;
-        TSystemVectorType &rb  = *mpb;
+        TSystemMatrixType& rA  = *mpA;
+        TSystemVectorType& rDx = *mpDx;
+        TSystemVectorType& rb  = *mpb;
 
-        //Finalisation of the solution step,
-        //operations to be done after achieving convergence, for example the
-        //Final Residual Vector (mb) has to be saved in there
-        //to avoid error accumulation
-
-        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
-        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
+        //Finalisation of the solution step
+        p_builder_and_solver->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
+        p_scheme->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
         
         //Cleaning memory after the solution
         p_scheme->Clean();
 
         this->Clear();
+
+        mInitializeWasPerformed = false;
+        mSolutionStepIsInitialized = false;
 
         KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             <<  "Exiting FinalizeSolutionStep" << std::endl;
