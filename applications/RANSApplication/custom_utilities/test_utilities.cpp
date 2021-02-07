@@ -69,21 +69,6 @@ ModelPart& CreateScalarVariableTestModelPart(
 }
 
 template <class TContainerType>
-void TestEquationIdVector(
-    ModelPart& rModelPart)
-{
-    auto eqn_ids = std::vector<IndexType>{};
-    for (const auto& r_item : RansCalculationUtilities::GetContainer<TContainerType>(rModelPart)) {
-        r_item.EquationIdVector(eqn_ids, rModelPart.GetProcessInfo());
-        KRATOS_CHECK_EQUAL(eqn_ids.size(), r_item.GetGeometry().PointsNumber());
-        const auto& r_geometry = r_item.GetGeometry();
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
-            KRATOS_CHECK_EQUAL(eqn_ids[i_node], r_geometry[i_node].Id());
-        }
-    }
-}
-
-template <class TContainerType>
 void TestGetDofList(
     ModelPart& rModelPart,
     const Variable<double>& rVariable)
@@ -114,11 +99,6 @@ void CheckElementsAndConditions(
 }
 
 // template instantiations
-template void TestEquationIdVector<ModelPart::ElementsContainerType>(
-    ModelPart&);
-template void TestEquationIdVector<ModelPart::ConditionsContainerType>(
-    ModelPart&);
-
 template void TestGetDofList<ModelPart::ElementsContainerType>(
     ModelPart&,
     const Variable<double>&);

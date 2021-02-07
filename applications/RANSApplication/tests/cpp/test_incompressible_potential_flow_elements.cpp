@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_EquationId
     auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3NSetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ElementsContainerType>(r_model_part);
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityEquationIdVectorTest(r_model_part, {&VELOCITY_POTENTIAL});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_GetDofList, KratosRansFastSuite)

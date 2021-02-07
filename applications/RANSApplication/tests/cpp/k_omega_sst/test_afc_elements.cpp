@@ -19,6 +19,7 @@
 #include "testing/testing.h"
 
 // Application includes
+#include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "rans_application_variables.h"
 #include "test_utilities.h"
@@ -60,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKAFC2D3N_EquationIdVector, KratosRansFast
     auto& r_model_part = RansKOmegaSSTKAFC2D3NSetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ElementsContainerType>(r_model_part);
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityEquationIdVectorTest(r_model_part, {&TURBULENT_KINETIC_ENERGY});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKAFC2D3N_GetDofList, KratosRansFastSuite)
@@ -199,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaAFC2D3N_EquationIdVector, KratosRans
     auto& r_model_part = RansKOmegaSSTOmegaAFC2D3NSetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ElementsContainerType>(r_model_part);
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityEquationIdVectorTest(r_model_part, {&TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaAFC2D3N_GetDofList, KratosRansFastSuite)

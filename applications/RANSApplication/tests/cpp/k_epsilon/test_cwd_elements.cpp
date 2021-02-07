@@ -20,6 +20,7 @@
 
 // Application includes
 #include "../stabilization_method_test_utilities.h"
+#include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "rans_application_variables.h"
 #include "test_utilities.h"
@@ -67,7 +68,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_EquationIdVector, KratosRansFastS
     auto& r_model_part = RansKEpsilonKCWD2D3NSetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ElementsContainerType>(r_model_part);
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityEquationIdVectorTest(r_model_part, {&TURBULENT_KINETIC_ENERGY});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_GetDofList, KratosRansFastSuite)
@@ -215,7 +216,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_EquationIdVector, KratosRan
     auto& r_model_part = RansKEpsilonEpsilonCWD2D3NSetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ElementsContainerType>(r_model_part);
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityEquationIdVectorTest(r_model_part, {&TURBULENT_ENERGY_DISSIPATION_RATE});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_GetDofList, KratosRansFastSuite)

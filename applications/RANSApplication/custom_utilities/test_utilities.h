@@ -40,10 +40,6 @@ KRATOS_API(RANS_APPLICATION) ModelPart& CreateScalarVariableTestModelPart(
     const bool DoInitializeConditions = true);
 
 template <class TContainerType>
-KRATOS_API(RANS_APPLICATION) void TestEquationIdVector(
-    ModelPart& rModelPart);
-
-template <class TContainerType>
 KRATOS_API(RANS_APPLICATION) void TestGetDofList(
     ModelPart& rModelPart,
     const Variable<double>& rVariable);

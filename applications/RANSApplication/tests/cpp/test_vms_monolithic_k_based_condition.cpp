@@ -101,20 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_EquationIdVector, Krat
     auto& r_model_part = RansVMSMonolithicKBasedWall2D2NSetUp(model);
 
     // Test:
-    auto eqn_ids = std::vector<IndexType>{};
-    for (const auto& r_condition : r_model_part.Conditions())
-    {
-        r_condition.EquationIdVector(eqn_ids, r_model_part.GetProcessInfo());
-        KRATOS_CHECK_EQUAL(eqn_ids.size(), r_condition.GetGeometry().PointsNumber() * 3);
-        const auto& r_geometry = r_condition.GetGeometry();
-        IndexType local_index = 0;
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-        {
-            KRATOS_CHECK_EQUAL(eqn_ids[local_index++], r_geometry[i_node].Id() * 4);
-            KRATOS_CHECK_EQUAL(eqn_ids[local_index++], r_geometry[i_node].Id() * 4 + 1);
-            KRATOS_CHECK_EQUAL(eqn_ids[local_index++], r_geometry[i_node].Id() * 4 + 3);
-        }
-    }
+    FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunEntityEquationIdVectorTest(r_model_part, {&VELOCITY_X, &VELOCITY_Y, &PRESSURE});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_GetDofList, KratosRansFastSuite)

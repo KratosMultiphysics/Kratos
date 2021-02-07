@@ -19,6 +19,7 @@
 #include "testing/testing.h"
 
 // Application includes
+#include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "rans_application_variables.h"
 #include "test_utilities.h"
@@ -60,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaOmegaKBasedWall2D2N_EquationIdVector, Kratos
     auto& r_model_part = RansKOmegaOmegaKBasedWall2D2NSetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ConditionsContainerType>(r_model_part);
+    FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunEntityEquationIdVectorTest(r_model_part, {&TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaOmegaKBasedWall2D2N_GetDofList, KratosRansFastSuite)
@@ -146,7 +147,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaOmegaUBasedWall2D2N_EquationIdVector, Kratos
     auto& r_model_part = RansKOmegaOmegaUBasedWall2D2NSetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ConditionsContainerType>(r_model_part);
+    FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunEntityEquationIdVectorTest(r_model_part, {&TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaOmegaUBasedWall2D2N_GetDofList, KratosRansFastSuite)
