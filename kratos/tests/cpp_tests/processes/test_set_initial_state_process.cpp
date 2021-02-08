@@ -64,11 +64,12 @@ namespace Kratos
             auto pgeom = Kratos::make_shared<Quadrilateral2D4<NodeType>>(PointerVector<NodeType>{geom});
 
             auto p_elem = Kratos::make_intrusive<TestElement>( 0, pgeom, p_prop, TestElement::ResidualType::LINEAR );
+            p_elem->Initialize(process_info);
             this_model_part.AddElement(p_elem);
 
-            const auto& r_process_info = this_model_part.GetProcessInfo();
-            for (auto& r_elem : this_model_part.Elements())
-                r_elem.Initialize(r_process_info);
+            // const auto& r_process_info = this_model_part.GetProcessInfo();
+            // for (auto& r_elem : this_model_part.Elements())
+            //     r_elem.Initialize(r_process_info);
 
             Vector initial_E = ZeroVector(3);
             initial_E(0) = 0.01;
@@ -146,11 +147,12 @@ namespace Kratos
             auto pgeom = Kratos::make_shared<Tetrahedra3D4<NodeType>>(PointerVector<NodeType>{geom});
 
             auto p_elem = Kratos::make_intrusive<TestElement>( 0, pgeom, p_prop, TestElement::ResidualType::LINEAR );
+            p_elem->Initialize(process_info);
             this_model_part.AddElement(p_elem);
 
-            const auto& r_process_info = this_model_part.GetProcessInfo();
-            for (auto& r_elem : this_model_part.Elements())
-                r_elem.Initialize(r_process_info);
+            // const auto& r_process_info = this_model_part.GetProcessInfo();
+            // for (auto& r_elem : this_model_part.Elements())
+            //     r_elem.Initialize(r_process_info);
 
             Vector initial_E = ZeroVector(6);
             initial_E(0) = 0.01;
