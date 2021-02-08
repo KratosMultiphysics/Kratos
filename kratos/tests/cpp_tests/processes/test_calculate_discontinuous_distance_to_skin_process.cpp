@@ -1272,5 +1272,91 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_elem_4_extra, expected_values_elem_4_extra_nodal, 1.0e-6);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessFlags2D, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        // Generate a fluid mesh (done with the StructuredMeshGeneratorProcess)
+        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, -0.5, -0.5, 0.0);
+        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, -0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3,  0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4,  0.5, -0.5, 0.0);
+
+        Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+        Parameters mesher_parameters(R"(
+        {
+            "number_of_divisions": 2,
+            "element_name": "Element2D3N"
+        })");
+
+        ModelPart& volume_part = current_model.CreateModelPart("Volume");
+        volume_part.AddNodalSolutionStepVariable(DISTANCE);
+        StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
+
+        // Generate the skin line
+        const double plane_height = 0.25;
+        ModelPart& skin_part = current_model.CreateModelPart("Skin");
+        skin_part.CreateNewNode(1, -0.4, plane_height, 0.0);
+        skin_part.CreateNewNode(2,  0.4, plane_height, 0.0);
+        Properties::Pointer p_properties(new Properties(0));
+        skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties);
+
+        // Both falgs are not given/ false
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc_0(volume_part, skin_part);
+        disc_dist_proc_0.Execute();
+
+        KRATOS_ERROR_IF(volume_part.ElementsBegin()->Has(ELEMENTAL_EDGE_DISTANCES));
+        KRATOS_ERROR_IF(volume_part.ElementsBegin()->Has(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED));
+
+        // Check elemental distances - elem_3 is incised
+        auto& r_elem_dist_elem_3 = volume_part.GetElement(3).GetValue(ELEMENTAL_DISTANCES);
+        std::vector<double> expected_values_elem_3 = {1.41421,1.41421,1.41421};
+        KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_elem_3, expected_values_elem_3, 1.0e-5);
+
+        // Only CALCULATE_ELEMENTAL_EDGE_DISTANCES is given
+        Flags options_1 = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc_1(volume_part, skin_part, options_1);
+        disc_dist_proc_1.Execute();
+
+        KRATOS_ERROR_IF(volume_part.ElementsBegin()->Has(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED));
+
+        // Check elemental distances - elem_3 is incised
+        r_elem_dist_elem_3 = volume_part.GetElement(3).GetValue(ELEMENTAL_DISTANCES);
+        expected_values_elem_3 = {1.41421,1.41421,1.41421};
+        KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_elem_3, expected_values_elem_3, 1.0e-5);
+
+        // Check edge distances - elem_3 is incised
+        auto &r_edge_dist = volume_part.GetElement(3).GetValue(ELEMENTAL_EDGE_DISTANCES);
+        size_t n_cut_edges = 0;
+        for (uint8_t j = 0; j < 3; ++j) {
+            if (r_edge_dist[j] >= 0){
+                n_cut_edges++;
+            }
+        }
+        KRATOS_CHECK_EQUAL(n_cut_edges, 1);
+
+        //Both flags are given: CALCULATE_ELEMENTAL_EDGE_DISTANCES and CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED
+        Flags options_2 = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES
+            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc_2(volume_part, skin_part, options_2);
+        disc_dist_proc_2.Execute();
+
+        // Check elemental distances - elem_3 is incised
+        r_elem_dist_elem_3 = volume_part.GetElement(3).GetValue(ELEMENTAL_DISTANCES);
+        expected_values_elem_3 = {-0.25,0.25,0.25};
+        KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_elem_3, expected_values_elem_3, 1.0e-5);
+
+        // Check edge distances - elem_3 is incised
+        r_edge_dist = volume_part.GetElement(3).GetValue(ELEMENTAL_EDGE_DISTANCES);
+        n_cut_edges = 0;
+        for (uint8_t j = 0; j < 3; ++j) {
+            if (r_edge_dist[j] >= 0){
+                n_cut_edges++;
+            }
+        }
+        KRATOS_CHECK_EQUAL(n_cut_edges, 1);
+    }
+
 }  // namespace Testing.
 }  // namespace Kratos.
