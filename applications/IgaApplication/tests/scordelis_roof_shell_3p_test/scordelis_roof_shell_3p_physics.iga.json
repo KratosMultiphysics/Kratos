@@ -6,7 +6,7 @@
             "parameters": {
                 "type": "element",
                 "name": "Shell3pElement",
-                "shape_function_derivatives_order": 3
+                "shape_function_derivatives_order": 4
             }
         },
         {

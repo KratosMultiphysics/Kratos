@@ -335,7 +335,8 @@ class MainCoupledFemDem_Solution:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ComputeNeighboursIfNecessary")
 
         if self.domain_size == 3:
-            self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part)
+            data_communicator = self.FEM_Solution.main_model_part.GetCommunicator().GetDataCommunicator()
+            self.nodal_neighbour_finder = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(data_communicator, self.FEM_Solution.main_model_part)
             self.nodal_neighbour_finder.Execute()
         else: # 2D
             neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
