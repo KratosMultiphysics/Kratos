@@ -129,7 +129,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    SetInitialStateProcess& operator=(Process const& rOther);
+    SetInitialStateProcess& operator=(Process const& rOther) = delete;
 
     ///@}
 
