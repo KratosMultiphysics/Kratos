@@ -420,7 +420,13 @@ protected:
           mMaxSubsteps(MaxSubSteps),
           mIsBfecc(false),
           mPartialDt(false),
-          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
+          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")/* ,
+          mProjectedGradientProcess(ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(
+            rBaseModelPart,
+            rLevelSetVar,
+            DISTANCE_GRADIENT,      // TODO: Should be set as an input
+            NODAL_AREA,             // TODO: Should be set as an input
+            false)) */
     {
         mDistancePartIsInitialized = false;
     }

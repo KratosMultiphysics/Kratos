@@ -44,8 +44,9 @@ public:
 
     BFECCConvection(
         typename BinBasedFastPointLocator<TDim>::Pointer pSearchStructure,
-        const bool PartialDt = false)
-        : mpSearchStructure(pSearchStructure), mPartialDt(PartialDt)
+        const bool PartialDt = false,
+        const bool ActivateLimiter = false)
+        : mpSearchStructure(pSearchStructure), mPartialDt(PartialDt), mActivateLimiter(ActivateLimiter)
     {
     }
 
@@ -89,83 +90,13 @@ public:
             noalias(r_old_velocity) = dt_factor*r_old_velocity + (1.0 - dt_factor)*rNode.FastGetSolutionStepValue(conv_var);
         });
 
-        // ****************************************************************************************
-        // ****************************************************************************************
-        // Calculating nodal limiter using \beta_ij = 1 (works fine on symmetric structural meshes)
-        // D. Kuzmin et al. / Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41
-        /* auto ProjectedGradientProcess =
-            ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(
-            rModelPart,
-            rVar,
-            DISTANCE_GRADIENT,      // TODO: Should be set as an input
-            NODAL_AREA,             // TODO: Should be set as an input
-            false);
-
-        ProjectedGradientProcess.Execute(); */
-
-        const double epsilon = 1.0e-15;
-        const double power = 2.0;
-
-        mSigmaPlus.resize(nparticles);
-        mSigmaMinus.resize(nparticles);
         mLimiter.resize(nparticles);
-
-        #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < nparticles; ++i_node){
-            auto it_node = rModelPart.NodesBegin() + i_node;
-            const auto X_i = it_node->Coordinates();
-            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
-
-            double S_plus = 0.0;
-            double S_minus = 0.0;
-
-            for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
-                j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
-
-                if (it_node->Id() == j_node->Id())
-                    continue;
-
-                const auto X_j = j_node->Coordinates();
-
-                S_plus += std::max(0.0, inner_prod(grad_i, X_i-X_j));
-                S_minus += std::min(0.0, inner_prod(grad_i, X_i-X_j));
+        if (mActivateLimiter){
+            CalculateLimiter(rModelPart, rVar);
+        } else{
+            for (unsigned int i = 0; i < nparticles; i++){
+                mLimiter[i] = 1.0;
             }
-
-            mSigmaPlus[i_node] = std::min(1.0, (std::abs(S_minus)+epsilon)/(S_plus+epsilon));
-            mSigmaMinus[i_node] = std::min(1.0, (S_plus+epsilon)/(std::abs(S_minus)+epsilon));
-        }
-
-        #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < nparticles; ++i_node){
-            auto it_node = rModelPart.NodesBegin() + i_node;
-            const double distance_i = it_node->FastGetSolutionStepValue(rVar);
-            const auto X_i = it_node->Coordinates();
-            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
-
-            double numerator = 0.0;
-            double denominator = 0.0;
-
-            for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
-                j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
-
-                if (it_node->Id() == j_node->Id())
-                    continue;
-
-                const double distance_j = j_node->FastGetSolutionStepValue(rVar);
-                const auto X_j = j_node->Coordinates();
-
-                double beta_ij = 1.0;
-                if (inner_prod(grad_i, X_i-X_j) > 0)
-                    beta_ij = mSigmaPlus[i_node];
-                else if (inner_prod(grad_i, X_i-X_j) < 0)
-                    beta_ij = mSigmaMinus[i_node];
-
-                numerator += beta_ij*(distance_i - distance_j);
-                denominator += beta_ij*std::abs(distance_i - distance_j);
-            }
-
-            const double fraction = (std::abs(numerator)/* +epsilon */) / (denominator + epsilon);
-            mLimiter[i_node] = 1.0 - std::pow(fraction, power);
         }
 
         //FIRST LOOP: estimate rVar(n+1)
@@ -359,40 +290,96 @@ public:
 
     }
 
+    void CalculateLimiter(
+        ModelPart& rModelPart,
+        const Variable< double >& rVar)
+    {
+        // ****************************************************************************************
+        // ****************************************************************************************
+        // Calculating nodal limiter using \beta_ij = 1 (works fine on symmetric structural meshes)
+        // D. Kuzmin et al. / Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41
+        /* auto ProjectedGradientProcess =
+            ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(
+            rModelPart,
+            rVar,
+            DISTANCE_GRADIENT,      // TODO: Should be set as an input
+            NODAL_AREA,             // TODO: Should be set as an input
+            false);
 
-        void ResetBoundaryConditions(ModelPart& rModelPart, const Variable< double >& rVar)
-        {
-                KRATOS_TRY
+        ProjectedGradientProcess.Execute(); */
 
-                ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
-                vector<unsigned int> node_partition;
-                #ifdef _OPENMP
-                    int number_of_threads = omp_get_max_threads();
-                #else
-                    int number_of_threads = 1;
-                #endif
-                OpenMPUtils::CreatePartition(number_of_threads, rModelPart.Nodes().size(), node_partition);
+        const double epsilon = 1.0e-15;
+        const double power = 2.0;
 
-                #pragma omp parallel for
-                for(int kkk=0; kkk<number_of_threads; kkk++)
-                {
-                    for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-                    {
-                            ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+        const unsigned int nparticles = rModelPart.Nodes().size();
 
-                            if (inode->IsFixed(rVar))
-                            {
-                                inode->FastGetSolutionStepValue(rVar)=inode->GetSolutionStepValue(rVar,1);
-                            }
-                    }
-                }
+        mSigmaPlus.resize(nparticles);
+        mSigmaMinus.resize(nparticles);
 
-                KRATOS_CATCH("")
+        #pragma omp parallel for
+        for (unsigned int i_node = 0; i_node < nparticles; ++i_node){
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            const auto X_i = it_node->Coordinates();
+            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+
+            double S_plus = 0.0;
+            double S_minus = 0.0;
+
+            for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
+                j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+
+                if (it_node->Id() == j_node->Id())
+                    continue;
+
+                const auto X_j = j_node->Coordinates();
+
+                S_plus += std::max(0.0, inner_prod(grad_i, X_i-X_j));
+                S_minus += std::min(0.0, inner_prod(grad_i, X_i-X_j));
+            }
+
+            mSigmaPlus[i_node] = std::min(1.0, (std::abs(S_minus)+epsilon)/(S_plus+epsilon));
+            mSigmaMinus[i_node] = std::min(1.0, (S_plus+epsilon)/(std::abs(S_minus)+epsilon));
         }
 
-        void CopyScalarVarToPreviousTimeStep(ModelPart& rModelPart, const Variable< double >& rVar)
-        {
+        #pragma omp parallel for
+        for (unsigned int i_node = 0; i_node < nparticles; ++i_node){
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            const double distance_i = it_node->FastGetSolutionStepValue(rVar);
+            const auto X_i = it_node->Coordinates();
+            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+
+            double numerator = 0.0;
+            double denominator = 0.0;
+
+            for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
+                j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+
+                if (it_node->Id() == j_node->Id())
+                    continue;
+
+                const double distance_j = j_node->FastGetSolutionStepValue(rVar);
+                const auto X_j = j_node->Coordinates();
+
+                double beta_ij = 1.0;
+                if (inner_prod(grad_i, X_i-X_j) > 0)
+                    beta_ij = mSigmaPlus[i_node];
+                else if (inner_prod(grad_i, X_i-X_j) < 0)
+                    beta_ij = mSigmaMinus[i_node];
+
+                numerator += beta_ij*(distance_i - distance_j);
+                denominator += beta_ij*std::abs(distance_i - distance_j);
+            }
+
+            const double fraction = (std::abs(numerator)/* +epsilon */) / (denominator + epsilon);
+            mLimiter[i_node] = 1.0 - std::pow(fraction, power);
+        }
+    }
+
+
+    void ResetBoundaryConditions(ModelPart& rModelPart, const Variable< double >& rVar)
+    {
             KRATOS_TRY
+
             ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
             vector<unsigned int> node_partition;
             #ifdef _OPENMP
@@ -407,19 +394,49 @@ public:
             {
                 for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
                 {
-                    ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-                    inode->GetSolutionStepValue(rVar,1) = inode->FastGetSolutionStepValue(rVar);
+                        ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+
+                        if (inode->IsFixed(rVar))
+                        {
+                            inode->FastGetSolutionStepValue(rVar)=inode->GetSolutionStepValue(rVar,1);
+                        }
                 }
             }
+
             KRATOS_CATCH("")
+    }
+
+    void CopyScalarVarToPreviousTimeStep(ModelPart& rModelPart, const Variable< double >& rVar)
+    {
+        KRATOS_TRY
+        ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
+        vector<unsigned int> node_partition;
+        #ifdef _OPENMP
+            int number_of_threads = omp_get_max_threads();
+        #else
+            int number_of_threads = 1;
+        #endif
+        OpenMPUtils::CreatePartition(number_of_threads, rModelPart.Nodes().size(), node_partition);
+
+        #pragma omp parallel for
+        for(int kkk=0; kkk<number_of_threads; kkk++)
+        {
+            for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+                inode->GetSolutionStepValue(rVar,1) = inode->FastGetSolutionStepValue(rVar);
+            }
         }
+        KRATOS_CATCH("")
+    }
 
 protected:
     std::vector< double > mSigmaPlus, mSigmaMinus, mLimiter;
 
 private:
     typename BinBasedFastPointLocator<TDim>::Pointer mpSearchStructure;
-    const bool mPartialDt;
+    const bool mPartialDt = false;
+    const bool mActivateLimiter = false;
 
 
 
