@@ -147,9 +147,21 @@ pybind11::list CalculateOnIntegrationPoints(
     std::vector<TDataType> Output;
     dummy.CalculateOnIntegrationPoints(rVariable, Output, rProcessInfo);
     pybind11::list result;
-    for (unsigned int j = 0; j < Output.size(); j++)
-    {
+    for (std::size_t j = 0; j < Output.size(); j++) {
         result.append(Output[j]);
+    }
+    return result;
+}
+
+template< class TObject>
+pybind11::list CalculateOnIntegrationPointsBool(
+    TObject& dummy, const Variable<bool>& rVariable, const ProcessInfo& rProcessInfo)
+{
+    std::vector<bool> Output;
+    dummy.CalculateOnIntegrationPoints(rVariable, Output, rProcessInfo);
+    pybind11::list result;
+    for (std::size_t j = 0; j < Output.size(); j++) {
+        result.append(static_cast<int>(Output[j]));
     }
     return result;
 }
@@ -463,6 +475,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
     // CalculateOnIntegrationPoints
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsBool<Element>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, int>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, double>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, array_1d<double, 3>>)
@@ -471,6 +484,7 @@ void  AddMeshToPython(pybind11::module& m)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Element>)
     // SetValuesOnIntegrationPoints
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, bool>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, int>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
@@ -588,6 +602,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNodes", GetNodesFromCondition )
 
     // CalculateOnIntegrationPoints
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsBool<Condition>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, int>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, double>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, array_1d<double, 3>>)
@@ -596,6 +611,7 @@ void  AddMeshToPython(pybind11::module& m)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Condition>)
     // SetValuesOnIntegrationPoints
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, bool>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, int>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, double>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
