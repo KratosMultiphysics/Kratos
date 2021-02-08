@@ -48,7 +48,9 @@ namespace Kratos
 			|| rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN
 			|| rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE
 			|| rThisVariable == MP_HARDENING_RATIO
-			|| rThisVariable == MP_EQUIVALENT_STRESS)
+			|| rThisVariable == MP_EQUIVALENT_STRESS
+			|| rThisVariable == MP_DAMAGE
+			|| rThisVariable == EQ_STRAIN_RATE)
 			return true;
 		else return false;
 	}
@@ -66,6 +68,8 @@ namespace Kratos
 		mTemperatureOld = rMaterialProperties[TEMPERATURE];
 		mGammaOld = 1e-8;
 		mHardeningRatio = 1.0;
+		mFailurePlasticStrain = rMaterialProperties[FAILURE_PLASTIC_STRAIN];
+		mStrainRate = 0.0;
 
 		if (rMaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] == 0.0) {
 			KRATOS_WARNING("Johnson Cook Material Model") << " Taylor Quinney Coefficient set to 0, ignoring thermal effects" << std::endl;
@@ -89,7 +93,6 @@ namespace Kratos
 		const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
 		CheckIsExplicitTimeIntegration(CurrentProcessInfo);
 		const Properties& MaterialProperties = rValues.GetMaterialProperties();
-		const double yield_stress_failure_ratio = 1e-3; // particle fails if current_yield/virgin_yield < yield_stress_failure_ratio
 
 		// Get old stress vector and current strain vector
 		const Vector StrainVector = rValues.GetStrainVector();
@@ -102,21 +105,24 @@ namespace Kratos
 		MakeStrainStressMatrixFromVector((StrainVector - mStrainOld), strain_increment);
 		MakeStrainStressMatrixFromVector(StressVector, stress_old);
 
+		mStrainRate = std::sqrt(3.0 / 2.0 * MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(strain_increment))
+			/CurrentProcessInfo[DELTA_TIME];
+
 		// Material moduli
 		const double shear_modulus_G = MaterialProperties[YOUNG_MODULUS] / (2.0 + 2.0 * MaterialProperties[POISSON_RATIO]);
 		const double bulk_modulus_K = MaterialProperties[YOUNG_MODULUS] / (3.0 - 6.0 * MaterialProperties[POISSON_RATIO]);
-		
+
 		// Calculate deviatoric quantities
-		const Matrix strain_increment_deviatoric = strain_increment - 
+		const Matrix strain_increment_deviatoric = strain_increment -
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment) / 3.0 * identity;
-		const Matrix stress_deviatoric_old = stress_old - 
+		const Matrix stress_deviatoric_old = stress_old -
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old) / 3.0 * identity;
 
 		// Calculate trial (predicted) j2 stress
 		double stress_hydrostatic_new = MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old) / 3.0 +
 			bulk_modulus_K * MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment);
 		Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
-		const double j2_stress_trial = std::sqrt(3.0 / 2.0 * 
+		const double j2_stress_trial = std::sqrt(3.0 / 2.0 *
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_trial));
 
 		// Declare deviatoric stress matrix to be used later
@@ -125,7 +131,7 @@ namespace Kratos
 		// Assume current yield stress is the same as the old (elastic predictor)
 		double yield_stress = mYieldStressOld;
 
-		if (j2_stress_trial > yield_stress && yield_stress/mYieldStressVirgin > yield_stress_failure_ratio)
+		if (j2_stress_trial > yield_stress && mEquivalentPlasticStrainOld < MaterialProperties[FAILURE_PLASTIC_STRAIN])
 		{
 			// Newton raphson setup
 			double gamma = mGammaOld;
@@ -188,11 +194,28 @@ namespace Kratos
 				iteration += 1;
 				if (iteration == iteration_limit)
 				{
-					KRATOS_INFO("Johnson Cook Material Model") << " Johnson Cook iteration limit exceeded\n";
-					KRATOS_WATCH(gamma)
-					KRATOS_WATCH(delta_gamma)
-					KRATOS_WATCH(yield_function)
-					KRATOS_ERROR << "Johnson Cook iteration limit exceeded";
+					if (predicted_eps > MaterialProperties[FAILURE_PLASTIC_STRAIN])
+					{
+						// Material has failed!
+						predicted_eps = MaterialProperties[FAILURE_PLASTIC_STRAIN];
+						gamma = (predicted_eps - mEquivalentPlasticStrainOld) / GetSqrt23();
+						predicted_eps_rate = GetSqrt23() * gamma / CurrentProcessInfo[DELTA_TIME];
+						predicted_temperature = mTemperatureOld;
+						predicted_temperature += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY]
+							/ MaterialProperties[SPECIFIC_HEAT] * (yield_stress + mYieldStressOld) * gamma;
+
+					}
+					else
+					{
+						KRATOS_INFO("Johnson Cook Material Model") << " Johnson Cook iteration limit exceeded\n";
+						KRATOS_WATCH(gamma)
+							KRATOS_WATCH(mEquivalentPlasticStrainOld)
+							KRATOS_WATCH(yield_stress)
+							KRATOS_WATCH(yield_stress / mYieldStressVirgin)
+							KRATOS_WATCH(delta_gamma)
+							KRATOS_WATCH(yield_function)
+							KRATOS_ERROR << "Johnson Cook iteration limit exceeded";
+					}
 				}
 			}
 			// Correct trial stress
@@ -208,21 +231,21 @@ namespace Kratos
 		}
 		else
 		{
-			if (yield_stress / mYieldStressVirgin > yield_stress_failure_ratio)
-			{
-				stress_deviatoric_converged = stress_deviatoric_trial;
-			}
-			else
+			if (mEquivalentPlasticStrainOld - MaterialProperties[FAILURE_PLASTIC_STRAIN] > -1e-6)
 			{
 				// Particle has failed. It can only take compressive volumetric stresses!
 				stress_deviatoric_converged.clear();
 				if (stress_hydrostatic_new > 0.0) stress_hydrostatic_new = 0.0;
 				mHardeningRatio = 0.0;
 			}
+			else
+			{
+				stress_deviatoric_converged = stress_deviatoric_trial;
+			}
 		}
 		// Update equivalent stress
 		Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * identity;
-		mEquivalentStress = std::sqrt(3.0 / 2.0 * 
+		mEquivalentStress = std::sqrt(3.0 / 2.0 *
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_converged));
 
 		// Store stresses and strains
@@ -246,6 +269,7 @@ namespace Kratos
 		KRATOS_ERROR_IF (JC_PARAMETER_B.Key()==0 || rMaterialProperties[JC_PARAMETER_B] < 0.0) << "JC_PARAMETER_B has key zero or invalid value (expected positive number ~500MPa)" << std::endl;
 		KRATOS_ERROR_IF (JC_PARAMETER_C.Key()==0 || rMaterialProperties[JC_PARAMETER_C] < 0.0) << "JC_PARAMETER_C has key zero or invalid value (expected positive number ~0.01)" << std::endl;
 		KRATOS_ERROR_IF (JC_PARAMETER_n.Key()==0 || rMaterialProperties[JC_PARAMETER_n] < 0.0) << "JC_PARAMETER_n has key zero or invalid value (expected positive number ~0.25)" << std::endl;
+		KRATOS_ERROR_IF (FAILURE_PLASTIC_STRAIN.Key()==0 || rMaterialProperties[FAILURE_PLASTIC_STRAIN] < 0.0) << "FAILURE_PLASTIC_STRAIN has key zero or invalid value (expected positive number ~1.0)" << std::endl;
 		KRATOS_ERROR_IF (REFERENCE_STRAIN_RATE.Key()==0 || rMaterialProperties[REFERENCE_STRAIN_RATE] <= 0.0) << "REFERENCE_STRAIN_RATE has key zero or invalid value (expected positive number ~1.0)" << std::endl;
 		KRATOS_ERROR_IF (TAYLOR_QUINNEY_COEFFICIENT.Key()==0 || rMaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] < 0.0) << "TAYLOR_QUINNEY_COEFFICIENT has key zero or invalid value (expected positive number ~0.9)" << std::endl;
 
@@ -454,6 +478,14 @@ namespace Kratos
 		else if (rThisVariable == MP_EQUIVALENT_STRESS)
 		{
 			rValue = mEquivalentStress;
+		}
+		else if (rThisVariable == MP_DAMAGE)
+		{
+			rValue = mEquivalentPlasticStrainOld / mFailurePlasticStrain;
+		}
+		else if (rThisVariable == EQ_STRAIN_RATE)
+		{
+			rValue = mStrainRate;
 		}
 		else KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function GetValue double.";
 

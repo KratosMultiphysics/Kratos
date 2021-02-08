@@ -138,6 +138,8 @@ protected:
     double mYieldStressOld;
     double mYieldStressVirgin;
     double mHardeningRatio;
+    double mFailurePlasticStrain;
+    double mStrainRate;
 
     ///@}
     ///@name Protected Operators
