@@ -210,7 +210,7 @@ void VariableUtils::UpdateCurrentPosition(
 {
     KRATOS_TRY;
 
-    BlockPartition<const ModelPart::NodesContainerType, ModelPart::NodesContainerType::const_iterator>(rNodes).for_each([](Node<3>& rNode){
+    BlockPartition<const ModelPart::NodesContainerType, ModelPart::NodesContainerType::const_iterator>(rNodes).for_each([&rUpdateVariable, BufferPosition](Node<3>& rNode){
         const auto& r_update_coords = rNode.FastGetSolutionStepValue(rUpdateVariable, BufferPosition);
         noalias(rNode.Coordinates()) = (rNode.GetInitialPosition()).Coordinates() + r_update_coords;
     });
