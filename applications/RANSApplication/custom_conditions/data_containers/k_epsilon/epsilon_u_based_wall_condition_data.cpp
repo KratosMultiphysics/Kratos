@@ -49,6 +49,7 @@ void EpsilonUBasedWallConditionData::Check(
         << "TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(VON_KARMAN))
         << "VON_KARMAN is not found in process info.\n";
+
     KRATOS_ERROR_IF_NOT(r_properties.Has(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT))
         << "RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT is not found in condition properties [ Condition.Id() = "
         << rCondition.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
@@ -56,10 +57,14 @@ void EpsilonUBasedWallConditionData::Check(
         << "WALL_SMOOTHNESS_BETA is not found in condition properties [ Condition.Id() = "
         << rCondition.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
 
+    KRATOS_ERROR_IF_NOT(rCondition.Has(TURBULENT_VISCOSITY))
+        << "TURBULENT_VISCOSITY value is not set at in condition with id " << rCondition.Id() << "\n";
+    KRATOS_ERROR_IF_NOT(rCondition.Has(RANS_Y_PLUS))
+        << "RANS_Y_PLUS value is not set at in condition with id " << rCondition.Id() << "\n";
+
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
         const auto& r_node = r_geometry[i_node];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE_2, r_node);
@@ -82,9 +87,6 @@ void EpsilonUBasedWallConditionData::CalculateConstants(
     mEpsilonSigma = rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
     mKappa = rCurrentProcessInfo[VON_KARMAN];
 
-    KRATOS_ERROR_IF(!(this->GetGeometry().Has(RANS_Y_PLUS)))
-        << "RANS_Y_PLUS value is not set at " << this->GetGeometry() << "\n";
-
     mDensity = this->GetElementProperties()[DENSITY];
 
     const auto& r_properties = this->GetConditionProperties();
@@ -92,7 +94,10 @@ void EpsilonUBasedWallConditionData::CalculateConstants(
     const double y_plus_limit = r_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
 
     mInvKappa = 1.0 / mKappa;
-    mYPlus = std::max(this->GetGeometry().GetValue(RANS_Y_PLUS), y_plus_limit);
+
+    const auto& r_geometry = this->GetGeometry();
+    mYPlus = std::max(r_geometry.GetValue(RANS_Y_PLUS), y_plus_limit);
+    mTurbulentViscosity = r_geometry.GetValue(TURBULENT_VISCOSITY);
 
     KRATOS_CATCH("");
 }
@@ -110,7 +115,7 @@ double EpsilonUBasedWallConditionData::CalculateWallFlux(
     auto& cl_parameters = this->GetConstitutiveLawParameters();
     cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
 
-    double nu, nu_t;
+    double nu;
     array_1d<double, 3> velocity;
 
     this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
@@ -118,14 +123,13 @@ double EpsilonUBasedWallConditionData::CalculateWallFlux(
 
     FluidCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rShapeFunctions,
-        std::tie(nu_t, TURBULENT_VISCOSITY),
         std::tie(velocity, VELOCITY));
 
     const double velocity_magnitude = norm_2(velocity);
 
     const double u_tau = velocity_magnitude / (mInvKappa * std::log(mYPlus) + mBeta);
 
-    return (nu + nu_t / mEpsilonSigma) * std::pow(u_tau, 5) /
+    return (nu + mTurbulentViscosity / mEpsilonSigma) * std::pow(u_tau, 5) /
            (mKappa * std::pow(mYPlus * nu, 2));
 }
 

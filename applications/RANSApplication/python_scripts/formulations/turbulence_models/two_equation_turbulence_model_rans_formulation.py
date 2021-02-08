@@ -3,6 +3,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
 # import formulation interface
+import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
 # import utilities
@@ -39,6 +40,11 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
             self.GetParameters()["auxiliar_process_list"])
         for process in self.auxiliar_process_list:
             self.AddProcess(process)
+
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(KratosRANS.RANS_Y_PLUS, self.GetBaseModelPart().Conditions)
+
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.TURBULENT_VISCOSITY, self.GetBaseModelPart().Elements)
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.TURBULENT_VISCOSITY, self.GetBaseModelPart().Conditions)
 
         super().Initialize()
 

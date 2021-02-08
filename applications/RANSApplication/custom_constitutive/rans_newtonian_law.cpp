@@ -85,11 +85,8 @@ int RansNewtonianLaw<TPrimalBaseType, TAdjointBaseType>::Check(
            "for RansNewtonianLaw: "
         << rMaterialProperties[DENSITY] << std::endl;
 
-    for (IndexType i = 0; i < rElementGeometry.PointsNumber(); ++i) {
-        const auto& r_node = rElementGeometry[i];
-
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
-    }
+    KRATOS_ERROR_IF_NOT(rElementGeometry.Has(TURBULENT_VISCOSITY))
+        << "TURBULENT_VISCOSITY is not found in the element data container.\n";
 
     return 0;
 
@@ -115,13 +112,7 @@ double RansNewtonianLaw<TPrimalBaseType, TAdjointBaseType>::GetEffectiveViscosit
 
     const double mu = r_prop[DYNAMIC_VISCOSITY];
     const double density = r_prop[DENSITY];
-
-    double turbulent_nu;
-    FluidCalculationUtilities::EvaluateInPoint(
-        rParameters.GetElementGeometry(), rParameters.GetShapeFunctionsValues(),
-        std::tie(turbulent_nu, TURBULENT_VISCOSITY));
-
-    return mu + density * turbulent_nu;
+    return mu + density * rParameters.GetElementGeometry().GetValue(TURBULENT_VISCOSITY);
 }
 
 template<class TPrimalBaseType, class TAdjointBaseType>

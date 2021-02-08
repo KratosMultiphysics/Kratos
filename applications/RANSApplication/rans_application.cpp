@@ -86,6 +86,11 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKOmegaOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKOmegaOmegaUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKOmegaOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // k-omega-sst turbulence model conditions
+      mRansKOmegaSSTOmegaKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKOmegaSSTOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      mRansKOmegaSSTOmegaUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKOmegaSSTOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       // adjoint elements
       mRansKEpsilonQSVMSRFCAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mRansKEpsilonQSVMSRFCAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
@@ -251,6 +256,13 @@ void KratosRANSApplication::Register()
 
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall2D2N", mRansKOmegaOmegaUBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall3D3N", mRansKOmegaOmegaUBasedWall3D3N);
+
+    // registering k-omega-sst conditions
+    KRATOS_REGISTER_CONDITION("RansKOmegaSSTOmegaKBasedWall2D2N", mRansKOmegaSSTOmegaKBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansKOmegaSSTOmegaKBasedWall3D3N", mRansKOmegaSSTOmegaKBasedWall3D3N);
+
+    KRATOS_REGISTER_CONDITION("RansKOmegaSSTOmegaUBasedWall2D2N", mRansKOmegaSSTOmegaUBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansKOmegaSSTOmegaUBasedWall3D3N", mRansKOmegaSSTOmegaUBasedWall3D3N);
 
     // registering constitutive laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RansNewtonian2DLaw", mRansKEpsilonNewtonian2DLaw);

@@ -127,6 +127,10 @@ class CoupledRANSSolver(PythonSolver):
         if (IsDistributedRun()):
             self.main_model_part.AddNodalSolutionStepVariable(Kratos.PARTITION_INDEX)
 
+        if (self.formulation.ElementHasNodalProperties()):
+            self.main_model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+            self.main_model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
+
         Kratos.Logger.PrintInfo(
             self.__class__.__name__, "Solver variables added correctly.")
 
@@ -308,7 +312,27 @@ class CoupledRANSSolver(PythonSolver):
         else:
             materials_imported = False
 
+        # If the element uses nodal material properties, transfer them to the nodes
+        if self.formulation.ElementHasNodalProperties():
+            self._SetNodalProperties()
+
         return materials_imported
+
+    def _SetNodalProperties(self):
+        # Get density and dynamic viscostity from the properties of the first element
+        for el in self.main_model_part.Elements:
+            rho = el.Properties.GetValue(Kratos.DENSITY)
+            mu = el.Properties.GetValue(Kratos.DYNAMIC_VISCOSITY)
+
+            if (rho <= 0.0):
+                raise Exception ("DENSITY is not properly set in material properties.")
+
+            nu = mu / rho
+
+            Kratos.VariableUtils().SetVariable(Kratos.DENSITY, rho, self.main_model_part.Nodes)
+            Kratos.VariableUtils().SetVariable(Kratos.VISCOSITY, nu, self.main_model_part.Nodes)
+
+            break
 
     def Finalize(self):
         self.formulation.Finalize()

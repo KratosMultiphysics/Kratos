@@ -62,6 +62,10 @@
 #include "custom_conditions/data_containers/k_omega/omega_k_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega/omega_u_based_wall_condition_data.h"
 
+// k-omega-sst turbulence model condition data
+#include "custom_conditions/data_containers/k_omega_sst/omega_k_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_omega_sst/omega_u_based_wall_condition_data.h"
+
 // constitutive laws
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
@@ -243,6 +247,13 @@ private:
 
     const ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall2D2N;
     const ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall3D3N;
+
+    // k-omega-sst turbulence model conditions
+    const ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData<2>> mRansKOmegaSSTOmegaKBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData<3>> mRansKOmegaSSTOmegaKBasedWall3D3N;
+
+    const ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData<2>> mRansKOmegaSSTOmegaUBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData<3>> mRansKOmegaSSTOmegaUBasedWall3D3N;
 
     // constitutive laws
     const RansNewtonianLaw<Newtonian2DLaw, RansKEpsilonNewtonianAdjointLaw<Newtonian2DAdjointLaw>> mRansKEpsilonNewtonian2DLaw;

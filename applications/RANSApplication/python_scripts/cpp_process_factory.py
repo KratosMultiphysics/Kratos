@@ -60,10 +60,6 @@ def Factory(settings, Model):
             KratosRANS.RansNutKOmegaSSTUpdateProcess
         ],
         [
-            "NutYPlusWallFunctionUpdateProcess",
-            KratosRANS.RansNutYPlusWallFunctionUpdateProcess
-        ],
-        [
             "WallFunctionUpdateProcess",
             KratosRANS.RansWallFunctionUpdateProcess
         ],
