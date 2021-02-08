@@ -49,17 +49,7 @@ public:
 
     // General type definitions
     typedef AusasModifiedShapeFunctions                        BaseType;
-    typedef BaseType::GeometryType                             GeometryType;
     typedef BaseType::GeometryPointerType                      GeometryPointerType;
-    typedef BaseType::IntegrationMethodType                    IntegrationMethodType;
-    typedef BaseType::ShapeFunctionsGradientsType              ShapeFunctionsGradientsType;
-
-    typedef BaseType::IndexedPointGeometryType                 IndexedPointGeometryType;
-    typedef BaseType::IndexedPointGeometryPointerType          IndexedPointGeometryPointerType;
-
-    typedef BaseType::IntegrationPointType                     IntegrationPointType;
-    typedef BaseType::IntegrationPointsArrayType               IntegrationPointsArrayType;
-    typedef BaseType::IntegrationPointsContainerType           IntegrationPointsContainerType;
 
     ///@}
     ///@name Life Cycle
