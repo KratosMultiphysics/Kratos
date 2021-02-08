@@ -218,8 +218,9 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG(DISCONTINOUS_INTERFACE);              /// If interface is discontinous
     KRATOS_DEFINE_LOCAL_FLAG(ORIGIN_IS_HISTORICAL);                /// If the origin variables is historical
     KRATOS_DEFINE_LOCAL_FLAG(DESTINATION_IS_HISTORICAL);           /// If the destination variables is historical
-    KRATOS_DEFINE_LOCAL_FLAG(ORIGIN_SKIN_IS_CONDITION_BASED);      /// If  the entities to take into account on the origin model part are the conditions, otherwise we will take elements into consideration
-    KRATOS_DEFINE_LOCAL_FLAG(DESTINATION_SKIN_IS_CONDITION_BASED); /// If  the entities to take into account on the destination model part are the conditions, otherwise we will take elements into consideration
+    KRATOS_DEFINE_LOCAL_FLAG(ORIGIN_SKIN_IS_CONDITION_BASED);      /// If the entities to take into account on the origin model part are the conditions, otherwise we will take elements into consideration
+    KRATOS_DEFINE_LOCAL_FLAG(DESTINATION_SKIN_IS_CONDITION_BASED); /// If the entities to take into account on the destination model part are the conditions, otherwise we will take elements into consideration
+    KRATOS_DEFINE_LOCAL_FLAG(CONSIDER_TESELLATION);                /// If we consider the tesellation in the mortar integration
 
     /// Pointer definition of SimpleMortarMapperProcess
     KRATOS_CLASS_POINTER_DEFINITION(SimpleMortarMapperProcess);
@@ -237,8 +238,6 @@ public:
     typedef Triangle3D3<PointType>                    TriangleType;
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
 
-    /// Component type
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
     /// Linear solver
     typedef UblasSpace<double, CompressedMatrix, Vector>    SparseSpaceType;
@@ -247,8 +246,6 @@ public:
     typedef typename SparseSpaceType::VectorType                 VectorType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    /// Component type
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
 
     /// Index type definition
     typedef std::size_t                                          IndexType;

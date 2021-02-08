@@ -63,12 +63,16 @@ void NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>::Execute()
     }
 
     // We set the mapper parameters
-    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24,"update_interface" : false, "remove_isolated_conditions" : true, "origin_variable_historical" : false, "destination_variable_historical" : false, "zero_tolerance_factor" : 1.0e0})" );
+    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24,"update_interface" : false, "remove_isolated_conditions" : true, "origin_variable_historical" : false, "destination_variable_historical" : false, "zero_tolerance_factor" : 1.0e0, "consider_tessellation" : false})" );
     if (r_process_info.Has(DISTANCE_THRESHOLD)) {
         mapping_parameters["distance_threshold"].SetDouble(r_process_info[DISTANCE_THRESHOLD]);
     }
     if (r_process_info.Has(ZERO_TOLERANCE_FACTOR)) {
         mapping_parameters["zero_tolerance_factor"].SetDouble(r_process_info[ZERO_TOLERANCE_FACTOR]);
+    }
+    const auto& r_properties = mrSlaveModelPart.Conditions().begin()->GetProperties();
+    if (r_properties.Has(CONSIDER_TESSELLATION)) {
+        mapping_parameters["consider_tessellation"].SetBool(r_properties[CONSIDER_TESSELLATION]);
     }
     MapperType mapper(mrMasterModelPart, mrSlaveModelPart, AUXILIAR_COORDINATES, mapping_parameters);
     mapper.Execute();

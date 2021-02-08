@@ -11,7 +11,7 @@
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// 
+//
 
 #ifndef KRATOS_FS_STRATEGY_FOR_CHIMERA_H
 #define KRATOS_FS_STRATEGY_FOR_CHIMERA_H
@@ -19,7 +19,7 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 // FluidDynamicsApp Includes
-#include "custom_strategies/strategies/fs_strategy.h"
+#include "custom_strategies/strategies/fractional_step_strategy.h"
 // Application includes
 #include "chimera_application_variables.h"
 #include "custom_utilities/fractional_step_settings_for_chimera.h"
@@ -60,16 +60,16 @@ template<class TSparseSpace,
 class TDenseSpace,
 class TLinearSolver
 >
-class FSStrategyForChimera : public FSStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+class FractionalStepStrategyForChimera : public FractionalStepStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of FSStrategyForChimera
-    KRATOS_CLASS_POINTER_DEFINITION(FSStrategyForChimera);
+    /// Counted pointer of FractionalStepStrategyForChimera
+    KRATOS_CLASS_POINTER_DEFINITION(FractionalStepStrategyForChimera);
 
-    typedef FSStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef FractionalStepStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef FractionalStepSettingsForChimera<TSparseSpace,TDenseSpace,TLinearSolver> SolverSettingsType;
 
@@ -77,23 +77,34 @@ public:
     ///@name Life Cycle
     ///@{
 
-    FSStrategyForChimera(ModelPart& rModelPart,
+    FractionalStepStrategyForChimera(ModelPart& rModelPart,
                SolverSettingsType& rSolverConfig,
                bool PredictorCorrector):
         BaseType(rModelPart,rSolverConfig,PredictorCorrector)
+    {
+        KRATOS_WARNING("FractionalStepStrategyForChimera") << "This constructor is deprecated. Use the one with the \'CalculateReactionsFlag\' instead." << std::endl;
+        this->InitializeStrategy(rSolverConfig,PredictorCorrector);
+    }
+
+    FractionalStepStrategyForChimera(
+        ModelPart &rModelPart,
+        SolverSettingsType &rSolverConfig,
+        bool PredictorCorrector,
+        bool CalculateReactionsFlag)
+        : BaseType(rModelPart, rSolverConfig, PredictorCorrector, CalculateReactionsFlag)
     {
         this->InitializeStrategy(rSolverConfig,PredictorCorrector);
     }
 
     /// Destructor.
-    ~FSStrategyForChimera() = default;
+    ~FractionalStepStrategyForChimera() = default;
 
 
     /// Assignment operator.
-    FSStrategyForChimera& operator=(FSStrategyForChimera const& rOther) = delete;
+    FractionalStepStrategyForChimera& operator=(FractionalStepStrategyForChimera const& rOther) = delete;
 
     /// Copy constructor.
-    FSStrategyForChimera(FSStrategyForChimera const& rOther) = delete;
+    FractionalStepStrategyForChimera(FractionalStepStrategyForChimera const& rOther) = delete;
 
 
 
@@ -124,12 +135,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "FSStrategyForChimera" ;
+        buffer << "FractionalStepStrategyForChimera" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "FSStrategyForChimera";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "FractionalStepStrategyForChimera";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -167,25 +178,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
-   void SetActiveStateOnConstraint(const Flags& TheFlagToSet ,const bool ValToSet)
-    {
-        ModelPart& rModelPart = BaseType::GetModelPart();
-#pragma omp parallel
-        {
-            ModelPart::MasterSlaveConstraintIteratorType constraints_begin;
-            ModelPart::MasterSlaveConstraintIteratorType constraints_end;
-            OpenMPUtils::PartitionedIterators(rModelPart.MasterSlaveConstraints(),constraints_begin,constraints_end);
-
-            for ( ModelPart::MasterSlaveConstraintIteratorType itConstraint = constraints_begin; itConstraint != constraints_end; ++itConstraint )
-            {
-                if (itConstraint->Is(TheFlagToSet))
-                    itConstraint->Set(ACTIVE, ValToSet);
-            }
-        }
-    }
-
-    double SolveStep() override
+    std::tuple<bool,double> SolveStep() override
     {
 
         double start_solve_time = OpenMPUtils::GetCurrentTime();
@@ -195,9 +188,6 @@ protected:
         r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
 
         bool converged = false;
-        // Activate Constraints for VELOCITY and deactivate PRESSURE
-        SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, true);
-        SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, false);
 
         for(std::size_t it = 0; it < BaseType::mMaxVelocityIter; ++it)
         {
@@ -211,17 +201,13 @@ protected:
 
             if (converged)
             {
-                KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<
+                KRATOS_INFO_IF("FractionalStepStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<
                     "Fractional velocity converged in " << it+1 << " iterations." << std::endl;
                 break;
             }
         }
 
-        // Activate Constraints for PRESSURE and deactivate VELOCITY
-        SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, false);
-        SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, true);
-
-        KRATOS_INFO_IF("FSStrategyForChimera ", (BaseType::GetEchoLevel() > 0) && !converged)<<
+        KRATOS_INFO_IF("FractionalStepStrategyForChimera ", (BaseType::GetEchoLevel() > 0) && !converged)<<
             "Fractional velocity iterations did not converge "<< std::endl;
 
         // Compute projections (for stabilization)
@@ -244,7 +230,7 @@ protected:
             }
         }
 
-        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<
+        KRATOS_INFO_IF("FractionalStepStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<
             "Calculating Pressure."<< std::endl;
         //double norm_dp = 0;
         double norm_dp = BaseType::mpPressureStrategy->Solve();
@@ -261,13 +247,9 @@ protected:
         }
 
         // 3. Compute end-of-step velocity
-        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<"Updating Velocity." << std::endl;
+        KRATOS_INFO_IF("FractionalStepStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<"Updating Velocity." << std::endl;
         r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
         CalculateEndOfStepVelocity();
-
-        // Activate Constraints for PRESSURE and deactivate VELOCITY
-        SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, true);
-        SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, true);
 
        // Additional steps
         for (std::vector<Process::Pointer>::iterator iExtraSteps = BaseType::mExtraIterationSteps.begin();
@@ -275,9 +257,10 @@ protected:
             (*iExtraSteps)->Execute();
 
         const double stop_solve_time = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("FSStrategyForChimera", BaseType::GetEchoLevel() >= 1) << "Time for solving step : " << stop_solve_time - start_solve_time << std::endl;
+        KRATOS_INFO_IF("FractionalStepStrategyForChimera", BaseType::GetEchoLevel() >= 1) << "Time for solving step : " << stop_solve_time - start_solve_time << std::endl;
 
-        return norm_dp;
+        // Set the output tuple as the fractional velocity convergence and pressure norm
+        return std::make_tuple(converged, norm_dp);
     }
 
 
@@ -693,7 +676,7 @@ private:
         {
             rSolverConfig.FindTolerance(SolverSettingsType::Velocity,BaseType::mVelocityTolerance);
             rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,BaseType::mMaxVelocityIter);
-            KRATOS_INFO("FSStrategyForChimera ")<<"Velcoity strategy successfully set !"<<std::endl;
+            KRATOS_INFO("FractionalStepStrategyForChimera ")<<"Velcoity strategy successfully set !"<<std::endl;
         }
         else
         {
@@ -707,7 +690,7 @@ private:
             rSolverConfig.FindTolerance(SolverSettingsType::Pressure,BaseType::mPressureTolerance);
             rSolverConfig.FindMaxIter(SolverSettingsType::Pressure,BaseType::mMaxPressureIter);
 
-            KRATOS_INFO("FSStrategyForChimera ")<<"Pressure strategy successfully set !"<<std::endl;
+            KRATOS_INFO("FractionalStepStrategyForChimera ")<<"Pressure strategy successfully set !"<<std::endl;
         }
         else
         {

@@ -55,7 +55,7 @@ namespace Python
     SetStrategyByParamsWithBSType ThisSetStrategyOverload = &FractionalStepSettingsForChimeraType::SetStrategy;
 
     py::class_< FractionalStepSettingsForChimeraType, BaseSettingsType>
-        (m, "FractionalStepSettings")
+        (m, "FractionalStepSettingsChimera")
         .def(py::init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
         .def("SetStrategy",ThisSetStrategyOverload)
         .def("GetStrategy",&FractionalStepSettingsForChimeraType::pGetStrategy)

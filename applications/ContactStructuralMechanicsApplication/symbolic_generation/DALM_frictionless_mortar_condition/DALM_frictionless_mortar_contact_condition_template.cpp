@@ -234,17 +234,13 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
 /***********************************************************************************/
 
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-int DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Check( const ProcessInfo& rCurrentProcessInfo )
+int DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     // Base class checks for positive Jacobian and Id > 0
     int ierr = BaseType::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(NORMAL)
-    KRATOS_CHECK_VARIABLE_KEY(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < TNumNodes; ++i ) {

@@ -451,16 +451,14 @@ public:
                 rInvertedMatrix.resize(size1, size2,false);
             }
 
+            Matrix A(rInputMatrix);
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            Matrix temp(rInputMatrix);
-            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
+            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
             rInputMatrixDet = lu_factorization.determinant();
             KRATOS_ERROR_IF(std::abs(rInputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << rInputMatrix << std::endl;
             rInvertedMatrix = lu_factorization.inverse();
 #else
-
             typedef permutation_matrix<SizeType> pmatrix;
-            Matrix A(rInputMatrix);
             pmatrix pm(A.size1());
             const int singular = lu_factorize(A,pm);
             rInvertedMatrix.assign( IdentityMatrix(A.size1()));
@@ -470,14 +468,45 @@ public:
             // Calculating determinant
             rInputMatrixDet = 1.0;
 
-            for (IndexType i = 0; i < A.size1();++i) {
+            for (IndexType i = 0; i < size1;++i) {
                 IndexType ki = pm[i] == i ? 0 : 1;
                 rInputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
-
  #endif // ifdef KRATOS_USE_AMATRIX
-       } else {
-           KRATOS_ERROR << "Not possible to invert Matrix: " << rInputMatrix << std::endl;
+       } else { // Bounded-matrix case
+            const SizeType size1 = rInputMatrix.size1();
+            const SizeType size2 = rInputMatrix.size2();
+            
+            Matrix A(rInputMatrix);
+            Matrix invA(rInvertedMatrix);
+            
+ #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
+            rInputMatrixDet = lu_factorization.determinant();
+            KRATOS_ERROR_IF(std::abs(rInputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << rInputMatrix << std::endl;
+            invA = lu_factorization.inverse();
+ #else
+            typedef permutation_matrix<SizeType> pmatrix;
+            pmatrix pm(size1);
+            const int singular = lu_factorize(A,pm);
+            invA.assign( IdentityMatrix(size1));
+            KRATOS_ERROR_IF(singular == 1) << "Matrix is singular: " << rInputMatrix << std::endl;
+            lu_substitute(A, pm, invA);
+
+            // Calculating determinant
+            rInputMatrixDet = 1.0;
+
+            for (IndexType i = 0; i < size1;++i) {
+                IndexType ki = pm[i] == i ? 0 : 1;
+                rInputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
+            }
+ #endif // ifdef KRATOS_USE_AMATRIX
+            
+            for (IndexType i = 0; i < size1;++i) {
+                for (IndexType j = 0; j < size2;++j) {
+                    rInvertedMatrix(i,j) = invA(i,j);
+                }
+            } 
        }
 
        // Checking condition number

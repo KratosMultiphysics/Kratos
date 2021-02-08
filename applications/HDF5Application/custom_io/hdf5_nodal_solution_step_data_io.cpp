@@ -98,7 +98,6 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
     // Write each variable.
     for (const std::string& r_variable_name : mVariableNames)
         RegisteredComponentLookup<Variable<array_1d<double, 3>>,
-                                 VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>,
                                  Variable<double>, Variable<int>>(r_variable_name)
             .Execute<WriteNodalVariableFunctor>(local_nodes, Step, *mpFile, mPrefix, info);
 
@@ -123,7 +122,6 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
     // Read local data for each variable.
     for (const std::string& r_variable_name : mVariableNames)
         RegisteredComponentLookup<Variable<array_1d<double, 3>>,
-                                 VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>,
                                  Variable<double>, Variable<int>>(r_variable_name)
             .Execute<ReadNodalVariableFunctor>(local_nodes, Step, *mpFile, mPrefix,
                                           start_index, block_size);

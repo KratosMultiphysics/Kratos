@@ -15,6 +15,8 @@
 
 // Project includes
 #include "custom_conditions/displacement_control_condition.h"
+#include "structural_mechanics_application_variables.h"
+#include "includes/variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -104,7 +106,7 @@ Condition::Pointer DisplacementControlCondition::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetDisplacementInDirection() const
+Variable<double>* DisplacementControlCondition::GetDisplacementInDirection() const
 {
     KRATOS_TRY
 
@@ -132,7 +134,7 @@ DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition
 /***********************************************************************************/
 /***********************************************************************************/
 
-DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetPointLoadInDirection() const
+Variable<double>* DisplacementControlCondition::GetPointLoadInDirection() const
 {
     KRATOS_TRY
 
@@ -162,8 +164,8 @@ DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition
 
 void DisplacementControlCondition::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -189,8 +191,8 @@ void DisplacementControlCondition::EquationIdVector(
 
 void DisplacementControlCondition::GetDofList(
     DofsVectorType& rConditionlDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -217,7 +219,7 @@ void DisplacementControlCondition::GetDofList(
 void DisplacementControlCondition::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType mat_size = number_of_nodes * GetBlockSize();
@@ -240,7 +242,7 @@ void DisplacementControlCondition::GetValuesVector(
 
 void DisplacementControlCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Calculation flags
@@ -256,7 +258,7 @@ void DisplacementControlCondition::CalculateRightHandSide(
 void DisplacementControlCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     //calculation flags
@@ -271,7 +273,7 @@ void DisplacementControlCondition::CalculateLocalSystem(
 
 void DisplacementControlCondition::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rMassMatrix.size1() != 0) {
@@ -284,7 +286,7 @@ void DisplacementControlCondition::CalculateMassMatrix(
 
 void DisplacementControlCondition::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rDampingMatrix.size1() != 0) {
@@ -337,14 +339,11 @@ void DisplacementControlCondition::CalculateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int DisplacementControlCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int DisplacementControlCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);
-
-    // Verify variable exists
-    KRATOS_CHECK_VARIABLE_KEY(LOAD_FACTOR)
-
+    
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& r_node : GetGeometry().Points()) {
         KRATOS_CHECK_DOF_IN_NODE(LOAD_FACTOR, r_node)

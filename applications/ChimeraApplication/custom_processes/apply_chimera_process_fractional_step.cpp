@@ -88,19 +88,11 @@ void ApplyChimeraProcessFractionalStep<TDim>::ApplyContinuityWithMpcs(ModelPart&
     auto& vel_modelpart =
         BaseType::mrMainModelPart.GetSubModelPart(BaseType::mrMainModelPart.Name()+"fs_velocity_model_part");
     BaseType::AddConstraintsToModelpart(vel_modelpart, velocity_ms_container_vector);
-    VariableUtils().SetFlag(FS_CHIMERA_PRESSURE_CONSTRAINT, false,
-                            vel_modelpart.MasterSlaveConstraints());
-    VariableUtils().SetFlag(FS_CHIMERA_VELOCITY_CONSTRAINT, true,
-                            vel_modelpart.MasterSlaveConstraints());
     VariableUtils().SetFlag(ACTIVE, true, vel_modelpart.MasterSlaveConstraints());
 
     auto& pre_modelpart =
         BaseType::mrMainModelPart.GetSubModelPart(BaseType::mrMainModelPart.Name()+"fs_pressure_model_part");
     BaseType::AddConstraintsToModelpart(pre_modelpart, pressure_ms_container_vector);
-    VariableUtils().SetFlag(FS_CHIMERA_PRESSURE_CONSTRAINT, true,
-                            vel_modelpart.MasterSlaveConstraints());
-    VariableUtils().SetFlag(FS_CHIMERA_VELOCITY_CONSTRAINT, false,
-                            vel_modelpart.MasterSlaveConstraints());
     VariableUtils().SetFlag(ACTIVE, true, pre_modelpart.MasterSlaveConstraints());
 
     KRATOS_INFO_IF("Adding of MPCs from containers to modelpart took         : ", BaseType::mEchoLevel > 1)

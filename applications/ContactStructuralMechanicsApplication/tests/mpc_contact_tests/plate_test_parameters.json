@@ -86,7 +86,7 @@
                 "check_variables"      : ["DISPLACEMENT_X"],
                 "input_file_name"      : "mpc_contact_tests/plate_test_results.json",
                 "model_part_name"      : "Structure.CONTACT_Contact_slave_Auto1",
-                "check_for_flag"       : "ACTIVE",
+                "check_for_flag"       : "SLAVE",
                 "time_frequency"       : 0.0
             }
         }

@@ -200,29 +200,29 @@ public:
         PropertiesType::Pointer pProperties) const override;
 
     /// Initialize containters for subscales on integration points.
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief Prepare the element for a new solution step.
      * Update the values on the subscales and evaluate elemental shape functions.
      * @param rCurrentProcessInfo. ProcessInfo instance (unused).
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Calculate a new value for the velocity subscale.
     /**
      * @param rCurrentProcessInfo ProcessInfo instance containig the time step as DELTA_TIME
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                       VectorType &rRightHandSideVector,
-                                      ProcessInfo &rCurrentProcessInfo) override;
+                                     const ProcessInfo &rCurrentProcessInfo) override;
 
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Computes the local contribution associated to 'new' velocity and pressure values
@@ -236,9 +236,9 @@ public:
      */
     void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType &rMassMatrix, const ProcessInfo &rCurrentProcessInfo) override;
 
 
     /// Provides the global indices for each one of this element's local rows
@@ -249,7 +249,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
@@ -257,21 +257,21 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo) override;
+                    const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
     /**
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
     /**
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
 //    virtual void Calculate(const Variable<double>& rVariable,
@@ -283,28 +283,28 @@ public:
                            const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
             std::vector<array_1d<double, 6 > >& rValues,
             const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
             const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
             const ProcessInfo& rCurrentProcessInfo) override
     {}

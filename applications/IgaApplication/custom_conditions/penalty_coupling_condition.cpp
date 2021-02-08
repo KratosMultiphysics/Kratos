@@ -25,7 +25,7 @@ namespace Kratos
     void PenaltyCouplingCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag)
     {
@@ -36,10 +36,10 @@ namespace Kratos
         const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
         // Size definitions
-        const int number_of_nodes_master = r_geometry_master.size();
-        const int number_of_nodes_slave = r_geometry_slave.size();
+        const SizeType number_of_nodes_master = r_geometry_master.size();
+        const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
-        const int mat_size = 3 * (number_of_nodes_master + number_of_nodes_slave);
+        const SizeType mat_size = 3 * (number_of_nodes_master + number_of_nodes_slave);
 
         // Memory allocation
         if (CalculateStiffnessMatrixFlag) {
@@ -125,7 +125,7 @@ namespace Kratos
 
     void PenaltyCouplingCondition::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
 
@@ -159,7 +159,7 @@ namespace Kratos
 
     void PenaltyCouplingCondition::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
 

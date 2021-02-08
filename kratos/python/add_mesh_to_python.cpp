@@ -57,39 +57,6 @@ typedef GeometryType::PointsArrayType NodesArrayType;
 typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 typedef Point::CoordinatesArrayType CoordinatesArrayType;
 
-array_1d<double,3> GetNormalFromCondition(
-    Condition& dummy,
-    CoordinatesArrayType& LocalCoords
-    )
-{
-    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetNormal\" is deprecated, please "
-        << "replace this call with \"GetGeometry().UnitNormal()\"" << std::endl;
-    return( dummy.GetGeometry().UnitNormal(LocalCoords) );
-}
-
-array_1d<double,3> FastGetNormalFromCondition(Condition& dummy)
-{
-    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetNormal\" is deprecated, please "
-        << "replace this call with \"GetGeometry().UnitNormal()\"" << std::endl;
-    CoordinatesArrayType LocalCoords;
-    LocalCoords.clear();
-    return( dummy.GetGeometry().UnitNormal(LocalCoords) );
-}
-
-double GetAreaFromCondition( Condition& dummy )
-{
-    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetArea\" is deprecated, please "
-        << "replace this call with \"GetGeometry().Area()\"" << std::endl;
-    return( dummy.GetGeometry().Area() );
-}
-
-double GetAreaFromElement( Element& dummy )
-{
-    KRATOS_WARNING_FIRST_N("Element-Python Interface", 10) << "\"GetArea\" is deprecated, please "
-        << "replace this call with \"GetGeometry().Area()\"" << std::endl;
-    return( dummy.GetGeometry().Area() );
-}
-
 Properties::Pointer GetPropertiesFromElement( Element& pelem )
 {
     return( pelem.pGetProperties() );
@@ -137,24 +104,10 @@ NodeType::Pointer GetNodeFromCondition( Condition& dummy, unsigned int index )
 void ConditionCalculateLocalSystemStandard( Condition& dummy,
                                                 Matrix& rLeftHandSideMatrix,
                                                 Vector& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
-
-void ConditionInitialize(Condition& dummy,
-                       const ProcessInfo& rCurrentProcessInfo)
-{
-    dummy.Initialize(rCurrentProcessInfo);
-}
-
-void ConditionInitializeOld(Condition& dummy)
-{
-    KRATOS_WARNING_FIRST_N("DEPRECATION", 10) << "Please pass a \"ProcessInfo\" to \"Initialize\"" << std::endl;
-    ProcessInfo tmp_process_info;
-    dummy.Initialize(tmp_process_info);
-}
-
 
 py::list GetNodesFromCondition( Condition& dummy )
 {
@@ -187,57 +140,29 @@ py::list GetIntegrationPointsFromElement( Element& dummy )
 ///@name Calculate on Integration Points
 ///@{
 
-template< class TObject >
-pybind11::list CalculateOnIntegrationPointsDouble(
-    TObject& dummy, const Variable<double>& rVariable, ProcessInfo& rProcessInfo )
+template< class TObject, class TDataType >
+pybind11::list CalculateOnIntegrationPoints(
+    TObject& dummy, const Variable<TDataType>& rVariable, const ProcessInfo& rProcessInfo)
 {
-    std::vector<double> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
+    std::vector<TDataType> Output;
+    dummy.CalculateOnIntegrationPoints(rVariable, Output, rProcessInfo);
     pybind11::list result;
-    for( unsigned int j=0; j<Output.size(); j++ )
-    {
-        result.append( Output[j] );
+    for (std::size_t j = 0; j < Output.size(); j++) {
+        result.append(Output[j]);
     }
     return result;
 }
 
-template< class TObject >
-pybind11::list CalculateOnIntegrationPointsArray1d(
-    TObject& dummy, const Variable<array_1d<double, 3>>& rVariable, ProcessInfo& rProcessInfo )
+template< class TObject>
+pybind11::list CalculateOnIntegrationPointsBool(
+    TObject& dummy, const Variable<bool>& rVariable, const ProcessInfo& rProcessInfo)
 {
-    std::vector<array_1d<double, 3>> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
+    std::vector<bool> Output;
+    dummy.CalculateOnIntegrationPoints(rVariable, Output, rProcessInfo);
     pybind11::list result;
-    for( unsigned int j=0; j<Output.size(); j++ )
-    {
-        result.append( Output[j] );
+    for (std::size_t j = 0; j < Output.size(); j++) {
+        result.append(static_cast<int>(Output[j]));
     }
-    return result;
-}
-
-template< class TObject >
-pybind11::list CalculateOnIntegrationPointsVector(
-    TObject& dummy, const Variable<Vector>& rVariable, ProcessInfo& rProcessInfo )
-{
-    std::vector<Vector> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
-    pybind11::list result;
-    for( unsigned int j=0; j<Output.size(); j++ )
-    {
-        result.append( Output[j] );
-    }
-    return result;
-}
-
-template< class TObject >
-pybind11::list CalculateOnIntegrationPointsMatrix(
-    TObject& dummy, const Variable<Matrix>& rVariable, ProcessInfo& rProcessInfo )
-{
-    std::vector<Matrix> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output,rProcessInfo );
-    pybind11::list result;
-    for( unsigned int j=0; j<Output.size(); j++ )
-        result.append( Output[j] );
     return result;
 }
 
@@ -258,16 +183,15 @@ void GetValuesOnIntegrationPoints(
 ///@name Set Values on Integration Points
 ///@{
 
-template< class TObject >
-void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>& rVariable, std::vector<double> values,  const ProcessInfo& rCurrentProcessInfo )
+template< class TObject, class TDataType >
+void SetValuesOnIntegrationPoints(
+    TObject& dummy, const Variable<TDataType>& rVariable, std::vector<TDataType> values, const ProcessInfo& rCurrentProcessInfo)
 {
-    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
-                dummy.GetIntegrationMethod() );
+    KRATOS_ERROR_IF(values.size() != dummy.GetGeometry().IntegrationPointsNumber())
+        << "Sizes do not match. Size of values vector is: " << values.size() << ". The number of integration points is: "
+        << dummy.GetGeometry().IntegrationPointsNumber() << std::endl;
 
-    if(values.size() != integration_points.size())
-        KRATOS_ERROR << "size of values is : " << values.size() << " while the integration points size is " << integration_points.size() << std::endl;
-
-    dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+    dummy.SetValuesOnIntegrationPoints(rVariable, values, rCurrentProcessInfo);
 }
 
 template< class TObject >
@@ -316,7 +240,7 @@ void SetValuesOnIntegrationPointsVector( TObject& dummy,
 }
 
 template< class TDataType >
-TDataType ElementCalculateInterface(Element& dummy, Variable<TDataType>& rVariable, ProcessInfo& rCurrentProcessInfo)
+TDataType ElementCalculateInterface(Element& dummy, Variable<TDataType>& rVariable, const ProcessInfo& rCurrentProcessInfo)
 {
     TDataType aux;
     dummy.Calculate(rVariable, aux, rCurrentProcessInfo);
@@ -328,8 +252,7 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector<ConstitutiveLaw::Pointer> values( integration_points.size() );
-    for( unsigned int i=0; i<integration_points.size(); i++ )
-    {
+    for( unsigned int i=0; i<integration_points.size(); i++ ) {
         if(py::isinstance<ConstitutiveLaw::Pointer>(values_list[i]))
             values[i] = (values_list[i]).cast<ConstitutiveLaw::Pointer>();
         else
@@ -338,105 +261,119 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
     dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
-void ElementCalculateLocalSystem1(Element& dummy,
-        Matrix& rLeftHandSideMatrix,
-        Vector& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType>
+void EntityCalculateLocalSystem(
+    TEntityType& dummy,
+    Matrix& rLeftHandSideMatrix,
+    Vector& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
-void ElementCalculateMassMatrix(Element& dummy,
-                                Matrix& rMassMatrix,
-                                const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType>
+void EntityCalculateMassMatrix(
+    TEntityType& dummy,
+    Matrix& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
 }
 
-void ElementCalculateDampingMatrix(Element& dummy,
-                                   Matrix& rDampingMatrix,
-                                   const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType>
+void EntityCalculateDampingMatrix(
+    TEntityType& dummy,
+    Matrix& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
 }
 
-void ElementCalculateFirstDerivativesLHS(Element& dummy,
-                                         Matrix& rLeftHandSideMatrix,
-                                         const ProcessInfo& rCurrentProcessInfo)
+void ElementCalculateLumpedMassVector(Element& dummy,
+                                      Vector& rMassVector,
+                                      const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateLumpedMassVector(rMassVector, rCurrentProcessInfo);
+}
+
+template<class TEntityType>
+void EntityCalculateFirstDerivativesLHS(
+    TEntityType& dummy,
+    Matrix& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateFirstDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
 }
 
-void ElementCalculateSecondDerivativesLHS(Element& dummy,
-                                          Matrix& rLeftHandSideMatrix,
-                                          const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType>
+void EntityCalculateSecondDerivativesLHS(
+    TEntityType& dummy,
+    Matrix& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateSecondDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
 }
 
-void ElementCalculateLocalVelocityContribution(Element& dummy,
-                                               Matrix& rDampingMatrix,
-                                               Vector& rRightHandSideVector,
-                                               const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType>
+void EntityCalculateLocalVelocityContribution(
+    TEntityType& dummy,
+    Matrix& rDampingMatrix,
+    Vector& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateLocalVelocityContribution(rDampingMatrix, rRightHandSideVector, rCurrentProcessInfo);
 }
 
-void ElementInitialize(Element& dummy,
-                       const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType>
+void EntityInitialize(
+    TEntityType& dummy,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.Initialize(rCurrentProcessInfo);
 }
 
-void ElementInitializeOld(Element& dummy)
-{
-    KRATOS_WARNING_FIRST_N("DEPRECATION", 10) << "Please pass a \"ProcessInfo\" to \"Initialize\"" << std::endl;
-    ProcessInfo tmp_process_info;
-    dummy.Initialize(tmp_process_info);
-}
-
-template<class TDataType>
-void ElementCalculateSensitivityMatrix(Element& dummy,
-        const Variable<TDataType>& rDesignVariable,
-        Matrix& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType, class TDataType>
+void EntityCalculateSensitivityMatrix(
+    TEntityType& dummy,
+    const Variable<TDataType>& rDesignVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateSensitivityMatrix(rDesignVariable,rOutput,rCurrentProcessInfo);
 }
 
-void ElementGetFirstDerivativesVector1(Element& dummy,
-        Vector& rOutput)
+template<class TEntityType>
+void EntityGetFirstDerivativesVector1(
+    const TEntityType& dummy,
+    Vector& rOutput)
 {
     dummy.GetFirstDerivativesVector(rOutput,0);
 }
 
-void ElementGetFirstDerivativesVector2(Element& dummy,
-        Vector& rOutput,
-        int step)
+template<class TEntityType>
+void EntityGetFirstDerivativesVector2(
+    const TEntityType& dummy,
+    Vector& rOutput,
+    int step)
 {
     dummy.GetFirstDerivativesVector(rOutput,step);
 }
 
-void ElementGetSecondDerivativesVector1(Element& dummy,
-        Vector& rOutput)
+template<class TEntityType>
+void EntityGetSecondDerivativesVector1(
+    const TEntityType& dummy,
+    Vector& rOutput)
 {
     dummy.GetSecondDerivativesVector(rOutput,0);
 }
 
-void ElementGetSecondDerivativesVector2(Element& dummy,
-        Vector& rOutput,
-        int step)
+template<class TEntityType>
+void EntityGetSecondDerivativesVector2(
+    const TEntityType& dummy,
+    Vector& rOutput,
+    int step)
 {
     dummy.GetSecondDerivativesVector(rOutput,step);
-}
-
-template<class TDataType>
-void ConditionCalculateSensitivityMatrix(Condition& dummy,
-        const Variable<TDataType>& rDesignVariable,
-        Matrix& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    dummy.CalculateSensitivityMatrix(rDesignVariable,rOutput,rCurrentProcessInfo);
 }
 
 void  AddMeshToPython(pybind11::module& m)
@@ -534,58 +471,55 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Element, Variable< std::string > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< std::string > >)
 
-    .def("GetArea", GetAreaFromElement ) // deprecated, to be removed (see warning in function)
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
     // CalculateOnIntegrationPoints
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble<Element>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d<Element>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector<Element>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix<Element>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsBool<Element>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, int>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, double>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, array_1d<double, 3>>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, Vector>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, Matrix>)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Element>)
     // SetValuesOnIntegrationPoints
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, bool>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, int>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
-    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Element>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, double>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Element>)
     .def("ResetConstitutiveLaw", &Element::ResetConstitutiveLaw)
     .def("Calculate", &ElementCalculateInterface<double>)
     .def("Calculate", &ElementCalculateInterface<array_1d<double,3> >)
     .def("Calculate", &ElementCalculateInterface<Vector >)
     .def("Calculate", &ElementCalculateInterface<Matrix >)
-    .def("CalculateMassMatrix", &ElementCalculateMassMatrix)
-    .def("CalculateDampingMatrix", &ElementCalculateDampingMatrix)
-    .def("CalculateLocalSystem", &ElementCalculateLocalSystem1)
-    .def("CalculateFirstDerivativesLHS", &ElementCalculateFirstDerivativesLHS)
-    .def("CalculateSecondDerivativesLHS", &ElementCalculateSecondDerivativesLHS)
-    .def("CalculateLocalVelocityContribution", &ElementCalculateLocalVelocityContribution)
-    .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector1)
-    .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector2)
-    .def("GetSecondDerivativesVector", &ElementGetSecondDerivativesVector1)
-    .def("GetSecondDerivativesVector", &ElementGetSecondDerivativesVector2)
-    .def("CalculateSensitivityMatrix", &ElementCalculateSensitivityMatrix<double>)
-    .def("CalculateSensitivityMatrix", &ElementCalculateSensitivityMatrix<array_1d<double,3> >)
-    //.def("__setitem__", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
-    //.def("__getitem__", GetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
-    //.def("SetValue", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
-    //.def("GetValue", GetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
+    .def("CalculateLumpedMassVector", &ElementCalculateLumpedMassVector)
+    .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Element>)
+    .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Element>)
+    .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Element>)
+    .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Element>)
+    .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Element>)
+    .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Element>)
+    .def("GetFirstDerivativesVector", &EntityGetFirstDerivativesVector1<Element>)
+    .def("GetFirstDerivativesVector", &EntityGetFirstDerivativesVector2<Element>)
+    .def("GetSecondDerivativesVector", &EntityGetSecondDerivativesVector1<Element>)
+    .def("GetSecondDerivativesVector", &EntityGetSecondDerivativesVector2<Element>)
+    .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Element, double>)
+    .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Element, array_1d<double,3>>)
 
 //     .def(VariableIndexingPython<Element, Variable<int> >())
 //     .def(VariableIndexingPython<Element, Variable<double> >())
 //     .def(VariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
 //     .def(VariableIndexingPython<Element, Variable< Vector > >())
 //     .def(VariableIndexingPython<Element, Variable< Matrix > >())
-//     .def(VariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<int> >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<double> >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<vector<double> > >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<DenseMatrix<double> > >())
-//     .def(SolutionStepVariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
-    .def("Initialize", &ElementInitialize)
-    .def("Initialize", &ElementInitializeOld)
+    .def("Initialize", &EntityInitialize<Element>)
     //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
     .def("__str__", PrintObject<Element>)
     ;
@@ -668,40 +602,47 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNodes", GetNodesFromCondition )
 
     // CalculateOnIntegrationPoints
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble<Condition>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d<Condition>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector<Condition>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix<Condition>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsBool<Condition>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, int>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, double>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, array_1d<double, 3>>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, Vector>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, Matrix>)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Condition>)
     // SetValuesOnIntegrationPoints
-    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, bool>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, int>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, double>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
-    .def("GetNormal",GetNormalFromCondition) // deprecated, to be removed (see warning in function)
-    .def("GetNormal",FastGetNormalFromCondition) // deprecated, to be removed (see warning in function)
-    .def("GetArea",GetAreaFromCondition) // deprecated, to be removed (see warning in function)
-    .def("CalculateSensitivityMatrix", &ConditionCalculateSensitivityMatrix<double>)
-    .def("CalculateSensitivityMatrix", &ConditionCalculateSensitivityMatrix<array_1d<double,3> >)
 
 //     .def(VariableIndexingPython<Condition, Variable<int> >())
 //     .def(VariableIndexingPython<Condition, Variable<double> >())
 //     .def(VariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
 //     .def(VariableIndexingPython<Condition, Variable< Vector > >())
 //     .def(VariableIndexingPython<Condition, Variable< Matrix > >())
-//     .def(VariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<int> >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<double> >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<vector<double> > >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<DenseMatrix<double> > >())
-//     .def(SolutionStepVariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
 
 
-    .def("Initialize", &ConditionInitialize)
-    .def("Initialize", &ConditionInitializeOld)
-    .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
+    .def("Initialize", &EntityInitialize<Condition>)
+    .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Condition>)
+    .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Condition>)
+    .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Condition>)
+    .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Condition>)
+    .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Condition>)
+    .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Condition>)
+    .def("GetFirstDerivativesVector", &EntityGetFirstDerivativesVector1<Condition>)
+    .def("GetFirstDerivativesVector", &EntityGetFirstDerivativesVector2<Condition>)
+    .def("GetSecondDerivativesVector", &EntityGetSecondDerivativesVector1<Condition>)
+    .def("GetSecondDerivativesVector", &EntityGetSecondDerivativesVector2<Condition>)
+    .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Condition, double>)
+    .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Condition, array_1d<double,3>>)
     .def("Info", &Condition::Info)
     .def("__str__", PrintObject<Condition>)
     ;

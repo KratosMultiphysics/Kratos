@@ -26,7 +26,8 @@
                 "STRENGTH_RATIO": 10.0,
                 "FRACTURE_ENERGY": 100.0,
                 "RESIDUAL_STRENGTH": 0.8,
-                "SOFTENING_SLOPE": 9000.0
+                "SOFTENING_SLOPE": 9000.0,
+                "BIOT_COEFFICIENT": 0.9999994444444444
             },
             "Tables": {}
         }
@@ -55,7 +56,8 @@
                 "FRICTION_COEFFICIENT": 0.4,
                 "FRACTURE_ENERGY": 100.0,
                 "SHEAR_FRACTURE_ENERGY": 100.0,
-                "STATE_VARIABLE": 1.0e-12
+                "STATE_VARIABLE": 1.0e-12,
+                "BIOT_COEFFICIENT": 0.9999994444444444
             },
             "Tables": {}
         }

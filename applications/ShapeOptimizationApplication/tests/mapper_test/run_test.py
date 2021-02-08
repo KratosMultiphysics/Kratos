@@ -202,10 +202,3 @@ TestCase().assertAlmostEqual(norm_2_result, 0.610521887077, 12)
 # OutputResults(plate_with_quads,"results_quad_plate")
 
 # =======================================================================================================
-# Clean folder
-# =======================================================================================================
-
-kratos_utilities.DeleteFileIfExisting("plate_with_trias.time")
-kratos_utilities.DeleteFileIfExisting("plate_with_quads.time")
-
-# =======================================================================================================

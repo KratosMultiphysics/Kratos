@@ -32,5 +32,4 @@ cd ..\..\..\cmake_build
 -DPARMETIS_ROOT_DIR="UNSET"                                                     ^
 -DTRILINOS_APPLICATION=OFF                                                      ^
 -DTRILINOS_ROOT="UNSET"                                                         ^
--DINSTALL_EMBEDDED_PYTHON=ON                                                    ^
--DINCLUDE_FEAST=OFF                                                             
+-DINSTALL_EMBEDDED_PYTHON=ON

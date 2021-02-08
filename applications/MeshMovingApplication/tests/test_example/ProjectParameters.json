@@ -41,7 +41,7 @@
             "input_filename" : "01_Mesh_Test_2D3N"
         },
         "linear_solver_settings"        : {
-        "solver_type" : "SuperLUSolver"
+        "solver_type" : "LinearSolversApplication.sparse_lu"
         },
         "computing_model_part_name"       : "Parts_Fluid",
         "time_stepping"          : {

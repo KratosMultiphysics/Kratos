@@ -36,6 +36,16 @@ namespace Kratos {
 
             // Variables addition
             rModelPart.AddNodalSolutionStepVariable(PRESSURE);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_1);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_2);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_3);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_4);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_5);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_6);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_7);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_8);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_9);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_10);
 
             // Element creation
             rModelPart.CreateNewNode(1, 1.0, 1.0, 0.0);
@@ -82,10 +92,11 @@ namespace Kratos {
             Model model;
             ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateModelPartToTestPowerSums(model_part);
+            const auto& r_process_info = model_part.GetProcessInfo();
             Element::Pointer p_element = model_part.pGetElement(1);
 
             // Initialize the element
-            p_element->Initialize();
+            p_element->Initialize(r_process_info);
 
             // Generate parameters
             Parameters parameters = Parameters(R"(

@@ -178,7 +178,7 @@ namespace Kratos
   //*********************************DISPLACEMENT***************************************
   //************************************************************************************
 
-  void ContactDomainCondition::GetValuesVector( Vector& rValues, int Step )
+  void ContactDomainCondition::GetValuesVector( Vector& rValues, int Step ) const
   {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -202,7 +202,7 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	unsigned int index = (number_of_nodes + i) * dimension;
-	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
+	const Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
 	rValues[index] = MasterNode.GetSolutionStepValue( DISPLACEMENT_X, Step );
 	rValues[index+1] = MasterNode.GetSolutionStepValue( DISPLACEMENT_Y, Step );
@@ -217,7 +217,7 @@ namespace Kratos
   //************************************VELOCITY****************************************
   //************************************************************************************
 
-  void ContactDomainCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+  void ContactDomainCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
   {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -240,7 +240,7 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	unsigned int index = (number_of_nodes + i) * dimension;
-	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
+	const Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
 	rValues[index] = MasterNode.GetSolutionStepValue( VELOCITY_X, Step );
 	rValues[index+1] = MasterNode.GetSolutionStepValue( VELOCITY_Y, Step );
@@ -256,7 +256,7 @@ namespace Kratos
   //*********************************ACCELERATION***************************************
   //************************************************************************************
 
-  void ContactDomainCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+  void ContactDomainCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
   {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -279,7 +279,7 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	unsigned int index = (number_of_nodes + i) * dimension;
-	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
+	const Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
 	rValues[index] = MasterNode.GetSolutionStepValue( ACCELERATION_X, Step );
 	rValues[index+1] = MasterNode.GetSolutionStepValue( ACCELERATION_Y, Step );
@@ -506,7 +506,7 @@ namespace Kratos
 
   void ContactDomainCondition::AddExplicitContribution(const VectorType& rRHSVector,
 						       const Variable<VectorType>& rRHSVariable,
-						       Variable<array_1d<double,3> >& rDestinationVariable,
+						       const Variable<array_1d<double,3> >& rDestinationVariable,
 						       const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
@@ -1699,14 +1699,6 @@ namespace Kratos
 
     const double domain_size = this->GetGeometry().DomainSize();
     KRATOS_WARNING_IF( "DomainSize", domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
-
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
 
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)

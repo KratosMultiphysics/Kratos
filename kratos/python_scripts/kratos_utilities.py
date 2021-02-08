@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as KM
 import os, shutil, re
 
@@ -55,30 +53,17 @@ def IsMPIAvailable():
 
     return "mpi" in os.listdir(kratos_path)
 
-def IsApplicationAvailable(application_name):
-    """Returns whether an application is available
-    """
-    warn_msg = '"IsApplicationAvailable" is deprecated, please use "CheckIfApplicationsAvailable" instead'
-    IssueDeprecationWarning('kratos_utilities', warn_msg)
-    return CheckIfApplicationsAvailable(application_name)
-
-def AreApplicationsAvailable(list_application_names):
-    """Returns whether several applications are available
-    """
-    warn_msg = '"AreApplicationsAvailable" is deprecated, please use "CheckIfApplicationsAvailable" instead'
-    IssueDeprecationWarning('kratos_utilities', warn_msg)
-    return CheckIfApplicationsAvailable(*list_application_names)
-
 def CheckIfApplicationsAvailable(*application_names):
     """Returns whether the inquired applications are available
     """
     available_apps = GetListOfAvailableApplications()
+    return all(app_name in available_apps for app_name in application_names)
 
-    for app_name in application_names:
-        if app_name not in available_apps:
-            return False
-
-    return True
+def GetNotAvailableApplications(*application_names):
+    """Returns a list of applications that are not available out of a provided list of applications
+    """
+    available_apps = GetListOfAvailableApplications()
+    return list(filter(lambda app_name: app_name not in available_apps, application_names))
 
 def GenerateVariableListFromInput(param):
     """ Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel

@@ -34,21 +34,13 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     /// Pointer definition of ApplyPeriodicConditionProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyPeriodicConditionProcess);
 
-    typedef Dof<double>*                                    DofPointerType;
-    typedef Dof<double>                                     DofType;
     typedef Node<3>                                         NodeType;
-    typedef ModelPart::VariableComponentType                VariableComponentType;
-    typedef KratosComponents<Variable<array_1d<double, 3>>> VectorVariableType;
-    typedef ProcessInfo                                     ProcessInfoType;
-    typedef ProcessInfo::Pointer                            ProcessInfoPointerType;
+    typedef Variable<double>                                VariableType;
     typedef NodeType::IndexType                             IndexType;
-    typedef ModelPart::DoubleVariableType                   VariableType;
     typedef ModelPart::NodeIterator                         NodeIteratorType;
-    typedef Element                                         ElementType;
     typedef Matrix                                          MatrixType;
     typedef Vector                                          VectorType;
     typedef Geometry<NodeType>                              GeometryType;
-    typedef ModelPart::MasterSlaveConstraintContainerType   ConstraintContainerType;
 
     /**
      * @brief Constructor of the process to apply periodic boundary condition
@@ -73,6 +65,11 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      * @brief Function initializes the solution step
      */
     void ExecuteInitializeSolutionStep() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     /**
      * @brief Function to print the information about this current process

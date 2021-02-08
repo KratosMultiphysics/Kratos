@@ -630,7 +630,7 @@ class BuildModelPartBoundaryProcess
     //if there are no conditions check main modelpart mesh conditions
     if( !rModelPart.Conditions().size() ){
 
-      ModelPart::ConditionsContainerType& rConditions = rModelPart.GetParentModelPart()->Conditions();
+      ModelPart::ConditionsContainerType& rConditions = rModelPart.GetParentModelPart().Conditions();
 
       for(auto i_cond(rConditions.begin()); i_cond != rConditions.end(); ++i_cond)
       {
@@ -788,12 +788,12 @@ class BuildModelPartBoundaryProcess
     this->ClearMasterEntities(rModelPart, rTemporaryConditions);
 
     //properties to be used in the generation
-    int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
+    int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
 
     if(number_properties<0)
       KRATOS_ERROR<<" number of properties is "<<number_properties<<std::endl;
 
-    Properties::Pointer properties = rModelPart.GetParentModelPart()->GetMesh().pGetProperties(number_properties-1);
+    Properties::Pointer properties = rModelPart.GetParentModelPart().GetMesh().pGetProperties(number_properties-1);
 
     //clear nodal boundary flag
     for(auto& i_elem : rModelPart.Elements())

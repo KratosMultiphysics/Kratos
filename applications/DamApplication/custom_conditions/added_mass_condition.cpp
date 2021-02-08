@@ -26,24 +26,23 @@ Condition::Pointer AddedMassCondition<TDim,TNumNodes>::Create(IndexType NewId,No
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void AddedMassCondition<TDim,TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+void AddedMassCondition<TDim,TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
+
     const unsigned int condition_size = TDim * TNumNodes;
     unsigned int index = 0;
-       
+
     if (rConditionDofList.size() != condition_size)
       rConditionDofList.resize( condition_size );
-    
+
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
-        rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
-        rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
+        rConditionDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+        rConditionDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
         if( TDim > 2)
         {
-            rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
+            rConditionDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
         }
     }
 
@@ -54,88 +53,87 @@ void AddedMassCondition<TDim,TNumNodes>::GetDofList(DofsVectorType& rConditionDo
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void AddedMassCondition<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void AddedMassCondition<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     unsigned int condition_size = TNumNodes * TDim;
-    
+
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != condition_size )
         rLeftHandSideMatrix.resize( condition_size, condition_size, false );
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( condition_size, condition_size );
-       
+
     //Resetting the RHS
     if ( rRightHandSideVector.size() != condition_size )
         rRightHandSideVector.resize( condition_size, false );
     noalias( rRightHandSideVector ) = ZeroVector( condition_size );
-      
+
     this->CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-        
+
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void AddedMassCondition<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void AddedMassCondition<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
     unsigned int condition_size = TNumNodes * TDim;
-    
+
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != condition_size )
         rLeftHandSideMatrix.resize( condition_size, condition_size, false );
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( condition_size, condition_size );
-    
+
     this->CalculateLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
-    
+
     KRATOS_CATCH("");
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void AddedMassCondition<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void AddedMassCondition<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
+
     unsigned int condition_size = TNumNodes * TDim;
-        
+
     //Resetting the RHS
     if ( rRightHandSideVector.size() != condition_size )
         rRightHandSideVector.resize( condition_size, false );
     noalias( rRightHandSideVector ) = ZeroVector( condition_size );
-    
+
     this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
-    
+
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void AddedMassCondition<TDim,TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo)
+void AddedMassCondition<TDim,TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
+
     unsigned int condition_size = TDim * TNumNodes;
     unsigned int index = 0;
-    
+
     if (rResult.size() != condition_size)
       rResult.resize( condition_size, false );
 
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
-        rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
-        rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
+        rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+        rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
         if( TDim > 2)
         {
-            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
+            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
         }
-        
+
     }
 
     KRATOS_CATCH( "" )
@@ -146,13 +144,13 @@ void AddedMassCondition<TDim,TNumNodes>::EquationIdVector(EquationIdVectorType& 
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void AddedMassCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
-{   
+{
 	KRATOS_TRY
-	
+
 	this->CalculateLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
-	 
+
     this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -160,14 +158,14 @@ void AddedMassCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSide
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void AddedMassCondition<TDim,TNumNodes>::CalculateLHS( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
-{    
+{
     KRATOS_TRY
-    
+
 		const GeometryType& Geom = this->GetGeometry();
   		const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
 		const unsigned int NumGPoints = integration_points.size();
 		const unsigned int LocalDim = Geom.LocalSpaceDimension();
-			
+
 		// Components of the Jacobian for computing the normal vector and shape functions container
 		BoundedMatrix<double,TDim, TNumNodes*TDim> Nu;
         //const Vector& ShapeFunctionsValues = Geom.ShapeFunctionsValues();
@@ -180,7 +178,7 @@ void AddedMassCondition<TDim,TNumNodes>::CalculateLHS( MatrixType& rLeftHandSide
         double IntegrationCoefficient;
         Vector ShapeFunctionsValues;
         ShapeFunctionsValues.resize(TNumNodes,false);
-        
+
         for(unsigned int igauss = 0; igauss < NumGPoints; igauss++ )
         {
             double mass_contribution =0.0;
@@ -194,13 +192,13 @@ void AddedMassCondition<TDim,TNumNodes>::CalculateLHS( MatrixType& rLeftHandSide
 
 			//Computing Nu Matrix
 			PoroConditionUtilities::CalculateNuMatrix(Nu,NContainer,igauss);
-								
+
 			//Calculating weighting coefficient for integration
 			this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[igauss], integration_points[igauss].Weight() );
-			
+
             // Mass matrix contribution
 			noalias(rLeftHandSideMatrix) += rCurrentProcessInfo[ACCELERATION_PRESSURE_COEFFICIENT]*mass_contribution*prod(trans(Nu),Nu)*IntegrationCoefficient;
-			
+
 		}
 
     KRATOS_CATCH( "" )
@@ -210,14 +208,14 @@ void AddedMassCondition<TDim,TNumNodes>::CalculateLHS( MatrixType& rLeftHandSide
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void AddedMassCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
-{    
+{
     KRATOS_TRY
-    
+
      	const GeometryType& Geom = this->GetGeometry();
 		const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
 		const unsigned int NumGPoints = integration_points.size();
 		const unsigned int LocalDim = Geom.LocalSpaceDimension();
-			
+
 		// Components of the Jacobian for computing the normal vector and shape functions container
 		BoundedMatrix<double,TDim, TNumNodes*TDim> Nu;
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
@@ -225,7 +223,7 @@ void AddedMassCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSid
 		for(unsigned int i = 0; i<NumGPoints; i++)
 			(JContainer[i]).resize(TDim,LocalDim,false);
 		Geom.Jacobian( JContainer, mThisIntegrationMethod );
-        
+
         double IntegrationCoefficient;
         BoundedMatrix<double,TNumNodes,TNumNodes> MassMatrix;
         Vector ShapeFunctionsValues;
@@ -234,7 +232,7 @@ void AddedMassCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSid
         this->GetAccelerationVector(AccelerationVector,0);
 
         for(unsigned int igauss = 0; igauss < NumGPoints; igauss++ )
-        {	
+        {
             double mass_contribution =0.0;
 
             // Distributed mass contribution according the surface element
@@ -246,10 +244,10 @@ void AddedMassCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSid
 
 			//Computing Nu Matrix
 			PoroConditionUtilities::CalculateNuMatrix(Nu,NContainer,igauss);
-								
+
 			//Calculating weighting coefficient for integration
 			this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[igauss], integration_points[igauss].Weight() );
-			
+
     		// Mass matrix contribution
 			noalias(MassMatrix) = mass_contribution*prod(trans(Nu),Nu)*IntegrationCoefficient;
             noalias(rRightHandSideVector) += -1.0*prod( MassMatrix, AccelerationVector );
@@ -265,14 +263,14 @@ template< >
 void AddedMassCondition<2,2>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& weight)
 {
     double NormalVector[2];
-	
+
 	NormalVector[0] = Jacobian(0,0);
     NormalVector[1] = Jacobian(1,0);
-		
+
 	double detJ = sqrt(NormalVector[0]*NormalVector[0] + NormalVector[1]*NormalVector[1]);
-	
+
     rIntegrationCoefficient = weight * detJ;
-    
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -281,13 +279,13 @@ template< >
 void AddedMassCondition<3,3>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& weight)
 {
     double NormalVector[3];
-	
+
 	NormalVector[0] = Jacobian(1,0) * Jacobian(2,1) - Jacobian(2,0) * Jacobian(1,1);
     NormalVector[1] = Jacobian(2,0) * Jacobian(0,1) - Jacobian(0,0) * Jacobian(2,1);
     NormalVector[2] = Jacobian(0,0) * Jacobian(1,1) - Jacobian(1,0) * Jacobian(0,1);
-	
+
 	double detJ = sqrt(NormalVector[0]*NormalVector[0] + NormalVector[1]*NormalVector[1] + NormalVector[2]*NormalVector[2]);
-	
+
     rIntegrationCoefficient = weight * detJ;
 }
 
@@ -297,13 +295,13 @@ template< >
 void AddedMassCondition<3,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& weight)
 {
     double NormalVector[3];
-	
+
 	NormalVector[0] = Jacobian(1,0) * Jacobian(2,1) - Jacobian(2,0) * Jacobian(1,1);
     NormalVector[1] = Jacobian(2,0) * Jacobian(0,1) - Jacobian(0,0) * Jacobian(2,1);
     NormalVector[2] = Jacobian(0,0) * Jacobian(1,1) - Jacobian(1,0) * Jacobian(0,1);
-	
+
 	double detJ = sqrt(NormalVector[0]*NormalVector[0] + NormalVector[1]*NormalVector[1] + NormalVector[2]*NormalVector[2]);
-	
+
     rIntegrationCoefficient = weight * detJ;
 }
 

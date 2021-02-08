@@ -372,7 +372,7 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
         auto& geo = i_condition.GetGeometry();
         bool is_internal = true;
         for (const auto& node : geo)
-            is_internal = is_internal && node.Is(CHIMERA_INTERNAL_BOUNDARY);
+            is_internal = is_internal && node.GetValue(CHIMERA_INTERNAL_BOUNDARY);
         if (is_internal) {
             if (GetInternal == ChimeraHoleCuttingUtility::SideToExtract::OUTSIDE) {
                 i_condition.Set(TO_ERASE);

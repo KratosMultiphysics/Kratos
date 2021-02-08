@@ -120,7 +120,7 @@
             }
         },
         "output" : {
-            "design_output_mode" : "WriteOptimizationModelPart",
+            "design_output_mode" : "none",
             "nodal_results"      : [ "SHAPE_CHANGE", "DF1DX" ],
             "output_format" : {
                 "name": "gid"

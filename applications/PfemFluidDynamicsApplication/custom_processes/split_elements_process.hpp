@@ -133,6 +133,7 @@ public:
   {
 
     KRATOS_TRY
+		const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 
     for (ModelPart::SubModelPartIterator i_mp = mrModelPart.SubModelPartsBegin(); i_mp != mrModelPart.SubModelPartsEnd(); i_mp++)
     {
@@ -228,7 +229,7 @@ public:
                 newElement->Set(ACTIVE, true);
                 newElement->Set(FLUID);
                 newElement->Set(TO_ERASE);
-                newElement->Initialize();
+                newElement->Initialize(rCurrentProcessInfo);
                 rComputingModelPart.AddElement(newElement);
 
                 Triangle2D3<Node<3>> secondGeom(newNode, vertices(2), vertices(0));
@@ -237,7 +238,7 @@ public:
                 newElement->Set(ACTIVE, true);
                 newElement->Set(FLUID);
                 newElement->Set(TO_ERASE);
-                newElement->Initialize();
+                newElement->Initialize(rCurrentProcessInfo);
                 rComputingModelPart.AddElement(newElement);
 
                 Triangle2D3<Node<3>> thirdGeom(newNode, vertices(1), vertices(2));
@@ -246,7 +247,7 @@ public:
                 newElement->Set(ACTIVE, true);
                 newElement->Set(FLUID);
                 newElement->Set(TO_ERASE);
-                newElement->Initialize();
+                newElement->Initialize(rCurrentProcessInfo);
                 rComputingModelPart.AddElement(newElement);
               }
               else if (dimension == 3)
@@ -258,7 +259,7 @@ public:
                 newElement->Set(ACTIVE, true);
                 newElement->Set(FLUID);
                 newElement->Set(TO_ERASE);
-                newElement->Initialize();
+                newElement->Initialize(rCurrentProcessInfo);
                 rComputingModelPart.AddElement(newElement);
 
                 Tetrahedra3D4<Node<3>> secondGeom(vertices(0), newNode, vertices(2), vertices(3));
@@ -267,7 +268,7 @@ public:
                 newElement->Set(ACTIVE, true);
                 newElement->Set(FLUID);
                 newElement->Set(TO_ERASE);
-                newElement->Initialize();
+                newElement->Initialize(rCurrentProcessInfo);
                 rComputingModelPart.AddElement(newElement);
 
                 Tetrahedra3D4<Node<3>> thirdGeom(vertices(0), vertices(1), newNode, vertices(3));
@@ -276,7 +277,7 @@ public:
                 newElement->Set(ACTIVE, true);
                 newElement->Set(FLUID);
                 newElement->Set(TO_ERASE);
-                newElement->Initialize();
+                newElement->Initialize(rCurrentProcessInfo);
                 rComputingModelPart.AddElement(newElement);
 
                 Tetrahedra3D4<Node<3>> fourthGeom(vertices(0), vertices(1), vertices(2), newNode);
@@ -285,7 +286,7 @@ public:
                 newElement->Set(ACTIVE, true);
                 newElement->Set(FLUID);
                 newElement->Set(TO_ERASE);
-                newElement->Initialize();
+                newElement->Initialize(rCurrentProcessInfo);
                 rComputingModelPart.AddElement(newElement);
               }
             }

@@ -5,50 +5,12 @@ import time as timer
 
 import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters, Logger
+from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
 
 
-class ResponseFunctionBase(object):
-    """
-    The base class for response functions. This is a copy from StructuralMechanicsApplication
-    """
-
-    def RunCalculation(self, calculate_gradient):
-        self.Initialize()
-        self.InitializeSolutionStep()
-        self.CalculateValue()
-        if calculate_gradient:
-            self.CalculateGradient()
-        self.FinalizeSolutionStep()
-        self.Finalize()
-
-    def Initialize(self):
-        pass
-
-    def InitializeSolutionStep(self):
-        pass
-
-    def CalculateValue(self):
-        raise NotImplementedError("CalculateValue needs to be implemented by the derived class")
-
-    def CalculateGradient(self):
-        raise NotImplementedError("CalculateGradient needs to be implemented by the derived class")
-
-    def FinalizeSolutionStep(self):
-        pass
-
-    def Finalize(self):
-        pass
-
-    def GetValue(self):
-        raise NotImplementedError("GetValue needs to be implemented by the derived class")
-
-    def GetShapeGradient(self):
-        raise NotImplementedError("GetShapeGradient needs to be implemented by the derived class")
-
-
-class AdjointResponseFunction(ResponseFunctionBase):
+class AdjointResponseFunction(ResponseFunctionInterface):
     """Linear adjoint response function.
     - runs the primal analysis
     - primal results are transferred to adjoint model part via python
@@ -119,10 +81,12 @@ class AdjointResponseFunction(ResponseFunctionBase):
     def GetValue(self):
         return self.value
 
-    def GetShapeGradient(self):
+    def GetNodalGradient(self, variable):
+        if variable != KM.SHAPE_SENSITIVITY:
+            raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         gradient = {}
         for node in self.adjoint_model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(KM.SHAPE_SENSITIVITY)
+            gradient[node.Id] = node.GetSolutionStepValue(variable)
         return gradient
 
     def Finalize(self):

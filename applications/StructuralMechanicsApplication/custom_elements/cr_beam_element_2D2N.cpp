@@ -51,7 +51,7 @@ CrBeamElement2D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
 CrBeamElement2D2N::~CrBeamElement2D2N() {}
 
 void CrBeamElement2D2N::EquationIdVector(EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
 {
     if (rResult.size() != msElementSize) {
         rResult.resize(msElementSize);
@@ -68,7 +68,7 @@ void CrBeamElement2D2N::EquationIdVector(EquationIdVectorType& rResult,
 }
 
 void CrBeamElement2D2N::GetDofList(DofsVectorType& rElementalDofList,
-                                   ProcessInfo& rCurrentProcessInfo)
+                                   const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if (rElementalDofList.size() != msElementSize) {
@@ -85,14 +85,7 @@ void CrBeamElement2D2N::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
-void CrBeamElement2D2N::Initialize()
-{
-
-    KRATOS_TRY;
-    KRATOS_CATCH("")
-}
-
-void CrBeamElement2D2N::GetValuesVector(Vector& rValues, int Step)
+void CrBeamElement2D2N::GetValuesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -112,7 +105,7 @@ void CrBeamElement2D2N::GetValuesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void CrBeamElement2D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
+void CrBeamElement2D2N::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -133,7 +126,7 @@ void CrBeamElement2D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void CrBeamElement2D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
+void CrBeamElement2D2N::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
     if (rValues.size() != msElementSize) {
@@ -154,7 +147,7 @@ void CrBeamElement2D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
 }
 
 void CrBeamElement2D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     if (rMassMatrix.size1() != msElementSize) {
@@ -228,7 +221,7 @@ void CrBeamElement2D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
 }
 
 void CrBeamElement2D2N::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,
@@ -239,7 +232,7 @@ void CrBeamElement2D2N::CalculateDampingMatrix(
 
 void CrBeamElement2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     // t
@@ -264,7 +257,7 @@ void CrBeamElement2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 }
 
 void CrBeamElement2D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     // t
@@ -286,7 +279,7 @@ void CrBeamElement2D2N::CalculateRightHandSide(
 }
 
 void CrBeamElement2D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     rLeftHandSideMatrix = CreateElementStiffnessMatrix_Total();
@@ -753,9 +746,11 @@ void CrBeamElement2D2N::CalculateOnIntegrationPoints(
 {
 
     KRATOS_TRY
-    // element with two nodes can only represent results at one node
-    const unsigned int& write_points_number =
-        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+
+    // Element with two nodes can only represent results at one node
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(Kratos::GeometryData::GI_GAUSS_3);
+    const SizeType write_points_number = r_integration_points.size();
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
     }
@@ -779,8 +774,7 @@ void CrBeamElement2D2N::CalculateOnIntegrationPoints(
         rOutput[0][2] = 1.0 * stress[2] * 0.75 - stress[5] * 0.25;
         rOutput[1][2] = 1.0 * stress[2] * 0.50 - stress[5] * 0.50;
         rOutput[2][2] = 1.0 * stress[2] * 0.25 - stress[5] * 0.75;
-    }
-    if (rVariable == FORCE) {
+    } else if (rVariable == FORCE) {
         rOutput[0][0] = -1.0 * stress[0] * 0.75 + stress[3] * 0.25;
         rOutput[1][0] = -1.0 * stress[0] * 0.50 + stress[3] * 0.50;
         rOutput[2][0] = -1.0 * stress[0] * 0.25 + stress[3] * 0.75;
@@ -792,20 +786,17 @@ void CrBeamElement2D2N::CalculateOnIntegrationPoints(
         rOutput[0][2] = 0.00;
         rOutput[1][2] = 0.00;
         rOutput[2][2] = 0.00;
+    } else if (rVariable == INTEGRATION_COORDINATES) {
+        Point global_point;
+        for (IndexType point_number = 0; point_number < write_points_number; ++point_number) {
+            r_geometry.GlobalCoordinates(global_point, r_integration_points[point_number]);
+            rOutput[point_number] = global_point.Coordinates();
+        }
     }
 
     KRATOS_CATCH("")
 }
 
-void CrBeamElement2D2N::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
 
 CrBeamElement2D2N::IntegrationMethod
 CrBeamElement2D2N::GetIntegrationMethod() const
@@ -841,7 +832,7 @@ double CrBeamElement2D2N::Modulus2Pi(double A) const
 
 void CrBeamElement2D2N::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // FORCE- & Moment- Residual is 3D vector
@@ -932,40 +923,13 @@ void CrBeamElement2D2N::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
-int CrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+int CrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();
 
     KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 2 || GetGeometry().size() != 2)
             << "The beam element works only in 2D and with 2 noded elements" << std::endl;
-
-    // verify that the variables are correctly initialized
-    if (VELOCITY.Key() == 0) {
-        KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
-    if (DISPLACEMENT.Key() == 0) {
-        KRATOS_ERROR << "DISPLACEMENT has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
-    if (ACCELERATION.Key() == 0) {
-        KRATOS_ERROR << "ACCELERATION has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
-    if (DENSITY.Key() == 0) {
-        KRATOS_ERROR << "DENSITY has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
-    if (CROSS_AREA.Key() == 0) {
-        KRATOS_ERROR << "CROSS_AREA has Key zero! (check if the application is "
-                     "correctly registered"
-                     << "" << std::endl;
-    }
 
     // verify that the dofs exist
     for (unsigned int i = 0; i < GetGeometry().size(); ++i) {

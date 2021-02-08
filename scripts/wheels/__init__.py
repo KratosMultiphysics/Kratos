@@ -16,9 +16,6 @@ class KratosPaths(object):
 sys.path.append(KratosPaths.kratos_libs)
 from Kratos import *
 
-# adding the scripts in "kratos/python_scripts" such that they are treated as a regular python-module
-__path__.append(KratosPaths.kratos_scripts)
-
 def __ModuleInitDetail():
     """
     Configure the parallel environment.
@@ -63,26 +60,15 @@ KratosGlobals = __ModuleInitDetail()
 
 def _ImportApplicationAsModule(application, application_name, application_folder, mod_path):
     Kernel = KratosGlobals.Kernel
-    applications_root = KratosGlobals.ApplicationsRoot
-
     Logger.PrintInfo("", "Importing    " + application_name)
-
-    # adding the scripts in "APP_NAME/python_scripts" such that they are treated as a regular python-module
-    application_path = os.path.join(applications_root, application_folder)
-    python_path = os.path.join(application_path, 'python_scripts')
-    mod_path.append(python_path)
+    Logger.PrintWarning('DEPRECATION-Warning', 'For importing "{}": "_ImportApplicationAsModule" is deprecated, please use "_ImportApplication"'.format(application_name))
 
     # Add application to kernel
     Kernel.ImportApplication(application)
 
-def _ImportApplicationAsModuleCustomFolder(application, application_name, application_folder, mod_path):
+def _ImportApplication(application, application_name):
     Kernel = KratosGlobals.Kernel
-
     Logger.PrintInfo("", "Importing    " + application_name)
-
-    # adding the scripts in "APP_NAME/python_scripts" such that they are treated as a regular python-module
-    python_path = os.path.join(application_folder, 'python_scripts')
-    mod_path.append(python_path)
 
     # Add application to kernel
     Kernel.ImportApplication(application)

@@ -26,7 +26,6 @@
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
@@ -120,7 +119,7 @@
                 "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
                 "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test_LM.json",
                 "model_part_name"      : "Structure.CONTACT_Contact_Auto1",
-                "check_for_flag"       : "ACTIVE",
+                "check_for_flag"       : "SLAVE",
                 "historical_value"     : false,
                 "relative_tolerance"   : 1e-2,
                 "time_frequency"       : 1.0
@@ -149,7 +148,7 @@
             "output_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test_LM.json",
             "model_part_name"      : "Structure.CONTACT_Contact_Auto1",
-            "check_for_flag"       : "ACTIVE",
+            "check_for_flag"       : "SLAVE",
             "historical_value"     : false,
             "time_frequency"       : 1.00
         }

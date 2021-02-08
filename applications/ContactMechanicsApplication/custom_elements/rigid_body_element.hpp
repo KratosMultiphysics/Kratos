@@ -224,17 +224,17 @@ public:
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
     //************* STARTING - ENDING  METHODS
@@ -348,7 +348,7 @@ public:
      * @param rDestinationVariable: variable in the database to which the rRHSVector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
      */
-    void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
+    void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, const Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -501,13 +501,13 @@ protected:
     /**
      * Get element size from the dofs
      */
-    virtual SizeType GetDofsSize();
+    virtual SizeType GetDofsSize() const;
 
     /**
      * Map Local To Global system
      */
     virtual void MapLocalToGlobalSystem(LocalSystemComponents& rLocalSystem);
-    
+
     ///@}
     ///@name Protected  Access
     ///@{

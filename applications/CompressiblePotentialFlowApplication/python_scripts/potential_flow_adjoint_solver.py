@@ -37,7 +37,7 @@ class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "",
             "gradient_mode": "",
-            "penalty_coefficient": 0.0
+            "stabilization_factor": 0.0
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 

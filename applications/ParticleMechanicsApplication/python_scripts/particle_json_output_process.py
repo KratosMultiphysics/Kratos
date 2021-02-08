@@ -36,14 +36,14 @@ class ParticleJsonOutputProcess(JsonOutputProcess):
                     variable_name = out.GetString()
                     variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
-                    if (variable_type == "Double" or variable_type == "Component"):
+                    if (variable_type == "Double" or variable_type == "Integer" or variable_type == "Component"):
                         if (self.resultant_solution == False):
                             data["PARTICLE_" + str(mp.Id)][variable_name] = []
                         else:
                             if (count == 0):
                                 data["RESULTANT"][variable_name] = []
                     elif variable_type == "Array":
-                        if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
+                        if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double"):
                             if (self.resultant_solution == False):
                                 data["PARTICLE_" + str(mp.Id)][variable_name + "_X"] = []
                                 data["PARTICLE_" + str(mp.Id)][variable_name + "_Y"] = []
@@ -95,7 +95,7 @@ class ParticleJsonOutputProcess(JsonOutputProcess):
                         values_vector = mp.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
                         value = values_vector[0]
 
-                        if (variable_type == "Double" or variable_type == "Component"):
+                        if (variable_type == "Double" or variable_type == "Integer" or variable_type == "Component"):
                             if (self.resultant_solution == False):
                                 data["PARTICLE_" + str(mp.Id)][variable_name].append(value)
                             else:
@@ -104,7 +104,7 @@ class ParticleJsonOutputProcess(JsonOutputProcess):
                                 else:
                                     data["RESULTANT"][variable_name][-1] += value
                         elif variable_type == "Array":
-                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
+                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double"):
                                 if (self.resultant_solution == False):
                                     data["PARTICLE_" + str(mp.Id)][variable_name + "_X"].append(value[0])
                                     data["PARTICLE_" + str(mp.Id)][variable_name + "_Y"].append(value[1])

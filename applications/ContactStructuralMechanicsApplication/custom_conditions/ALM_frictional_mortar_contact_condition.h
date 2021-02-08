@@ -180,19 +180,19 @@ public:
     /**
     * @brief Called at the beginning of each solution step
     */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Called at the begining of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief Called at the ending of each solution step
     * @param rCurrentProcessInfo the current process info instance
     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Creates a new element pointer from an arry of nodes
@@ -245,7 +245,7 @@ public:
      * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
      * @param rCurrentProcessInfo the current process info instance
      */
-    void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override;
+    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
 
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
@@ -258,8 +258,8 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Sets on ConditionalDofList the degrees of freedom of the considered element geometry
@@ -268,8 +268,8 @@ public:
      */
     void GetDofList(
         DofsVectorType& rConditionalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -278,7 +278,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo The current process information
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -408,10 +408,10 @@ protected:
     {
         // The friction coefficient
         array_1d<double, TNumNodes> friction_coeffient_vector;
-        auto& geom = this->GetParentGeometry();
+        auto& r_geometry = this->GetParentGeometry();
 
         for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
-            friction_coeffient_vector[i_node] = geom[i_node].GetValue(FRICTION_COEFFICIENT);
+            friction_coeffient_vector[i_node] = r_geometry[i_node].GetValue(FRICTION_COEFFICIENT);
         }
 
         // TODO: Define the "CL" or friction law to compute this
@@ -452,7 +452,7 @@ private:
      * @brief It computes the previous mortar operators
      * @param rCurrentProcessInfo The current process information
      */
-    void ComputePreviousMortarOperators( ProcessInfo& rCurrentProcessInfo);
+    void ComputePreviousMortarOperators(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Private  Access

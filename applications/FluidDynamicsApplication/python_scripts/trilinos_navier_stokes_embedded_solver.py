@@ -18,7 +18,7 @@ def CreateSolver(model, custom_settings):
 class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
 
         default_settings = KratosMultiphysics.Parameters("""{
             "solver_type": "Embedded",
@@ -43,6 +43,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             "time_order": 2,
             "time_scheme": "bdf2",
             "compute_reactions": false,
+            "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
@@ -72,7 +73,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             }
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesMPIEmbeddedMonolithicSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(NavierStokesMPIEmbeddedMonolithicSolver, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
@@ -88,6 +89,8 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         self.level_set_type = self.embedded_formulation.level_set_type
         self.element_integrates_in_time = self.embedded_formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.embedded_formulation.element_has_nodal_properties
+        self.historical_nodal_properties_variables_list = self.embedded_formulation.historical_nodal_properties_variables_list 
+        self.non_historical_nodal_properties_variables_list = self.embedded_formulation.non_historical_nodal_properties_variables_list
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Construction of NavierStokesMPIEmbeddedMonolithicSolver finished.")
 
@@ -144,11 +147,9 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
     def _CreateConvergenceCriterion(self):
-        convergence_criterion =  KratosTrilinos.TrilinosUPCriteria(
-            self.settings["relative_velocity_tolerance"].GetDouble(),
-            self.settings["absolute_velocity_tolerance"].GetDouble(),
-            self.settings["relative_pressure_tolerance"].GetDouble(),
-            self.settings["absolute_pressure_tolerance"].GetDouble())
+        convergence_criterion = KratosTrilinos.TrilinosMixedGenericCriteria(
+            [(KratosMultiphysics.VELOCITY, self.settings["relative_velocity_tolerance"].GetDouble(), self.settings["absolute_velocity_tolerance"].GetDouble()),
+            (KratosMultiphysics.PRESSURE, self.settings["relative_pressure_tolerance"].GetDouble(), self.settings["absolute_pressure_tolerance"].GetDouble())])
         convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 

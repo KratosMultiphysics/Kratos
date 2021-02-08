@@ -115,6 +115,46 @@ namespace Kratos {
             "Error: Please don't use names containing (\".\") when creating a ModelPart (used in \"name.other\")");
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartTable, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+        Table<double>::Pointer p_table = Kratos::make_shared<Table<double>>();
+
+        r_model_part.AddTable(0, p_table);
+
+        Table<double>& r_table_model_part = r_model_part.GetTable(0);
+
+        for (std::size_t i = 0; i < 6; ++i)
+            r_table_model_part.PushBack(static_cast<double>(i), 2.0 * static_cast<double>(i));
+
+        double nearest = (r_table_model_part.GetNearestRow(2.1))[0];
+        KRATOS_CHECK_DOUBLE_EQUAL(nearest, 4.0);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_table_model_part.GetValue(2.1), 4.2);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_table_model_part(2.1), 4.2);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_table_model_part.GetDerivative(2.1), 2.0);
+
+        auto& r_data = r_table_model_part.Data();
+        KRATOS_CHECK_EQUAL(r_data.size(), 6);
+
+        ModelPart& r_sub_model_part = r_model_part.CreateSubModelPart("Sub");
+
+        r_sub_model_part.AddTable(1, p_table);
+
+        Table<double>& r_table_sub_model_part = r_sub_model_part.GetTable(1);
+
+        nearest = (r_table_sub_model_part.GetNearestRow(2.1))[0];
+        KRATOS_CHECK_DOUBLE_EQUAL(nearest, 4.0);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_table_sub_model_part.GetValue(2.1), 4.2);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_table_sub_model_part(2.1), 4.2);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_table_sub_model_part.GetDerivative(2.1), 2.0);
+
+        r_data = r_table_sub_model_part.Data();
+        KRATOS_CHECK_EQUAL(r_data.size(), 6);
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElements, KratosCoreFastSuite)
     {
         Model current_model;
@@ -204,7 +244,7 @@ namespace Kratos {
         KRATOS_CHECK(r_model_part.NumberOfConditions() == 2);
         KRATOS_CHECK(r_model_part.NumberOfElements() == 2);
     }
-    
+
     KRATOS_TEST_CASE_IN_SUITE(ModelPartEnsureModelPartOwnsProperties, KratosCoreFastSuite)
     {
         Model current_model;
@@ -221,16 +261,16 @@ namespace Kratos {
         for (auto& r_elem : r_model_part.Elements()) {
             r_elem.SetProperties(p_elem_prop);
         }
-        
+
         KRATOS_CHECK_EQUAL(r_model_part.NumberOfProperties(), 1);
-        
+
         // Call method
         auto aux_util = AuxiliarModelPartUtilities(r_model_part);
         aux_util.EnsureModelPartOwnsProperties(false);
 
         // Check results
         KRATOS_CHECK_EQUAL(r_model_part.NumberOfProperties(), 2);
-        
+
         aux_util.EnsureModelPartOwnsProperties(true);
 
         // Check results

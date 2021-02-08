@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # executing a function specified as a string, similar to "kratos/utilities/python_function_callback_utility.h"
 
 from math import *

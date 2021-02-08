@@ -1,0 +1,120 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "naca0012",
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0
+    },
+    "solver_settings"                  : {
+        "solver_type"            : "ale_potential_flow",
+        "ale_boundary_parts"     : ["Body2D_Body"],
+        "mesh_motion_solver_settings"                     :{
+            "solver_type" : "structural_similarity",
+            "reform_dofs_each_step" : false,
+            "echo_level": 0
+        },
+
+        "fluid_solver_settings"  :{
+            "solver_type"                  :"potential_flow",
+            "domain_size"     : 2,
+            "model_part_name" : "FluidModelPart",
+            "model_import_settings"  : {
+                "input_type"     : "mdpa",
+                "input_filename" : "fsi_sdof_static/naca0012_small"
+            },
+            "maximum_iterations"     : 5,
+            "echo_level"             : 0,
+            "linear_solver_settings"  : {
+                    "solver_type"             : "LinearSolversApplication.sparse_qr"
+            },
+            "volume_model_part_name" : "Parts_Parts_Auto1",
+            "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
+            "no_skin_parts"          : [],
+            "auxiliary_variables_list": ["DISTANCE", "REACTION"]
+        }
+    },
+    "processes" : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_far_field_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "FarFieldProcess",
+            "Parameters"    : {
+                "model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "inlet_potential"         : 1.0,
+                "free_stream_density": 1.225
+            }
+        },{
+            "python_module" : "define_wake_process_2d",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "DefineWakeProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Body2D_Body",
+                "epsilon"         : 1e-9
+            }
+        },{
+            "python_module" : "compute_lift_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "ComputeLiftProcess3D",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Body2D_Body",
+                "far_field_model_part_name"  :  "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1"
+            }
+        },{
+            "python_module" : "compute_forces_on_nodes_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "ComputeForcesOnNodesProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Body2D_Body",
+                "create_output_file": false
+            }
+        },{
+            "python_module" : "fix_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "variable_name"   : "MESH_DISPLACEMENT",
+                "constrained"      : [true, true, true]
+            }
+        },{
+            "python_module" : "fix_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Body2D_Body",
+                "variable_name"   : "MESH_DISPLACEMENT",
+                "constrained"      : [true, true, true]
+            }
+        }],
+        "auxiliar_process_list" :[{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "point_output_process",
+            "help"            : "",
+            "process_name"    : "PointOutputProcess",
+            "Parameters" : {
+                "position"         : [0.69368 , -0.47979 , 0.00000],
+                "entity_type"      : "element",
+                "search_tolerance"  : 1e-3,
+                    "model_part_name"  : "FluidModelPart",
+                    "output_file_settings": {
+                        "file_name"  : "results.dat",
+                        "folder_name": "fsi_sdof_static"
+                    },
+                    "output_variables" : ["MESH_DISPLACEMENT_Y"]
+                }
+            },{
+                "python_module"   : "compare_two_files_check_process",
+                "kratos_module"   : "KratosMultiphysics",
+                "help"            : "",
+                "process_name"    : "CompareTwoFilesCheckProcess",
+                "Parameters" :{
+                    "output_file_name"    : "fsi_sdof_static/results.dat",
+                    "reference_file_name" : "fsi_sdof_static/results_ref.dat",
+                    "comparison_type"     : "dat_file",
+                    "tolerance" : 1e-3
+                }
+            }]
+    }
+}

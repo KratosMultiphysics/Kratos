@@ -93,13 +93,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  bool BoundaryCondition::HasVariableDof(VariableVectorType& rVariable)
+  bool BoundaryCondition::HasVariableDof(VariableVectorType& rVariable) const
   {
     KRATOS_TRY
 
-    typedef VectorComponentAdaptor<array_1d<double,3> >  VectorComponentType;
-    const VariableComponent<VectorComponentType>& var_x  = KratosComponents<VariableComponent<VectorComponentType> >::Get(rVariable.Name()+"_X");
-
+    const Variable<double>& var_x  = KratosComponents<Variable<double> >::Get(rVariable.Name()+"_X");
     //usually if the dofs do not exist condition adds them, standard conditions do not work like this
     if( GetGeometry()[0].HasDofFor(var_x) == true )
       return true;
@@ -113,7 +111,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  bool BoundaryCondition::HasVariableDof(VariableScalarType& rVariable)
+  bool BoundaryCondition::HasVariableDof(VariableScalarType& rVariable) const
   {
     KRATOS_TRY
 
@@ -130,7 +128,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  unsigned int BoundaryCondition::GetDofsSize()
+  unsigned int BoundaryCondition::GetDofsSize() const
   {
     KRATOS_TRY
 
@@ -167,20 +165,20 @@ namespace Kratos
 
     for (SizeType i = 0; i < number_of_nodes; i++)
       {
-        if( HasVariableDof(DISPLACEMENT) ){
+        if( HasVariableDof(DISPLACEMENT_X) ){
           rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
           rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
           if( dimension == 3 )
             rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
         }
-        else if( HasVariableDof(VELOCITY) ){
+        else if( HasVariableDof(VELOCITY_X) ){
           rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
           rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
           if( dimension == 3 )
             rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
         }
 
-	if( HasVariableDof(ROTATION) ){
+	if( HasVariableDof(ROTATION_X) ){
 	  if( dimension == 2 ){
 	    rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
 	  }
@@ -214,7 +212,7 @@ namespace Kratos
 
     unsigned int index = 0;
 
-    if( HasVariableDof(ROTATION) && HasVariableDof(DISPLACEMENT) ){
+    if( HasVariableDof(ROTATION_X) && HasVariableDof(DISPLACEMENT_X) ){
       if( dimension == 2 ){
 	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
@@ -238,7 +236,7 @@ namespace Kratos
 	  }
       }
     }
-    else if( HasVariableDof(DISPLACEMENT) ){
+    else if( HasVariableDof(DISPLACEMENT_X) ){
 
       for (SizeType i = 0; i < number_of_nodes; i++)
 	{
@@ -249,7 +247,7 @@ namespace Kratos
 	    rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
 	}
     }
-    else if( HasVariableDof(VELOCITY) ){
+    else if( HasVariableDof(VELOCITY_X) ){
 
       for (SizeType i = 0; i < number_of_nodes; i++)
 	{
@@ -268,7 +266,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void BoundaryCondition::GetValuesVector(Vector& rValues, int Step)
+  void BoundaryCondition::GetValuesVector(Vector& rValues, int Step) const
   {
     KRATOS_TRY
 
@@ -327,7 +325,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void BoundaryCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+  void BoundaryCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
   {
     KRATOS_TRY
 
@@ -387,7 +385,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void BoundaryCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+  void BoundaryCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
   {
     KRATOS_TRY
 
@@ -491,7 +489,7 @@ namespace Kratos
 
   void BoundaryCondition::AddExplicitContribution(const VectorType& rRHS,
 						  const Variable<VectorType>& rRHSVariable,
-						  Variable<array_1d<double,3> >& rDestinationVariable,
+						  const Variable<array_1d<double,3> >& rDestinationVariable,
 						  const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY

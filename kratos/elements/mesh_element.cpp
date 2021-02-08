@@ -134,7 +134,7 @@ Element::Pointer MeshElement::Clone (
 void MeshElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -146,7 +146,7 @@ void MeshElement::AddExplicitContribution(
 void MeshElement::AddExplicitContribution(
     const VectorType& rRHS,
     const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double,3> >& rDestinationVariable,
+    const Variable<array_1d<double,3> >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -158,10 +158,146 @@ void MeshElement::AddExplicitContribution(
 void MeshElement::AddExplicitContribution(
     const MatrixType& rLHSMatrix,
     const Variable<MatrixType>& rLHSVariable,
-    Variable<Matrix>& rDestinationVariable,
+    const Variable<Matrix>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshElement::CalculateOnIntegrationPoints(
+    const Variable<bool>& rVariable,
+    std::vector<bool>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(r_geometry.GetDefaultIntegrationMethod());
+    const SizeType integration_points_number = r_integration_points.size();
+    if (rOutput.size() != integration_points_number) {
+        rOutput.resize(integration_points_number, rVariable.Zero());
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshElement::CalculateOnIntegrationPoints(
+    const Variable<int>& rVariable,
+    std::vector<int>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(r_geometry.GetDefaultIntegrationMethod());
+    const SizeType integration_points_number = r_integration_points.size();
+    if (rOutput.size() != integration_points_number) {
+        rOutput.resize(integration_points_number, rVariable.Zero());
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshElement::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(r_geometry.GetDefaultIntegrationMethod());
+    const SizeType integration_points_number = r_integration_points.size();
+    if (rOutput.size() != integration_points_number) {
+        rOutput.resize(integration_points_number, rVariable.Zero());
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshElement::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector< array_1d<double, 3 > >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(r_geometry.GetDefaultIntegrationMethod());
+    const SizeType integration_points_number = r_integration_points.size();
+    if (rOutput.size() != integration_points_number) {
+        rOutput.resize(integration_points_number, rVariable.Zero());
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshElement::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 6 > >& rVariable,
+    std::vector< array_1d<double, 6 > >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(r_geometry.GetDefaultIntegrationMethod());
+    const SizeType integration_points_number = r_integration_points.size();
+    if (rOutput.size() != integration_points_number) {
+        rOutput.resize(integration_points_number, rVariable.Zero());
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshElement::CalculateOnIntegrationPoints(
+    const Variable<Vector >& rVariable,
+    std::vector< Vector >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(r_geometry.GetDefaultIntegrationMethod());
+    const SizeType integration_points_number = r_integration_points.size();
+    if (rOutput.size() != integration_points_number) {
+        rOutput.resize(integration_points_number, rVariable.Zero());
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshElement::CalculateOnIntegrationPoints(
+    const Variable<Matrix >& rVariable,
+    std::vector< Matrix >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(r_geometry.GetDefaultIntegrationMethod());
+    const SizeType integration_points_number = r_integration_points.size();
+    if (rOutput.size() != integration_points_number) {
+        rOutput.resize(integration_points_number, rVariable.Zero());
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshElement::CalculateOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    std::vector<ConstitutiveLaw::Pointer>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(r_geometry.GetDefaultIntegrationMethod());
+    const SizeType integration_points_number = r_integration_points.size();
+    if (rOutput.size() != integration_points_number) {
+        rOutput.resize(integration_points_number, nullptr);
+    }
 }
 
 /***********************************************************************************/

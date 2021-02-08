@@ -93,7 +93,7 @@ class RungeKuttaFracStepSolver:
         (self.neighbour_search).Execute()
         # calculate the normals to the overall domain
         self.normal_tools.CalculateOnSimplex(
-            self.model_part.Conditions,
+            self.model_part,
             self.domain_size)
         # for SLIP condition we need to save these Conditions in a list
         # by now SLIP conditions are identified by FLAG_VARIABLE=3.0. this is

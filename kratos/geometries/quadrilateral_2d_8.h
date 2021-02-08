@@ -346,6 +346,17 @@ public:
     /**
      * Information
      */
+
+     /// Returns number of points per direction.
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
+    {
+        if ((LocalDirectionIndex == 0) || (LocalDirectionIndex == 1)) {
+            return 3;
+        }
+        KRATOS_ERROR << "Possible direction index reaches from 0-1. Given direction index: "
+            << LocalDirectionIndex << std::endl;
+    }
+
     /**
      * This method calculates and returns Length or charactereistic
      * length of this geometry depending on it's dimension. For one
@@ -394,25 +405,6 @@ public:
         }
 
         return Area;
-    }
-
-    /**
-     * This method calculates and returns the volume of this geometry.
-     * This method calculates and returns the volume of this geometry.
-     *
-     * This method uses the V = (A x B) * C / 6 formula.
-     *
-     * @return double value contains length, area or volume.
-     *
-     * @see Length()
-     * @see Area()
-     * @see Volume()
-     *
-     * @todo might be necessary to reimplement
-     */
-    double Volume() const override
-    {
-        return Area();
     }
 
     /** This method calculates and returns length, area or volume of
@@ -600,18 +592,16 @@ public:
      */
     Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        //setting up size of jacobian matrix
-        rResult.resize( 2, 2 , false);
+        // Setting up size of jacobian matrix
+        if (rResult.size1() != 2 || rResult.size2() != 2)
+            rResult.resize( 2, 2 , false);
+        rResult.clear();
         //derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        Matrix ShapeFunctionsGradientInIntegrationPoint =
-            shape_functions_gradients( IntegrationPointIndex );
+        ShapeFunctionsGradientsType shape_functions_gradients = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+        Matrix ShapeFunctionsGradientInIntegrationPoint = shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
         DenseVector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 8 );
-        ShapeFunctionsValuesInIntegrationPoint =
-            row( CalculateShapeFunctionsIntegrationPointsValues(
-                     ThisMethod ), IntegrationPointIndex );
+        ShapeFunctionsValuesInIntegrationPoint =row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex );
 
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         // Loop over all nodes
@@ -648,12 +638,13 @@ public:
      */
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
-        //setting up size of jacobian matrix
-        rResult.resize( 2, 2 , false);
+        // Setting up size of jacobian matrix
+        if (rResult.size1() != 2 || rResult.size2() != 2)
+            rResult.resize( 2, 2 , false);
+        rResult.clear();
         //derivatives of shape functions
         Matrix shape_functions_gradients;
-        shape_functions_gradients = ShapeFunctionsLocalGradients(
-                                        shape_functions_gradients, rPoint );
+        shape_functions_gradients = ShapeFunctionsLocalGradients( shape_functions_gradients, rPoint );
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         //loop over all nodes
 

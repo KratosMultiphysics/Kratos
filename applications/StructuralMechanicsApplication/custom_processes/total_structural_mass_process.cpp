@@ -33,6 +33,8 @@ double GetFromProperty(const Properties& rThisProperties, Variable<double>& rVar
 
 double TotalStructuralMassProcess::CalculateElementMass(Element& rElement, const std::size_t DomainSize)
 {
+    KRATOS_TRY
+
     // We get the element geometry
     auto& r_this_geometry = rElement.GetGeometry();
     const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
@@ -81,13 +83,19 @@ double TotalStructuralMassProcess::CalculateElementMass(Element& rElement, const
     }
 
     return element_mass;
+
+    KRATOS_CATCH("Element Id: "+std::to_string(rElement.Id()))
 }
 
 void TotalStructuralMassProcess::Execute()
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF_NOT(mrThisModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "No \"DOMAIN_SIZE\" was specified for ModelPart \"" << mrThisModelPart.FullName() << "\"!" << std::endl;
+
     const std::size_t domain_size = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    KRATOS_ERROR_IF((domain_size!=2)&&(domain_size!=3)) << "\"DOMAIN_SIZE\" for ModelPart \"" << mrThisModelPart.FullName() << "\" is " << domain_size << " but can only be 2 or 3!" << std::endl;
+
     double total_mass = 0.0;
 
     // Now we iterate over the elements to calculate the total mass
@@ -103,7 +111,7 @@ void TotalStructuralMassProcess::Execute()
    total_mass = mrThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(total_mass);
 
     std::stringstream info_stream;
-    info_stream << "Total Mass of ModelPart \"" << mrThisModelPart.Name() << "\"";
+    info_stream << "Total Mass of ModelPart \"" << mrThisModelPart.FullName() << "\"";
 
     KRATOS_INFO(info_stream.str()) << total_mass << std::endl;
     KRATOS_INFO("Hint")  << "Check variable NODAL_MASS in the process info in "
@@ -112,5 +120,6 @@ void TotalStructuralMassProcess::Execute()
     mrThisModelPart.GetProcessInfo()[NODAL_MASS] = total_mass;
 
     KRATOS_CATCH("")
+
 } // class TotalStructuralMassProcess
 } // namespace Kratos

@@ -68,7 +68,7 @@ MPMParticlePenaltyDirichletCondition::~MPMParticlePenaltyDirichletCondition()
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     MPMParticleBaseDirichletCondition::InitializeSolutionStep( rCurrentProcessInfo );
 
@@ -80,7 +80,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& 
         GeneralVariables Variables;
 
         // Calculating shape function
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+        MPMShapeFunctionPointValues(Variables.N);
 
         // Here MPC contribution of normal vector are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -99,7 +99,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& 
 
 void MPMParticlePenaltyDirichletCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     bool CalculateStiffnessMatrixFlag,
     bool CalculateResidualVectorFlag
     )
@@ -138,7 +138,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
     GeneralVariables Variables;
 
     // Calculating shape function
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+    MPMShapeFunctionPointValues(Variables.N);
     Variables.CurrentDisp = this->CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
 
     // Check contact: Check contact penetration: if <0 apply constraint, otherwise no
@@ -219,7 +219,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -319,7 +319,7 @@ void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(
     }
 }
 
-int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     MPMParticleBaseDirichletCondition::Check(rCurrentProcessInfo);
 

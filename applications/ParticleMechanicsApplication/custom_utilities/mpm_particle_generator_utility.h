@@ -19,8 +19,11 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/model_part.h"
+#include "utilities/binbased_fast_point_locator.h"
+#include "utilities/quadrature_points_utility.h"
 #include "particle_mechanics_application_variables.h"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 
 
 namespace Kratos
@@ -31,6 +34,10 @@ namespace MPMParticleGeneratorUtility
     typedef std::size_t IndexType;
 
     typedef std::size_t SizeType;
+
+    typedef Geometry< Node<3> > GeometryType;
+
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /**
      * @brief Function that return matrix of shape function value for 16 particles.
@@ -45,23 +52,44 @@ namespace MPMParticleGeneratorUtility
      */
     Matrix MP33ShapeFunctions();
 
+    /// Get integration weights of the geometry for the given integration method
+    void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
+
+    /// Get integration weights of the geometry for the given integration method
+    void GetIntegrationPointArea(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
+
+    /// Get integration method and shape function values for the given element
+    void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
+        IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
+
+    /// Get integration method and shape function values for the given condition
+    void DetermineConditionIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
+        IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
 
     /**
      * @brief Construct material points or particles from given initial mesh
      * @details Generating particles using a designated shape functions
      */
+    template<SizeType TDimension>
     void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
-                                        bool IsAxisSymmetry = false,
-                                        bool IsMixedFormulation = false);
-
-
+                                        bool IsMixedFormulation=false); 
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating particle condition using a designated shape functions
      */
-    void GenerateMaterialPointCondition(    ModelPart& rBackgroundGridModelPart,
+
+    template<SizeType TDimension>
+    void GenerateMaterialPointCondition(ModelPart& rBackgroundGridModelPart,
+                                            ModelPart& rInitialModelPart,
+                                            ModelPart& rMPMModelPart);
+    /**
+     * @brief Function to Initiate material point condition.
+     * @details Generating particle condition using a designated shape functions
+     */
+    void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) GenerateMaterialPointCondition(
+                                            ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
 

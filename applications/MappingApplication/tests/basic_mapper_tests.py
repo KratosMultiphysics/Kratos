@@ -25,6 +25,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         # TODO ATTENTION: currently the MapperFactory removes some keys, hence those checks have to be done beforehand => improve this!
 
         cls.mapper_type = mapper_parameters["mapper_type"].GetString()
+        cls.mapper_parameters = mapper_parameters.Clone()
 
         if mapper_parameters.Has("interface_submodel_part_origin"):
             cls.interface_model_part_origin = cls.model_part_origin.GetSubModelPart(
@@ -73,22 +74,22 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_Map_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.interface_model_part_origin.Nodes, KM.PRESSURE)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
-        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.TEMPERATURE, GetFilePath(self.__GetFileName("map_scalar")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.TEMPERATURE, GetFilePath(self._GetFileName("map_scalar")))
 
     def test_InverseMap_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.interface_model_part_destination.Nodes, KM.TEMPERATURE)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)
-        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.PRESSURE, GetFilePath(self.__GetFileName("inverse_map_scalar")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.PRESSURE, GetFilePath(self._GetFileName("inverse_map_scalar")))
 
     def test_Map_non_constant_vector(self):
         SetHistoricalNonUniformSolutionVector(self.interface_model_part_origin.Nodes, KM.FORCE)
         self.mapper.Map(KM.FORCE, KM.VELOCITY)
-        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.VELOCITY, GetFilePath(self.__GetFileName("map_vector")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.VELOCITY, GetFilePath(self._GetFileName("map_vector")))
 
     def test_InverseMap_non_constant_vector(self):
         SetHistoricalNonUniformSolutionVector(self.interface_model_part_destination.Nodes, KM.VELOCITY)
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY)
-        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.FORCE, GetFilePath(self.__GetFileName("inverse_map_vector")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.FORCE, GetFilePath(self._GetFileName("inverse_map_vector")))
 
     def test_SWAP_SIGN_Map_scalar(self):
         val = 1.234
@@ -204,6 +205,29 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.assertAlmostEqual(sum_origin[1], sum_destination[1])
         self.assertAlmostEqual(sum_origin[2], sum_destination[2])
 
+    def test_Is_conforming(self):
+        is_conforming = self.mapper.AreMeshesConforming()
+        self.assertEqual(is_conforming, True)
+
+    def test_Is_not_conforming(self):
+        non_conform_parameters = self.mapper_parameters.Clone()
+        non_conform_parameters.AddEmptyValue("search_radius").SetDouble(1e-6)
+
+        if data_comm.IsDistributed():
+            map_creator = KratosMapping.MapperFactory.CreateMPIMapper
+        else:
+            map_creator = KratosMapping.MapperFactory.CreateMapper
+
+        non_conform_mapper = map_creator(
+            self.model_part_origin,
+            self.model_part_destination,
+            non_conform_parameters
+        )
+
+        is_conforming = non_conform_mapper.AreMeshesConforming()
+        self.assertEqual(is_conforming, False)
+
+
     # def test_UpdateInterface(self):
     #     pass
 
@@ -240,7 +264,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
             self.assertAlmostEqual(val[1], exp_value[1])
             self.assertAlmostEqual(val[2], exp_value[2])
 
-    def __GetFileName(self, file_appendix):
+    def _GetFileName(self, file_appendix):
         return os.path.join("result_files", self.mapper_type, self.__class__.__name__ + "_" + file_appendix)
 
 def SetHistoricalNonUniformSolutionScalar(nodes, variable):

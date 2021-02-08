@@ -1,6 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import KratosMultiphysics.KratosUnittest as KratosUnittest
+﻿import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
 import math
 
@@ -151,6 +149,7 @@ class TestVectorInterface(KratosUnittest.TestCase):
         a[2] = 3.0
         self.assertEqual(6.0,a.norm_1())
         self.assertEqual(math.sqrt(14.0),a.norm_2())
+        self.assertEqual(3.0,a.norm_inf())
 
     def test_truediv(self):
         a = Vector(3)

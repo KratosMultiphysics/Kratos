@@ -84,6 +84,9 @@ public:
     /// The definition of the linear solver factory type
     typedef LinearSolverFactory<TSparseSpaceType,TDenseSpaceType> LinearSolverFactoryType;
 
+    /// The index type definition to be consistent
+    typedef typename TSparseSpaceType::IndexType IndexType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -260,6 +263,11 @@ public:
     ///@name Access
     ///@{
 
+    IndexType GetIterationsNumber() override
+    {
+        return mpLinearSolver->GetIterationsNumber();
+    }
+
 
     ///@}
     ///@name Inquiry
@@ -356,7 +364,7 @@ private:
 
         //create partition
         OpenMPUtils::PartitionVector partition;
-        int number_of_threads = OpenMPUtils::GetNumThreads();
+        int number_of_threads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::DivideInPartitions(A.size1(),number_of_threads,  partition);
         //parallel loop
 
@@ -420,7 +428,7 @@ private:
 
         //create partition
         OpenMPUtils::PartitionVector partition;
-        int number_of_threads = OpenMPUtils::GetNumThreads();
+        int number_of_threads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::DivideInPartitions(A.size1(),number_of_threads,  partition);
         //parallel loop
 

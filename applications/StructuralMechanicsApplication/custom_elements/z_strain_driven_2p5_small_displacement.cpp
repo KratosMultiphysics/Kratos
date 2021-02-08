@@ -81,16 +81,19 @@ void ZStrainDriven2p5DSmallDisplacement::Initialize(const ProcessInfo& rCurrentP
 {
     KRATOS_TRY
 
-    BaseType::Initialize();
+    BaseType::Initialize(rCurrentProcessInfo);
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    //Imposed Z strain vector initialisation
-    if ( mImposedZStrainVector.size() != integration_points.size() )
-        mImposedZStrainVector.resize( integration_points.size() );
+        //Imposed Z strain vector initialisation
+        if ( mImposedZStrainVector.size() != integration_points.size() )
+            mImposedZStrainVector.resize( integration_points.size() );
 
-    for ( IndexType point_number = 0; point_number < mImposedZStrainVector.size(); ++point_number ) {
-        mImposedZStrainVector[point_number] = 0.0;
+        for ( IndexType point_number = 0; point_number < mImposedZStrainVector.size(); ++point_number ) {
+            mImposedZStrainVector[point_number] = 0.0;
+        }
     }
 
     KRATOS_CATCH( "" )
@@ -149,7 +152,7 @@ void ZStrainDriven2p5DSmallDisplacement::SetValuesOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  ZStrainDriven2p5DSmallDisplacement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  ZStrainDriven2p5DSmallDisplacement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -159,14 +162,6 @@ int  ZStrainDriven2p5DSmallDisplacement::Check( const ProcessInfo& rCurrentProce
     const auto& r_properties = this->GetProperties();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
-
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {

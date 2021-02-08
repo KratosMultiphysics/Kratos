@@ -3,6 +3,9 @@
         "model_part_name" : "PfemFluidModelPart.Parts_Parts_Auto1",
         "properties_id"   : 1,
         "Material"        : {
+            "constitutive_law" : {
+                "name" : "Newtonian2DLaw"
+            },
             "Variables" : {
                 "DENSITY"           : 1000.0,
                 "DYNAMIC_VISCOSITY" : 0.001,

@@ -61,7 +61,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
     typedef Node<3> NodeType;
 
     /// Definition of the component of variable type
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
+    typedef Variable<double> DoubleVariableType;
 
     ///@}
     ///@name Life Cycle
@@ -103,7 +103,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
     void AssignPeriodicity(ModelPart& rMasterModelPart,
                            ModelPart& rSlaveModelPart,
                            const Matrix& rStrainTensor,
-                           const Vector& rDirection);
+                           const Vector& rDirection,
+                           const double SearchTolerance=1e-6
+                           );
 
     /** this function finalizes the computation of the pairings. It can be called ONLY ONCE
      * @param rVariable is the value to which the pairing condition will be applied (needs to be a Variable with components)
@@ -182,7 +184,7 @@ private:
      */
     MasterSlaveConstraint::Pointer  GenerateConstraint(
         IndexType& rConstraintId,
-        const VariableComponentType& rVar,
+        const DoubleVariableType& rVar,
         NodeType::Pointer pSlaveNode,
         const std::vector<IndexType>& rMasterIds,
         const Matrix& rRelationMatrix,

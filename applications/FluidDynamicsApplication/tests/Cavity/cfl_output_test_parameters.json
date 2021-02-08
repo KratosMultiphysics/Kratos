@@ -1,0 +1,112 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "cavity5",
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+        "solver_type": "Monolithic",
+        "model_part_name": "MainModelPart",
+        "domain_size": 2,
+        "model_import_settings"       : {
+            "input_type"     : "mdpa",
+            "input_filename" : "square5"
+        },
+        "material_import_settings": {
+            "materials_filename": "cavity_test_materials.json"
+        },
+        "echo_level"                  : 0,
+        "compute_reactions"           : false,
+        "maximum_iterations"          : 1000,
+        "formulation"               : {
+            "element_type"            : "qsvms",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau"             : 0.0
+        },
+        "relative_velocity_tolerance" : 1e-6,
+        "absolute_velocity_tolerance" : 1e-6,
+        "relative_pressure_tolerance" : 1e-6,
+        "absolute_pressure_tolerance" : 1e-6,
+        "linear_solver_settings"      : {
+            "solver_type"         : "amgcl",
+            "max_iteration"       : 200,
+            "tolerance"           : 1e-9,
+            "provide_coordinates" : false,
+            "smoother_type"       : "ilu0",
+            "krylov_type"         : "gmres",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : false
+        },
+        "volume_model_part_name"      : "Parts_Fluid",
+        "skin_parts"                  : ["NoSlip2D_left_wall","NoSlip2D_right_wall","NoSlip2D_bottom_wall","NoSlip2D_top_wall"],
+        "no_skin_parts"               : ["Pressure_lower_left_corner"],
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.1
+        }
+    },
+    "processes": {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Parts_Fluid",
+                "variable_name"   : "VELOCITY",
+                "constrained"     : [false,false,false],
+                "value"           : ["5*t*t*x*y-3*t*x","-20*t*x*x", "t*y*30*y"],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Parts_Fluid",
+                "variable_name"   : "PRESSURE",
+                "value"           : "t*t+2",
+                "constrained"     : false
+            }
+        }],
+        "gravity"                          : [],
+        "auxiliar_process_list"            : [{
+            "kratos_module"   : "KratosMultiphysics.FluidDynamicsApplication",
+            "python_module"   : "cfl_output_process",
+            "help"            : "",
+            "Parameters" : {
+                "model_part_name" : "MainModelPart.Parts_Fluid",
+                "interval"             : [0.0, 1e30],
+                "cfl_output_limit"     : 2.5,
+                "print_to_screen"      : false,
+                "print_format"         : ".8f",
+                "write_output_file"    : true,
+                "output_step"          : 2,
+                "output_file_settings": {
+                    "file_name": "cfl_output_process.dat"
+                }
+            }
+        },{
+            "python_module"   : "compare_two_files_check_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "help"            : "",
+            "process_name"    : "CompareTwoFilesCheckProcess",
+            "Parameters" :{
+                "output_file_name"    : "cfl_output_process.dat",
+                "reference_file_name" : "cfl_output_process_ref.dat",
+                "comparison_type"     : "deterministic",
+                "remove_output_file"  : true,
+                "tolerance"           : 1e-5
+            }
+        }]
+    }
+}

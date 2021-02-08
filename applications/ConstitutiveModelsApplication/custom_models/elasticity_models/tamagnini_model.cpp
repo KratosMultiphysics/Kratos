@@ -283,8 +283,7 @@ namespace Kratos
       noalias( OriginalHencky) = ZeroMatrix(3,3);
       OriginalHencky = rHenckyStrain;
 
-      //SolidMechanicsMathUtilities<double>::EigenVectors( StressMat, EigenV, EigenStress);
-      MathUtils<double>::EigenSystem<3> ( StressMat, EigenV, EigenStressM);
+   MathUtils<double>::GaussSeidelEigenSystem<MatrixType, MatrixType>(StressMat, EigenV, EigenStressM);
       for (unsigned int i = 0; i < 3; i++)
          EigenStress(i) = EigenStressM(i,i);
 
@@ -318,11 +317,11 @@ namespace Kratos
          rHenckyStrain(i,i) = ElasticHenckyStrain(i);
       }
 
-      noalias( ElasticLeftCauchy ) = prod( trans( EigenV), ElasticLeftCauchy);
-      noalias( ElasticLeftCauchy )  = prod( ElasticLeftCauchy, (EigenV) );
+   noalias(ElasticLeftCauchy) = prod(EigenV, ElasticLeftCauchy);
+   noalias(ElasticLeftCauchy) = prod(ElasticLeftCauchy, trans(EigenV));
 
-      noalias( rHenckyStrain ) = prod( trans(EigenV), rHenckyStrain);
-      noalias( rHenckyStrain ) = prod( rHenckyStrain, EigenV);
+   noalias(rHenckyStrain) = prod(EigenV, rHenckyStrain);
+   noalias(rHenckyStrain) = prod(rHenckyStrain, trans(EigenV));
 
       rHenckyStrain += OriginalHencky;
 

@@ -338,6 +338,17 @@ public:
     /**
      * Information
      */
+
+     /// Returns number of points per direction.
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
+    {
+        if ((LocalDirectionIndex == 0) || (LocalDirectionIndex == 1)) {
+            return 3;
+        }
+        KRATOS_ERROR << "Possible direction index reaches from 0-1. Given direction index: "
+            << LocalDirectionIndex << std::endl;
+    }
+
     /**
      * This method calculates and returns Length or charactereistic
      * length of this geometry depending on it's dimension. For one
@@ -726,9 +737,10 @@ public:
      */
     Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        //setting up size of jacobian matrix
-        rResult.resize( 3, 2, false );
-        noalias(rResult) = ZeroMatrix( 3, 2 );
+        // Setting up size of jacobian matrix
+        if (rResult.size1() != 3 || rResult.size2() != 2)
+            rResult.resize( 3, 2 , false);
+        rResult.clear();
         //derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
@@ -781,9 +793,10 @@ public:
      */
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
-        //setting up size of jacobian matrix
-        rResult.resize( 3, 2, false );
-        noalias(rResult) = ZeroMatrix( 3, 2 );
+        // Setting up size of jacobian matrix
+        if (rResult.size1() != 3 || rResult.size2() != 2)
+            rResult.resize( 3, 2 , false);
+        rResult.clear();
         //derivatives of shape functions
         Matrix shape_functions_gradients;
         shape_functions_gradients = ShapeFunctionsLocalGradients(

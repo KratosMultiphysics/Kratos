@@ -117,7 +117,7 @@ public:
 	{
 		KRATOS_TRY;
 
-		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 		double strain_energy = 0.0;
 
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
@@ -128,7 +128,8 @@ public:
 			Vector u;
 
 			// Get state solution relevant for energy calculation
-			elem_i.GetValuesVector(u,0);
+			const auto& rConstElemRef = elem_i;
+			rConstElemRef.GetValuesVector(u,0);
 
 			elem_i.CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
 
@@ -243,7 +244,7 @@ protected:
 		KRATOS_TRY;
 
 		// Working variables
-		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
 		// Computation of: \frac{1}{2} u^T \cdot ( - \frac{\partial K}{\partial x} )
 		for (auto& elem_i : mrModelPart.Elements())
@@ -253,7 +254,8 @@ protected:
 			Vector RHS;
 
 			// Get state solution
-			elem_i.GetValuesVector(u,0);
+			const auto& rConstElemRef = elem_i;
+			rConstElemRef.GetValuesVector(u,0);
 
 			// Get adjoint variables (Corresponds to 1/2*u)
 			lambda = 0.5*u;
@@ -298,7 +300,8 @@ protected:
 				Vector RHS;
 
 				// Get adjoint variables (Corresponds to 1/2*u)
-				cond_i.GetValuesVector(u,0);
+				const auto& rConstCondRef = cond_i;
+				rConstCondRef.GetValuesVector(u,0);
 				lambda = 0.5*u;
 
 				// Semi-analytic computation of partial derivative of force vector w.r.t. node coordinates
@@ -347,7 +350,7 @@ protected:
 		KRATOS_TRY;
 
 		// Working variables
-		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
 		// Computation of \frac{1}{2} u^T \cdot ( \frac{\partial f_{ext}}{\partial x} )
 		for (auto& cond_i : mrModelPart.Conditions())
@@ -364,7 +367,8 @@ protected:
 				Vector RHS;
 
 				// Get state solution
-				cond_i.GetValuesVector(u,0);
+				const auto& rConstCondRef = cond_i;
+				rConstCondRef.GetValuesVector(u,0);
 
 				// Perform finite differencing of RHS vector
 				cond_i.CalculateRightHandSide(RHS, CurrentProcessInfo);

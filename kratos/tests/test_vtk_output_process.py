@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -266,9 +264,9 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
             "model_part_name"                    : "Main",
             "file_format"                        : "ascii",
             "output_precision"                   : 8,
-            "output_frequency"                   : 2,
+            "output_interval"                    : 2,
             "output_sub_model_parts"             : true,
-            "folder_name"                        : "test_vtk_output",
+            "output_path"                        : "test_vtk_output",
             "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
             "nodal_flags"                        : ["BOUNDARY"],
             "element_data_value_variables"       : ["DETERMINANT"],

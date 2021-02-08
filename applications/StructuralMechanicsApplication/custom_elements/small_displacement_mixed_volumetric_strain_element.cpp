@@ -75,7 +75,7 @@ Element::Pointer SmallDisplacementMixedVolumetricStrainElement::Clone (
 
 void SmallDisplacementMixedVolumetricStrainElement::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -115,7 +115,7 @@ void SmallDisplacementMixedVolumetricStrainElement::EquationIdVector(
 
 void SmallDisplacementMixedVolumetricStrainElement::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -153,21 +153,24 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize(const ProcessInfo
 {
     KRATOS_TRY
 
-    // Integration method initialization
-    mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-    const auto& r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        // Integration method initialization
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    // Constitutive Law Vector initialisation
-    if (mConstitutiveLawVector.size() != r_integration_points.size()) {
-        mConstitutiveLawVector.resize(r_integration_points.size());
+        // Constitutive Law Vector initialisation
+        if (mConstitutiveLawVector.size() != r_integration_points.size()) {
+            mConstitutiveLawVector.resize(r_integration_points.size());
+        }
+
+        // Initialize material
+        InitializeMaterial();
+
+        // Calculate the and save the anisotropy transformation tensor
+        CalculateAnisotropyTensor(rCurrentProcessInfo);
+        CalculateInverseAnisotropyTensor();
     }
-
-    // Initialize material
-    InitializeMaterial();
-
-    // Calculate the and save the anisotropy transformation tensor
-    CalculateAnisotropyTensor(rCurrentProcessInfo);
-    CalculateInverseAnisotropyTensor();
 
     KRATOS_CATCH( "" )
 }
@@ -175,7 +178,7 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize(const ProcessInfo
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -221,7 +224,7 @@ void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(Proce
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -270,7 +273,7 @@ void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(Process
 void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
@@ -449,7 +452,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
 void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
@@ -586,7 +589,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
 
 void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
@@ -1022,7 +1025,7 @@ void SmallDisplacementMixedVolumetricStrainElement::ComputeEquivalentF(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -1030,9 +1033,6 @@ int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCu
 
     // Base check
     check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
-
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(VOLUMETRIC_STRAIN)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     const auto& r_geometry = this->GetGeometry();
@@ -1140,29 +1140,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SmallDisplacementMixedVolumetricStrainElement::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SmallDisplacementMixedVolumetricStrainElement::GetValueOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1172,7 +1149,9 @@ void SmallDisplacementMixedVolumetricStrainElement::save(Serializer& rSerializer
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallDisplacementMixedVolumetricStrainElement::BaseType);
     int IntMethod = int(this->GetIntegrationMethod());
     rSerializer.save("IntegrationMethod",IntMethod);
-    rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("AnisotropyTensor", mAnisotropyTensor);
+    rSerializer.save("InverseAnisotropyTensor", mInverseAnisotropyTensor);
 }
 
 /***********************************************************************************/
@@ -1185,6 +1164,8 @@ void SmallDisplacementMixedVolumetricStrainElement::load(Serializer& rSerializer
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.load("AnisotropyTensor", mAnisotropyTensor);
+    rSerializer.load("InverseAnisotropyTensor", mInverseAnisotropyTensor);
 }
 
 } // Namespace Kratos

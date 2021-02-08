@@ -136,20 +136,21 @@ public:
 
     /**
      * @brief Called at the beginning of each solution step
+     * @param rCurrentProcessInfo the current process info instance
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
    /**
     * @brief Called at the beginning of each solution step
     * @param rCurrentProcessInfo the current process info instance
     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
    /**
     * @brief Called at the beginning of each iteration
     * @param rCurrentProcessInfo the current process info instance
     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Creates a new element pointer from an arry of nodes

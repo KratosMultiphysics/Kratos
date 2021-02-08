@@ -10,7 +10,7 @@
         "solver_type"                  : "adjoint_potential_flow",
             "model_import_settings"        : {
                 "input_type"     : "mdpa",
-                "input_filename" : "naca0012_small"
+                "input_filename" : "../naca0012_small_mdpa/naca0012_small"
             },
         "model_part_name" : "MainModelPart",
         "volume_model_part_name" : "Parts_Parts_Auto1",
@@ -29,7 +29,7 @@
             },
         "echo_level"                   : 0,
         "linear_solver_settings"       : {
-            "solver_type"         : "ExternalSolversApplication.super_lu"
+            "solver_type"         : "LinearSolversApplication.sparse_lu"
         }
     },
     "processes" : {

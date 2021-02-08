@@ -45,8 +45,6 @@ namespace Kratos {
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-			modelPart.AddNodalSolutionStepVariable(DENSITY);
-			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
@@ -90,12 +88,6 @@ namespace Kratos {
 			vel_original(1,0) = 0.1; vel_original(1,1) = 0.2;
 			vel_original(2,0) = 0.2; vel_original(2,1) = 0.3;
 
-			// Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
-				it_node->FastGetSolutionStepValue(DENSITY) = pProp->GetValue(DENSITY);
-				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pProp->GetValue(DYNAMIC_VISCOSITY);
-			}
-
 			Geometry<Node<3>> &r_geometry = pElement->GetGeometry();
 
 			for(unsigned int i=0; i<3; i++){
@@ -129,9 +121,10 @@ namespace Kratos {
             Vector condRHS = ZeroVector(6);
             Matrix condLHS = ZeroMatrix(6,6);
 
-            pCondition->Initialize();
-			pCondition->InitializeSolutionStep(modelPart.GetProcessInfo());
-			pCondition->CalculateLocalSystem(condLHS, condRHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+            pCondition->Initialize(r_process_info);
+			pCondition->InitializeSolutionStep(r_process_info);
+			pCondition->CalculateLocalSystem(condLHS, condRHS, r_process_info);
 
 			const double tolerance = 1e-10;
 			KRATOS_CHECK_NEAR(condRHS(0), 0.0, tolerance);
@@ -152,9 +145,7 @@ namespace Kratos {
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-			modelPart.AddNodalSolutionStepVariable(DENSITY);
 			modelPart.AddNodalSolutionStepVariable(REACTION);
-			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
@@ -202,12 +193,6 @@ namespace Kratos {
 			vel_original(2,0) = 0.2; vel_original(2,1) = 0.3; vel_original(2,2) = 0.4;
 			vel_original(3,0) = 0.3; vel_original(3,1) = 0.4; vel_original(3,2) = 0.5;
 
-			// Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
-                it_node->FastGetSolutionStepValue(DENSITY) = pProp->GetValue(DENSITY);
-                it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pProp->GetValue(DYNAMIC_VISCOSITY);
-            }
-
 			Geometry<Node<3>> &r_geometry = pElement->GetGeometry();
 
 			for(unsigned int i=0; i<4; i++){
@@ -242,9 +227,10 @@ namespace Kratos {
             Vector condRHS = ZeroVector(12);
             Matrix condLHS = ZeroMatrix(12,12);
 
-            pCondition->Initialize();
-			pCondition->InitializeSolutionStep(modelPart.GetProcessInfo());
-			pCondition->CalculateLocalSystem(condLHS, condRHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+            pCondition->Initialize(r_process_info);
+			pCondition->InitializeSolutionStep(r_process_info);
+			pCondition->CalculateLocalSystem(condLHS, condRHS, r_process_info);
 
 			const double tolerance = 1e-7;
 			KRATOS_CHECK_NEAR(condRHS(0),  0.0, tolerance);

@@ -91,8 +91,6 @@ namespace Kratos {
                                 int i_neighbour_count,
                                 int time_steps,
                                 bool& sliding,
-                                int search_control,
-                                DenseVector<int>& search_control_vector,
                                 double &equiv_visco_damp_coeff_normal,
                                 double &equiv_visco_damp_coeff_tangential,
                                 double LocalRelVel[3],
@@ -143,8 +141,6 @@ namespace Kratos {
                 element2,
                 i_neighbour_count,
                 sliding,
-                search_control,
-                search_control_vector,
                 r_process_info);
 
         FindMaximumValueOfNormalAndTangentialDamageComponents();
@@ -326,8 +322,6 @@ namespace Kratos {
             SphericContinuumParticle* element2,
             int i_neighbour_count,
             bool& sliding,
-            int search_control,
-            DenseVector<int>& search_control_vector,
             const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
@@ -443,22 +437,28 @@ namespace Kratos {
         UnbondedLocalElasticContactForce[0] = OldUnbondedLocalElasticContactForce[0] - mUnbondedTangentialElasticConstant * LocalDeltDisp[0];
         UnbondedLocalElasticContactForce[1] = OldUnbondedLocalElasticContactForce[1] - mUnbondedTangentialElasticConstant * LocalDeltDisp[1];
 
-        const double my_tg_of_friction_angle    = element1->GetTgOfFrictionAngle();
-        const double wall_tg_of_friction_angle  = element2->GetProperties()[FRICTION];
-        const double equiv_tg_of_fri_ang        = 0.5 * (my_tg_of_friction_angle + wall_tg_of_friction_angle);
+        const double my_tg_of_static_friction_angle        = element1->GetTgOfStaticFrictionAngle();
+        const double neighbour_tg_of_static_friction_angle = element2->GetTgOfStaticFrictionAngle();
+        const double equiv_tg_of_static_fri_ang            = 0.5 * (my_tg_of_static_friction_angle + neighbour_tg_of_static_friction_angle);
 
-        if(equiv_tg_of_fri_ang < 0.0) {
+        const double my_tg_of_dynamic_friction_angle        = element1->GetTgOfDynamicFrictionAngle();
+        const double neighbour_tg_of_dynamic_friction_angle = element2->GetTgOfDynamicFrictionAngle();
+        const double equiv_tg_of_dynamic_fri_ang            = 0.5 * (my_tg_of_dynamic_friction_angle + neighbour_tg_of_dynamic_friction_angle);
+
+        if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
             KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
         }
-
-        const double max_admissible_shear_force = mUnbondedLocalElasticContactForce2 * equiv_tg_of_fri_ang;
 
         const double tangential_contact_force_0 = UnbondedLocalElasticContactForce[0] + mViscoDampingLocalContactForce[0];
         const double tangential_contact_force_1 = UnbondedLocalElasticContactForce[1] + mViscoDampingLocalContactForce[1];
 
         const double ActualTotalShearForce = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
 
+        double max_admissible_shear_force = mUnbondedLocalElasticContactForce2 * equiv_tg_of_static_fri_ang;
+
         if (ActualTotalShearForce > max_admissible_shear_force) {
+
+            max_admissible_shear_force = mUnbondedLocalElasticContactForce2 * equiv_tg_of_static_fri_ang;
 
             const double ActualElasticShearForce = sqrt(UnbondedLocalElasticContactForce[0] * UnbondedLocalElasticContactForce[0] + UnbondedLocalElasticContactForce[1] * UnbondedLocalElasticContactForce[1]);
 

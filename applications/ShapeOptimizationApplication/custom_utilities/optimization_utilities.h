@@ -25,6 +25,7 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
+#include "linear_solvers/linear_solver.h"
 
 // ==============================================================================
 
@@ -63,6 +64,7 @@ public:
     ///@{
 
     typedef array_1d<double,3> array_3d;
+    typedef UblasSpace<double, Matrix, Vector> DenseSpace;
 
     /// Pointer definition of OptimizationUtilities
     KRATOS_CLASS_POINTER_DEFINITION(OptimizationUtilities);
@@ -108,7 +110,6 @@ public:
         if(mOptimizationSettings["optimization_algorithm"]["line_search"]["normalize_search_direction"].GetBool())
         {
             const double max_norm_search_dir = ComputeMaxNormOfNodalVariable(SEARCH_DIRECTION);
-
             if(max_norm_search_dir>1e-10)
                 for (auto & node_i : mrDesignSurface.Nodes())
                 {
@@ -318,6 +319,112 @@ public:
         return mCorrectionScaling;
     }
 
+    /**
+     * Assemble the values of the nodal vector variable into a vector
+     */
+    void AssembleVector(
+        Vector& rVector,
+        const Variable<array_3d> &rVariable)
+    {
+        if (rVector.size() != mrDesignSurface.NumberOfNodes()*3){
+            rVector.resize(mrDesignSurface.NumberOfNodes()*3);
+        }
+
+        int i=0;
+        for (auto & node_i : mrDesignSurface.Nodes())
+        {
+            array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
+            rVector[i*3+0] = variable_vector[0];
+            rVector[i*3+1] = variable_vector[1];
+            rVector[i*3+2] = variable_vector[2];
+            ++i;
+        }
+    }
+
+    /**
+     * Assigns the values of a vector to the nodal vector variables
+     */
+    void AssignVectorToVariable(
+        const Vector& rVector,
+        const Variable<array_3d> &rVariable)
+    {
+        KRATOS_ERROR_IF(rVector.size() != mrDesignSurface.NumberOfNodes()*3)
+            << "AssignVectorToVariable: Vector size does not mach number of Nodes!" << std::endl;
+
+        int i=0;
+        for (auto & node_i : mrDesignSurface.Nodes())
+        {
+            array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
+            variable_vector[0] = rVector[i*3+0];
+            variable_vector[1] = rVector[i*3+1];
+            variable_vector[2] = rVector[i*3+2];
+            ++i;
+        }
+    }
+
+    /**
+     * Assemble the values of the nodal vector variables into a dense matrix.
+     * One column per variable is created.
+     */
+    void AssembleMatrix(
+        Matrix& rMatrix,
+        const std::vector<Variable<array_3d>*>& rVariables
+    ) const
+    {
+        if ((rMatrix.size1() != mrDesignSurface.NumberOfNodes()*3 || rMatrix.size2() !=  rVariables.size())){
+            rMatrix.resize(mrDesignSurface.NumberOfNodes()*3, rVariables.size());
+        }
+
+        int i=0;
+        for (auto & node_i : mrDesignSurface.Nodes())
+        {
+            int j=0;
+            for (Variable<array_3d>* p_variable_j : rVariables)
+            {
+                const Variable<array_3d>& r_variable_j = *p_variable_j;
+                array_3d& variable_vector = node_i.FastGetSolutionStepValue(r_variable_j);
+                rMatrix(i*3+0, j) = variable_vector[0];
+                rMatrix(i*3+1, j) = variable_vector[1];
+                rMatrix(i*3+2, j) = variable_vector[2];
+                ++j;
+            }
+            ++i;
+        }
+    }
+
+
+    /**
+     * Calculate the projection of the objective gradient into the subspace tangent to
+     * the active constraint gradients.
+     * In a second step, calculate the restoration move accounting for the current violation of the constraints.
+     * Variable naming and implementation based on https://msulaiman.org/onewebmedia/GradProj_2.pdf
+     */
+    void CalculateProjectedSearchDirectionAndCorrection(
+        Vector& rObjectiveGradient,
+        Matrix& rConstraintGradients,
+        Vector& rConstraintValues,
+        LinearSolver<DenseSpace, DenseSpace>& rSolver,
+        Vector& rProjectedSearchDirection,
+        Vector& rRestoration
+        )
+    {
+        // local variable naming according to https://msulaiman.org/onewebmedia/GradProj_2.pdf
+        Vector& nabla_f = rObjectiveGradient;
+        Matrix& N = rConstraintGradients;
+        Vector& g_a = rConstraintValues;
+        Vector& s = rProjectedSearchDirection;
+        Vector& c = rRestoration;
+
+        Matrix NTN = prod(trans(N), N);
+        Matrix I = IdentityMatrix(N.size2());
+        Matrix NTN_inv(NTN.size1(), NTN.size2());
+
+        rSolver.Solve(NTN, NTN_inv, I); // solve with identity to get the inverse
+
+        s = - (nabla_f - prod(N, Vector(prod(NTN_inv, Vector(prod(trans(N), nabla_f))))));
+
+        c = - prod(N, Vector(prod(NTN_inv, g_a)));
+    }
     // ==============================================================================
 
     ///@}

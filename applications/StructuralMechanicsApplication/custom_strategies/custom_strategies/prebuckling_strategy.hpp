@@ -101,6 +101,7 @@ public:
      * @param SmallLoadIncrement Load increment of the small load step
      * @param PathFollowingStep Load increment of the big load step
      * @param ConvergenceRatio Convergence ratio for the computed eigenvalues
+     * @param MakeMatricesSymmetricFlag Flag to ensures that matrices are symmetric before eigenvalue problem is evaluated
      */
     PrebucklingStrategy(
         ModelPart &rModelPart,
@@ -109,10 +110,7 @@ public:
         BuilderAndSolverPointerType pBuilderAndSolver,
         typename ConvergenceCriteriaType::Pointer pConvergenceCriteria,
         int MaxIteration,
-        double InitialLoadIncrement,
-        double SmallLoadIncrement,
-        double PathFollowingStep,
-        double ConvergenceRatio )
+        Parameters BucklingSettings )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
     {
         KRATOS_TRY
@@ -127,13 +125,15 @@ public:
 
         mMaxIteration = MaxIteration;
 
-        mInitialLoadIncrement = InitialLoadIncrement;
+        mInitialLoadIncrement = BucklingSettings["initial_load_increment"].GetDouble();
 
-        mSmallLoadIncrement = SmallLoadIncrement;
+        mSmallLoadIncrement = BucklingSettings["small_load_increment"].GetDouble();
 
-        mPathFollowingStep = PathFollowingStep;
+        mPathFollowingStep = BucklingSettings["path_following_step"].GetDouble();
 
-        mConvergenceRatio = ConvergenceRatio;
+        mConvergenceRatio = BucklingSettings["convergence_ratio"].GetDouble();
+
+        mMakeMatricesSymmetricFlag = BucklingSettings["make_matrices_symmetric"].GetBool();
 
         // Set Eigensolver flags
         mpEigenSolver->SetDofSetIsInitializedFlag(false);
@@ -552,6 +552,13 @@ public:
             // between the current and previous step
             rStiffnessMatrix = rStiffnessMatrixPrevious - rStiffnessMatrix;
 
+            // Symmetrice matrices if enabled
+            // The ublas transpose function is called manually, because it is missing in the corresponding space
+            if( mMakeMatricesSymmetricFlag ){
+                rStiffnessMatrix = 0.5 * ( rStiffnessMatrix + boost::numeric::ublas::trans(rStiffnessMatrix) );
+                rStiffnessMatrixPrevious = 0.5 * ( rStiffnessMatrixPrevious + boost::numeric::ublas::trans(rStiffnessMatrixPrevious) );
+            }
+
             this->pGetEigenSolver()->GetLinearSystemSolver()->Solve(
                 rStiffnessMatrixPrevious,
                 rStiffnessMatrix,
@@ -744,6 +751,8 @@ private:
 
     double mLambda = 0.0;
     double mLambdaPrev = 1.0;
+
+    bool mMakeMatricesSymmetricFlag;
 
     ///@}
     ///@name Private Operators

@@ -22,7 +22,6 @@
         "material_import_settings" :{
             "materials_filename": "mpc_contact_tests/3D_contact_patch_matching_test_materials.json"
         },
-        "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"	         : true,
@@ -159,7 +158,6 @@
                 "check_variables"     : ["REACTION"],
                 "input_file_name"     : "mpc_contact_tests/3D_contact_patch_matching_test_results_LM.json",
                 "model_part_name"     : "Structure.Contact_Part",
-                "historical_value"    : false,
                 "time_frequency"      : 0.5
             }
         }
@@ -270,7 +268,6 @@
             "output_variables"     : ["REACTION"],
             "output_file_name"     : "mpc_contact_tests/3D_contact_patch_matching_test_results_LM.json",
             "model_part_name"      : "Structure.Contact_Part",
-            "historical_value"     : false,
             "time_frequency"       : 0.5
         }
     }

@@ -27,7 +27,6 @@
         "time_stepping"                      : {
             "time_step" : 0.05
         },
-        "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
@@ -146,6 +145,7 @@
                 "model_part_name"             : "Structure",
                 "assume_master_slave"         : { "0" : ["Parts_Parts_Auto1"]},
                 "contact_model_part"          : { "0" : ["CONTACT_Contact_Auto1"]},
+                "friction_coefficients"       : { "0" : 0.001},
                 "contact_type"                : "FrictionalPureSlip"
             }
         }],

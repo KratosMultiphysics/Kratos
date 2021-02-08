@@ -6,37 +6,12 @@
         "echo_level"      : 0,
         "end_time"        : 0.095
     },
-    "output_configuration"             : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteUndeformed",
-                "WriteConditionsFlag"   : "WriteElementsOnly",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "time",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
-            "body_output"         : false,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["VELOCITY","PRESSURE"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
-    },
-    "restart_options"                  : {
-        "SaveRestart"      : "False",
-        "RestartFrequency" : 0,
-        "LoadRestart"      : "False",
-        "Restart_Step"     : 0
-    },
     "solver_settings"                  : {
         "solver_type"                  : "Monolithic",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
+            "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test",
+            "partition_in_memory" : true
         },
         "material_import_settings": {
             "materials_filename": "AdjointVMSSensitivity2DTest/cylinder_test_materials.json"
@@ -144,7 +119,7 @@
                 "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "mpi_cylinder_test_probe1.dat",
-                    "folder_name": "AdjointVMSSensitivity2DTest",
+                    "output_path": "AdjointVMSSensitivity2DTest",
                     "write_buffer_size" : 1
                 },
                 "output_variables" : [
@@ -162,7 +137,7 @@
                 "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "mpi_cylinder_test_probe2.dat",
-                    "folder_name": "AdjointVMSSensitivity2DTest",
+                    "output_path": "AdjointVMSSensitivity2DTest",
                     "write_buffer_size" : 1
                 },
                 "output_variables" : [

@@ -142,6 +142,10 @@ public:
         IndexType IntegrationPointIndex,
         GeometryData::IntegrationMethod ThisMethod) const override
     {
+        KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex != 0)
+            << "Trying to access Normal of QuadraturePointCurveOnSurface "
+            << "with an integration point index != 0." << std::endl;
+
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
 
@@ -166,6 +170,10 @@ public:
         IndexType IntegrationPointIndex,
         GeometryData::IntegrationMethod ThisMethod) const override
     {
+        KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex != 0)
+            << "Trying to access DeterminantOfJacobian of QuadraturePointCurveOnSurface "
+            << "with an integration point index != 0." << std::endl;
+
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
 
@@ -173,6 +181,22 @@ public:
         array_1d<double, 3> a_2 = column(J, 1);
 
         return norm_2(a_1 * mLocalTangentsU + a_2 * mLocalTangentsV);
+    }
+
+    /* @brief returns the respective segment length of this
+     *        quadrature point. Length of vector always 1.
+     * @param rResult vector of results of this quadrature point.
+     */
+    Vector& DeterminantOfJacobian(
+        Vector& rResult,
+        GeometryData::IntegrationMethod ThisMethod) const override
+    {
+        if (rResult.size() != 1)
+            rResult.resize(1, false);
+
+        rResult[0] = this->DeterminantOfJacobian(0, ThisMethod);
+
+        return rResult;
     }
 
     ///@}

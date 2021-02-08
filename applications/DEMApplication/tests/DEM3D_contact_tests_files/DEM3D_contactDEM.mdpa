@@ -7,7 +7,8 @@ Begin Properties 1
     PARTICLE_DENSITY 4000.0
     YOUNG_MODULUS 1000000.0
     POISSON_RATIO 0.20
-    FRICTION 0.577350269189494
+    STATIC_FRICTION 0.577350269189494
+    DYNAMIC_FRICTION 0.577350269189494
     COEFFICIENT_OF_RESTITUTION 0.2
     PARTICLE_MATERIAL 2
     ROLLING_FRICTION 0.01
@@ -25,10 +26,10 @@ End Nodes
 
 
 Begin Elements SphericParticle3D// GUI group identifier: Body
-        1          1    14 
-        4          1    21 
-        5          1    20 
-        6          1    15 
+        1          1    14
+        4          1    21
+        5          1    20
+        6          1    15
 End Elements
 
 Begin NodalData RADIUS // GUI group identifier: Body

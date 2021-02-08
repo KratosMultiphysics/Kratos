@@ -23,10 +23,10 @@ The Trilinos application also provides __MPI versions of most of the core classe
 
 #### Convergence Criterias
 - TrilinosDisplacementCriteria
-- TrilinosUPCriteria
 - TrilinosResidualCriteria
 - TrilinosAndCriteria
 - TrilinosOrCriteria
+- TrilinosMixedGenericCriteria
 
 #### Solving Strategies
 - TrilinosSolvingStrategy

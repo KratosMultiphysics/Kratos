@@ -124,9 +124,11 @@ public:
         {
             const double eigenfrequency = std::sqrt(GetEigenvalue(mTracedEigenfrequencyIds[i])) / (2*Globals::Pi);
             resp_function_value += mWeightingFactors[i] * eigenfrequency;
-            KRATOS_INFO("") << std::setw(5)  << mTracedEigenfrequencyIds[i]
-                      << std::setw(23) << eigenfrequency
-                      << std::setw(20) << mWeightingFactors[i]<< std::endl;
+            std::stringstream msg;
+            msg << std::setw(5) << mTracedEigenfrequencyIds[i]
+                << std::setw(23) << eigenfrequency
+                << std::setw(20) << mWeightingFactors[i]<< std::endl;
+            KRATOS_INFO("") << msg.str();
         }
 
         return resp_function_value;
@@ -262,7 +264,7 @@ protected:
     // --------------------------------------------------------------------------
     void PerformSemiAnalyticSensitivityAnalysis()
     {
-        ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
         // Predetermine all necessary eigenvalues and prefactors for gradient calculation
         const std::size_t num_of_traced_eigenfrequencies = mTracedEigenfrequencyIds.size();
@@ -293,7 +295,7 @@ protected:
             for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                 DetermineEigenvectorOfElement(elem_i, mTracedEigenfrequencyIds[i], eigenvectors_of_element[i], CurrentProcessInfo);
 
-            const std::vector<FiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z};
+            const std::vector<const FiniteDifferenceUtility::array_1d_component_type*> coord_directions = {&SHAPE_SENSITIVITY_X, &SHAPE_SENSITIVITY_Y, &SHAPE_SENSITIVITY_Z};
 
             // Computation of derivative of state equation w.r.t. node coordinates
             for(auto& node_i : elem_i.GetGeometry())
@@ -304,8 +306,8 @@ protected:
 
                 for(std::size_t coord_dir_i = 0; coord_dir_i < domain_size; coord_dir_i++)
                 {
-                    FiniteDifferenceUtility::CalculateLeftHandSideDerivative(elem_i, LHS, coord_directions[coord_dir_i], node_i, mDelta, derived_LHS, CurrentProcessInfo);
-                    FiniteDifferenceUtility::CalculateMassMatrixDerivative(elem_i, mass_matrix, coord_directions[coord_dir_i], node_i, mDelta, derived_mass_matrix, CurrentProcessInfo);
+                    FiniteDifferenceUtility::CalculateLeftHandSideDerivative(elem_i, LHS, *coord_directions[coord_dir_i], node_i, mDelta, derived_LHS, CurrentProcessInfo);
+                    FiniteDifferenceUtility::CalculateMassMatrixDerivative(elem_i, mass_matrix, *coord_directions[coord_dir_i], node_i, mDelta, derived_mass_matrix, CurrentProcessInfo);
 
                     for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                     {
@@ -330,7 +332,7 @@ protected:
     }
 
     // --------------------------------------------------------------------------
-    void DetermineEigenvectorOfElement(ModelPart::ElementType& rElement, const int eigenfrequency_id, Vector& rEigenvectorOfElement, ProcessInfo& CurrentProcessInfo)
+    void DetermineEigenvectorOfElement(ModelPart::ElementType& rElement, const int eigenfrequency_id, Vector& rEigenvectorOfElement, const ProcessInfo& CurrentProcessInfo)
     {
         std::vector<std::size_t> eq_ids;
         rElement.EquationIdVector(eq_ids, CurrentProcessInfo);

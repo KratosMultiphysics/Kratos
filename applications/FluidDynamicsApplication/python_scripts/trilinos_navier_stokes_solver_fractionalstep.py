@@ -17,7 +17,7 @@ def CreateSolver(model, custom_settings):
 class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ## Default settings string in Json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -62,7 +62,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
             "use_slip_conditions": true
         }""")
 
-        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverFractionalStep, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverFractionalStep, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
@@ -195,15 +195,17 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
 
         # Create the fractional step strategy
         if self.settings["consider_periodic_conditions"].GetBool():
-            solution_strategy = TrilinosFluid.TrilinosFSStrategy(
+            solution_strategy = TrilinosFluid.TrilinosFractionalStepStrategy(
                 computing_model_part,
                 fractional_step_settings,
                 self.settings["predictor_corrector"].GetBool(),
+                self.settings["compute_reactions"].GetBool(),
                 KratosCFD.PATCH_INDEX)
         else:
-            solution_strategy = TrilinosFluid.TrilinosFSStrategy(
+            solution_strategy = TrilinosFluid.TrilinosFractionalStepStrategy(
                 computing_model_part,
                 fractional_step_settings,
-                self.settings["predictor_corrector"].GetBool())
+                self.settings["predictor_corrector"].GetBool(),
+                self.settings["compute_reactions"].GetBool())
 
         return solution_strategy

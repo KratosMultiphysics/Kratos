@@ -22,7 +22,8 @@ namespace Kratos
 {
 MPCContactSearchWrapperProcess::MPCContactSearchWrapperProcess(
     ModelPart& rMainModelPart,
-    Parameters ThisParameters
+    Parameters ThisParameters,
+    Properties::Pointer pPairedProperties
     )
 {
     // The default parameters
@@ -57,17 +58,17 @@ MPCContactSearchWrapperProcess::MPCContactSearchWrapperProcess(
     // Creating the mapper
     if (dimension == 2) {
         // 2D
-        mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<2, 2>>(rMainModelPart, ThisParameters);
+        mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<2, 2>>(rMainModelPart, ThisParameters, pPairedProperties);
     } else {
         // 3D
         if (size_1 == 3 && size_2 == 3) {
-            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 3>>(rMainModelPart, ThisParameters);
+            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 3>>(rMainModelPart, ThisParameters, pPairedProperties);
         } else if (size_1 == 4 && size_2 == 4) {
-            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 4>>(rMainModelPart, ThisParameters);
+            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 4>>(rMainModelPart, ThisParameters, pPairedProperties);
         } else if (size_1 == 4 && size_2 == 3) {
-            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 3, 4>>(rMainModelPart, ThisParameters);
+            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 3, 4>>(rMainModelPart, ThisParameters, pPairedProperties);
         } else if (size_1 == 3 && size_2 == 4) {
-            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 4, 3>>(rMainModelPart, ThisParameters);
+            mpContactProcess = Kratos::make_shared<MPCContactSearchProcess<3, 4, 3>>(rMainModelPart, ThisParameters, pPairedProperties);
         }
     }
 }

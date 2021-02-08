@@ -105,6 +105,39 @@ namespace Testing {
     KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 3);
   }
 
+  /** Checks if the edges are correct.
+  * Checks if the edges are correct.
+  */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Edges, KratosCoreGeometriesFastSuite) {
+      auto p_geom = GeneratePointsRightTriangle2D3();
+
+      const auto& r_edges = p_geom->GenerateEdges();
+      
+      KRATOS_CHECK_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+      KRATOS_CHECK_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+      KRATOS_CHECK_NEAR((r_edges[0])[0].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+      KRATOS_CHECK_NEAR((r_edges[0])[1].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+      KRATOS_CHECK_NEAR((r_edges[0])[1].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+      KRATOS_CHECK_NEAR((r_edges[0])[1].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+      KRATOS_CHECK_NEAR((r_edges[1])[0].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+      KRATOS_CHECK_NEAR((r_edges[1])[0].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+      KRATOS_CHECK_NEAR((r_edges[1])[0].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+      KRATOS_CHECK_NEAR((r_edges[1])[1].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+      KRATOS_CHECK_NEAR((r_edges[1])[1].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+      KRATOS_CHECK_NEAR((r_edges[1])[1].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+
+      KRATOS_CHECK_NEAR((r_edges[2])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+      KRATOS_CHECK_NEAR((r_edges[2])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+      KRATOS_CHECK_NEAR((r_edges[2])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+
+      KRATOS_CHECK_NEAR((r_edges[2])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+      KRATOS_CHECK_NEAR((r_edges[2])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+      KRATOS_CHECK_NEAR((r_edges[2])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+  }
+
   /** Checks if the number of faces is correct.
    * Checks if the number of faces is correct.
    */

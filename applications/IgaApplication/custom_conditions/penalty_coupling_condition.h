@@ -82,8 +82,7 @@ public:
     {};
 
     /// Destructor.
-    virtual ~PenaltyCouplingCondition() override
-    {};
+    virtual ~PenaltyCouplingCondition() = default;
 
     ///@}
     ///@name Life Cycle
@@ -123,7 +122,7 @@ public:
     */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         MatrixType left_hand_side_matrix = Matrix(0, 0);
 
@@ -139,7 +138,7 @@ public:
     */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         VectorType right_hand_side_vector = Vector(0);
 
@@ -158,7 +157,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
             rCurrentProcessInfo, true, true);
@@ -171,8 +170,8 @@ public:
     */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    ) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
 
     /**
     * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -181,8 +180,8 @@ public:
     */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    ) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
 
     /**
     * This functions calculates both the RHS and the LHS
@@ -195,7 +194,7 @@ public:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     );
@@ -219,7 +218,7 @@ public:
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const override {
         pGetGeometry()->PrintData(rOStream);
     }
 
@@ -247,6 +246,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PENALTY_COUPLING_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_PENALTY_COUPLING_CONDITION_H_INCLUDED  defined
 
 

@@ -1,23 +1,16 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
-import KratosMultiphysics.ShallowWaterApplication.convergence_output_process as convergence_output
+try:
+    import KratosMultiphysics.ShallowWaterApplication.output.convergence_output_process as convergence_output
+    import h5py
+    h5py_available = True
+except ImportError:
+    h5py_available = False
 
-import os
-import h5py
-
-def GetFilePath(fileName):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
-
+@KratosUnittest.skipIfApplicationsNotAvailable("StatisticsApplication")
 class TestConvergenceOutputProcess(KratosUnittest.TestCase):
-    def test_single_output_process(self):
-        self._ExecuteBasicConvergenceOutputProcessCheck()
-
-    def test_two_attributes_output_process(self):
-        self._ExecuteMultipleConvergenceOutputProcessCheck()
 
     def tearDown(self):
         kratos_utils.DeleteFileIfExisting("output_file")
@@ -39,7 +32,9 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
         self.assertEqual(h5file[dset_name_a].attrs[attribute_key], value_a)
         self.assertEqual(h5file[dset_name_b].attrs[attribute_key], value_b)
 
-    def _ExecuteBasicConvergenceOutputProcessCheck(self):
+    def testSingleConvergenceOutputProcessCheck(self):
+        if not h5py_available:
+            self.skipTest('h5py is not available')
         settings = KM.Parameters('''{
             "Parameters"         : {
                 "model_part_name"            : "model_part",
@@ -48,8 +43,7 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
                 "analysis_attributes"        : {
                     "density"                     : 1.0
                 },
-                "convergence_variables_list" : ["ERROR_RATIO","NODAL_ERROR"],
-                "weighting_variable"         : "NODAL_AREA"
+                "convergence_variables_list" : ["ERROR_RATIO","NODAL_ERROR"]
             }
         }''')
         variables = [KM.ERROR_RATIO, KM.NODAL_ERROR]
@@ -64,7 +58,9 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
 
         kratos_utils.DeleteFileIfExisting(settings["Parameters"]["file_name"].GetString() + ".hdf5")
 
-    def _ExecuteMultipleConvergenceOutputProcessCheck(self):
+    def testMultipleConvergenceOutputProcessCheck(self):
+        if not h5py_available:
+            self.skipTest('h5py is not available')
         settings = KM.Parameters('''{
             "Parameters"         : {
                 "model_part_name"            : "model_part",
@@ -75,8 +71,7 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
                     "dummy_flag"                 : true,
                     "dummy_string"               : "string"
                 },
-                "convergence_variables_list" : ["ERROR_RATIO"],
-                "weighting_variable"         : "NODAL_AREA"
+                "convergence_variables_list" : ["ERROR_RATIO"]
             }
         }''')
         variables = [KM.ERROR_RATIO]

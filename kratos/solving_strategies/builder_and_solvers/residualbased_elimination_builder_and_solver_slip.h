@@ -18,18 +18,15 @@
 /* System includes */
 #include <set>
 
-#ifdef _OPENMP
+/* External includes */
+#ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
 #endif
-#include "utilities/openmp_utils.h"
-
-
-/* External includes */
-
 
 /* Project includes */
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
@@ -211,8 +208,8 @@ public:
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
         //create a partition of the element array
-        int number_of_threads = OpenMPUtils::GetNumThreads();
-        double start_prod = OpenMPUtils::GetCurrentTime();
+        int number_of_threads = ParallelUtilities::GetNumThreads();
+        const auto timer = BuiltinTimer();
 
 #ifdef _OPENMP
 
@@ -273,7 +270,7 @@ public:
             //vector containing the localization in the system of the different
             //terms
             Element::EquationIdVectorType EquationId;
-            //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            //const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
             GlobalPointersVector< Node < 3 > >::iterator it_begin = mActiveNodes.begin() + nodes_partition[k];
             GlobalPointersVector< Node < 3 > >::iterator it_end = mActiveNodes.begin() + nodes_partition[k + 1];
@@ -340,11 +337,8 @@ public:
             }
         }
 
-
-        if (this->GetEchoLevel() > 0)
-        {
-            double stop_prod = OpenMPUtils::GetCurrentTime();
-            std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
+        if (this->GetEchoLevel() > 0) {
+            std::cout << "parallel building time: " << timer.ElapsedSeconds() << std::endl;
         }
 
 #ifdef _OPENMP
@@ -480,13 +474,14 @@ public:
                 ParallelConstructGraph(A);
             }
         }
-        if (Dx.size() != BaseType::mEquationSystemSize)
+        if (Dx.size() != BaseType::mEquationSystemSize) {
             Dx.resize(BaseType::mEquationSystemSize, false);
-        if (b.size() != BaseType::mEquationSystemSize)
+        }
+        TSparseSpace::SetToZero(Dx);
+        if (b.size() != BaseType::mEquationSystemSize) {
             b.resize(BaseType::mEquationSystemSize, false);
-
-        //
-        // KRATOS_WATCH("builder 459")
+        }
+        TSparseSpace::SetToZero(b);
 
 
         //if needed resize the vector for the calculation of reactions
@@ -586,7 +581,7 @@ protected:
         std::vector< std::vector<std::size_t> > index_list(BaseType::mEquationSystemSize);
         // KRATOS_WATCH("inside PArallel Construct Graph")
 
-        int number_of_threads = OpenMPUtils::GetNumThreads();
+        int number_of_threads = ParallelUtilities::GetNumThreads();
 
         unsigned int pos_x = (mActiveNodes.begin())->GetDofPosition(mrVar_x);
         unsigned int pos_y = (mActiveNodes.begin())->GetDofPosition(mrVar_y);
@@ -834,12 +829,12 @@ protected:
         //getting the array of the conditions
         ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
 
-        int number_of_threads = OpenMPUtils::GetNumThreads();
+        int number_of_threads = ParallelUtilities::GetNumThreads();
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
 
-        double start_prod = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
 
         unsigned int pos = (r_model_part.Nodes().begin())->GetDofPosition(rLocalVar);
 
@@ -853,12 +848,9 @@ protected:
             //vector containing the localization in the system of the different
             //terms
             Element::EquationIdVectorType EquationId;
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
             typename ElementsArrayType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
             typename ElementsArrayType::ptr_iterator it_end = pElements.ptr_begin() + element_partition[k + 1];
-
-
-
 
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
@@ -899,7 +891,7 @@ protected:
 
             Condition::EquationIdVectorType EquationId;
 
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
             typename ConditionsArrayType::ptr_iterator it_begin = ConditionsArray.ptr_begin() + condition_partition[k];
             typename ConditionsArrayType::ptr_iterator it_end = ConditionsArray.ptr_begin() + condition_partition[k + 1];
@@ -931,10 +923,8 @@ protected:
             }
         }
 
-        if (this->GetEchoLevel() > 0)
-        {
-            double stop_prod = OpenMPUtils::GetCurrentTime();
-            std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
+        if (this->GetEchoLevel() > 0) {
+            std::cout << "parallel building time: " << timer.ElapsedSeconds() << std::endl;
         }
 
         KRATOS_CATCH("")
