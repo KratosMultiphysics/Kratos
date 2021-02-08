@@ -435,8 +435,8 @@ protected:
 
 private:
     typename BinBasedFastPointLocator<TDim>::Pointer mpSearchStructure;
-    const bool mPartialDt = false;
-    const bool mActivateLimiter = false;
+    const bool mPartialDt;
+    const bool mActivateLimiter;
 
 
 
