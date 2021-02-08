@@ -21,6 +21,7 @@
 #include "includes/constitutive_law.h"
 
 // Application includes
+#include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/fluid_adjoint_test_utilities.h"
 #include "custom_utilities/rans_variable_utilities.h"
 #include "includes/cfd_variables.h"
@@ -39,33 +40,33 @@ ModelPart& CreateRansKEpsilonQSVMSRFCAdjoint2D3NModelPart(
     const std::string& rElementName)
 {
     const auto& set_variable_values = [](ModelPart& rModelPart) {
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 50.0, 100.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY, 20.0, 30.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY_RATE, 15.0, 25.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 10.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE_2, 50.0, 100.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, NORMAL, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 50.0, 100.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY, 20.0, 30.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY_RATE, 15.0, 25.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE_2, 50.0, 100.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, NORMAL, 2.0, 3.0, 0);
 
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 5.0, 10.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY, 2.0, 3.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 2.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE, 10.0, 100.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE_2, 5.0, 10.0, 1);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, NORMAL, 2.0, 3.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 5.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY, 2.0, 3.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 2.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE, 10.0, 100.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE_2, 5.0, 10.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, NORMAL, 2.0, 3.0, 1);
 
         // following values do not need to be set when OSS projections are supported by Adjoints
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADVPROJ, 2.0, 3.0, 0);
-        FluidAdjointTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, DIVPROJ, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADVPROJ, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, DIVPROJ, 2.0, 3.0, 0);
 
         auto& r_process_info = rModelPart.GetProcessInfo();
         r_process_info.SetValue(DOMAIN_SIZE, 2);
@@ -131,31 +132,25 @@ ModelPart& CreateRansKEpsilonQSVMSRFCAdjoint2D3NModelPart(
         rNode.AddDof(ADJOINT_FLUID_VECTOR_1_Z);
     };
 
-    const auto& get_element_properties = [](ModelPart& rModelPart) {
-        Properties::Pointer p_element_properties = rModelPart.CreateNewProperties(0);
-
+    const auto& set_element_properties = [](ModelPart::PropertiesType& rProperties) {
         Parameters cl_parameters(R"(
         {
             "name"              : "RansNewtonian2DLaw"
         })");
-        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get("RansNewtonian2DLaw").Create(cl_parameters, *p_element_properties);
-
-        p_element_properties->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
-        p_element_properties->SetValue(DYNAMIC_VISCOSITY, 1.5);
-        p_element_properties->SetValue(DENSITY, 1.8);
-
-        return p_element_properties;
+        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get("RansNewtonian2DLaw").Create(cl_parameters, rProperties);
+        rProperties.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+        rProperties.SetValue(DYNAMIC_VISCOSITY, 1.5);
+        rProperties.SetValue(DENSITY, 1.8);
     };
 
-    const auto& get_condition_properties = [](ModelPart& rModelPart) {
-        Properties::Pointer p_cond_properties = rModelPart.CreateNewProperties(1);
-        return p_cond_properties;
+    const auto& set_condition_properties = [](ModelPart::PropertiesType& rProperties) {
     };
 
-    auto& r_model_part = FluidAdjointTestUtilities::CreateTestModelPart(
-        rModel, rElementName, "LineCondition2D2N", get_element_properties,
-        get_condition_properties, add_solution_step_variables, add_dofs);
+    auto& r_model_part = FluidTestUtilities::CreateTestModelPart(
+        rModel, rElementName, rElementName, "LineCondition2D2N", set_element_properties,
+        set_condition_properties, add_solution_step_variables, add_dofs);
     set_variable_values(r_model_part);
+
     return r_model_part;
 }
 
@@ -185,9 +180,9 @@ void RunRansKEpsilonQSVMSRFCAdjointTest(
 
         for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
             auto& r_node = *(rModelPart.NodesBegin() + i_node);
-            r_node.SetValue(RELAXED_ACCELERATION, FluidAdjointTestUtilities::DataTypeUtilities<array_1d<double, 3>>::ComputeRelaxedVariableRate(bossak_alpha, ACCELERATION, r_node));
-            r_node.FastGetSolutionStepValue(RANS_AUXILIARY_VARIABLE_1) = FluidAdjointTestUtilities::DataTypeUtilities<double>::ComputeRelaxedVariableRate(bossak_alpha, TURBULENT_KINETIC_ENERGY_RATE, r_node);
-            r_node.FastGetSolutionStepValue(RANS_AUXILIARY_VARIABLE_2) = FluidAdjointTestUtilities::DataTypeUtilities<double>::ComputeRelaxedVariableRate(bossak_alpha, TURBULENT_ENERGY_DISSIPATION_RATE_2, r_node);
+            r_node.SetValue(RELAXED_ACCELERATION, FluidAdjointTestUtilities::CalculateRelaxedVariableRate(bossak_alpha, ACCELERATION, r_node));
+            r_node.FastGetSolutionStepValue(RANS_AUXILIARY_VARIABLE_1) = FluidAdjointTestUtilities::CalculateRelaxedVariableRate(bossak_alpha, TURBULENT_KINETIC_ENERGY_RATE, r_node);
+            r_node.FastGetSolutionStepValue(RANS_AUXILIARY_VARIABLE_2) = FluidAdjointTestUtilities::CalculateRelaxedVariableRate(bossak_alpha, TURBULENT_ENERGY_DISSIPATION_RATE_2, r_node);
 
             const double k = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
             const double epsilon = r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
@@ -195,7 +190,7 @@ void RunRansKEpsilonQSVMSRFCAdjointTest(
         }
     };
 
-    FluidAdjointTestUtilities::ContainerDataTypeUtilities<ModelPart::ElementsContainerType, TDataType>::RunAdjointEntityTest(
+    FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityDerivativesTest(
         r_primal_model_part, r_adjoint_model_part, update_function, rVariable,
         rDerivativesRetrievalFunction, EquationOffset, DerivativesOffset, Delta, Tolerance);
 }
@@ -210,7 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonQSVMSRFCAdjointGetDofListTest, KratosRansF
     Model model;
     auto& model_part = CreateRansKEpsilonQSVMSRFCAdjoint2D3NModelPart(model, "RansKEpsilonQSVMSRFCAdjoint2D3N");
 
-    FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ElementsContainerType>::RunAdjointEntityGetDofListTest(
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetDofListTest(
         model_part,
         {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_SCALAR_1, &RANS_SCALAR_1_ADJOINT_1, &RANS_SCALAR_2_ADJOINT_1});
 }
@@ -220,7 +215,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonQSVMSRFCAdjointEquationIdVectorTest, Krato
     Model model;
     auto& model_part = CreateRansKEpsilonQSVMSRFCAdjoint2D3NModelPart(model, "RansKEpsilonQSVMSRFCAdjoint2D3N");
 
-    FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ElementsContainerType>::RunAdjointEntityEquationIdVectorTest(
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityEquationIdVectorTest(
         model_part,
         {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_SCALAR_1, &RANS_SCALAR_1_ADJOINT_1, &RANS_SCALAR_2_ADJOINT_1});
 }
@@ -230,7 +225,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonQSVMSRFCAdjointGetValuesVectorTest, Kratos
     Model model;
     auto& model_part = CreateRansKEpsilonQSVMSRFCAdjoint2D3NModelPart(model, "RansKEpsilonQSVMSRFCAdjoint2D3N");
 
-    FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ElementsContainerType>::RunAdjointEntityGetValuesVectorTest(
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetValuesVectorTest(
         model_part,
         {&ADJOINT_FLUID_VECTOR_1_X, &ADJOINT_FLUID_VECTOR_1_Y, &ADJOINT_FLUID_SCALAR_1, &RANS_SCALAR_1_ADJOINT_1, &RANS_SCALAR_2_ADJOINT_1});
 }
@@ -240,7 +235,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonQSVMSRFCAdjointGetFirstDerivativesVectorTe
     Model model;
     auto& model_part = CreateRansKEpsilonQSVMSRFCAdjoint2D3NModelPart(model, "RansKEpsilonQSVMSRFCAdjoint2D3N");
 
-    FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ElementsContainerType>::RunAdjointEntityGetFirstDerivativesVectorTest(
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetFirstDerivativesVectorTest(
         model_part,
         [](const ModelPart::NodeType& rNode) -> Vector { return ZeroVector(5); });
 }
@@ -251,7 +246,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonQSVMSRFCAdjointGetSecondDerivativesVectorT
     auto& model_part = CreateRansKEpsilonQSVMSRFCAdjoint2D3NModelPart(model, "RansKEpsilonQSVMSRFCAdjoint2D3N");
 
     Vector temp(5);
-    FluidAdjointTestUtilities::ContainerUtilities<ModelPart::ElementsContainerType>::RunAdjointEntityGetSecondDerivativesVectorTest(
+    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetSecondDerivativesVectorTest(
         model_part,
         [&](const ModelPart::NodeType& rNode) -> Vector {
             const auto& value = rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3);
@@ -341,7 +336,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonQSVMSRFCAdjointCalculateFirstDerivativesLH
         rElement.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonKRFC2D3N", VELOCITY, derivatives_method, 3, 0, 1e-6, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonKRFC2D3N", VELOCITY, derivatives_method, 3, 0, 1e-6, 1e-4);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonQSVMSRFCAdjointCalculateFirstDerivativesLHS_KP, KratosRansFastSuite)
