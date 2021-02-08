@@ -50,7 +50,7 @@ namespace Kratos
         : Element( NewId, pGeometry, pProperties )
         , mResidualType( TheResidualType )
     {
-
+        this->SetProperties(pProperties);
     }
 
     //******************************COPY CONSTRUCTOR**************************************//
