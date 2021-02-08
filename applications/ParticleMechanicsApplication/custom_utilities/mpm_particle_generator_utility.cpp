@@ -751,12 +751,18 @@ namespace MPMParticleGeneratorUtility
 
     void GetIntegrationPointArea(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes)
     {
-        const double area = rGeom.Area();
         auto int_points = rGeom.IntegrationPoints(IntegrationMethod);
         if (rIntVolumes.size() != int_points.size()) rIntVolumes.resize(int_points.size(),false);
+        
+        // Computing the Jacobian
+        Vector jac_vec(int_points.size());
+        rGeom.DeterminantOfJacobian(jac_vec,IntegrationMethod);
+        
         for (size_t i = 0; i < int_points.size(); ++i) {
-            rIntVolumes[i] = area * 0.5 * int_points[i].Weight();
+            rIntVolumes[i] = jac_vec[i] * int_points[i].Weight();
+            
         }
+        
     }
 
     void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
