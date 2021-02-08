@@ -264,6 +264,21 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+        auto& r_geometry =  fluid_part.ElementsBegin()->GetGeometry();
+        for (unsigned int i = 0; i < r_geometry.size(); ++i)
+        {
+            r_geometry[i].SetValue(DISTANCE, r_elem_dist[i]);
+
+        }
+
+        GidIO<> gid_io_fluid("single_point_tangent_2d", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
+		gid_io_fluid.InitializeMesh(0.00);
+		gid_io_fluid.WriteMesh(fluid_part.GetMesh());
+		gid_io_fluid.FinalizeMesh();
+		gid_io_fluid.InitializeResults(0, fluid_part.GetMesh());
+		gid_io_fluid.WriteNodalResultsNonHistorical(DISTANCE, fluid_part.Nodes(), 0);
+		gid_io_fluid.FinalizeResults();
+
         KRATOS_CHECK_NEAR(r_elem_dist[0], 1.0, 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[1], std::sqrt(2), 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[2], 0.0, 1e-6);
@@ -344,10 +359,23 @@ namespace Testing {
             for (unsigned int i = 0; i < r_elem_dist.size(); i++) {
                 auto& r_nodal_dist = r_elem.GetGeometry()[i].GetValue(DISTANCE);
                 if (r_elem_dist[i] < r_nodal_dist) {
-                    r_elem.GetGeometry()[i].SetValue(DISTANCE, r_elem_dist[i]);
+                    if (r_elem.GetGeometry()[i].Y() < 0.0 && r_elem_dist[i] > 0)
+                        r_elem.GetGeometry()[i].SetValue(DISTANCE, -1*r_elem_dist[i]);
+                    else
+                        r_elem.GetGeometry()[i].SetValue(DISTANCE, r_elem_dist[i]);
                 }
             }
         }
+
+
+        GidIO<> gid_io_fluid("multiple_tangent_2d", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
+		gid_io_fluid.InitializeMesh(0.00);
+		gid_io_fluid.WriteMesh(fluid_part.GetMesh());
+		gid_io_fluid.FinalizeMesh();
+		gid_io_fluid.InitializeResults(0, fluid_part.GetMesh());
+		gid_io_fluid.WriteNodalResultsNonHistorical(DISTANCE, fluid_part.Nodes(), 0);
+		gid_io_fluid.FinalizeResults();
+
         // Check values
         for (auto& r_node : fluid_part.Nodes()) {
             KRATOS_CHECK_NEAR(r_node.GetValue(DISTANCE), r_node.Y(), 1e-6);
