@@ -63,7 +63,6 @@ namespace Kratos
             geom[3] = p_node_4;
             auto pgeom = Kratos::make_shared<Quadrilateral2D4<NodeType>>(PointerVector<NodeType>{geom});
 
-            auto elem = TestElement(0, pgeom, p_prop, TestElement::ResidualType::LINEAR);
             auto p_elem = Kratos::make_intrusive<TestElement>( 0, pgeom, p_prop, TestElement::ResidualType::LINEAR );
             this_model_part.AddElement(p_elem);
 
@@ -146,7 +145,6 @@ namespace Kratos
             geom[3] = p_node_4;
             auto pgeom = Kratos::make_shared<Tetrahedra3D4<NodeType>>(PointerVector<NodeType>{geom});
 
-            auto elem = TestElement(0, pgeom, p_prop, TestElement::ResidualType::LINEAR);
             auto p_elem = Kratos::make_intrusive<TestElement>( 0, pgeom, p_prop, TestElement::ResidualType::LINEAR );
             this_model_part.AddElement(p_elem);
 
