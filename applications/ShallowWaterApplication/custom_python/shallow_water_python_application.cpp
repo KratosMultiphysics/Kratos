@@ -53,14 +53,14 @@ namespace Python
     ;
 
     py::enum_<Formulation>(m, "Formulation")
-    .value("REDUCED_VARIABLES", REDUCED_VARIABLES)
-    .value("CONSERVED_VARIABLES", CONSERVED_VARIABLES)
+    .value("PrimitiveVariables", PrimitiveVariables)
+    .value("ConservativeVariables", ConservativeVariables)
     ;
 
     py::enum_<Variables>(m, "Variables")
-    .value("FREE_SURFACE_VARIABLE", FREE_SURFACE_VARIABLE)
-    .value("VELOCITY_VARIABLE", VELOCITY_VARIABLE)
-    .value("FREE_SURFACE_AND_VELOCITY", FREE_SURFACE_AND_VELOCITY)
+    .value("FreeSurfaceVariable", FreeSurfaceVariable)
+    .value("VelocityVariable", VelocityVariable)
+    .value("FreeSurfaceAndVelocity", FreeSurfaceAndVelocity)
     ;
 
     // Registering variables in python
