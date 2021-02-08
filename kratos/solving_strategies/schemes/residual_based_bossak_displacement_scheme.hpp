@@ -219,13 +219,10 @@ public:
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
         const auto it_node_begin = rModelPart.Nodes().begin();
 
-        #pragma omp parallel for
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+        IndexPartition<std::size_t>(num_nodes).for_each(array_1d<double,3>(), [&](std::size_t Index, array_1d<double,3>& rDeltaDisplacement){
+            auto it_node = it_node_begin + Index;
 
-            array_1d<double, 3 > delta_displacement;
-
-            noalias(delta_displacement) = it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            noalias(rDeltaDisplacement) = it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
             array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
             const array_1d<double, 3>& r_previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
@@ -233,9 +230,9 @@ public:
             array_1d<double, 3>& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
             const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
 
-            UpdateVelocity(r_current_velocity, delta_displacement, r_previous_velocity, r_previous_acceleration);
-            UpdateAcceleration(r_current_acceleration, delta_displacement, r_previous_velocity, r_previous_acceleration);
-        }
+            UpdateVelocity(r_current_velocity, rDeltaDisplacement, r_previous_velocity, r_previous_acceleration);
+            UpdateAcceleration(r_current_acceleration, rDeltaDisplacement, r_previous_velocity, r_previous_acceleration);
+        });
 
         KRATOS_CATCH( "" );
     }
