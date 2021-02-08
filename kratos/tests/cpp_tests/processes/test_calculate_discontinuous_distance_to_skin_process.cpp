@@ -20,11 +20,11 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
-
+#include "includes/gid_io.h"
 namespace Kratos {
 namespace Testing {
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessHorizontalPlane2D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessHorizontalPlane2D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -61,7 +61,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist, expected_values_edge, 1.0e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximation2D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximation2D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -100,7 +100,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist, expected_values_edge, 1.0e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessCubeInCube3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessCubeInCube3D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -175,7 +175,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_dist_elem_2_edge, expected_values_elem_2_edge, 1.0e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSharpCornerInCube3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSharpCornerInCube3D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -238,7 +238,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_dist_end_edge, expected_values_end_edge, 1.0e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointTangent2D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointTangent2D, KratosDistanceSuite)
     {
         Model current_model;
 
@@ -264,12 +264,12 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], 1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], std::sqrt(2), 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[2], 0.0, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleLineTangent2D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleLineTangent2D, KratosDistanceSuite)
     {
         Model current_model;
 
@@ -300,7 +300,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleTangent2D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleTangent2D, KratosDistanceSuite)
     {
         Model current_model;
 
@@ -336,16 +336,25 @@ namespace Testing {
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part);
         disc_dist_proc.Execute();
 
-        // Check values
-        for (auto &elem : fluid_part.Elements()) {
-            const auto& r_elem_dist = elem.GetValue(ELEMENTAL_DISTANCES);
+        for (auto& r_node : fluid_part.Nodes()) {
+            r_node.SetValue(DISTANCE, std::numeric_limits<double>::max());
+        }
+        for (auto& r_elem : fluid_part.Elements()) {
+            const auto& r_elem_dist = r_elem.GetValue(ELEMENTAL_DISTANCES);
             for (unsigned int i = 0; i < r_elem_dist.size(); i++) {
-                KRATOS_CHECK_NEAR(r_elem_dist[i], elem.GetGeometry()[i].Y(), 1e-6);
+                auto& r_nodal_dist = r_elem.GetGeometry()[i].GetValue(DISTANCE);
+                if (r_elem_dist[i] < r_nodal_dist) {
+                    r_elem.GetGeometry()[i].SetValue(DISTANCE, r_elem_dist[i]);
+                }
             }
+        }
+        // Check values
+        for (auto& r_node : fluid_part.Nodes()) {
+            KRATOS_CHECK_NEAR(r_node.GetValue(DISTANCE), r_node.Y(), 1e-6);
         }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointTangent3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointTangent3D, KratosDistanceSuite)
     {
         Model current_model;
 
@@ -377,13 +386,31 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], -1.0, 1e-6);
+
+        auto& r_geometry =  fluid_part.ElementsBegin()->GetGeometry();
+        for (unsigned int i = 0; i < r_geometry.size(); ++i)
+        {
+            r_geometry[i].SetValue(DISTANCE, r_elem_dist[i]);
+
+        }
+
+        GidIO<> gid_io_fluid("single_point_tangent", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
+		gid_io_fluid.InitializeMesh(0.00);
+		gid_io_fluid.WriteMesh(fluid_part.GetMesh());
+		gid_io_fluid.FinalizeMesh();
+		gid_io_fluid.InitializeResults(0, fluid_part.GetMesh());
+		gid_io_fluid.WriteNodalResultsNonHistorical(DISTANCE, fluid_part.Nodes(), 0);
+		gid_io_fluid.FinalizeResults();
+
+        KRATOS_WATCH(r_elem_dist)
+
+        KRATOS_CHECK_NEAR(r_elem_dist[0], 1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], std::sqrt(2), 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], std::sqrt(3), 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[3], 0.0, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleLineTangent3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleLineTangent3D, KratosDistanceSuite)
     {
         Model current_model;
 
@@ -416,11 +443,11 @@ namespace Testing {
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
         KRATOS_CHECK_NEAR(r_elem_dist[0], 0.0, 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[1], 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], std::sqrt(2), 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[3], 0.0, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleFaceTangent3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleFaceTangent3D, KratosDistanceSuite)
     {
         Model current_model;
 
@@ -458,7 +485,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(r_elem_dist[3], 1.0, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleTangent3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleTangent3D, KratosDistanceSuite)
     {
         Model current_model;
 
@@ -506,7 +533,7 @@ namespace Testing {
         }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessHorizontalPlane3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessHorizontalPlane3D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -549,7 +576,7 @@ namespace Testing {
 
 
 
-    KRATOS_TEST_CASE_IN_SUITE(HorizontalPlaneZeroDiscontinuousDistanceProcess, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(HorizontalPlaneZeroDiscontinuousDistanceProcess, KratosDistanceSuite)
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
@@ -598,7 +625,7 @@ namespace Testing {
 
 	}
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximationSkewed3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximationSkewed3D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -640,7 +667,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_edge, expected_values_edge, 1.0e-12);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximationVertical3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximationVertical3D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -685,7 +712,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_edge, expected_values_edge, 1.0e-12);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessOneEdgeIntersection3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessOneEdgeIntersection3D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -725,7 +752,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_edge, expected_values_edge, 1.0e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleIntersections3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleIntersections3D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -779,7 +806,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_edge, expected_values_edge, 1.0e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessStandard3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessStandard3D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -866,7 +893,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_edge, expected_values_edge, 1.0e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessBoundaryIntersection3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessBoundaryIntersection3D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -929,7 +956,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_edge, expected_values_edge, 1.0e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessDoubleEmbeddedVariableComplex, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessDoubleEmbeddedVariableComplex, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -970,7 +997,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(volume_part.GetElement(1).GetValue(TEMPERATURE), 0.2, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessArrayEmbeddedVariableComplex, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessArrayEmbeddedVariableComplex, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -1013,7 +1040,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(volume_part.GetElement(1).GetValue(EMBEDDED_VELOCITY_Y), 0.2, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessDoubleEmbeddedVariable, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessDoubleEmbeddedVariable, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -1067,7 +1094,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(volume_part.GetElement(69).GetValue(TEMPERATURE), 0.0, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessArrayEmbeddedVariable, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessArrayEmbeddedVariable, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -1131,7 +1158,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessIncisedVsIntersected2D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessIncisedVsIntersected2D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -1207,7 +1234,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_4, expected_values_elem_4, 1.0e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessIncisedVsIntersected3D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessIncisedVsIntersected3D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -1284,7 +1311,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(r_edge_dist_elem_6[0], 0.66, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessEndAtEdge2D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessEndAtEdge2D, KratosPreviousDistanceSuite)
     {
         Model current_model;
 
@@ -1359,7 +1386,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_8, expected_values_elem_8, 1.0e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessCutOnEdge2D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessCutOnEdge2D, KratosDistanceSuite)
     {
         Model current_model;
 
@@ -1421,7 +1448,7 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(n_intersected, 0);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessCutThroughNode2D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessCutThroughNode2D, KratosDistanceSuite)
     {
         Model current_model;
 
