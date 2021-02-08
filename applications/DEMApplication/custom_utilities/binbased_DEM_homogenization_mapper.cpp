@@ -325,10 +325,7 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::TransferWithConstantWe
     array_1d<double, 3>& destination_data  = geom[i_nearest_node].FastGetSolutionStepValue(r_destination_variable);
 
     if (r_origin_variable == VELOCITY){
-        const double nodal_homogenization_volume      = geom[i_nearest_node].FastGetSolutionStepValue(NODAL_AREA);
-        //TODO: Check how to obtain the porosity in terms of mass
-        const double particles_mass_fraction = 1.0 - geom[i_nearest_node].FastGetSolutionStepValue(PHASE_FRACTION);
-        const double total_particles_mass    = particles_mass_fraction / (1.0 - particles_mass_fraction) * nodal_homogenization_volume;
+        const double total_particles_mass    = geom[i_nearest_node].FastGetSolutionStepValue(MASS_SOLID_FRACTION);
         const double particle_mass           = p_node->FastGetSolutionStepValue(NODAL_MASS);
         double weight = particle_mass;
         if (total_particles_mass > 1.0e-15){
@@ -358,11 +355,7 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::TransferWithLinearWeig
     if (r_origin_variable == VELOCITY){
         for (unsigned int i = 0; i < TDim + 1; ++i){
             array_1d<double, 3>& particles_velocity = geom[i].FastGetSolutionStepValue(r_destination_variable);
-            const double nodal_homogenization_volume         = geom[i].FastGetSolutionStepValue(NODAL_AREA);
-            const double volume_solid_fraction             = geom[i].FastGetSolutionStepValue(VOLUME_SOLID_FRACTION);
-            //TODO: Check how to obtain the porosity in terms of mass
-            const double particles_mass_fraction    = 1.0 - geom[i].FastGetSolutionStepValue(PHASE_FRACTION);
-            const double total_particles_mass       = particles_mass_fraction / (1.0 - particles_mass_fraction) * volume_solid_fraction * fluid_density * nodal_homogenization_volume;
+            const double total_particles_mass       = geom[i].FastGetSolutionStepValue(MASS_SOLID_FRACTION);
             const double particle_mass              = p_node->FastGetSolutionStepValue(NODAL_MASS);
 
             double weight;
