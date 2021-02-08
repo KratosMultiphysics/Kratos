@@ -150,9 +150,13 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(
     Vector gauss_weights;
     Matrix shape_functions;
     GeometryType::ShapeFunctionsGradientsType shape_derivatives;
-    CalculateGeometryData(r_geometry, rElement.GetIntegrationMethod(),
-                          gauss_weights, shape_functions, shape_derivatives);
-    const int num_gauss_points = gauss_weights.size();
+
+    // computing everything based on a fixed gauss integration rather than based
+    // on the element one. This is because, in RANS there can be different elements
+    // with different gauss integration methods. So in order to be consistent
+    // GI_GAUSS_1 is chosen
+    const auto& r_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
+    CalculateGeometryData(r_geometry, r_integration_method, gauss_weights, shape_functions, shape_derivatives);
 
     BoundedMatrix<double, TDim, TDim> velocity_gradient;
 
@@ -161,39 +165,32 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(
 
     const double rho = r_properties.GetValue(DENSITY);
 
-    double nut{0.0}, tke, omega, nu, y;
+    double tke, omega, nu, y;
 
-    for (int g = 0; g < num_gauss_points; ++g) {
-        const Matrix& r_shape_derivatives = shape_derivatives[g];
-        const Vector& r_gauss_shape_functions = row(shape_functions, g);
+    const Matrix& r_shape_derivatives = shape_derivatives[0];
+    const Vector& r_gauss_shape_functions = row(shape_functions, 0);
 
-        FluidCalculationUtilities::EvaluateInPoint(r_geometry, r_gauss_shape_functions,
-            std::tie(tke, TURBULENT_KINETIC_ENERGY),
-            std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
-            std::tie(y, DISTANCE)
-        );
+    FluidCalculationUtilities::EvaluateInPoint(r_geometry, r_gauss_shape_functions,
+        std::tie(tke, TURBULENT_KINETIC_ENERGY),
+        std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+        std::tie(y, DISTANCE)
+    );
 
-        constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
-        nu /= rho;
+    constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+    nu /= rho;
 
-        FluidCalculationUtilities::EvaluateGradientInPoint(
-            r_geometry, r_shape_derivatives,
-            std::tie(velocity_gradient, VELOCITY));
+    FluidCalculationUtilities::EvaluateGradientInPoint(
+        r_geometry, r_shape_derivatives,
+        std::tie(velocity_gradient, VELOCITY));
 
-        const double f_2 = KOmegaSSTElementData::CalculateF2(tke, omega, nu, y, beta_star);
+    const double f_2 = KOmegaSSTElementData::CalculateF2(tke, omega, nu, y, beta_star);
 
-        const BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient =
-            (velocity_gradient + trans(velocity_gradient)) * 0.5;
+    const BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient =
+        (velocity_gradient + trans(velocity_gradient)) * 0.5;
 
-        const double t = norm_frobenius(symmetric_velocity_gradient) * 1.414;
+    const double t = norm_frobenius(symmetric_velocity_gradient) * 1.414;
 
-        nut += KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(
-            tke, omega, t, f_2, a1);
-    }
-
-    nut /= static_cast<double>(num_gauss_points);
-
-    return nut;
+    return KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(tke, omega, t, f_2, a1);
 
     KRATOS_CATCH("");
 }

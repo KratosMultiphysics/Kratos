@@ -98,8 +98,6 @@ void RansNutKEpsilonUpdateProcess::ExecuteAfterCouplingSolveStep()
 {
     KRATOS_TRY
 
-    using IndexType = std::size_t;
-
     using NodeType = Node<3>;
 
     using GeometryType = Geometry<NodeType>;
@@ -119,26 +117,28 @@ void RansNutKEpsilonUpdateProcess::ExecuteAfterCouplingSolveStep()
         auto& Ns = std::get<1>(rTLS);
         auto& dNdXs = std::get<2>(rTLS);
 
-        const auto& r_integration_method = rElement.GetIntegrationMethod();
-        double nu_t = 0.0;
+        // computing everything based on a fixed gauss integration rather than based
+        // on the element one. This is because, in RANS there can be different elements
+        // with different gauss integration methods. So in order to be consistent
+        // GI_GAUSS_1 is chosen
+        const auto& r_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
 
         RansCalculationUtilities::CalculateGeometryData(
             rElement.GetGeometry(), r_integration_method, Ws, Ns, dNdXs);
 
-        for (IndexType g = 0; g < Ws.size(); ++g) {
-            const Vector& N = row(Ns, g);
+        const Vector& N = row(Ns, 0);
 
-            double tke, epsilon;
-            FluidCalculationUtilities::EvaluateInPoint(rElement.GetGeometry(), N,
-                std::tie(tke, TURBULENT_KINETIC_ENERGY),
-                std::tie(epsilon, TURBULENT_ENERGY_DISSIPATION_RATE));
+        double tke, epsilon;
+        FluidCalculationUtilities::EvaluateInPoint(rElement.GetGeometry(), N,
+            std::tie(tke, TURBULENT_KINETIC_ENERGY),
+            std::tie(epsilon, TURBULENT_ENERGY_DISSIPATION_RATE));
 
-            if (epsilon > 0.0) {
-                nu_t += c_mu * std::pow(tke, 2) / epsilon;
-            }
+        double nu_t = 0.0;
+        if (epsilon > 0.0) {
+            nu_t = c_mu * std::pow(tke, 2) / epsilon;
         }
+        nu_t = std::max(nu_t, mMinValue);
 
-        nu_t = std::max(nu_t / Ws.size(), mMinValue);
         rElement.SetValue(TURBULENT_VISCOSITY, nu_t);
     });
 

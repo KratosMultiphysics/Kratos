@@ -366,7 +366,11 @@ void CalculateWallTurbulentViscosity(
             auto& Ws = std::get<0>(rTLS);
             auto& Ns = std::get<1>(rTLS);
 
-            const auto& r_integration_method = rCondition.GetIntegrationMethod();
+            // computing everything based on a fixed gauss integration rather than based
+            // on the condition one. This is because, in RANS there can be different conditions
+            // with different gauss integration methods. So in order to be consistent
+            // GI_GAUSS_1 is chosen
+            const auto& r_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
 
             CalculateConditionGeometryData(r_geometry, r_integration_method, Ws, Ns);
 
@@ -381,19 +385,15 @@ void CalculateWallTurbulentViscosity(
 
             ConstitutiveLaw::Parameters cl_parameters(r_parent_element.GetGeometry(), r_elem_properties, rModelPart.GetProcessInfo());
 
-            for (IndexType g = 0; g < Ws.size(); ++g) {
-                const Vector& N = row(Ns, g);
+            const Vector& N = row(Ns, 0);
 
-                cl_parameters.SetShapeFunctionsValues(N);
+            cl_parameters.SetShapeFunctionsValues(N);
 
-                double nu;
-                constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
-                nu /= density;
+            double nu;
+            constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+            nu /= density;
 
-                nu_t += von_karman * y_plus * nu;
-            }
-
-            nu_t /= Ws.size();
+            nu_t = von_karman * y_plus * nu;
         }
 
         rCondition.SetValue(TURBULENT_VISCOSITY, std::max(nu_t, mMinTurbulentViscosityValue));
