@@ -371,16 +371,15 @@ void CalculateWallTurbulentViscosity(
             CalculateConditionGeometryData(r_geometry, r_integration_method, Ws, Ns);
 
             const auto& r_properties = rCondition.GetProperties();
-            const double density = r_properties[DENSITY];
             const double y_plus_limit = r_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
             const double y_plus = std::max(rCondition.GetValue(RANS_Y_PLUS), y_plus_limit);
 
             auto& r_parent_element = r_geometry.GetValue(NEIGHBOUR_ELEMENTS)[0];
             auto constitutive_law = r_parent_element.GetValue(CONSTITUTIVE_LAW);
             const auto& r_elem_properties = r_parent_element.GetProperties();
+            const double density = r_elem_properties[DENSITY];
 
             ConstitutiveLaw::Parameters cl_parameters(r_parent_element.GetGeometry(), r_elem_properties, rModelPart.GetProcessInfo());
-
 
             for (IndexType g = 0; g < Ws.size(); ++g) {
                 const Vector& N = row(Ns, g);
