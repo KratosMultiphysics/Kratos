@@ -64,7 +64,7 @@ namespace EntitiesUtilities
     void KRATOS_API(KRATOS_CORE) FinalizeNonLinearIterationAllEntities(ModelPart& rModelPart);
 
     /**
-     * @brief This method initializes all the active entities
+     * @brief This method returns the appropriate TEntitytype container (elements, conditions, and nodes) from model part
      * @param rModelPart The model part of the problem to solve
      */
     template<class TEntityType>
