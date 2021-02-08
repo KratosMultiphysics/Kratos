@@ -16,6 +16,7 @@ class KratosPaths(object):
 # import core library (Kratos.so)
 sys.path.append(KratosPaths.kratos_libs)
 from Kratos import *
+Logger.PrintInfo("Process Id", os.getpid())
 
 def __ModuleInitDetail():
     """
