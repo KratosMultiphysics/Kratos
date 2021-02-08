@@ -647,20 +647,17 @@ void ShallowWater2D3::ShockCapturingParameters(
 
     // Final assembly of the parameters
     const double length = this->GetGeometry().Length();
-    const double slope = 5.0;
+    const double slope = 1e-0;
 
     const double q_residual_norm = norm_2(flow_residual);
     const double q_grad_frobenius = norm_frobenius(flow_grad);
-    const double q_slope = std::max(norm_2(rData.velocity) * slope, slope);
+    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
+    const double q_slope = std::max(eigenvalue * slope, slope);
     const double q_gradient_norm = std::max(q_grad_frobenius, q_slope);
     rArtViscosity = 0.5 * rData.shock_stab_factor * length * q_residual_norm / (q_gradient_norm);
 
-    this->SetValue(YO, q_gradient_norm);
-    this->SetValue(Y1, q_residual_norm);
-    this->SetValue(Y2, rArtViscosity);
-
     const double h_residual_norm = std::abs(height_residual);
-    const double h_gradient_norm = std::max(norm_2(height_grad), slope);
+    const double h_gradient_norm = std::max(norm_2(height_grad), 0.1 * slope);
     rArtDiffusion = 0.5 * rData.shock_stab_factor * length * h_residual_norm / (h_gradient_norm);
 }
 
@@ -693,10 +690,17 @@ void ShallowWater2D3::ShockCapturingViscosityMatrix(
     // The streamline fourth order tensor
     BoundedMatrix<double,3,3> streamline_tensor;
     StreamLineTensor(streamline_tensor, rData.velocity);
-    streamline_tensor *= std::max(0.0, rViscosity - stab_viscosity);
+    streamline_tensor *= .1 * std::max(0.0, rViscosity - stab_viscosity);
+
+    // The constitutive tensor
+    BoundedMatrix<double,3,3> constitutive_tensor = IdentityMatrix(3,3);
+    array_1d<double,3> m;
+    m[0] = 1.0; m[1] = 1.0; m[2] = 0.0;
+    constitutive_tensor -= outer_prod(m, m) / 3.0;
+    constitutive_tensor = prod(constitutive_tensor, crosswind_tensor + streamline_tensor);
 
     // Assembly of the viscosity matrix
-    BoundedMatrix<double,3,9> tmp = prod(crosswind_tensor + streamline_tensor, b);
+    BoundedMatrix<double,3,9> tmp = prod(constitutive_tensor, b);
     rMatrix = prod(trans(b), tmp);
 }
 
@@ -721,7 +725,11 @@ void ShallowWater2D3::ShockCapturingDiffusionMatrix(
     // The second order streamline tensor
     BoundedMatrix<double,2,2> streamline_tensor;
     StreamLineTensor(streamline_tensor, rData.velocity);
-    streamline_tensor *= std::max(0.0, rDiffusivity - stab_diffusivity);
+    streamline_tensor *= .1 * std::max(0.0, rDiffusivity - stab_diffusivity);
+
+    // The constitutive matrix
+    BoundedMatrix<double,2,2> constitutive_matrix;
+    constitutive_matrix = crosswind_tensor + streamline_tensor;
 
     // Assembly of the diffusion matrix
     for (size_t i = 0; i < 3; ++i)
@@ -735,7 +743,7 @@ void ShallowWater2D3::ShockCapturingDiffusionMatrix(
 
             const size_t j_block = 3 * j;
 
-            rMatrix(i_block + 2, j_block + 2) = inner_prod(bj, prod(crosswind_tensor + streamline_tensor, bi));
+            rMatrix(i_block + 2, j_block + 2) = inner_prod(bj, prod(constitutive_matrix, bi));
         }
     }
 }
