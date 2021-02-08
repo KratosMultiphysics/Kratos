@@ -46,7 +46,7 @@ void FluidTestUtilities::AssignRandomValues(
     // generator accross different platforms. No c++ distributions should be used
     // because they does not guarantee the multi-platform consistency.
     std::mt19937 generator(seed);
-    rValue = MinValue + generator()  * (MaxValue - MinValue) / (generator.max() - generator.min());
+    rValue = MinValue + (generator() - generator.min()) * (MaxValue - MinValue) / (generator.max() - generator.min());
 }
 
 template <>
