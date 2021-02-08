@@ -48,8 +48,7 @@ namespace Kratos
 
             Properties::Pointer p_prop = this_model_part.CreateNewProperties(0);
 
-            const auto cl = TestConstitutiveLaw::TestConstitutiveLaw();
-            TestConstitutiveLaw r_clone_cl = TestConstitutiveLaw::TestConstitutiveLaw();
+            TestConstitutiveLaw r_clone_cl = TestConstitutiveLaw();
             p_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
             auto p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -132,8 +131,7 @@ namespace Kratos
 
             Properties::Pointer p_prop = this_model_part.CreateNewProperties(0);
 
-            const auto cl = TestConstitutiveLaw::TestConstitutiveLaw();
-            TestConstitutiveLaw r_clone_cl = TestConstitutiveLaw::TestConstitutiveLaw();
+            TestConstitutiveLaw r_clone_cl = TestConstitutiveLaw();
             p_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
             auto p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 1.0);
