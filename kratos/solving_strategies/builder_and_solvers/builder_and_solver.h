@@ -604,6 +604,7 @@ public:
         TSystemVectorType& rb
         )
     {
+        KRATOS_WARNING_IF("BuilderAndSolver", this->GetEchoLevel() > 0) << "Calling ReconstructSlaveSolution from base class. Did nothing!" << std::endl;
     }
 
     /**
