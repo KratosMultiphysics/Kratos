@@ -44,10 +44,11 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
             OriginalNumberOfElements: number of elements in the original model part. Necessary for the construction of the hyperreduced mdpa
             ModelPartName: name of the original model part. Necessary for the construction of the hyperreduced mdpa
     """
-    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, ModelPartName):
+    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, ModelPartName, ClusterNumber):
         super().SetUp()
         self.ModelPartName = ModelPartName
         self.OriginalNumberOfElements = OriginalNumberOfElements
+        self.ClusterNumber = ClusterNumber
         u , s  = self._ObtainBasis(ResidualSnapshots)
 
         self.W = np.ones(np.shape(u)[0])
@@ -256,10 +257,10 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
                 else:
                     ElementsAndWeights["Conditions"][int(self.z[j])-self.OriginalNumberOfElements] = (float(w[j]))
 
-        with open('ElementsAndWeights.json', 'w') as f:
+        with open(f'ElementsAndWeights{self.ClusterNumber}.json', 'w') as f:
             json.dump(ElementsAndWeights,f, indent=2)
         print('\n\n Elements and conditions selected have been saved in a json file\n\n')
-        self._CreateHyperReducedModelPart()
+        #self._CreateHyperReducedModelPart()
 
 
 

@@ -82,6 +82,8 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
 
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
+                for i in range(self.Number_Of_Clusters):
+                    self.time_step_residual_matrix_container.append([])
                 self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme(), Bases)
 
 
@@ -100,7 +102,7 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                 ResMat = self.ResidualUtilityObject.GetResiduals(self._GetSolver().get_builder_and_solver().GetCurrentCluster())
                 print(np.shape(ResMat))
                 NP_ResMat = np.array(ResMat, copy=False)
-                self.time_step_residual_matrix_container.append(NP_ResMat)
+                self.time_step_residual_matrix_container[self._GetSolver().get_builder_and_solver().GetCurrentCluster()].append(NP_ResMat)
 
 
     def Finalize(self):
@@ -109,8 +111,9 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
                 ModelPartName = self._GetSolver().settings["model_import_settings"]["input_filename"].GetString()
-                self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements, ModelPartName)
-                self.hyper_reduction_element_selector.Run()
+                for cluster_number in range(self.Number_Of_Clusters):
+                    self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container[cluster_number], OriginalNumberOfElements, ModelPartName, cluster_number)
+                    self.hyper_reduction_element_selector.Run()
 
 
 
