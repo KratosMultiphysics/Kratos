@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/delaunator_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -91,11 +92,10 @@ void CreateTriangleMeshFromNodes(ModelPart& rModelPart)
     // Ensure node order
     auto& r_nodes_root_array = rModelPart.GetRootModelPart().Nodes();
     const auto it_node_root_begin = r_nodes_root_array.begin();
-    #pragma omp parallel for
-    for(int i=0; i<static_cast<int>(r_nodes_root_array.size()); ++i) {
-        auto it_node = it_node_root_begin + i;
-        it_node->SetId(i + 1);
-    }
+    IndexPartition<std::size_t>(r_nodes_root_array.size()).for_each(
+        [&it_node_root_begin](std::size_t i_node)
+        { (it_node_root_begin + i_node)->SetId(i_node + 1); }
+    );
 
     // Getting nodes array
     const auto& r_nodes_array = rModelPart.Nodes();
