@@ -41,11 +41,20 @@ class MonolithicKOmegaSSTRansFormulation(RansFormulation):
         self.k_omega_sst_formulation.SetConstants(settings)
 
     def Initialize(self):
+        # do not change the order of the initialization. This order is required
+        # to add nut_nodal_update_process after nu_t update process. Otherwise
+        # nut_nodal_update process (which is responsible for distributing element and condition gauss nut to nodes for old
+        # vms and fractional step formulations) is added to the list of processes before its corresponding elemental or condition
+        # nut update process.
+        super().Initialize()
+
         if (self.monolithic_formulation.ElementHasNodalProperties()):
+            # adding a process to distribute elemental and condition nut to nodes for fractional step
             nut_nodal_update_process = KratosRANS.RansNutNodalUpdateProcess(
                                                 self.GetBaseModelPart().GetModel(),
                                                 self.GetBaseModelPart().Name,
                                                 self.k_omega_sst_formulation.echo_level)
             self.k_omega_sst_formulation.AddProcess(nut_nodal_update_process)
 
-        super().Initialize()
+            # calling the execute initialize method here since, it is added after the routine super().Initialize()
+            nut_nodal_update_process.ExecuteInitialize()
