@@ -274,7 +274,7 @@ void TrussElement3D2N::CalculateRightHandSide(
     rRightHandSideVector = ZeroVector(msLocalSize);
 
     BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
-    UpdateInternalForces(internal_forces);
+    UpdateInternalForces(internal_forces, const ProcessInfo& rCurrentProcessInfo);
 
     noalias(rRightHandSideVector) -= internal_forces;
 
@@ -385,14 +385,13 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
 
         array_1d<double, 3 > truss_stresses;
         array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
-        ProcessInfo temp_process_information;
 
         double prestress = 0.00;
         if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
             prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
         }
 
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         Vector temp_strain = ZeroVector(1);
         Vector temp_stress = ZeroVector(1);
         temp_strain[0] = CalculateGreenLagrangeStrain();
@@ -514,8 +513,7 @@ void TrussElement3D2N::UpdateInternalForces(
         prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
     }
 
-    ProcessInfo temp_process_information;
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
     temp_strain[0] = CalculateGreenLagrangeStrain();
@@ -671,8 +669,7 @@ void TrussElement3D2N::AddExplicitContribution(
         Vector current_nodal_velocities = ZeroVector(msLocalSize);
         GetFirstDerivativesVector(current_nodal_velocities);
         Matrix damping_matrix;
-        ProcessInfo temp_process_information; // cant pass const ProcessInfo
-        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        CalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
 
@@ -885,8 +882,7 @@ void TrussElement3D2N::CalculateElasticStiffnessMatrix(
 void TrussElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    ProcessInfo temp_process_information;
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
     temp_strain[0] = CalculateGreenLagrangeStrain();
