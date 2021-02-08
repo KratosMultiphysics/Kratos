@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
 #if !defined(KRATOS_ENTITIES_UTILITIES)
@@ -28,6 +29,7 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief This namespace includes several utilities necessaries for the computation of entities functions in a efficient way
  * @author Vicente Mataix Ferrandiz
+ * @author Philipp Bucher
  */
 namespace EntitiesUtilities
 {
@@ -36,6 +38,30 @@ namespace EntitiesUtilities
      * @param rModelPart The model part of the problem to solve
      */
     void KRATOS_API(KRATOS_CORE) InitializeAllEntities(ModelPart& rModelPart);
+
+    /**
+     * @brief This method calls InitializeSolution for all the entities (conditions, elements, constraints)
+     * @param rModelPart The model part of the problem to solve
+     */
+    void KRATOS_API(KRATOS_CORE) InitializeSolutionStepAllEntities(ModelPart& rModelPart);
+
+    /**
+     * @brief This method calls FinalizeSolutionStep for all the entities (conditions, elements, constraints)
+     * @param rModelPart The model part of the problem to solve
+     */
+    void KRATOS_API(KRATOS_CORE) FinalizeSolutionStepAllEntities(ModelPart& rModelPart);
+
+    /**
+     * @brief This method calls InitializeNonLinearIteration for all the entities (conditions, elements, constraints)
+     * @param rModelPart The model part of the problem to solve
+     */
+    void KRATOS_API(KRATOS_CORE) InitializeNonLinearIterationAllEntities(ModelPart& rModelPart);
+
+    /**
+     * @brief This method calls FinalizeNonLinearIteration for all the entities (conditions, elements, constraints)
+     * @param rModelPart The model part of the problem to solve
+     */
+    void KRATOS_API(KRATOS_CORE) FinalizeNonLinearIterationAllEntities(ModelPart& rModelPart);
 
     /**
      * @brief This method initializes all the active entities
@@ -76,19 +102,97 @@ namespace EntitiesUtilities
         KRATOS_CATCH("")
     }
 
-    ///@}
-    ///@name Private  Acces
-    ///@{
+    /**
+     * @brief This method calls InitializeSolutionStep for all the entities
+     * @param rModelPart The model part of the problem to solve
+     */
+    template<class TEntityType>
+    void InitializeSolutionStepEntities(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
 
+        // The current process info
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-    ///@}
-    ///@name Private Inquiry
-    ///@{
+        // Initialize
+        block_for_each(
+            GetEntities<TEntityType>(rModelPart),
+            [&r_current_process_info](TEntityType& rEntity){
+                rEntity.InitializeSolutionStep(r_current_process_info);
+            }
+        );
 
+        KRATOS_CATCH("")
+    }
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
+    /**
+     * @brief This method calls FinalizeSolutionStep for all the entities
+     * @param rModelPart The model part of the problem to solve
+     */
+    template<class TEntityType>
+    void FinalizeSolutionStepEntities(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        // The current process info
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Initialize
+        block_for_each(
+            GetEntities<TEntityType>(rModelPart),
+            [&r_current_process_info](TEntityType& rEntity){
+                rEntity.FinalizeSolutionStep(r_current_process_info);
+            }
+        );
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This method calls InitializeNonLinearIteration for all the entities
+     * @param rModelPart The model part of the problem to solve
+     */
+    template<class TEntityType>
+    void InitializeNonLinearIterationEntities(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        // The current process info
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Initialize
+        block_for_each(
+            GetEntities<TEntityType>(rModelPart),
+            [&r_current_process_info](TEntityType& rEntity){
+                rEntity.InitializeNonLinearIteration(r_current_process_info);
+            }
+        );
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This method calls FinalizeNonLinearIteration for all the entities
+     * @param rModelPart The model part of the problem to solve
+     */
+    template<class TEntityType>
+    void FinalizeNonLinearIterationEntities(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        // The current process info
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Initialize
+        block_for_each(
+            GetEntities<TEntityType>(rModelPart),
+            [&r_current_process_info](TEntityType& rEntity){
+                rEntity.FinalizeNonLinearIteration(r_current_process_info);
+            }
+        );
+
+        KRATOS_CATCH("")
+    }
 
     ///@}
 
