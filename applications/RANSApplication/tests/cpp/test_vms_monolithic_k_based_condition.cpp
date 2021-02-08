@@ -39,10 +39,8 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
         rModelPart.AddNodalSolutionStepVariable(PRESSURE);
-        rModelPart.AddNodalSolutionStepVariable(DENSITY);
         rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
         rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
-        rModelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
     };
 
@@ -75,7 +73,6 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, MESH_VELOCITY, 1e-3, 1e-1);
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ACCELERATION, 1.0, 1000.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, EXTERNAL_PRESSURE, 0.0, 0.0);
 
     FluidTestUtilities::RandomFillContainerNonHistoricalVariable(r_model_part.Conditions(), NORMAL, 2, -2.0, -1.0);
 
