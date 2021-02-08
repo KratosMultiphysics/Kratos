@@ -75,25 +75,19 @@ double RansKEpsilonNewtonianAdjointLaw<TBaseClassType>::CalculateEffectiveViscos
     const IndexType NodeIndex,
     const Variable<double>& rDerivativeVariable)
 {
-    const auto& r_node = rValues.GetElementGeometry()[NodeIndex];
-
-    const double k = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-    const double epsilon = r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-
-    double nu_t_derivative = 0.0;
-    if (epsilon > 0.0) {
-        const double c_mu = rValues.GetProcessInfo()[TURBULENCE_RANS_C_MU];
-        if (rDerivativeVariable == TURBULENT_KINETIC_ENERGY) {
-            nu_t_derivative = c_mu * 2.0 * k / epsilon;
-        } else if (rDerivativeVariable == TURBULENT_ENERGY_DISSIPATION_RATE) {
-            nu_t_derivative = c_mu * std::pow(k / epsilon, 2) * -1.0;
-        }
-    }
-
     const Properties& r_prop = rValues.GetMaterialProperties();
     const double density = r_prop[DENSITY];
 
-    return density * nu_t_derivative * rValues.GetShapeFunctionsValues()[NodeIndex];
+    double nu_t_derivative = 0.0;
+
+    // computing gauss point nu_t derivative
+    if (rDerivativeVariable == TURBULENT_KINETIC_ENERGY) {
+        nu_t_derivative = rValues.GetElementGeometry().GetValue(TURBULENT_VISCOSITY_DERIVATIVES)[0];
+    } else if (rDerivativeVariable == TURBULENT_ENERGY_DISSIPATION_RATE) {
+        nu_t_derivative = rValues.GetElementGeometry().GetValue(TURBULENT_VISCOSITY_DERIVATIVES)[1];
+    }
+
+    return density * nu_t_derivative;
 }
 
 // Info ///////////////////////////////////////////////////////////////////////

@@ -21,11 +21,13 @@
 #include "includes/constitutive_law.h"
 
 // Application includes
-#include "custom_utilities/fluid_test_utilities.h"
+#include "custom_processes/rans_nut_k_epsilon_update_process.h"
+#include "custom_processes/rans_nut_k_epsilon_derivatives_process.h"
 #include "custom_utilities/fluid_adjoint_test_utilities.h"
+#include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/rans_variable_utilities.h"
-#include "includes/cfd_variables.h"
 #include "fluid_dynamics_application_variables.h"
+#include "includes/cfd_variables.h"
 #include "rans_application_variables.h"
 
 namespace Kratos
@@ -173,20 +175,23 @@ void RunRansKEpsilonQSVMSRFCAdjointTest(
     // prepare adjoint model part
     auto& r_adjoint_model_part = CreateRansKEpsilonQSVMSRFCAdjoint2D3NModelPart(model, "RansKEpsilonQSVMSRFCAdjoint2D3N");
 
-    const auto& update_function = [](ModelPart& rModelPart) {
+    RansNutKEpsilonDerivativesProcess nut_derivatives_process(model, r_adjoint_model_part.FullName(), 1e-12, 0);
+    nut_derivatives_process.ExecuteInitializeSolutionStep();
+
+    const auto& update_function = [&](ModelPart& rModelPart) {
+        RansNutKEpsilonUpdateProcess nut_update_process(model, rModelPart.FullName(), 1e-12, 0);
+        nut_update_process.ExecuteInitialize();
+        nut_update_process.ExecuteInitializeSolutionStep();
+        nut_update_process.ExecuteAfterCouplingSolveStep();
+
         const int number_of_nodes = rModelPart.NumberOfNodes();
         const double bossak_alpha = rModelPart.GetProcessInfo()[BOSSAK_ALPHA];
-        const double c_mu = rModelPart.GetProcessInfo()[TURBULENCE_RANS_C_MU];
 
         for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
             auto& r_node = *(rModelPart.NodesBegin() + i_node);
             r_node.SetValue(RELAXED_ACCELERATION, FluidAdjointTestUtilities::CalculateRelaxedVariableRate(bossak_alpha, ACCELERATION, r_node));
             r_node.FastGetSolutionStepValue(RANS_AUXILIARY_VARIABLE_1) = FluidAdjointTestUtilities::CalculateRelaxedVariableRate(bossak_alpha, TURBULENT_KINETIC_ENERGY_RATE, r_node);
             r_node.FastGetSolutionStepValue(RANS_AUXILIARY_VARIABLE_2) = FluidAdjointTestUtilities::CalculateRelaxedVariableRate(bossak_alpha, TURBULENT_ENERGY_DISSIPATION_RATE_2, r_node);
-
-            const double k = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-            const double epsilon = r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = c_mu * k * k / epsilon;
         }
     };
 
@@ -336,7 +341,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonQSVMSRFCAdjointCalculateFirstDerivativesLH
         rElement.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonKRFC2D3N", VELOCITY, derivatives_method, 3, 0, 1e-6, 1e-4);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonKRFC2D3N", VELOCITY, derivatives_method, 3, 0, 1e-6, 1e-3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonQSVMSRFCAdjointCalculateFirstDerivativesLHS_KP, KratosRansFastSuite)
@@ -402,7 +407,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonQSVMSRFCAdjointCalculateFirstDerivativesLH
         rElement.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonRFC2D3N", VELOCITY, derivatives_method, 4, 0, 1e-6, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonRFC2D3N", VELOCITY, derivatives_method, 4, 0, 1e-6, 1e-4);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonQSVMSRFCAdjointCalculateFirstDerivativesLHS_EP, KratosRansFastSuite)

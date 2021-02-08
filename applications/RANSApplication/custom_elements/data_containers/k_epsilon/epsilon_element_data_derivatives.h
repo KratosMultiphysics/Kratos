@@ -390,9 +390,6 @@ public:
         double mTurbulentEnergyDissipationRate;
         double mProductionTerm;
 
-        VectorN mNodalTurbulentKineticEnergy;
-        VectorN mNodalTurbulentEnergyDissipationRate;
-
         MatrixND mNodalVelocity;
 
         ///@}

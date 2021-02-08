@@ -27,7 +27,9 @@
 #include "utilities/math_utils.h"
 
 // Application includes
+#include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "custom_utilities/test_utilities.h"
 
 namespace Kratos
@@ -41,6 +43,8 @@ public:
     using NodeType = ModelPart::NodeType;
 
     using GeometryType = ModelPart::GeometryType;
+
+    using PropertiesType = ModelPart::PropertiesType;
 
     using ShapeFunctionsGradientsType = GeometryType::ShapeFunctionsGradientsType;
 
@@ -63,7 +67,6 @@ public:
         const double Perturbation,
         const double Tolerance)
     {
-        using namespace RansApplicationTestUtilities;
         using TAdjointElementDataType = typename TAdjointElementDerivativeDataType::DataType;
         constexpr IndexType derivative_dimension = TAdjointElementDerivativeDataType::TDerivativeDimension;
 
@@ -73,11 +76,13 @@ public:
         };
 
         // setup primal model part
-        auto&& r_model_part =
-            CreateTestModelPart(rModel, "Element2D3N", "LineCondition2D2N",
-                                rAddNodalSolutionStepVariablesFunction,
-                                add_dofs, rSetProperties, BufferSize);
+        auto& r_model_part = FluidTestUtilities::CreateTestModelPart(
+            rModel, "test", "Element2D3N", "LineCondition2D2N", rSetProperties,
+            [](PropertiesType&) {}, rAddNodalSolutionStepVariablesFunction,
+            add_dofs, BufferSize);
         rSetVariableDataFunction(r_model_part);
+
+        RansVariableUtilities::SetElementConstitutiveLaws(r_model_part.Elements());
 
         auto& r_process_info = r_model_part.GetProcessInfo();
         auto& r_element = r_model_part.Elements().front();
@@ -85,6 +90,8 @@ public:
         auto& r_properties = r_element.GetProperties();
 
         r_element.Initialize(r_process_info);
+
+        const auto& r_integration_method = r_element.GetIntegrationMethod();
 
         // setup primal element data
         TPrimalElementDataType primal_element_data(r_geometry, r_properties, r_process_info);
@@ -103,7 +110,7 @@ public:
         Matrix adjoint_N_vectors;
         ShapeFunctionsGradientsType adjoint_dNdX_matrices;
         RansCalculationUtilities::CalculateGeometryData(
-            r_geometry, GeometryData::GI_GAUSS_2,
+            r_geometry, r_integration_method,
             adjoint_W_values, adjoint_N_vectors, adjoint_dNdX_matrices);
 
         Vector primal_W_values;
@@ -129,13 +136,13 @@ public:
             std::tie(ref_velocity, ref_viscosity, ref_reaction_term, ref_source_term) =
                 ComputeElementDataValues(r_geometry, g, primal_W_values,
                                          primal_N_vectors, primal_dNdX_matrices,
-                                         primal_element_data);
+                                         r_process_info, r_integration_method, primal_element_data);
 
             std::tie(adjoint_velocity, adjoint_viscosity, adjoint_reaction_term,
                      adjoint_source_term) =
                 ComputeElementDataValues(r_geometry, g, adjoint_W_values,
                                          adjoint_N_vectors, adjoint_dNdX_matrices,
-                                         adjoint_element_data);
+                                         r_process_info, r_integration_method, adjoint_element_data);
 
             // check whether primal and derivatives have the same coefficients
             KRATOS_CHECK_VECTOR_NEAR(ref_velocity, adjoint_velocity, Tolerance);
@@ -144,8 +151,8 @@ public:
             KRATOS_CHECK_NEAR(ref_source_term, adjoint_source_term, Tolerance);
 
             GeometryType::JacobiansType J;
-            r_geometry.Jacobian(J, GeometryData::GI_GAUSS_2);
-            const auto& DN_De = r_geometry.ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_2);
+            r_geometry.Jacobian(J, r_integration_method);
+            const auto& DN_De = r_geometry.ShapeFunctionsLocalGradients(r_integration_method);
 
             GeometricalSensitivityUtility::ShapeFunctionsGradientType adjoint_dNdX_derivative;
             const Matrix& rJ = J[g];
@@ -189,7 +196,7 @@ public:
                     std::tie(velocity, viscosity, reaction_term, source_term) =
                         ComputeElementDataValues(
                             r_geometry, g, primal_W_values, primal_N_vectors,
-                            primal_dNdX_matrices, primal_element_data);
+                            primal_dNdX_matrices, r_process_info, r_integration_method, primal_element_data);
 
                     const ArrayD fd_velocity_derivative = (velocity - ref_velocity) / Perturbation;
                     const double fd_viscosity_derivative = (viscosity - ref_viscosity) / Perturbation;
@@ -238,14 +245,16 @@ private:
         Vector& rWs,
         Matrix& rNs,
         ShapeFunctionsGradientsType& rdNdXs,
+        const ProcessInfo& rProcessInfo,
+        const GeometryData::IntegrationMethod& rIntegrationMethod,
         TElementDataType& rElementData)
     {
         RansCalculationUtilities::CalculateGeometryData(
-            rGeometry, GeometryData::GI_GAUSS_2,
-            rWs, rNs, rdNdXs);
+            rGeometry, rIntegrationMethod, rWs, rNs, rdNdXs);
         const Vector& N = row(rNs, GaussPointIndex);
         const Matrix& dNdX = rdNdXs[GaussPointIndex];
 
+        rElementData.CalculateConstants(rProcessInfo);
         rElementData.CalculateGaussPointData(N, dNdX);
 
         return std::make_tuple(rElementData.GetEffectiveVelocity(),

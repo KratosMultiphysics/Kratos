@@ -105,38 +105,6 @@ double AdjointUtilities<TDim, TNumNodes>::CalculateProductionShapeDerivative(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double AdjointUtilities<TDim, TNumNodes>::CalculateNodalNutKDerivative(
-    const IndexType NodeIndex,
-    const double Cmu,
-    const VectorN& rNodalTurbulentKineticEnergy,
-    const VectorN& rNodalTurbulentEnergyDissipationRate)
-{
-    if (rNodalTurbulentEnergyDissipationRate[NodeIndex] > 0.0) {
-        return 2.0 * Cmu * rNodalTurbulentKineticEnergy[NodeIndex] /
-               rNodalTurbulentEnergyDissipationRate[NodeIndex];
-    } else {
-        return 0.0;
-    }
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-double AdjointUtilities<TDim, TNumNodes>::CalculateNodalNutEpsilonDerivative(
-    const IndexType NodeIndex,
-    const double Cmu,
-    const VectorN& rNodalTurbulentKineticEnergy,
-    const VectorN& rNodalTurbulentEnergyDissipationRate)
-{
-    if (rNodalTurbulentEnergyDissipationRate[NodeIndex] > 0.0) {
-        return -1.0 * Cmu *
-               std::pow(rNodalTurbulentKineticEnergy[NodeIndex] /
-                            rNodalTurbulentEnergyDissipationRate[NodeIndex],
-                        2);
-    } else {
-        return 0.0;
-    }
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 double AdjointUtilities<TDim, TNumNodes>::CalculateGammaKDerivative(
     const IndexType NodeIndex,
     const double Cmu,

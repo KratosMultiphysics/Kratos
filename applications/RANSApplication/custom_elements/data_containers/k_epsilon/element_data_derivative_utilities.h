@@ -38,8 +38,6 @@ public:
 
     using ArrayD = array_1d<double, 3>;
 
-    using VectorN = BoundedVector<double, TNumNodes>;
-
     using MatrixDD = BoundedMatrix<double, TDim, TDim>;
 
     using MatrixND = BoundedMatrix<double, TNumNodes, TDim>;
@@ -69,18 +67,6 @@ public:
         const MatrixND& rNodalVelocity,
         const Matrix& rdNdX,
         const Matrix& rdNdXDerivative);
-
-    static double CalculateNodalNutKDerivative(
-        const IndexType NodeIndex,
-        const double Cmu,
-        const VectorN& rNodalTurbulentKineticEnergy,
-        const VectorN& rNodalTurbulentEnergyDissipationRate);
-
-    static double CalculateNodalNutEpsilonDerivative(
-        const IndexType NodeIndex,
-        const double Cmu,
-        const VectorN& rNodalTurbulentKineticEnergy,
-        const VectorN& rNodalTurbulentEnergyDissipationRate);
 
     static double CalculateGammaKDerivative(
         const IndexType NodeIndex,

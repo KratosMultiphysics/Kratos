@@ -66,6 +66,7 @@ void KElementDataDerivatives<TDim, TNumNodes>::Data::Check(
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_KINETIC_ENERGY_SIGMA))
         << "TURBULENT_KINETIC_ENERGY_SIGMA is not found in process info.\n";
+
     KRATOS_ERROR_IF_NOT(r_properties.Has(DYNAMIC_VISCOSITY))
         << "DYNAMIC_VISCOSITY is not found in element properties [ Element.Id() = "
         << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
@@ -73,10 +74,13 @@ void KElementDataDerivatives<TDim, TNumNodes>::Data::Check(
         << "DENSITY is not found in element properties [ Element.Id() = "
         << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
 
+    KRATOS_ERROR_IF_NOT(rElement.Has(TURBULENT_VISCOSITY))
+        << "TURBULENT_VISCOSITY is not found in element with id "
+        << rElement.Id() << ".\n";
+
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const auto& r_node = r_geometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
@@ -108,7 +112,6 @@ void KElementDataDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
         r_geometry, rN, Step,
         std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
         std::tie(mTurbulentEnergyDissipationRate, TURBULENT_ENERGY_DISSIPATION_RATE),
-        std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
         std::tie(mEffectiveVelocity, VELOCITY));
 
     FluidCalculationUtilities::EvaluateGradientInPoint(
@@ -120,10 +123,7 @@ void KElementDataDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
     mGamma = CalculateGamma(mCmu, mTurbulentKineticEnergy, mTurbulentKinematicViscosity);
 
     for (IndexType i = 0; i < TNumNodes; ++i) {
-        const auto& r_node = r_geometry[i];
-        mNodalTurbulentKineticEnergy[i] = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY, Step);
-        mNodalTurbulentEnergyDissipationRate[i] = r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE, Step);
-        const auto& velocity = r_node.FastGetSolutionStepValue(VELOCITY, Step);
+        const auto& velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
         for (IndexType j = 0; j < TDim; ++j) {
             mNodalVelocity(i, j) = velocity[j];
         }
@@ -208,13 +208,10 @@ KElementDataDerivatives<TDim, TNumNodes>::KDerivative::KDerivative(
     : BaseType(NodeIndex, DirectionIndex, rData.GetGeometry(), W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative),
       mrData(rData)
 {
-    const double nodal_nut_derivative =
-        KEpsilonElementData::AdjointUtilities<TDim, TNumNodes>::CalculateNodalNutKDerivative(
-            this->mNodeIndex, mrData.mCmu, mrData.mNodalTurbulentKineticEnergy,
-            mrData.mNodalTurbulentEnergyDissipationRate);
-
     mGaussTurbulentKinematicViscosityDerivative =
-        this->mrN[this->mNodeIndex] * nodal_nut_derivative;
+        rData.GetGeometry().GetValue(TURBULENT_VISCOSITY_DERIVATIVES)[0] *
+        this->mrN[this->mNodeIndex];
+
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -273,13 +270,10 @@ KElementDataDerivatives<TDim, TNumNodes>::EpsilonDerivative::EpsilonDerivative(
     : BaseType(NodeIndex, DirectionIndex, rData.GetGeometry(), W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative),
       mrData(rData)
 {
-    const double nodal_nut_derivative =
-        KEpsilonElementData::AdjointUtilities<TDim, TNumNodes>::CalculateNodalNutEpsilonDerivative(
-            this->mNodeIndex, mrData.mCmu, mrData.mNodalTurbulentKineticEnergy,
-            mrData.mNodalTurbulentEnergyDissipationRate);
-
     mGaussTurbulentKinematicViscosityDerivative =
-        this->mrN[this->mNodeIndex] * nodal_nut_derivative;
+        rData.GetGeometry().GetValue(TURBULENT_VISCOSITY_DERIVATIVES)[1] *
+        this->mrN[this->mNodeIndex];
+
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
