@@ -154,7 +154,7 @@ public:
     /**
      * @brief Adds the initial stress vector if it is defined in the InitialState
      */
-    const void AddInitialStressVectorContribution(Vector& rStressVector, Parameters& rParameterValues) 
+    void AddInitialStressVectorContribution(Vector& rStressVector, Parameters& rParameterValues) 
     {
         const auto p_initial_state = pGetpInitialState();
         if (p_initial_state) {
@@ -165,7 +165,7 @@ public:
     /**
      * @brief Adds the initial strain vector if it is defined in the InitialState
      */
-    const void AddInitialStrainVectorContribution(Vector& rStrainVector, Parameters& rParameterValues)
+    void AddInitialStrainVectorContribution(Vector& rStrainVector, Parameters& rParameterValues)
     {
         const auto p_initial_state = pGetpInitialState();
         if (p_initial_state) {
