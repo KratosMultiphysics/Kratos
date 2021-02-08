@@ -687,7 +687,7 @@ public:
     /**
      * @brief Sets the nodal value of any variable to zero
      * @param rVariable reference to the scalar variable to be set
-     * @param rNodes reference to the objective node set
+     * @param rContainer reference to the objective container
      */
     template< class TType , class TContainerType>
     void SetNonHistoricalVariableToZero(
