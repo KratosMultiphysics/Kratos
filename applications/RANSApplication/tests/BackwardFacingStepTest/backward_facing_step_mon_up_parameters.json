@@ -162,7 +162,7 @@
                             "VELOCITY_Y",
                             "PRESSURE"
                     ],
-                    "input_file_name": "backward_facing_step_monolithic_velocity_pressure_flow_field_<FLOW_SOLVER_FORMULATION>_<TIME_SCHEME_TYPE>_test_results.json",
+                    "input_file_name": "backward_facing_step_mon_up_flow_<FLOW_SOLVER_FORMULATION>_<TIME_SCHEME_TYPE>_results.json",
                     "model_part_name": "FluidModelPart.Parts_fluid",
                     "tolerance": 1e-9,
                     "relative_tolerance": 1e-12,
@@ -183,7 +183,7 @@
                         "VELOCITY_Y",
                         "PRESSURE"
                 ],
-                "input_file_name": "backward_facing_step_monolithic_velocity_pressure_flow_field_<FLOW_SOLVER_FORMULATION>_<TIME_SCHEME_TYPE>_test_results.json",
+                "input_file_name": "backward_facing_step_mon_up_flow_<FLOW_SOLVER_FORMULATION>_<TIME_SCHEME_TYPE>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "tolerance": 1e-9,
                 "relative_tolerance": 1e-12,
@@ -201,7 +201,7 @@
                         "VELOCITY_Y",
                         "PRESSURE"
                 ],
-                "output_file_name": "backward_facing_step_monolithic_velocity_pressure_flow_field_<TIME_SCHEME_TYPE>_test_results.json",
+                "output_file_name": "backward_facing_step_mon_up_flow_<TIME_SCHEME_TYPE>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "time_frequency": -2
             }

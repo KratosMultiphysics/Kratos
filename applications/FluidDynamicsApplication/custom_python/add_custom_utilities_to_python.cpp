@@ -38,6 +38,7 @@
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
+#include "custom_utilities/fluid_test_utilities.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -172,6 +173,17 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_< FluidPostProcessUtilities > (m,"FluidPostProcessUtilities")
         .def(py::init<>())
         .def("CalculateFlow", &FluidPostProcessUtilities::CalculateFlow)
+        ;
+
+    py::class_<FluidTestUtilities>(m, "FluidTestUtilities")
+        .def_static("RandomFillNodalHistoricalVariable", &FluidTestUtilities::RandomFillNodalHistoricalVariable<double>)
+        .def_static("RandomFillNodalHistoricalVariable", &FluidTestUtilities::RandomFillNodalHistoricalVariable<array_1d<double, 3>>)
+        .def_static("RandomFillNodalNonHistoricalVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::NodesContainerType, double>)
+        .def_static("RandomFillNodalNonHistoricalVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::NodesContainerType, array_1d<double, 3>>)
+        .def_static("RandomFillConditionVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ConditionsContainerType, double>)
+        .def_static("RandomFillConditionVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
+        .def_static("RandomFillElementVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ElementsContainerType, double>)
+        .def_static("RandomFillElementVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>)
         ;
 
 }
