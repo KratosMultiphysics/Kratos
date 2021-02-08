@@ -1548,7 +1548,7 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
     }
     else if (rVariable == MP_HARDENING_RATIO || rVariable == MP_EQUIVALENT_STRESS ||
         rVariable == MP_EQUIVALENT_PLASTIC_STRAIN || rVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE ||
-        rVariable == MP_TEMPERATURE) {
+        rVariable == MP_TEMPERATURE || rVariable == MP_DAMAGE || rVariable == EQ_STRAIN_RATE) {
         rValues[0] = mConstitutiveLawVector->GetValue(rVariable, rValues[0]);
     }
     else
