@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <iomanip>
 
 // External includes
 
@@ -74,7 +75,7 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, MESH_VELOCITY, 1e-3, 1e-1);
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ACCELERATION, 1.0, 1000.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, EXTERNAL_PRESSURE, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, EXTERNAL_PRESSURE, 0.0, 0.0);
 
     FluidTestUtilities::RandomFillContainerNonHistoricalVariable(r_model_part.Conditions(), NORMAL, 2, -2.0, -1.0);
 
@@ -280,8 +281,6 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
     // setting reference values
     ref_RHS = ZeroVector(6);
     ref_LHS = ZeroMatrix(6, 6);
-    ref_RHS[0] = 3.6129258158472197e+02;
-    ref_RHS[3] = 4.0511739227481127e+02;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
@@ -292,9 +291,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
     r_condition.CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
     // setting reference values
-    ref_RHS[0] = 3.6304370222204835e+02;
+    ref_RHS[0] = 1.7511206373263968e+00;
     ref_RHS[1] = 9.1427000264416627e+00;
-    ref_RHS[3] = 4.0686851291213765e+02;
+    ref_RHS[3] = 1.7511206373263968e+00;
     ref_RHS[4] = 9.1427000264416627e+00;
 
     ref_LHS(0, 0) = 1.0196283284946956e+00;
