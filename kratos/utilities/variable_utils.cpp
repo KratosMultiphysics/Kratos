@@ -174,11 +174,11 @@ bool VariableUtils::CheckVariableKeys()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes) {
+void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes)
+{
     KRATOS_TRY;
 
-    auto& rNodes_local = rNodes;
-    block_for_each(rNodes_local, [](ModelPart::NodeType& rNode){
+    BlockPartition<const ModelPart::NodesContainerType, ModelPart::NodesContainerType::const_iterator>(rNodes).for_each([](Node<3>& rNode){
         noalias(rNode.Coordinates()) = rNode.GetInitialPosition();
     });
 
@@ -188,11 +188,11 @@ void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesCo
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes) {
+void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes)
+{
     KRATOS_TRY;
 
-    auto& rNodes_local = rNodes;
-    block_for_each(rNodes_local, [&](Node<3>& rNode){
+    BlockPartition<const ModelPart::NodesContainerType, ModelPart::NodesContainerType::const_iterator>(rNodes).for_each([](Node<3>& rNode){
         noalias(rNode.GetInitialPosition().Coordinates()) = rNode.Coordinates();
     });
 
@@ -203,15 +203,14 @@ void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesCo
 /***********************************************************************************/
 
 void VariableUtils::UpdateCurrentPosition(
-    const ModelPart::NodesContainerType &rNodes,
-    const ArrayVarType &rUpdateVariable,
+    const ModelPart::NodesContainerType& rNodes,
+    const ArrayVarType& rUpdateVariable,
     const IndexType BufferPosition
     )
 {
     KRATOS_TRY;
 
-    auto& rNodes_local = rNodes;
-    block_for_each(rNodes_local, [&](Node<3>& rNode){
+    BlockPartition<const ModelPart::NodesContainerType, ModelPart::NodesContainerType::const_iterator>(rNodes).for_each([](Node<3>& rNode){
         const auto& r_update_coords = rNode.FastGetSolutionStepValue(rUpdateVariable, BufferPosition);
         noalias(rNode.Coordinates()) = (rNode.GetInitialPosition()).Coordinates() + r_update_coords;
     });
