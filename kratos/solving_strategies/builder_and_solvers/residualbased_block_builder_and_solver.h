@@ -33,6 +33,7 @@
 #include "includes/lock_object.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -1173,6 +1174,77 @@ public:
                 }
             }
         }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief It reconstructs the solution vector at slave DOFs
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
+     * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
+     */
+    void ReconstructSlaveSolution(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        auto& r_master_slave_constraints = rModelPart.MasterSlaveConstraints();
+        // Reset slave dofs
+        block_for_each(r_master_slave_constraints, [&rDx](const MasterSlaveConstraint &r_master_slave_constraint) {
+            const auto &r_slave_dofs_vector = r_master_slave_constraint.GetSlaveDofsVector();
+            for (const auto &r_slave_dof : r_slave_dofs_vector)
+            {
+                #pragma omp atomic
+                rDx[r_slave_dof->EquationId()] *= 0.0;
+            }
+        });
+
+        // Apply constraints
+        struct TLS
+        {
+            Matrix relation_matrix;
+            Vector constant_vector;
+            Vector master_dofs_values;
+        };
+
+        block_for_each(r_master_slave_constraints, TLS(), [&rDx, &rModelPart](const MasterSlaveConstraint &r_master_slave_constraint, TLS &rTLS) {
+            // Detect if the constraint is active or not. If the user did not make any choice the constraint
+            // It is active by default
+            bool constraint_is_active = true;
+            if (r_master_slave_constraint.IsDefined(ACTIVE))
+                constraint_is_active = r_master_slave_constraint.Is(ACTIVE);
+            if (constraint_is_active)
+            {
+                // Saving the master dofs values
+                const auto &r_master_dofs_vector = r_master_slave_constraint.GetMasterDofsVector();
+                const auto &r_slave_dofs_vector = r_master_slave_constraint.GetSlaveDofsVector();
+                rTLS.master_dofs_values.resize(r_master_dofs_vector.size());
+                for (IndexType i = 0; i < r_master_dofs_vector.size(); ++i)
+                {
+                    rTLS.master_dofs_values[i] = rDx[r_master_dofs_vector[i]->EquationId()];
+                }
+                // Apply the constraint to the slave dofs
+                r_master_slave_constraint.GetLocalSystem(rTLS.relation_matrix, rTLS.constant_vector, rModelPart.GetProcessInfo());
+                double aux;
+                for (IndexType i = 0; i < rTLS.relation_matrix.size1(); ++i)
+                {
+                    aux = rTLS.constant_vector[i];
+                    for (IndexType j = 0; j < rTLS.relation_matrix.size2(); ++j)
+                    {
+                        aux += rTLS.relation_matrix(i, j) * rTLS.master_dofs_values[j];
+                    }
+                    AtomicAdd(rDx[r_slave_dofs_vector[i]->EquationId()],aux);
+                }
+            }
+        });
 
         KRATOS_CATCH("")
     }

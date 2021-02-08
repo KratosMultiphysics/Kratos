@@ -594,7 +594,9 @@ public:
      * @brief It reconstructs the solution vector at slave DOFs
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
      * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
      */
     virtual void ReconstructSlaveSolution(
         typename TSchemeType::Pointer pScheme,
