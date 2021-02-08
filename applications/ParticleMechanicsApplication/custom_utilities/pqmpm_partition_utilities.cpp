@@ -76,6 +76,15 @@ namespace Kratos
         std::vector<array_1d<double, 3>> master_domain_points(std::pow(2.0, working_dim));
         CreateBoundingBoxPoints(master_domain_points, rCoordinates, side_half_length, working_dim);
 
+        if (rCoordinates[1] - side_half_length < 1e-6)
+        {
+            CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                pQuadraturePointGeometry, rLocalCoords,
+                rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                rParentGeom);
+            return;
+        }
+
         // Initially check if the bounding box volume scalar is less than the element volume scalar
         if (mp_volume_vec[0] <= rParentGeom.DomainSize()) {
             if (CheckAllPointsAreInGeom(master_domain_points, rParentGeom, Tolerance)) {
@@ -326,11 +335,21 @@ namespace Kratos
     {
         KRATOS_TRY
 
-            array_1d<double, 3> dummy_local_coords;
+        // Check all points are in MPM grid geom bounding box
+        Node<3> low, high;
+        rReferenceGeom.BoundingBox(low, high);
+        const SizeType geom_dim = rReferenceGeom.Dimension();
         for (size_t i = 0; i < rPoints.size(); ++i) {
-            if (!MPMSearchElementUtility::CheckIsInside(rReferenceGeom, dummy_local_coords, rPoints[i], Tolerance, false)) {
-                return false;
+            for (size_t dim = 0; dim < geom_dim; ++dim)
+            {
+                if (rPoints[i][dim] < low[dim] || rPoints[i][dim] > high[dim]) return false;
             }
+        }
+
+        // Now do proper calculation to check if we are inside
+        array_1d<double, 3> dummy_local_coords;
+        for (size_t i = 0; i < rPoints.size(); ++i) {
+            if (!rReferenceGeom.IsInside(rPoints[i],dummy_local_coords,Tolerance)) return false;
         }
         return true;
 
