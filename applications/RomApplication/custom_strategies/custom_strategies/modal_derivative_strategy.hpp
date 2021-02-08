@@ -481,7 +481,7 @@ public:
                 // Reconstruct slave DOF solution
                 if (master_slave_constraints_defined)
                 {
-                    this->ReconstructSlaveSolution(rDx);
+                    p_builder_and_solver->ReconstructSlaveSolution(p_scheme, r_model_part, rA, rDx, rb);
                 }
                 KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "System solve time: " << solve.ElapsedSeconds() << std::endl;
 
@@ -637,7 +637,7 @@ public:
                 // Reconstruct slave DOF solution
                 if (master_slave_constraints_defined)
                 {
-                    this->ReconstructSlaveSolution(rDx);
+                    p_builder_and_solver->ReconstructSlaveSolution(p_scheme, r_model_part, rA, rDx, rb);
                 }
 
                 // Compute and add null space solution for dynamic derivatives
@@ -1058,74 +1058,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief Recover the solution related to the slave dofs in case of master-slave constraints.
-     * @details This function is an adaptation of the implementation in ConstraintUtilities,
-     *  since there the variables are assumed to be stored in SolutionStepValue.
-     *  Beware that this implementation is only valid for Block B&S, since the master-slave constraints
-     *  don't work with Elimination B&S yet.
-     */
-    void ReconstructSlaveSolution(
-        TSystemVectorType& rDx
-    )
-    {
-        KRATOS_TRY
-
-        auto& r_model_part = BaseType::GetModelPart();
-        auto& r_master_slave_constraints = r_model_part.MasterSlaveConstraints();
-        // Reset slave dofs
-        block_for_each(r_master_slave_constraints, [&rDx](const MasterSlaveConstraint &r_master_slave_constraint) {
-            const auto &r_slave_dofs_vector = r_master_slave_constraint.GetSlaveDofsVector();
-            for (const auto &r_slave_dof : r_slave_dofs_vector)
-            {
-                #pragma omp atomic
-                rDx[r_slave_dof->EquationId()] *= 0.0;
-            }
-        });
-
-        // Apply constraints
-        struct TLS
-        {
-            Matrix relation_matrix;
-            Vector constant_vector;
-            Vector master_dofs_values;
-        };
-
-        block_for_each(r_master_slave_constraints, TLS(), [&rDx, &r_model_part](const MasterSlaveConstraint &r_master_slave_constraint, TLS &rTLS) {
-            // Detect if the constraint is active or not. If the user did not make any choice the constraint
-            // It is active by default
-            bool constraint_is_active = true;
-            if (r_master_slave_constraint.IsDefined(ACTIVE))
-                constraint_is_active = r_master_slave_constraint.Is(ACTIVE);
-            if (constraint_is_active)
-            {
-                // Saving the master dofs values
-                const auto &r_master_dofs_vector = r_master_slave_constraint.GetMasterDofsVector();
-                const auto &r_slave_dofs_vector = r_master_slave_constraint.GetSlaveDofsVector();
-                rTLS.master_dofs_values.resize(r_master_dofs_vector.size());
-                for (IndexType i = 0; i < r_master_dofs_vector.size(); ++i)
-                {
-                    rTLS.master_dofs_values[i] = rDx[r_master_dofs_vector[i]->EquationId()];
-                }
-                // Apply the constraint to the slave dofs
-                r_master_slave_constraint.GetLocalSystem(rTLS.relation_matrix, rTLS.constant_vector, r_model_part.GetProcessInfo());
-                double aux;
-                for (IndexType i = 0; i < rTLS.relation_matrix.size1(); ++i)
-                {
-                    aux = rTLS.constant_vector[i];
-                    for (IndexType j = 0; j < rTLS.relation_matrix.size2(); ++j)
-                    {
-                        aux += rTLS.relation_matrix(i, j) * rTLS.master_dofs_values[j];
-                    }
-                    AtomicAdd(rDx[r_slave_dofs_vector[i]->EquationId()],aux);
-                }
-            }
-        });
-
-        KRATOS_CATCH("")
-    }
-
 
     ///@}
     ///@name Private  Access
