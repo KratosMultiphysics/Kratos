@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -52,29 +53,25 @@ namespace EntitiesUtilities
     {
         KRATOS_TRY
 
-        // The number of entities
+        // Array of entities
         auto& r_entities_array = GetEntities<TEntityType>(rModelPart);
-        const int number_of_entities = static_cast<int>(r_entities_array.size());
-        const auto it_ent_begin = r_entities_array.begin();
 
         // The current process info
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Initialize
-        #pragma omp parallel
-        {
-            #pragma omp for schedule(guided, 512)
-            for (int i_ent = 0; i_ent < number_of_entities; ++i_ent) {
-                auto it_ent = it_ent_begin + i_ent;
-
+        block_for_each(
+            r_entities_array,
+            [&r_current_process_info](TEntityType& rEntity)
+            {
                 // Detect if the entity is active or not. If the user did not make any choice the entity
                 // It is active by default
-                const bool entity_is_active = (it_ent->IsDefined(ACTIVE)) ? it_ent->Is(ACTIVE) : true;
+                const bool entity_is_active = (rEntity.IsDefined(ACTIVE)) ? rEntity.Is(ACTIVE) : true;
                 if (entity_is_active) {
-                    it_ent->Initialize(r_current_process_info);
+                    rEntity.Initialize(r_current_process_info);
                 }
             }
-        }
+        );
 
         KRATOS_CATCH("")
     }

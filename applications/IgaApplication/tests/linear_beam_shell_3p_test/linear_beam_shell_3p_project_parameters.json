@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "scordelis_roof_test",
+        "problem_name": "linear_beam_test",
         "echo_level": 0,
         "parallel_type": "OpenMP",
         "start_time": 0,
@@ -9,15 +9,14 @@
     "solver_settings": {
         "model_part_name": "IgaModelPart",
         "domain_size": 1,
-        "echo_level": 3,
+        "echo_level": 0,
         "buffer_size": 2,
         "analysis_type": "linear",
         "model_import_settings": {
 		"input_type": "use_input_model_part"
         },
-        "computing_model_part_name": "iga_computing_model_part",
         "material_import_settings": {
-            "materials_filename": "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p_materials.json"
+            "materials_filename": "linear_beam_shell_3p_test/linear_beam_shell_3p_materials.json"
         },
         "time_stepping": {
             "time_step": 0.1
@@ -51,7 +50,7 @@
                 "modeler_name": "CadIoModeler",
                 "Parameters": {
                     "cad_model_part_name": "IgaModelPart",
-                    "geometry_file_name": "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p_geometry.cad.json"
+                    "geometry_file_name": "linear_beam_shell_3p_test/linear_beam_shell_3p_geometry.cad.json"
                 }
             },
             {
@@ -59,7 +58,7 @@
                 "Parameters": {
                     "cad_model_part_name": "IgaModelPart",
                     "analysis_model_part_name": "IgaModelPart",
-                    "physics_file_name": "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p_physics.iga.json"
+                    "physics_file_name": "linear_beam_shell_3p_test/linear_beam_shell_3p_physics.iga.json"
                 }
             }
         ],
@@ -69,32 +68,21 @@
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
                 "mesh_id": 0,
-                "model_part_name": "IgaModelPart.Support_1",
-                "variable_name": "DISPLACEMENT",
-                "constrained"     : [false,true,true],
-                "value"           : [null,0.0,0.0],
-                "interval"        : [0.0,"End"]
-            }
-        },{
-            "python_module": "assign_vector_variable_process",
-            "kratos_module": "KratosMultiphysics",
-            "Parameters": {
-                "mesh_id": 0,
-                "model_part_name": "IgaModelPart.Support_2",
-                "variable_name": "DISPLACEMENT",
-                "constrained"     : [false,true,true],
-                "value"           : [null,0.0,0.0],
-                "interval"        : [0.0,"End"]
-            }
-        },{
-            "python_module": "assign_vector_variable_process",
-            "kratos_module": "KratosMultiphysics",
-            "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Support_3",
                 "variable_name": "DISPLACEMENT",
-                "constrained"     : [true,false,false],
-                "value"           : [0.0,null,null],
+                "constrained"     : [false,true,true],
+                "value"           : [null,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_4",
+                "variable_name": "DISPLACEMENT",
+                "constrained"     : [false,true,true],
+                "value"           : [null,0.0,0.0],
                 "interval"        : [0.0,"End"]
             }
         }],
@@ -106,7 +94,7 @@
                 "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Load_5",
                 "variable_name": "SURFACE_LOAD",
-                "value": [0, 0, -90.0],
+                "value": [0, 0, -2.0],
                 "interval": [0, "End"]
             }
         }],
@@ -115,8 +103,8 @@
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
                 "check_variables": ["DISPLACEMENT"],
-	            "gauss_points_check_variables" : [],
-                "input_file_name": "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p_result.json",
+	        "gauss_points_check_variables" : ["INTERNAL_MOMENT_XX","SHEAR_FORCE_1"],
+                "input_file_name": "linear_beam_shell_3p_test/linear_beam_shell_3p_result.json",
                 "model_part_name": "IgaModelPart.StructuralAnalysis",
                 "time_frequency": 0.0
             }
