@@ -3541,8 +3541,15 @@ void MmgUtilities<MMGLibrary::MMG3D>::GetMetricTensor(array_1d<double, 6>& rMetr
     KRATOS_TRY;
 
     // The order is XX, XY, XZ, YY, YZ, ZZ
-    KRATOS_ERROR_IF( MMG3D_Get_tensorSol(mMmgMet, &rMetric[0], &rMetric[3], &rMetric[5], &rMetric[1], &rMetric[4], &rMetric[2]) != 1 ) << "Unable to get tensor metric" << std::endl;
-
+    #if MMG_VERSION_GE(5,5)
+        if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+            rMetric = ZeroVector(6);
+        } else {
+            KRATOS_ERROR_IF( MMG3D_Get_tensorSol(mMmgMet, &rMetric[0], &rMetric[3], &rMetric[5], &rMetric[1], &rMetric[4], &rMetric[2]) != 1 ) << "Unable to get tensor metric" << std::endl;
+        }
+    #else
+        KRATOS_ERROR_IF( MMG3D_Get_tensorSol(mMmgMet, &rMetric[0], &rMetric[3], &rMetric[5], &rMetric[1], &rMetric[4], &rMetric[2]) != 1 ) << "Unable to get tensor metric" << std::endl;
+    #endif
     KRATOS_CATCH("");
 }
 
