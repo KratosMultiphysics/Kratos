@@ -55,15 +55,6 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         self.imposed_stress = settings["imposed_stress"].GetVector()
         self.imposed_deformation_gradient = settings["imposed_deformation_gradient"].GetMatrix()
 
-
-    def ExecuteBeforeSolutionLoop(self):
-        """ This method is executed before starting the time loop
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        self.ExecuteInitializeSolutionStep()
-
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
 
