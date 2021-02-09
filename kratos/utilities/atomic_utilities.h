@@ -57,7 +57,6 @@ inline void AtomicAdd(TVectorType1& target, const TVectorType2& value ) {
 
 /** @param target vector variable being atomically updated by doing target -= value
  * @param value vector value being subtracted
- * Note that the update is not really atomic, but rather is done component by component
  */
 template<class TDataType>
 inline void AtomicSub(TDataType& target, const TDataType& value ) {
@@ -80,7 +79,6 @@ inline void AtomicSub(TVectorType1& target, const TVectorType2& value ) {
 
 /** @param target vector variable being atomically updated by doing target *= value
  * @param value vector value being multiplied
- * Note that the update is not really atomic, but rather is done component by component
  */
 template<class TDataType>
 inline void AtomicMult(TDataType& target, const TDataType& value) {
