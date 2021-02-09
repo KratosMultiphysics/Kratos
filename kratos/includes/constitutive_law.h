@@ -569,12 +569,9 @@ public:
         /**
      * @return The true if InitialState is defined
      */
-    bool HasInitialState()
+    bool HasInitialState() const
     {
-        if (mpInitialState)
-            return true;
-        else
-            return false;
+        return mpInitialState != nullptr;
     }
 
     /**
