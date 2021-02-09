@@ -94,7 +94,7 @@ namespace Kratos
                 i_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, this_model_part.GetProcessInfo());
 
                 for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-                    auto p_initial_state = constitutive_law_vector[point_number]->pGetpInitialState();
+                    auto p_initial_state = constitutive_law_vector[point_number]->pGetInitialState();
                     const auto& r_imposed_F = p_initial_state->GetInitialDeformationGradientMatrix();
                     const auto& r_imposed_E = p_initial_state->GetInitialStrainVector();
                     const auto& r_imposed_S = p_initial_state->GetInitialStressVector();
@@ -184,7 +184,7 @@ namespace Kratos
                 i_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, this_model_part.GetProcessInfo());
 
                 for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-                    auto p_initial_state = constitutive_law_vector[point_number]->pGetpInitialState();
+                    auto p_initial_state = constitutive_law_vector[point_number]->pGetInitialState();
                     const auto& r_imposed_F = p_initial_state->GetInitialDeformationGradientMatrix();
                     const auto& r_imposed_E = p_initial_state->GetInitialStrainVector();
                     const auto& r_imposed_S = p_initial_state->GetInitialStressVector();

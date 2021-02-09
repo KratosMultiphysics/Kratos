@@ -91,7 +91,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
 
         // Selective constructor for vectors
         InitialState(const Vector& rImposingEntity,
-                     const int InitialImposingType = 0)
+                     const int InitialImposingType = static_cast<int>(InitialImposingType::StrainOnly))
         {
             const SizeType voigt_size = rImposingEntity.size();
             const SizeType dimension = (voigt_size == 6) ? 3 : 2;

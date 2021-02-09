@@ -545,7 +545,7 @@ public:
     /**
      * @return The initial state of strains/stresses/F
      */
-    void SetpInitialState(InitialState::Pointer pInitialState)
+    void SetInitialState(InitialState::Pointer pInitialState)
     {
         mpInitialState = pInitialState;
     }
@@ -553,9 +553,28 @@ public:
     /**
      * @return The initial state of strains/stresses/F
      */
-    InitialState::Pointer pGetpInitialState()
+    InitialState::Pointer pGetInitialState()
     {
         return mpInitialState;
+    }
+
+    /**
+     * @return The reference to initial state of strains/stresses/F
+     */
+    InitialState& GetInitialState()
+    {
+        return *mpInitialState;
+    }
+
+        /**
+     * @return The true if InitialState is defined
+     */
+    bool HasInitialState()
+    {
+        if (mpInitialState)
+            return true;
+        else
+            return false;
     }
 
     /**

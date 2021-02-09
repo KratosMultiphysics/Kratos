@@ -157,11 +157,11 @@ namespace Kratos
             if (requires_unique_initial_state) {
                 InitialState::Pointer p_initial_state_custom = Kratos::make_intrusive<InitialState>(aux_initial_strain, aux_initial_stress, aux_initial_F);
                 for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-                    constitutive_law_vector[point_number]->SetpInitialState(p_initial_state_custom);
+                    constitutive_law_vector[point_number]->SetInitialState(p_initial_state_custom);
                 }
             } else {
                 for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-                    constitutive_law_vector[point_number]->SetpInitialState(p_initial_state);
+                    constitutive_law_vector[point_number]->SetInitialState(p_initial_state);
                 }
             }
         }
