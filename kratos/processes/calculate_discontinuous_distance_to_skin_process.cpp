@@ -246,7 +246,7 @@ namespace Kratos
 		// Check wich edges are intersected
 		for (std::size_t i_edge = 0; i_edge < n_edges; ++i_edge){
 
-			auto repeated_point_check = [&] (array_1d<double,3>& int_pt, std::vector<array_1d<double,3>>&  aux_pts) {
+			const auto repeated_point_check = [&] (array_1d<double,3>& int_pt, std::vector<array_1d<double,3>>&  aux_pts) {
 				// Check if there is a close intersection (repeated intersection point)
 				for (auto aux_pt : aux_pts){
 						const double aux_dist = norm_2(int_pt - aux_pt);
@@ -291,7 +291,7 @@ namespace Kratos
 				rCutEdgesRatioVector[i_edge] = dist_avg_pt / edge_length;
 				// Increase the total intersected edges counter
 				n_cut_edges++;
-
+				// Check if the avg_pt is already present
 				if (!repeated_point_check(avg_pt, aux_avg_pts)){
 					rIntersectionPointsArray.push_back(avg_pt);
 					aux_avg_pts.push_back(avg_pt);
