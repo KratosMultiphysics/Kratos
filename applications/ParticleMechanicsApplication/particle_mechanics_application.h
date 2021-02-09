@@ -75,6 +75,7 @@
 #include "custom_constitutive/hencky_borja_cam_clay_3D_law.hpp"
 #include "custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_borja_cam_clay_axisym_2D_law.hpp"
+#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 
 //---flow rules
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
@@ -255,7 +256,7 @@ private:
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition;
     const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition;
-    
+
     // Deprecated Conditions
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D3N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D4N;
@@ -301,6 +302,8 @@ private:
     const HenckyBorjaCamClayPlastic3DLaw                    mHenckyBorjaCamClayPlastic3DLaw;
     const HenckyBorjaCamClayPlasticPlaneStrain2DLaw         mHenckyBorjaCamClayPlasticPlaneStrain2DLaw;
     const HenckyBorjaCamClayPlasticAxisym2DLaw              mHenckyBorjaCamClayPlasticAxisym2DLaw;
+    // CL: d+/d- damage
+    const DamageDPlusDMinusMasonry2DLaw                    mDamageDPlusDMinusMasonry2DLaw;
 
     // Flow Rules
     const MCPlasticFlowRule                         mMCPlasticFlowRule;
