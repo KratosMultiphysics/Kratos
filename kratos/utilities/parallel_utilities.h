@@ -146,7 +146,7 @@ public:
      *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
      */
     template <class TData>
-    BlockPartition(TData &&rData, int Nchunks = omp_get_max_threads())
+    BlockPartition(TData &&rData, int Nchunks = ParallelUtilities::GetNumThreads())
         : BlockPartition(rData.begin(), rData.end(), Nchunks)
     {}
 
