@@ -81,7 +81,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const SubReduction<TDataType>& rOther)
     {
-        AtomicSub(mValue, rOther.mValue);
+        AtomicAdd(mValue, rOther.mValue);
     }
 };
 
