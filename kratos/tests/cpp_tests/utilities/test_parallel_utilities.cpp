@@ -285,11 +285,11 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
                 this->max_abs   = std::max(this->max_abs,std::abs(function_return_value));
             }
             void ThreadSafeReduce(CustomReducer& rOther){
-                #pragma omp critical
-                {
+                LockObject lock;
+                lock.SetLock();
                 this->max_value = std::max(this->max_value,rOther.max_value);
                 this->max_abs   = std::max(this->max_abs,std::abs(rOther.max_abs));
-                }
+                lock.UnSetLock();
             }
     };
 
