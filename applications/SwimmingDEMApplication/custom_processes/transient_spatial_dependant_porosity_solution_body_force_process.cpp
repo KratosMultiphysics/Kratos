@@ -34,33 +34,10 @@ namespace Kratos
 
 /* Public functions *******************************************************/
 TransientSpatialDependantPorositySolutionBodyForceProcess::TransientSpatialDependantPorositySolutionBodyForceProcess(
-    ModelPart& rModelPart,
-    const double Density,
-    const double Uchar,
-    const double DeltaAlpha,
-    const double Length,
-    const double SqueezeAmplitude,
-    const double NSafety,
-    const double X1Origin,
-    const double X2Origin,
-    const double ReynoldsNumber,
-    const double DamKohlerNumber)
+    ModelPart& rModelPart)
     : Process(),
       mrModelPart(rModelPart)
-{
-    // Member variables initialization
-    mDensity    = Density;
-    mUchar      = Uchar;
-    mDeltaAlpha = DeltaAlpha;
-    mLength     = Length;
-    mX1Origin   = X1Origin;
-    mX2Origin   = X2Origin;
-    mSqueezeAmplitude = SqueezeAmplitude;
-    mNSafety = NSafety;
-    mReynoldsNumber = ReynoldsNumber;
-    mDamKohlerNumber = DamKohlerNumber;
-
-}
+{}
 
 TransientSpatialDependantPorositySolutionBodyForceProcess::TransientSpatialDependantPorositySolutionBodyForceProcess(
     ModelPart& rModelPart,
