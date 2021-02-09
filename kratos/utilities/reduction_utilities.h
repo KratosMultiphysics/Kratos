@@ -18,6 +18,7 @@
 // System includes
 #include <tuple>
 #include <limits>
+#include <algorithm>
 
 // External includes
 
