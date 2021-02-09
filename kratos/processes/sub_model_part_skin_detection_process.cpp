@@ -12,21 +12,14 @@
 
 // Project includes
 #include "sub_model_part_skin_detection_process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
 
 void SelectIfAllNodesOnSubModelPart::Prepare(ModelPart& rMainModelPart) const
 {
-    ModelPart& r_model_part = rMainModelPart.GetSubModelPart(mName);
-    auto node_begin = r_model_part.NodesBegin();
-    const int num_nodes = r_model_part.NumberOfNodes();
-
-    #pragma omp parallel for
-    for (int k = 0; k < num_nodes; k++)
-    {
-        (node_begin+k)->Set(SubModelPartSkinDetectionProcess::NODE_SELECTED);
-    }
+    VariableUtils().SetFlag(SubModelPartSkinDetectionProcess::NODE_SELECTED, true, rMainModelPart.GetSubModelPart(mName).Nodes())
 }
 
 bool SelectIfAllNodesOnSubModelPart::IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const
