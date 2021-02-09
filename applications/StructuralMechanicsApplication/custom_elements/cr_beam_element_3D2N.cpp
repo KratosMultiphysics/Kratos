@@ -313,6 +313,21 @@ void CrBeamElement3D2N::CalculateDampingMatrix(
         msElementSize);
 }
 
+void CrBeamElement3D2N::CalculateDampingMatrix(
+    const MatrixType& rLeftHandSideMatrix,
+    const MatrixType& rMassMatrix,
+    MatrixType& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        rLeftHandSideMatrix,
+        rMassMatrix,
+        rDampingMatrix,
+        GetProperties(),
+        rCurrentProcessInfo,
+        msElementSize);
+}
+
 Vector CrBeamElement3D2N::CalculateLocalNodalForces() const
 {
     // deformation modes
