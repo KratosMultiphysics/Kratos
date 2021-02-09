@@ -22,6 +22,7 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/entities_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
