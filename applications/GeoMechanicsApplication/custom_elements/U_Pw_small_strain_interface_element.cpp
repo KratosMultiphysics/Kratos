@@ -1218,10 +1218,20 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         noalias(Variables.StrainVector) = prod(Variables.RotationMatrix,RelDispVector);
 
-        this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim-1], MinimumJointWidth, GPoint);
+        this->CheckAndCalculateJointWidth(Variables.JointWidth,
+                                          ConstitutiveParameters,
+                                          Variables.StrainVector[TDim-1],
+                                          MinimumJointWidth,
+                                          GPoint);
 
-        this->CalculateShapeFunctionsGradients< Matrix >(Variables.GradNpT,SFGradAuxVars,JContainer[GPoint],Variables.RotationMatrix,
-                                                        DN_DeContainer[GPoint],NContainer,Variables.JointWidth,GPoint);
+        this->CalculateShapeFunctionsGradients< Matrix >(Variables.GradNpT,
+                                                         SFGradAuxVars,
+                                                         JContainer[GPoint],
+                                                         Variables.RotationMatrix,
+                                                         DN_DeContainer[GPoint],
+                                                         NContainer,
+                                                         Variables.JointWidth,
+                                                         GPoint);
 
         //Compute BodyAcceleration and Permeability Matrix
         GeoElementUtilities::

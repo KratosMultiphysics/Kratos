@@ -18,7 +18,8 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
+    Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
     return Element::Pointer( new UPwSmallStrainLinkInterfaceElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
 }
@@ -257,8 +258,10 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput,
-                                                                                    const ProcessInfo& rCurrentProcessInfo )
+void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
+    CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable,
+                                  std::vector<Matrix>& rOutput,
+                                  const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -351,7 +354,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
                   VectorType& rRightHandSideVector,
                   const ProcessInfo& CurrentProcessInfo,
                   const bool CalculateStiffnessMatrixFlag,
-                  const bool CalculateResidualVectorFlag)
+                  const bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
 
@@ -393,9 +396,20 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
         InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
         noalias(RelDispVector) = prod(Variables.Nu,Variables.DisplacementVector);
         noalias(Variables.StrainVector) = prod(Variables.RotationMatrix,RelDispVector);
-        this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim-1], MinimumJointWidth, GPoint);
-        this->template CalculateShapeFunctionsGradients< Matrix >(Variables.GradNpT,SFGradAuxVars,JContainer[GPoint],Variables.RotationMatrix,
-                                                        DN_DeContainer[GPoint],NContainer,Variables.JointWidth,GPoint);
+        this->CheckAndCalculateJointWidth(Variables.JointWidth,
+                                          ConstitutiveParameters,
+                                          Variables.StrainVector[TDim-1],
+                                          MinimumJointWidth,
+                                          GPoint);
+
+        this->template CalculateShapeFunctionsGradients< Matrix >(Variables.GradNpT,
+                                                                  SFGradAuxVars,
+                                                                  JContainer[GPoint],
+                                                                  Variables.RotationMatrix,
+                                                                  DN_DeContainer[GPoint],
+                                                                  NContainer,
+                                                                  Variables.JointWidth,
+                                                                  GPoint);
 
         //Compute BodyAcceleration and Permeability Matrix
         GeoElementUtilities::
@@ -403,7 +417,9 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
                                                                 NContainer,
                                                                 Variables.VolumeAcceleration,
                                                                 GPoint );
-        InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(Variables.LocalPermeabilityMatrix,Variables.JointWidth);
+
+        InterfaceElementUtilities::CalculateLinkPermeabilityMatrix( Variables.LocalPermeabilityMatrix,
+                                                                    Variables.JointWidth );
 
         //Compute constitutive tensor and stresses
         UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
