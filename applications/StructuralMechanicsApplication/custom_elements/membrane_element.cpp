@@ -1095,8 +1095,6 @@ void MembraneElement::AddExplicitContribution(
             double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
             int index = i * dimension;
 
-            /* #pragma omp atomic
-            r_nodal_mass += element_mass_vector(index); */
             AtomicAdd(r_nodal_mass, element_mass_vector(index));
         }
     }
