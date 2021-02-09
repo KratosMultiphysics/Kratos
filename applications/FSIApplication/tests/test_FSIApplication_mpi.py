@@ -1,6 +1,8 @@
 # import Kratos
 from KratosMultiphysics import *
-from KratosMultiphysics.FSIApplication import *
+
+if not IsDistributedRun():
+    raise Exception("This test script can only be executed in MPI!")
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -9,9 +11,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 ## SMALL TESTS
 from convergence_accelerator_spring_MPI_test import ConvergenceAcceleratorSpringMPITest
 
-## NIGTHLY TESTS
-
-## VALIDATION TESTS
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -43,9 +42,6 @@ def AssembleTestSuites():
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']
     allMPISuite.addTests(nightlyMPISuite)
-
-    allSuite = suites['all']
-    allSuite.addTests(allMPISuite)
 
     return suites
 

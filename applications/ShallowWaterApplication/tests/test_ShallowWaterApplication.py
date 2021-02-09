@@ -11,6 +11,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from shallow_water_test_factory import TestShallowWaterElement
 from shallow_water_test_factory import TestLagrangianShallowWaterElement
 from shallow_water_test_factory import TestShallowWater2D3NElement
+from shallow_water_test_factory import TestMonotonicShallowWater2D3NElement
 from shallow_water_test_factory import TestSetTopographyProcess
 from shallow_water_test_factory import TestVisualizationMeshProcess
 from shallow_water_test_factory import TestNodesOutputProcess
@@ -37,10 +38,11 @@ def AssembleTestSuites():
     smallSuite.addTest(TestShallowWaterElement('test_execution'))
     smallSuite.addTest(TestLagrangianShallowWaterElement('test_execution'))
     smallSuite.addTest(TestShallowWater2D3NElement('test_execution'))
+    smallSuite.addTest(TestMonotonicShallowWater2D3NElement('test_execution'))
     smallSuite.addTest(TestSetTopographyProcess('test_execution'))
     smallSuite.addTest(TestVisualizationMeshProcess('test_execution'))
     smallSuite.addTest(TestNodesOutputProcess('test_execution'))
-    smallSuite.addTest(TestConvergenceOutputProcess('test_execution'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceOutputProcess]))
 
     # Create a test suit with the selected tests plus all small tests
     nightlySuite = suites['nightly']

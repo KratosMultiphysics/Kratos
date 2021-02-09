@@ -76,7 +76,7 @@ namespace Kratos
         /**
          * @brief It generates a truss structure with an expected solution
          */
-        static inline void BasicTestBuilderAndSolverDisplacement(ModelPart& rModelPart, const bool WithConstraint = false)
+        static inline void BasicTestBuilderAndSolverDisplacement(ModelPart& rModelPart, const bool WithConstraint = false, const bool AdditionalNode = false)
         {
             rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
             rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -87,6 +87,11 @@ namespace Kratos
             NodeType::Pointer pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
             NodeType::Pointer pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             NodeType::Pointer pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
+
+            if (AdditionalNode) {
+                rModelPart.CreateNewNode(4, 3.0, 0.0, 0.0);
+                rModelPart.CreateNewNode(5, 4.0, 0.0, 0.0);
+            }
 
             auto p_prop = rModelPart.CreateNewProperties(1, 0);
             p_prop->SetValue(YOUNG_MODULUS, 206900000000.0);
@@ -127,6 +132,12 @@ namespace Kratos
 
             if (WithConstraint) {
                 rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode2, DISPLACEMENT_X, *pnode3, DISPLACEMENT_X, 1.0, 0.0);
+                if (AdditionalNode) {
+                    auto pnode4 = rModelPart.pGetNode(4);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, *pnode3, DISPLACEMENT_X, *pnode4, DISPLACEMENT_X, 1.0, 0.0);
+                    auto pnode5 = rModelPart.pGetNode(5);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, *pnode3, DISPLACEMENT_X, *pnode5, DISPLACEMENT_X, 1.0, 0.0);
+                }
             }
         }
 
@@ -373,6 +384,39 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1.0000000000000000)/rA(3,3)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2069000000.0000000000000000)/rA(4,4)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.0000000000000000)/rA(5,5)), tolerance);
+        }
+
+        /**
+         * Checks if the block builder and solver with constraints performs correctly the assemble of the system
+         */
+        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliarNode, KratosCoreFastSuite)
+        {
+            Model current_model;
+            ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+            BasicTestBuilderAndSolverDisplacement(r_model_part, true, true);
+
+            SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
+            LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+            BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
+
+            const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+//             // To create the solution of reference
+//             DebugLHS(rA);
+
+            // The solution check
+            constexpr double tolerance = 1e-8;
+            KRATOS_CHECK(rA.size1() == 8);
+            KRATOS_CHECK(rA.size2() == 8);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 2069000000.0000000000000000)/rA(0,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1.0000000000000000)/rA(1,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 2069000000.0000000000000000)/rA(2,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1.0000000000000000)/rA(3,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2069000000.0000000000000000)/rA(4,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.0000000000000000)/rA(5,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,6) - 2069000000.0000000000000000)/rA(6,6)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,7) - 2069000000.0000000000000000)/rA(7,7)), tolerance);
         }
 
         /**
@@ -1402,4 +1446,3 @@ namespace Kratos
 
     } // namespace Testing
 }  // namespace Kratos.
-

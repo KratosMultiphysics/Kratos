@@ -1,5 +1,6 @@
 # import kratos
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.RANSApplication as KratosRANS
 
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
@@ -39,3 +40,13 @@ class MonolithicKOmegaRansFormulation(RansFormulation):
 
     def SetConstants(self, settings):
         self.k_omega_formulation.SetConstants(settings)
+
+    def Initialize(self):
+        super().Initialize()
+
+        if (self.monolithic_formulation.ElementHasNodalProperties()):
+            nut_nodal_update_process = KratosRANS.RansNutNodalUpdateProcess(
+                                                self.GetBaseModelPart().GetModel(),
+                                                self.GetBaseModelPart().Name,
+                                                self.k_omega_formulation.echo_level)
+            self.k_omega_formulation.AddProcess(nut_nodal_update_process)

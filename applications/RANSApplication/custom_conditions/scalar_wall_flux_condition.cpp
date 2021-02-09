@@ -152,7 +152,8 @@ void ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Cal
             gauss_weights, shape_functions);
         const IndexType num_gauss_points = gauss_weights.size();
 
-        TScalarWallFluxConditionData r_current_data(r_geometry);
+        TScalarWallFluxConditionData r_current_data(
+            r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
         r_current_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -179,6 +180,15 @@ int ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Chec
 
     int check = BaseType::Check(rCurrentProcessInfo);
     TScalarWallFluxConditionData::Check(this->GetGeometry(), rCurrentProcessInfo);
+
+    KRATOS_ERROR_IF(!this->Has(NEIGHBOUR_ELEMENTS))
+        << "NEIGHBOUR_ELEMENTS were not assigned properly for condition "
+        << this->Info() << ".\n";
+
+    KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() != 1)
+        << "More than one parent element was found for condition " << this->Info()
+        << " [ number of parents = " << this->GetValue(NEIGHBOUR_ELEMENTS).size()
+        << " ].\n";
 
     return check;
 
