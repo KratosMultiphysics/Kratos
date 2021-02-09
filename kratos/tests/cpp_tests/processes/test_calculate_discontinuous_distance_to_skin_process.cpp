@@ -279,8 +279,8 @@ namespace Testing {
 		gid_io_fluid.WriteNodalResultsNonHistorical(DISTANCE, fluid_part.Nodes(), 0);
 		gid_io_fluid.FinalizeResults();
 
-        KRATOS_CHECK_NEAR(r_elem_dist[0], 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], std::sqrt(2), 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[2], 0.0, 1e-6);
     }
 
@@ -359,10 +359,7 @@ namespace Testing {
             for (unsigned int i = 0; i < r_elem_dist.size(); i++) {
                 auto& r_nodal_dist = r_elem.GetGeometry()[i].GetValue(DISTANCE);
                 if (r_elem_dist[i] < r_nodal_dist) {
-                    if (r_elem.GetGeometry()[i].Y() < 0.0 && r_elem_dist[i] > 0)
-                        r_elem.GetGeometry()[i].SetValue(DISTANCE, -1*r_elem_dist[i]);
-                    else
-                        r_elem.GetGeometry()[i].SetValue(DISTANCE, r_elem_dist[i]);
+                    r_elem.GetGeometry()[i].SetValue(DISTANCE, r_elem_dist[i]);
                 }
             }
         }
@@ -432,9 +429,9 @@ namespace Testing {
 
         KRATOS_WATCH(r_elem_dist)
 
-        KRATOS_CHECK_NEAR(r_elem_dist[0], 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], std::sqrt(2), 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], std::sqrt(3), 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], -1.0, 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[3], 0.0, 1e-6);
     }
 
@@ -471,7 +468,7 @@ namespace Testing {
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
         KRATOS_CHECK_NEAR(r_elem_dist[0], 0.0, 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[1], 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], std::sqrt(2), 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[3], 0.0, 1e-6);
     }
 
@@ -1472,8 +1469,8 @@ namespace Testing {
             }
         }
         // for embedded geometry on fluid element edges no cuts are detected
-        KRATOS_CHECK_EQUAL(n_incised, 0);
-        KRATOS_CHECK_EQUAL(n_intersected, 0);
+        KRATOS_CHECK_EQUAL(n_incised, 4);
+        KRATOS_CHECK_EQUAL(n_intersected, 2);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessCutThroughNode2D, KratosDistanceSuite)
@@ -1533,16 +1530,16 @@ namespace Testing {
             }
         }
         // cuts directly through a node are not considered
-        KRATOS_CHECK_EQUAL(n_intersected, 0);
-        KRATOS_CHECK_EQUAL(n_incised, 4);
+        KRATOS_CHECK_EQUAL(n_intersected, 3);
+        KRATOS_CHECK_EQUAL(n_incised, 5);
 
         // Check edge distances -> #4 and #5 are detected as only incised, #3 and #6 are incised
         const auto &r_edge_dist_elem_2 = volume_part.GetElement(2).GetValue(ELEMENTAL_EDGE_DISTANCES);
         const auto &r_edge_dist_elem_3 = volume_part.GetElement(3).GetValue(ELEMENTAL_EDGE_DISTANCES);
         const auto &r_edge_dist_elem_4 = volume_part.GetElement(4).GetValue(ELEMENTAL_EDGE_DISTANCES);
-        const std::vector<double> expected_values_elem_2 = {-1.0,-1.0,-1.0};
+        const std::vector<double> expected_values_elem_2 = {-1.0, 0,-1.0};
         const std::vector<double> expected_values_elem_3 = {-1.0,-1.0,0.428571};
-        const std::vector<double> expected_values_elem_4 = {-1.0,0.571429,-1.0};
+        const std::vector<double> expected_values_elem_4 = {0,0.571429,1.0};
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_2, expected_values_elem_2, 1.0e-6);
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_3, expected_values_elem_3, 1.0e-6);
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_4, expected_values_elem_4, 1.0e-6);
