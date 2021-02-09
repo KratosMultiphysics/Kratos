@@ -20,6 +20,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/builtin_timer.h"
 
 namespace Kratos {
