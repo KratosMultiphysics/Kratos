@@ -11,7 +11,7 @@
 // ==============================================================================
 
 // External includes 
-
+#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define.h"
@@ -44,8 +44,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 	// Utility Classes
 	// =============================================================================================================================================
 
-	py::class_<StructureResponseFunctionUtilities >(m, "StructureResponseFunctionUtilities")
-    .def(py::init<ModelPart&>())
+	py::class_<StructureResponseFunctionUtilities, StructureResponseFunctionUtilities::Pointer>(m, "StructureResponseFunctionUtilities")
+    .def(py::init<ModelPart& >())
 	.def("ComputeStrainEnergy", &StructureResponseFunctionUtilities::ComputeStrainEnergy)
 	.def("ComputeVolumeFraction", &StructureResponseFunctionUtilities::ComputeVolumeFraction)
 	;

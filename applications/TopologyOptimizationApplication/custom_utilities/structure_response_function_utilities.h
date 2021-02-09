@@ -22,9 +22,15 @@
 #include <pybind11/pybind11.h>
 
 // Project includes
+//#include "includes/define.h"
+//#include "includes/element.h"
+//#include "includes/model_part.h"
 #include "includes/define.h"
+#include "processes/process.h"
+#include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "includes/kratos_flags.h"
 #include "includes/process_info.h"
 
 // Application includes
