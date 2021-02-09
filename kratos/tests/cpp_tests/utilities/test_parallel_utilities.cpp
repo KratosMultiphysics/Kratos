@@ -104,8 +104,17 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerConstContainer, KratosCoreFastSuite)
         }
     );
 
+    //here we check for a reduction (computing the sum of all the entries)
+    auto final_sum_short = block_for_each<SumReduction<double>>(data_vector,
+        [](const double item)
+        {
+            return item;
+        }
+    );
+
     const double expected_value = 5.0*nsize;
     KRATOS_CHECK_DOUBLE_EQUAL(final_sum, expected_value);
+    KRATOS_CHECK_DOUBLE_EQUAL(final_sum_short, expected_value);
 }
 
 // Basic Type
