@@ -249,7 +249,7 @@ void DamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
 		UniaxialStressTension			= 0.0;
 		UniaxialStressCompression		= 0.0;
 
-		this->ComputeCharacteristicLength(rElementGeometry, InitialCharacteristicLength);
+		this->ComputeCharacteristicLength(rElementGeometry, InitialCharacteristicLength); // TODO update for material point
 
 		// Begin IMPLEX Integration - Only if switched on
 		if (rMaterialProperties[INTEGRATION_IMPLEX] != 0){
@@ -301,7 +301,6 @@ void DamageDPlusDMinusMasonry2DLaw::FinalizeSolutionStep(
 	// save converged values
 	CurrentThresholdTension 		= ThresholdTension;
 	CurrentThresholdCompression 	= ThresholdCompression;
-
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -334,13 +333,19 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	const Properties&   props = rValues.GetMaterialProperties();
 
 	const Vector& StrainVector   	= rValues.GetStrainVector();
-
-	// TODO calculate strain rate, mStrainOld
+	KRATOS_ERROR_IF_NOT(StrainVector.size() == mStrainOld.size())
+		<< "The new and old strain vectors are different sizes!"
+		<< "\nStrainVector = " << StrainVector
+		<< "\nStrainVectorOld = " << mStrainOld
+		<< std::endl;
+	const Vector strain_rate_vec = (StrainVector - mStrainOld) / pinfo[DELTA_TIME];
 
 	Vector& PredictiveStressVector	= rValues.GetStressVector();
 
 	CalculationData data;
-	data.StrainRate = 100.0; // TODO update
+	data.StrainRate = std::sqrt(0.5 * norm_2_square(strain_rate_vec));
+	mStrainOld = Vector(rValues.GetStrainVector()); // only needed for the strain rate calc.
+
 	this->InitializeCalculationData(props, geom, pinfo, data);
 
 	this->CalculateMaterialResponseInternal(StrainVector, PredictiveStressVector, data, props);
@@ -351,6 +356,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 
 	// Computation of the Constitutive Tensor
 	if (rValues.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
+		KRATOS_ERROR << "NOT IMPLEMENTED!\n\n";
 		if(is_damaging_tension || is_damaging_compression) {
 			this->CalculateTangentTensor(rValues, StrainVector, PredictiveStressVector, data, props);
 		}
@@ -481,15 +487,17 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponse(const Vector& Stra
 	int CalculateTangent,
 	bool SaveInternalVariables)
 {
+	// TODO check this works for MPM
+
 	ConstitutiveLaw::Parameters parameters(rElementGeometry, rMaterialProperties, rCurrentProcessInfo);
 	Vector E(StrainVector);
 	parameters.SetStrainVector( E );
 	parameters.SetStressVector( StressVector );
-	parameters.SetConstitutiveMatrix( AlgorithmicTangent );
+	parameters.SetConstitutiveMatrix( AlgorithmicTangent ); // TODO Remove?
 	Flags& options = parameters.GetOptions();
 	options.Set(ConstitutiveLaw::COMPUTE_STRESS, CalculateStresses);
 	options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, CalculateTangent);
-	double detF = 1.0;
+	double detF = 1.0; // TODO remove and make the same as RHT  or JC
 	Matrix F(IdentityMatrix(2,2));
 	parameters.SetDeterminantF(detF);
 	parameters.SetDeformationGradientF(F);
@@ -527,7 +535,7 @@ void DamageDPlusDMinusMasonry2DLaw::InitializeCalculationData(
 	data.BezierControllerC3  			= props.Has(BEZIER_CONTROLLER_C3) ? props[BEZIER_CONTROLLER_C3] : 1.50;
 	data.FractureEnergyCompression  	= props[FRACTURE_ENERGY_COMPRESSION]* dif_compression;
 	data.BiaxialCompressionMultiplier  	= props[BIAXIAL_COMPRESSION_MULTIPLIER];
-	data.ShearCompressionReductor  		= props.Has(SHEAR_COMPRESSION_REDUCTOR) ? props[SHEAR_COMPRESSION_REDUCTOR] : 0.5;
+	data.ShearCompressionReductor  		= props.Has(SHEAR_COMPRESSION_REDUCTOR) ? props[SHEAR_COMPRESSION_REDUCTOR] : 1.0; // Changed default to 1.0 to match Lubliner
 	data.ShearCompressionReductor  		= std::min(std::max(data.ShearCompressionReductor,0.0),1.0);
 
 	// Effective Stress Data
@@ -681,7 +689,8 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressTension(Calculation
 	if(data.PrincipalStressVector(0) > 0.0){
 		if (data.TensionYieldModel == 0) {
 			// Lubliner Yield Criteria
-			const double yield_compression 		 	= 	data.YieldStressCompression;
+			//const double yield_compression 		 	= 	data.YieldStressCompression;
+			const double yield_compression 		 	=	data.DamageOnsetStressCompression; // Updated to match petr2016, cerv2018
 			const double yield_tension 				= 	data.YieldStressTension;
 			const double alpha 						= 	(data.BiaxialCompressionMultiplier - 1.0) /
 														(2.0* data.BiaxialCompressionMultiplier - 1.0);
@@ -905,31 +914,12 @@ void DamageDPlusDMinusMasonry2DLaw::ComputeCharacteristicLength(
     const GeometryType& geom,
     double& rCharacteristicLength)
 {
+	// Updated for MPM
+
+
     rCharacteristicLength = geom.Length();
 
-#ifdef OPTIMIZE_CHARACTERISTIC_LENGTH
-    if(geom. WorkingSpaceDimension() == 2 && geom.PointsNumber() == 4){
-        //2D Element with 4 Nodes
-        double aX = (geom[0].X0() + geom[3].X0())/2.0;  //center_coord_X_Node1Node4
-        double aY = (geom[0].Y0() + geom[3].Y0())/2.0;  //center_coord_Y_Node1Node4
-        double bX = (geom[1].X0() + geom[2].X0())/2.0;  //center_coord_X_Node2Node3
-        double bY = (geom[1].Y0() + geom[2].Y0())/2.0;  //center_coord_Y_Node2Node3
-        double cX = (geom[0].X0() + geom[1].X0())/2.0;  //center_coord_X_Node1Node2
-        double cY = (geom[0].Y0() + geom[1].Y0())/2.0;  //center_coord_Y_Node1Node2
-        double dX = (geom[2].X0() + geom[3].X0())/2.0;  //center_coord_X_Node3Node4
-        double dY = (geom[2].Y0() + geom[3].Y0())/2.0;  //center_coord_Y_Node3Node4
 
-        double SabX = aX - bX;
-        double SabY = aY - bY;
-        double ScdX = cX - dX;
-        double ScdY = cY - dY;
-
-        double length_ab = std::sqrt(std::pow(SabX,2) + std::pow(SabY,2));
-        double length_cd = std::sqrt(std::pow(ScdX,2) + std::pow(ScdY,2));
-
-        rCharacteristicLength = std::min(length_ab, length_cd);
-    }
-#endif
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -956,7 +946,6 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 
 	// compute the equivalent stress measures
 	this->CalculateEquivalentStressTension(data, UniaxialStressTension);
-
 	this->CalculateEquivalentStressCompression(data, UniaxialStressCompression);
 
 	// damage update
