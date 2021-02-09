@@ -97,7 +97,8 @@ public:
         Kratos_Tetrahedra,
         Kratos_Hexahedra,
         Kratos_Prism,
-        Kratos_generic_family
+        Kratos_generic_family,
+        Kratos_Brep
     };
 
     enum KratosGeometryType
@@ -126,9 +127,10 @@ public:
         Kratos_Line3D3,
         Kratos_Point2D,
         Kratos_Point3D,
-        Kratos_Sphere3D1
+        Kratos_Sphere3D1,
+        Kratos_Brep_Surface,
+        Kratos_Brep_Curve
     };
-
 
     ///@}
     ///@name Type Definitions
@@ -277,7 +279,7 @@ public:
     * Constructor which has a precomputed shape function container.
     * @param pThisGeometryDimension pointer to the dimensional data
     * @param ThisGeometryShapeFunctionContainer including the evaluated
-    *        values for the shape functions, it's derivatives and the 
+    *        values for the shape functions, it's derivatives and the
     *        integration points.
     */
     GeometryData(GeometryDimension const *pThisGeometryDimension,
