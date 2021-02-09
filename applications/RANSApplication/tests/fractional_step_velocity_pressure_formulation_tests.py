@@ -8,7 +8,7 @@ class FractionalStepVelocityPressureFormulationTest(flow_solver_test_case.FlowSo
     def setUpClass(cls):
         super(FractionalStepVelocityPressureFormulationTest, cls).setUpCase(
             "BackwardFacingStepTest",
-            "backward_facing_step_fractional_step_velocity_pressure_parameters.json",
+            "backward_facing_step_fs_up_parameters.json",
             False)
         cls.transient_scheme_type = "bdf2"
 

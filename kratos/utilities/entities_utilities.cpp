@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
 // System includes
@@ -33,6 +34,50 @@ void InitializeAllEntities(ModelPart& rModelPart)
     InitializeEntities<Condition>(rModelPart);
     InitializeEntities<Element>(rModelPart);
     InitializeEntities<MasterSlaveConstraint>(rModelPart);
+
+    KRATOS_CATCH("")
+}
+
+void InitializeSolutionStepAllEntities(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    InitializeSolutionStepEntities<Condition>(rModelPart);
+    InitializeSolutionStepEntities<Element>(rModelPart);
+    InitializeSolutionStepEntities<MasterSlaveConstraint>(rModelPart);
+
+    KRATOS_CATCH("")
+}
+
+void FinalizeSolutionStepAllEntities(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    FinalizeSolutionStepEntities<Condition>(rModelPart);
+    FinalizeSolutionStepEntities<Element>(rModelPart);
+    FinalizeSolutionStepEntities<MasterSlaveConstraint>(rModelPart);
+
+    KRATOS_CATCH("")
+}
+
+void InitializeNonLinearIterationAllEntities(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    InitializeNonLinearIterationEntities<Condition>(rModelPart);
+    InitializeNonLinearIterationEntities<Element>(rModelPart);
+    InitializeNonLinearIterationEntities<MasterSlaveConstraint>(rModelPart);
+
+    KRATOS_CATCH("")
+}
+
+void FinalizeNonLinearIterationAllEntities(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    FinalizeNonLinearIterationEntities<Condition>(rModelPart);
+    FinalizeNonLinearIterationEntities<Element>(rModelPart);
+    FinalizeNonLinearIterationEntities<MasterSlaveConstraint>(rModelPart);
 
     KRATOS_CATCH("")
 }
