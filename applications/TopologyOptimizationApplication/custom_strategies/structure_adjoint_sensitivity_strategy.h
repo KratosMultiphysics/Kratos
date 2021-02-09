@@ -43,8 +43,12 @@ namespace Kratos {
 /// Solution strategy to calculate the sensitivities.
 /// Derives from the previously defined Solving Strategy
 
-template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class StructureAdjointSensitivityStrategy: public SolvingStrategy<TSparseSpace, TDenseSpace,TLinearSolver>
+template	<class TSparseSpace, 
+			class TDenseSpace, 
+			class TLinearSolver
+			>
+class StructureAdjointSensitivityStrategy
+	: public SolvingStrategy<TSparseSpace, TDenseSpace,TLinearSolver>
 {
 public:
 
@@ -54,6 +58,7 @@ public:
 	KRATOS_CLASS_POINTER_DEFINITION(StructureAdjointSensitivityStrategy);
 
 	typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+
 	typedef typename Scheme<TSparseSpace,TDenseSpace>::Pointer SchemePointerType;
 	typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderAndSolverPointerType;
 

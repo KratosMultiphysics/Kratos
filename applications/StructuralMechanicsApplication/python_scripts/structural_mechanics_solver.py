@@ -12,6 +12,8 @@ from KratosMultiphysics.StructuralMechanicsApplication import convergence_criter
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 from KratosMultiphysics import auxiliary_solver_utilities
 from KratosMultiphysics import kratos_utilities
+from KratosMultiphysics import TopologyOptimizationApplication
+from KratosMultiphysics.TopologyOptimizationApplication import python_solvers_wrapper_topology as static_simp_solver
 
 # Other imports
 from importlib import import_module

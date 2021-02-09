@@ -19,9 +19,11 @@ from __future__ import print_function, absolute_import, division
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.TopologyOptimizationApplication import *
+import os
 
 # For GID output
-from gid_output import GiDOutput
+#from KratosMultiphysics import gid_output
+from KratosMultiphysics.gid_output import GiDOutput
 
 # Further necessary imports
 import csv
@@ -73,7 +75,7 @@ class SIMPMethod:
             print("   ",func_id,":",config.constraints[func_id])
 
         # Create controller object
-        self.controller = Controller( config );
+        self.controller = Controller( config )
 
         # Model parameters
         self.opt_model_part = opt_model_part
