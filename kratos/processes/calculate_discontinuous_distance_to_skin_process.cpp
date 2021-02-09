@@ -351,6 +351,7 @@ namespace Kratos
 		} else {
 			// Create a plane with the 3 intersection points (or 2 in 2D)
 			Plane3D plane = SetIntersectionPlane(rIntersectionPointsCoordinates);
+
 			// Compute the distance to the intersection plane
 			for (std::size_t i = 0; i < num_nodes; i++) {
 				r_elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
