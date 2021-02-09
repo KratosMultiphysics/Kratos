@@ -105,8 +105,8 @@ namespace Kratos
 		MakeStrainStressMatrixFromVector((StrainVector - mStrainOld), strain_increment);
 		MakeStrainStressMatrixFromVector(StressVector, stress_old);
 
-		mStrainRate = std::sqrt(3.0 / 2.0 * MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(strain_increment))
-			/CurrentProcessInfo[DELTA_TIME];
+		mStrainRate = std::sqrt(0.5 *
+			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(strain_increment / CurrentProcessInfo[DELTA_TIME]));
 
 		// Material moduli
 		const double shear_modulus_G = MaterialProperties[YOUNG_MODULUS] / (2.0 + 2.0 * MaterialProperties[POISSON_RATIO]);
