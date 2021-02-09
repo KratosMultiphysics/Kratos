@@ -33,7 +33,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/global_variables.h"
-#include "utilities/reduction_utilities.h"
 
 
 namespace Kratos
