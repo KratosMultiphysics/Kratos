@@ -37,7 +37,8 @@
 namespace Kratos
 {
 
-template<std::size_t TDim> class BFECCConvection
+template<std::size_t TDim>
+class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) BFECCConvection
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BFECCConvection<TDim>);
