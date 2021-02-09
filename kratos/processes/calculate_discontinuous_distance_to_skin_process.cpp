@@ -181,28 +181,10 @@ namespace Kratos
 		// Check if there is intersection: 3 or more intersected edges for a tetrahedron
 		// If there is only 1 or 2 intersected edges, intersection is not considered
 		// If there is intersection, calculate the elemental distances
-		const bool is_intersection = (n_cut_edges < rElement1.GetGeometry().WorkingSpaceDimension() &&
-									int_pts_vector.size() < rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
+		const bool is_intersection = (n_cut_edges < rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
+
 		if (is_intersection){
 			ComputeIntersectionPlaneElementalDistances(rElement1, rIntersectedObjects, int_pts_vector);
-		} else if (n_cut_edges > 0) {
-			// Not enough intersection points to create a plane
-			std::cout << "zeroooo" << std::endl;
-			auto& r_elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
-			if (int_pts_vector.size() == 1) {
-				for (IndexType i_node = 0; i_node < rElement1.GetGeometry().size(); ++i_node) {
-					array_1d<double, 3> vector_line = int_pts_vector[0] - rElement1.GetGeometry()[i_node].Coordinates();
-					r_elemental_distances[i_node] = norm_2(vector_line);
-				}
-			} else {
-				for (IndexType i_node = 0; i_node < rElement1.GetGeometry().size(); ++i_node) {
-					auto& r_node = rElement1.GetGeometry()[i_node];
-					auto distance = GeometryUtils::PointDistanceToLineSegment3D(Point(int_pts_vector[0]),
-						Point(int_pts_vector[1]), r_node);
-					r_elemental_distances[i_node] = distance;
-				}
-			}
-			KRATOS_WATCH(r_elemental_distances)
 		}
 
 		// Check if the element is split and set the TO_SPLIT flag accordingly
@@ -300,28 +282,6 @@ namespace Kratos
 				}
 			}
 
-			// // Collect the current edge information
-			// if (rCutEdgesVector[i_edge] != 0){
-			// 	// Average the edge intersection point and save it
-			// 	avg_pt /= rCutEdgesVector[i_edge];
-			// 	n_cut_edges++;
-
-			// 	bool is_repeated = false;
-			// 	for (auto aux_pt : aux_intersection_pts){
-			// 		const double aux_dist = norm_2(avg_pt - aux_pt);
-			// 		const double tol_edge = 1e-2*norm_2(r_edges_container[i_edge][0] - r_edges_container[i_edge][1]);
-			// 		if (aux_dist < tol_edge){
-			// 			is_repeated = true;
-			// 			break;
-			// 		}
-			// 	}
-
-			// 	if (!is_repeated){
-			// 		rIntersectionPointsArray.push_back(avg_pt);
-			// 		aux_intersection_pts.push_back(avg_pt);
-			// 	}
-			// }
-
 			// Collect the current edge information
 			if (rCutEdgesVector[i_edge] != 0){
 				// Average the edge intersection point and save it
@@ -331,6 +291,7 @@ namespace Kratos
 				const double dist_avg_pt = norm_2(r_edges_container[i_edge][0] - avg_pt);
 				rCutEdgesRatioVector[i_edge] = dist_avg_pt / edge_length;
 				// Increase the total intersected edges counter
+				n_cut_edges++;
 
 				bool is_avg_pt_repeated = false;
 				for (auto aux_pt : aux_intersection_pts){
@@ -343,7 +304,6 @@ namespace Kratos
 				}
 
 				if (!is_avg_pt_repeated){
-					n_cut_edges++;
 					rIntersectionPointsArray.push_back(avg_pt);
 					aux_intersection_pts.push_back(avg_pt);
 				}
@@ -370,12 +330,7 @@ namespace Kratos
 		// Otherwise, the distance is computed using the plane defined by the 3 (3D) or 2 (2D) intersection points.
 		const auto& r_geometry = rElement.GetGeometry();
 		const unsigned int n_cut_edges = rIntersectionPointsCoordinates.size();
-		const bool do_plane_approx = (n_cut_edges == TDim) ? false : true;
-
-		// const bool do_plane_approx = (n_cut_edges == r_geometry.WorkingSpaceDimension() || (rIntersectionPointsCoordinates.size() < TDim)) ? false : true;
-		// KRATOS_WATCH(rIntersectionPointsCoordinates)
-		// KRATOS_WATCH(n_cut_edges)
-		// KRATOS_WATCH(do_plane_approx)
+		const bool do_plane_approx = (n_cut_edges <= TDim) ? false : true;
 
 		if (do_plane_approx){
 			// Call the plane optimization utility
@@ -388,46 +343,36 @@ namespace Kratos
 				r_elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
 			}
 		} else {
-			// Create a plane with the 3 intersection points (or 2 in 2D)
-			Plane3D plane = SetIntersectionPlane(rIntersectionPointsCoordinates);
+			if (rIntersectionPointsCoordinates.size() == TDim) {
+				// Create a plane with the 3 intersection points (or 2 in 2D)
+				Plane3D plane = SetIntersectionPlane(rIntersectionPointsCoordinates);
+				// Compute the distance to the intersection plane
+				for (std::size_t i = 0; i < num_nodes; i++) {
+					r_elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
+				}
+			}
+			else {
+				// Not enough intersection points to build a plane
+				// Use the intersected objects to create an approximation plane
+				std::vector<array_1d<double,3>> int_pts_vector;
+				for (const auto &r_int_obj : rIntersectedObjects) {
+					for (std::size_t i_int = 0; i_int < r_int_obj.GetGeometry().size(); i_int++) {
+						int_pts_vector.push_back(r_int_obj.GetGeometry()[i_int].Coordinates());
+					}
+				}
+				array_1d<double,3> base_pt, normal;
+				ComputePlaneApproximation(rElement, int_pts_vector, base_pt, normal);
+				Plane3D approximation_plane(normal, Point{base_pt});
 
-			// Compute the distance to the intersection plane
-			for (std::size_t i = 0; i < num_nodes; i++) {
-				r_elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
+				// Compute the distance to the intersection plane
+				for (std::size_t i = 0; i < num_nodes; i++) {
+					r_elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
+				}
 			}
 		}
 
-
-
-			// 		if (rIntersectionPointsCoordinates.size() >= TDim) {
-			// 	// Create a plane with the 3 intersection points (or 2 in 2D)
-			// 	Plane3D plane = SetIntersectionPlane(rIntersectionPointsCoordinates);
-			// 	// Compute the distance to the intersection plane
-			// 	for (std::size_t i = 0; i < num_nodes; i++) {
-			// 		r_elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
-			// 	}
-			// }
-			// else {
-			// 	// Not enough intersection points to build a plane
-			// 	// Use the intersected objects to create an approximation plane
-			// 	std::vector<array_1d<double,3>> int_pts_vector;
-			// 	for (const auto &r_int_obj : rIntersectedObjects) {
-			// 		for (std::size_t i_int = 0; i_int < r_int_obj.GetGeometry().size(); i_int++) {
-			// 			int_pts_vector.push_back(r_int_obj.GetGeometry()[i_int].Coordinates());
-			// 		}
-			// 	}
-			// 	array_1d<double,3> base_pt, normal;
-			// 	ComputePlaneApproximation(rElement, int_pts_vector, base_pt, normal);
-			// 	Plane3D approximation_plane(normal, Point{base_pt});
-
-			// 	// Compute the distance to the intersection plane
-			// 	for (std::size_t i = 0; i < num_nodes; i++) {
-			// 		r_elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
-			// 	}
-			// }
 		// Correct the distance values orientation
 		CorrectDistanceOrientation(r_geometry, rIntersectedObjects, r_elemental_distances);
-		KRATOS_WATCH(r_elemental_distances)
 	}
 
 	template<std::size_t TDim>
