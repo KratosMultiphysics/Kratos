@@ -15,17 +15,18 @@
 
 
 // External includes
-#include "boost/smart_ptr.hpp" ///Laut Issue von 14.12. soll das auskommentiert werden
+
+
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "solving_strategies/schemes/scheme.h"
-#include "includes/variables.h"
+///#include "includes/define.h"
+///#include "includes/model_part.h"
+///#include "solving_strategies/schemes/scheme.h"
+///#include "includes/variables.h"
 
 //#include "solid_mechanics_application.h"
-#include "structural_mechanics_application.h"
-#include "topology_optimization_application.h"
+///#include "structural_mechanics_application.h"
+///#include "topology_optimization_application.h"
 
 // Application includes
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -58,9 +59,7 @@ namespace Kratos
 /**@name Kratos Classes */
 /*@{ */
 
-template<class TSparseSpace,
-         class TDenseSpace //= DenseSpace<double>
-         >
+template<class TSparseSpace,class TDenseSpace >
 class ResidualBasedIncrementalUpdateStaticSIMPScheme : public ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>
 {
 
@@ -71,7 +70,7 @@ public:
     //typedef boost::shared_ptr< ResidualBasedIncrementalUpdateStaticSIMPScheme<TSparseSpace,TDenseSpace> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedIncrementalUpdateStaticSIMPScheme );
 
-    typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
+    typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -97,8 +96,7 @@ public:
 
     /** Destructor.
     */
-    ~ResidualBasedIncrementalUpdateStaticSIMPScheme() override
-    {}
+    ~ResidualBasedIncrementalUpdateStaticSIMPScheme() {}
     ///virtual ~ResidualBasedIncrementalUpdateStaticSIMPScheme() {} alte Version 14.12
 
 

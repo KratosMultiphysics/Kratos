@@ -2,19 +2,19 @@
     "problem_data"             : {
         "problem_name"    : "Small_Cantilever_Hex",
         "parallel_type"   : "OpenMP",
-        "echo_level"      : 1,
+        "echo_level"      : 0,
         "start_time"      : 0.0,
         "end_time"        : 1.0
     },
     "solver_settings"          : {
-        "solver_type"                        : "StaticSIMP",
+        "solver_type"                        : "Static",
         "model_part_name"                    : "Structure",
         "domain_size"                        : 3,
         "echo_level"                         : 0,
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "Small_Cantilever_Hex"
+            "input_filename" : "applications/TopologyOptimizationApplication/examples/01_Small_Cantilever_Hexahedra/Small_Cantilever_Hex"
         },
         "material_import_settings"           : {
             "materials_filename" : "StructuralMaterials.json"
@@ -29,9 +29,13 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_solid"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_disp","PointLoad3D_load"],
-        "rotation_dofs"                      : false
+        "rotation_dofs"                      : false,
+        "linear_solver_settings"             :  {
+            "solver_type"         : "amgcl",
+            "max_iteration"       : 500,
+            "tolerance"           : 1e-8,
+            "scaling"             : false
+        }
     },
     "processes"        : {
    	"constraints_process_list" : [{
@@ -58,6 +62,26 @@
                 "interval"        : [0.0,"End"]
             }
     }],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_interval"    : 1.0,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION"],
+            "gauss_point_results" : ["VON_MISES_STRESS"]
+        },
+              "point_data_configuration"  : []
+    },
         "vtk_output" : [{
             "python_module" : "vtk_output_process",
             "kratos_module" : "KratosMultiphysics",

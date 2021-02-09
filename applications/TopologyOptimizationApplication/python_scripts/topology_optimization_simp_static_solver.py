@@ -1,12 +1,13 @@
 import KratosMultiphysics
+from KratosMultiphysics import TopologyOptimizationApplication
 from KratosMultiphysics.TopologyOptimizationApplication import python_solvers_wrapper_topology as static_simp_solver
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_static_solver import StaticMechanicalSolver
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver 
 
 def CreateSolver(model, custom_settings):       
     return SIMPStaticMechanicalSolver(model, custom_settings)
 
     
-class SIMPStaticMechanicalSolver(StaticMechanicalSolver):
+class SIMPStaticMechanicalSolver(MechanicalSolver):
 
     def __init__(self, model, custom_settings):
         # Construct the base solver.
@@ -14,6 +15,4 @@ class SIMPStaticMechanicalSolver(StaticMechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[SIMPStaticMechanicalSolver]:: ", "Construction finished")
         
     def _create_solution_scheme(self):
-        return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSIMPScheme()       
-
-
+        return KratosMultiphysics.TopologyOptimizationApplication.ResidualBasedIncrementalUpdateStaticSIMPScheme()
