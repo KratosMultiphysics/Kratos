@@ -19,7 +19,6 @@
 
 // Project includes
 #include "geometries/plane_3d.h"
-#include "geometries/line_3d_2.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/intersection_utilities.h"
@@ -182,7 +181,6 @@ namespace Kratos
 		// If there is only 1 or 2 intersected edges, intersection is not considered
 		// If there is intersection, calculate the elemental distances
 		const bool is_intersection = (n_cut_edges < rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
-
 		if (is_intersection){
 			ComputeIntersectionPlaneElementalDistances(rElement1, rIntersectedObjects, int_pts_vector);
 		}
@@ -258,7 +256,6 @@ namespace Kratos
 
 				// There is intersection
 				if (int_id == 1 || int_id == 3){
-				// if (int_id == 1){
 					// Check if there is a close intersection (repeated intersection point)
 					bool is_repeated = false;
 					for (auto aux_pt : aux_pts){
@@ -293,6 +290,7 @@ namespace Kratos
 				// Increase the total intersected edges counter
 				n_cut_edges++;
 
+				// Check if the avg_pt is already present
 				bool is_avg_pt_repeated = false;
 				for (auto aux_pt : aux_intersection_pts){
 					const double aux_dist = norm_2(avg_pt - aux_pt);
