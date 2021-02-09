@@ -334,9 +334,13 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	const Properties&   props = rValues.GetMaterialProperties();
 
 	const Vector& StrainVector   	= rValues.GetStrainVector();
+
+	// TODO calculate strain rate, mStrainOld
+
 	Vector& PredictiveStressVector	= rValues.GetStressVector();
 
 	CalculationData data;
+	data.StrainRate = 100.0; // TODO update
 	this->InitializeCalculationData(props, geom, pinfo, data);
 
 	this->CalculateMaterialResponseInternal(StrainVector, PredictiveStressVector, data, props);
@@ -354,6 +358,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 			this->CalculateSecantTensor(rValues, data);
 		}
 	}
+	// TODO update mStrainOld
 }
 
 /***********************************************************************************/
@@ -504,19 +509,23 @@ void DamageDPlusDMinusMasonry2DLaw::InitializeCalculationData(
 	data.PoissonRatio  				= props[POISSON_RATIO];
 	this->CalculateElasticityMatrix(data);
 
+	// Include strain rate effects
+	const double dif_tension = GetDIF(props, data.StrainRate, true);
+	const double dif_compression = GetDIF(props, data.StrainRate, false);
+
 	// Tension Damage Properties
-	data.YieldStressTension 		= props[YIELD_STRESS_TENSION];
-	data.FractureEnergyTension 		= props[FRACTURE_ENERGY_TENSION];
+	data.YieldStressTension 		= props[YIELD_STRESS_TENSION]* dif_tension;
+	data.FractureEnergyTension 		= props[FRACTURE_ENERGY_TENSION]* dif_tension;
 
 	// Compression Damage Properties
 	data.DamageOnsetStressCompression 	= props[DAMAGE_ONSET_STRESS_COMPRESSION];
-	data.YieldStressCompression 		= props[YIELD_STRESS_COMPRESSION];
+	data.YieldStressCompression 		= props[YIELD_STRESS_COMPRESSION]* dif_compression;
 	data.ResidualStressCompression 		= props[RESIDUAL_STRESS_COMPRESSION];
 	data.YieldStrainCompression  		= props[YIELD_STRAIN_COMPRESSION];
 	data.BezierControllerC1  			= props.Has(BEZIER_CONTROLLER_C1) ? props[BEZIER_CONTROLLER_C1] : 0.65;
 	data.BezierControllerC2  			= props.Has(BEZIER_CONTROLLER_C2) ? props[BEZIER_CONTROLLER_C2] : 0.50;
 	data.BezierControllerC3  			= props.Has(BEZIER_CONTROLLER_C3) ? props[BEZIER_CONTROLLER_C3] : 1.50;
-	data.FractureEnergyCompression  	= props[FRACTURE_ENERGY_COMPRESSION];
+	data.FractureEnergyCompression  	= props[FRACTURE_ENERGY_COMPRESSION]* dif_compression;
 	data.BiaxialCompressionMultiplier  	= props[BIAXIAL_COMPRESSION_MULTIPLIER];
 	data.ShearCompressionReductor  		= props.Has(SHEAR_COMPRESSION_REDUCTOR) ? props[SHEAR_COMPRESSION_REDUCTOR] : 0.5;
 	data.ShearCompressionReductor  		= std::min(std::max(data.ShearCompressionReductor,0.0),1.0);
@@ -1080,4 +1089,19 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateSecantTensor(
 	noalias(constitutive_matrix) = prod(DamageMatrix, data.ElasticityMatrix);
 }
 
+const double DamageDPlusDMinusMasonry2DLaw::GetDIF(const Properties& rProps,
+	const double strain_rate, const bool is_tensile)
+{
+	// Adapted from Ozbo2014
+	const double c_1 = (is_tensile) ? rProps[STRAIN_RATE_FACTOR_C1_TENSION] : rProps[STRAIN_RATE_FACTOR_C1_COMPRESSION];
+	const double c_2 = (is_tensile) ? rProps[STRAIN_RATE_FACTOR_C2_TENSION] : rProps[STRAIN_RATE_FACTOR_C2_COMPRESSION];
+
+	double dif = 1.0 + c_2 * std::log(strain_rate / c_1);
+	dif = std::max(1.0, dif);
+
+	return dif;
+}
+
 } // namespace Kratos
+
+

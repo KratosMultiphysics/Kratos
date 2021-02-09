@@ -104,7 +104,7 @@ public:
 
 		// Misc
 		double CharacteristicLength;						double DeltaTime;
-		int TensionYieldModel;
+		int TensionYieldModel;								double StrainRate;
 
 	};
 
@@ -428,6 +428,8 @@ protected:
 	// Initialization
 	bool InitializeDamageLaw = false;
 
+	Vector mStrainOld = ZeroVector(GetStrainSize());
+
 	// Tension & Compression Thresholds
 
 	// for IMPLEX_Integration:
@@ -671,6 +673,14 @@ protected:
 	void CalculateSecantTensor(
 		Parameters& rValues,
 		CalculationData& data);
+
+	/**
+     * @brief This method computes the Dynamic Increase Factor (DIF)
+     */
+	const double GetDIF(
+		const Properties& rProps,
+		const double strain_rate,
+		const bool is_tensile);
 
 
 	///@}
