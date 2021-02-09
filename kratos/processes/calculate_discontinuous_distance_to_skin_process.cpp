@@ -349,10 +349,10 @@ namespace Kratos
                 // Increase the total intersected edges counter
                 n_cut_edges++;
                 // Check if the avg_pt is already present
-				if (!repeated_point_check(avg_pt, aux_avg_pts)){
-					rIntersectionPointsArray.push_back(avg_pt);
-					aux_avg_pts.push_back(avg_pt);
-				}
+                if (!repeated_point_check(avg_pt, aux_avg_pts)){
+                    rIntersectionPointsArray.push_back(avg_pt);
+                    aux_avg_pts.push_back(avg_pt);
+                }
                 // Get average normal of intersecting segments for the edge (for extrapolated cut edges calculation)
                 if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)) {
                     avg_extra_geom_normal /= cut_edges_vector[i_edge];
@@ -389,7 +389,7 @@ namespace Kratos
         // Otherwise, the distance is computed using the plane defined by the 3 (3D) or 2 (2D) intersection points.
         const bool do_plane_approx = (n_cut_edges == TDim) ? false : true;
         const auto compute_plane_appoximation = [&] (const std::vector<array_1d<double,3>>& rPointVector) {
-			array_1d<double,3> base_pt, normal;
+            array_1d<double,3> base_pt, normal;
             ComputePlaneApproximation(rElement, rPointVector, base_pt, normal);
 
             // Compute the distance to the approximation plane
@@ -397,24 +397,24 @@ namespace Kratos
             for (std::size_t i = 0; i < mNumNodes; i++) {
                 r_elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
             }
-		};
+        };
 
-		if (do_plane_approx){
-			if (n_cut_edges > TDim) {
-				// Call the plane optimization utility
-				compute_plane_appoximation(rIntersectionPointsCoordinates);
-			}
-			else {
-				// Not enough intersection points to build a plane
-				// Use the intersected objects to create an approximation plane
-				std::vector<array_1d<double,3>> int_pts_vector;
-				for (const auto &r_int_obj : rIntersectedObjects) {
-					for (std::size_t i_int = 0; i_int < r_int_obj.GetGeometry().size(); i_int++) {
-						int_pts_vector.push_back(r_int_obj.GetGeometry()[i_int].Coordinates());
-					}
-				}
-				compute_plane_appoximation(int_pts_vector);
-			}
+        if (do_plane_approx){
+            if (n_cut_edges > TDim) {
+                // Call the plane optimization utility
+                compute_plane_appoximation(rIntersectionPointsCoordinates);
+            }
+            else {
+                // Not enough intersection points to build a plane
+                // Use the intersected objects to create an approximation plane
+                std::vector<array_1d<double,3>> int_pts_vector;
+                for (const auto &r_int_obj : rIntersectedObjects) {
+                    for (std::size_t i_int = 0; i_int < r_int_obj.GetGeometry().size(); i_int++) {
+                        int_pts_vector.push_back(r_int_obj.GetGeometry()[i_int].Coordinates());
+                    }
+                }
+                compute_plane_appoximation(int_pts_vector);
+            }
         } else {
             // Create a plane with the 3 intersection points (or 2 in 2D)
             Plane3D plane = SetIntersectionPlane(rIntersectionPointsCoordinates);
