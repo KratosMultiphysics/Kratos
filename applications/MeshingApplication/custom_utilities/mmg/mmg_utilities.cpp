@@ -4204,14 +4204,15 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
     // Set size of the solution
     /* In case of considering metric tensor */
     const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension)+"D");
-    if (it_node_begin->Has(r_tensor_variable)) {
+    mUsingMetricTensor = it_node_begin->Has(r_tensor_variable);
+    if (mUsingMetricTensor) {
         SetSolSizeTensor(r_nodes_array.size());
     } else {
         SetSolSizeScalar(r_nodes_array.size());
     }
 
     // In case of considering metric tensor
-    if (it_node_begin->Has(r_tensor_variable)) {
+    if (mUsingMetricTensor) {
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
@@ -4501,7 +4502,7 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
     const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension)+"D");
 
     // In case of considering metric tensor
-    if (it_node_begin->Has(r_tensor_variable)) {
+    if (mUsingMetricTensor) {
         // Auxilia metric
         TensorArrayType metric = ZeroVector(3 * (Dimension - 1));
 
