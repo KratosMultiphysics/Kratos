@@ -16,23 +16,15 @@
 
 
 // System includes
-#include <iostream>
-#include <array>
-#include <vector>
 #include <tuple>
-#include <cmath>
 #include <limits>
-#include <future>
-#include <thread>
 
 // External includes
-#ifdef KRATOS_SMP_OPENMP
-#include <omp.h>
-#endif
 
 // Project includes
 #include "includes/define.h"
-#include "includes/global_variables.h"
+#include "includes/lock_object.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
