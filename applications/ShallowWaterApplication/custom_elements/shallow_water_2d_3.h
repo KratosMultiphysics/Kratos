@@ -225,6 +225,18 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * In the flux corrected scheme this is called during the assembling
+     * process in order to calculate the elemental diffusion matrix
+     * to ensure monotonicity.
+     * This method should not be called by the stabilized scheme.
+     * @param rDampingMatrix the elemental damping matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the constitutive laws selected
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -240,7 +252,6 @@ public:
      * Specializations of element must specify the actual interface to the integration points!
      * Note, that these functions expect a std::vector of values for the specified variable type that
      * contains a value for each integration point!
-     * GetValueOnIntegrationPoints: get the values for given Variable.
      * @param rVariable: the specified variable
      * @param rValues: where to store the values for the specified variable type at each integration point
      * @param rCurrentProcessInfo: the current process info instance
@@ -309,6 +320,7 @@ protected:
         array_1d<double,3> topography;
         array_1d<double,3> rain;
         array_1d<double,9> unknown;
+        array_1d<double,9> mesh_acc;
 
         void InitializeData(const ProcessInfo& rCurrentProcessInfo);
         void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
@@ -386,18 +398,29 @@ protected:
         const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
-    void ComputeCrossWindDiffusivityTensors(
-        BoundedMatrix<double,2,2>& rK1,
-        BoundedMatrix<double,2,2>& rK2,
-        BoundedMatrix<double,2,2>& rKh,
+    void ShockCapturingParameters(
+        double& rArtViscosity,
+        double& rArtDiffusion,
+        const ElementData& rData,
+        const BoundedMatrix<double,3,2>& rDN_DX);
+
+    void ShockCapturingViscosityMatrix(
+        BoundedMatrix<double,9,9>& rMatrix,
+        const double& rViscosity,
+        const ElementData& rData,
+        const BoundedMatrix<double,3,2>& rDN_DX);
+
+    void ShockCapturingDiffusionMatrix(
+        BoundedMatrix<double,9,9>& rMatrix,
+        const double& rDiffusivity,
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
     void AlgebraicResidual(
         array_1d<double,3>& rFlowResidual,
         double& rHeightresidual,
-        BoundedMatrix<double,3,3> rFlowGrad,
-        array_1d<double,3> rHeightGrad,
+        BoundedMatrix<double,3,3>& rFlowGrad,
+        array_1d<double,3>& rHeightGrad,
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
@@ -407,13 +430,21 @@ protected:
 
     void CrossWindTensor(
         BoundedMatrix<double,2,2>& rTensor,
+        const array_1d<double,3>& rVector);
+
+    void StreamLineTensor(
+        BoundedMatrix<double,3,3>& rTensor,
+        const array_1d<double,3>& rVector);
+
+    void CrossWindTensor(
+        BoundedMatrix<double,3,3>& rTensor,
         const array_1d<double,3>& rVeector);
 
     double StabilizationParameter(const ElementData& rData);
 
-    double WetFraction(double Height, double Epsilon);
+    double HeightInverse(double Height, double Epsilon);
 
-    array_1d<double,3> CharacteristicLength(const ElementData& rData);
+    double WetFraction(double Height, double Epsilon);
 
     ///@}
     ///@name Protected  Access

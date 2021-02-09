@@ -7,726 +7,719 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Philip Kalkbrenner
-//                   Alejandro Cornejo
+//                   Massimo Petracca
+//                   Alejandro Cornejo 
+//  
 //
-//
-#if !defined(KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED)
-#define KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED
+#if !defined(KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED )
+#define  KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/linear_plane_stress.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-    // The size type definition
-    typedef std::size_t SizeType;
-
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
 /**
- * @class DamageDPlusDMinusMasonry2DLaw
- * @ingroup StructuralMechanicsApplication
- */
- class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DamageDPlusDMinusMasonry2DLaw
-    : public LinearPlaneStress
+* @class DamageDPlusDMinusMasonry2DLaw 
+* @ingroup StructuralMechanicsApplication
+*/
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DamageDPlusDMinusMasonry2DLaw 
+	: public ConstitutiveLaw
 {
 public:
-    ///@name Type Definitions
-    ///@{
 
+	KRATOS_CLASS_POINTER_DEFINITION(DamageDPlusDMinusMasonry2DLaw);
 
-    /// The define the working dimension size, already defined in the integrator
-    static constexpr SizeType Dimension = 2;
+	///@name Type Definitions
+	///@{
 
-    /// The define the Voigt size, already defined in the  integrator
-    static constexpr SizeType VoigtSize = 3;
+	/// We define the working dimension size, already defined in the integrator
+	static constexpr SizeType Dimension = 2;
 
-    /// Definition of the base class
-    typedef LinearPlaneStress BaseType;
+	/// We define the Voigt size, already defined in the  integrator
+	static constexpr SizeType VoigtSize = 3;
 
-    // Adding the respective using to avoid overload conflicts
-    using BaseType::Has;
-    using BaseType::GetValue;
+	/// Definition of the machine precision tolerance
+	static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
-    /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(DamageDPlusDMinusMasonry2DLaw);
-
-    /// The node definition
-    typedef Node<3> NodeType;
-
-    /// The geometry definition
-    typedef Geometry<NodeType> GeometryType;
-
-    /// Definition of the machine precision tolerance
-    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
-
-	struct DamageParameters {
-		double DamageTension = 0.0;
-		double DamageCompression = 0.0;
-		double ThresholdTension = 0.0;
-		double ThresholdCompression = 0.0;
-		array_1d<double, VoigtSize> TensionStressVector;
-		array_1d<double, VoigtSize> CompressionStressVector;
-        double UniaxialTensionStress = 0.0;
-        double UniaxialCompressionStress = 0.0;
-	};
-    ///@}
-    ///@name Life Cycle
-    ///@{
+	///@}
 
 	/**
-    * Default constructor.
-    */
-    DamageDPlusDMinusMasonry2DLaw();
+	* Default Constructor.
+	*/
+	DamageDPlusDMinusMasonry2DLaw();
 
-
-    /**
-    * Clone.
-    */
-    ConstitutiveLaw::Pointer Clone() const override
+	/**
+	* Destructor.
+	*/
+	~DamageDPlusDMinusMasonry2DLaw() override
 	{
-        return Kratos::make_shared<DamageDPlusDMinusMasonry2DLaw>(*this);
-    }
-    /**
-     * @brief Dimension of the law:
-     */
-    SizeType WorkingSpaceDimension() override
-    {
-        return Dimension;
-    };
+	}
 
-    /**
-     * @brief Voigt tensor size:
-     */
-    SizeType GetStrainSize() override
-    {
-        return VoigtSize;
-    };
+	/**
+	* Clone.
+	*/
+		ConstitutiveLaw::Pointer Clone() const override;
 
-    /**
-    * Copy constructor.
-    */
-    DamageDPlusDMinusMasonry2DLaw(const DamageDPlusDMinusMasonry2DLaw &rOther)
-        : BaseType(rOther),
-          mTensionDamage(rOther.mTensionDamage),
-          mTensionThreshold(rOther.mTensionThreshold),
-          mNonConvTensionDamage(rOther.mNonConvTensionDamage),
-          mNonConvTensionThreshold(rOther.mNonConvTensionThreshold),
-          mCompressionDamage(rOther.mCompressionDamage),
-          mCompressionThreshold(rOther.mCompressionThreshold),
-          mNonConvCompressionDamage(rOther.mNonConvCompressionDamage),
-          mNonConvCompressionThreshold(rOther.mNonConvCompressionThreshold)
-    {
-    }
+	/**
+	* @brief returns the working space dimension of the current constitutive law
+	*/
+	SizeType WorkingSpaceDimension() override 
+	{
+		return Dimension;
+	};
 
-    /**
-    * Destructor.
-    */
-    ~DamageDPlusDMinusMasonry2DLaw() override
-    {
-    }
+	/**
+	* @brief returns the size of the strain vector of the current constitutive law
+	*/
+	SizeType GetStrainSize() override 
+	{
+		return VoigtSize;
+	};
 
-   /**
-     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
+	struct CalculationData{
 
-    /**
-     * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
+		// Elastic Properties
+		double YoungModulus;								double PoissonRatio;	
+		Matrix ElasticityMatrix;
 
-    /**
-     * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
+		// Tension Damage Properties
+		double YieldStressTension;							double FractureEnergyTension;
 
-    /**
-     * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
+		// Compression Damage Properties
+		double DamageOnsetStressCompression;				double YieldStressCompression;
+		double ResidualStressCompression;					double YieldStrainCompression;
+		double BezierControllerC1;							double BezierControllerC2;
+		double BezierControllerC3;							double FractureEnergyCompression;
+		double BiaxialCompressionMultiplier;				double ShearCompressionReductor;
 
-    /**
-     * @brief Integrates the predictive tension stress vector if necessary
-     * @param F_compression = uniaxial_stress_tension - threshold
-     */
-    bool IntegrateStressTensionIfNecessary(
-        const double F_tension,
-        DamageParameters& Parameters,
-        array_1d<double, VoigtSize>& IntegratedStressVectorTension,
-        const array_1d<double,3> rIntegratedStressVector,
-        ConstitutiveLaw::Parameters& rValues
-        );
+		// Effective Stress Data
+		array_1d<double,3> EffectiveStressVector;			array_1d<double,2> PrincipalStressVector;
+		array_1d<double,3> EffectiveTensionStressVector;	array_1d<double,3> EffectiveCompressionStressVector;
+		Matrix ProjectionTensorTension;						Matrix ProjectionTensorCompression;
 
-    /**
-     * @brief Integrates the predictive tension stress vector if necessary
-     * @param F_compression = uniaxial_stress_compression - threshold
-     */
-    bool IntegrateStressCompressionIfNecessary(
-        const double F_compression,
-        DamageParameters& Parameters,
-        array_1d<double, VoigtSize>& IntegratedStressVectorCompression,
-        array_1d<double, VoigtSize> rIntegratedStressVector,
-        ConstitutiveLaw::Parameters& rValues
-        );
+		// Misc
+		double CharacteristicLength;						double DeltaTime;
+		int TensionYieldModel;
 
-    /**
-     * @brief Computes the inetgarted stress vector S = A:D0:A:E
-     */
-    void CalculateIntegratedStressVector(
-        Vector& IntegratedStressVectorTension,
-        const DamageParameters& Parameters,
-        ConstitutiveLaw::Parameters& rValues
-        );
+	};
+		
+	/**
+	* returns whether this constitutive Law has specified variable
+	* @param rThisVariable the variable to be checked for
+	* @return true if the variable is defined in the constitutive law
+	*/
+	bool Has(const Variable<double>& rThisVariable) override;
 
-    /**
-     * @brief This is to be called at the very beginning of the calculation
-     * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     */
-    void InitializeMaterial(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues
-        ) override;
+	/**
+	* returns whether this constitutive Law has specified variable
+	* @param rThisVariable the variable to be checked for
+	* @return true if the variable is defined in the constitutive law
+	*/
+	bool Has(const Variable<Vector>& rThisVariable) override;
 
-    /**
-     * @brief To be called at the end of each solution step
-     * @details (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param rCurrentProcessInfo the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(
-        const Properties &rMaterialProperties,
-        const GeometryType &rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+	/**
+	* returns whether this constitutive Law has specified variable
+	* @param rThisVariable the variable to be checked for
+	* @return true if the variable is defined in the constitutive law
+	*/
+	bool Has(const Variable<Matrix>& rThisVariable) override;
 
-    /**
-     * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
+	/**
+	* returns whether this constitutive Law has specified variable
+	* @param rThisVariable the variable to be checked for
+	* @return true if the variable is defined in the constitutive law
+	* NOTE: fixed size array of 3 doubles (e.g. for 2D stresses, plastic strains, ...)
+	*/
+	bool Has(const Variable<array_1d<double, 3 > >& rThisVariable) override;
 
-    /**
-     * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
+	/**
+	* returns whether this constitutive Law has specified variable
+	* @param rThisVariable the variable to be checked for
+	* @return true if the variable is defined in the constitutive law
+	* NOTE: fixed size array of 6 doubles (e.g. for stresses, plastic strains, ...)
+	*/
+	bool Has(const Variable<array_1d<double, 6 > >& rThisVariable) override;
 
-    /**
-     * @brief Finalize the material response in terms of Kirchhoff stresses
-     * @see Parameters
-     */
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
-    /**
-     * Finalize the material response in terms of Cauchy stresses
-     * @see Parameters
-     */
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
+	/**
+	* returns the value of a specified variable
+	* @param rThisVariable the variable to be returned
+	* @param rValue a reference to the returned value
+	* @param rValue output: the value of the specified variable
+	*/
+	double& GetValue(
+		const Variable<double>& rThisVariable, 
+		double& rValue) override;
 
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (double)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<double> &rThisVariable) override;
+	/**
+	* returns the value of a specified variable
+	* @param rThisVariable the variable to be returned
+	* @param rValue a reference to the returned value
+	* @return the value of the specified variable
+	*/
+	Vector& GetValue(
+		const Variable<Vector>& rThisVariable, 
+		Vector& rValue) override;
 
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (Vector)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<Vector> &rThisVariable) override;
+	/**
+	* returns the value of a specified variable
+	* @param rThisVariable the variable to be returned
+	* @return the value of the specified variable
+	*/
+	Matrix& GetValue(
+		const Variable<Matrix>& rThisVariable, 
+		Matrix& rValue) override;
 
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (Matrix)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<Matrix> &rThisVariable) override;
+	/**
+	* returns the value of a specified variable
+	* @param rThisVariable the variable to be returned
+	* @param rValue a reference to the returned value
+	* @return the value of the specified variable
+	*/
+	array_1d<double, 3 > & GetValue(
+		const Variable<array_1d<double, 3 > >& rVariable,
+		array_1d<double, 3 > & rValue) override;
 
-     /**
-      * @brief Sets the value of a specified variable (double)
-      * @param rVariable the variable to be returned
-      * @param rValue new value of the specified variable
-      * @param rCurrentProcessInfo the process info
-      */
-     void SetValue(
-             const Variable<double> &rThisVariable,
-             const double& rValue,
-             const ProcessInfo& rCurrentProcessInfo
-     ) override;
+	/**
+	* returns the value of a specified variable
+	* @param rThisVariable the variable to be returned
+	* @param rValue a reference to the returned value
+	* @return the value of the specified variable
+	*/
+	array_1d<double, 6 > & GetValue(
+		const Variable<array_1d<double, 6 > >& rVariable,
+		array_1d<double, 6 > & rValue) override;
 
-    /**
-     * @brief Sets the value of a specified variable (Vector)
-     * @param rVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<Vector> &rThisVariable,
-        const Vector& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+	/**
+	* sets the value of a specified variable
+	* @param rVariable the variable to be returned
+	* @param rValue new value of the specified variable
+	* @param rCurrentProcessInfo the process info
+	*/
+	void SetValue(
+		const Variable<double>& rVariable,
+		const double& rValue,
+		const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * @brief Returns the value of a specified variable (double)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    double& GetValue(
-        const Variable<double> &rThisVariable,
-        double& rValue
-        ) override;
+	/**
+	* sets the value of a specified variable
+	* @param rVariable the variable to be returned
+	* @param rValue new value of the specified variable
+	* @param rCurrentProcessInfo the process info
+	*/
+	void SetValue(
+		const Variable<Vector >& rVariable,
+		const Vector& rValue, 
+		const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * @brief Returns the value of a specified variable (Vector)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Vector& GetValue(
-        const Variable<Vector> &rThisVariable,
-        Vector& rValue
-        ) override;
+	/**
+	* sets the value of a specified variable
+	* @param rVariable the variable to be returned
+	* @param rValue new value of the specified variable
+	* @param rCurrentProcessInfo the process info
+	*/
+	void SetValue(
+		const Variable<Matrix >& rVariable,
+		const Matrix& rValue, 
+		const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * @brief Returns the value of a specified variable (matrix)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Matrix& GetValue(
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-        ) override;
+	/**
+	* sets the value of a specified variable
+	* @param rVariable the variable to be returned
+	* @param rValue new value of the specified variable
+	* @param rCurrentProcessInfo the process info
+	*/
+	void SetValue(
+		const Variable<array_1d<double, 3 > >& rVariable,
+		const array_1d<double, 3 > & rValue,
+		const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * @brief Returns the value of a specified variable (double)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    double& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<double>& rThisVariable,
-        double& rValue) override;
+	/**
+	* sets the value of a specified variable
+	* @param rVariable the variable to be returned
+	* @param rValue new value of the specified variable
+	* @param rCurrentProcessInfo the process info
+	*/
+	void SetValue(
+		const Variable<array_1d<double, 6 > >& rVariable,
+		const array_1d<double, 6 > & rValue,
+		const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * @brief Returns the value of a specified variable (vector)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    Vector& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Vector>& rThisVariable,
-        Vector& rValue
-        ) override;
+	/**
+	* Is called to check whether the provided material parameters in the Properties
+	* match the requirements of current constitutive model.
+	* @param rMaterialProperties the current Properties to be validated against.
+	* @return true, if parameters are correct; false, if parameters are insufficient / faulty
+	* NOTE: this has to be implemented by each constitutive model. Returns false in base class since
+	* no valid implementation is contained here.
+	*/
+	bool ValidateInput(const Properties& rMaterialProperties) override;
 
-    /**
-     * @brief Returns the value of a specified variable (matrix)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    Matrix& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-        ) override;
+	/**
+	* returns the expected strain measure of this constitutive law (by default linear strains)
+	* @return the expected strain measure
+	*/
+	StrainMeasure GetStrainMeasure() override;
 
-    /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input or that no common error is found.
-     * @param rMaterialProperties The properties of the material
-     * @param rElementGeometry The geometry of the element
-     * @param rCurrentProcessInfo The current process info instance
-     * @return 0 if OK, 1 otherwise
-     */
-    int Check(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+	/**
+	* returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
+	* @return the expected stress measure
+	*/
+	StressMeasure GetStressMeasure() override;
 
-    ///@}
-    ///@name Access
-    ///@{
+	/**
+	* returns whether this constitutive model is formulated in incremental strains/stresses
+	* NOTE: by default, all constitutive models should be formulated in total strains
+	* @return true, if formulated in incremental strains/stresses, false otherwise
+	*/
+	bool IsIncremental() override;
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+	/**
+	* This is to be called at the very beginning of the calculation
+	* (e.g. from InitializeElement) in order to initialize all relevant
+	* attributes of the constitutive law
+	* @param rMaterialProperties the Properties instance of the current element
+	* @param rElementGeometry the geometry of the current element
+	* @param rShapeFunctionsValues the shape functions values in the current integration point
+	*/
+	void InitializeMaterial(
+		const Properties& rMaterialProperties,
+		const GeometryType& rElementGeometry,
+		const Vector& rShapeFunctionsValues) override;
 
-    ///@}
-    ///@name Input and output
-    ///@{
+	/**
+	* Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+	* @see Parameters
+	*/
+		void InitializeMaterialResponsePK2 (
+			ConstitutiveLaw::Parameters& rValues) override;
 
-    ///@}
-    ///@name Friends
-    ///@{
+	/**
+	* to be called at the beginning of each solution step
+	* (e.g. from Element::InitializeSolutionStep)
+	* @param rMaterialProperties the Properties instance of the current element
+	* @param rElementGeometry the geometry of the current element
+	* @param rShapeFunctionsValues the shape functions values in the current integration point
+	* @param the current ProcessInfo instance
+	*/
+	void InitializeSolutionStep(
+		const Properties& rMaterialProperties,
+		const GeometryType& rElementGeometry,
+		const Vector& rShapeFunctionsValues,
+		const ProcessInfo& rCurrentProcessInfo) override;
 
-    ///@}
+	/**
+	* to be called at the end of each solution step
+	* (e.g. from Element::FinalizeSolutionStep)
+	* @param rMaterialProperties the Properties instance of the current element
+	* @param rElementGeometry the geometry of the current element
+	* @param rShapeFunctionsValues the shape functions values in the current integration point
+	* @param the current ProcessInfo instance
+	*/
+	void FinalizeSolutionStep(
+		const Properties& rMaterialProperties,
+		const GeometryType& rElementGeometry,
+		const Vector& rShapeFunctionsValues,
+		const ProcessInfo& rCurrentProcessInfo) override;
+
+	/**
+	* Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
+	* @see Parameters
+	*/
+	void CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
+
+	/**
+	* Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+	* @see Parameters
+	*/
+	void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
+
+	/**
+	* Computes the material response in terms of Kirchhoff stresses and constitutive tensor
+	* @see Parameters
+	*/
+	void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+
+	/**
+	* Computes the material response in terms of Cauchy stresses and constitutive tensor
+	* @see Parameters
+	*/
+	void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
+
+	/**
+	* Updates the material response in terms of 1st Piola-Kirchhoff stresses
+	* @see Parameters
+	*/
+	void FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
+
+	/**
+	* Updates the material response in terms of 2nd Piola-Kirchhoff stresses
+	* @see Parameters
+	*/
+	void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
+
+	/**
+	* Updates the material response in terms of Kirchhoff stresses
+	* @see Parameters
+	*/
+	void FinalizeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
+
+	/**
+	* Updates the material response in terms of Cauchy stresses
+	* @see Parameters
+	*/
+	void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
+
+	/**
+	* This can be used in order to reset all internal variables of the
+	* constitutive law (e.g. if a model should be reset to its reference state)
+	* @param rMaterialProperties the Properties instance of the current element
+	* @param rElementGeometry the geometry of the current element
+	* @param rShapeFunctionsValues the shape functions values in the current integration point
+	* @param the current ProcessInfo instance
+	*/
+	void ResetMaterial(
+		const Properties& rMaterialProperties,
+		const GeometryType& rElementGeometry,
+		const Vector& rShapeFunctionsValues) override;
+
+	/**
+	* This function is designed to be called once to check compatibility with element
+	* @param rFeatures
+	*/
+	void GetLawFeatures(Features& rFeatures) override;
+
+	/**
+	* This function is designed to be called once to perform all the checks needed
+	* on the input provided. Checks can be "expensive" as the function is designed
+	* to catch user's errors.
+	* @param rMaterialProperties
+	* @param rElementGeometry
+	* @param rCurrentProcessInfo
+	* @return
+	*/
+	int Check(
+		const Properties& rMaterialProperties,
+		const GeometryType& rElementGeometry,
+		const ProcessInfo& rCurrentProcessInfo) override;
+
+
+	void CalculateMaterialResponse(const Vector& StrainVector,
+		const Matrix& DeformationGradient,
+		Vector& StressVector,
+		Matrix& AlgorithmicTangent,
+		const ProcessInfo& rCurrentProcessInfo,
+		const Properties& rMaterialProperties,
+		const GeometryType& rElementGeometry,
+		const Vector& rShapeFunctionsValues,
+		bool CalculateStresses = true,
+		int CalculateTangent = true,
+		bool SaveInternalVariables = true);
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
+	///@name Protected member Variables
+	///@{
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
+	// Initialization
+	bool InitializeDamageLaw = false;
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
-    // Tension values
-    double& GetTensionThreshold() { return mTensionThreshold; }
-    double& GetTensionDamage() { return mTensionDamage; }
-    double& GetNonConvTensionThreshold() { return mNonConvTensionThreshold; }
-    double& GetNonConvTensionDamage() { return mNonConvTensionDamage; }
+	// Tension & Compression Thresholds
 
-    void SetTensionThreshold(const double toThreshold) { mTensionThreshold = toThreshold; }
-    void SetTensionDamage(const double toDamage) { mTensionDamage = toDamage; }
-    void SetNonConvTensionThreshold(const double toThreshold) { mNonConvTensionThreshold = toThreshold; }
-    void SetNonConvTensionDamage(const double toDamage) { mNonConvTensionDamage = toDamage; }
+	// for IMPLEX_Integration:
+	double PreviousThresholdTension = 0.0;			double PreviousThresholdCompression = 0.0;		    // at time step n - 1:
+	// end for IMPLEX_Integration
 
-    // Compression values
-    double& GetCompressionThreshold() { return mCompressionThreshold; }
-    double& GetCompressionDamage() { return mCompressionDamage; }
-    double& GetNonConvCompressionThreshold() { return mNonConvCompressionThreshold; }
-    double& GetNonConvCompressionDamage() { return mNonConvCompressionDamage; }
+	double CurrentThresholdTension = 0.0;     		double CurrentThresholdCompression = 0.0;		    // at time step n:
+	double ThresholdTension        = 0.0;			double ThresholdCompression        = 0.0;			// at time step n + 1:
 
-    void SetCompressionThreshold(const double toThreshold) { mCompressionThreshold = toThreshold; }
-    void SetCompressionDamage(const double toDamage) { mCompressionDamage = toDamage; }
-    void SetNonConvCompressionThreshold(const double toThreshold) { mNonConvCompressionThreshold = toThreshold; }
-    void SetNonConvCompressionDamage(const double toDamage) { mNonConvCompressionDamage = toDamage; }
+	// Damage Parameters & Uniaxial Stresses
+	double DamageParameterTension = 0.0;			double DamageParameterCompression = 0.0;
+	double UniaxialStressTension  = 0.0;			double UniaxialStressCompression  = 0.0;
 
-    void SetTensionStress(const double toS){mTensionUniaxialStress = toS;}
-    void SetCompressionStress(const double toS){mCompressionUniaxialStress = toS;}
+	// Misc
+	double InitialCharacteristicLength = 0.0;
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
+	// for IMPLEX Integration
+	double CurrentDeltaTime  = 0.0;					// at time step n + 1
+	double PreviousDeltaTime = 0.0;					// at time step n
 
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
+	// temporary internal variables saved for the implicit step in the finalize solution step of the IMPLEX 
+	double TemporaryImplicitThresholdTension = 0.0;
+	double TemporaryImplicitThresholdTCompression = 0.0;
+    // end for IMPLEX Integration
 
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
+	///@}
 
-    ///@}
+
+	///@name Protected Operators
+	///@{
+
+	/**
+	* @brief Initializes the CalculationData at the beginning of each SolutionStep
+	* @param Properties& props 		The Material Properties of the constitutive law from rValues
+	* 		 GeometryType& geom 	The Element Geometry from rValues
+	*		 ProcessInfo& pinfo		The ProcessInfo from rValues	
+	*		 CalculationData	
+	*/
+	void InitializeCalculationData(
+		const Properties& props, 
+		const GeometryType& geom,
+		const ProcessInfo& pinfo,
+		CalculationData& data);
+
+	/**
+	* @brief Constructs the Linear Elasticity Matrix and stores it in the CalculationData
+	* @param CalculationData
+	*/
+	void CalculateElasticityMatrix(
+		CalculationData& data);
+
+	/**
+	* @brief Splits the Effective Stress Vector into a positive (tension) and negative (compression) part
+	* @param CalculationData
+	*/
+	void TensionCompressionSplit(
+		CalculationData& data);
+
+	/**
+	* @brief This method computes the positive (tension) and negative (compression) parts of the ProjectionMatrix
+	* @param CalculationData
+	*/
+	void ConstructProjectionTensors(
+		CalculationData& data);
+
+	/**
+	* @brief This method computes the equivalent stress in Tension
+	* @param CalculationData 
+	* 		 UniaxialStressTension The variable to be filled with the resulting value
+	*/
+	void CalculateEquivalentStressTension(
+		CalculationData& data, 
+		double& UniaxialStressTension);
+
+	/**
+	* @brief This method computes the equivalent stress in Compression
+	* @param CalculationData 
+	* 		 UniaxialStressCompression The variable to be filled with the resulting value
+	*/
+	void CalculateEquivalentStressCompression(
+		CalculationData& data, 
+		double& UniaxialStressCompression);
+
+	/**
+	* @brief This method computes the damage variable d+ of the tension law 
+	*        by considering an exponential softening behavior
+	* @param CalculationData 
+	* 		 internal_variable 	The internal variable that considers the considers the state of damage 
+	*        rDamage 			The final damage variable to be filled by this method
+	*/
+	void CalculateDamageTension(
+		CalculationData& data, 
+		double internal_variable, 
+		double& rDamageTension);
+
+	/**
+	*  BRIEF DOCUMENTATION OF THE USED UNIAXIAL SOFTENING BEHAVIOR IN COMPRESSION 
+	*  Entire documentation can be found in the the Phd Thesis of Massimo Petracca
+	*  << Computational Multiscale Analysis of Masonry Structures>>
+	*
+	*  UNIAXIAL BEZIER COMPRESSION DAMAGE
+	*  {I}   Linear Elastic 
+	*  {II}  Hardening Quadratic Bezier Curve 
+	*          Control nodes:  0=(e_0,s_0); I=(e_i,s_p); P=(e_p,s_p) 
+	*  {III} Softening Quadratic Bezier Curve 
+	*          Control nodes:  P=(e_p,s_p); J=(e_j,s_j); K=(e_k,s_k)
+	*  {IV}  Softening Quadratic Bezier Curve 
+	*          Control nodes:  K=(e_k,s_k); R=(e_r,s_r); U=(e_u,s_u)
+	*  {V}   Residual Strength
+	*
+	*    STRESS                 
+	*       ^
+	*      /|\
+	*       |                     (P)
+	* s_p = |------------(I)+----#####--+(J) 
+	* s_i = |               ' ###  ' ####
+	* s_j   |              ###     '    ###
+	*       |            ###'      '    ' ##
+	* s_k   |-----------##--+------+----+--## (K)
+	* s_0   |---------##(0) '      '    '   ### 
+	*       |        ## '   '      '    '    '###
+	*       |       ##  '   '      '    '    '   ####
+	*       |      ##   '   '      '    '    '      #####
+	*       |     ##    '   '      '    '    '          #####
+	*       |    ##     '   '      '    '    '    (R)       ######## (U)
+	* s_r = |---##------+---+------'----+----+-----+-----------------######################
+	* s_u   |  ##       '   '      '    '    '     '                 '                                    
+	*       |_##________+___+______+____+____+_____+_________________+______________________________\
+	*                  e_0 e_i    e_p  e_j  e_k   e_r               e_u                             / STRAIN
+	*        '          '          '         '                       '
+	*        '   {I}    '   {II}   '  {III}  '        {IV}           '          {V}         
+	*        '          '          '         '                       '
+	*
+	*/
+
+	/**
+	* @brief This method computes the damage variable d- of the compression law 
+	*        by considering the above explained bezier curved uniaxial behavior
+	* @param CalculationData 	Calculation Data for the CL
+	* 		 internal_variable	The internal variable that considers the considers the state of damage 
+	*        rDamage 			The final damage variable to be filled by this method
+	*/
+	void CalculateDamageCompression(
+		CalculationData& data, 
+		double internal_variable, 
+		double& rDamage);
+
+	/**
+	* @brief This method computes the energy of the uniaxial damage law before regularization 
+	* @param rBezierEnergy 
+	*		 rBezierEnergy1
+	* 		 double s_p, double s_k, double s_r, double e_p, double e_j, double e_k, double e_r, double e_u
+	*						As inputs for the energy calculation
+	*/
+	void ComputeBezierEnergy(
+		double& rBezierEnergy, 
+		double& rBezierEnergy1, 
+		double s_p, double s_k, double s_r,
+		double e_p, double e_j, double e_k, double e_r, double e_u);
+
+	/**
+	* @brief This method evaluates the area below the bezier curves
+	* @param x1, x2, x3 x-coordinates of the Bezier control points
+	* 		 y1, y2, y3 y-coordinates of the Bezier control points
+	*/
+	double EvaluateBezierArea(
+		double x1, double x2, double x3,
+		double y1, double y2, double y3);
+
+	/**
+	* @brief This method applies the stretcher to the strains, to regularize the fracture energy
+	* @param stretcher			The stretch factor
+	* 		 e_p				The reference strain from which on the stretching is applied
+	*		 e_j, e_k, e_r, e_u	The strains that have to be modified by the stretcher
+	*/
+	void ApplyBezierStretcherToStrains(
+		double stretcher, double e_p, double& e_j, 
+		double& e_k, double& e_r, double& e_u);
+
+	/**
+	* @brief This method evaluates the damage parameter by considering the Bezier law explained above
+	* @param rDamageParameter	The parameter to obtain the damage d-
+	* 		 xi					The strain like counterpart
+	*		 x1, x2, x3 		x-coordinates of the Bezier control points
+	* 		 y1, y2, y3 		y-coordinates of the Bezier control points
+	*/
+	void EvaluateBezierCurve(
+		double& rDamageParameter, double xi, 
+		double x1, double x2, double x3,
+		double y1, double y2, double y3);
+
+	/**
+	* @brief This method computes the Charcteristic element length
+	* @param GeometryType& geom		The element geometry data from rValues
+	*	  	 rCharacteristicLength	The characteristic Length
+	*/
+	void ComputeCharacteristicLength(
+		const GeometryType& geom,
+		double& rCharacteristicLength);
+
+	/**
+	* @brief This method computes the internal material response strain to stress by applying cl
+	* @param strain_vector		The strain vector 
+	*	  	 stress_vector		The stress vector 
+	*		 CalculationData	Calculation Data for the CL
+	*/
+	void CalculateMaterialResponseInternal(
+		const Vector& strain_vector, 
+		Vector& stress_vector, 
+		CalculationData& data,
+		const Properties props);
+
+	/**
+     * @brief This method checks whether we are in loading/unloading/damage state
+     * @param is_damaging_tension	The damage tension bool
+	 *		  is_damaging_tension	The damage compression bool
+     */
+	void CheckDamageLoadingUnloading(
+		bool& is_damaging_tension, 
+		bool& is_damaging_compression);
+	 
+	 /**
+     * @brief This method computes the tangent tensor
+     * @param rValues 			The constitutive law parameters and flags
+	 *		  strain_vector		The strain vector 
+	 *	  	  stress_vector		The stress vector 
+	 *		  CalculationData	Calculation Data for the CL
+     */
+	void CalculateTangentTensor(
+		Parameters& rValues, 
+		Vector strain_vector,
+		Vector stress_vector,
+		CalculationData& data,
+		const Properties props);
+
+	/**
+     * @brief This method computes the secant tensor
+     * @param rValues 			The constitutive law parameters and flags
+	 *		  CalculationData	Calculation Data for the CL
+     */
+	void CalculateSecantTensor(
+		Parameters& rValues,
+		CalculationData& data);
+
+
+	///@}
+
+	///@name Protected Operations
+	///@{
+	///@}
+
 
 private:
-   ///@name Static Member Variables
-    ///@{
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+	///@name Static Member Variables
+	///@{
+	///@}
 
-    // Converged values
-    double mTensionDamage = 0.0;
-    double mTensionThreshold = 0.0;
+	///@name Member Variables
+	///@{
+	///@}
 
-    // Non Converged values
-    double mNonConvTensionDamage = 0.0;
-    double mNonConvTensionThreshold = 0.0;
+	///@name Private Operators
+	///@{
+	///@}
 
-    double mCompressionDamage = 0.0;
-    double mCompressionThreshold = 0.0;
+	///@name Private Operations
+	///@{
+	///@}
 
-    // Non Converged values
-    double mNonConvCompressionDamage = 0.0;
-    double mNonConvCompressionThreshold = 0.0;
+	///@name Private  Access
+	///@{
+	///@}
 
-    double mTensionUniaxialStress = 0.0;
-    double mCompressionUniaxialStress = 0.0;
-    ///@}
-    ///@name Private Operators
-    ///@{
+	///@name Serialization
+	///@{
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+	friend class Serializer;
 
-    /**
-     * @brief This method computes the tangent tensor
-     * @param rValues The constitutive law parameters and flags
-     */
-    void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
+	void save(Serializer& rSerializer) const override
+	{
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw );
+	}
 
-    /**
-     * @brief This method computes the secant tensor
-     * @param rValues The constitutive law parameters and flags
-     */
-    void CalculateSecantTensor(ConstitutiveLaw::Parameters& rValues, Matrix& rSecantTensor);
+	void load(Serializer& rSerializer) override
+	{
+		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw );
+	}
 
+	///@}
 
-	// Serialization
+}; // Class DamageDPlusDMinusMasonry2DLaw 
 
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("TensionDamage", mTensionDamage);
-        rSerializer.save("TensionThreshold", mTensionThreshold);
-        rSerializer.save("NonConvTensionDamage", mNonConvTensionDamage);
-        rSerializer.save("NonConvTensionThreshold", mNonConvTensionThreshold);
-        rSerializer.save("CompressionDamage", mCompressionDamage);
-        rSerializer.save("CompressionThreshold", mCompressionThreshold);
-        rSerializer.save("NonConvCompressionnDamage", mNonConvCompressionDamage);
-        rSerializer.save("NonConvCompressionThreshold", mNonConvCompressionThreshold);
-    }
-
-    void load(Serializer &rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("TensionDamage", mTensionDamage);
-        rSerializer.load("TensionThreshold", mTensionThreshold);
-        rSerializer.load("NonConvTensionDamage", mNonConvTensionDamage);
-        rSerializer.load("NonConvTensionThreshold", mNonConvTensionThreshold);
-        rSerializer.load("CompressionDamage", mCompressionDamage);
-        rSerializer.load("CompressionThreshold", mCompressionThreshold);
-        rSerializer.load("NonConvCompressionnDamage", mNonConvCompressionDamage);
-        rSerializer.load("NonConvCompressionThreshold", mNonConvCompressionThreshold);
-    }
-
-	/**
-	 * @brief This method computes the equivalent stress in Tension
-	 * @param rValues The constitutive law parameters and flags
-	 * 		  rPredictiveStressVector Predictive or effective Stress Vector
-	 *        rEquivalentStress The equivalent Stress to be filled by method
-	 */
-	void CalculateEquivalentStressTension(
-	array_1d<double, 3>& rPredictiveStressVector,
-	double& rEquivalentStress,
-	ConstitutiveLaw::Parameters& rValues);
-
-	/**
-	 * @brief This method computes the equivalent stress in Compression
-	 * @param rValues The constitutive law parameters and flags
-	 * 		  rPredictiveStressVector Predictive or effective Stress Vector
-	 *        rEquivalentStress The equivalent Stress to be filled by method
-	 */
-	void CalculateEquivalentStressCompression(
-	array_1d<double, 3>& rPredictiveStressVector,
-	double& rEquivalentStress,
-	ConstitutiveLaw::Parameters& rValues);
-
-	/**
-	 * @brief This method computes the final stress vector in Tension
-	 * @param rValues The constitutive law parameters and flags
-	 * 		  rPredictiveStressVector Tension Part of the predictive or effective stress vector
-	 *        UniaxialStress The equivalent uniaxial stress in Tension
-	 *        rDamage The damage variable in Tension
-	 *		  rThreshold The Damage Threshold in Tension
-	 *		  CharacteristicLength The finite element charecteristic length
-	 */
-	void IntegrateStressVectorTension(
-	array_1d<double,3>& rPredictiveStressVector,
-    const double UniaxialStress,
-    double& rDamage,
-    double& rThreshold,
-    ConstitutiveLaw::Parameters& rValues,
-    const double CharacteristicLength);
-
-	/**
-	 *  @brief This method computes the damage parameter for the exponential softening behavior in tension
-	 *  @params rValues The constitutive law parameters and flags
-	 *          rAParameter The damage parameter filled by method
-	 *          CharacteristicLength The finite element charecteristic length
-	 */
-	void CalculateDamageParameterTension(
-	ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength);
-
-	/**
-	 * @brief This method computes the tension damage variable for the exponential softening law in tension
-	 * @params rValues The constitutive law parameters and flags
-	 * 		   UniaxialStress The equivalent uniaxial stress in Tension
-	 *         Threshold The damage threshold in Tension
-	 *         DamageParameter The damage parameter for the exponential softening law
-	 *         CharacteristicLength The finite element charecteristic length
-	 *         rDamage The tension damage variable filled by the method
-	 */
-
-	void CalculateExponentialDamageTension(
-	const double UniaxialStress,
-	const double Threshold,
-	const double DamageParameter,
-	const double CharacteristicLength,
-	ConstitutiveLaw::Parameters& rValues,
-	double& rDamage);
-
-	/**
-	 * @brief This method computes the final stress vector in Tension
-	 * @param rValues The constitutive law parameters and flags
-	 * 		  rPredictiveStressVector Compression Part of the predictive or effective stress vector
-	 *        UniaxialStress The equivalent uniaxial stress in Compression
-	 *        rDamage The damage variable in Compression
-	 *		  rThreshold The Damage Threshold in Compression
-	 *		  CharacteristicLength The finite element charecteristic length
-	 */
-	void IntegrateStressVectorCompression(
-	array_1d<double,3>& rPredictiveStressVector,
-	const double UniaxialStress,
-    double& rDamage,
-    double& rThreshold,
-    ConstitutiveLaw::Parameters& rValues,
-    const double CharacteristicLength);
-
-
-    /**
-     *  BRIEF DOCUMENTATION OF THE USED UNIAXIAL SOFTENING BEHAVIOR IN COMPRESSION
-     *  Entire documentation can be found in the the Phd Thesis of Massimo Petracca
-     *  << Computational Multiscale Analysis of Masonry Structures>>
-     *
-     *  UNIAXIAL BEZIER COMPRESSION DAMAGE
-     *  {I}   Linear Elastic
-     *  {II}  Hardening Quadratic Bezier Curve
-     *          Control nodes:  0=(e_0,s_0); I=(e_i,s_p); P=(e_p,s_p)
-     *  {III} Softening Quadratic Bezier Curve
-     *          Control nodes:  P=(e_p,s_p); J=(e_j,s_j); K=(e_k,s_k)
-     *  {IV}  Softening Quadratic Bezier Curve
-     *          Control nodes:  K=(e_k,s_k); R=(e_r,s_r); U=(e_u,s_u)
-     *  {V}   Residual Strength
-     *
-     *    STRESS
-     *       ^
-     *      /|\
-     *       |                     (P)
-     * s_p = |------------(I)+----#####--+(J)
-     * s_i = |               ' ###  ' ####
-     * s_j   |              ###     '    ####
-     *       |            ###'      '    ' ###
-     * s_k   |-----------##--+------+----+--## (K)
-     * s_0   |---------##(0) '      '    '   ###
-     *       |        ## '   '      '    '    '##
-     *       |       ##  '   '      '    '    '   ####
-     *       |      ##   '   '      '    '    '      #####
-     *       |     ##    '   '      '    '    '          #####
-     *       |    ##     '   '      '    '    '    (R)       ######## (U)
-     * s_r = |---##------+---+------'----+----+-----+-----------------######################
-     * s_u   |  ##       '   '      '    '    '     '                 '
-     *       |_##________+___+______+____+____+_____+_________________+______________________________\
-     *                  e_0 e_i    e_p  e_j  e_k   e_r               e_u                             / STRAIN
-     *        '          '          '         '                       '
-     *        '   {I}    '   {II}   '  {III}  '        {IV}           '          {V}
-     *        '          '          '         '                       '
-     *
-     */
-
-    /**
-	 * @brief This method computes the Damage Variable in Compression by considering three Bezier curves (hardening + softening + softening + residual)
-	 * @param rValues The constitutive law parameters and flags
-	 *        UniaxialStress The equivalent uniaxial stress in Compression
-	 *        rDamage The damage variable in Compression
-	 *		  rThreshold The Damage Threshold in Compression
-	 *        CharacteristicLength The finite element charecteristic length
-	 */
-
-	void CalculateBezier3DamageCompression(
-	const double UniaxialStress,
-	double& rDamage,
-	double& rThreshold,
-	const double CharacteristicLength,
-	ConstitutiveLaw::Parameters& rValues);
-
-	/**
-	 * @brief This method regulates the four bezier control strains to avoid a constitutive snap-back (fracture energy considerations)
-	 * @param specific_dissipated_fracture_energy FRACTURE_ENERGY_CMOPRESSION devided by CharacteristicLength
-	 *        sp, sk, sr stress Values to control the bezier curves
-	 *        ep strain pproperty to control the bezier curve
-     *        ej, ek, er, eu strain properties to be regulated in method
-	 */
-	void RegulateBezierDeterminators(
-	const double specific_dissipated_fracture_energy,
-	const double sp, const double sk, const double sr, const double ep,
-	double& ej, double& ek, double& er, double& eu);
-
-	/**
-	 * @brief This method computes the area beneath the parts of the bezier curves, respectively
-     * @param BezierG Area beneath the curve, to be filled by method
-	 *        x1, x2, x3, y1, y2, y3 coordinates of the control points of the bezier
-	 */
-	void ComputeBezierEnergy(
-	double& BezierG,
-	const double x1, const double x2, const double x3,
-	const double y1, const double y2, const double y3);
-
-    /**
-     * @brief This method returns the bezier damage parameter
-     * @param Xi Strain-like counterpart of the uniaxial compression stress
-     *        x1, x2, x3 Necesarry Stress values to define the uniaxial compression damage bezier curve
-     *        y1, y2, y3 Necesarry Strain vlaues to define the uniaxial compression damage bezier curve
-     */
-    double EvaluateBezierCurve(
-    const double Xi,
-    const double x1, double x2, const double x3,
-    const double y1, const double y2, const double y3);
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
-
-    ///@}
-
-}; // Class DamageDPlusDMinusMasonry2DLaw
-}// namespace Kratos
-#endif
-
+} // namespace Kratos
+#endif // KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED  defined 

@@ -1,7 +1,7 @@
 {
     "properties": [
         {
-            "model_part_name": "FluidModelPart",
+            "model_part_name": "FluidModelPart.Parts_fluid",
             "properties_id": 2,
             "Material": {
                 "constitutive_law" : {
@@ -9,11 +9,17 @@
                 },
                 "Variables": {
                     "DENSITY": 1.0,
-                    "DYNAMIC_VISCOSITY": 100.0,
-                    "WALL_VON_KARMAN": 0.41,
+                    "DYNAMIC_VISCOSITY": 100.0
+                }
+            }
+        },
+        {
+            "model_part_name": "FluidModelPart.Slip2D",
+            "properties_id": 3,
+            "Material": {
+                "Variables": {
                     "WALL_SMOOTHNESS_BETA": 5.2
-                },
-                "Tables": {}
+                }
             }
         }
     ]
