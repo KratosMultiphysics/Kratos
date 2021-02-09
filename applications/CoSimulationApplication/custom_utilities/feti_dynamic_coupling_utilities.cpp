@@ -1086,7 +1086,7 @@ namespace Kratos
                                 else if (is_explicit)
                                 {
                                     double mass_ratio = explicit_average_interface_nodal_mass / rNode.FastGetSolutionStepValue(NODAL_MASS);
-                                    if (mass_ratio > 1000.0)
+                                    if (mass_ratio > 10.0)
                                     {
                                         disp = interface_average_displacement;
                                         rNode.Reset(ACTIVE);
