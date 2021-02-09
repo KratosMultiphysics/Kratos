@@ -545,7 +545,7 @@ private:
 
         rObject.CalculateMassMatrix(mMatrix.M[this_thread],rCurrentProcessInfo);
 
-        rObject.CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
+        rObject.CalculateDampingMatrix(rLHSContribution, mMatrix.M[this_thread], mMatrix.D[this_thread],rCurrentProcessInfo);
 
         AddDynamicsToLHS(rLHSContribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
 
