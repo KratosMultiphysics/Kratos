@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
 #include "includes/kratos_parameters.h"
 

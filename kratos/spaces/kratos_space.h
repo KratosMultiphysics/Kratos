@@ -38,6 +38,7 @@
 #include "containers/distributed_csr_matrix.h"
 
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/atomic_utilities.h"
 
 namespace Kratos

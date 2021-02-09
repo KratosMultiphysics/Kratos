@@ -21,6 +21,7 @@
 #include "containers/sparse_contiguous_row_graph.h"
 #include "containers/system_vector.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/atomic_utilities.h"
 #include "includes/key_hash.h"
 
@@ -115,9 +116,9 @@ public:
     /// Destructor.
     virtual ~CsrMatrix(){}
 
-    /// Assignment operator. 
+    /// Assignment operator.
     CsrMatrix& operator=(CsrMatrix const& rOtherMatrix) = delete; //i really think this should not be allowed, too risky
- 
+
     ///@}
     ///@name Operators
     ///@{
@@ -175,7 +176,7 @@ public:
 
     void ComputeColSize()
     {
-        //compute the max id 
+        //compute the max id
         IndexType max_col = IndexPartition<IndexType>(mColIndices.size()).template for_each< MaxReduction<double> >([&](IndexType i){
                 return mColIndices[i];
             });
@@ -227,14 +228,14 @@ public:
             for(IndexType k = row_begin; k < row_end; ++k){
                 IndexType col = index2_data()[k];
                 y(i) += value_data()[k] * x(col);
-            }  
+            }
         });
     }
 
     //y = alpha*y + beta*A*x
     template<class TInputVectorType, class TOutputVectorType>
     void SpMV(const TDataType alpha,
-              const TInputVectorType& x, 
+              const TInputVectorType& x,
               const TDataType beta,
               TOutputVectorType& y) const
     {
@@ -247,12 +248,12 @@ public:
             for(IndexType k = row_begin; k < row_end; ++k){
                 IndexType col = index2_data()[k];
                 aux += value_data()[k] * x(col);
-            }  
+            }
             y(i) = beta*y(i) + alpha*aux;
         });
     }
 
-    // y += A^t*x  -- where A is *this    
+    // y += A^t*x  -- where A is *this
     template<class TInputVectorType, class TOutputVectorType>
     void TransposeSpMV(const TInputVectorType& x, TOutputVectorType& y) const
     {
@@ -264,14 +265,14 @@ public:
             for(IndexType k = row_begin; k < row_end; ++k){
                 IndexType j = index2_data()[k];
                 AtomicAdd(y(j), value_data()[k] * x(i) );
-            }  
+            }
         });
     }
 
     //y = alpha*y + beta*A^t*x
     template<class TInputVectorType, class TOutputVectorType>
     void TransposeSpMV(const TDataType alpha,
-              const TInputVectorType& x, 
+              const TInputVectorType& x,
               const TDataType beta,
               TOutputVectorType& y) const
     {
@@ -286,7 +287,7 @@ public:
             for(IndexType k = row_begin; k < row_end; ++k){
                 IndexType j = index2_data()[k];
                 AtomicAdd(y(j), value_data()[k] * x(i) );
-            }  
+            }
         });
     }
 
@@ -328,7 +329,7 @@ public:
                 IndexType j = index2_data()[k];
                 TDataType v = value_data()[k];
                 value_map[{i,j}] = v;
-            }  
+            }
         }
         return value_map;
     }
@@ -497,32 +498,32 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    // A non-recursive binary search function. It returns 
-    // location of x in given array arr[l..r] is present, 
+    // A non-recursive binary search function. It returns
+    // location of x in given array arr[l..r] is present,
     // otherwise std::dec << std::numeric_limits<IndexType>::max()
-    template< class TVectorType > 
-    inline IndexType BinarySearch(const TVectorType& arr, 
+    template< class TVectorType >
+    inline IndexType BinarySearch(const TVectorType& arr,
                         IndexType l, IndexType r, IndexType x) const
-    { 
-        while (l <= r) { 
-            int m = l + (r - l) / 2; 
-    
-            // Check if x is present at mid 
-            if (arr[m] == x) 
-                return m; 
-    
-            // If x greater, ignore left half 
-            if (arr[m] < x) 
-                l = m + 1; 
-    
-            // If x is smaller, ignore right half 
+    {
+        while (l <= r) {
+            int m = l + (r - l) / 2;
+
+            // Check if x is present at mid
+            if (arr[m] == x)
+                return m;
+
+            // If x greater, ignore left half
+            if (arr[m] < x)
+                l = m + 1;
+
+            // If x is smaller, ignore right half
             else
-                r = m - 1; 
-        } 
-    
-        // if we reach here, then element was not present 
-        return std::numeric_limits<IndexType>::max(); 
-    } 
+                r = m - 1;
+        }
+
+        // if we reach here, then element was not present
+        return std::numeric_limits<IndexType>::max();
+    }
 
     ///@}
     ///@name Protected Operations
