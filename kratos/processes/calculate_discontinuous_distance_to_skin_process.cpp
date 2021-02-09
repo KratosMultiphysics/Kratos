@@ -241,10 +241,23 @@ namespace Kratos
 		rCutEdgesVector = array_1d<unsigned int, n_edges>(n_edges, 0);
 		rCutEdgesRatioVector = array_1d<double, n_edges>(n_edges, -1.0);
 
-		std::vector<array_1d<double,3> > aux_intersection_pts;
+		std::vector<array_1d<double,3> > aux_avg_pts;
 
 		// Check wich edges are intersected
 		for (std::size_t i_edge = 0; i_edge < n_edges; ++i_edge){
+
+			auto repeated_point_check = [&] (array_1d<double,3>& int_pt, std::vector<array_1d<double,3>>&  aux_pts) {
+				// Check if there is a close intersection (repeated intersection point)
+				for (auto aux_pt : aux_pts){
+						const double aux_dist = norm_2(int_pt - aux_pt);
+						const double tol_edge = 1e-2*norm_2(r_edges_container[i_edge][0] - r_edges_container[i_edge][1]);
+						if (aux_dist < tol_edge){
+							return true;
+					}
+				}
+				return false;
+			};
+
 			array_1d<double,3> avg_pt = ZeroVector(3);
 			std::vector<array_1d<double,3> > aux_pts;
 			// Check against all candidates to count the number of current edge intersections
@@ -256,19 +269,8 @@ namespace Kratos
 
 				// There is intersection
 				if (int_id == 1 || int_id == 3){
-					// Check if there is a close intersection (repeated intersection point)
-					bool is_repeated = false;
-					for (auto aux_pt : aux_pts){
-						const double aux_dist = norm_2(int_pt - aux_pt);
-						const double tol_edge = 1e-2*norm_2(r_edges_container[i_edge][0] - r_edges_container[i_edge][1]);
-						if (aux_dist < tol_edge){
-							is_repeated = true;
-							break;
-						}
-					}
-
 					// If the intersection pt. is not repeated, consider it
-					if (!is_repeated){
+					if (!repeated_point_check(int_pt, aux_pts)){
 						// Add the intersection pt. to the aux array pts.
 						aux_pts.push_back(int_pt);
 						// Increase the edge intersections counter
@@ -290,20 +292,9 @@ namespace Kratos
 				// Increase the total intersected edges counter
 				n_cut_edges++;
 
-				// Check if the avg_pt is already present
-				bool is_avg_pt_repeated = false;
-				for (auto aux_pt : aux_intersection_pts){
-					const double aux_dist = norm_2(avg_pt - aux_pt);
-					const double tol_edge = 1e-2*norm_2(r_edges_container[i_edge][0] - r_edges_container[i_edge][1]);
-					if (aux_dist < tol_edge){
-						is_avg_pt_repeated = true;
-						break;
-					}
-				}
-
-				if (!is_avg_pt_repeated){
+				if (!repeated_point_check(avg_pt, aux_avg_pts)){
 					rIntersectionPointsArray.push_back(avg_pt);
-					aux_intersection_pts.push_back(avg_pt);
+					aux_avg_pts.push_back(avg_pt);
 				}
 			}
 		}
