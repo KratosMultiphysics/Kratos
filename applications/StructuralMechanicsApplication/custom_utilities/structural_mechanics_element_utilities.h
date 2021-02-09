@@ -201,6 +201,23 @@ double GetDensityForMassMatrixComputation(const Element& rElement);
 
 /**
  * @brief Method to calculate the rayleigh damping-matrix
+ * @param rLeftHandSideMatrix The left hand side matrix of the element
+ * @param rMassMatrix The mass-matrix of the element
+ * @param rDampingMatrix The damping-matrix of the element
+ * @param rProperties The Properties where it is specified
+ * @param rCurrentProcessInfo The ProcessInfo where it is specified
+ * @param MatrixSize The size of the damping-matrix
+ */
+void CalculateRayleighDampingMatrix(
+    const Element::MatrixType& rLeftHandSideMatrix,
+    const Element::MatrixType& rMassMatrix,
+    Element::MatrixType& rDampingMatrix,
+    const Properties& rProperties,
+    const ProcessInfo& rCurrentProcessInfo,
+    const std::size_t MatrixSize);
+
+/**
+ * @brief Method to calculate the rayleigh damping-matrix
  * @param rElement The Element for which the damping-matrix should be computed
  * @param rDampingMatrix The damping-matrix of the element
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
