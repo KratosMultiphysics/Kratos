@@ -53,8 +53,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const SumReduction<TDataType>& rOther)
     {
-        #pragma omp atomic
-        mValue += rOther.mValue;
+        AtomicAdd(mValue, rOther.mValue);
     }
 };
 
@@ -82,8 +81,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const SubReduction<TDataType>& rOther)
     {
-        #pragma omp atomic
-        mValue += rOther.mValue;
+        AtomicSub(mValue, rOther.mValue);
     }
 };
 
@@ -111,8 +109,10 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MaxReduction<TDataType>& rOther)
     {
-        #pragma omp critical
+        LockObject lock;
+        lock.SetLock();
         mValue = std::max(mValue,rOther.mValue);
+        lock.UnSetLock();
     }
 };
 
@@ -140,8 +140,10 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MinReduction<TDataType>& rOther)
     {
-        #pragma omp critical
+        LockObject lock;
+        lock.SetLock();
         mValue = std::min(mValue,rOther.mValue);
+        lock.UnSetLock();
     }
 };
 
