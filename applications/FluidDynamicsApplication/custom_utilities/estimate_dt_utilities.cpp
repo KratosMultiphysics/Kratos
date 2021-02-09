@@ -24,6 +24,7 @@
 #include "utilities/element_size_calculator.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "estimate_dt_utilities.h"
