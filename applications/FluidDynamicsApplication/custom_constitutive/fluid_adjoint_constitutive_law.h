@@ -30,7 +30,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// This class contains the common infrastructure for fluid constitutive laws.
+/// This class contains the common infrastructure for adjoint fluid constitutive laws.
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidAdjointConstitutiveLaw
 {
 public:

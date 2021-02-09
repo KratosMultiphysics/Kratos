@@ -63,6 +63,8 @@ public:
 
     using VectorN = BoundedVector<double, TNumNodes>;
 
+    using VectorF = BoundedVector<double, TElementLocalSize>;
+
     using MatrixDD = BoundedMatrix<double, TDim, TDim>;
 
     using MatrixND = BoundedMatrix<double, TNumNodes, TDim>;
@@ -71,8 +73,8 @@ public:
     ///@name Static Operations
     ///@{
 
-    static int Check(
-        const GeometryType& rGeometry,
+    static void Check(
+        const Element& rElement,
         const ProcessInfo& rProcessInfo);
 
     static GeometryData::IntegrationMethod GetIntegrationMethod();
@@ -87,49 +89,44 @@ public:
     ///@name Classes
     ///@{
 
-    class ResidualContributions
+    class ResidualsContributions
     {
     public:
         ///@name Life Cycle
         ///@{
 
-        ResidualContributions(Data& rData);
+        ResidualsContributions(Data& rData);
 
         ///@}
         ///@name Operations
         ///@{
 
-        void Initialize(
-            Matrix& rOutput,
-            const ProcessInfo& rProcessInfo);
-
-        ///@}
-
-        void AddResidualContribution(
-            BoundedVector<double, TElementLocalSize>& rResidual,
+        void AddGaussPointResidualsContributions(
+            VectorF& rResidual,
             const double W,
             const Vector& rN,
             const Matrix& rdNdX);
+
+        ///@}
 
     private:
         ///@name Private Members
         ///@{
 
         Data& mrData;
-        IndexType mBlockSize;
 
         ///@}
         ///@name Private Operations
         ///@{
 
         void AddViscousTerms(
-            BoundedVector<double, TElementLocalSize>& rResidual,
+            VectorF& rResidual,
             const double W) const;
 
         ///@}
     };
 
-    template<class TDerivativesType, unsigned int TEquationOffset = 0>
+    template<class TDerivativesType>
     class VariableDerivatives
     {
     public:
@@ -152,16 +149,8 @@ public:
         ///@name Operations
         ///@{
 
-        void Initialize(
-            Matrix& rOutput,
-            const ProcessInfo& rProcessInfo)
-        {
-            mBlockSize = rOutput.size2() / TNumNodes;
-            mResidualWeightDerivativeContributions.Initialize(rOutput, rProcessInfo);
-        }
-
-        void CalculateResidualDerivative(
-            BoundedVector<double, TElementLocalSize>& rResidualDerivative,
+        void CalculateGaussPointResidualsDerivativeContributions(
+            VectorF& rResidualDerivative,
             const int NodeIndex,
             const int DirectionIndex,
             const double W,
@@ -243,7 +232,7 @@ public:
             const double mass_projection_derivative = 0.0;
 
             for (IndexType a = 0; a < TNumNodes; ++a) {
-                const IndexType row = a * mBlockSize + TEquationOffset;
+                const IndexType row = a * TBlockSize;
 
                 double forcing_derivative = 0.0;
                 for (IndexType i = 0; i < TDim; ++i) {
@@ -325,7 +314,7 @@ public:
                 rResidualDerivative[row + TDim] += value;
             }
 
-            mResidualWeightDerivativeContributions.AddResidualContribution(
+            mResidualWeightDerivativeContributions.AddGaussPointResidualsContributions(
                 rResidualDerivative, WDerivative, rN, rdNdX);
 
             this->AddViscousDerivative(rResidualDerivative, NodeIndex,
@@ -340,15 +329,14 @@ public:
         ///@{
 
         Data& mrData;
-        IndexType mBlockSize;
-        ResidualContributions mResidualWeightDerivativeContributions;
+        ResidualsContributions mResidualWeightDerivativeContributions;
 
         ///@}
         ///@name Private Operations
         ///@{
 
         void AddViscousDerivative(
-            BoundedVector<double, TElementLocalSize>& rResidualDerivative,
+            VectorF& rResidualDerivative,
             const int NodeIndex,
             const int DirectionIndex,
             const double W,
@@ -361,28 +349,11 @@ public:
             BoundedMatrix<double, TStrainSize, TElementLocalSize> strain_matrix_derivative;
             FluidElementUtilities<TNumNodes>::GetStrainMatrix(rdNdXDerivative, strain_matrix_derivative);
 
-            BoundedVector<double, TElementLocalSize> rhs_contribution_derivative =
+            const VectorF& rhs_contribution_derivative =
                 prod(trans(mrData.mStrainMatrix), mrData.mShearStressDerivative) +
                 prod(trans(strain_matrix_derivative), mrData.mShearStress);
 
-            for (IndexType a = 0; a < TNumNodes; ++a) {
-                const IndexType row = a * mBlockSize + TEquationOffset;
-                const IndexType local_row = a * TBlockSize;
-
-                for (IndexType i = 0; i < TDim; ++i) {
-                    double value = 0.0;
-
-                    value -= W * rhs_contribution_derivative[local_row + i];
-
-                    rResidualDerivative[row + i] += value;
-                }
-
-                double value = 0.0;
-
-                value -= W * rhs_contribution_derivative[local_row + TDim];
-
-                rResidualDerivative[row + TDim] += value;
-            }
+            noalias(rResidualDerivative) -= rhs_contribution_derivative * W;
         }
 
         ///@}
@@ -399,19 +370,16 @@ public:
         ///@{
 
         SecondDerivatives(
-            const Element& rElement,
-            FluidConstitutiveLaw& rFluidConstitutiveLaw);
+            Data& rData);
 
         ///@}
         ///@name Operations
         ///@{
 
-        void Initialize(
-            Matrix& rOutput,
-            const ProcessInfo& rProcessInfo);
-
-        void AddResidualDerivativeContributions(
-            Matrix& rOutput,
+        void CalculateGaussPointResidualsDerivativeContributions(
+            VectorF& rResidualDerivative,
+            const int NodeIndex,
+            const int DirectionIndex,
             const double W,
             const Vector& rN,
             const Matrix& rdNdX);
@@ -421,24 +389,7 @@ public:
         ///@name Private Members
         ///@{
 
-        const Element& mrElement;
-        FluidConstitutiveLaw& mrFluidConstitutiveLaw;
-
-        IndexType mBlockSize;
-
-        double mDensity;
-        double mDynamicViscosity;
-        double mElementSize;
-        double mDynamicTau;
-        double mDeltaTime;
-
-        BoundedMatrix<double, TNumNodes, TDim> mNodalVelocity;
-
-        ConstitutiveLaw::Parameters mConstitutiveLawValues;
-        BoundedMatrix<double, TStrainSize, TElementLocalSize> mStrainMatrix;
-        Vector mStrainRate;
-        Vector mShearStress;
-        Matrix mC;
+        Data& mrData;
 
         ///@}
 
@@ -452,13 +403,12 @@ public:
 
         Data(
             const Element& rElement,
-            FluidConstitutiveLaw& rFluidConstitutiveLaw);
+            FluidConstitutiveLaw& rFluidConstitutiveLaw,
+            const ProcessInfo& rProcessInfo);
 
         ///@}
         ///@name Operations
         ///@{
-
-        void Initialize(const ProcessInfo& rProcessInfo);
 
         void CalculateGaussPointData(
             const double W,
@@ -530,10 +480,10 @@ public:
         ///@name Private Friends
         ///@{
 
-        template<class TDerivativesType, unsigned int TEquationOffset>
+        template<class TDerivativesType>
         friend class VariableDerivatives;
-
-        friend class ResidualContributions;
+        friend class SecondDerivatives;
+        friend class ResidualsContributions;
 
         ///@}
     };

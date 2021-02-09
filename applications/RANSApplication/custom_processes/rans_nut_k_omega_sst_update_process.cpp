@@ -76,22 +76,9 @@ int RansNutKOmegaSSTUpdateProcess::Check()
         << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE is not found in nodal solution step variables list of "
         << mModelPartName << ".";
 
-    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(TURBULENT_VISCOSITY))
-        << "TURBULENT_VISCOSITY is not found in nodal solution step variables list of "
-        << mModelPartName << ".";
-
     return 0;
 
     KRATOS_CATCH("");
-}
-
-void RansNutKOmegaSSTUpdateProcess::ExecuteInitialize()
-{
-    RansCalculationUtilities::CalculateNumberOfNeighbourEntities<ModelPart::ElementsContainerType>(
-        mrModel.GetModelPart(mModelPartName), NUMBER_OF_NEIGHBOUR_ELEMENTS);
-
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-        << "Calculated number of neighbour elements in " << mModelPartName << ".\n";
 }
 
 void RansNutKOmegaSSTUpdateProcess::ExecuteInitializeSolutionStep()
@@ -110,12 +97,9 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteAfterCouplingSolveStep()
 {
     KRATOS_TRY
 
+    using ElementType = ModelPart::ElementType;
+
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-    auto& r_nodes = r_model_part.Nodes();
-    VariableUtils().SetHistoricalVariableToZero(TURBULENT_VISCOSITY, r_nodes);
-
-    auto& r_elements = r_model_part.Elements();
 
     std::function<double(const Element&)> nut_calculation_method;
     const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
@@ -131,25 +115,14 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteAfterCouplingSolveStep()
         KRATOS_ERROR << "Unsupported domain size.";
     }
 
-    block_for_each(r_elements, [&](ModelPart::ElementType& rElement) {
-        const double nut = nut_calculation_method(rElement);
-        auto& r_geometry = rElement.GetGeometry();
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
-            auto& r_node = r_geometry[i_node];
-            r_node.SetLock();
-            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) += nut;
-            r_node.UnSetLock();
-        }
+    // setting element nu_t values
+    block_for_each(r_model_part.Elements(), [&](ElementType& rElement) {
+        const double nu_t = std::max(nut_calculation_method(rElement), mMinValue);
+        rElement.SetValue(TURBULENT_VISCOSITY, std::max(nu_t, mMinValue));
     });
 
-    r_model_part.GetCommunicator().AssembleCurrentData(TURBULENT_VISCOSITY);
-
-    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
-        const double number_of_neighbour_elements =
-            rNode.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-        double& nut = rNode.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
-        nut = std::max(nut / number_of_neighbour_elements, mMinValue);
-    });
+    // setting wall nu_t values
+    RansCalculationUtilities::CalculateWallTurbulentViscosity(r_model_part, mMinValue);
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << "Calculated nu_t for nodes in " << mModelPartName << ".\n";
@@ -177,9 +150,13 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(
     Vector gauss_weights;
     Matrix shape_functions;
     GeometryType::ShapeFunctionsGradientsType shape_derivatives;
-    CalculateGeometryData(r_geometry, rElement.GetIntegrationMethod(),
-                          gauss_weights, shape_functions, shape_derivatives);
-    const int num_gauss_points = gauss_weights.size();
+
+    // computing everything based on a fixed gauss integration rather than based
+    // on the element one. This is because, in RANS there can be different elements
+    // with different gauss integration methods. So in order to be consistent
+    // GI_GAUSS_1 is chosen
+    const auto& r_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
+    CalculateGeometryData(r_geometry, r_integration_method, gauss_weights, shape_functions, shape_derivatives);
 
     BoundedMatrix<double, TDim, TDim> velocity_gradient;
 
@@ -188,39 +165,32 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(
 
     const double rho = r_properties.GetValue(DENSITY);
 
-    double nut{0.0}, tke, omega, nu, y;
+    double tke, omega, nu, y;
 
-    for (int g = 0; g < num_gauss_points; ++g) {
-        const Matrix& r_shape_derivatives = shape_derivatives[g];
-        const Vector& r_gauss_shape_functions = row(shape_functions, g);
+    const Matrix& r_shape_derivatives = shape_derivatives[0];
+    const Vector& r_gauss_shape_functions = row(shape_functions, 0);
 
-        FluidCalculationUtilities::EvaluateInPoint(r_geometry, r_gauss_shape_functions,
-            std::tie(tke, TURBULENT_KINETIC_ENERGY),
-            std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
-            std::tie(y, DISTANCE)
-        );
+    FluidCalculationUtilities::EvaluateInPoint(r_geometry, r_gauss_shape_functions,
+        std::tie(tke, TURBULENT_KINETIC_ENERGY),
+        std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+        std::tie(y, DISTANCE)
+    );
 
-        constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
-        nu /= rho;
+    constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+    nu /= rho;
 
-        FluidCalculationUtilities::EvaluateGradientInPoint(
-            r_geometry, r_shape_derivatives,
-            std::tie(velocity_gradient, VELOCITY));
+    FluidCalculationUtilities::EvaluateGradientInPoint(
+        r_geometry, r_shape_derivatives,
+        std::tie(velocity_gradient, VELOCITY));
 
-        const double f_2 = KOmegaSSTElementData::CalculateF2(tke, omega, nu, y, beta_star);
+    const double f_2 = KOmegaSSTElementData::CalculateF2(tke, omega, nu, y, beta_star);
 
-        const BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient =
-            (velocity_gradient + trans(velocity_gradient)) * 0.5;
+    const BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient =
+        (velocity_gradient + trans(velocity_gradient)) * 0.5;
 
-        const double t = norm_frobenius(symmetric_velocity_gradient) * 1.414;
+    const double t = norm_frobenius(symmetric_velocity_gradient) * 1.414;
 
-        nut += KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(
-            tke, omega, t, f_2, a1);
-    }
-
-    nut /= static_cast<double>(num_gauss_points);
-
-    return nut;
+    return KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(tke, omega, t, f_2, a1);
 
     KRATOS_CATCH("");
 }

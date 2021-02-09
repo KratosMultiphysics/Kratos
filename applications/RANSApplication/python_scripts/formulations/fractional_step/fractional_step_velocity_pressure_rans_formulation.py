@@ -309,6 +309,9 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             msg += "\tlogarithmic_region_only\n"
             raise Exception(msg)
 
+    def ElementHasNodalProperties(self):
+        return True
+
     def _CheckTransientConvergence(self, variable, settings):
         relative_error, absolute_error = RansVariableUtilities.CalculateTransientVariableConvergence(
             self.GetBaseModelPart(),

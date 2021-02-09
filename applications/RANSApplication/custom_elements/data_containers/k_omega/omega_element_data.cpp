@@ -57,6 +57,7 @@ void OmegaElementData<TDim>::Check(
         << "TURBULENCE_RANS_GAMMA is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA))
         << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA is not found in process info.\n";
+
     KRATOS_ERROR_IF_NOT(r_properties.Has(DYNAMIC_VISCOSITY))
         << "DYNAMIC_VISCOSITY is not found in element properties [ Element.Id() = "
         << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
@@ -64,10 +65,13 @@ void OmegaElementData<TDim>::Check(
         << "DENSITY is not found in element properties [ Element.Id() = "
         << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
 
+    KRATOS_ERROR_IF_NOT(rElement.Has(TURBULENT_VISCOSITY))
+        << "TURBULENT_VISCOSITY is not found in element with id "
+        << rElement.Id() << ".\n";
+
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const auto& r_node = r_geometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, r_node);
@@ -87,6 +91,7 @@ void OmegaElementData<TDim>::CalculateConstants(
     mGamma = rCurrentProcessInfo[TURBULENCE_RANS_GAMMA];
     mSigmaOmega = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA];
     mDensity = this->GetProperties().GetValue(DENSITY);
+    mTurbulentKinematicViscosity = this->GetGeometry().GetValue(TURBULENT_VISCOSITY);
 }
 
 template <unsigned int TDim>
@@ -108,7 +113,6 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
     FluidCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rShapeFunctions, Step,
         std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
-        std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
         std::tie(mEffectiveVelocity, VELOCITY));
 
     FluidCalculationUtilities::EvaluateGradientInPoint(

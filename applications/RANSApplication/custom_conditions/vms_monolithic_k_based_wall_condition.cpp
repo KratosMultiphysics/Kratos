@@ -20,6 +20,7 @@
 // External includes
 
 // Project includes
+#include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/variables.h"
@@ -48,7 +49,6 @@ int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(
         const auto& r_node = r_geometry[i_node];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
     }
 
@@ -76,6 +76,205 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Initialize(const Process
     }
 
     KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType BlockSize = TDim + 1;
+    const SizeType LocalSize = BlockSize * TNumNodes;
+
+    if (rLeftHandSideMatrix.size1() != LocalSize)
+        rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+
+    if (rRightHandSideVector.size() != LocalSize)
+        rRightHandSideVector.resize(LocalSize);
+
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType BlockSize = TDim + 1;
+    const SizeType LocalSize = BlockSize * TNumNodes;
+
+    if (rLeftHandSideMatrix.size1() != LocalSize)
+        rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType BlockSize = TDim + 1;
+    const SizeType LocalSize = BlockSize * TNumNodes;
+
+    if (rRightHandSideVector.size() != LocalSize)
+        rRightHandSideVector.resize(LocalSize);
+
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    VectorType RHS;
+    this->CalculateLocalVelocityContribution(rDampingMatrix,RHS,rCurrentProcessInfo);
+}
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::CalculateLocalVelocityContribution(
+    MatrixType &rDampMatrix,
+    VectorType &rRightHandSideVector,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    // Initialize local contributions
+    const SizeType LocalSize = (TDim + 1) * TNumNodes;
+
+    if (rDampMatrix.size1() != LocalSize)
+        rDampMatrix.resize(LocalSize,LocalSize);
+    if (rRightHandSideVector.size() != LocalSize)
+        rRightHandSideVector.resize(LocalSize);
+
+    noalias(rDampMatrix) = ZeroMatrix(LocalSize,LocalSize);
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+    this->ApplyWallLaw(rDampMatrix,rRightHandSideVector,rCurrentProcessInfo);
+}
+
+template <>
+void VMSMonolithicKBasedWallCondition<2, 2>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const unsigned int NumNodes = 2;
+    const unsigned int LocalSize = 6;
+    unsigned int LocalIndex = 0;
+
+    if (rResult.size() != LocalSize)
+        rResult.resize(LocalSize, false);
+
+    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+    {
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+    }
+}
+
+template <>
+void VMSMonolithicKBasedWallCondition<3, 3>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const SizeType NumNodes = 3;
+    const SizeType LocalSize = 12;
+    unsigned int LocalIndex = 0;
+
+    if (rResult.size() != LocalSize)
+        rResult.resize(LocalSize, false);
+
+    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+    {
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+    }
+}
+
+template <>
+void VMSMonolithicKBasedWallCondition<2, 2>::GetDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const SizeType NumNodes = 2;
+    const SizeType LocalSize = 6;
+
+    if (rElementalDofList.size() != LocalSize)
+        rElementalDofList.resize(LocalSize);
+
+    unsigned int LocalIndex = 0;
+
+    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+    {
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_X);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Y);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
+    }
+}
+
+template <>
+void VMSMonolithicKBasedWallCondition<3, 3>::GetDofList(DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const SizeType NumNodes = 3;
+    const SizeType LocalSize = 12;
+
+    if (rElementalDofList.size() != LocalSize)
+        rElementalDofList.resize(LocalSize);
+
+    unsigned int LocalIndex = 0;
+
+    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+    {
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_X);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Y);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::GetFirstDerivativesVector(
+    Vector& Values,
+    int Step) const
+{
+    const SizeType LocalSize = (TDim + 1) * TNumNodes;
+    unsigned int LocalIndex = 0;
+
+    if (Values.size() != LocalSize)
+        Values.resize(LocalSize, false);
+
+    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+    {
+        const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
+        for (unsigned int d = 0; d < TDim; ++d)
+            Values[LocalIndex++] = rVelocity[d];
+        Values[LocalIndex++] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE, Step);
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::GetSecondDerivativesVector(
+    Vector& Values,
+    int Step) const
+{
+    const SizeType LocalSize = (TDim + 1) * TNumNodes;
+    unsigned int LocalIndex = 0;
+
+    if (Values.size() != LocalSize)
+        Values.resize(LocalSize, false);
+
+    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+    {
+        const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
+        for (unsigned int d = 0; d < TDim; ++d)
+            Values[LocalIndex++] = rVelocity[d];
+        Values[LocalIndex++] = 0.0; // No value on pressure positions
+    }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

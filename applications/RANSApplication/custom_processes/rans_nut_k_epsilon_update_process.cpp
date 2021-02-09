@@ -13,18 +13,24 @@
 // System includes
 #include <cmath>
 #include <limits>
+#include <tuple>
 
 // External includes
 
 // Project includes
+#include "geometries/geometry.h"
+#include "geometries/geometry_data.h"
 #include "includes/cfd_variables.h"
 #include "includes/define.h"
+#include "includes/node.h"
 #include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "rans_application_variables.h"
 
 // Include base h
+#include "custom_utilities/fluid_calculation_utilities.h"
+#include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_nut_k_epsilon_update_process.h"
 
 namespace Kratos
@@ -71,10 +77,6 @@ int RansNutKEpsilonUpdateProcess::Check()
         << "TURBULENT_ENERGY_DISSIPATION_RATE is not found in nodal solution step variables list of "
         << mModelPartName << ".";
 
-    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(TURBULENT_VISCOSITY))
-        << "TURBULENT_VISCOSITY is not found in nodal solution step variables list of "
-        << mModelPartName << ".";
-
     return 0;
 
     KRATOS_CATCH("");
@@ -96,24 +98,52 @@ void RansNutKEpsilonUpdateProcess::ExecuteAfterCouplingSolveStep()
 {
     KRATOS_TRY
 
-    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-    auto& r_nodes = r_model_part.Nodes();
+    using NodeType = Node<3>;
 
+    using GeometryType = Geometry<NodeType>;
+
+    using ShapeFunctionDerivativesArrayType = GeometryType::ShapeFunctionsGradientsType;
+
+    using ElementType = ModelPart::ElementType;
+
+    using tls_type = std::tuple<Vector, Matrix, ShapeFunctionDerivativesArrayType>;
+
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
     const double c_mu = r_model_part.GetProcessInfo()[TURBULENCE_RANS_C_MU];
 
-    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
-        const double epsilon =
-            rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
+    // setting element nu_t values
+    block_for_each(r_model_part.Elements(), tls_type(), [&](ElementType& rElement, tls_type& rTLS) {
+        auto& Ws = std::get<0>(rTLS);
+        auto& Ns = std::get<1>(rTLS);
+        auto& dNdXs = std::get<2>(rTLS);
 
-        double& nu_t = rNode.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+        // computing everything based on a fixed gauss integration rather than based
+        // on the element one. This is because, in RANS there can be different elements
+        // with different gauss integration methods. So in order to be consistent
+        // GI_GAUSS_1 is chosen
+        const auto& r_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
 
+        RansCalculationUtilities::CalculateGeometryData(
+            rElement.GetGeometry(), r_integration_method, Ws, Ns, dNdXs);
+
+        const Vector& N = row(Ns, 0);
+
+        double tke, epsilon;
+        FluidCalculationUtilities::EvaluateInPoint(rElement.GetGeometry(), N,
+            std::tie(tke, TURBULENT_KINETIC_ENERGY),
+            std::tie(epsilon, TURBULENT_ENERGY_DISSIPATION_RATE));
+
+        double nu_t = 0.0;
         if (epsilon > 0.0) {
-            const double tke = rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
             nu_t = c_mu * std::pow(tke, 2) / epsilon;
-        } else {
-            nu_t = mMinValue;
         }
+        nu_t = std::max(nu_t, mMinValue);
+
+        rElement.SetValue(TURBULENT_VISCOSITY, nu_t);
     });
+
+    // setting wall nu_t values
+    RansCalculationUtilities::CalculateWallTurbulentViscosity(r_model_part, mMinValue);
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << "Calculated nu_t for nodes in " << mModelPartName << ".\n";

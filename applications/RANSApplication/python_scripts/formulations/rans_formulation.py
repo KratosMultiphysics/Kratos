@@ -193,6 +193,19 @@ class RansFormulation:
 
         return True
 
+    def ElementHasNodalProperties(self):
+        """Recursively checks whether any one of the formulations require nodal properties.
+
+        Returns:
+            bool: True if one of them require nodal properties
+        """
+
+        for formulation in self.__list_of_formulations:
+            if (formulation.ElementHasNodalProperties()):
+                return True
+
+        return False
+
     def GetMoveMeshFlag(self):
         """Returns move mesh flag
 

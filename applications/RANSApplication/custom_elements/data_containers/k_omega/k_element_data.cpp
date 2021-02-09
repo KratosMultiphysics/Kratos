@@ -48,12 +48,29 @@ void KElementData<TDim>::Check(
     KRATOS_TRY
 
     const auto& r_geometry = rElement.GetGeometry();
+    const auto& r_properties = rElement.GetProperties();
     const int number_of_nodes = r_geometry.PointsNumber();
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
+        << "TURBULENCE_RANS_C_MU is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_KINETIC_ENERGY_SIGMA))
+        << "TURBULENT_KINETIC_ENERGY_SIGMA is not found in process info.\n";
+
+    KRATOS_ERROR_IF_NOT(r_properties.Has(DYNAMIC_VISCOSITY))
+        << "DYNAMIC_VISCOSITY is not found in element properties [ Element.Id() = "
+        << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
+
+    KRATOS_ERROR_IF_NOT(r_properties.Has(DENSITY))
+        << "DENSITY is not found in element properties [ Element.Id() = "
+        << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
+
+    KRATOS_ERROR_IF_NOT(rElement.Has(TURBULENT_VISCOSITY))
+        << "TURBULENT_VISCOSITY is not found in element with id "
+        << rElement.Id() << ".\n";
 
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const auto& r_node = r_geometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
@@ -72,6 +89,7 @@ void KElementData<TDim>::CalculateConstants(
     mSigmaK = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
     mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
     mDensity = this->GetProperties().GetValue(DENSITY);
+    mTurbulentKinematicViscosity = this->GetGeometry().GetValue(TURBULENT_VISCOSITY);
 }
 
 template <unsigned int TDim>
@@ -93,7 +111,6 @@ void KElementData<TDim>::CalculateGaussPointData(
     FluidCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rShapeFunctions, Step,
         std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
-        std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
         std::tie(mEffectiveVelocity, VELOCITY));
 
     FluidCalculationUtilities::EvaluateGradientInPoint(

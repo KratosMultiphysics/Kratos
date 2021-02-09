@@ -9,7 +9,7 @@ class MonolithicKEpsilonTest(turbulence_modelling_test_case.TurbulenceModellingT
     def setUpClass(cls):
         super(MonolithicKEpsilonTest, cls).setUpCase(
             "BackwardFacingStepTest",
-            "backward_facing_step_monolithic_k_epsilon_parameters.json",
+            "backward_facing_step_mon_ke_parameters.json",
             False)
 
         cls.transient_scheme_type = "bossak"
@@ -19,7 +19,7 @@ class MonolithicKEpsilonPeriodicTest(periodic_turbulence_modelling_test_case.Per
     def setUpClass(cls):
         super(MonolithicKEpsilonPeriodicTest, cls).setUpCase(
             "ChannelFlowTest",
-            "channel_flow_monolithic_k_epsilon_parameters.json",
+            "channel_flow_mon_ke_parameters.json",
             False)
 
 

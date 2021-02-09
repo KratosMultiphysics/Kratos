@@ -68,11 +68,15 @@ public:
         const Vector& rShapeFunctions);
 
 protected:
-    double mBlendedSigmaOmega;
     double mKappa;
     double mYPlus;
     double mCmu25;
     double mDensity;
+    double mTurbulentViscosity;
+    double mSigmaOmega1;
+    double mSigmaOmega2;
+    double mBetaStar;
+    double mWallHeight;
 };
 
 ///@}
