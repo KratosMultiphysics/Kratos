@@ -27,8 +27,7 @@ template<SizeType TDim>
 bool SubModelPartSkinDetectionProcess<TDim>::SelectIfAllNodesOnSubModelPart::IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const
 {
     bool select = true;
-    for (auto i_node = rNodes.begin(); i_node != rNodes.end(); ++i_node)
-    {
+    for (auto i_node = rNodes.begin(); i_node != rNodes.end(); ++i_node) {
         select &= i_node->Is(SubModelPartSkinDetectionProcess::NODE_SELECTED);
     }
     return select;
