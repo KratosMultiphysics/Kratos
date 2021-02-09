@@ -695,10 +695,6 @@ void TrussElement3D2N::AddExplicitContribution(
             int index = i * msDimension;
 
             AtomicAdd(r_nodal_mass, mass_vector[index]);
-
-            for (int k = 0; k < msDimension; ++k) {
-                AtomicAdd(r_nodal_inertia[k], 0.0);
-            }
         }
     }
 

@@ -1154,10 +1154,6 @@ void MembraneElement::AddExplicitContribution(
             SizeType index = i * dimension;
 
             AtomicAdd(r_nodal_mass, mass_vector[index]);
-
-            for (SizeType k = 0; k < dimension; ++k) {
-                AtomicAdd(r_nodal_inertia[k], 0.0);
-            }
         }
     }
 
