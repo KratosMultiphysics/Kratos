@@ -54,7 +54,7 @@ namespace Kratos
  * @class ManningLaw
  * @ingroup ShallowWaterApplication
  * @brief The base class for the bottom and surface friction laws
- * @details This class does nothing, define derived friction laws in order to make use of it
+ * @details This class computes the bottom friction according to the Manning law
  * @author Miguel Maso Sotomayor
  */
 class ManningLaw : public FrictionLaw
@@ -155,6 +155,8 @@ private:
     ///@{
 
     double mManning2;
+
+    double mEpsilon;
 
     ///@}
     ///@name Un accessible methods
