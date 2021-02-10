@@ -575,6 +575,39 @@ public:
     }
 
     /**
+     * @brief Adds the initial stress vector if it is defined in the InitialState
+     */
+    void AddInitialStressVectorContribution(Vector& rStressVector, Parameters& rParameterValues) 
+    {
+        if (this->HasInitialState()) {
+            const auto& r_initial_state = GetInitialState();
+            noalias(rStressVector) += r_initial_state.GetInitialStressVector();
+        }
+    }
+
+    /**
+     * @brief Adds the initial strain vector if it is defined in the InitialState
+     */
+    void AddInitialStrainVectorContribution(Vector& rStrainVector, Parameters& rParameterValues)
+    {
+        if (this->HasInitialState()) {
+            const auto& r_initial_state = GetInitialState();
+            noalias(rStrainVector) -= r_initial_state.GetInitialStrainVector();
+        }
+    }
+
+    /**
+     * @brief Adds the initial strain vector if it is defined in the InitialState
+     */
+    void AddInitialDeformationGradientMatrixContribution(Matrix& rF, Parameters& rParameterValues)
+    {
+        if (this->HasInitialState()) {
+            const auto& r_initial_state = GetInitialState();
+            rF = prod(r_initial_state.GetInitialDeformationGradientMatrix(), rF);
+        }
+    }
+
+    /**
      * @brief Returns whether this constitutive Law has specified variable (boolean)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law

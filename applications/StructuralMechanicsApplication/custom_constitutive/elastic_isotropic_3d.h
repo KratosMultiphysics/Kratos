@@ -152,28 +152,6 @@ public:
     }
 
     /**
-     * @brief Adds the initial stress vector if it is defined in the InitialState
-     */
-    void AddInitialStressVectorContribution(Vector& rStressVector, Parameters& rParameterValues) 
-    {
-        if (this->HasInitialState()) {
-            const auto& r_initial_state = GetInitialState();
-            noalias(rStressVector) += r_initial_state.GetInitialStressVector();
-        }
-    }
-
-    /**
-     * @brief Adds the initial strain vector if it is defined in the InitialState
-     */
-    void AddInitialStrainVectorContribution(Vector& rStrainVector, Parameters& rParameterValues)
-    {
-        if (this->HasInitialState()) {
-            const auto& r_initial_state = GetInitialState();
-            noalias(rStrainVector) -= r_initial_state.GetInitialStrainVector();
-        }
-    }
-
-    /**
      * @brief Computes the material response:
      * @details PK1 stresses and algorithmic ConstitutiveMatrix
      * @param rValues The internal values of the law
