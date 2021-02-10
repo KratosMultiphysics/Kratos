@@ -216,7 +216,8 @@ public:
         mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
         // Updating time derivatives (nodally for efficiency)
-        block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [&](Nodes<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
+        array_1d<double,3> delta_displacement;
+        block_for_each(rModelPart.Nodes(), delta_displacement, [&](Nodes<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
             noalias(rDeltaDisplacementTLS) = rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
 
             array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
