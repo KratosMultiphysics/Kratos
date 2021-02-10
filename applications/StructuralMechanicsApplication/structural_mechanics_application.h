@@ -346,12 +346,12 @@ private:
 
     // Adding the shells elements
     const IsotropicShellElement mIsotropicShellElement3D3N;
-    const ShellThickElement3D4N mShellThickElement3D4N;
-    const ShellThickElement3D4N mShellThickCorotationalElement3D4N;
-    const ShellThinElement3D4N   mShellThinCorotationalElement3D4N;
-    const ShellThinElement3D3N mShellThinElement3D3N;
-    const ShellThinElement3D3N mShellThinCorotationalElement3D3N;
-    const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
+    const ShellThickElement3D4N<false> mShellThickElement3D4N;
+    const ShellThickElement3D4N<true>  mShellThickCorotationalElement3D4N;
+    const ShellThinElement3D4N<true>   mShellThinCorotationalElement3D4N;
+    const ShellThinElement3D3N<false>  mShellThinElement3D3N;
+    const ShellThinElement3D3N<true>   mShellThinCorotationalElement3D3N;
+    const ShellThickElement3D3N<true>  mShellThickCorotationalElement3D3N;
 
     // Adding the membrane element
     const MembraneElement mMembraneElement3D4N;
