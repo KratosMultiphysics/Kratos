@@ -58,7 +58,7 @@ public:
 
     using DofsArrayType = typename BaseType::DofsArrayType;
 
-    using AdjointUtilities = FluidAdjointUtilities<TDim, TBlockSize>;
+    using AdjointSlipUtilities = typename FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>;
 
     using BossakConstants = typename BaseType::BossakConstants;
 
@@ -263,7 +263,7 @@ private:
         this->mpResponseFunction->CalculateGradient(
             rCurrentEntity, aux_matrix, rRHS_Contribution, rCurrentProcessInfo);
 
-        AdjointUtilities::CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+        AdjointSlipUtilities::CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
             rLHS_Contribution, aux_matrix, rCurrentEntity.GetGeometry());
 
         noalias(rRHS_Contribution) = -rRHS_Contribution;
@@ -285,7 +285,7 @@ private:
         this->mpResponseFunction->CalculateFirstDerivativesGradient(
             rCurrentEntity, aux_matrix, response_first_derivatives, rCurrentProcessInfo);
 
-        AdjointUtilities::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
+        AdjointSlipUtilities::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
             rotated_matrix, aux_matrix, rCurrentEntity.GetGeometry());
 
         noalias(rLHS_Contribution) += this->mBossak.C6 * rotated_matrix;
@@ -309,7 +309,7 @@ private:
         this->mpResponseFunction->CalculateSecondDerivativesGradient(
             rCurrentEntity, aux_matrix, response_second_derivatives, rCurrentProcessInfo);
 
-        AdjointUtilities::CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+        AdjointSlipUtilities::CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
             rotated_matrix, aux_matrix, rCurrentEntity.GetGeometry());
 
         noalias(rLHS_Contribution) += this->mBossak.C7 * rotated_matrix;
@@ -342,7 +342,7 @@ private:
         this->mpResponseFunction->CalculateFirstDerivativesGradient(
             rCurrentEntity, aux_matrix, response_first_derivatives, rProcessInfo);
 
-        AdjointUtilities::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
+        AdjointSlipUtilities::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
             entity_first_derivatives, aux_matrix, rCurrentEntity.GetGeometry());
 
         rCurrentEntity.CalculateSecondDerivativesLHS(aux_matrix, rProcessInfo);
@@ -350,7 +350,7 @@ private:
         this->mpResponseFunction->CalculateSecondDerivativesGradient(
             rCurrentEntity, aux_matrix, response_second_derivatives, rProcessInfo);
 
-        AdjointUtilities::CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+        AdjointSlipUtilities::CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
             entity_second_derivatives, aux_matrix, rCurrentEntity.GetGeometry());
 
         if (rAdjointTimeSchemeValues2.size() != response_first_derivatives.size()) {
@@ -393,7 +393,7 @@ private:
         this->mpResponseFunction->CalculateSecondDerivativesGradient(
             rCurrentEntity, aux_matrix, response_second_derivatives, rProcessInfo);
 
-        AdjointUtilities::CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+        AdjointSlipUtilities::CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
             entity_second_derivatives, aux_matrix, rCurrentEntity.GetGeometry());
 
         if (rAdjointAuxiliaryValues.size() != entity_second_derivatives.size1()) {
