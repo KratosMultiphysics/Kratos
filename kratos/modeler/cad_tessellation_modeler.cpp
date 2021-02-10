@@ -34,7 +34,7 @@ namespace Kratos
             if (it->GetGeometryType() == GeometryData::Kratos_Brep_Curve)
             {
 
-                BrepCurveOnSurface *p_aux = &it;
+                // BrepCurveOnSurface *p_aux = &it;
                 // p_aux->pGetCurveOnSurface();
                 // auto tessellation = NurbsCurveTessellation<2, PointerVector<Point>>::ComputeTessellation(
                 //     p_aux->pGetCurveOnSurface(),
