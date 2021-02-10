@@ -51,9 +51,29 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.dimension = settings["dimension"].GetInt()
 
-        self.imposed_strain = settings["imposed_strain"].GetVector()
-        self.imposed_stress = settings["imposed_stress"].GetVector()
+        self.strain_functions = self.components_to_string(settings["imposed_strain"])
+        self.stress_functions = self.components_to_string(settings["imposed_stress"])
+        # to be implemented
         self.imposed_deformation_gradient = settings["imposed_deformation_gradient"].GetMatrix()
+
+
+    def components_to_string(self, vect):
+        v = []
+        for c in vect:
+            if c.IsNumber():
+                s = str(c.GetDouble())
+            elif c.IsString():
+                s = c.GetString()
+            else:
+                msg = "SetInitialStateProcess: Vector component must be scalar or string"
+                raise Exception(msg)
+            function = KratosMultiphysics.PythonGenericFunctionUtility(s)
+            if function.DependsOnSpace():
+                msg = "SetInitialStateProcess: 'x', 'y' and 'z' variables not supported yet"
+                raise Exception(msg)
+            v.append(function)
+        return v
+
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -63,7 +83,14 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         """
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         if self.interval.IsInInterval(current_time):
-            self.SetInitialState()
+            nr_comps = 6
+            self.imposed_strain = [0.0] * nr_comps
+            for i in range(nr_comps):
+                self.imposed_strain[i] = self.strain_functions[i].CallFunction( 0, 0, 0, current_time, 0, 0, 0)
+            self.imposed_stress = [0.0] * nr_comps
+            for i in range(nr_comps):
+                self.imposed_stress[i] = self.stress_functions[i].CallFunction( 0, 0, 0, current_time, 0, 0, 0)
+        self.SetInitialState()
 
 
     def SetInitialState(self):
