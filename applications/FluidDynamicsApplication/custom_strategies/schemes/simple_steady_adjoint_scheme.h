@@ -59,6 +59,8 @@ public:
 
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
+    using AdjointSlipUtilities = typename FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -185,7 +187,7 @@ private:
         rEntity.CalculateFirstDerivativesLHS(aux_matrix, rCurrentProcessInfo);
         r_const_entity_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        FluidAdjointUtilities<TDim>::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
+        AdjointSlipUtilities::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
             rLHS, aux_matrix, rEntity.GetGeometry());
 
         KRATOS_CATCH("");
