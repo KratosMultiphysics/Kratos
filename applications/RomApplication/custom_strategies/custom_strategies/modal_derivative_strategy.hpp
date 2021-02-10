@@ -885,28 +885,28 @@ public:
     {
         KRATOS_TRY
         
-        auto& r_model_part = BaseType::GetModelPart();
+        const auto& r_model_part = BaseType::GetModelPart();
+        const auto& r_current_process_info = r_model_part.GetProcessInfo();
+        const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
         
-        block_for_each(r_model_part.Nodes(), [&](ModelPart::NodeType& r_node) {
-
-            const auto derivative_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
-            const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
-            const auto& node_dofs = r_node.GetDofs();
-
-            // fill the ROM_BASIS
-            std::size_t dof_ctr = 0;
-            for (const auto& rp_node_dof : node_dofs)
+        block_for_each(
+            r_model_part.Nodes(), [&](ModelPart::NodeType& r_node) 
             {
-                bool is_active = !(r_dof_set.find(*rp_node_dof) == r_dof_set.end());
-                if (rp_node_dof->IsFree() && is_active) {
-                    r_node.GetValue(ROM_BASIS)(dof_ctr,derivative_index) = rDx(rp_node_dof->EquationId());
+
+                const auto derivative_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
+                const auto& node_dofs = r_node.GetDofs();
+
+                // fill the ROM_BASIS
+                for (const auto& rp_dof : node_dofs)
+                {
+                    bool is_active = !(r_dof_set.find(*rp_dof) == r_dof_set.end());
+                    if (rp_dof->IsFree() && is_active) {
+                        const std::size_t dof_index = r_current_process_info[MAP_PHI].at(rp_dof->GetVariable().Key());
+                        r_node.GetValue(ROM_BASIS)(dof_index,derivative_index) = rDx(rp_dof->EquationId());
+                    }
                 }
-                else {
-                    r_node.GetValue(ROM_BASIS)(dof_ctr,derivative_index) = 0.0;
-                }
-                dof_ctr += 1;
             }
-        });
+        );
 
         KRATOS_CATCH("")
     }
