@@ -53,7 +53,11 @@ namespace Kratos
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N : public BaseShellElement<ShellT3_CoordinateTransformation> // template arg is not yet used
+
+template <bool NLinGeom>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N : public BaseShellElement<std::conditional<NLinGeom,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>>
 {
 public:
 
@@ -62,7 +66,9 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThinElement3D3N);
 
-    using BaseType = BaseShellElement<ShellT3_CoordinateTransformation>;
+    using BaseType = BaseShellElement<std::conditional<NLinGeom,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>>;
 
     typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
 
@@ -71,6 +77,22 @@ public:
     typedef array_1d<double, 3> Vector3Type;
 
     typedef Quaternion<double> QuaternionType;
+
+    using GeometryType = Element::GeometryType;
+
+    using PropertiesType = Element::PropertiesType;
+
+    using NodesArrayType = Element::NodesArrayType;
+
+    using MatrixType = Element::MatrixType;
+
+    using VectorType = Element::VectorType;
+
+    using SizeType = Element::SizeType;
+
+    using Element::GetGeometry;
+
+    using Element::GetProperties;
 
     ///@}
 
@@ -85,13 +107,11 @@ public:
     ///@{
 
     ShellThinElement3D3N(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         bool NLGeom = false);
+                         GeometryType::Pointer pGeometry);
 
     ShellThinElement3D3N(IndexType NewId,
                          GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         bool NLGeom = false);
+                         PropertiesType::Pointer pProperties);
 
     ShellThinElement3D3N(IndexType NewId,
                          GeometryType::Pointer pGeometry,
@@ -177,7 +197,7 @@ protected:
     /**
      * Protected empty constructor
      */
-    ShellThinElement3D3N() : BaseShellElement()
+    ShellThinElement3D3N() : BaseType()
     {
     }
 

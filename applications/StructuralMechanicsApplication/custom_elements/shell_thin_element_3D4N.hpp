@@ -79,7 +79,10 @@ quadrilateral thin flat layered shell element for the modeling of reinforced
 concrete walls". Dissertation. Los Angeles, California: University of
 Southern California, 2012. */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public BaseShellElement<ShellQ4_CoordinateTransformation> // template arg is not yet used
+template <bool NLinGeom>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public BaseShellElement<std::conditional<NLinGeom,
+        ShellQ4_CorotationalCoordinateTransformation,
+        ShellQ4_CoordinateTransformation>>
 {
 public:
 
@@ -87,7 +90,9 @@ public:
     ///@{
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThinElement3D4N);
 
-    using BaseType = BaseShellElement<ShellQ4_CoordinateTransformation>;
+    using BaseType = BaseShellElement<std::conditional<NLinGeom,
+        ShellQ4_CorotationalCoordinateTransformation,
+        ShellQ4_CoordinateTransformation>>;
 
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
@@ -96,6 +101,22 @@ public:
     typedef array_1d<double, 3> Vector3Type;
 
     typedef Quaternion<double> QuaternionType;
+
+    using GeometryType = Element::GeometryType;
+
+    using PropertiesType = Element::PropertiesType;
+
+    using NodesArrayType = Element::NodesArrayType;
+
+    using MatrixType = Element::MatrixType;
+
+    using VectorType = Element::VectorType;
+
+    using SizeType = Element::SizeType;
+
+    using Element::GetGeometry;
+
+    using Element::GetProperties;
 
     ///@}
 
@@ -150,13 +171,11 @@ public:
     ///@name Life Cycle
     ///@{
     ShellThinElement3D4N(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         bool NLGeom = false);
+                         GeometryType::Pointer pGeometry);
 
     ShellThinElement3D4N(IndexType NewId,
                          GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         bool NLGeom = false);
+                         PropertiesType::Pointer pProperties);
 
     ShellThinElement3D4N(IndexType NewId,
                          GeometryType::Pointer pGeometry,
@@ -239,7 +258,7 @@ protected:
     /**
     * Protected empty constructor
     */
-    ShellThinElement3D4N() : BaseShellElement()
+    ShellThinElement3D4N() : BaseType()
     {
     }
 

@@ -58,7 +58,8 @@ namespace Kratos
 //
 // =========================================================================
 
-ShellThinElement3D4N::JacobianOperator::JacobianOperator()
+template <bool NLinGeom>
+ShellThinElement3D4N<NLinGeom>::JacobianOperator::JacobianOperator()
     : mJac(2, 2, 0.0)
     , mInv(2, 2, 0.0)
     , mXYDeriv(4, 2, 0.0)
@@ -66,7 +67,8 @@ ShellThinElement3D4N::JacobianOperator::JacobianOperator()
 {
 }
 
-void ShellThinElement3D4N::JacobianOperator::Calculate
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::JacobianOperator::Calculate
 (const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN)
 {
     mJac(0, 0) = dN(0, 0) * CS.X1() + dN(1, 0) * CS.X2() +
@@ -95,28 +97,29 @@ void ShellThinElement3D4N::JacobianOperator::Calculate
 //
 // =========================================================================
 
-ShellThinElement3D4N::ShellThinElement3D4N(IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        bool NLGeom)
+template <bool NLinGeom>
+ShellThinElement3D4N<NLinGeom>::ShellThinElement3D4N(IndexType NewId,
+        GeometryType::Pointer pGeometry)
     : BaseType(NewId, pGeometry)
-    , mpCoordinateTransformation(NLGeom ?
+    , mpCoordinateTransformation(NLinGeom ?
                                  new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
                                  new ShellQ4_CoordinateTransformation(pGeometry))
 {
 }
 
-ShellThinElement3D4N::ShellThinElement3D4N(IndexType NewId,
+template <bool NLinGeom>
+ShellThinElement3D4N<NLinGeom>::ShellThinElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties,
-        bool NLGeom)
+        PropertiesType::Pointer pProperties)
     : BaseType(NewId, pGeometry, pProperties)
-    , mpCoordinateTransformation(NLGeom ?
+    , mpCoordinateTransformation(NLinGeom ?
                                  new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
                                  new ShellQ4_CoordinateTransformation(pGeometry))
 {
 }
 
-ShellThinElement3D4N::ShellThinElement3D4N(IndexType NewId,
+template <bool NLinGeom>
+ShellThinElement3D4N<NLinGeom>::ShellThinElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         CoordinateTransformationBasePointerType pCoordinateTransformation)
@@ -125,13 +128,15 @@ ShellThinElement3D4N::ShellThinElement3D4N(IndexType NewId,
 {
 }
 
-ShellThinElement3D4N::~ShellThinElement3D4N()
+template <bool NLinGeom>
+ShellThinElement3D4N<NLinGeom>::~ShellThinElement3D4N()
 {
 }
 
 //Basic methods
 
-Element::Pointer ShellThinElement3D4N::Create(IndexType NewId,
+template <bool NLinGeom>
+Element::Pointer ShellThinElement3D4N<NLinGeom>::Create(IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const
 {
@@ -140,7 +145,8 @@ Element::Pointer ShellThinElement3D4N::Create(IndexType NewId,
             pProperties, mpCoordinateTransformation->Create(newGeom));
 }
 
-Element::Pointer ShellThinElement3D4N::Create(IndexType NewId,
+template <bool NLinGeom>
+Element::Pointer ShellThinElement3D4N<NLinGeom>::Create(IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const
 {
@@ -148,7 +154,8 @@ Element::Pointer ShellThinElement3D4N::Create(IndexType NewId,
             pProperties, mpCoordinateTransformation->Create(pGeom));
 }
 
-void ShellThinElement3D4N::Initialize(const ProcessInfo& rCurrentProcessInfo)
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -166,39 +173,44 @@ void ShellThinElement3D4N::Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("")
 }
 
-void ShellThinElement3D4N::InitializeNonLinearIteration
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::InitializeNonLinearIteration
 (const ProcessInfo& rCurrentProcessInfo)
 {
     mpCoordinateTransformation->InitializeNonLinearIteration();
 
-    BaseInitializeNonLinearIteration(rCurrentProcessInfo);
+    this->BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThinElement3D4N::FinalizeNonLinearIteration
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::FinalizeNonLinearIteration
 (const ProcessInfo& rCurrentProcessInfo)
 {
     mpCoordinateTransformation->FinalizeNonLinearIteration();
 
-    BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
+    this->BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThinElement3D4N::InitializeSolutionStep
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::InitializeSolutionStep
 (const ProcessInfo& rCurrentProcessInfo)
 {
-    BaseInitializeSolutionStep(rCurrentProcessInfo);
+    this->BaseInitializeSolutionStep(rCurrentProcessInfo);
 
     mpCoordinateTransformation->InitializeSolutionStep();
 }
 
-void ShellThinElement3D4N::FinalizeSolutionStep
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::FinalizeSolutionStep
 (const ProcessInfo& rCurrentProcessInfo)
 {
-    BaseFinalizeSolutionStep(rCurrentProcessInfo);
+    this->BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
     mpCoordinateTransformation->FinalizeSolutionStep();
 }
 
-void ShellThinElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix,
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CalculateMassMatrix(MatrixType& rMassMatrix,
         const ProcessInfo& rCurrentProcessInfo)
 {
     if ((rMassMatrix.size1() != 24) || (rMassMatrix.size2() != 24)) {
@@ -225,7 +237,7 @@ void ShellThinElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix,
 
         // Get integration points
         const GeometryType::IntegrationPointsArrayType& integration_points =
-            GetGeometry().IntegrationPoints(mIntegrationMethod);
+            GetGeometry().IntegrationPoints(this->mIntegrationMethod);
 
         // Setup matrix of shape functions
         Matrix N = Matrix(6, 24, 0.0);
@@ -241,8 +253,8 @@ void ShellThinElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix,
             // Calculate average mass per unit area and thickness at the
             // current GP
             av_mass_per_unit_area =
-                mSections[gauss_point]->CalculateMassPerUnitArea(GetProperties());
-            thickness = mSections[gauss_point]->GetThickness(GetProperties());
+                this->mSections[gauss_point]->CalculateMassPerUnitArea(GetProperties());
+            thickness = this->mSections[gauss_point]->GetThickness(GetProperties());
 
             // Calc jacobian and weighted dA at current GP
             jacOp.Calculate(referenceCoordinateSystem,
@@ -281,7 +293,7 @@ void ShellThinElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix,
 
         // Calculate average mass per unit area over the whole element
         for (SizeType i = 0; i < 4; i++) {
-            av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea(GetProperties());
+            av_mass_per_unit_area += this->mSections[i]->CalculateMassPerUnitArea(GetProperties());
         }
         av_mass_per_unit_area /= 4.0;
 
@@ -304,7 +316,8 @@ void ShellThinElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix,
     }// Lumped mass matrix
 }
 
-void ShellThinElement3D4N::AddBodyForces(CalculationData& data,
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::AddBodyForces(CalculationData& data,
         VectorType& rRightHandSideVector)
 {
     const GeometryType& geom = GetGeometry();
@@ -319,7 +332,7 @@ void ShellThinElement3D4N::AddBodyForces(CalculationData& data,
     for (unsigned int igauss = 0; igauss < 4; igauss++) {
         // get mass per unit area
         double mass_per_unit_area =
-            mSections[igauss]->CalculateMassPerUnitArea(GetProperties());
+            this->mSections[igauss]->CalculateMassPerUnitArea(GetProperties());
 
         // interpolate nodal volume accelerations to this gauss point
         // and obtain the body force vector
@@ -349,7 +362,8 @@ void ShellThinElement3D4N::AddBodyForces(CalculationData& data,
 //
 // =========================================================================
 
-void ShellThinElement3D4N::CalculateOnIntegrationPoints(
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -418,7 +432,7 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
                 prod(data.B, data.localDisplacements);
 
             // Calculate the response of the Cross Section
-            ShellCrossSection::Pointer& section = mSections[gauss_point];
+            ShellCrossSection::Pointer& section = this->mSections[gauss_point];
             CalculateSectionResponse(data);
 
             double resultDouble = 0.0;
@@ -488,7 +502,7 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
 
         // Get all laminae strengths
         const PropertiesType& props = GetProperties();
-        ShellCrossSection::Pointer& section = mSections[0];
+        ShellCrossSection::Pointer& section = this->mSections[0];
         std::vector<Matrix> Laminae_Strengths =
             std::vector<Matrix>(section->NumberOfPlies());
         for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++) {
@@ -511,7 +525,7 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
             noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
 
             // Retrieve ply orientations
-            section = mSections[gauss_point];
+            section = this->mSections[gauss_point];
             Vector ply_orientation(section->NumberOfPlies());
             section->GetLaminaeOrientation(props, ply_orientation);
 
@@ -555,7 +569,7 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
         std::vector<double> temp(size);
 
         for (SizeType i = 0; i < size; i++) {
-            mSections[i]->GetValue(rVariable, GetProperties(), temp[i]);
+            this->mSections[i]->GetValue(rVariable, GetProperties(), temp[i]);
         }
 
         const Matrix& shapeFunctions = GetGeometry().ShapeFunctionsValues();
@@ -574,7 +588,8 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
     KRATOS_CATCH("");
 }
 
-void ShellThinElement3D4N::CalculateOnIntegrationPoints(
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -585,7 +600,8 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
     }
 }
 
-void ShellThinElement3D4N::CalculateOnIntegrationPoints(
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3> >& rVariable,
     std::vector<array_1d<double, 3> >& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -601,7 +617,8 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
     }
 }
 
-void ShellThinElement3D4N::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
         Output.resize(3, 3, false);
@@ -619,7 +636,8 @@ void ShellThinElement3D4N::Calculate(const Variable<Matrix>& rVariable, Matrix& 
 //
 // =========================================================================
 
-void ShellThinElement3D4N::CalculateStressesFromForceResultants
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CalculateStressesFromForceResultants
 (VectorType& rstresses, const double& rthickness)
 {
     // Refer http://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch20.d/AFEM.Ch20.pdf
@@ -635,9 +653,10 @@ void ShellThinElement3D4N::CalculateStressesFromForceResultants
     rstresses[5] *= 6.0 / (rthickness*rthickness);
 }
 
-void ShellThinElement3D4N::CalculateLaminaStrains(CalculationData& data)
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CalculateLaminaStrains(CalculationData& data)
 {
-    ShellCrossSection::Pointer& section = mSections[data.gpIndex];
+    ShellCrossSection::Pointer& section = this->mSections[data.gpIndex];
 
     // Get laminate properties
     double thickness = section->GetThickness(GetProperties());
@@ -684,9 +703,10 @@ void ShellThinElement3D4N::CalculateLaminaStrains(CalculationData& data)
     }
 }
 
-void ShellThinElement3D4N::CalculateLaminaStresses(CalculationData& data)
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CalculateLaminaStresses(CalculationData& data)
 {
-    ShellCrossSection::Pointer& section = mSections[data.gpIndex];
+    ShellCrossSection::Pointer& section = this->mSections[data.gpIndex];
 
     // Setup flag to compute ply constitutive matrices
     // (units [Pa] and rotated to element orientation)
@@ -717,7 +737,8 @@ void ShellThinElement3D4N::CalculateLaminaStresses(CalculationData& data)
     }
 }
 
-double ShellThinElement3D4N::CalculateTsaiWuPlaneStress(const CalculationData& data, const Matrix& rLamina_Strengths, const unsigned int& rPly)
+template <bool NLinGeom>
+double ShellThinElement3D4N<NLinGeom>::CalculateTsaiWuPlaneStress(const CalculationData& data, const Matrix& rLamina_Strengths, const unsigned int& rPly)
 {
     // Incoming lamina strengths are organized as follows:
     // Refer to 'shell_cross_section.cpp' for details.
@@ -779,7 +800,8 @@ double ShellThinElement3D4N::CalculateTsaiWuPlaneStress(const CalculationData& d
     return std::min(tsai_reserve_factor_bottom, tsai_reserve_factor_top);
 }
 
-void ShellThinElement3D4N::CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result)
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result)
 {
     // calc von mises stresses at top mid and bottom surfaces for
     // thin shell
@@ -823,7 +845,8 @@ void ShellThinElement3D4N::CalculateVonMisesStress(const CalculationData& data, 
     }
 }
 
-void ShellThinElement3D4N::CalculateShellElementEnergy(const CalculationData& data, const Variable<double>& rVariable, double& rEnergy_Result)
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CalculateShellElementEnergy(const CalculationData& data, const Variable<double>& rVariable, double& rEnergy_Result)
 {
     // Energy calcs - these haven't been verified or tested yet.
 
@@ -864,7 +887,8 @@ void ShellThinElement3D4N::CalculateShellElementEnergy(const CalculationData& da
     }
 }
 
-void ShellThinElement3D4N::CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& ijob, bool& bGlobal)
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& ijob, bool& bGlobal)
 {
     if (rVariable == SHELL_STRAIN) {
         ijob = 1;
@@ -917,7 +941,8 @@ void ShellThinElement3D4N::CheckGeneralizedStressOrStrainOutput(const Variable<M
     }
 }
 
-void ShellThinElement3D4N::DecimalCorrection(Vector& a)
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::DecimalCorrection(Vector& a)
 {
     double norm = norm_2(a);
     double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
@@ -927,10 +952,11 @@ void ShellThinElement3D4N::DecimalCorrection(Vector& a)
         }
 }
 
-void ShellThinElement3D4N::SetupOrientationAngles()
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::SetupOrientationAngles()
 {
     if (this->Has(MATERIAL_ORIENTATION_ANGLE)) {
-        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) {
+        for (auto it = this->mSections.begin(); it != this->mSections.end(); ++it) {
             (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
         }
     } else {
@@ -984,13 +1010,14 @@ void ShellThinElement3D4N::SetupOrientationAngles()
             }
         }
 
-        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) {
+        for (auto it = this->mSections.begin(); it != this->mSections.end(); ++it) {
             (*it)->SetOrientationAngle(angle);
         }
     }
 }
 
-void ShellThinElement3D4N::InitializeCalculationData(CalculationData& data)
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::InitializeCalculationData(CalculationData& data)
 {
     KRATOS_TRY
     //-------------------------------------
@@ -1040,7 +1067,7 @@ void ShellThinElement3D4N::InitializeCalculationData(CalculationData& data)
     //Precalculate dA to be multiplied with material matrix
     const GeometryType& geom = GetGeometry();
     const GeometryType::IntegrationPointsArrayType& integration_points =
-        geom.IntegrationPoints(mIntegrationMethod);
+        geom.IntegrationPoints(this->mIntegrationMethod);
     data.dA.clear();
     for (int gp = 0; gp < 4; gp++) {
         //getting informations for integration
@@ -1455,7 +1482,7 @@ void ShellThinElement3D4N::InitializeCalculationData(CalculationData& data)
         //calculate Bh bar
         data.B_h_bar.clear();
         const Matrix& shapeFunctionsValues =
-            geom.ShapeFunctionsValues(GetIntegrationMethod());
+            geom.ShapeFunctionsValues(this->GetIntegrationMethod());
         for (int i = 0; i < 4; i++) {
             data.B_h_bar += shapeFunctionsValues(i, 0) * data.B_h_1;
             data.B_h_bar += shapeFunctionsValues(i, 1) * data.B_h_2;
@@ -1545,7 +1572,7 @@ void ShellThinElement3D4N::InitializeCalculationData(CalculationData& data)
 
     //custom jacobian as per eqn 14
     const GeometryType::IntegrationPointsArrayType& integrationPoints =
-        geom.IntegrationPoints(GetIntegrationMethod());
+        geom.IntegrationPoints(this->GetIntegrationMethod());
 
     for (int i = 0; i < 4; i++) {
         //set to current parametric integration location
@@ -1573,7 +1600,7 @@ void ShellThinElement3D4N::InitializeCalculationData(CalculationData& data)
     // calculate the displacement vector
     // in global and local coordinate systems
 
-    GetValuesVector(data.globalDisplacements);
+    this->GetValuesVector(data.globalDisplacements);
     data.localDisplacements =
         mpCoordinateTransformation->CalculateLocalDisplacements(
             data.LCS, data.globalDisplacements);
@@ -1611,7 +1638,8 @@ void ShellThinElement3D4N::InitializeCalculationData(CalculationData& data)
     KRATOS_CATCH("")
 }
 
-void ShellThinElement3D4N::CalculateBMatrix(CalculationData& data)
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CalculateBMatrix(CalculationData& data)
 {
     //---------------------------------------------
     // geom data
@@ -1636,7 +1664,7 @@ void ShellThinElement3D4N::CalculateBMatrix(CalculationData& data)
         std::cout << "Using basic membrane formulation!" << std::endl;
 
         const GeometryType::IntegrationPointsArrayType& integrationPoints =
-            geom.IntegrationPoints(GetIntegrationMethod());
+            geom.IntegrationPoints(this->GetIntegrationMethod());
 
         //set to current parametric integration location
         const array_1d<double,3>& r_coordinates = integrationPoints[data.gpIndex].Coordinates();
@@ -1668,7 +1696,7 @@ void ShellThinElement3D4N::CalculateBMatrix(CalculationData& data)
         // already calculated in calculate B_h_mats func
         Matrix B_h = Matrix(3, 7, 0.0);
         const Matrix& shapeFunctionsValues =
-            geom.ShapeFunctionsValues(GetIntegrationMethod());
+            geom.ShapeFunctionsValues(this->GetIntegrationMethod());
         B_h += shapeFunctionsValues(data.gpIndex, 0) * data.B_h_1;
         B_h += shapeFunctionsValues(data.gpIndex, 1) * data.B_h_2;
         B_h += shapeFunctionsValues(data.gpIndex, 2) * data.B_h_3;
@@ -1693,7 +1721,7 @@ void ShellThinElement3D4N::CalculateBMatrix(CalculationData& data)
     Vector dpsiY_dxi = Vector(12, 0.0);
     Vector dpsiY_deta = Vector(12, 0.0);
     const GeometryType::IntegrationPointsArrayType& integrationPoints =
-        geom.IntegrationPoints(GetIntegrationMethod());
+        geom.IntegrationPoints(this->GetIntegrationMethod());
 
     //set to current parametric integration location
     const array_1d<double,3>& r_coordinates = integrationPoints[data.gpIndex].Coordinates();
@@ -1837,7 +1865,8 @@ void ShellThinElement3D4N::CalculateBMatrix(CalculationData& data)
     }
 }
 
-void ShellThinElement3D4N::CalculateSectionResponse(CalculationData& data)
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CalculateSectionResponse(CalculationData& data)
 {
     const GeometryType& geom = GetGeometry();
     const Matrix& shapeFunctions = geom.ShapeFunctionsValues();
@@ -1849,7 +1878,7 @@ void ShellThinElement3D4N::CalculateSectionResponse(CalculationData& data)
     data.SectionParameters.SetShapeFunctionsDerivatives
     (data.jacOp.XYDerivatives());
 
-    ShellCrossSection::Pointer& section = mSections[data.gpIndex];
+    ShellCrossSection::Pointer& section = this->mSections[data.gpIndex];
     data.SectionParameters.SetShapeFunctionsValues(iN);
     data.SectionParameters.SetMaterialProperties(GetProperties());
     data.D.clear();
@@ -1857,7 +1886,8 @@ void ShellThinElement3D4N::CalculateSectionResponse(CalculationData& data)
                                       ConstitutiveLaw::StressMeasure_PK2);
 }
 
-void ShellThinElement3D4N::CalculateGaussPointContribution
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CalculateGaussPointContribution
 (CalculationData& data, MatrixType& LHS, VectorType& RHS)
 {
     // calculate the total strain displ. matrix
@@ -1875,7 +1905,8 @@ void ShellThinElement3D4N::CalculateGaussPointContribution
     noalias(LHS) += prod(data.BTD, data.B);
 }
 
-void ShellThinElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                         VectorType& rRightHandSideVector,
                                         const ProcessInfo& rCurrentProcessInfo,
                                         const bool CalculateStiffnessMatrixFlag,
@@ -1913,7 +1944,7 @@ void ShellThinElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     InitializeCalculationData(data);
 
     // Gauss Loop.
-    for (SizeType i = 0; i < GetNumberOfGPs(); i++) {
+    for (SizeType i = 0; i < this->GetNumberOfGPs(); i++) {
         data.gpIndex = i;
         CalculateGaussPointContribution(data, rLeftHandSideMatrix,
                                         rRightHandSideVector);
@@ -1958,7 +1989,8 @@ void ShellThinElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     AddBodyForces(data, rRightHandSideVector);
 }
 
-bool ShellThinElement3D4N::
+template <bool NLinGeom>
+bool ShellThinElement3D4N<NLinGeom>::
 TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses
 (const Variable<Matrix>& rVariable,
  std::vector<Matrix>& rValues,
@@ -2022,7 +2054,7 @@ TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses
         noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
 
         // Calculate the response of the Cross Section
-        ShellCrossSection::Pointer& section = mSections[i];
+        ShellCrossSection::Pointer& section = this->mSections[i];
         if (ijob > 2) {
             if (ijob > 7) {
                 //Calculate lamina stresses
@@ -2242,7 +2274,8 @@ TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses
 //
 // =========================================================================
 
-ShellThinElement3D4N::CalculationData::CalculationData
+template <bool NLinGeom>
+ShellThinElement3D4N<NLinGeom>::CalculationData::CalculationData
 (const ShellQ4_LocalCoordinateSystem& localcoordsys,
  const ShellQ4_LocalCoordinateSystem& refcoordsys,
  const ProcessInfo& rCurrentProcessInfo)
@@ -2252,7 +2285,8 @@ ShellThinElement3D4N::CalculationData::CalculationData
 {
 }
 
-ShellCrossSection::SectionBehaviorType ShellThinElement3D4N::GetSectionBehavior() const
+template <bool NLinGeom>
+ShellCrossSection::SectionBehaviorType ShellThinElement3D4N<NLinGeom>::GetSectionBehavior() const
 {
     return ShellCrossSection::Thin;
 }
@@ -2263,7 +2297,8 @@ ShellCrossSection::SectionBehaviorType ShellThinElement3D4N::GetSectionBehavior(
 //
 // =========================================================================
 
-void ShellThinElement3D4N::save(Serializer& rSerializer) const
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     bool is_corotational = (nullptr != dynamic_cast<ShellQ4_CorotationalCoordinateTransformation*>(mpCoordinateTransformation.get()));
@@ -2271,15 +2306,16 @@ void ShellThinElement3D4N::save(Serializer& rSerializer) const
     rSerializer.save("CTr", *mpCoordinateTransformation);
 }
 
-void ShellThinElement3D4N::load(Serializer& rSerializer)
+template <bool NLinGeom>
+void ShellThinElement3D4N<NLinGeom>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     bool is_corotational;
     rSerializer.load("is_corotational", is_corotational);
     if (is_corotational) {
-        mpCoordinateTransformation = Kratos::make_shared<ShellQ4_CorotationalCoordinateTransformation>(pGetGeometry());
+        mpCoordinateTransformation = Kratos::make_shared<ShellQ4_CorotationalCoordinateTransformation>(this->pGetGeometry());
     } else {
-        mpCoordinateTransformation = Kratos::make_shared<ShellQ4_CoordinateTransformation>(pGetGeometry());
+        mpCoordinateTransformation = Kratos::make_shared<ShellQ4_CoordinateTransformation>(this->pGetGeometry());
     }
     rSerializer.load("CTr", *mpCoordinateTransformation);
 }
