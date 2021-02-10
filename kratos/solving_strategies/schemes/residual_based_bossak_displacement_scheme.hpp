@@ -216,22 +216,17 @@ public:
         mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
-        const auto it_node_begin = rModelPart.Nodes().begin();
+        block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [&](Nodes<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
+            noalias(rDeltaDisplacementTLS) = rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-        IndexPartition<std::size_t>(num_nodes).for_each(array_1d<double,3>(), [&](std::size_t Index, array_1d<double,3>& rDeltaDisplacement){
-            auto it_node = it_node_begin + Index;
+            array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& r_previous_velocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
 
-            noalias(rDeltaDisplacement) = it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3>& r_current_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION);
+            const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
 
-            array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double, 3>& r_previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
-
-            array_1d<double, 3>& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
-            const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-
-            UpdateVelocity(r_current_velocity, rDeltaDisplacement, r_previous_velocity, r_previous_acceleration);
-            UpdateAcceleration(r_current_acceleration, rDeltaDisplacement, r_previous_velocity, r_previous_acceleration);
+            UpdateVelocity(r_current_velocity, rDeltaDisplacementTLS, r_previous_velocity, r_previous_acceleration);
+            UpdateAcceleration(r_current_acceleration, rDeltaDisplacementTLS, r_previous_velocity, r_previous_acceleration);
         });
 
         KRATOS_CATCH( "" );
