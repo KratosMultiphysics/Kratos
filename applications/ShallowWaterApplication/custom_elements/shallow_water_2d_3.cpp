@@ -265,8 +265,10 @@ void ShallowWater2D3::AddSourceTerms(
 
     // Friction term
     const double abs_vel = norm_2(rData.velocity);
-    const double height4_3 = std::pow(rData.height, 1.33333333333) + 1e-6;
-    rLHS += rData.gravity * rData.manning2 * abs_vel / height4_3 * flow_mass_matrix;
+    const double epsilon = rData.rel_dry_height * GetGeometry().Length();
+    const double inv_height = HeightInverse(rData.height, epsilon);
+    const double inv_height4_3 = std::pow(inv_height, 1.33333333333);
+    rLHS += rData.gravity * rData.manning2 * abs_vel * inv_height4_3 * flow_mass_matrix;
 
     // Rain and mesh acceleration
     const double lumping_factor = 1.0 / 3.0;
@@ -282,11 +284,15 @@ void ShallowWater2D3::AddShockCapturingTerm(
     const ElementData& rData,
     const BoundedMatrix<double,3,2>& rDN_DX)
 {
-    BoundedMatrix<double,2,2> k1, k2, kh;
-    ComputeCrossWindDiffusivityTensors(k1, k2, kh, rData, rDN_DX);
+    double art_visc;
+    double art_diff;
+    ShockCapturingParameters(art_visc, art_diff, rData, rDN_DX);
 
-    BoundedMatrix<double,9,9> diff_matrix = ZeroMatrix(9,9);
-    ComputeDiffusionMatrix(diff_matrix, rData, rDN_DX, k1, k2, kh);
+    BoundedMatrix<double,9,9> visc_matrix;
+    BoundedMatrix<double,9,9> diff_matrix;
+    ShockCapturingViscosityMatrix(visc_matrix, art_visc, rData, rDN_DX);
+    ShockCapturingDiffusionMatrix(diff_matrix, art_diff, rData, rDN_DX);
+    rLHS += visc_matrix;
     rLHS += diff_matrix;
 }
 
@@ -625,10 +631,10 @@ void ShallowWater2D3::ComputeGradientVector(
     }
 }
 
-void ShallowWater2D3::ComputeCrossWindDiffusivityTensors(
-    BoundedMatrix<double,2,2>& rK1,
-    BoundedMatrix<double,2,2>& rK2,
-    BoundedMatrix<double,2,2>& rKh,
+
+void ShallowWater2D3::ShockCapturingParameters(
+    double& rArtViscosity,
+    double& rArtDiffusion,
     const ElementData& rData,
     const BoundedMatrix<double,3,2>& rDN_DX)
 {
@@ -639,25 +645,114 @@ void ShallowWater2D3::ComputeCrossWindDiffusivityTensors(
     array_1d<double,3> height_grad;
     AlgebraicResidual(flow_residual, height_residual, flow_grad, height_grad, rData, rDN_DX);
 
-    // Computation of the gradient direction tensor
-    BoundedMatrix<double,2,2> cross_wind;
-    StreamLineTensor(cross_wind, height_grad);
-
-    // Final assembly of the tensors
+    // Final assembly of the parameters
     const double length = this->GetGeometry().Length();
-    const double f1_grad = std::max(std::sqrt(std::pow(flow_grad(0,0),2)+std::pow(flow_grad(1,0),2)), rData.dt_inv);
-    const double f2_grad = std::max(std::sqrt(std::pow(flow_grad(0,1),2)+std::pow(flow_grad(1,1),2)), rData.dt_inv);
-    const double h_grad = std::max(norm_2(height_grad), 1.0);
-    rK1 = 0.5 * rData.shock_stab_factor * length * std::abs(flow_residual[0]) / f1_grad * cross_wind;
-    rK2 = 0.5 * rData.shock_stab_factor * length * std::abs(flow_residual[1]) / f2_grad * cross_wind;
-    rKh = 0.5 * rData.shock_stab_factor * length * std::abs(height_residual) / h_grad * cross_wind;
+    const double slope = 1e-0;
+
+    const double q_residual_norm = norm_2(flow_residual);
+    const double q_grad_frobenius = norm_frobenius(flow_grad);
+    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
+    const double q_slope = std::max(eigenvalue * slope, slope);
+    const double q_gradient_norm = std::max(q_grad_frobenius, q_slope);
+    rArtViscosity = 0.5 * rData.shock_stab_factor * length * q_residual_norm / (q_gradient_norm);
+
+    const double h_residual_norm = std::abs(height_residual);
+    const double h_gradient_norm = std::max(norm_2(height_grad), 0.1 * slope);
+    rArtDiffusion = 0.5 * rData.shock_stab_factor * length * h_residual_norm / (h_gradient_norm);
+}
+
+void ShallowWater2D3::ShockCapturingViscosityMatrix(
+    BoundedMatrix<double,9,9>& rMatrix,
+    const double& rViscosity,
+    const ElementData& rData,
+    const BoundedMatrix<double,3,2>& rDN_DX)
+{
+    // The derivatives matrix
+    BoundedMatrix<double,3,9> b = ZeroMatrix(3,9);
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const size_t i_block = 3 * i;
+        b(0, i_block)     = rDN_DX(i,0);
+        b(1, i_block + 1) = rDN_DX(i,1);
+        b(2, i_block)     = rDN_DX(i,1);
+        b(2, i_block + 1) = rDN_DX(i,0);
+    }
+
+    // The viscosity previously added by the stabilization
+    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
+    const double stab_viscosity = StabilizationParameter(rData) * std::pow(eigenvalue,2);
+
+    // The orthogonal fourth order tensor
+    BoundedMatrix<double,3,3> crosswind_tensor;
+    CrossWindTensor(crosswind_tensor, rData.velocity);
+    crosswind_tensor *= rViscosity;
+
+    // The streamline fourth order tensor
+    BoundedMatrix<double,3,3> streamline_tensor;
+    StreamLineTensor(streamline_tensor, rData.velocity);
+    streamline_tensor *= .1 * std::max(0.0, rViscosity - stab_viscosity);
+
+    // The constitutive tensor
+    BoundedMatrix<double,3,3> constitutive_tensor = IdentityMatrix(3,3);
+    array_1d<double,3> m;
+    m[0] = 1.0; m[1] = 1.0; m[2] = 0.0;
+    constitutive_tensor -= outer_prod(m, m) / 3.0;
+    constitutive_tensor = prod(constitutive_tensor, crosswind_tensor + streamline_tensor);
+
+    // Assembly of the viscosity matrix
+    BoundedMatrix<double,3,9> tmp = prod(constitutive_tensor, b);
+    rMatrix = prod(trans(b), tmp);
+}
+
+void ShallowWater2D3::ShockCapturingDiffusionMatrix(
+    BoundedMatrix<double,9,9>& rMatrix,
+    const double& rDiffusivity,
+    const ElementData& rData,
+    const BoundedMatrix<double,3,2>& rDN_DX)
+{
+    // Output initialization
+    rMatrix = ZeroMatrix(9,9);
+
+    // The viscosity previously added by the stabilization
+    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
+    const double stab_diffusivity = StabilizationParameter(rData) * std::pow(eigenvalue,2);
+
+    // The second order crosswind tensor
+    BoundedMatrix<double,2,2> crosswind_tensor;
+    CrossWindTensor(crosswind_tensor, rData.velocity);
+    crosswind_tensor *= rDiffusivity;
+
+    // The second order streamline tensor
+    BoundedMatrix<double,2,2> streamline_tensor;
+    StreamLineTensor(streamline_tensor, rData.velocity);
+    streamline_tensor *= .1 * std::max(0.0, rDiffusivity - stab_diffusivity);
+
+    // The constitutive matrix
+    BoundedMatrix<double,2,2> constitutive_matrix;
+    constitutive_matrix = crosswind_tensor + streamline_tensor;
+
+    // Assembly of the diffusion matrix
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const size_t i_block = 3 * i;
+        for (size_t j = 0; j < 3; ++j)
+        {
+            array_1d<double,2> bi, bj;
+            bi[0] = rDN_DX(i,0); bi[1] = rDN_DX(i,1);
+            bj[0] = rDN_DX(j,0); bj[1] = rDN_DX(j,1);
+
+            const size_t j_block = 3 * j;
+
+            rMatrix(i_block + 2, j_block + 2) = inner_prod(bj, prod(constitutive_matrix, bi));
+        }
+    }
 }
 
 void ShallowWater2D3::AlgebraicResidual(
     array_1d<double,3>& rFlowResidual,
     double& rHeightresidual,
-    BoundedMatrix<double,3,3> rFlowGrad,
-    array_1d<double,3> rHeightGrad,
+    BoundedMatrix<double,3,3>& rFlowGrad,
+    array_1d<double,3>& rHeightGrad,
     const ElementData& rData,
     const BoundedMatrix<double,3,2>& rDN_DX)
 {
@@ -702,11 +797,11 @@ void ShallowWater2D3::AlgebraicResidual(
     rain *= lumping_factor;
 
     const double c2 = rData.gravity * rData.height;
-    const double e = 1e-6; // big value to avoid division by zero
-    const array_1d<double,3> friction = rData.gravity * rData.manning2 * norm_2(rData.flow_rate) * rData.flow_rate / (std::pow(rData.height, 2.333333333333333)+e);
+    const double e = rData.rel_dry_height * r_geom.Length();
+    const array_1d<double,3> friction = rData.gravity * rData.manning2 * norm_2(rData.flow_rate) * rData.flow_rate * std::pow(HeightInverse(rData.height,e), 2.333333333333333);
     const array_1d<double,3> flux = prod(rData.velocity, trans(rFlowGrad)) + vel_div * rData.flow_rate;
 
-    rFlowResidual = flow_acc + flux + c2 * (rHeightGrad - topography_grad) + friction + rData.height * mesh_acc;
+    rFlowResidual = flow_acc + flux + c2 * (rHeightGrad + topography_grad) + friction + rData.height * mesh_acc;
     rHeightresidual = height_acc + flow_div + rain;
 }
 
@@ -719,9 +814,29 @@ void ShallowWater2D3::StreamLineTensor(BoundedMatrix<double,2,2>& rTensor, const
 
 void ShallowWater2D3::CrossWindTensor(BoundedMatrix<double,2,2>& rTensor, const array_1d<double,3>& rVector)
 {
-    const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
-    const auto aux_vector = static_cast<array_1d<double,2>>(rVector);
-    rTensor = IdentityMatrix(2) - outer_prod(aux_vector, aux_vector) / (inner_prod(rVector, rVector) + e);
+    StreamLineTensor(rTensor, rVector);
+    rTensor = IdentityMatrix(2) - rTensor;
+}
+
+void ShallowWater2D3::StreamLineTensor(BoundedMatrix<double,3,3>& rTensor, const array_1d<double,3>& rVector)
+{
+    BoundedMatrix<double,2,2> stream_line_tensor;
+    StreamLineTensor(stream_line_tensor, rVector);
+    rTensor(0,0) = stream_line_tensor(0,0);
+    rTensor(1,1) = stream_line_tensor(1,1);
+    rTensor(0,1) = stream_line_tensor(0,1);
+    rTensor(1,0) = stream_line_tensor(0,1);
+    rTensor(2,2) = stream_line_tensor(0,1);
+    rTensor(0,2) = 0.0;
+    rTensor(1,2) = 0.0;
+    rTensor(2,0) = 0.0;
+    rTensor(2,1) = 0.0;
+}
+
+void ShallowWater2D3::CrossWindTensor(BoundedMatrix<double,3,3>& rTensor, const array_1d<double,3>& rVector)
+{
+    StreamLineTensor(rTensor, rVector);
+    rTensor = IdentityMatrix(3) - rTensor;
 }
 
 double ShallowWater2D3::StabilizationParameter(const ElementData& rData)
@@ -734,20 +849,16 @@ double ShallowWater2D3::StabilizationParameter(const ElementData& rData)
     return length * wet_fraction * rData.stab_factor / (eigenvalue + e);
 }
 
-array_1d<double,3> ShallowWater2D3::CharacteristicLength(const ElementData& rData)
+double ShallowWater2D3::HeightInverse(double Height, double Epsilon)
 {
-    const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
-    const double length = this->GetGeometry().Length();
-    const double char_length = 0.5 * length * rData.stab_factor;
-    return char_length * rData.flow_rate / (norm_2(rData.flow_rate) + e);
+    const double h4 = std::pow(Height, 4);
+    const double e4 = std::pow(Epsilon, 4);
+    return std::sqrt(2) * std::max(0.0, Height) / std::sqrt(h4 + std::max(h4, e4));
 }
 
 double ShallowWater2D3::WetFraction(double Height, double Epsilon)
 {
-    const double h2 = std::pow(Height, 2);
-    const double h4 = std::pow(Height, 4);
-    const double e4 = std::pow(Epsilon, 4);
-    return std::sqrt(2) * h2 / std::sqrt(h4 + std::max(h4, e4));
+    return Height * HeightInverse(Height, Epsilon);
 }
 
 } // namespace kratos

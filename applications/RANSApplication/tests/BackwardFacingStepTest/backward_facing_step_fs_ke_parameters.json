@@ -4,7 +4,7 @@
         "parallel_type": "<PARALLEL_TYPE>",
         "echo_level": 0,
         "start_time": 0.0,
-        "end_time": 0.05
+        "end_time": 5
     },
     "output_processes": {},
     "solver_settings": {
@@ -25,7 +25,7 @@
         ],
         "time_stepping": {
             "automatic_time_step": false,
-            "time_step": 0.01
+            "time_step": 1.0
         },
         "time_scheme_settings": {
             "scheme_type": "<TIME_SCHEME_TYPE>"
@@ -38,7 +38,7 @@
             "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
         },
         "formulation_settings": {
-            "formulation_name": "fractional_step_k_omega",
+            "formulation_name": "fractional_step_k_epsilon",
             "incompressible_potential_flow_initialization_settings": {},
             "fractional_step_flow_solver_settings": {
                 "predictor_corrector": false,
@@ -54,16 +54,14 @@
                 "reform_dofs_at_each_step": false,
                 "pressure_linear_solver_settings": {
                     "solver_type": "amgcl",
-                    "tolerance": 1e-12,
-                    "smoother_type": "damped_jacobi"
+                    "tolerance": 1e-12
                 },
                 "velocity_linear_solver_settings": {
                     "solver_type": "amgcl",
-                    "tolerance": 1e-12,
-                    "smoother_type": "damped_jacobi"
+                    "tolerance": 1e-12
                 }
             },
-            "k_omega_solver_settings": {
+            "k_epsilon_solver_settings": {
                 "stabilization_method": "<STABILIZATION_METHOD>",
                 "turbulent_kinetic_energy_solver_settings": {
                     "relative_tolerance": 1e-3,
@@ -77,7 +75,7 @@
                         "verbosity": 0
                     }
                 },
-                "turbulent_specific_energy_dissipation_rate_solver_settings": {
+                "turbulent_energy_dissipation_rate_solver_settings": {
                     "relative_tolerance": 1e-3,
                     "absolute_tolerance": 1e-5,
                     "max_iterations": 3,
@@ -138,7 +136,7 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart",
                     "variable_name": "VELOCITY",
-                    "modulus": 0.0,
+                    "modulus": 7.72,
                     "direction": [
                         1.0,
                         0.0,
@@ -152,7 +150,7 @@
                 "process_name": "ApplyConstantScalarValueProcess",
                 "Parameters": {
                     "model_part_name": "FluidModelPart",
-                    "variable_name": "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
+                    "variable_name": "TURBULENT_ENERGY_DISSIPATION_RATE",
                     "value": 9.422e-5
                 }
             },
@@ -174,7 +172,7 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
                     "variable_name": "VELOCITY",
-                    "modulus": "1.0 * t / 3.0",
+                    "modulus": 1.0,
                     "direction": "automatic_inwards_normal",
                     "interval": [
                         0.0,
@@ -206,7 +204,7 @@
             {
                 "python_module": "cpp_process_factory",
                 "kratos_module": "KratosMultiphysics.RANSApplication",
-                "process_name": "OmegaTurbulentMixingLengthInletProcess",
+                "process_name": "EpsilonTurbulentMixingLengthInletProcess",
                 "Parameters": {
                     "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
                     "turbulent_mixing_length": 0.0588
@@ -250,10 +248,10 @@
                             "VELOCITY_Y",
                             "PRESSURE",
                             "TURBULENT_KINETIC_ENERGY",
-                            "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
+                            "TURBULENT_ENERGY_DISSIPATION_RATE",
                             "TURBULENT_VISCOSITY"
                     ],
-                    "input_file_name": "backward_facing_step_fractional_step_k_omega_flow_field_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_test_results.json",
+                    "input_file_name": "backward_facing_step_fs_ke_flow_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_results.json",
                     "model_part_name": "FluidModelPart.Parts_fluid",
                     "tolerance": 1e-9,
                     "relative_tolerance": 1e-12,
@@ -274,10 +272,10 @@
                         "VELOCITY_Y",
                         "PRESSURE",
                         "TURBULENT_KINETIC_ENERGY",
-                        "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
+                        "TURBULENT_ENERGY_DISSIPATION_RATE",
                         "TURBULENT_VISCOSITY"
                 ],
-                "input_file_name": "backward_facing_step_fractional_step_k_omega_flow_field_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_test_results.json",
+                "input_file_name": "backward_facing_step_fs_ke_flow_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "tolerance": 1e-9,
                 "relative_tolerance": 1e-12,
@@ -295,10 +293,10 @@
                         "VELOCITY_Y",
                         "PRESSURE",
                         "TURBULENT_KINETIC_ENERGY",
-                        "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
+                        "TURBULENT_ENERGY_DISSIPATION_RATE",
                         "TURBULENT_VISCOSITY"
                 ],
-                "output_file_name": "backward_facing_step_fractional_step_k_omega_flow_field_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_test_results.json",
+                "output_file_name": "backward_facing_step_fs_ke_flow_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "time_frequency": -2
             }

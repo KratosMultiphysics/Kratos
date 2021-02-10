@@ -398,18 +398,29 @@ protected:
         const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
-    void ComputeCrossWindDiffusivityTensors(
-        BoundedMatrix<double,2,2>& rK1,
-        BoundedMatrix<double,2,2>& rK2,
-        BoundedMatrix<double,2,2>& rKh,
+    void ShockCapturingParameters(
+        double& rArtViscosity,
+        double& rArtDiffusion,
+        const ElementData& rData,
+        const BoundedMatrix<double,3,2>& rDN_DX);
+
+    void ShockCapturingViscosityMatrix(
+        BoundedMatrix<double,9,9>& rMatrix,
+        const double& rViscosity,
+        const ElementData& rData,
+        const BoundedMatrix<double,3,2>& rDN_DX);
+
+    void ShockCapturingDiffusionMatrix(
+        BoundedMatrix<double,9,9>& rMatrix,
+        const double& rDiffusivity,
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
     void AlgebraicResidual(
         array_1d<double,3>& rFlowResidual,
         double& rHeightresidual,
-        BoundedMatrix<double,3,3> rFlowGrad,
-        array_1d<double,3> rHeightGrad,
+        BoundedMatrix<double,3,3>& rFlowGrad,
+        array_1d<double,3>& rHeightGrad,
         const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
@@ -419,13 +430,21 @@ protected:
 
     void CrossWindTensor(
         BoundedMatrix<double,2,2>& rTensor,
+        const array_1d<double,3>& rVector);
+
+    void StreamLineTensor(
+        BoundedMatrix<double,3,3>& rTensor,
+        const array_1d<double,3>& rVector);
+
+    void CrossWindTensor(
+        BoundedMatrix<double,3,3>& rTensor,
         const array_1d<double,3>& rVeector);
 
     double StabilizationParameter(const ElementData& rData);
 
-    double WetFraction(double Height, double Epsilon);
+    double HeightInverse(double Height, double Epsilon);
 
-    array_1d<double,3> CharacteristicLength(const ElementData& rData);
+    double WetFraction(double Height, double Epsilon);
 
     ///@}
     ///@name Protected  Access
