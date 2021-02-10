@@ -22,7 +22,7 @@ class BFECCConvectionTest(UnitTest.TestCase):
         self.print_output = False
         self.check_tolerance = 1.0e-8
         self.print_reference_values = False
-        self.work_folder = "BFECCConvectionTest"
+        self.work_folder = "."#"BFECCConvectionTest"
 
     def runTest(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
