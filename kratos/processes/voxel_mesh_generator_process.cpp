@@ -36,6 +36,8 @@ namespace Kratos
         , mMaxPoint(MaxPoint)
         , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart) {
 
+		TheParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+
 		ConstructFromParameters(TheParameters);
 		
         Check();
@@ -66,6 +68,8 @@ namespace Kratos
         , mMaxPoint(XCoordinates.back(), YCoordinates.back(), ZCoordinates.back())
         , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart) {
 
+		TheParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+
 		ConstructFromParameters(TheParameters);
 		
 		mColors.SetCoordinates(XCoordinates, YCoordinates, ZCoordinates);
@@ -86,8 +90,6 @@ namespace Kratos
         ModelPart& rSkinPart, Parameters& TheParameters) 
 		    : Process()
         , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart) {
-
-			ConstructFromParameters(TheParameters);
 		}
 
 	VoxelMeshGeneratorProcess::~VoxelMeshGeneratorProcess() {
@@ -418,8 +420,6 @@ namespace Kratos
 
 	void VoxelMeshGeneratorProcess::ConstructFromParameters(Parameters TheParameters){
 		TheParameters["element_name"]; // Should be given by caller! if not thorws an error
-
-		TheParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
 		mStartNodeId = TheParameters["start_node_id"].GetInt();
 		mStartElementId = TheParameters["start_element_id"].GetInt();
