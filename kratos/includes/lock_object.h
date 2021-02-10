@@ -100,7 +100,7 @@ namespace Kratos
 #endif
 		}
 
-    inline bool TestLock() const
+    inline bool try_lock() const
     {
 #ifdef KRATOS_SMP_OPENMP
       return omp_test_lock(&mLock);
