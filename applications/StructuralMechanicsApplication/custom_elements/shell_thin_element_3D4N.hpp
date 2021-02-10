@@ -182,7 +182,7 @@ public:
                          PropertiesType::Pointer pProperties,
                          CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-    ~ShellThinElement3D4N() override;
+    ~ShellThinElement3D4N() override = default;
 
     ///@}
 

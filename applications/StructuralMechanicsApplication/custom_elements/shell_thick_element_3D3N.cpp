@@ -122,13 +122,7 @@ ShellThickElement3D3N<NLinGeom>::ShellThickElement3D3N(IndexType NewId,
 {
 }
 
-template <bool NLinGeom>
-ShellThickElement3D3N<NLinGeom>::~ShellThickElement3D3N()
-{
-}
-
-template <bool NLinGeom>
-Element::Pointer ShellThickElement3D3N<NLinGeom>::Create(IndexType NewId,
+Element::Pointer ShellThickElement3D3N::Create(IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const
 {

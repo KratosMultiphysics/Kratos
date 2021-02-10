@@ -384,11 +384,6 @@ ShellThickElement3D4N<NLinGeom>::ShellThickElement3D4N(IndexType NewId,
 {
 }
 
-template <bool NLinGeom>
-ShellThickElement3D4N<NLinGeom>::~ShellThickElement3D4N()
-{
-}
-
 // TODO are the GetIntegrationMethod methods needed (implemented in the other 3 shells)
 
 template <bool NLinGeom>

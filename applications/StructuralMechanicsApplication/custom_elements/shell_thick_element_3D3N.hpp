@@ -129,7 +129,7 @@ public:
                           PropertiesType::Pointer pProperties,
                           CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-    ~ShellThickElement3D3N() override;
+    ~ShellThickElement3D3N() override = default;
 
     ///@}
 
