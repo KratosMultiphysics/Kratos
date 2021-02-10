@@ -58,6 +58,25 @@ namespace Kratos
 
       std::vector<double> const& GetElementCenterCoordinates(int Index) const {return mElementCenterCoordinates[Index];}
 
+      CartesianMeshColors& operator=(CartesianMeshColors const& TheOther){
+        mTolerance = TheOther.mTolerance;
+        mMinPoint = TheOther.mMinPoint;
+        mMaxPoint = TheOther.mMaxPoint;
+        mNodalCoordinates = TheOther.mNodalCoordinates;
+        mElementCenterCoordinates = TheOther.mElementCenterCoordinates;
+        mNodalRayColors = TheOther.mNodalRayColors;
+        mElementalRayColors = TheOther.mElementalRayColors;
+        mNodalColors = TheOther.mNodalColors;
+        mElementalColors = TheOther.mElementalColors;
+        mElementalFaceColors = TheOther.mElementalFaceColors;
+        mXYRays = TheOther.mXYRays;
+        mXZRays = TheOther.mXZRays;
+        mYZRays = TheOther.mYZRays;
+        mElementalData = TheOther.mElementalData;
+
+        return *this;
+      }
+
     template<typename TPointsContainerType>
       void ExtendBoundingBox(TPointsContainerType const& Points, double Margine){
         for(auto const& point : Points){
@@ -126,6 +145,11 @@ namespace Kratos
 
     std::vector<double> const& GetElementalData(std::string const& DataName) {
         return mElementalData[DataName];
+    }
+
+   double const& GetElementalData(std::string const& DataName,std::size_t I, std::size_t J, std::size_t K) {
+        const std::size_t index = I + J * mElementCenterCoordinates[0].size() + K * mElementCenterCoordinates[1].size() * mElementCenterCoordinates[0].size();
+        return mElementalData[DataName][index];
     }
 
     bool HasElementalData(std::string const& DataName) const {
