@@ -120,6 +120,8 @@ public:
      * @return std::string Output message (can appear in log-file)
      */
     std::string Initialize();
+    
+    void CalculateWaterVolume();
 
     /**
      * @brief Execution of the utility in each time step (global conservation)
@@ -127,6 +129,7 @@ public:
      * @return std::string Output message (can appear in log-file)
      */
     std::string ComputeBalancedVolume();
+    
 
     /**
      * @brief Function to compute the time step for the forward convection of the current distance field to find the auxiliary distance field
@@ -172,7 +175,7 @@ public:
     void RevertVelocityDirection();
 
     void RestoreDistanceValues(const Variable<double>& rAuxDistVar);
-
+    
     // ///@}
     // ///@name Inquiry
     // ///@{
@@ -233,6 +236,9 @@ private:
     double mQNet0 = 0.0;      // for the current time step (t)
 
     double mAverageEdge;
+
+    double mTheoreticalNegativeVolumeInEachTimeStep = 0.0;
+    double mDeltaTheoreticalNegativeVolume = -1.0;
 
     ///@}
     ///@name Protected Operators

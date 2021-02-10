@@ -71,10 +71,17 @@ std::string MassConservationUtility::Initialize(){
 
     return output_line;
 }
-
-
+// Esto calcularlo antes de la simulación del paso de tiempo que toca 
+void MassConservationUtility::CalculateWaterVolume()
+{
+    double neg_vol=0.0;
+    double inter_area=0.0;
+    ComputeVolumesAndInterface(neg_vol, inter_area);
+    mTheoreticalNegativeVolumeInEachTimeStep = neg_vol;
+}
 
 std::string MassConservationUtility::ComputeBalancedVolume(){
+
     double neg_vol = 0.0;
     double inter_area = 0.0;
 
@@ -86,7 +93,12 @@ std::string MassConservationUtility::ComputeBalancedVolume(){
     const double current_dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
     mQNet0 = net_inflow_inlet + net_inflow_outlet;
-    mTheoreticalNegativeVolume += current_dt * mQNet0;
+    mDeltaTheoreticalNegativeVolume += current_dt * mQNet0;
+    
+    KRATOS_WATCH(mTheoreticalNegativeVolumeInEachTimeStep)
+    std::cout << "HOLA!!!" << std::endl;
+
+    mTheoreticalNegativeVolume= mTheoreticalNegativeVolumeInEachTimeStep + mDeltaTheoreticalNegativeVolume;
 
     mVolumeError = neg_vol - mTheoreticalNegativeVolume;
 

@@ -184,6 +184,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("RestoreDistanceValues", &MassConservationUtility::RestoreDistanceValues)
         .def("ComputeTimeStepForConvection", &MassConservationUtility::ComputeTimeStepForConvection)
         .def("RevertVelocityDirection", &MassConservationUtility::RevertVelocityDirection)
+        .def("CalculateWaterVolume", &MassConservationUtility::CalculateWaterVolume)
         ;
 
 

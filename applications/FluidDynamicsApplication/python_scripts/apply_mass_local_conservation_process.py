@@ -10,7 +10,6 @@
 from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
-import KratosMultiphysics.FillingApplication as Filling
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.python_linear_solver_factory as python_linear_solver_factory
 
@@ -77,8 +76,9 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         self.forward_convection_process = self._set_levelset_convection_process()
         self.mass_conservation_utility.Initialize()
+        self.mass_conservation_utility.CalculateWaterVolume()
         KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Initialization finished (initial volumes calculated).")
-
+        
     def Execute(self):
         self.ExecuteFinalizeSolutionStep()
 
@@ -148,6 +148,8 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                 self.gamma = 1.0
             iterations += 1
 
+        self.mass_conservation_utility.CalculateWaterVolume()
+
     def _ComputeTimeStepForConvection(self):
         """ REMARK: The pseudo time step dt has no meaning as a physical time step and is NOT accounted as such.
             Instead, it as purely used for an artificial convection that helps to conserve the mass.
@@ -204,3 +206,6 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                 self.settings["convector_settings"]["max_substeps"].GetInt())
 
         return level_set_convection_process
+
+ 
+      
