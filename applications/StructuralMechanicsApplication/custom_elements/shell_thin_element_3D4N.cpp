@@ -2315,4 +2315,6 @@ void ShellThinElement3D4N<NLinGeom>::load(Serializer& rSerializer)
     rSerializer.load("CTr", *mpCoordinateTransformation);
 }
 
+template class ShellThinElement3D4N<true>;  // non-linear aka corotational
+
 }

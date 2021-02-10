@@ -94,7 +94,8 @@ ShellThinElement3D3N<NLinGeom>::ShellThinElement3D3N(IndexType NewId,
 {
 }
 
-Element::Pointer ShellThinElement3D3N::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+template <bool NLinGeom>
+Element::Pointer ShellThinElement3D3N<NLinGeom>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     GeometryType::Pointer newGeom(GetGeometry().Create(ThisNodes));
     return Kratos::make_intrusive< ShellThinElement3D3N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom));

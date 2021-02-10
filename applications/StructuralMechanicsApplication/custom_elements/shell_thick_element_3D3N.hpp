@@ -15,6 +15,7 @@
 
 
 // System includes
+#include <type_traits>
 
 // External includes
 
@@ -67,10 +68,10 @@ Shell formulation reference:
 */
 
 template <bool NLinGeom>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N :
-    public BaseShellElement<std::conditional<NLinGeom,
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N : public
+    BaseShellElement<typename std::conditional<NLinGeom,
         ShellT3_CorotationalCoordinateTransformation,
-        ShellT3_CoordinateTransformation>>
+        ShellT3_CoordinateTransformation>::type>
 {
 public:
 
@@ -79,9 +80,9 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D3N);
 
-    using BaseType = BaseShellElement<std::conditional<NLinGeom,
+    using BaseType = BaseShellElement<typename std::conditional<NLinGeom,
         ShellT3_CorotationalCoordinateTransformation,
-        ShellT3_CoordinateTransformation>>;
+        ShellT3_CoordinateTransformation>::type>;
 
     typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
 

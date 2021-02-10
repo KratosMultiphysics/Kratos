@@ -14,6 +14,7 @@
 #define  SHELL_THIN_ELEMENT_3D4N_H_INCLUDED
 
 // System includes
+#include <type_traits>
 
 // External includes
 
@@ -80,9 +81,10 @@ concrete walls". Dissertation. Los Angeles, California: University of
 Southern California, 2012. */
 
 template <bool NLinGeom>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public BaseShellElement<std::conditional<NLinGeom,
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public
+    BaseShellElement<typename std::conditional<NLinGeom,
         ShellQ4_CorotationalCoordinateTransformation,
-        ShellQ4_CoordinateTransformation>>
+        ShellQ4_CoordinateTransformation>::type>
 {
 public:
 
@@ -90,9 +92,9 @@ public:
     ///@{
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThinElement3D4N);
 
-    using BaseType = BaseShellElement<std::conditional<NLinGeom,
+    using BaseType = BaseShellElement<typename std::conditional<NLinGeom,
         ShellQ4_CorotationalCoordinateTransformation,
-        ShellQ4_CoordinateTransformation>>;
+        ShellQ4_CoordinateTransformation>::type>;
 
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
