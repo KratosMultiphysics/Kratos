@@ -50,15 +50,24 @@ void Tetrahedra3D4AusasIncisedShapeFunctions::PrintData(std::ostream& rOStream) 
 {
     const GeometryPointerType p_geometry = this->GetInputGeometry();
     const Vector nodal_distances = this->GetNodalDistances();
+    const Vector extra_edge_ratios = this->GetExtrapolatedEdgeRatios();
+
     rOStream << "Tetrahedra3D4N Ausas incised shape functions computation class:\n";
     rOStream << "\tGeometry type: " << (*p_geometry).Info() << "\n";
     std::stringstream distances_buffer;
-    std::stringstream stm;
+    std::ostringstream stm;
     for (unsigned int i = 0; i < nodal_distances.size(); ++i) {
         stm << nodal_distances(i);
         distances_buffer << stm.str() << " ";
     }
-    rOStream << "\tExtrapolated distance values: " << distances_buffer.str();
+    rOStream << "\tNodal distance values including extrapolated intersections: " << distances_buffer.str() << "\n";
+    std::stringstream ratios_buffer;
+    std::ostringstream stm2;
+    for (unsigned int i = 0; i < extra_edge_ratios.size(); ++i) {
+        stm2 << extra_edge_ratios(i);
+        ratios_buffer << stm2.str() << " ";
+    }
+    rOStream << "\tEdge ratios of extrapolated intersections: " << ratios_buffer.str();
 }
 
 // Returns the nodal distances vector.
