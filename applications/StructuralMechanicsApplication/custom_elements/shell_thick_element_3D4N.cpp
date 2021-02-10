@@ -10,7 +10,6 @@
 //
 
 #include "shell_thick_element_3D4N.hpp"
-#include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shell_utilities.h"
 
 #include <string>
@@ -343,7 +342,7 @@ void ShellThickElement3D4N::EASOperator::ComputeModfiedTangentAndResidual(Matrix
 ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         bool NLGeom)
-    : BaseShellElement(NewId, pGeometry)
+    : BaseType(NewId, pGeometry)
     , mpCoordinateTransformation(NLGeom ?
                                  new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
                                  new ShellQ4_CoordinateTransformation(pGeometry))
@@ -354,7 +353,7 @@ ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         bool NLGeom)
-    : BaseShellElement(NewId, pGeometry, pProperties)
+    : BaseType(NewId, pGeometry, pProperties)
     , mpCoordinateTransformation(NLGeom ?
                                  new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
                                  new ShellQ4_CoordinateTransformation(pGeometry))
@@ -365,7 +364,7 @@ ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         CoordinateTransformationBasePointerType pCoordinateTransformation)
-    : BaseShellElement(NewId, pGeometry, pProperties)
+    : BaseType(NewId, pGeometry, pProperties)
     , mpCoordinateTransformation(pCoordinateTransformation)
 {
 }
@@ -399,7 +398,7 @@ void ShellThickElement3D4N::Initialize(const ProcessInfo& rCurrentProcessInfo)
     const int points_number = r_geom.PointsNumber();
     KRATOS_ERROR_IF_NOT(points_number == 4) << "ShellThickElement3D4N - Wrong number of nodes" << points_number << std::endl;
 
-    BaseShellElement::Initialize(rCurrentProcessInfo);
+    BaseType::Initialize(rCurrentProcessInfo);
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
@@ -803,11 +802,11 @@ void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<array_1d
     if (rVariable == LOCAL_AXIS_1 ||
             rVariable == LOCAL_AXIS_2 ||
             rVariable == LOCAL_AXIS_3) {
-        BaseShellElement::ComputeLocalAxis(rVariable, rOutput, mpCoordinateTransformation);
+        BaseType::ComputeLocalAxis(rVariable, rOutput, mpCoordinateTransformation);
     } else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
                rVariable == LOCAL_MATERIAL_AXIS_2 ||
                rVariable == LOCAL_MATERIAL_AXIS_3) {
-        BaseShellElement::ComputeLocalMaterialAxis(rVariable, rOutput, mpCoordinateTransformation);
+        BaseType::ComputeLocalMaterialAxis(rVariable, rOutput, mpCoordinateTransformation);
     }
 }
 
@@ -1809,7 +1808,7 @@ ShellCrossSection::SectionBehaviorType ShellThickElement3D4N::GetSectionBehavior
 
 void ShellThickElement3D4N::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     bool is_corotational = (nullptr != dynamic_cast<ShellQ4_CorotationalCoordinateTransformation*>(mpCoordinateTransformation.get()));
     rSerializer.save("is_corotational", is_corotational);
     rSerializer.save("CTr", *mpCoordinateTransformation);
@@ -1818,7 +1817,7 @@ void ShellThickElement3D4N::save(Serializer& rSerializer) const
 
 void ShellThickElement3D4N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseShellElement);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     bool is_corotational;
     rSerializer.load("is_corotational", is_corotational);
     if (is_corotational) {
