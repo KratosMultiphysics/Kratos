@@ -741,30 +741,31 @@ public:
      * { 
      * } 
      */  
-    void GetBasis(std::size_t basis_index, TSystemVectorType& rBasis)
+    void GetBasis(std::size_t BasisIndex, TSystemVectorType& rBasis)
     {
         KRATOS_TRY
 
-        ModelPart& r_model_part = BaseType::GetModelPart();
-
-        DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
-        bool is_active;
+        const auto& r_model_part = BaseType::GetModelPart();
+        const auto& r_current_process_info = r_model_part.GetProcessInfo();
+        const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
         
-        for (ModelPart::NodeIterator itNode = r_model_part.NodesBegin(); itNode!= r_model_part.NodesEnd(); itNode++) {
-            ModelPart::NodeType::DofsContainerType& node_dofs = itNode->GetDofs();
-            std::size_t num_node_dofs = node_dofs.size();
-            Matrix& r_rom_basis = itNode->GetValue(ROM_BASIS);
-                
-            // fill the basis vector
-            auto itDof = std::begin(node_dofs);
-            for (std::size_t iDOF = 0; iDOF < num_node_dofs; iDOF++)
+        block_for_each(
+            r_model_part.Nodes(),[&](ModelPart::NodeType& rNode)
             {
-                is_active = !(r_dof_set.find(**itDof) == r_dof_set.end());
-                if ((*itDof)->IsFree() && is_active)
-                    rBasis((*itDof)->EquationId()) = r_rom_basis(iDOF,basis_index);
-                itDof++;
+                auto& node_dofs = rNode.GetDofs();
+                const auto& r_nodal_basis = rNode.GetValue(ROM_BASIS);
+
+                for (const auto& rp_dof : node_dofs)
+                {
+                    bool is_active = !(r_dof_set.find(*rp_dof) == r_dof_set.end());
+                    if (rp_dof->IsFree() && is_active)
+                    {
+                        const std::size_t dof_index = r_current_process_info[MAP_PHI].at(rp_dof->GetVariable().Key());
+                        rBasis[rp_dof->EquationId()] = r_nodal_basis(dof_index,BasisIndex);
+                    }
+                }
             }
-        }
+        );
 
         KRATOS_CATCH("")
     }
@@ -886,7 +887,7 @@ public:
         
         auto& r_model_part = BaseType::GetModelPart();
         
-        block_for_each(r_model_part.Nodes(), [&](Node<3>& r_node) {
+        block_for_each(r_model_part.Nodes(), [&](ModelPart::NodeType& r_node) {
 
             const auto derivative_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
             const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
