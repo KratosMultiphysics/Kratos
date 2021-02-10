@@ -406,8 +406,7 @@ public:
         auto& rA = *mpA;
         auto& rb = *mpb;
         auto& rDx = *mpDx;
-        TSystemVectorType basis;
-        TSparseSpace::Resize(basis, p_builder_and_solver->GetDofSet().size());
+        TSystemVectorType basis(p_builder_and_solver->GetDofSet().size());
         const bool master_slave_constraints_defined = r_model_part.MasterSlaveConstraints().size() != 0;
 
         /*
@@ -539,8 +538,7 @@ public:
         auto& rMassMatrix = *mpMassMatrix;
         auto& rb = *mpb;
         auto& rDx = *mpDx;
-        TSystemVectorType basis;
-        TSparseSpace::Resize(basis, p_builder_and_solver->GetDofSet().size());
+        TSystemVectorType basis(p_builder_and_solver->GetDofSet().size());
         const bool master_slave_constraints_defined = r_model_part.MasterSlaveConstraints().size() != 0;
         bool dynamic_constraint_added = false;
 
@@ -716,8 +714,7 @@ public:
 
         auto& r_model_part = BaseType::GetModelPart();
         auto& rMassMatrix = *mpMassMatrix;
-        TSystemVectorType basis;
-        TSparseSpace::Resize(basis, rMassMatrix.size1());
+        TSystemVectorType basis(rMassMatrix.size1());
         const auto current_basis_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
 
         // Mass-Orthogonalization using modified Gram-Schmidt method
@@ -847,24 +844,20 @@ public:
         KRATOS_TRY
 
         ModelPart& r_model_part = BaseType::GetModelPart();
-        std::size_t derivative_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
+        std::size_t num_basis = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR].size();
 
-        Matrix Mred;
-        Mred.resize(derivative_index,derivative_index, false);
-        Matrix Kred;
-        Kred.resize(derivative_index,derivative_index, false);
-        TSystemVectorType basis_i;
-        TSparseSpace::Resize(basis_i, mpA->size1());
-        TSystemVectorType basis_j;
-        TSparseSpace::Resize(basis_j, mpA->size1());
+        Matrix Mred(num_basis,num_basis);
+        Matrix Kred(num_basis,num_basis);
+        TSystemVectorType basis_i(mpA->size1());
+        TSystemVectorType basis_j(mpA->size1());
         TSystemMatrixType& rA = *mpA;
         TSystemMatrixType& rStiffnessMatrix = *mpStiffnessMatrix;
         TSystemMatrixType& rMassMatrix = *mpMassMatrix;
 
-        for (std::size_t i = 0; i < derivative_index; i++)
+        for (std::size_t i = 0; i < num_basis; i++)
         {
             this->GetBasis(i, basis_i);
-            for (std::size_t j = 0; j < derivative_index; j++)
+            for (std::size_t j = 0; j < num_basis; j++)
             {
                 this->GetBasis(j, basis_j);
                 Mred(i,j) = inner_prod(basis_i, prod(rMassMatrix, basis_j));
