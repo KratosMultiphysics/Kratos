@@ -150,6 +150,20 @@ public:
         else // Static derivatives are symmetric
             rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis + mNumberInitialBasis * ( mNumberInitialBasis + 1 ) / 2, true);
         
+        // Set the ordering of DOFs in the input
+        const std::vector<std::string> nodal_variable_names = InputParameters["rom_settings"]["nodal_unknowns"].GetStringArray();
+        const int number_of_nodal_dofs = nodal_variable_names.size();
+        // Setting up mapping: VARIABLE_KEY --> CORRECT_ROW_IN_BASIS
+        for(int k=0; k<number_of_nodal_dofs; k++){
+            if(KratosComponents<Variable<double>>::Has(nodal_variable_names[k]))
+            {
+                const auto& var = KratosComponents<Variable<double>>::Get(nodal_variable_names[k]);
+                rModelPart.GetProcessInfo()[MAP_PHI][var.Key()] = k;
+            }
+            else
+                KRATOS_ERROR << "variable \""<< nodal_variable_names[k] << "\" not valid" << std::endl;
+        }
+
         // ensure initialization of system matrices in InitializeSolutionStep()
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
 

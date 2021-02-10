@@ -29,11 +29,14 @@ class ModalDerivativeSolver(MechanicalSolver):
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "derivative_type"               : "static",
-            "sub_model_parts_list"          : [],
             "finite_difference_type"        : "forward",
             "finite_difference_step_size"   : 1e-3,
             "mass_orthonormalize"           : true,
-            "rom_parameters_filename"       : "RomParameters.json"
+            "rom_parameters_filename"       : "RomParameters.json",
+            "rom_settings"                  :
+            {
+                "nodal_unknowns" : []
+            }
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults

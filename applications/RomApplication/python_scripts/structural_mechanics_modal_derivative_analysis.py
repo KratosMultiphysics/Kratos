@@ -31,7 +31,6 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         """Prints / writes output files after the solution of a step."""
         # Creating output
         super().OutputSolutionStep()
-
         self.WriteRomParameters()
     
     def ModifyInitialGeometry(self):
@@ -88,19 +87,16 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         # Iniate nodal modes dictionary
         rom_parameters = {}
         rom_parameters["rom_settings"] = {}
-        if self.project_parameters["solver_settings"]["rotation_dofs"].GetBool():
-            rom_parameters["rom_settings"]["nodal_unknowns"] = ["ROTATION_X", "ROTATION_Y", "ROTATION_Z", "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"]
-        else:
-            rom_parameters["rom_settings"]["nodal_unknowns"] = ["DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"]
+        rom_parameters["rom_settings"]["nodal_unknowns"] = self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray()
         rom_parameters["nodal_modes"] = {}
         
-        eigenvalues = self.model.GetModelPart('Structure').ProcessInfo[RomApplication.EIGENVALUE_VECTOR]
+        eigenvalues = self._solver.GetComputingModelPart().ProcessInfo[RomApplication.EIGENVALUE_VECTOR]
         rom_parameters["eigenvalues"] = []
         for eigenvalue in eigenvalues:
             rom_parameters["eigenvalues"].append(eigenvalue)
 
         # Loop over nodes
-        for node in self.model.GetModelPart('Structure').GetNodes():
+        for node in self._solver.GetComputingModelPart().GetNodes():
 
             # Create Node Id for NodalMode
             rom_parameters["nodal_modes"][str(node.Id)] = []
