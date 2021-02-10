@@ -1589,4 +1589,7 @@ void ShellThinElement3D3N::load(Serializer& rSerializer)
     rSerializer.load("CTr", *mpCoordinateTransformation);
 }
 
+template class ShellThinElement3D3N<false>; // linear
+template class ShellThinElement3D3N<true>;  // non-linear aka corotational
+
 }

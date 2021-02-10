@@ -1829,4 +1829,7 @@ void ShellThickElement3D4N::load(Serializer& rSerializer)
     rSerializer.load("EAS", mEASStorage);
 }
 
+template class ShellThickElement3D4N<false>; // linear
+template class ShellThickElement3D4N<true>;  // non-linear aka corotational
+
 }

@@ -2283,4 +2283,7 @@ void ShellThinElement3D4N::load(Serializer& rSerializer)
     }
     rSerializer.load("CTr", *mpCoordinateTransformation);
 }
+
+template class ShellThinElement3D4N<true>;  // non-linear aka corotational
+
 }
