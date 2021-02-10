@@ -444,7 +444,7 @@ private:
     const SpringDamperElement3D2N mSpringDamperElement3D2N;
 
     // Adding adjoint elements
-    const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N> mAdjointFiniteDifferencingShellThinElement3D3N;
+    const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N<false>> mAdjointFiniteDifferencingShellThinElement3D3N;
     const AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N> mAdjointFiniteDifferenceCrBeamElementLinear3D2N;
     const AdjointFiniteDifferenceTrussElement<TrussElement3D2N> mAdjointFiniteDifferenceTrussElement3D2N;
     const AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N> mAdjointFiniteDifferenceTrussLinearElement3D2N;
