@@ -165,6 +165,18 @@ public:
         return mpNurbsSurface->PolynomialDegree(0) + mpNurbsSurface->PolynomialDegree(1);
     }
 
+    /// Return the DomainInterval of the underlying NURBS curve
+    NurbsInterval DomainInterval() const
+    {
+        return mpNurbsCurve->DomainInterval();
+    }
+
+    /// Return the vector of KnotSpanIntervals of the underlying NURBS curve
+    std::vector<NurbsInterval> KnotSpanIntervals() const
+    {
+        return mpNurbsCurve->KnotSpanIntervals();
+    }
+
     ///@}
     ///@name Curve Properties
     ///@{
@@ -391,12 +403,12 @@ public:
     {
         // Compute the coordinates of the embedded curve in the parametric space of the surface
         CoordinatesArrayType result_local = mpNurbsCurve->GlobalCoordinates(rResult, rLocalCoordinates);
-        
+
         // Compute and return the coordinates of the surface in the geometric space
         return mpNurbsSurface->GlobalCoordinates(rResult, result_local);
     }
 
-    /** 
+    /**
     * @brief This method maps from dimension space to working space and computes the
     *        number of derivatives at the dimension parameter.
     * From ANurbs library (https://github.com/oberbichler/ANurbs)
@@ -418,7 +430,7 @@ public:
         // Compute the gradients of the embedded curve in the parametric space of the surface
         std::vector<array_1d<double, 3>> curve_derivatives;
         mpNurbsCurve->GlobalSpaceDerivatives(curve_derivatives, rCoordinates, DerivativeOrder);
-        
+
         // Compute the gradients of the surface in the geometric space
         array_1d<double, 3> surface_coordinates =  ZeroVector(3);
         surface_coordinates[0] = curve_derivatives[0][0];

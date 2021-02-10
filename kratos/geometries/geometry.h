@@ -31,6 +31,8 @@
 #include "containers/data_value_container.h"
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
+
 
 namespace Kratos
 {
@@ -1052,6 +1054,18 @@ public:
     virtual SizeType PolynomialDegree(IndexType LocalDirectionIndex) const
     {
         KRATOS_ERROR << "Trying to access PolynomialDegree from geometry base class." << std::endl;
+    }
+
+    /// Return the DomainInterval of the geometry
+    virtual NurbsInterval DomainInterval() const
+    {
+        KRATOS_ERROR << "Trying to access DomainInterval from geometry base class." << std::endl;
+    }
+
+    /// Return the vector of KnotSpanIntervals of the geometry
+    virtual std::vector<NurbsInterval> KnotSpanIntervals() const
+    {
+        KRATOS_ERROR << "Trying to access KnotSpanIntervals from geometry base class." << std::endl;
     }
 
     ///@}
