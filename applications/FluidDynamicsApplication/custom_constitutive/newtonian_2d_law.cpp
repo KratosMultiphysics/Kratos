@@ -21,6 +21,7 @@
 
 // Application includes
 #include "custom_constitutive/newtonian_law/newtonian_2d_adjoint_law.h"
+#include "fluid_dynamics_application_variables.h"
 
 // Include base h
 #include "custom_constitutive/newtonian_2d_law.h"
@@ -90,6 +91,82 @@ void  Newtonian2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     {
         FluidConstitutiveLaw::NewtonianConstitutiveMatrix2D(mu,rValues.GetConstitutiveMatrix());
     }
+}
+
+void Newtonian2DLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<Vector>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    Vector& rOutput)
+{
+    KRATOS_TRY
+
+    if (rFunctionVariable == CAUCHY_STRESS_VECTOR) {
+        // computes derivatives of CAUCHY_STRESS_VECTOR
+        // resize and clear the output variable
+        if (rOutput.size() != 3) {
+            rOutput.resize(3);
+        }
+        rOutput.clear();
+
+        if (rDerivativeVariable.IsComponent() && rDerivativeVariable.GetSourceVariable() == STRAIN_RATE_2D) {
+            // compute derivatives w.r.t. STRAIN_RATE
+            const double mu = this->GetEffectiveViscosity(rParameterValues);
+            const double volumetric_part_derivative = ((rDerivativeVariable.GetComponentIndex() == 0) + (rDerivativeVariable.GetComponentIndex() == 1)) / 3.0;
+
+            rOutput[0] = 2.0 * mu * ((rDerivativeVariable.GetComponentIndex() == 0) - volumetric_part_derivative);
+            rOutput[1] = 2.0 * mu * ((rDerivativeVariable.GetComponentIndex() == 1) - volumetric_part_derivative);
+            rOutput[2] = mu * (rDerivativeVariable.GetComponentIndex() == 2);
+
+        } else if (rDerivativeVariable == EFFECTIVE_VISCOSITY) {
+            // compute derivatives w.r.t. effective viscosity
+            const Vector& r_strain_rate = rParameterValues.GetStrainVector();
+            const double trace = r_strain_rate[0] + r_strain_rate[1];
+            const double volumetric_part = trace / 3.0;
+
+            rOutput[0] = 2.0 * (r_strain_rate[0] - volumetric_part);
+            rOutput[1] = 2.0 * (r_strain_rate[1] - volumetric_part);
+            rOutput[2] = r_strain_rate[2];
+        }
+    } else {
+        KRATOS_ERROR << "Unsupported function derivative requested. [ "
+                        "rFunctionVariable = "
+                     << rFunctionVariable.Name()
+                     << ", rDerivativeVariable = " << rDerivativeVariable.Name()
+                     << " ].\n";
+    }
+
+    KRATOS_CATCH("");
+}
+
+void Newtonian2DLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<Matrix>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    Matrix& rOutput)
+{
+    KRATOS_TRY
+
+    if (rFunctionVariable == CONSTITUTIVE_MATRIX) {
+        // computes derivatives of CONSTITUTIVE_MATRIX
+        // resize and clear the output variable
+        if (rOutput.size1() != 2 || rOutput.size2() != 2) {
+            rOutput.resize(2, 2, false);
+        }
+        rOutput.clear();
+
+        if (rDerivativeVariable == EFFECTIVE_VISCOSITY) {
+            // compute derivatives w.r.t. effective viscosity
+            FluidConstitutiveLaw::NewtonianConstitutiveMatrix2D(1.0, rOutput);
+        }
+    } else {
+        KRATOS_ERROR << "Unsupported function derivative requested. [ "
+                        "rFunctionVariable = "
+                     << rFunctionVariable.Name() << ", rDerivativeVariable = "
+                     << rDerivativeVariable.Name() << " ].\n";
+    }
+
+    KRATOS_CATCH("");
 }
 
 int Newtonian2DLaw::Check(

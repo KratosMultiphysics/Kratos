@@ -38,29 +38,29 @@ void Newtonian2DAdjointLaw::CalculateMaterialResponseCauchyDerivative(
     const double EffectiveViscosityDerivative)
 {
     const Flags& options = rValues.GetOptions();
-    const Vector& r_strain_rate = rValues.GetStrainVector();
-    const Vector& r_strain_rate_derivative = rValuesDerivative.GetStrainVector();
+    // const Vector& r_strain_rate = rValues.GetStrainVector();
+    // const Vector& r_strain_rate_derivative = rValuesDerivative.GetStrainVector();
 
-    const double trace = r_strain_rate[0] + r_strain_rate[1];
-    const double trace_derivative = r_strain_rate_derivative[0] + r_strain_rate_derivative[1];
-    const double volumetric_part = trace / 3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
-    const double volumetric_part_derivative = trace_derivative / 3.0;
+    // const double trace = r_strain_rate[0] + r_strain_rate[1];
+    // const double trace_derivative = r_strain_rate_derivative[0] + r_strain_rate_derivative[1];
+    // const double volumetric_part = trace / 3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
+    // const double volumetric_part_derivative = trace_derivative / 3.0;
 
-    //computation of stress
-    Vector& r_viscous_stress_derivative = rValuesDerivative.GetStressVector();
+    // //computation of stress
+    // Vector& r_viscous_stress_derivative = rValuesDerivative.GetStressVector();
 
-    r_viscous_stress_derivative[0] = 2.0 * EffectiveViscosityDerivative * (r_strain_rate[0] - volumetric_part);
-    r_viscous_stress_derivative[0] += 2.0 * EffectiveViscosity * (r_strain_rate_derivative[0] - volumetric_part_derivative);
+    // r_viscous_stress_derivative[0] = 2.0 * EffectiveViscosityDerivative * (r_strain_rate[0] - volumetric_part);
+    // r_viscous_stress_derivative[0] += 2.0 * EffectiveViscosity * (r_strain_rate_derivative[0] - volumetric_part_derivative);
 
-    r_viscous_stress_derivative[1] = 2.0 * EffectiveViscosityDerivative * (r_strain_rate[1] - volumetric_part);
-    r_viscous_stress_derivative[1] += 2.0 * EffectiveViscosity * (r_strain_rate_derivative[1] - volumetric_part_derivative);
+    // r_viscous_stress_derivative[1] = 2.0 * EffectiveViscosityDerivative * (r_strain_rate[1] - volumetric_part);
+    // r_viscous_stress_derivative[1] += 2.0 * EffectiveViscosity * (r_strain_rate_derivative[1] - volumetric_part_derivative);
 
-    r_viscous_stress_derivative[2] = EffectiveViscosityDerivative * r_strain_rate[2];
-    r_viscous_stress_derivative[2] += EffectiveViscosity * r_strain_rate_derivative[2];
+    // r_viscous_stress_derivative[2] = EffectiveViscosityDerivative * r_strain_rate[2];
+    // r_viscous_stress_derivative[2] += EffectiveViscosity * r_strain_rate_derivative[2];
 
-    if(options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        BaseType::NewtonianConstitutiveMatrixDerivatives2D(EffectiveViscosityDerivative, rValuesDerivative.GetConstitutiveMatrix());
-    }
+    // if(options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+    //     BaseType::NewtonianConstitutiveMatrixDerivatives2D(EffectiveViscosityDerivative, rValuesDerivative.GetConstitutiveMatrix());
+    // }
 
 }
 
