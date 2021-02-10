@@ -19,6 +19,7 @@
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shellq4_local_coordinate_system.hpp"
 
 namespace Kratos
@@ -30,10 +31,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 ///@}
-
-class ShellQ4_CoordinateTransformation;
-
-class ShellQ4_LocalCoordinateSystem;
 
 ///@name  Enum's
 ///@{
@@ -82,13 +79,15 @@ quadrilateral thin flat layered shell element for the modeling of reinforced
 concrete walls". Dissertation. Los Angeles, California: University of
 Southern California, 2012. */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public BaseShellElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public BaseShellElement<ShellQ4_CoordinateTransformation> // template arg is not yet used
 {
 public:
 
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThinElement3D4N);
+
+    using BaseType = BaseShellElement<ShellQ4_CoordinateTransformation>;
 
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
@@ -97,6 +96,22 @@ public:
     typedef array_1d<double, 3> Vector3Type;
 
     typedef Quaternion<double> QuaternionType;
+
+    using GeometryType = Element::GeometryType;
+
+    using PropertiesType = Element::PropertiesType;
+
+    using NodesArrayType = Element::NodesArrayType;
+
+    using MatrixType = Element::MatrixType;
+
+    using VectorType = Element::VectorType;
+
+    using SizeType = Element::SizeType;
+
+    using Element::GetGeometry;
+
+    using Element::GetProperties;
 
     ///@}
 
@@ -164,7 +179,7 @@ public:
                          PropertiesType::Pointer pProperties,
                          CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-    ~ShellThinElement3D4N() override;
+    ~ShellThinElement3D4N() override = default;
 
     ///@}
 
@@ -240,7 +255,7 @@ protected:
     /**
     * Protected empty constructor
     */
-    ShellThinElement3D4N() : BaseShellElement()
+    ShellThinElement3D4N() : BaseType()
     {
     }
 
