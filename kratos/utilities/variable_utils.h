@@ -912,8 +912,7 @@ public:
 
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
             rEntity.SetValue(rSavedVariable, rEntity.GetValue(rOriginVariable));
-        }
-        );
+        });
 
         KRATOS_CATCH("")
     }
@@ -1145,7 +1144,7 @@ public:
         const auto& r_communicator = rModelPart.GetCommunicator();
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_nodes_array = r_local_mesh.Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
+        //const auto it_node_begin = r_nodes_array.begin();
 
         /* #pragma omp parallel for reduction(+:sum_value)
         for (int k = 0; k < static_cast<int>(r_nodes_array.size()); ++k) {
@@ -1238,13 +1237,16 @@ public:
         const auto& r_communicator = rModelPart.GetCommunicator();
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_conditions_array = r_local_mesh.Conditions();
-        const auto it_cond_begin = r_conditions_array.begin();
+        //const auto it_cond_begin = r_conditions_array.begin();
 
-        #pragma omp parallel for reduction(+:sum_value)
+        /* #pragma omp parallel for reduction(+:sum_value)
         for (int k = 0; k < static_cast<int>(r_conditions_array.size()); ++k) {
             const auto it_cond = it_cond_begin + k;
             sum_value += it_cond->GetValue(rVar);
-        }
+        } */
+        sum_value = block_for_each<SumReduction<double>>(r_conditions_array, [&](ConditionType& rCond){
+            return rCond.GetValue(rVar);
+        });
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
@@ -1282,13 +1284,17 @@ public:
         const auto& r_communicator = rModelPart.GetCommunicator();
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_elements_array = r_local_mesh.Elements();
-        const auto it_elem_begin = r_elements_array.begin();
+        //const auto it_elem_begin = r_elements_array.begin();
 
-        #pragma omp parallel for reduction(+:sum_value)
+        /* #pragma omp parallel for reduction(+:sum_value)
         for (int k = 0; k < static_cast<int>(r_elements_array.size()); ++k) {
             const auto it_elem = it_elem_begin + k;
             sum_value += it_elem->GetValue(rVar);
-        }
+        }*/
+
+        sum_value = block_for_each<SumReduction<double>>(r_elements_array, [&](ElementType& rElem){
+            return rElem.GetValue(rVar);
+        });
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
