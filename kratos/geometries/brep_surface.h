@@ -437,6 +437,10 @@ public:
         IndexType NumberOfShapeFunctionDerivatives,
         const IntegrationPointsArrayType& rIntegrationPoints) override
     {
+        if (rIntegrationPoints.size() > 0) {
+            CreateIntegrationPoints(rIntegrationPoints);
+        }
+
         mpNurbsSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
 
