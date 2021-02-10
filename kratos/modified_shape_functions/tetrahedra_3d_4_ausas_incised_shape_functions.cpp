@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:             BSD License
+//                       Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//  Main authors:    Franziska Wahl
 //
 
 // System includes
@@ -40,12 +40,14 @@ std::string Tetrahedra3D4AusasIncisedShapeFunctions::Info() const
 }
 
 /// Print information about this object.
-void Tetrahedra3D4AusasIncisedShapeFunctions::PrintInfo(std::ostream& rOStream) const {
+void Tetrahedra3D4AusasIncisedShapeFunctions::PrintInfo(std::ostream& rOStream) const
+{
     rOStream << "Tetrahedra3D4N Ausas incised shape functions computation class.";
 }
 
 /// Print object's data.
-void Tetrahedra3D4AusasIncisedShapeFunctions::PrintData(std::ostream& rOStream) const {
+void Tetrahedra3D4AusasIncisedShapeFunctions::PrintData(std::ostream& rOStream) const
+{
     const GeometryPointerType p_geometry = this->GetInputGeometry();
     const Vector nodal_distances = this->GetNodalDistances();
     rOStream << "Tetrahedra3D4N Ausas incised shape functions computation class:\n";
@@ -60,7 +62,8 @@ void Tetrahedra3D4AusasIncisedShapeFunctions::PrintData(std::ostream& rOStream) 
 }
 
 // Returns the nodal distances vector.
-const Vector& Tetrahedra3D4AusasIncisedShapeFunctions::GetExtrapolatedEdgeRatios() const {
+const Vector& Tetrahedra3D4AusasIncisedShapeFunctions::GetExtrapolatedEdgeRatios() const
+{
     return mExtraEdgeRatios;
 }
 

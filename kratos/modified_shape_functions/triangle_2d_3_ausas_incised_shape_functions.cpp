@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:             BSD License
+//                       Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//  Main authors:    Franziska Wahl
 //
 
 // System includes
@@ -40,12 +40,14 @@ std::string Triangle2D3AusasIncisedShapeFunctions::Info() const
 }
 
 /// Print information about this object.
-void Triangle2D3AusasIncisedShapeFunctions::PrintInfo(std::ostream& rOStream) const {
+void Triangle2D3AusasIncisedShapeFunctions::PrintInfo(std::ostream& rOStream) const
+{
     rOStream << "Triangle2D3N Ausas incised shape functions computation class.";
 }
 
 /// Print object's data.
-void Triangle2D3AusasIncisedShapeFunctions::PrintData(std::ostream& rOStream) const {
+void Triangle2D3AusasIncisedShapeFunctions::PrintData(std::ostream& rOStream) const
+{
     const GeometryPointerType p_geometry = this->GetInputGeometry();
     const Vector nodal_distances = this->GetNodalDistances();
     rOStream << "Triangle2D3N Ausas incised shape functions computation class:\n";
