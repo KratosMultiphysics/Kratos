@@ -1,12 +1,17 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
+
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+        raise Exception(
+            "expected input shall be a Parameters object, encapsulating a json string"
+        )
     return SetInitialStateProcess(Model, settings["Parameters"])
 
+
 # All the processes python processes should be derived from "Process"
+
 
 class SetInitialStateProcess(KratosMultiphysics.Process):
     """This process sets a given value for a certain flag in all the nodes of a submodelpart
@@ -18,8 +23,8 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
     settings -- Kratos parameters containing solver settings.
     """
 
-    def __init__(self, Model, settings ):
-        """ The default constructor of the class
+    def __init__(self, Model, settings):
+        """The default constructor of the class
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -29,8 +34,9 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
 
-        #The value can be a double or a string (function)
-        default_settings = KratosMultiphysics.Parameters("""
+        # The value can be a double or a string (function)
+        default_settings = KratosMultiphysics.Parameters(
+            """
         {
             "help"            : "This sets the initial conditions in terms of imposed strain, stress or deformation gradient",
             "mesh_id"         : 0,
@@ -44,7 +50,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         """
         )
 
-        #assign this here since it will change the "interval" prior to validation
+        # assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -54,8 +60,9 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         self.strain_functions = self.components_to_string(settings["imposed_strain"])
         self.stress_functions = self.components_to_string(settings["imposed_stress"])
         # to be implemented
-        self.imposed_deformation_gradient = settings["imposed_deformation_gradient"].GetMatrix()
-
+        self.imposed_deformation_gradient = settings[
+            "imposed_deformation_gradient"
+        ].GetMatrix()
 
     def components_to_string(self, vect):
         v = []
@@ -65,7 +72,9 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             elif c.IsString():
                 s = c.GetString()
             else:
-                msg = "SetInitialStateProcess: Vector component must be scalar or string"
+                msg = (
+                    "SetInitialStateProcess: Vector component must be scalar or string"
+                )
                 raise Exception(msg)
             function = KratosMultiphysics.PythonGenericFunctionUtility(s)
             if function.DependsOnSpace():
@@ -74,9 +83,8 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             v.append(function)
         return v
 
-
     def ExecuteInitializeSolutionStep(self):
-        """ This method is executed in order to initialize the current step
+        """This method is executed in order to initialize the current step
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -86,22 +94,33 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             nr_comps = 6
             self.imposed_strain = [0.0] * nr_comps
             for i in range(nr_comps):
-                self.imposed_strain[i] = self.strain_functions[i].CallFunction( 0, 0, 0, current_time, 0, 0, 0)
+                self.imposed_strain[i] = self.strain_functions[i].CallFunction(
+                    0, 0, 0, current_time, 0, 0, 0
+                )
             self.imposed_stress = [0.0] * nr_comps
             for i in range(nr_comps):
-                self.imposed_stress[i] = self.stress_functions[i].CallFunction( 0, 0, 0, current_time, 0, 0, 0)
+                self.imposed_stress[i] = self.stress_functions[i].CallFunction(
+                    0, 0, 0, current_time, 0, 0, 0
+                )
         self.SetInitialState()
 
-
     def SetInitialState(self):
-        """ This method creates the c++ process and sets each entity
+        """This method creates the c++ process and sets each entity
 
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
         if self.dimension == 3:
-            KratosMultiphysics.SetInitialStateProcess3D(self.model_part,
-                self.imposed_strain, self.imposed_stress, self.imposed_deformation_gradient).ExecuteInitializeSolutionStep()
+            KratosMultiphysics.SetInitialStateProcess3D(
+                self.model_part,
+                self.imposed_strain,
+                self.imposed_stress,
+                self.imposed_deformation_gradient,
+            ).ExecuteInitializeSolutionStep()
         else:  # 2D case
-            KratosMultiphysics.SetInitialStateProcess2D(self.model_part,
-                self.imposed_strain, self.imposed_stress, self.imposed_deformation_gradient).ExecuteInitializeSolutionStep()
+            KratosMultiphysics.SetInitialStateProcess2D(
+                self.model_part,
+                self.imposed_strain,
+                self.imposed_stress,
+                self.imposed_deformation_gradient,
+            ).ExecuteInitializeSolutionStep()
