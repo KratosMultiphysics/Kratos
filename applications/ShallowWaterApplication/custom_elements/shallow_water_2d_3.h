@@ -452,10 +452,6 @@ protected:
 
     double StabilizationParameter(const ElementData& rData);
 
-    double HeightInverse(double Height, double Epsilon);
-
-    double WetFraction(double Height, double Epsilon);
-
     ///@}
     ///@name Protected  Access
     ///@{

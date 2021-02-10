@@ -23,6 +23,7 @@
 #include "shallow_water_application_variables.h"
 #include "custom_friction_laws/manning_law.h"
 #include "custom_friction_laws/wind_water_friction.h"
+#include "custom_utilities/shallow_water_utilities.h"
 #include "shallow_water_2d_3.h"
 
 namespace Kratos
@@ -307,7 +308,7 @@ void ShallowWater2D3::AddDesingularizationTerm(
     const ElementData& rData)
 {
     const double epsilon = rData.rel_dry_height * GetGeometry().Length();
-    const double factor = 1e3 * (1.0 - WetFraction(rData.height, epsilon));
+    const double factor = 1e3 * (1.0 - ShallowWaterUtilities().WetFraction(rData.height, epsilon));
     for (size_t i = 0; i < 3; ++i) {
         const size_t block = 3 * i;
         rLHS(block, block) += factor;
@@ -845,21 +846,9 @@ double ShallowWater2D3::StabilizationParameter(const ElementData& rData)
     const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
     const double length = this->GetGeometry().Length();
     const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
-    const double wet_fraction = WetFraction(rData.height, rData.rel_dry_height * length);
+    const double wet_fraction = ShallowWaterUtilities().WetFraction(rData.height, rData.rel_dry_height * length);
 
     return length * wet_fraction * rData.stab_factor / (eigenvalue + e);
-}
-
-double ShallowWater2D3::HeightInverse(double Height, double Epsilon)
-{
-    const double h4 = std::pow(Height, 4);
-    const double e4 = std::pow(Epsilon, 4);
-    return std::sqrt(2) * std::max(0.0, Height) / std::sqrt(h4 + std::max(h4, e4));
-}
-
-double ShallowWater2D3::WetFraction(double Height, double Epsilon)
-{
-    return Height * HeightInverse(Height, Epsilon);
 }
 
 } // namespace kratos
