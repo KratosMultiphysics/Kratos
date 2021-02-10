@@ -169,7 +169,7 @@ public:
     {
         if (this->HasInitialState()) {
             const auto& r_initial_state = GetInitialState();
-            noalias(rStrainVector) += r_initial_state.GetInitialStrainVector();
+            noalias(rStrainVector) -= r_initial_state.GetInitialStrainVector();
         }
     }
 
