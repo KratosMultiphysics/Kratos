@@ -21,7 +21,7 @@
 
 
 // Project includes
-#include "includes/node.h"
+#include "includes/model_part.h"
 
 
 namespace Kratos
@@ -47,8 +47,6 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-class ModelPart; // forward declaration
 
 /**
  * @ingroup ShallowWaterApplication
@@ -98,6 +96,10 @@ public:
     void ComputeEnergy(ModelPart& rModelPart);
 
     void ComputeAccelerations(ModelPart& rModelPart);
+
+    double InverseHeight(const double Height, const double Epsilon);
+
+    double WetFraction(double Height, double Epsilon);
 
     void FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart);
 
@@ -167,8 +169,6 @@ public:
 private:
     ///@name Operations
     ///@{
-
-    double InverseHeight(const double Height, const double Epsilon);
 
     void CalculateMassMatrix(Matrix& rMassMatrix, const GeometryType& rGeometry);
 

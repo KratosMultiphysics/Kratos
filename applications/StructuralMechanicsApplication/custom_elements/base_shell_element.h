@@ -48,6 +48,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+template <class TCoordinateTransformation>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) BaseShellElement
     : public Element
 {
@@ -88,7 +89,7 @@ public:
     /**
     * Destructor
     */
-    ~BaseShellElement() override;
+    ~BaseShellElement() override = default;
 
     ///@}
     ///@name Operators
