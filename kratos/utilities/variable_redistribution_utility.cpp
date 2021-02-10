@@ -687,7 +687,7 @@ void VariableRedistributionUtility::ThreadsafeAdd<double>(
     double& rLHS,
     const double& rRHS)
 {
-    AtomicAdd<double>(rLHS,rRHS);
+    AtomicAdd(rLHS,rRHS);
 }
 
 template<>
@@ -695,7 +695,7 @@ void VariableRedistributionUtility::ThreadsafeAdd<array_1d<double,3>>(
     array_1d<double,3>& rLHS,
     const array_1d<double,3>& rRHS)
 {
-    AtomicAdd<array_1d<double,3>, array_1d<double,3>>(rLHS, rRHS);
+    AtomicAddVector(rLHS, rRHS);
 }
 
 template<>

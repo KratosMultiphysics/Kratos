@@ -21,6 +21,7 @@
 /* Project includes */
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -232,20 +233,14 @@ void VariableUtils::AuxiliaryAtomicAdd(
     const double &rPrivateValue,
     double &rSumValue)
 {
-#pragma omp atomic
-        rSumValue += rPrivateValue;
+    AtomicAdd(rSumValue, rPrivateValue);
 }
 
 void VariableUtils::AuxiliaryAtomicAdd(
     const array_1d<double, 3> &rPrivateValue,
     array_1d<double, 3> &rSumValue)
 {
-#pragma omp atomic
-        rSumValue[0] += rPrivateValue[0];
-#pragma omp atomic
-        rSumValue[1] += rPrivateValue[1];
-#pragma omp atomic
-        rSumValue[2] += rPrivateValue[2];
+    AtomicAddVector(rSumValue, rPrivateValue);
 }
 
 template <>
