@@ -16,7 +16,6 @@ class KratosPaths(object):
 # import core library (Kratos.so)
 sys.path.append(KratosPaths.kratos_libs)
 from Kratos import *
-Logger.PrintInfo("Process Id", os.getpid())
 
 def __ModuleInitDetail():
     """
@@ -59,6 +58,10 @@ def __ModuleInitDetail():
     return kratos_globals.KratosGlobalsImpl(Kernel(using_mpi), KratosPaths.kratos_applications)
 
 KratosGlobals = __ModuleInitDetail()
+
+# print the process id e.g. for attatching a debugger
+if KratosGlobals.Kernel.BuildType() == "FullDebug" or KratosGlobals.Kernel.BuildType() == "Debug" or KratosGlobals.Kernel.BuildType() == "RelWithDebInfo":
+    Logger.PrintInfo("Process Id", os.getpid())
 
 def _ImportApplicationAsModule(application, application_name, application_folder, mod_path):
     Kernel = KratosGlobals.Kernel
