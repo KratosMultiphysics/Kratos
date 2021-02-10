@@ -20,13 +20,9 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "includes/dof.h"
-#include "includes/node.h"
-#include "includes/element.h"
-#include "includes/condition.h"
 #include "includes/model_part.h"
-#include "includes/process_info.h"
 #include "includes/ublas_interface.h"
+#include "utilities/entities_utilities.h"
 #include "solving_strategies/schemes/scheme.h"
 
 /* Application includes */
@@ -85,7 +81,7 @@ public:
     /// DoF type definition
     typedef Dof<double> TDofType;
     /// Dof pointers vector type
-    typedef std::vector<TDofType::Pointer> TElementDofsVectorType;
+    typedef std::vector<TDofType::Pointer> TElementDofPointersVectorType;
 
     /// Node type definition
     typedef Node<3>::NodeType TNodeType;
@@ -110,10 +106,10 @@ public:
         KRATOS_TRY
 
         std::string finite_difference_type = InputParameters["finite_difference_type"].GetString();
-        if (finite_difference_type == "central")
-            mFiniteDifferenceTypeFlag = true;
-        else if (finite_difference_type == "forward")
-            mFiniteDifferenceTypeFlag = false;
+        if (finite_difference_type == "forward")
+            mFiniteDifferenceType = FiniteDifferenceType::Forward;            
+        else if (finite_difference_type == "central")
+            mFiniteDifferenceType = FiniteDifferenceType::Central;
         else
             KRATOS_ERROR << "\"finite_difference_type\" can only be \"forward\" or \"central\""  << std::endl;
 
@@ -154,70 +150,7 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief It initializes a non-linear iteration (for an individual condition)
-     * @warning Must be defined in derived classes
-     * @param pCurrentElement The element to compute
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void InitializeNonLinearIteration(
-        Element::Pointer pCurrentElement,
-        ProcessInfo& rCurrentProcessInfo
-        ) override
-    {
-        KRATOS_TRY
-
-        (pCurrentElement)->InitializeNonLinearIteration(rCurrentProcessInfo);
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief It initializes a non-linear iteration (for an individual condition)
-     * @warning Must be defined in derived classes
-     * @param rCurrentCondition The condition to compute
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void InitializeNonLinearIteration(
-        Condition::Pointer pCurrentCondition,
-        ProcessInfo& rCurrentProcessInfo
-        ) override
-    {
-        KRATOS_TRY
-
-        (pCurrentCondition)->InitializeNonLinearIteration(rCurrentProcessInfo);
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -297,26 +230,29 @@ public:
         const auto basis_j = rCurrentProcessInfo[BASIS_J];
 
         // Get element DOF list
-        TElementDofsVectorType r_element_dof_list;
+        TElementDofPointersVectorType r_element_dof_list;
         rElement.GetDofList(r_element_dof_list, rCurrentProcessInfo);
-        const auto element_dofs_size = r_element_dof_list.size();
+        const std::size_t element_dofs_size = r_element_dof_list.size();
 
         // Get PhiElemental
-        LocalSystemVectorType phi_elemental;
+        LocalSystemVectorType phi_elemental(element_dofs_size);
         this->GetPhiElemental(phi_elemental, basis_i, rElement, r_element_dof_list, rCurrentProcessInfo);
 
         // Compute element LHS derivative
-        Matrix element_matrix_derivative;
-        element_matrix_derivative.resize(element_dofs_size,element_dofs_size,false);       
-        if (mFiniteDifferenceTypeFlag) // Central Difference
-            this->CentralDifferencingWithBasis(element_matrix_derivative, basis_j, rElement, rCurrentProcessInfo);
-        else // Forward difference
-            this->ForwardDifferencingWithBasis(element_matrix_derivative, basis_j, rElement, rCurrentProcessInfo);
-
+        Matrix element_matrix_derivative(element_dofs_size, element_dofs_size);
+        switch (mFiniteDifferenceType) {
+            case FiniteDifferenceType::Forward:
+                this->ForwardDifferencingWithBasis(element_matrix_derivative, basis_j, rElement, rCurrentProcessInfo);
+                break;
+            case FiniteDifferenceType::Central:
+                this->CentralDifferencingWithBasis(element_matrix_derivative, basis_j, rElement, rCurrentProcessInfo);
+                break;
+        }
         // Compute RHS contribution
-        rRHS_Contribution.resize(element_dofs_size);
+        if (rRHS_Contribution.size() != element_dofs_size)
+            rRHS_Contribution.resize(element_dofs_size);
         rRHS_Contribution.clear();
-        rRHS_Contribution -= prod(element_matrix_derivative, phi_elemental);
+        noalias(rRHS_Contribution) -= prod(element_matrix_derivative, phi_elemental);
 
         rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
@@ -363,8 +299,6 @@ protected:
         KRATOS_TRY
 
         auto& element_nodes = rElement.GetGeometry();
-        TNodePointerVectorType element_locked_nodes;
-        element_locked_nodes.reserve(element_nodes.size());
 
         bool all_nodes_locked{false};
         auto it_node = element_nodes.begin();
@@ -375,19 +309,15 @@ protected:
             if (!node_lock.try_lock())
             {
                 // if not successful: unlock all locked nodes and empty locked nodes vector
-                while (element_locked_nodes.size() != 0)
-                {
-                    element_locked_nodes.back()->UnSetLock();
-                    element_locked_nodes.pop_back();
-                }
+                for (auto it_locked_node = element_nodes.begin(); it_locked_node != it_node; ++it_locked_node)
+                    it_locked_node->UnSetLock();
                     
                 // reset the iterator to the first node
                 it_node = element_nodes.begin();
             } 
             else
             {
-                // if successful, add the node to the locked nodes vector and increment the node iterator
-                element_locked_nodes.push_back(TNodePointerType(&(*it_node)));
+                // if successful, increment the node iterator
                 ++it_node;
 
                 // check if all the nodes are locked
@@ -417,35 +347,36 @@ protected:
      * @brief This function retrieves the basis corresponding to element DOFs
      * @details 
      * @param rPhiElemental The element to unlock nodes
-     * @param basisIndex The index of the basis to retrieve
+     * @param BasisIndex The index of the basis to retrieve
      * @param rElement The element to retrieve basis
      * @param rElementDofList The elemental dof list
      * @param rCurrentProcessInfo The current process info instance
      */
     void GetPhiElemental(
         LocalSystemVectorType& rPhiElemental,
-        const std::size_t basisIndex,
+        const std::size_t BasisIndex,
         const Element& rElement,
-        const TElementDofsVectorType& rElementDofList,        
+        const TElementDofPointersVectorType& rElementDofList,        
         const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY
 
         // Get elemental and nodal DOFs size
-        const auto element_dofs_size = rElementDofList.size();
-        const auto nodal_dof_size = element_dofs_size/rElement.GetGeometry().size();
-        rPhiElemental.resize(element_dofs_size);
+        const std::size_t element_dofs_size = rElementDofList.size();
+        const std::size_t nodal_dof_size = element_dofs_size/rElement.GetGeometry().size();
         
         // Get PhiElemental
+        if (rPhiElemental.size() != element_dofs_size)
+            rPhiElemental.resize(element_dofs_size);
         for(std::size_t i_node = 0; i_node < rElement.GetGeometry().size(); ++i_node)
         {
             const auto& r_node = rElement.GetGeometry()[i_node];
-            const auto* p_phi_nodal = &(r_node.GetValue(ROM_BASIS));
+            const auto& r_phi_nodal = r_node.GetValue(ROM_BASIS);
             for (std::size_t i_dof = 0; i_dof < nodal_dof_size; ++i_dof)
             {
                 const auto& rp_dof = rElementDofList[i_node*nodal_dof_size+i_dof];
-                rPhiElemental[i_node*nodal_dof_size+i_dof] = (*p_phi_nodal)(rCurrentProcessInfo[MAP_PHI].at(rp_dof->GetVariable().Key()), basisIndex);
+                rPhiElemental[i_node*nodal_dof_size+i_dof] = r_phi_nodal(rCurrentProcessInfo[MAP_PHI].at(rp_dof->GetVariable().Key()), BasisIndex);
             }
         }
         KRATOS_CATCH("")
@@ -455,13 +386,13 @@ protected:
      * @brief This function performs forward differencing on the element LHS matrix
      * @details 
      * @param rElementMatrixDerivative The element to unlock nodes
-     * @param basisIndex The index of the basis for perturbation
+     * @param BasisIndex The index of the basis for perturbation
      * @param rElement The element to compute finite differencing
      * @param rCurrentProcessInfo The current process info instance
      */
     void ForwardDifferencingWithBasis(
          LocalSystemMatrixType& rElementMatrixDerivative,
-         const std::size_t basisIndex,
+         const std::size_t BasisIndex,
          Element&rElement,
          const ProcessInfo& rCurrentProcessInfo)
     {
@@ -470,20 +401,18 @@ protected:
         // Lock element nodes for OMP parallelism
         this->LockElementNodes(rElement);
 
-        const auto matrix_size = rElementMatrixDerivative.size1();
+        const std::size_t matrix_size = rElementMatrixDerivative.size1();
 
         // Positive perturbation
-        LocalSystemMatrixType element_matrix_p_perturbed;
-        element_matrix_p_perturbed.resize(matrix_size, matrix_size, false);
-        this->PerturbElementWithBasis(1.0, basisIndex, rElement, rCurrentProcessInfo);
+        LocalSystemMatrixType element_matrix_p_perturbed(matrix_size, matrix_size);
+        this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_matrix_p_perturbed, rCurrentProcessInfo);
 
         // Reset perturbation
-        this->PerturbElementWithBasis(-1.0, basisIndex, rElement, rCurrentProcessInfo);
+        this->PerturbElementWithBasis(-1.0, BasisIndex, rElement, rCurrentProcessInfo);
 
         // Neutral state
-        LocalSystemMatrixType element_matrix;
-        element_matrix.resize(matrix_size, matrix_size, false);
+        LocalSystemMatrixType element_matrix(matrix_size, matrix_size);
         rElement.CalculateLeftHandSide(element_matrix, rCurrentProcessInfo);
 
         // Compute ElementMatrixDerivative
@@ -499,13 +428,13 @@ protected:
      * @brief This function performs central differencing on the element LHS matrix
      * @details 
      * @param rElementMatrixDerivative The element to unlock nodes
-     * @param basisIndex The index of the basis for perturbation
+     * @param BasisIndex The index of the basis for perturbation
      * @param rElement The element to compute finite differencing
      * @param rCurrentProcessInfo The current process info instance
      */
     void CentralDifferencingWithBasis(
          LocalSystemMatrixType& rElementMatrixDerivative,
-         const std::size_t basisIndex,
+         const std::size_t BasisIndex,
          Element& rElement,
          const ProcessInfo& rCurrentProcessInfo)
     {
@@ -514,22 +443,20 @@ protected:
         // Lock element nodes for OMP parallelism
         this->LockElementNodes(rElement);
 
-        const auto matrix_size = rElementMatrixDerivative.size1();
+        const std::size_t matrix_size = rElementMatrixDerivative.size1();
 
         // Positive perturbation
-        LocalSystemMatrixType element_matrix_p_perturbed;
-        element_matrix_p_perturbed.resize(matrix_size, matrix_size, false);
-        this->PerturbElementWithBasis(1.0, basisIndex, rElement, rCurrentProcessInfo);
+        LocalSystemMatrixType element_matrix_p_perturbed(matrix_size, matrix_size);
+        this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_matrix_p_perturbed, rCurrentProcessInfo);
 
         // Negative perturbation
-        LocalSystemMatrixType element_matrix_n_perturbed;
-        element_matrix_n_perturbed.resize(matrix_size, matrix_size, false);
-        this->PerturbElementWithBasis(-2.0, basisIndex, rElement, rCurrentProcessInfo);
+        LocalSystemMatrixType element_matrix_n_perturbed(matrix_size, matrix_size);
+        this->PerturbElementWithBasis(-2.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_matrix_n_perturbed, rCurrentProcessInfo);
 
         // Reset perturbation
-        this->PerturbElementWithBasis(1.0, basisIndex, rElement, rCurrentProcessInfo);
+        this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
 
         // Compute LHS derivative
         noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix_n_perturbed) / (2.0 * mFiniteDifferenceStepSize);
@@ -540,17 +467,17 @@ protected:
     }
 
     /**
-     * @brief This function perturbs the element with the given basisIndex
+     * @brief This function perturbs the element with the given BasisIndex
      * @details 
      * @param Step The step direction and size
-     * @param basisIndex The index of the basis for perturbation
+     * @param BasisIndex The index of the basis for perturbation
      * @param rElement The element to perturb
      * @param rCurrentProcessInfo The current process info instance
      */
-    // This function perturbs the element with the vector with given eigenvector index basisIndex
+    // This function perturbs the element with the vector with given eigenvector index BasisIndex
     void PerturbElementWithBasis(
         const double Step,
-        const std::size_t basisIndex,
+        const std::size_t BasisIndex,
         Element& rElement,
         const ProcessInfo& rCurrentProcessInfo
     )
@@ -561,15 +488,15 @@ protected:
         rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Get DOF list
-        TElementDofsVectorType r_element_dof_list;
+        TElementDofPointersVectorType r_element_dof_list;
         rElement.GetDofList(r_element_dof_list, rCurrentProcessInfo);
 
         // Get PhiElemental
-        LocalSystemVectorType phi_elemental;
-        this->GetPhiElemental(phi_elemental, basisIndex, rElement, r_element_dof_list, rCurrentProcessInfo);
+        LocalSystemVectorType phi_elemental(r_element_dof_list.size());
+        this->GetPhiElemental(phi_elemental, BasisIndex, rElement, r_element_dof_list, rCurrentProcessInfo);
 
         // Apply perturbation
-        std::size_t nodal_dof_size = r_element_dof_list.size()/rElement.GetGeometry().size();
+        const std::size_t nodal_dof_size = r_element_dof_list.size()/rElement.GetGeometry().size();
         for(std::size_t i_node = 0; i_node < rElement.GetGeometry().size(); ++i_node)
         {
             for (std::size_t i_dof = 0; i_dof < nodal_dof_size; ++i_dof)
@@ -622,7 +549,9 @@ private:
 
     double mFiniteDifferenceStepSize;
 
-    bool mFiniteDifferenceTypeFlag;
+    enum FiniteDifferenceType {Forward, Central};
+
+    FiniteDifferenceType mFiniteDifferenceType;
 
     ///@}
     ///@name Private Operators
