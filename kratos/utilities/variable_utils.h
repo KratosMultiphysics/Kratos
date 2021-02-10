@@ -1147,11 +1147,15 @@ public:
         const auto& r_nodes_array = r_local_mesh.Nodes();
         const auto it_node_begin = r_nodes_array.begin();
 
-        #pragma omp parallel for reduction(+:sum_value)
+        /* #pragma omp parallel for reduction(+:sum_value)
         for (int k = 0; k < static_cast<int>(r_nodes_array.size()); ++k) {
             const auto it_node = it_node_begin + k;
             sum_value += it_node->GetValue(rVar);
-        }
+        } */
+
+        sum_value = block_for_each<SumReduction<double>>(r_nodes_array, [&](Node<3>& rNode){
+            return rNode.GetValue(rVar);
+        });
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
