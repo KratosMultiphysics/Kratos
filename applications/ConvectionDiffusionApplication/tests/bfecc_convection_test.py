@@ -218,9 +218,8 @@ class BFECCConvectionTest(UnitTest.TestCase):
                 KratosMultiphysics.DISTANCE,
                 KratosMultiphysics.VELOCITY,
                 5) # substeps
-            time = model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
             dt = model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
-            model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time + dt)
+            model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, float(i)*dt)
 
         max_distance = -1.0
         min_distance = +1.0
