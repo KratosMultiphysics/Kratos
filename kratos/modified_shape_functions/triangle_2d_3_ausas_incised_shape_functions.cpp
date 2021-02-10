@@ -22,15 +22,20 @@ namespace Kratos
 
 /// Triangle2D3AusasIncisedShapeFunctions implementation
 /// Default constructor
-Triangle2D3AusasIncisedShapeFunctions::Triangle2D3AusasIncisedShapeFunctions(const GeometryPointerType pInputGeometry,
-        const Vector& rNodalDistancesWithExtrapolated, const Vector& rExtrapolatedEdgeRatios) :
-    Triangle2D3AusasModifiedShapeFunctions(pInputGeometry, rNodalDistancesWithExtrapolated), mExtraEdgeRatios(rExtrapolatedEdgeRatios) {};
+Triangle2D3AusasIncisedShapeFunctions::Triangle2D3AusasIncisedShapeFunctions(
+    const GeometryPointerType pInputGeometry,
+    const Vector& rNodalDistancesWithExtrapolated,
+    const Vector& rExtrapolatedEdgeRatios)
+    : Triangle2D3AusasModifiedShapeFunctions(pInputGeometry, rNodalDistancesWithExtrapolated)
+    , mExtraEdgeRatios(rExtrapolatedEdgeRatios)
+{};
 
 /// Destructor
 Triangle2D3AusasIncisedShapeFunctions::~Triangle2D3AusasIncisedShapeFunctions() {};
 
 /// Turn back information as a string.
-std::string Triangle2D3AusasIncisedShapeFunctions::Info() const {
+std::string Triangle2D3AusasIncisedShapeFunctions::Info() const
+{
     return "Triangle2D3N Ausas incised shape functions computation class.";
 }
 
@@ -55,7 +60,8 @@ void Triangle2D3AusasIncisedShapeFunctions::PrintData(std::ostream& rOStream) co
 }
 
 // Returns the nodal distances vector.
-const Vector& Triangle2D3AusasIncisedShapeFunctions::GetExtrapolatedEdgeRatios() const {
+const Vector& Triangle2D3AusasIncisedShapeFunctions::GetExtrapolatedEdgeRatios() const
+{
     return mExtraEdgeRatios;
 }
 

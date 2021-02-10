@@ -22,15 +22,20 @@ namespace Kratos
 
 /// Tetrahedra3D4AusasIncisedShapeFunctions implementation
 /// Default constructor
-Tetrahedra3D4AusasIncisedShapeFunctions::Tetrahedra3D4AusasIncisedShapeFunctions(const GeometryPointerType pInputGeometry,
-        const Vector& rNodalDistancesWithExrapolated, const Vector& rExtrapolatedEdgeRatios) :
-    Tetrahedra3D4AusasModifiedShapeFunctions(pInputGeometry, rNodalDistancesWithExrapolated), mExtraEdgeRatios(rExtrapolatedEdgeRatios) {};
+Tetrahedra3D4AusasIncisedShapeFunctions::Tetrahedra3D4AusasIncisedShapeFunctions(
+    const GeometryPointerType pInputGeometry,
+    const Vector& rNodalDistancesWithExrapolated,
+    const Vector& rExtrapolatedEdgeRatios)
+    : Tetrahedra3D4AusasModifiedShapeFunctions(pInputGeometry, rNodalDistancesWithExrapolated)
+    , mExtraEdgeRatios(rExtrapolatedEdgeRatios)
+{};
 
 /// Destructor
 Tetrahedra3D4AusasIncisedShapeFunctions::~Tetrahedra3D4AusasIncisedShapeFunctions() {};
 
 /// Turn back information as a string.
-std::string Tetrahedra3D4AusasIncisedShapeFunctions::Info() const {
+std::string Tetrahedra3D4AusasIncisedShapeFunctions::Info() const
+{
     return "Tetrahedra3D4N Ausas incised shape functions computation class.";
 }
 
