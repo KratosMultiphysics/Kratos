@@ -372,7 +372,7 @@ protected:
         {   
             auto& node_lock = it_node->GetLock();
             // try to get a lock
-            if (!node_lock.TestLock())
+            if (!node_lock.try_lock())
             {
                 // if not successful: unlock all locked nodes and empty locked nodes vector
                 while (element_locked_nodes.size() != 0)
