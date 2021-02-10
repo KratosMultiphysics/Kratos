@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/checks.h"
+#include "includes/constitutive_law.h"
 #include "includes/element.h"
 #include "includes/properties.h"
 #include "utilities/adjoint_extensions.h"
@@ -259,7 +260,7 @@ protected:
     ///@name Protected Members
     ///@{
 
-    FluidConstitutiveLaw::Pointer mpFluidConstitutiveLaw = nullptr;
+    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     ///@}
     ///@name Protected Operations

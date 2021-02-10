@@ -58,8 +58,6 @@ public:
      */
     ConstitutiveLaw::Pointer Clone() const override;
 
-    FluidAdjointConstitutiveLaw::Pointer GetAdjointConstitutiveLaw() override;
-
     /**
      * Copy constructor.
      */

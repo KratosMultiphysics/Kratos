@@ -21,13 +21,13 @@
 #include "containers/variable.h"
 #include "geometries/geometry.h"
 #include "geometries/geometry_data.h"
+#include "includes/constitutive_law.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
 #include "includes/ublas_interface.h"
 #include "utilities/time_discretization.h"
 
 // Application includes
-#include "custom_constitutive/fluid_constitutive_law.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_elements/data_containers/qs_vms/qs_vms_derivative_utilities.h"
@@ -181,7 +181,7 @@ public:
             // calculate derivative contributions w.r.t. current derivative variable. Derivative variables are
             // assumed be independent of each other, so no cross derivative terms are there. Hence
             // it is only sufficient to derrive w.r.t. current derivative variable.
-            mrData.mrFluidConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, derivatives_type.GetDerivativeVariable(), effective_viscosity_derivative);
+            mrData.mrConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, derivatives_type.GetDerivativeVariable(), effective_viscosity_derivative);
 
             // calculate derivative contributions w.r.t. its dependent variable gradients. Dependent variable gradients
             // may be dependent of each other. therefore it is required to calculate derivatives w.r.t. gradients of
@@ -197,7 +197,7 @@ public:
                 // this is a list of gradient component variables. This list also should only contain scalar variables (eg. VELOCITY_GRADIENT_TENSOR_XX)
                 const auto& r_effective_viscosity_dependent_variable_gradient_component_list = r_effective_viscosity_dependent_variable.GetVariableGradientComponents();
                 for (IndexType i = 0; i < TDim; ++i) {
-                    mrData.mrFluidConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, *r_effective_viscosity_dependent_variable_gradient_component_list[i], effective_viscosity_derivative_value);
+                    mrData.mrConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, *r_effective_viscosity_dependent_variable_gradient_component_list[i], effective_viscosity_derivative_value);
                     effective_viscosity_derivative += effective_viscosity_derivative_value * (rdNdX(NodeIndex, i) * (r_derivative_variable ==  derivatives_type.GetDerivativeVariable()));
                     effective_viscosity_derivative += effective_viscosity_derivative_value * (derivative_variable_gradient[i]);
                 }
@@ -340,11 +340,11 @@ public:
 
             // calculate shear stress derivatives w.r.t. strain rate
             for (IndexType i = 0; i < TStrainSize; ++i) {
-                mrData.mrFluidConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, *r_strain_rate_variables[i], value);
+                mrData.mrConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, *r_strain_rate_variables[i], value);
                 noalias(mrData.mShearStressDerivative) += value * mrData.mStrainRateDerivative[i];
             }
             // calculate shear stress derivatives w.r.t. effective viscosity
-            mrData.mrFluidConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, EFFECTIVE_VISCOSITY, value);
+            mrData.mrConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, EFFECTIVE_VISCOSITY, value);
             noalias(mrData.mShearStressDerivative) += value * effective_viscosity_derivative;
 
             this->AddViscousDerivative(rResidualDerivative, NodeIndex,
@@ -433,7 +433,7 @@ public:
 
         Data(
             const Element& rElement,
-            FluidConstitutiveLaw& rFluidConstitutiveLaw,
+            ConstitutiveLaw& rConstitutiveLaw,
             const ProcessInfo& rProcessInfo);
 
         ///@}
@@ -451,7 +451,7 @@ public:
         ///@{
 
         const Element& mrElement;
-        FluidConstitutiveLaw& mrFluidConstitutiveLaw;
+        ConstitutiveLaw& mrConstitutiveLaw;
 
         // Primal data
         int mOSS_SWITCH;
@@ -501,10 +501,8 @@ public:
         // Sotring this derivatives also in primal data container
         // since all the matrices and vectors needs to be initialized
         // in the heap, therefore to avoid re-reserving memory for each derivative
-        ConstitutiveLaw::Parameters mConstitutiveLawValuesDerivative;
         Vector mStrainRateDerivative;
         Vector mShearStressDerivative;
-        Matrix mCDerivative;
 
         ///@}
         ///@name Private Friends

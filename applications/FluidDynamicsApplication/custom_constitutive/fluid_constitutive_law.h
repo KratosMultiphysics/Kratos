@@ -20,8 +20,6 @@
 // Project includes
 #include "includes/constitutive_law.h"
 
-// Application includes
-#include "custom_constitutive/fluid_adjoint_constitutive_law.h"
 
 namespace Kratos
 {
@@ -64,8 +62,6 @@ public:
 
     /// Initialize a new instance of this type of law
     ConstitutiveLaw::Pointer Clone() const override;
-
-    virtual FluidAdjointConstitutiveLaw::Pointer GetAdjointConstitutiveLaw();
 
     /// Calculate the response of the material for the current strain rates.
     /** This is the main method for fluid constitutive laws.
@@ -149,14 +145,14 @@ protected:
      *  @param[in] EffectiveViscosity Equivalent viscosity for the fluid (dynamic units -- Pa s -- assumed).
      *  @param[out] rC Resulting constitutive matrix.
      */
-    static void NewtonianConstitutiveMatrix2D(double EffectiveViscosity, Matrix& rC);
+    void NewtonianConstitutiveMatrix2D(double EffectiveViscosity, Matrix& rC);
 
     /// Helper function to write the constitutive matrix using an effective viscosity (3D version).
     /** It returns a matrix with the same structure as for a Newtonian fluid, using the given viscosity.
      *  @param[in] EffectiveViscosity Equivalent viscosity for the fluid (dynamic units -- Pa s -- assumed).
      *  @param[out] rC Resulting constitutive matrix.
      */
-    static void NewtonianConstitutiveMatrix3D(double EffectiveViscosity, Matrix& rC);
+    void NewtonianConstitutiveMatrix3D(double EffectiveViscosity, Matrix& rC);
 
     ///@}
     ///@name Protected  Access
@@ -202,12 +198,6 @@ protected:
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
-
-    ///@}
-    ///@name Adjoints
-    ///@{
-
-    friend class FluidAdjointConstitutiveLaw;
 
     ///@}
 

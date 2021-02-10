@@ -23,7 +23,6 @@
 #include "utilities/indirect_scalar.h"
 
 // Application includes
-#include "custom_constitutive/fluid_adjoint_constitutive_law.h"
 #include "fluid_dynamics_application_variables.h"
 
 #include "custom_elements/data_containers/qs_vms/qs_vms_adjoint_element_data.h"
@@ -291,7 +290,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Initialize(const
     KRATOS_TRY;
 
     // If we are restarting, the constitutive law will be already defined
-    if (mpFluidConstitutiveLaw == nullptr) {
+    if (mpConstitutiveLaw == nullptr) {
         const Properties& r_properties = this->GetProperties();
 
         KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
@@ -299,16 +298,14 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Initialize(const
             << ": No CONSTITUTIVE_LAW defined for property "
             << r_properties.Id() << "." << std::endl;
 
-        // Here we can do down casting because, it should be always a FluidConstitutiveLaw
-        mpFluidConstitutiveLaw = std::static_pointer_cast<FluidConstitutiveLaw>(
-            r_properties[CONSTITUTIVE_LAW]->Clone());
+        mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
 
         const GeometryType& r_geometry = this->GetGeometry();
         const auto& r_shape_functions =
             r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
 
-        mpFluidConstitutiveLaw->InitializeMaterial(r_properties, r_geometry,
-                                                   row(r_shape_functions, 0));
+        mpConstitutiveLaw->InitializeMaterial(r_properties, r_geometry,
+                                              row(r_shape_functions, 0));
     }
 
     this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
@@ -480,7 +477,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidResidual
     ShapeFunctionDerivativesArrayType dNdXs;
     this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
 
-    typename TAdjointElementData::Primal::Data element_data(*this, *mpFluidConstitutiveLaw, rCurrentProcessInfo);
+    typename TAdjointElementData::Primal::Data element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
     typename TAdjointElementData::Primal::ResidualsContributions residual_contributions(element_data);
 
     VectorF residual = ZeroVector(TElementLocalSize);
@@ -515,7 +512,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidFirstDer
 
     using Derivatives = typename TAdjointElementData::StateDerivatives::FirstDerivatives;
 
-    typename Derivatives::Data     element_data(*this, *mpFluidConstitutiveLaw, rCurrentProcessInfo);
+    typename Derivatives::Data     element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
     typename Derivatives::Velocity velocity_derivative(element_data);
     typename Derivatives::Pressure pressure_derivative(element_data);
 
@@ -560,7 +557,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidSecondDe
 
     using Derivatives = typename TAdjointElementData::StateDerivatives::SecondDerivatives;
 
-    typename Derivatives::Data         element_data(*this, *mpFluidConstitutiveLaw, rCurrentProcessInfo);
+    typename Derivatives::Data         element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
     typename Derivatives::Acceleration acceleration_derivative(element_data);
 
     VectorF residual;
@@ -603,7 +600,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidShapeDer
 
     using Derivatives = typename TAdjointElementData::SensitivityDerivatives;
 
-    typename Derivatives::Data  element_data(*this, *mpFluidConstitutiveLaw, rCurrentProcessInfo);
+    typename Derivatives::Data  element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
     typename Derivatives::Shape derivative(element_data);
 
     VectorF residual;
