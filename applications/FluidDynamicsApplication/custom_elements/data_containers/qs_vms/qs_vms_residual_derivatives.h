@@ -175,17 +175,33 @@ public:
             const auto& element_length_derivative = derivatives_type.CalculateElementLengthDerivative(mrData.mElementSize);
             derivatives_type.CalculateStrainRateDerivative(mrData.mStrainRateDerivative, mrData.mNodalVelocity);
 
-            // compute viscous term derivatives
-            auto p_fluid_constitutive_adjoint_law =
-                mrData.mrFluidConstitutiveLaw.GetAdjointConstitutiveLaw();
-            const double effective_viscosity_derivative =
-                p_fluid_constitutive_adjoint_law->CalculateEffectiveViscosityDerivative(
-                    mrData.mConstitutiveLawValuesDerivative, mrData.mConstitutiveLawValues,
-                    NodeIndex, derivatives_type.GetDerivativeVariable());
-            p_fluid_constitutive_adjoint_law->CalculateMaterialResponseCauchyDerivative(
-                mrData.mConstitutiveLawValuesDerivative, mrData.mConstitutiveLawValues,
-                NodeIndex, derivatives_type.GetDerivativeVariable(),
-                mrData.mEffectiveViscosity, effective_viscosity_derivative);
+            // compute viscous term derivative
+            double effective_viscosity_derivative;
+
+            // calculate derivative contributions w.r.t. current derivative variable. Derivative variables are
+            // assumed be independent of each other, so no cross derivative terms are there. Hence
+            // it is only sufficient to derrive w.r.t. current derivative variable.
+            mrData.mrFluidConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, derivatives_type.GetDerivativeVariable(), effective_viscosity_derivative);
+
+            // calculate derivative contributions w.r.t. its dependent variable gradients. Dependent variable gradients
+            // may be dependent of each other. therefore it is required to calculate derivatives w.r.t. gradients of
+            // all dependent variables.
+            double effective_viscosity_derivative_value;
+            ArrayD derivative_variable_gradient;
+            const auto& r_effective_viscosity_dependent_variables = derivatives_type.GetEffectiveViscosityDependentVariables();
+            for (const auto& r_effective_viscosity_dependent_variable : r_effective_viscosity_dependent_variables) {
+                // these variables always needs to be scalars (eg. VELOCITY_X)
+                const auto& r_derivative_variable = r_effective_viscosity_dependent_variable.GetVariable();
+                FluidCalculationUtilities::EvaluateGradientInPoint(mrData.mrElement.GetGeometry(), rdNdXDerivative, std::tie(derivative_variable_gradient, r_derivative_variable));
+
+                // this is a list of gradient component variables. This list also should only contain scalar variables (eg. VELOCITY_GRADIENT_TENSOR_XX)
+                const auto& r_effective_viscosity_dependent_variable_gradient_component_list = r_effective_viscosity_dependent_variable.GetVariableGradientComponents();
+                for (IndexType i = 0; i < TDim; ++i) {
+                    mrData.mrFluidConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, *r_effective_viscosity_dependent_variable_gradient_component_list[i], effective_viscosity_derivative_value);
+                    effective_viscosity_derivative += effective_viscosity_derivative_value * (rdNdX(NodeIndex, i) * (r_derivative_variable ==  derivatives_type.GetDerivativeVariable()));
+                    effective_viscosity_derivative += effective_viscosity_derivative_value * (derivative_variable_gradient[i]);
+                }
+            }
 
             const double velocity_norm_derivative = CalculateNormDerivative(
                 mrData.mConvectiveVelocityNorm, mrData.mConvectiveVelocity, velocity_derivative);
@@ -316,6 +332,20 @@ public:
 
             mResidualWeightDerivativeContributions.AddGaussPointResidualsContributions(
                 rResidualDerivative, WDerivative, rN, rdNdX);
+
+            // calculate shear stress derivative.
+            const auto& r_strain_rate_variables = QSVMSDerivativeUtilities<TDim>::GetStrainRateVariables();
+            Vector value;
+            mrData.mShearStressDerivative.clear();
+
+            // calculate shear stress derivatives w.r.t. strain rate
+            for (IndexType i = 0; i < TStrainSize; ++i) {
+                mrData.mrFluidConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, *r_strain_rate_variables[i], value);
+                noalias(mrData.mShearStressDerivative) += value * mrData.mStrainRateDerivative[i];
+            }
+            // calculate shear stress derivatives w.r.t. effective viscosity
+            mrData.mrFluidConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, EFFECTIVE_VISCOSITY, value);
+            noalias(mrData.mShearStressDerivative) += value * effective_viscosity_derivative;
 
             this->AddViscousDerivative(rResidualDerivative, NodeIndex,
                                        DirectionIndex, W, rN, rdNdX, WDerivative,
