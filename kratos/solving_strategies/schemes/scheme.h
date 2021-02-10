@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
 #include "includes/kratos_parameters.h"
+#include "utilities/entities_utilities.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
@@ -285,22 +286,8 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Initializes solution step for all of the elements
-        block_for_each(rModelPart.Elements(), [&r_current_process_info](Element& rElement){
-            rElement.InitializeSolutionStep(r_current_process_info);
-        });
-
-        // Initializes solution step for all of the conditions
-        block_for_each(rModelPart.Conditions(), [&r_current_process_info](Condition& rCondition){
-            rCondition.InitializeSolutionStep(r_current_process_info);
-        });
-
-        // Initializes solution step for all of the constraints
-        block_for_each(rModelPart.MasterSlaveConstraints(), [&r_current_process_info](MasterSlaveConstraint& rConstraint){
-            rConstraint.InitializeSolutionStep(r_current_process_info);
-        });
+        // Initializes solution step for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeSolutionStepAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -320,22 +307,8 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Finalizes solution step for all of the elements
-        block_for_each(rModelPart.Elements(), [&r_current_process_info](Element& rElement){
-            rElement.FinalizeSolutionStep(r_current_process_info);
-        });
-
-        // Finalizes solution step for all of the conditions
-        block_for_each(rModelPart.Conditions(), [&r_current_process_info](Condition& rCondition){
-            rCondition.FinalizeSolutionStep(r_current_process_info);
-        });
-
-        // Finalizes solution step for all of the constraints
-        block_for_each(rModelPart.MasterSlaveConstraints(), [&r_current_process_info](MasterSlaveConstraint& rConstraint){
-            rConstraint.FinalizeSolutionStep(r_current_process_info);
-        });
+        // Finalizes solution step for all of the elements, conditions and constraints
+        EntitiesUtilities::FinalizeSolutionStepAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -460,22 +433,8 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Finalizes non-linear iteration for all of the elements
-        block_for_each(rModelPart.Elements(), [&r_current_process_info](Element& rElement){
-            rElement.FinalizeNonLinearIteration(r_current_process_info);
-        });
-
-        // Finalizes non-linear iteration  for all of the conditions
-        block_for_each(rModelPart.Conditions(), [&r_current_process_info](Condition& rCondition){
-            rCondition.FinalizeNonLinearIteration(r_current_process_info);
-        });
-
-        // Finalizes non-linear iteration for all of the constraints
-        block_for_each(rModelPart.MasterSlaveConstraints(), [&r_current_process_info](MasterSlaveConstraint& rConstraint){
-            rConstraint.FinalizeNonLinearIteration(r_current_process_info);
-        });
+        // Finalizes non-linear iteration for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }

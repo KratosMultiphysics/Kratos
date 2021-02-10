@@ -20,6 +20,7 @@
 
 /* Project includes */
 #include "solving_strategies/schemes/scheme.h"
+#include "utilities/entities_utilities.h"
 
 namespace Kratos
 {
@@ -161,22 +162,8 @@ public:
     {
         KRATOS_TRY;
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Initializes non-linear iteration for all of the elements
-        block_for_each(rModelPart.Elements(), [&r_current_process_info](Element& rElement){
-            rElement.InitializeNonLinearIteration(r_current_process_info);
-        });
-
-        // Initializes non-linear iteration for all of the conditions
-        block_for_each(rModelPart.Conditions(), [&r_current_process_info](Condition& rCondition){
-            rCondition.InitializeNonLinearIteration(r_current_process_info);
-        });
-
-        // Initializes non-linear iteration for all of the constraints
-        block_for_each(rModelPart.MasterSlaveConstraints(), [&r_current_process_info](MasterSlaveConstraint& rConstraint){
-            rConstraint.InitializeNonLinearIteration(r_current_process_info);
-        });
+        // Initializes non-linear iteration for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
 
         KRATOS_CATCH( "" );
     }
