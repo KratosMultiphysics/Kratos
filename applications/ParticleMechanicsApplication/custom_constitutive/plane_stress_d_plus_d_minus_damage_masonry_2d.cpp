@@ -22,7 +22,7 @@
 #include "particle_mechanics_application_variables.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
-#define OPTIMIZE_CHARACTERISTIC_LENGTH
+//#define OPTIMIZE_CHARACTERISTIC_LENGTH
 #define HEAVISIDE(X) ( X >= 0.0 ? 1.0 : 0.0)
 #define MACAULAY(X)  ( X >= 0.0 ? X : 0.0)
 #define PROJECTION_OPERATOR_CERVERA_2003
@@ -915,6 +915,8 @@ void DamageDPlusDMinusMasonry2DLaw::ComputeCharacteristicLength(
     double& rCharacteristicLength)
 {
 	// Updated for MPM
+
+	KRATOS_ERROR << "UPDATE FOR MPM";
 
 
     rCharacteristicLength = geom.Length();
