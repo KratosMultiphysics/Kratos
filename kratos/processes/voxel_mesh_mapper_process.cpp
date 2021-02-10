@@ -26,6 +26,7 @@
 #include "includes/checks.h"
 #include "utilities/timer.h"
 #include "utilities/parallel_utilities.h"
+#include "input_output/vtr_io.h"
 
 
 
@@ -35,29 +36,18 @@ namespace Kratos
         ModelPart& rSkinPart, Parameters& TheParameters) : VoxelMeshGeneratorProcess(rVolumePart, rSkinPart, TheParameters)
 	{
 
+        TheParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
+
+        ConstructFromParameters(TheParameters);
+
+        mMappingParameters = TheParameters["mapping_results_to_variable"];
+
+        KRATOS_WATCH(mMappingParameters);
+
 		Timer::Start("Reading Input Mesh");
-        ReadInputFile(InputFileName);
+        ReadInputVtrFile(InputFileName);
+        ReadInputFemFile(InputFileName);
 		Timer::Stop("Reading Input Mesh");
-
-		Parameters default_parameters(R"(
-            {
-	            "create_skin_sub_model_part": true,
-	            "start_node_id":1,
-                "start_element_id":1,
-                "start_condition_id":1,
-                "number_of_divisions":[1,1,1],
-                "elements_properties_id":0,
-                "conditions_properties_id":0,
-                "element_name": "PLEASE SPECIFY IT",
-                "condition_name": "PLEASE SPECIFY IT",
-				"coloring_settings_list": [],
-				"entities_to_generate": "elements",
-				"output" : "mesh",
-				"mesh_type": "uniform",
-				"output_filename" : ""
-            }  )");
-
-		TheParameters.ValidateAndAssignDefaults(default_parameters);
 
         mMinPoint = mColors.GetMinPoint();
         mMaxPoint = mColors.GetMaxPoint();
@@ -119,11 +109,34 @@ namespace Kratos
 			parameters.ValidateAndAssignDefaults(default_parameters);
 			
 			std::string model_part_name = parameters["model_part_name"].GetString();
-			ModelPart& skin_part = (model_part_name == mrSkinPart.Name()) ? mrSkinPart : mrSkinPart.GetSubModelPart(model_part_name);
+            if(model_part_name == mrVolumePart.Name()){
+                MapResults(mrVolumePart, parameters);
+            }
+            else if(mrVolumePart.HasSubModelPart(model_part_name)){
+                MapResults(mrVolumePart.GetSubModelPart(model_part_name), parameters);
+            }
+            else{
+                KRATOS_WARNING("Mapper") << "The given volume modelpart does not have the sub modelpart \"" << model_part_name << "\"" << std::endl;
+            }
 
-			MapResults(skin_part, parameters);
+			
 		}
+
 		Timer::Stop("Mapping The Results");        
+	}
+
+
+	const Parameters VoxelMeshMapperProcess::GetDefaultParameters() const {
+		Parameters default_parameters(R"(
+            {
+                "mapping_results_to_variable": []
+            }  )");
+
+		// Getting base class default parameters
+        const Parameters base_default_parameters = VoxelMeshGeneratorProcess::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
+		return default_parameters;
 	}
 
 	std::string VoxelMeshMapperProcess::Info() const {
@@ -192,6 +205,71 @@ namespace Kratos
 
 	}
 
+	void VoxelMeshMapperProcess::ReadInputVtrFile(std::string InputFileName) {
+        VtrIO vtr_io(InputFileName + ".vtr");
+        std::vector<Kratos::Internals::CartesianMeshColors> multi_block_mesh;
+
+        vtr_io.Read(multi_block_mesh);
+
+        KRATOS_ERROR_IF(multi_block_mesh.size() != 1) << "The voxel mesh mapper only works with one block" << std::endl;
+
+        mInputMesh = multi_block_mesh[0];
+        mColors.SetCoordinates(mInputMesh.GetNodalCoordinates(0), mInputMesh.GetNodalCoordinates(1), mInputMesh.GetNodalCoordinates(2)); 
+
+        mInputMesh.WriteParaViewVTR(InputFileName + "_input.vtr"); 
+	}
+
+	void VoxelMeshMapperProcess::ReadInputFemFile(std::string InputFileName) {
+        std::ifstream input(InputFileName + ".fem");
+        std::string line;
+        ModelPart* p_current_sub_model_part = nullptr;
+        if(!mrVolumePart.HasProperties(0))
+            mrVolumePart.CreateNewProperties(0);
+
+        Properties::Pointer p_properties = mrVolumePart.pGetProperties(0);
+
+        while(!input.eof()){
+            std::getline(input, line);
+            if(line.substr(0,18) == "Begin SubModelPart"){
+                std::string sub_model_part_name=line.substr(19);
+                sub_model_part_name.erase(sub_model_part_name.begin(), std::find_if(sub_model_part_name.begin(), sub_model_part_name.end(), [](unsigned char ch) {return !std::isspace(ch);}));
+                sub_model_part_name.erase(std::find_if(sub_model_part_name.begin(), sub_model_part_name.end(), [](unsigned char ch) {return std::isspace(ch);}), sub_model_part_name.end());
+                KRATOS_INFO("Mapper") << "Reading modelpart \"" << sub_model_part_name << "\"" << std::endl;
+                if(!mrVolumePart.HasSubModelPart(sub_model_part_name)){
+                    p_current_sub_model_part = &mrVolumePart.CreateSubModelPart(sub_model_part_name);
+                }
+                else{
+                    p_current_sub_model_part = &mrVolumePart.GetSubModelPart(sub_model_part_name);
+                }
+            }
+            if(line.substr(0,4) == "GRID"){
+                std::size_t index = std::stoi(line.substr(4,12));
+                double x = ReadDouble(line.substr(24, 8));
+                double y = ReadDouble(line.substr(32, 8));
+                double z = ReadDouble(line.substr(40));
+
+                if(x < mInputMesh.GetMinPoint()[0] || x > mInputMesh.GetMaxPoint()[0]){
+                    KRATOS_WATCH(line);
+                    std::cout << index << " : " << x << " " << y << " " << z << std::endl;
+                }
+
+                p_current_sub_model_part->CreateNewNode(index, x, y, z);
+            }
+            if(line.substr(0,6) == "CTETRA"){
+                std::size_t index = std::stoi(line.substr(7,12));
+                std::size_t n1 = std::stoi(line.substr(24, 8));
+                std::size_t n2 = std::stoi(line.substr(32, 8));
+                std::size_t n3 = std::stoi(line.substr(40, 8));
+                std::size_t n4 = std::stoi(line.substr(48));
+
+                // KRATOS_INFO("Mapper") << "Reading element " << index << " with nodes " << n1 << "," << n2 << "," << n3 << "," << n4 << std::endl;
+
+                p_current_sub_model_part->CreateNewElement("Element3D4N", index, {n1, n2, n3, n4}, p_properties);
+            }
+        }
+        KRATOS_WATCH(mrVolumePart);
+	}
+    
     void VoxelMeshMapperProcess::CenterToNodalCoordinates(std::vector<double>& rCoordinates){
         KRATOS_ERROR_IF(rCoordinates.size() < 2) << "At least two center coordinates are needed" << std::endl;
         std::vector<double> nodal_coordinates;
@@ -231,6 +309,22 @@ namespace Kratos
         const std::size_t n_y =  coordinates_y.size();
         const std::size_t n_z =  coordinates_z.size();
 
+        std::vector<std::pair<Variable<double>, std::string>> variables_to_map;
+
+        for(auto mapping_parameters : mMappingParameters){
+            std::string map_from = mapping_parameters["from_result"].GetString();
+            std::string variable_name = mapping_parameters["to_variable"].GetString();
+
+            KRATOS_ERROR_IF(!mInputMesh.HasElementalData(map_from)) << "The data to map \"" << map_from << "\" is not in the input data" << std::endl;
+            if(KratosComponents<Variable<double> >::Has(variable_name))
+            {
+                auto& the_variable  = KratosComponents<Variable<double> >::Get(variable_name);
+                variables_to_map.push_back(std::make_pair(the_variable,map_from));
+            }
+
+            KRATOS_WATCH(map_from);
+            KRATOS_WATCH(variable_name);
+        }
 //        block_for_each(TheModelPart.Nodes(), [&](Node<3>& rNode)
         for(auto& rNode : TheModelPart.Nodes())
         {
@@ -241,7 +335,9 @@ namespace Kratos
             double cell_color = mColors.GetElementalColor(i_position,j_position,k_position);
 
             if(cell_color == inside_color){
-                rNode.GetSolutionStepValue(TEMPERATURE) = mInputMesh.GetElementalColor(i_position,j_position,k_position);
+                for(auto& variable_data : variables_to_map){
+                    rNode.GetSolutionStepValue(variable_data.first) = mInputMesh.GetElementalData(variable_data.second , i_position,j_position,k_position);
+                }
             }
             else{
                 double min_distance = std::numeric_limits<double>::max();
@@ -275,11 +371,29 @@ namespace Kratos
                         }
                     }
                 }
-                rNode.GetSolutionStepValue(TEMPERATURE) = mInputMesh.GetElementalColor(nearest_i,nearest_j,nearest_k);
+                for(auto& variable_data : variables_to_map){
+                    rNode.GetSolutionStepValue(variable_data.first) = mInputMesh.GetElementalData(variable_data.second, nearest_i,nearest_j,nearest_k);
+                }
             }
         }
         //);
 
     }
+
+    double VoxelMeshMapperProcess::ReadDouble(std::string&& Input){
+        std::size_t pos = Input.rfind('-');
+
+        if(pos != 0 && pos != std::string::npos){
+            Input.replace(pos, 1, "e-");
+        }
+
+        pos = Input.rfind('+');
+        if(pos != 0 && pos != std::string::npos){
+            Input.replace(pos, 1, "e+");
+        }
+
+        return std::stod(Input);
+    }
+
 
 }  // namespace Kratos.

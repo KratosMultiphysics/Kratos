@@ -88,6 +88,9 @@ namespace Kratos
 
       int Check() override;
 
+     const Parameters GetDefaultParameters() const override;
+
+
       ///@}
       ///@name Access
       ///@{
@@ -129,14 +132,18 @@ namespace Kratos
       ///@{
 
         Internals::CartesianMeshColors mInputMesh;
+        Parameters mMappingParameters;
 
       ///@}
       ///@name Private Operations
       ///@{
         
         void ReadInputFile(std::string InputFileName);
+        void ReadInputVtrFile(std::string InputFileName);
+        void ReadInputFemFile(std::string InputFileName);
         void CenterToNodalCoordinates(std::vector<double>& rCoordinates);
         void MapResults(ModelPart const& TheModelPart, Parameters parameters);
+        double ReadDouble(std::string&& Input);
 
       ///@}
       ///@name Private  Access
