@@ -196,10 +196,10 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::CalculateGaus
 template <unsigned int TDim, unsigned int TNumNodes>
 QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Data(
     const Element& rElement,
-    FluidConstitutiveLaw& rFluidConstitutiveLaw,
+    ConstitutiveLaw& rConstitutiveLaw,
     const ProcessInfo& rProcessInfo)
     : mrElement(rElement),
-      mrFluidConstitutiveLaw(rFluidConstitutiveLaw)
+      mrConstitutiveLaw(rConstitutiveLaw)
 {
     KRATOS_TRY
 
@@ -246,10 +246,9 @@ QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Data(
     InitializeConstitutiveLaw(mConstitutiveLawValues, mStrainRate, mShearStress, mC,
                               r_geometry, mrElement.GetProperties(), rProcessInfo);
 
-    // setting up derivative constitutive law
-    InitializeConstitutiveLaw(mConstitutiveLawValuesDerivative, mStrainRateDerivative,
-                              mShearStressDerivative, mCDerivative, r_geometry,
-                              mrElement.GetProperties(), rProcessInfo);
+    // setting up adjoint derivative variables
+    mStrainRateDerivative.resize(TStrainSize);
+    mShearStressDerivative.resize(TStrainSize);
 
     KRATOS_CATCH("");
 }
@@ -291,16 +290,13 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
 
     // compute constitutive law values
     // Ask Ruben: Why not (Velocity - MeshVelocity) in here?
-    derivative_utilities::CalculateStrainRate(
-        mStrainRate, mNodalVelocity, rdNdX);
+    derivative_utilities::CalculateStrainRate(mStrainRate, mNodalVelocity, rdNdX);
     mConstitutiveLawValues.SetShapeFunctionsValues(rN);
-    mConstitutiveLawValuesDerivative.SetShapeFunctionsValues(rN);
 
     // ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
     // this is ok under the hypothesis that no history dependent behavior is employed
-    mrFluidConstitutiveLaw.CalculateMaterialResponseCauchy(mConstitutiveLawValues);
-    mrFluidConstitutiveLaw.CalculateValue(
-        mConstitutiveLawValues, EFFECTIVE_VISCOSITY, mEffectiveViscosity);
+    mrConstitutiveLaw.CalculateMaterialResponseCauchy(mConstitutiveLawValues);
+    mrConstitutiveLaw.CalculateValue(mConstitutiveLawValues, EFFECTIVE_VISCOSITY, mEffectiveViscosity);
 
     element_utilities::GetStrainMatrix(rdNdX, mStrainMatrix);
     noalias(mViscousTermRHSContribution) = prod(trans(mStrainMatrix), mShearStress);

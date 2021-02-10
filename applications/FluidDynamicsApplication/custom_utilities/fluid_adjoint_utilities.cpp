@@ -31,12 +31,15 @@
 
 namespace Kratos
 {
-template <unsigned int TDim, unsigned int TBlockSize>
-const CoordinateTransformationUtils<Matrix, Vector, double> FluidAdjointUtilities<TDim, TBlockSize>::mRotationTool(
+
+template <unsigned int TDim>
+template <unsigned int TBlockSize>
+const CoordinateTransformationUtils<Matrix, Vector, double> FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::mRotationTool(
     TDim, TBlockSize);
 
-template <unsigned int TDim, unsigned int TBlockSize>
-void FluidAdjointUtilities<TDim, TBlockSize>::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
+template <unsigned int TDim>
+template <unsigned int TBlockSize>
+void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
     Matrix& rOutput,
     const Matrix& rResidualDerivatives,
     const GeometryType& rGeometry)
@@ -63,8 +66,9 @@ void FluidAdjointUtilities<TDim, TBlockSize>::CalculateRotatedSlipConditionAppli
     }
 }
 
-template <unsigned int TDim, unsigned int TBlockSize>
-void FluidAdjointUtilities<TDim, TBlockSize>::CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+template <unsigned int TDim>
+template <unsigned int TBlockSize>
+void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
     Matrix& rOutput,
     const Matrix& rResidualDerivatives,
     const GeometryType& rGeometry)
@@ -93,8 +97,9 @@ void FluidAdjointUtilities<TDim, TBlockSize>::CalculateRotatedSlipConditionAppli
     }
 }
 
-template <unsigned int TDim, unsigned int TBlockSize>
-void FluidAdjointUtilities<TDim, TBlockSize>::AddNodalRotationDerivatives(
+template <unsigned int TDim>
+template <unsigned int TBlockSize>
+void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::AddNodalRotationDerivatives(
     Matrix& rOutput,
     const Matrix& rResidualDerivatives,
     const IndexType NodeStartIndex,
@@ -127,8 +132,9 @@ void FluidAdjointUtilities<TDim, TBlockSize>::AddNodalRotationDerivatives(
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim, unsigned int TBlockSize>
-void FluidAdjointUtilities<TDim, TBlockSize>::AddNodalApplySlipConditionDerivatives(
+template <unsigned int TDim>
+template <unsigned int TBlockSize>
+void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::AddNodalApplySlipConditionDerivatives(
     Matrix& rOutput,
     const IndexType NodeStartIndex,
     const NodeType& rNode)
@@ -151,8 +157,9 @@ void FluidAdjointUtilities<TDim, TBlockSize>::AddNodalApplySlipConditionDerivati
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim, unsigned int TBlockSize>
-void FluidAdjointUtilities<TDim, TBlockSize>::AddNodalResidualDerivatives(
+template <unsigned int TDim>
+template <unsigned int TBlockSize>
+void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::AddNodalResidualDerivatives(
     Matrix& rOutput,
     const Matrix& rResidualDerivatives,
     const IndexType NodeStartIndex)
@@ -169,8 +176,9 @@ void FluidAdjointUtilities<TDim, TBlockSize>::AddNodalResidualDerivatives(
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim, unsigned int TBlockSize>
-void FluidAdjointUtilities<TDim, TBlockSize>::ClearNodalResidualDerivatives(
+template <unsigned int TDim>
+template <unsigned int TBlockSize>
+void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::ClearNodalResidualDerivatives(
     Matrix& rOutput,
     const IndexType ResidualIndex)
 {
@@ -179,14 +187,91 @@ void FluidAdjointUtilities<TDim, TBlockSize>::ClearNodalResidualDerivatives(
     }
 }
 
+/***************************************************************************************/
+/*************************************** double ****************************************/
+/***************************************************************************************/
+
+template <>
+template <>
+std::array<const Variable<double>*, 2> FluidAdjointUtilities<2>::GetRelevantGradientVariableComponentList<double, 3>(
+    const IndexType DirectionIndex,
+    const Variable<double>& rVariable,
+    const std::array<const Variable<double>*, 3>& rAllGradientVariableComponents)
+{
+    return {rAllGradientVariableComponents[0], rAllGradientVariableComponents[1]};
+}
+
+template <>
+template <>
+std::array<const Variable<double>*, 3> FluidAdjointUtilities<3>::GetRelevantGradientVariableComponentList<double, 3>(
+    const IndexType DirectionIndex,
+    const Variable<double>& rVariable,
+    const std::array<const Variable<double>*, 3>& rAllGradientVariableComponents)
+{
+    return {rAllGradientVariableComponents[0], rAllGradientVariableComponents[1], rAllGradientVariableComponents[2]};
+}
+
+/***************************************************************************************/
+/********************************* array_1d<double, 3> *********************************/
+/***************************************************************************************/
+
+template <>
+template <>
+const Variable<double>& FluidAdjointUtilities<2>::GetRelevantVariable<array_1d<double, 3>>(
+    const IndexType DirectionIndex,
+    const Variable<array_1d<double, 3>>& rVariable,
+    const std::array<const Variable<double>*, 3>& rAllVariableComponents)
+{
+    return *rAllVariableComponents[DirectionIndex];
+}
+
+template <>
+template <>
+const Variable<double>& FluidAdjointUtilities<3>::GetRelevantVariable<array_1d<double, 3>>(
+    const IndexType DirectionIndex,
+    const Variable<array_1d<double, 3>>& rVariable,
+    const std::array<const Variable<double>*, 3>& rAllVariableComponents)
+{
+    return *rAllVariableComponents[DirectionIndex];
+}
+
+template <>
+template <>
+std::array<const Variable<double>*, 2> FluidAdjointUtilities<2>::GetRelevantGradientVariableComponentList<array_1d<double, 3>, 9>(
+    const IndexType DirectionIndex,
+    const Variable<array_1d<double, 3>>& rVariable,
+    const std::array<const Variable<double>*, 9>& rAllGradientVariableComponents)
+{
+    return {
+        rAllGradientVariableComponents[DirectionIndex * 3],
+        rAllGradientVariableComponents[DirectionIndex * 3 + 1]};
+}
+
+template<>
+template<>
+std::array<const Variable<double>*, 3> FluidAdjointUtilities<3>::GetRelevantGradientVariableComponentList<array_1d<double, 3>, 9>(
+    const IndexType DirectionIndex,
+    const Variable<array_1d<double, 3>>& rVariable,
+    const std::array<const Variable<double>*, 9>& rAllGradientVariableComponents)
+{
+    return {
+        rAllGradientVariableComponents[DirectionIndex * 3],
+        rAllGradientVariableComponents[DirectionIndex * 3 + 1],
+        rAllGradientVariableComponents[DirectionIndex * 3 + 2]};
+}
+
 // template instantiations
 
-template class FluidAdjointUtilities<2, 3>;
-template class FluidAdjointUtilities<2, 4>;
-template class FluidAdjointUtilities<2, 5>;
+template class FluidAdjointUtilities<2>;
+template class FluidAdjointUtilities<3>;
 
-template class FluidAdjointUtilities<3, 4>;
-template class FluidAdjointUtilities<3, 5>;
-template class FluidAdjointUtilities<3, 6>;
+template class FluidAdjointUtilities<2>::SlipUtilities<3>;
+template class FluidAdjointUtilities<2>::SlipUtilities<4>;
+template class FluidAdjointUtilities<2>::SlipUtilities<5>;
+
+template class FluidAdjointUtilities<3>::SlipUtilities<4>;
+template class FluidAdjointUtilities<3>::SlipUtilities<5>;
+template class FluidAdjointUtilities<3>::SlipUtilities<6>;
+
 
 } // namespace Kratos

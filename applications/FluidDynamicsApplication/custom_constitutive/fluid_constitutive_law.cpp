@@ -34,14 +34,6 @@ ConstitutiveLaw::Pointer FluidConstitutiveLaw::Clone() const {
     return Kratos::make_shared<FluidConstitutiveLaw>(*this);
 }
 
-FluidAdjointConstitutiveLaw::Pointer FluidConstitutiveLaw::GetAdjointConstitutiveLaw()
-{
-    KRATOS_ERROR << "Calling base FluidConstitutiveLaw::GetAdjointConstitutiveLaw method."
-                 << "Fluid adjoint constitutive law is not defined for " << this->Info()
-                 << std::endl;
-    return Kratos::make_shared<FluidAdjointConstitutiveLaw>(*this);
-}
-
 void FluidConstitutiveLaw::CalculateMaterialResponseCauchy(Parameters& rValues) {
     KRATOS_ERROR << "Calling base "
                     "FluidConstitutiveLaw::CalculateMaterialResponseCauchy "

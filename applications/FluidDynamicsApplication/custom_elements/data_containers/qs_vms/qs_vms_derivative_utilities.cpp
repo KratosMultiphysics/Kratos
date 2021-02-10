@@ -155,6 +155,18 @@ void QSVMSDerivativeUtilities<3>::CalculateStrainRateVelocityDerivative(
     KRATOS_CATCH("");
 }
 
+template<>
+const std::array<const Variable<double>*, 3> QSVMSDerivativeUtilities<2>::GetStrainRateVariables()
+{
+    return {&STRAIN_RATE_2D_XX, &STRAIN_RATE_2D_YY, &STRAIN_RATE_2D_XY};
+}
+
+template<>
+const std::array<const Variable<double>*, 6> QSVMSDerivativeUtilities<3>::GetStrainRateVariables()
+{
+    return {&STRAIN_RATE_3D_XX, &STRAIN_RATE_3D_YY, &STRAIN_RATE_3D_ZZ, &STRAIN_RATE_3D_XY, &STRAIN_RATE_3D_YZ, &STRAIN_RATE_3D_XZ};
+}
+
 template <unsigned int TDim>
 QSVMSDerivativeUtilities<TDim>::Derivative::Derivative(
     const IndexType NodeIndex,
@@ -230,25 +242,6 @@ array_1d<double, TDim> QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNo
 
 template <unsigned int TDim>
 template <unsigned int TNumNodes>
-const Variable<double>& QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>::GetDerivativeVariable() const
-{
-    switch (this->mDirectionIndex) {
-        case 0:
-            return VELOCITY_X;
-            break;
-        case 1:
-            return VELOCITY_Y;
-            break;
-        case 2:
-            return VELOCITY_Z;
-            break;
-        default:
-            return Variable<double>::StaticObject();
-    };
-}
-
-template <unsigned int TDim>
-template <unsigned int TNumNodes>
 double QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>::CalculateElementLengthDerivative(
     const double ElementLength) const
 {
@@ -276,13 +269,6 @@ array_1d<double, TDim> QSVMSDerivativeUtilities<TDim>::PressureDerivative<TNumNo
 
 template <unsigned int TDim>
 template <unsigned int TNumNodes>
-const Variable<double>& QSVMSDerivativeUtilities<TDim>::PressureDerivative<TNumNodes>::GetDerivativeVariable() const
-{
-    return PRESSURE;
-}
-
-template <unsigned int TDim>
-template <unsigned int TNumNodes>
 double QSVMSDerivativeUtilities<TDim>::PressureDerivative<TNumNodes>::CalculateElementLengthDerivative(
     const double ElementLength) const
 {
@@ -305,25 +291,6 @@ array_1d<double, TDim> QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes
 {
     array_1d<double, TDim> result = ZeroVector(TDim);
     return result;
-}
-
-template <unsigned int TDim>
-template <unsigned int TNumNodes>
-const Variable<double>& QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>::GetDerivativeVariable() const
-{
-    switch (this->mDirectionIndex) {
-        case 0:
-            return SHAPE_SENSITIVITY_X;
-            break;
-        case 1:
-            return SHAPE_SENSITIVITY_Y;
-            break;
-        case 2:
-            return SHAPE_SENSITIVITY_Z;
-            break;
-        default:
-            return Variable<double>::StaticObject();
-    };
 }
 
 template <unsigned int TDim>

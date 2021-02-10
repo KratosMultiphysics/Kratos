@@ -447,6 +447,22 @@ array_1d<double, 6 > & ConstitutiveLaw::CalculateValue(Parameters& rParameterVal
     return rValue;
 }
 
+void ConstitutiveLaw::CalculateDerivative(Parameters& rParameterValues, const Variable<double>& rFunctionVariable, const Variable<double>& rDerivativeVariable, double& rOutput)
+{
+}
+
+void ConstitutiveLaw::CalculateDerivative(Parameters& rParameterValues, const Variable<Vector>& rFunctionVariable, const Variable<double>& rDerivativeVariable, Vector& rOutput)
+{
+}
+
+void ConstitutiveLaw::CalculateDerivative(Parameters& rParameterValues, const Variable<Matrix>& rFunctionVariable, const Variable<double>& rDerivativeVariable, Matrix& rOutput)
+{
+}
+
+void ConstitutiveLaw::CalculateDerivative(Parameters& rParameterValues, const Variable<array_1d<double, 3>>& rFunctionVariable, const Variable<double>& rDerivativeVariable, array_1d<double, 3>& rOutput)
+{
+}
+
 /**
  * Is called to check whether the provided material parameters in the Properties
  * match the requirements of current constitutive model.
