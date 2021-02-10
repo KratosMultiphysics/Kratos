@@ -584,24 +584,28 @@ public:
     {
         KRATOS_TRY
 
+        //TODO: This is required for the exception handling. It can be removed once we move to the C++ parallelism
+#ifdef KRATOS_SMP_CXX11
+        int num_threads = ParallelUtilities::GetNumThreads();
+#else
+        int num_threads = 1;
+#endif
+
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Checks for all of the elements
-        block_for_each(rModelPart.Elements(), [&r_current_process_info](Element& rElement){
-            const auto& r_const_element = rElement; //TODO: Remove after const issue in block_for_each
-            r_const_element.Check(r_current_process_info);
+        BlockPartition<const ModelPart::ElementsContainerType>(rModelPart.Elements(), num_threads).for_each([&r_current_process_info](const Element& rElement){
+            rElement.Check(r_current_process_info);
         });
 
         // Checks for all of the conditions
-        block_for_each(rModelPart.Conditions(), [&r_current_process_info](Condition& rCondition){
-            const auto& r_const_condition = rCondition; //TODO: Remove after const issue in block_for_each
-            r_const_condition.Check(r_current_process_info);
+        BlockPartition<const ModelPart::ConditionsContainerType>(rModelPart.Conditions(), num_threads).for_each([&r_current_process_info](const Condition& rCondition){
+            rCondition.Check(r_current_process_info);
         });
 
         // Checks for all of the constraints
-        block_for_each(rModelPart.MasterSlaveConstraints(), [&r_current_process_info](MasterSlaveConstraint& rConstraint){
-            const auto& r_const_constraint = rConstraint; //TODO: Remove after const issue in block_for_each
-            r_const_constraint.Check(r_current_process_info);
+        BlockPartition<const ModelPart::MasterSlaveConstraintContainerType>(rModelPart.MasterSlaveConstraints(), num_threads).for_each([&r_current_process_info](const MasterSlaveConstraint& rConstraint){
+            rConstraint.Check(r_current_process_info);
         });
 
         return 0;
