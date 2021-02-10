@@ -36,7 +36,8 @@ namespace Kratos
  * @param value value being added
  */
 template<class TDataType>
-inline void AtomicAdd(TDataType& target, const TDataType& value ) {
+inline void AtomicAdd(TDataType& target, const TDataType& value)
+{
     #pragma omp atomic
     target += value;
 }
@@ -46,11 +47,11 @@ inline void AtomicAdd(TDataType& target, const TDataType& value ) {
  * Note that the update is not really atomic, but rather is done component by component
  */
 template<class TVectorType1, class TVectorType2>
-inline void AtomicAdd(TVectorType1& target, const TVectorType2& value ) {
+inline void AtomicAddVector(TVectorType1& target, const TVectorType2& value)
+{
+    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicAddVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
 
-    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicAdd- Sizes are: "
-        << target.size() << " for target and " << value.size() << " for value " <<std::endl;
-    for(unsigned int i=0; i<target.size(); ++i){
+    for(unsigned int i=0; i<target.size(); ++i) {
        AtomicAdd(target[i], value[i]);
     }
 }
@@ -59,7 +60,8 @@ inline void AtomicAdd(TVectorType1& target, const TVectorType2& value ) {
  * @param value vector value being subtracted
  */
 template<class TDataType>
-inline void AtomicSub(TDataType& target, const TDataType& value ) {
+inline void AtomicSub(TDataType& target, const TDataType& value)
+{
     #pragma omp atomic
     target -= value;
 }
@@ -69,10 +71,10 @@ inline void AtomicSub(TDataType& target, const TDataType& value ) {
  * Note that the update is not really atomic, but rather is done component by component
  */
 template<class TVectorType1, class TVectorType2>
-inline void AtomicSub(TVectorType1& target, const TVectorType2& value ) {
-    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicSub- Sizes are: "
-        << target.size() << " for target and " << value.size() << " for value " <<std::endl;
-    for(unsigned int i=0; i<target.size(); ++i){
+inline void AtomicSubVector(TVectorType1& target, const TVectorType2& value) {
+    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicSubVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
+
+    for(unsigned int i=0; i<target.size(); ++i) {
        AtomicSub(target[i], value[i]);
     }
 }
@@ -81,9 +83,24 @@ inline void AtomicSub(TVectorType1& target, const TVectorType2& value ) {
  * @param value vector value being multiplied
  */
 template<class TDataType>
-inline void AtomicMult(TDataType& target, const TDataType& value) {
+inline void AtomicMult(TDataType& target, const TDataType& value)
+{
     #pragma omp atomic
     target *= value;
+}
+
+/** @param target vector variable being atomically updated by doing target *= value
+ * @param value vector value being multiplied
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+template<class TVectorType1, class TVectorType2>
+inline void AtomicMultVector(TVectorType1& target, const TVectorType2& value)
+{
+    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicMultVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
+
+    for(unsigned int i=0; i<target.size(); ++i) {
+       AtomicMult(target[i], value[i]);
+    }
 }
 
 }  // namespace Kratos.
