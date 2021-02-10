@@ -102,7 +102,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
                 self.imposed_stress[i] = self.stress_functions[i].CallFunction(
                     0, 0, 0, current_time, 0, 0, 0
                 )
-        self.SetInitialState()
+            self.SetInitialState()
 
     def SetInitialState(self):
         """This method creates the c++ process and sets each entity
