@@ -584,27 +584,22 @@ public:
     {
         KRATOS_TRY
 
-        //FIXME: This is required due to the issues with the const in the block_for_each
-        const ModelPart* p_model_part = &rModelPart;
-        ModelPart* p_non_const_model_part = const_cast<ModelPart*>(p_model_part);
-        ModelPart& r_non_const_model_part = *p_non_const_model_part;
-
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Checks for all of the elements
-        block_for_each(r_non_const_model_part.Elements(), [&r_current_process_info](Element& rElement){
+        block_for_each(rModelPart.Elements(), [&r_current_process_info](Element& rElement){
             const auto& r_const_element = rElement; //TODO: Remove after const issue in block_for_each
             r_const_element.Check(r_current_process_info);
         });
 
         // Checks for all of the conditions
-        block_for_each(r_non_const_model_part.Conditions(), [&r_current_process_info](Condition& rCondition){
+        block_for_each(rModelPart.Conditions(), [&r_current_process_info](Condition& rCondition){
             const auto& r_const_condition = rCondition; //TODO: Remove after const issue in block_for_each
             r_const_condition.Check(r_current_process_info);
         });
 
         // Checks for all of the constraints
-        block_for_each(r_non_const_model_part.MasterSlaveConstraints(), [&r_current_process_info](MasterSlaveConstraint& rConstraint){
+        block_for_each(rModelPart.MasterSlaveConstraints(), [&r_current_process_info](MasterSlaveConstraint& rConstraint){
             const auto& r_const_constraint = rConstraint; //TODO: Remove after const issue in block_for_each
             r_const_constraint.Check(r_current_process_info);
         });
