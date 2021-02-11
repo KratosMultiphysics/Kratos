@@ -1,11 +1,14 @@
+# Import Python libraries
 import numpy as np
 
-# TODO: move in an external file and create a generator class, e.g. MonteCarlo.generator.Generate()
-
-'''
-function generatng the random variable
-'''
 def GenerateSample(problem_name):
+    """
+    Function handling the generation of random variables for the
+    MultilevelMonteCarloApplication algorithms and implementations.
+
+    Input:
+    - problem_name: string containing the problem definition.
+    """
 
     # Poisson equation
     if (problem_name == "poisson_square_2d"):
@@ -27,7 +30,7 @@ def GenerateSample(problem_name):
         if sample[0] >= 1.0 or sample[0] <= 0.0 :
             raise Exception ("stochastic Mach number computed > 1 or < 0")
 
-    # # Problem zero problem
+    # Problem zero problem
     if (problem_name == "ProblemZero"):
         sample = []
         uref = 10 # wind speed of 10 m/s

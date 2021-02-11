@@ -31,7 +31,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void FixedVelocity2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void FixedVelocity2D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 		if(rCurrentProcessInfo[FRACTIONAL_STEP]==2)
@@ -43,7 +43,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void FixedVelocity2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void FixedVelocity2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -72,7 +72,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void FixedVelocity2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+	void FixedVelocity2D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 	{
 		if(rCurrentProcessInfo[FRACTIONAL_STEP]==2)
 		{
@@ -90,7 +90,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	  void FixedVelocity2D::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& rCurrentProcessInfo)
+	  void FixedVelocity2D::GetDofList(DofsVectorType& ConditionalDofList,const ProcessInfo& rCurrentProcessInfo) const
 	{
 		if(rCurrentProcessInfo[FRACTIONAL_STEP]==2)
 		{

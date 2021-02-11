@@ -364,7 +364,7 @@ private:
 
         //create partition
         OpenMPUtils::PartitionVector partition;
-        int number_of_threads = OpenMPUtils::GetNumThreads();
+        int number_of_threads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::DivideInPartitions(A.size1(),number_of_threads,  partition);
         //parallel loop
 
@@ -428,7 +428,7 @@ private:
 
         //create partition
         OpenMPUtils::PartitionVector partition;
-        int number_of_threads = OpenMPUtils::GetNumThreads();
+        int number_of_threads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::DivideInPartitions(A.size1(),number_of_threads,  partition);
         //parallel loop
 

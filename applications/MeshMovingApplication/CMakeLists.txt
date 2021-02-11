@@ -67,3 +67,9 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosMeshMovingCore DESTINATION libs )
 install(TARGETS KratosMeshMovingApplication DESTINATION libs )
+
+## If trilinos is avaliable, switch on the Fluid trilinos extension
+if(${USE_MPI})
+  message("Enabling trilinos extension for KratosMeshMovingApplication")
+  add_subdirectory(trilinos_extension)
+endif(${USE_MPI})
