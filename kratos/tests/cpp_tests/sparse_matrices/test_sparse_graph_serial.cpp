@@ -201,8 +201,8 @@ bool CheckGraph(
 }
 
 bool CheckCSRGraphArrays(
-    const vector<SparseTestingInternals::IndexType>& rRowIndices,
-    const vector<SparseTestingInternals::IndexType>& rColIndices,
+    const span<SparseTestingInternals::IndexType>& rRowIndices,
+    const span<SparseTestingInternals::IndexType>& rColIndices,
     const MatrixMapType& rReferenceGraph)
 {
     auto N = rRowIndices.size()-1;
@@ -311,10 +311,13 @@ KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
     SparseTestingInternals::CheckGraph(Agraph, reference_A_map);
 
     //check exporting
-    vector<SparseTestingInternals::IndexType> row_index, col_index;
-    Agraph.ExportCSRArrays(row_index, col_index);
+    span<SparseTestingInternals::IndexType> row_index_span;
+    span<SparseTestingInternals::IndexType> col_index_span;
+    Agraph.ExportCSRArrays(row_index_span, col_index_span);
 
-    SparseTestingInternals::CheckCSRGraphArrays(row_index, col_index, reference_A_map);
+    SparseTestingInternals::CheckCSRGraphArrays(row_index_span, col_index_span, reference_A_map);
+    delete [] row_index_span.begin();
+    delete [] col_index_span.begin();
 
 }
 
@@ -594,18 +597,25 @@ KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(sum,496);
 
     CsrMatrix<double> Aconverted;
-    AmgclCSRConversionUtilities::ConvertToCsrMatrix<double,IndexType>(*pAmgcl,Aconverted);
-
+    AmgclCSRConversionUtilities::ConvertToCsrMatrix<double,IndexType>(*pAmgcl,Aconverted); //NOTE that A,Aconverted and pAmgcl all have the same data!
+KRATOS_WATCH(__LINE__)
     auto reference_map = A.ToMap();
     auto converted_A_map = Aconverted.ToMap();
     for(const auto& item : reference_map)
         KRATOS_CHECK_EQUAL(item.second, converted_A_map[item.first]);
     for(const auto& item : converted_A_map)
         KRATOS_CHECK_EQUAL(item.second, reference_map[item.first]);
-
+KRATOS_WATCH(__LINE__)
     //matrix matrix multiplication
     CsrMatrix<double> C;
     AmgclCSRSpMMUtilities::SparseMultiply(A,Aconverted,C); //C=A*Aconverted
+KRATOS_WATCH(__LINE__)
+A.~CsrMatrix<double>();
+KRATOS_WATCH(__LINE__)
+Aconverted.~CsrMatrix<double>();
+KRATOS_WATCH(__LINE__)
+C.~CsrMatrix<double>();
+KRATOS_WATCH(__LINE__)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallRectangularMatricMatrixMultiply, KratosCoreFastSuite)

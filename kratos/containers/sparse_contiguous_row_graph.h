@@ -28,6 +28,7 @@
 // Project includes
 #include "includes/define.h"
 
+#include <span/span.hpp>
 
 namespace Kratos
 {
@@ -220,7 +221,9 @@ public:
 
         if(rRowIndices.size() != nrows+1)
         {
-            rRowIndices.resize(nrows+1, false);
+            IndexType* pRowIndices = new IndexType[nrows+1];
+            rRowIndices = span<IndexType>(pRowIndices, nrows+1);
+            //rRowIndices.resize(nrows+1, false);
         }
 
         if(nrows == 0) //empty
@@ -247,7 +250,9 @@ public:
 
         IndexType nnz = rRowIndices[nrows];
         if(rColIndices.size() != nnz){
-            rColIndices.resize(nnz, false);
+            IndexType* pColIndices = new IndexType[nnz];
+            rColIndices = span<IndexType>(pColIndices,nnz);
+            //rColIndices.resize(nnz, false);
         }
         //set it to zero in parallel to allow first touching
         IndexPartition<IndexType>(rColIndices.size()).for_each([&](IndexType i){

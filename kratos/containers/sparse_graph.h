@@ -26,6 +26,7 @@
 // Project includes
 #include "includes/define.h"
 #include "utilities/parallel_utilities.h"
+#include <span/span.hpp>
 
 namespace Kratos
 {
@@ -187,10 +188,9 @@ public:
         return mGraph;
     }
 
-    template<class TVectorType=DenseVector<IndexType>>
     IndexType ExportCSRArrays(
-        TVectorType& rRowIndices,
-        TVectorType& rColIndices
+        span<IndexType>& rRowIndices,
+        span<IndexType>& rColIndices
     ) const
     {
         //need to detect the number of rows this way since there may be gaps
@@ -198,7 +198,8 @@ public:
 
         if(rRowIndices.size() != nrows+1)
         {
-            rRowIndices.resize(nrows+1, false);
+            IndexType* pRowIndices = new IndexType[nrows+1];
+            rRowIndices = span<IndexType>(pRowIndices, nrows+1);
         }
         //set it to zero in parallel to allow first touching
         IndexPartition<IndexType>(rRowIndices.size()).for_each([&](IndexType i){
@@ -219,7 +220,8 @@ public:
 
         IndexType nnz = rRowIndices[nrows];
         if(rColIndices.size() != nnz){
-            rColIndices.resize(nnz, false);
+            IndexType* pColIndices = new IndexType[nnz];
+            rColIndices = span<IndexType>(pColIndices, nnz);
         }
         //set it to zero in parallel to allow first touching
         IndexPartition<IndexType>(rColIndices.size()).for_each([&](IndexType i){

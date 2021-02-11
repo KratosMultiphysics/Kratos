@@ -26,7 +26,7 @@
 
 // Project includes
 #include "includes/define.h"
-
+#include "span/span.hpp"
 
 namespace Kratos
 {
@@ -80,21 +80,27 @@ public:
     template<class TGraphType>
     CsrMatrix(const TGraphType& rSparseGraph)
     {
-        rSparseGraph.ExportCSRArrays(mRowIndices,mColIndices);
+        span<TIndexType> tmp_row_indices;
+        span<TIndexType> tmp_col_indices;
+        rSparseGraph.ExportCSRArrays(tmp_row_indices,tmp_col_indices);
+        AssignIndex1Data(tmp_row_indices.begin(), tmp_row_indices.size());
+        AssignIndex2Data(tmp_col_indices.begin(), tmp_col_indices.size());
+
         mNrows = size1();
 
         ComputeColSize();
 
         //initialize mValuesVector to zero
-        mValuesVector.resize(mColIndices.size(),false);
+        ResizeValueData(mColIndices.size());
         SetValue(0.0);
     }
 
     explicit CsrMatrix(const CsrMatrix<TDataType,TIndexType>& rOtherMatrix)
     {
-        mRowIndices.resize(rOtherMatrix.mRowIndices.size(),false);
-        mColIndices.resize(rOtherMatrix.mColIndices.size(),false);
-        mValuesVector.resize(rOtherMatrix.mValuesVector.size(),false);
+        ResizeIndex1Data(rOtherMatrix.mRowIndices.size());
+        ResizeIndex2Data(rOtherMatrix.mColIndices.size());
+        ResizeValueData(rOtherMatrix.mValuesVector.size());
+
         mNrows = rOtherMatrix.mNrows;
         mNcols = rOtherMatrix.mNcols;
 
@@ -113,7 +119,24 @@ public:
 
 
     /// Destructor.
-    virtual ~CsrMatrix(){}
+    virtual ~CsrMatrix(){
+        // if(mpRowIndicesData != nullptr) 
+        //     delete [] mpRowIndicesData;
+        // if(mpColIndicesData != nullptr) 
+        //     delete [] mpColIndicesData;
+        // if(mpValuesVectorData != nullptr) 
+        //     delete [] mpValuesVectorData;
+
+        // mpRowIndicesData = nullptr;
+        // mpColIndicesData = nullptr;
+        // mpValuesVectorData = nullptr;
+        KRATOS_WATCH("entered in destructor")
+        AssignIndex1Data(nullptr,0);
+        AssignIndex2Data(nullptr,0);
+        AssignValueData(nullptr,0);
+        KRATOS_WATCH("finished destructor")
+        
+    }
 
     /// Assignment operator. 
     CsrMatrix& operator=(CsrMatrix const& rOtherMatrix) = delete; //i really think this should not be allowed, too risky
@@ -123,9 +146,11 @@ public:
     ///@{
     void Clear()
     {
-        mRowIndices.clear();
-        mColIndices.clear();
-        mValuesVector.clear();
+        AssignIndex1Data(nullptr,0);
+        AssignIndex2Data(nullptr,0);
+        AssignValueData(nullptr,0);
+        mNrows=0;
+        mNcols=0;
     }
 
     void SetValue(const TDataType value)
@@ -149,23 +174,31 @@ public:
         return index2_data().size();
     }
 
-    inline DenseVector<IndexType>& index1_data(){
+    bool IsOwnerOfData() const{
+        return mIsOwnerOfData;
+    }
+
+    void SetIsOwnerOfData(bool IsOwner){
+        mIsOwnerOfData = IsOwner;
+    }
+
+    inline span<IndexType>& index1_data(){
         return mRowIndices;
     }
-    inline DenseVector<IndexType>& index2_data(){
+    inline span<IndexType>& index2_data(){
         return mColIndices;
     }
-    inline DenseVector<TDataType>& value_data(){
+    inline span<TDataType>& value_data(){
         return mValuesVector;
     }
 
-    inline const DenseVector<IndexType>& index1_data() const{
+    inline const span<IndexType>& index1_data() const{
         return mRowIndices;
     }
-    inline const DenseVector<IndexType>& index2_data() const{
+    inline const span<IndexType>& index2_data() const{
         return mColIndices;
     }
-    inline const DenseVector<TDataType>& value_data() const{
+    inline const span<TDataType>& value_data() const{
         return mValuesVector;
     }
 
@@ -186,6 +219,53 @@ public:
 
         mNcols = max_col+1; //note that we must add 1 to the greatest column id
     }
+
+    void AssignIndex1Data(TIndexType* pExternalData, TIndexType DataSize){
+        if(IsOwnerOfData() && mpRowIndicesData != nullptr)
+            delete [] mpRowIndicesData;
+        mpRowIndicesData = pExternalData;
+        mRowIndices = span<TIndexType>(mpRowIndicesData, DataSize);
+    }
+
+    void AssignIndex2Data(TIndexType* pExternalData, TIndexType DataSize){
+        if(IsOwnerOfData() && mpColIndicesData != nullptr)
+            delete [] mpColIndicesData;
+        mpColIndicesData = pExternalData;
+        mColIndices = span<TIndexType>(mpColIndicesData, DataSize);
+    }
+
+    void AssignValueData(TDataType* pExternalData, TIndexType DataSize){
+        if(IsOwnerOfData() && mpValuesVectorData != nullptr)
+            delete [] mpValuesVectorData;
+        mpValuesVectorData = pExternalData;
+        mValuesVector = span<TDataType>(mpValuesVectorData, DataSize);
+    }
+
+    void ResizeIndex1Data(TIndexType DataSize){
+        KRATOS_ERROR_IF_NOT(IsOwnerOfData()) << "ResizeIndex1Data is only allowed if the data are locally owned" << std::endl;
+        if(mpRowIndicesData != nullptr)
+            delete [] mpRowIndicesData;
+        mpRowIndicesData = new TIndexType[DataSize];
+        mRowIndices = span<TIndexType>(mpRowIndicesData, DataSize);
+    }
+
+    void ResizeIndex2Data(TIndexType DataSize){
+        KRATOS_ERROR_IF_NOT(IsOwnerOfData()) << "ResizeIndex2Data is only allowed if the data are locally owned" << std::endl;
+        if(mpColIndicesData != nullptr)
+            delete [] mpColIndicesData;
+        mpColIndicesData = new TIndexType[DataSize];
+        mRowIndices = span<TIndexType>(mpColIndicesData, DataSize);
+    }
+
+    void ResizeValueData(TIndexType DataSize){
+        KRATOS_ERROR_IF_NOT(IsOwnerOfData()) << "ResizeValueData is only allowed if the data are locally owned" << std::endl;
+        if(mpValuesVectorData != nullptr)
+            delete [] mpValuesVectorData;
+        mpValuesVectorData = new TDataType[DataSize];
+        mValuesVector = span<TDataType>(mpValuesVectorData, DataSize);
+    }
+
+
 
     void CheckColSize()
     {
@@ -313,11 +393,13 @@ public:
     //*
 
     void reserve(IndexType NRows, IndexType nnz){
-        index1_data().resize(NRows+1,false);
+        ResizeIndex1Data(NRows+1);
+
         if(NRows > 0)
             index1_data()[0] = 0;
-        index2_data().resize(nnz,false);
-        value_data().resize(nnz,false);
+
+        ResizeIndex2Data(nnz);
+        ResizeValueData(nnz);
         mNrows = NRows;
     }
 
@@ -558,9 +640,13 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    DenseVector<IndexType> mRowIndices;
-    DenseVector<IndexType> mColIndices;
-    DenseVector<TDataType> mValuesVector;
+    bool mIsOwnerOfData = true;
+    IndexType* mpRowIndicesData = nullptr;
+    IndexType* mpColIndicesData = nullptr;
+    TDataType* mpValuesVectorData = nullptr;
+    span<IndexType> mRowIndices;
+    span<IndexType> mColIndices;
+    span<TDataType> mValuesVector;
     IndexType mNrows=0;
     IndexType mNcols=0;
 
@@ -571,18 +657,60 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-        rSerializer.save("rows",mRowIndices);
-        rSerializer.save("cols",mColIndices);
-        rSerializer.save("values",mValuesVector);
+        rSerializer.save("IsOwnerOfData",mIsOwnerOfData);
+
+        //rSerializer.save("mpRowIndicesData",mpRowIndicesData);
+        rSerializer.save("nrows",mRowIndices.size());
+        for(IndexType i=0; i<mRowIndices.size(); ++i)
+            rSerializer.save("i",mRowIndices[i]);
+
+        //rSerializer.save("mpColIndicesData",mpColIndicesData);
+        rSerializer.save("cols_size",mColIndices.size());
+        for(IndexType i=0; i<mColIndices.size(); ++i)
+            rSerializer.save("i",mColIndices[i]);
+
+        //rSerializer.save("mpValuesVectorData",mpValuesVectorData);
+        rSerializer.save("val_size",mValuesVector.size());
+        for(IndexType i=0; i<mValuesVector.size(); ++i)
+            rSerializer.save("d",mValuesVector[i]);
+        
         rSerializer.save("Nrow",mNrows);
         rSerializer.save("Ncol",mNcols);
     }
 
     void load(Serializer& rSerializer)
     {
-        rSerializer.load("rows",mRowIndices);
-        rSerializer.load("cols",mColIndices);
-        rSerializer.load("values",mValuesVector);
+        rSerializer.load("IsOwnerOfData",mIsOwnerOfData);
+        if(mIsOwnerOfData == false)
+        {
+            mIsOwnerOfData=true;
+            KRATOS_WARNING("csr_matrix becomes owner of a copy of data after serialization");
+        }
+
+        IndexType rows_size;
+        //rSerializer.load("mpRowIndicesData",mpRowIndicesData);
+        rSerializer.load("nrows",rows_size);
+        mpRowIndicesData = new TIndexType[rows_size];
+        mRowIndices = span<TIndexType>(mpRowIndicesData, rows_size);
+        for(IndexType i=0; i<rows_size; ++i)
+            rSerializer.load("i",mRowIndices[i]);
+
+        IndexType cols_size;
+        //rSerializer.load("mpColIndicesData",mpColIndicesData);
+        rSerializer.load("cols_size",cols_size);
+        mpColIndicesData = new TIndexType[cols_size];
+        mColIndices = span<TIndexType>(mpRowIndicesData, cols_size);
+        for(IndexType i=0; i<mColIndices.size(); ++i)
+            rSerializer.load("i",mColIndices[i]);
+
+        IndexType vals_size;
+        //rSerializer.load("mpValuesVectorData",mpValuesVectorData);
+        rSerializer.load("val_size",vals_size);
+        mpValuesVectorData = new TDataType[vals_size];
+        mValuesVector = span<TDataType>(mpValuesVectorData, vals_size);
+        for(IndexType i=0; i<mValuesVector.size(); ++i)
+            rSerializer.load("d",mValuesVector[i]);
+        
         rSerializer.load("Nrow",mNrows);
         rSerializer.load("Ncol",mNcols);
     }
