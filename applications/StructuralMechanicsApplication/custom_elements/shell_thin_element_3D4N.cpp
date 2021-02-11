@@ -136,9 +136,6 @@ void ShellThinElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentPr
 {
     KRATOS_TRY
 
-    const int points_number = GetGeometry().PointsNumber();
-    KRATOS_ERROR_IF_NOT(points_number == 4) <<"ShellThinElement3D4N - Wrong number of nodes" << points_number << std::endl;
-
     BaseType::Initialize(rCurrentProcessInfo);
 
     // Initialization should not be done again in a restart!
@@ -614,7 +611,8 @@ int ShellThinElement3D4N<TKinematics>::Check(const ProcessInfo& rCurrentProcessI
 
     BaseType::Check(rCurrentProcessInfo);
 
-    // ...
+    const int points_number = GetGeometry().PointsNumber();
+    KRATOS_ERROR_IF_NOT(points_number == 4) <<"ShellThinElement3D4N - Wrong number of nodes" << points_number << std::endl;
 
     return 0;
 

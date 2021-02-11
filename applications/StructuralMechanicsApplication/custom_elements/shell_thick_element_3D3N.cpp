@@ -130,9 +130,6 @@ void ShellThickElement3D3N<TKinematics>::Initialize(const ProcessInfo& rCurrentP
 
     BaseType::Initialize(rCurrentProcessInfo);
 
-    const int points_number = GetGeometry().PointsNumber();
-    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThickElement3D3N - Wrong number of nodes" << points_number << std::endl;
-
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         this->mpCoordinateTransformation->Initialize();
@@ -479,7 +476,8 @@ int ShellThickElement3D3N<TKinematics>::Check(const ProcessInfo& rCurrentProcess
 
     BaseType::Check(rCurrentProcessInfo);
 
-    // ...
+    const int points_number = GetGeometry().PointsNumber();
+    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThickElement3D3N - Wrong number of nodes" << points_number << std::endl;
 
     return 0;
 

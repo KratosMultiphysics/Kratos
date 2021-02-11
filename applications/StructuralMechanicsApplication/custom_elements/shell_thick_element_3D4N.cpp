@@ -388,20 +388,13 @@ void ShellThickElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentP
 {
     KRATOS_TRY
 
-    const auto& r_geom = GetGeometry();
-
-    KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(this->GetIntegrationMethod())).size() == 4) << "ShellThickElement3D4N - needs a full integration scheme" << std::endl;
-
-    const int points_number = r_geom.PointsNumber();
-    KRATOS_ERROR_IF_NOT(points_number == 4) << "ShellThickElement3D4N - Wrong number of nodes" << points_number << std::endl;
-
     BaseType::Initialize(rCurrentProcessInfo);
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         this->mpCoordinateTransformation->Initialize();
         this->SetupOrientationAngles();
-        mEASStorage.Initialize(r_geom);
+        mEASStorage.Initialize(GetGeometry());
     }
 
     KRATOS_CATCH("")
@@ -835,7 +828,12 @@ int ShellThickElement3D4N<TKinematics>::Check(const ProcessInfo& rCurrentProcess
 
     BaseType::Check(rCurrentProcessInfo);
 
-    // ...
+    const auto& r_geom = GetGeometry();
+
+    KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(this->GetIntegrationMethod())).size() == 4) << "ShellThickElement3D4N - needs a full integration scheme" << std::endl;
+
+    const int points_number = r_geom.PointsNumber();
+    KRATOS_ERROR_IF_NOT(points_number == 4) << "ShellThickElement3D4N - Wrong number of nodes" << points_number << std::endl;
 
     return 0;
 
