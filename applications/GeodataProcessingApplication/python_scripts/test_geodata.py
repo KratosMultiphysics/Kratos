@@ -13,10 +13,12 @@ import os
 
 start_time = time.time()
 # the name of the test
-num_test = "001"
-print("\n\nTEST ", num_test, "\n\n")
+num_test = "006"
+print("\n\n[DEBUG PY] TEST ", num_test, "\n\n")
 
 # we create a new folders for this test
+if not os.path.exists("cfd_data"):
+	os.mkdir("cfd_data")
 if not os.path.exists("cfd_data/test_{}".format(num_test)):
 	os.mkdir("cfd_data/test_{}".format(num_test))
 if not os.path.exists("cfd_data/test_{}/gid_file".format(num_test)):
@@ -42,11 +44,11 @@ mesher = GeoMesher()
 extract_center = True
 
 # INPUT PARAMETER
-import_terrain_mdpa = False
-# import_terrain_mdpa = True
+# import_terrain_mdpa = False
+import_terrain_mdpa = True
 
 if import_terrain_mdpa:
-	print("\n*** IMPORT TERRAIN FROM MDPA FILE ***\n")
+	print("\n[DEBUG PY] IMPORT TERRAIN FROM MDPA FILE\n")
 
 	# import domain from mdpa file
 	importer._InitializeModelPart("test_model")
@@ -88,7 +90,7 @@ if import_terrain_mdpa:
 	mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/03_Mesh_cylinder_refinement_1".format(num_test), "GiD_PostBinary")
 
 else:
-	print("\n*** IMPORT TERRAIN FROM STL FILE ***\n")
+	print("\n[DEBUG PY] IMPORT TERRAIN FROM STL FILE\n")
 
 	# import STL terrain and compute mesh circle
 	stl_name = "terrain_test"
@@ -149,7 +151,7 @@ else:
 
 	### MMG ###
 	# 1st ground refinement
-	print("\n\n***** 1st ground refinement *****\n")
+	print("\n\n[DEBUG PY] 1st ground refinement\n")
 	# distance field from ground
 	mesher.ComputeDistanceFieldFromGround()
 	mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/02_Mesh_cylinder_distance_field_1".format(num_test), "GiD_PostAscii")
@@ -164,15 +166,15 @@ else:
 	# writing file mdpa
 	mdpa_out_name = "cfd_data/test_{}/mdpa_file/03_Mesh_cylinder_refinement_1".format(num_test)
 	mesher.WriteMdpaOutput(mdpa_out_name)
-	print("BOX REFINEMENT 1 DONE!")
+	print("[DEBUG PY] BOX REFINEMENT 1 DONE!")
 
 
-print("\n** TERRAIN DONE! **\n")
+print("\n[DEBUG PY] TERRAIN DONE!\n")
 
 # terrain volume mesh ready
 main_model_part = mesher.GetGeoModelPart()
 
-print(center_model_part)
+print("[DEBUG PY]\n", center_model_part)
 mesher.SetGeoModelPart(center_model_part)
 mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/center_model_part".format(num_test), "GiD_PostAscii")
 mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/center_model_part".format(num_test), "GiD_PostBinary")
@@ -187,14 +189,14 @@ building.SetGeoModelPart(main_model_part)
 # import buildings
 import_building_mdpa = False
 if import_building_mdpa:
-	print("\n*** IMPORT BUILDINGS FROM MDPA FILE ***\n")
+	print("\n[DEBUG PY] IMPORT BUILDINGS FROM MDPA FILE\n")
 	# import domain from mdpa file
 	model_part_in = "/data/mdpa_file/mdpa_buildings"
 	building.ImportBuildingHullMDPA(model_part_in)
 	building_model_part = building.GetBuildingModelPart()
 
 else:
-	print("\n*** IMPORT BUILDINGS FROM OBJ FILE ***\n")
+	print("\n[DEBUG PY] IMPORT BUILDINGS FROM OBJ FILE\n")
 	# obj file name
 	# obj_file_in = "data/buildings/buildings_barcellona_test.obj"
 	obj_file_in = "data/buildings/buildings_num_20.obj"
@@ -202,7 +204,7 @@ else:
 	importer.ObjToSplit(obj_file_in)
 	# importer.ObjImport(obj_file_in, "BuildingModelPart", False)		# (obj_file_name_input, name_model_part, change_coord)
 	building_model_part = importer.GetGeoModelPart()
-print(building_model_part)
+print("[DEBUG PY]\n", building_model_part)
 
 # we write GiD file
 mesher.SetGeoModelPart(building_model_part)
@@ -213,11 +215,12 @@ mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/buildings".forma
 mdpa_out_name = "cfd_data/test_{}/mdpa_file/buildings".format(num_test)
 mesher.WriteMdpaOutput(mdpa_out_name)
 
-print("\nIMPORT BUILDINGS DONE!")
+print("\n[DEBUG PY] IMPORT BUILDINGS DONE!")
 
 if extract_center:
 	building.SetGeoModelPart(building_model_part)
 	building.ShiftBuildingOnTerrain(center_model_part)
+	print("\n[DEBUG PY] ShiftBuildingOnTerrain DONE!")
 
 	# delete building placed out of center_model_part. If a building is out of range of the center_model_part is placed on z = 0
 	building.DeleteBuildingsUnderValue(z_value=10)
@@ -228,7 +231,7 @@ if extract_center:
 	building.WriteMdpaOutput(mdpa_out_name)
 
 # building steps
-print("\n\nSTART PROCESS BUILDING")
+print("\n\n[DEBUG PY] START PROCESS BUILDING")
 stop_begin_loop = time.time()
 
 # building = GeoBuilding()
@@ -236,7 +239,7 @@ building.SetGeoModelPart(main_model_part)		# it is a duplicate. CHECK IT
 building.ImportBuilding(building_model_part)
 
 # # 1st cut
-# print("\n\n***** STEP 1 *****\n")
+# print("\n\n[DEBUG PY] STEP 1\n")
 # # distance field from hull
 # building.ComputeDistanceFieldFromHull(False, 1e-7)
 # building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/04_Box_buildings_distance_field_1".format(num_test), "GiD_PostAscii")
@@ -253,7 +256,7 @@ building.ImportBuilding(building_model_part)
 # building.WriteMdpaOutput(mdpa_out_name)
 
 # # 2nd cut
-# print("\n\n***** STEP 2 *****\n")
+# print("\n\n[DEBUG PY] STEP 2\n")
 # # distance field from hull
 # building.ComputeDistanceFieldFromHull(False, 1e-7)
 # building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/06_Box_buildings_distance_field_2".format(num_test), "GiD_PostAscii")
@@ -270,9 +273,10 @@ building.ImportBuilding(building_model_part)
 # building.WriteMdpaOutput(mdpa_out_name)
 
 # 3rd cut
-print("\n\n***** STEP 3 *****\n")
+print("\n\n[DEBUG PY] STEP 3\n")
 # distance field from hull
 building.ComputeDistanceFieldFromHull(False, 1e-7)
+print("\n\n[DEBUG PY] ComputeDistanceFieldFromHull\n")
 building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/08_Box_buildings_distance_field_3".format(num_test), "GiD_PostAscii")
 building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/08_Box_buildings_distance_field_3".format(num_test), "GiD_PostBinary")
 # writing file mdpa
@@ -280,6 +284,7 @@ mdpa_out_name = "cfd_data/test_{}/mdpa_file/08_Box_buildings_distance_field_3".f
 building.WriteMdpaOutput(mdpa_out_name)
 # subtract buildings
 building.SubtractBuildingMOD(2.0, 100.0, 0.1, "exponential", "ISOSURFACE", "true")			# interpolation = exponential; disc_type = ISOSURFACE; remove_internal_regions=true
+print("\n\n[DEBUG PY] SubtractBuildingMOD\n")
 building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/09_Box_buildings_subtracted_3_before_CleanConditions".format(num_test), "GiD_PostAscii")
 building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/09_Box_buildings_subtracted_3_before_CleanConditions".format(num_test), "GiD_PostBinary")
 
@@ -290,7 +295,7 @@ stop_01 = time.time()
 # we delete the condition if at least one node it is not in main model part
 KratosGeo.CleaningUtilities(main_model_part).CleanConditions()
 stop_02 = time.time()
-print("CleanConditions done in ", (stop_02 - stop_01))
+print("[DEBUG PY] CleanConditions done in ", (stop_02 - stop_01))
 
 # we set the DENSITY and DYNAMIC_VISCOSITY values
 prop = main_model_part.GetProperties()[0]
@@ -312,7 +317,7 @@ stop_03 = time.time()
 # we delete the condition in the angles
 KratosGeo.CleaningUtilities(main_model_part).CleanConditionsAngles()
 stop_04 = time.time()
-print("CleanConditionsAngles done in {} s".format(stop_04-stop_03))
+print("[DEBUG PY] CleanConditionsAngles done in {} s".format(stop_04-stop_03))
 
 # we set the geo model part to save the GiD file and mdpa file
 building.SetGeoModelPart(main_model_part)
@@ -337,36 +342,36 @@ model.GenerateCfdModelPart()
 
 model.FillPartsFluid("Parts_Fluid")
 stop_03_1 = time.time()
-print("\t-> Parts_Fluid filled in ", (stop_03_1-stop_03))
+print("[DEBUG PY]\t-> Parts_Fluid filled in ", (stop_03_1-stop_03))
 
 model.FillNoslip("SKIN_ISOSURFACE")
 stop_03_2 = time.time()
-print("\t-> SKIN_ISOSURFACE filled in ", (stop_03_2-stop_03_1))
+print("[DEBUG PY]\t-> SKIN_ISOSURFACE filled in ", (stop_03_2-stop_03_1))
 
 model.FillSlip("TopModelPart")
 stop_03_3 = time.time()
-print("\t-> TopModelPart filled in ", (stop_03_3-stop_03_2))
+print("[DEBUG PY]\t-> TopModelPart filled in ", (stop_03_3-stop_03_2))
 
 model.FillSlip("BottomModelPart")
 stop_03_4 = time.time()
-print("\t-> BottomModelPart filled in ", (stop_03_4-stop_03_3))
+print("[DEBUG PY]\t-> BottomModelPart filled in ", (stop_03_4-stop_03_3))
 
 model.FillInlet("Inlet")
 stop_03_5 = time.time()
-print("\t-> Inlet filled in ", (stop_03_5-stop_03_4))
+print("[DEBUG PY]\t-> Inlet filled in ", (stop_03_5-stop_03_4))
 
 model.FillOutlet("Outlet")
 stop_04 = time.time()
-print("\t-> Inlet filled in ", (stop_04-stop_03_5))
+print("[DEBUG PY]\t-> Outlet filled in ", (stop_04-stop_03_5))
 
-print("\n*** Filled time: {} ***\n".format(stop_04-stop_03))
+print("\n[DEBUG PY] Filled time: {}\n".format(stop_04-stop_03))
 
-print("\nGeoCfdModelPart AFTER\n", model.GetGeoCfdModelPart())
+print("\n[DEBUG PY] GeoCfdModelPart AFTER\n", model.GetGeoCfdModelPart())
 
 # writing file mdpa
 model.SetGeoModelPart(model.GetGeoCfdModelPart())
 mdpa_out_name = "cfd_data/test_{}/analysis_file/12_CFD_model".format(num_test)
 model.WriteMdpaOutput(mdpa_out_name)
 
-print("*** Time: ", time.time() - start_time)
-print("\nTEST ", num_test, "END\n\n")
+print("[DEBUG PY] Time: ", time.time() - start_time)
+print("\n[DEBUG PY] TEST ", num_test, "END\n\n")
