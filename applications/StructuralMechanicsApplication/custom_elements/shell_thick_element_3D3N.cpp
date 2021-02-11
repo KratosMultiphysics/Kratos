@@ -1752,11 +1752,11 @@ bool ShellThickElement3D3N<TKinematics>::TryCalculateOnIntegrationPoints_General
                                                      section->GetThickness(GetProperties()));
             }
         }
-        DecimalCorrection(data.generalizedStresses);
+        this->DecimalCorrection(data.generalizedStresses);
     }
 
     // adjust output
-    DecimalCorrection(data.generalizedStrains);
+    this->DecimalCorrection(data.generalizedStrains);
 
     // store the results, but first rotate them back to the section
     // coordinate system. we want to visualize the results in that system not

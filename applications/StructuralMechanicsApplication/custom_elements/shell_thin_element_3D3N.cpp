@@ -1439,8 +1439,8 @@ bool ShellThinElement3D3N<TKinematics>::TryCalculateOnIntegrationPoints_Generali
         }
 
         // adjust output
-        DecimalCorrection(data.generalizedStrains);
-        DecimalCorrection(data.generalizedStresses);
+        this->DecimalCorrection(data.generalizedStrains);
+        this->DecimalCorrection(data.generalizedStresses);
 
         // store the results, but first rotate them back to the section coordinate system.
         // we want to visualize the results in that system not in the element one!

@@ -1686,8 +1686,8 @@ bool ShellThickElement3D4N<TKinematics>::TryCalculateOnIntegrationPoints_General
 
         // save the results
 
-        DecimalCorrection(generalizedStrains);
-        DecimalCorrection(generalizedStresses);
+        this->DecimalCorrection(generalizedStrains);
+        this->DecimalCorrection(generalizedStresses);
 
         // now the results are in the element coordinate system
         // if necessary, rotate the results in the section (local) coordinate system
