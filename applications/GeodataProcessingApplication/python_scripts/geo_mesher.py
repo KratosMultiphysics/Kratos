@@ -896,7 +896,7 @@ class GeoMesher( GeoProcessor ):
         for j in range(len(mesh.faces)):
             points = mesh.faces[j]
             marker = mesh.face_markers[j]
-            self.ModelPart.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties)
+            self.ModelPart.CreateNewCondition("SurfaceCondition3D3N", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties)
             if (marker == 1):
                 bottom_cond.append(j+1)
             elif (marker == 2):
@@ -1017,7 +1017,7 @@ class GeoMesher( GeoProcessor ):
                 }
             }
         """)
-        import python_linear_solver_factory
+        from KratosMultiphysics import python_linear_solver_factory
         linear_solver = python_linear_solver_factory.ConstructSolver(serial_settings["linear_solver_settings"])
 
         maximum_iterations = 5
