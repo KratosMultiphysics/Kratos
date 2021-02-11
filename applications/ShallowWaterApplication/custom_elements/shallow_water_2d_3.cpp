@@ -168,7 +168,13 @@ void ShallowWater2D3::CalculateLocalSystem(
 
     AddGradientTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
 
+    KRATOS_WATCH("A")
+    KRATOS_WATCH(rRightHandSideVector -prod(rLeftHandSideMatrix, data.unknown))
+
     AddSourceTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
+
+    KRATOS_WATCH("B")
+    KRATOS_WATCH(rRightHandSideVector -prod(rLeftHandSideMatrix, data.unknown))
 
     AddShockCapturingTerm(rLeftHandSideMatrix, data, DN_DX);
 
@@ -437,7 +443,7 @@ void ShallowWater2D3::ComputeMassMatrix(
             rMatrix(i_block + 2, j_block)     += l * cmm * mu_q * s1_ij;
 
              /* Stabilization y
-              * A1*M
+              * A2*M
               */
             const double s2_ij = rN[i] * rDN_DX(j,1);
             rMatrix(i_block,     j_block)     += l * cmm * mu_q * s2_ij * u_2;
@@ -618,17 +624,17 @@ void ShallowWater2D3::ComputeGradientVector(
             rVector[i_block + 1] -= c2 * rN[i] * rDN_DX(j,1) * topography[j];
 
             /* Stabilization x-x
-             * H1*G1
+             * A1*G1
              */
             rVector[i_block + 2] -= l * c2 * rDN_DX(i,0) * rDN_DX(j,0) * topography[j];
 
             /* Stabilization y-y
-             * H2*G2
+             * A2*G2
              */
             rVector[i_block + 2] -= l * c2 * rDN_DX(i,1) * rDN_DX(j,1) * topography[j];
 
             /* Stabilization x-y and y-x
-             * H1*G2 = H2*G1 = 0
+             * A1*G2 = A2*G1 = 0
              */
         }
     }
