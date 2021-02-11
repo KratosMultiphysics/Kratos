@@ -46,7 +46,8 @@ public:
     virtual void Tessellate(
         const GeometryType& rGeometry,
         const double Tolerance,
-        const int NumberOfGuessesPerInterval = 1)
+        const int NumberOfGuessesPerInterval = 1,
+        bool ToSurfaceParameter = false)
     {
         KRATOS_ERROR << "Calling Tessellate from base Tessellation class."
             << std::endl;
