@@ -20,7 +20,9 @@
 #include "containers/model.h"
 #include "includes/properties.h"
 #include "custom_elements/swe.h"
+#include "custom_elements/shallow_water_2d_3.h"
 #include "shallow_water_application_variables.h"
+#include "includes/mesh_moving_variables.h"
 
 namespace Kratos {
 
@@ -110,6 +112,82 @@ KRATOS_TEST_CASE_IN_SUITE(SWE2D3N, ShallowWaterApplicationFastSuite)
     KRATOS_CHECK_NEAR(RHS(6),-11.99000, tolerance);
     KRATOS_CHECK_NEAR(RHS(7),  0.00000, tolerance);
     KRATOS_CHECK_NEAR(RHS(8),  1.66667, tolerance);
+}
+
+void PerformSteadyStateSimpleTest(const double rManning, const double rHeight, const double rVelocity)
+{
+    Model model;
+    ModelPart& model_part = model.CreateModelPart("main", 2);
+
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    model_part.AddNodalSolutionStepVariable(MOMENTUM);
+    model_part.AddNodalSolutionStepVariable(HEIGHT);
+    model_part.AddNodalSolutionStepVariable(TOPOGRAPHY);
+    model_part.AddNodalSolutionStepVariable(RAIN);
+    model_part.AddNodalSolutionStepVariable(MANNING);
+    model_part.AddNodalSolutionStepVariable(WIND);
+    model_part.AddNodalSolutionStepVariable(ATMOSPHERIC_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(ACCELERATION);
+    model_part.AddNodalSolutionStepVariable(VERTICAL_VELOCITY);
+    model_part.AddNodalSolutionStepVariable(MESH_ACCELERATION);
+
+    // Process info creation
+    const double gravity = 9.81;
+    const double stab_factor = 0.000001;
+    const double shock_stab_factor = 1.0;
+    const double relative_dry_height = 0.1;
+    const double density_water = 1000.0;
+    const double density_air = 1.0;
+    model_part.GetProcessInfo().SetValue(GRAVITY_Z, gravity);
+    model_part.GetProcessInfo().SetValue(STABILIZATION_FACTOR, stab_factor);
+    model_part.GetProcessInfo().SetValue(SHOCK_STABILIZATION_FACTOR, shock_stab_factor);
+    model_part.GetProcessInfo().SetValue(RELATIVE_DRY_HEIGHT, relative_dry_height);
+    model_part.GetProcessInfo().SetValue(DENSITY_WATER, density_water);
+    model_part.GetProcessInfo().SetValue(DENSITY_AIR, density_air);
+
+    // Geometry creation
+    model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    std::vector<ModelPart::IndexType> elem_nodes {1, 2, 3};
+    Properties::Pointer property = model_part.CreateNewProperties(0);
+    Element::Pointer element = model_part.CreateNewElement("ShallowWater2D3N", 1, elem_nodes, property);
+    auto r_geom = element->GetGeometry();
+
+    const double slope = std::pow(rManning, 2.) * std::pow(rVelocity, 2.) / std::pow(rHeight, 4./3.);
+    array_1d<double,3> u, q = ZeroVector(3);
+    u[0] = rVelocity;
+    q[0] = rVelocity * rHeight;
+
+    // Set the nodal values
+    for (IndexType i = 0; i < 3; i++)
+    {
+        const auto x = r_geom[i].X();
+        r_geom[i].FastGetSolutionStepValue(HEIGHT) = rHeight;
+        r_geom[i].FastGetSolutionStepValue(VELOCITY) = u;
+        r_geom[i].FastGetSolutionStepValue(MOMENTUM) = q;
+        r_geom[i].FastGetSolutionStepValue(MANNING) = rManning;
+        r_geom[i].FastGetSolutionStepValue(TOPOGRAPHY) = -slope * x;
+    }
+
+    // Compute RHS and LHS
+    Vector RHS = ZeroVector(9);
+    Matrix LHS = ZeroMatrix(9,9);
+    const ProcessInfo& r_process_info = model_part.GetProcessInfo();
+    element->CalculateLocalSystem(LHS, RHS, r_process_info);
+
+    // Check the RHS values. Since it is a steady solution the RHS must be zero
+    double tolerance = 1e-6;
+    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, ZeroVector(9), tolerance);
+}
+
+/**
+ * Checks the ShallowWater2D3N element
+ */
+KRATOS_TEST_CASE_IN_SUITE(SteadySubcriticalShallowWater2D3N, ShallowWaterApplicationFastSuite)
+{
+    PerformSteadyStateSimpleTest(0.0382, 5.0, 1.0);
 }
 
 } // namespace Testing

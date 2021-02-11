@@ -43,10 +43,12 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo) const
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MOMENTUM, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HEIGHT, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BATHYMETRY, node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TOPOGRAPHY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WIND, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ATMOSPHERIC_PRESSURE, node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION, node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VERTICAL_VELOCITY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_ACCELERATION, node)
 
         KRATOS_CHECK_DOF_IN_NODE(MOMENTUM_X, node)
@@ -342,8 +344,6 @@ void ShallowWater2D3::CalculateOnIntegrationPoints(
 
 void ShallowWater2D3::ElementData::InitializeData(const ProcessInfo& rCurrentProcessInfo)
 {
-    const double delta_t = rCurrentProcessInfo[DELTA_TIME];
-    dt_inv = 1.0 / delta_t;
     stab_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
     shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
     rel_dry_height = rCurrentProcessInfo[RELATIVE_DRY_HEIGHT];
