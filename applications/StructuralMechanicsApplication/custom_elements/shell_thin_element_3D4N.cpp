@@ -607,6 +607,20 @@ void ShellThinElement3D4N<TKinematics>::Calculate(const Variable<Matrix>& rVaria
     }
 }
 
+template <ShellKinematics TKinematics>
+int ShellThinElement3D4N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+
+    BaseType::Check(rCurrentProcessInfo);
+
+    // ...
+
+    return 0;
+
+    KRATOS_CATCH("")
+}
+
 // =========================================================================
 //
 // Class ShellThinElement3D4N - Private methods

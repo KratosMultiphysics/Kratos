@@ -472,6 +472,20 @@ void ShellThickElement3D3N<TKinematics>::Calculate(const Variable<Matrix>& rVari
     }
 }
 
+template <ShellKinematics TKinematics>
+int ShellThickElement3D3N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+
+    BaseType::Check(rCurrentProcessInfo);
+
+    // ...
+
+    return 0;
+
+    KRATOS_CATCH("")
+}
+
 // =====================================================================================
 //
 // Class ShellThickElement3D3N - Private methods
