@@ -354,7 +354,6 @@ public:
     {
         const double model_tolerance = 1e-3;
 
-        if (this->Dimension() == 1) {
             std::vector<double> intersection_master_spans;
 
             mpGeometries[0]->Spans(intersection_master_spans);
@@ -396,7 +395,6 @@ public:
             mpGeometries[0]->Spans(intersection_master_spans, 0);
             rIntegrationInfo.SetSpans(intersection_master_spans, 0);
             mpGeometries[0]->CreateIntegrationPoints(rIntegrationPoints, rIntegrationInfo);
-        }
     }
 
     /* @brief This method creates a list of quadrature point geometries
@@ -416,83 +414,137 @@ public:
     {
         const double model_tolerance = 1e-3;
 
-        const SizeType num_integration_points = rIntegrationPoints.size();
-
-        if (rResultGeometries.size() != num_integration_points) {
-            rResultGeometries.resize(num_integration_points);
-        }
-
-        GeometriesArrayType master_quadrature_points(num_integration_points);
-        mpGeometries[0]->CreateQuadraturePointGeometries(
-            master_quadrature_points,
-            NumberOfShapeFunctionDerivatives,
-            rIntegrationPoints);
-
-        CoordinatesArrayVectorType integration_points_global_coords_vector(num_integration_points);
-        for (SizeType i = 0; i < num_integration_points; ++i) {
-            integration_points_global_coords_vector[i] = master_quadrature_points[i].Center();
-        }
-
-        // First slave
-        IntegrationPointsArrayType integration_points_slave = rIntegrationPoints;
-        CoordinatesArrayType local_slave_coords = ZeroVector(3);
-        CoordinatesArrayType global_slave_coords = ZeroVector(3);
-
-        bool use_tessellation = true;
-        if (use_tessellation) {
-            TessellationGeometryInterface<PointerVector<TPointType>> tesselation(
-                *(mpGeometries[1].get()), 1e-2, 1);
-
-            for (SizeType j = 0; j < num_integration_points; ++j) {
-                tesselation.GetClosestPoint(
-                    integration_points_global_coords_vector[j],
-                    global_slave_coords,
-                    local_slave_coords);
-
-                mpGeometries[1]->ProjectionPoint(
-                    integration_points_global_coords_vector[j],
-                    global_slave_coords,
-                    local_slave_coords);
-
-                integration_points_slave[j][0] = local_slave_coords[0];
-                integration_points_slave[j][1] = local_slave_coords[1];
-                integration_points_slave[j][2] = local_slave_coords[2];
+        if (this->Dimension() == 1) {
+            const SizeType num_integration_points = rIntegrationPoints.size();
+    
+            if (rResultGeometries.size() != num_integration_points) {
+                rResultGeometries.resize(num_integration_points);
             }
+
+            GeometriesArrayType master_quadrature_points(num_integration_points);
+            mpGeometries[0]->CreateQuadraturePointGeometries(
+                master_quadrature_points,
+                NumberOfShapeFunctionDerivatives,
+                rIntegrationPoints);
+
+            CoordinatesArrayVectorType integration_points_global_coords_vector(num_integration_points);
+            for (SizeType i = 0; i < num_integration_points; ++i) {
+                integration_points_global_coords_vector[i] = master_quadrature_points[i].Center();
+            }
+
+            // First slave
+            IntegrationPointsArrayType integration_points_slave = rIntegrationPoints;
+            CoordinatesArrayType local_slave_coords = ZeroVector(3);
+            CoordinatesArrayType global_slave_coords = ZeroVector(3);
+
+            bool use_tessellation = true;
+            if (use_tessellation) {
+                TessellationGeometryInterface<PointerVector<TPointType>> tesselation(
+                    *(mpGeometries[1].get()), 1e-2, 1);
+
+                for (SizeType j = 0; j < num_integration_points; ++j) {
+                    tesselation.GetClosestPoint(
+                        integration_points_global_coords_vector[j],
+                        global_slave_coords,
+                        local_slave_coords);
+
+                    mpGeometries[1]->ProjectionPoint(
+                        integration_points_global_coords_vector[j],
+                        global_slave_coords,
+                        local_slave_coords);
+
+                    integration_points_slave[j][0] = local_slave_coords[0];
+                    integration_points_slave[j][1] = local_slave_coords[1];
+                    integration_points_slave[j][2] = local_slave_coords[2];
+                }
+            }
+            else {
+                for (SizeType j = 0; j < num_integration_points; ++j) {
+                    mpGeometries[1]->ProjectionPoint(
+                        integration_points_global_coords_vector[j],
+                        global_slave_coords,
+                        local_slave_coords);
+
+                    integration_points_slave[j][0] = local_slave_coords[0];
+                    integration_points_slave[j][1] = local_slave_coords[1];
+                    integration_points_slave[j][2] = local_slave_coords[2];
+                }
+            }
+            GeometriesArrayType slave_quadrature_points(num_integration_points);
+            mpGeometries[1]->CreateQuadraturePointGeometries(
+                slave_quadrature_points,
+                NumberOfShapeFunctionDerivatives,
+                integration_points_slave);
+
+            for (SizeType i = 0; i < num_integration_points; ++i) {
+                KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) > model_tolerance)
+                    << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
+                    << ". Location of master: " << master_quadrature_points(i)->Center() << ", location of slave: "
+                    << slave_quadrature_points(i)->Center() << ". Distance: "
+                    << norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) << std::endl;
+
+                rResultGeometries(i) = Kratos::make_shared<CouplingGeometry<PointType>>(
+                    master_quadrature_points(i), slave_quadrature_points(i));
+            }
+
+            KRATOS_ERROR_IF(mpGeometries.size() > 2)
+                << "CreateQuadraturePointGeometries not implemented for coupling of more than 2 geomtries. "
+                << mpGeometries.size() << " are given." << std::endl;
+        }
+    }
+
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        IntegrationInfo& rIntegrationInfo) override
+    {
+        const double model_tolerance = 1e-3;
+
+        if (this->Dimension() != 0) {
+            BaseType::CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationInfo);
         }
         else {
-            for (SizeType j = 0; j < num_integration_points; ++j) {
-                mpGeometries[1]->ProjectionPoint(
-                    integration_points_global_coords_vector[j],
-                    global_slave_coords,
-                    local_slave_coords);
+            rResultGeometries.resize(1);
 
-                integration_points_slave[j][0] = local_slave_coords[0];
-                integration_points_slave[j][1] = local_slave_coords[1];
-                integration_points_slave[j][2] = local_slave_coords[2];
+            GeometriesArrayType master_quadrature_points(1);
+            mpGeometries[0]->CreateQuadraturePointGeometries(
+                master_quadrature_points,
+                NumberOfShapeFunctionDerivatives,
+                rIntegrationInfo);
+
+            GeometriesArrayType slave_quadrature_points(1);
+            mpGeometries[1]->CreateQuadraturePointGeometries(
+                slave_quadrature_points,
+                NumberOfShapeFunctionDerivatives,
+                rIntegrationInfo);
+
+            KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(0)->Center() - slave_quadrature_points(0)->Center()) > model_tolerance)
+                << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
+                << ". Location of master: " << master_quadrature_points(0)->Center() << ", location of slave: "
+                << slave_quadrature_points(0)->Center() << ". Distance: "
+                << norm_2(master_quadrature_points(0)->Center() - slave_quadrature_points(0)->Center()) << std::endl;
+
+            rResultGeometries(0) = Kratos::make_shared<CouplingGeometry<PointType>>(
+                master_quadrature_points(0), slave_quadrature_points(0));
+
+            if (mpGeometries.size() > 2) {
+                for (IndexType i = 2; i < mpGeometries.size(); ++i) {
+                    GeometriesArrayType more_slave_quadrature_points(1);
+                    mpGeometries[i]->CreateQuadraturePointGeometries(
+                        more_slave_quadrature_points,
+                        NumberOfShapeFunctionDerivatives,
+                        rIntegrationInfo);
+
+                    KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(0)->Center() - more_slave_quadrature_points(0)->Center()) > model_tolerance)
+                        << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
+                        << ". Location of master: " << master_quadrature_points(0)->Center() << ", location of slave: "
+                        << more_slave_quadrature_points(0)->Center() << ". Distance: "
+                        << norm_2(master_quadrature_points(0)->Center() - more_slave_quadrature_points(0)->Center()) << std::endl;
+
+                    rResultGeometries(0)->AddGeometryPart(more_slave_quadrature_points(0));
+                }
             }
         }
-
-
-        GeometriesArrayType slave_quadrature_points(num_integration_points);
-        mpGeometries[1]->CreateQuadraturePointGeometries(
-            slave_quadrature_points,
-            NumberOfShapeFunctionDerivatives,
-            integration_points_slave);
-
-        for (SizeType i = 0; i < num_integration_points; ++i) {
-            KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) > model_tolerance)
-                << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
-                << ". Location of master: " << master_quadrature_points(i)->Center() << ", location of slave: "
-                << slave_quadrature_points(i)->Center() << ". Distance: "
-                << norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) << std::endl;
-
-            rResultGeometries(i) = Kratos::make_shared<CouplingGeometry<PointType>>(
-                master_quadrature_points(i), slave_quadrature_points(i));
-        }
-
-        KRATOS_ERROR_IF(mpGeometries.size() > 2)
-            << "CreateQuadraturePointGeometries not implemented for coupling of more than 2 geomtries. "
-            << mpGeometries.size() << " are given." << std::endl;
     }
 
     ///@}

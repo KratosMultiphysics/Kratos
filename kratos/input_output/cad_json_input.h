@@ -497,33 +497,53 @@ private:
                 << "Reading BrepPoint \"" << GetIdOrName(rParameters[brep_point_i]) << "\"" << std::endl;
 
             if (rParameters[brep_point_i]["topology"].size() == 1) {
-                auto p_geometry = GetGeometry(rParameters[brep_point_i]["topology"][0], rModelPart);
+            
+            auto p_brep_point = ReadBrepPoint(rParameters[brep_point_i]["topology"][0], rModelPart, EchoLevel);
 
-                if (rParameters[brep_point_i]["topology"][0].Has("local_coordinates"))
-                {
-                    auto coordinates_vector = rParameters[brep_point_i]["topology"][0]["local_coordinates"].GetVector();
-                    array_1d<double, 3> local_coordinates;
-                    local_coordinates[0] = coordinates_vector[0];
-                    local_coordinates[1] = coordinates_vector[1];
-                    local_coordinates[2] = coordinates_vector[2];
-
-                    GeometryPointerType p_brep_point = (p_geometry->LocalSpaceDimension() == 2)
-                        ? Kratos::make_shared<BrepPointOnSurfaceType>(local_coordinates, p_geometry)
-                        : Kratos::make_shared<BrepPointOnCurveType>(local_coordinates, p_geometry);
-
-                    SetIdOrName<GeometryType>(rParameters[brep_point_i], p_brep_point);
-                    rModelPart.AddGeometry(p_brep_point);
-                }
-                else {
-                    KRATOS_ERROR << "Topology of brep point: " << GetIdOrName(rParameters[brep_point_i])
-                        << " does not provide local coordinates. No other import option provided. Topology as following: "
-                        << rParameters[brep_point_i]["topology"] << std::endl;
-                }
+                SetIdOrName<GeometryType>(rParameters[brep_point_i], p_brep_point);
+                rModelPart.AddGeometry(p_brep_point);
 
             }
             else {
-                KRATOS_ERROR << "Coupling BrepPoints are not yet provided." << std::endl;
+                std::vector<GeometryPointerType> coupling_point_geometries(rParameters[brep_point_i]["topology"].size());
+
+                for (IndexType i = 0; i < rParameters[brep_point_i]["topology"].size(); ++i) {
+                    coupling_point_geometries[i] = ReadBrepPoint(rParameters[brep_point_i]["topology"][i], rModelPart, EchoLevel);
+                }
+
+                auto p_coupling_geometry = Kratos::make_shared<CouplingGeometryType>(
+                    coupling_point_geometries);
+
+                SetIdOrName<CouplingGeometryType>(rParameters[brep_point_i], p_coupling_geometry);
+                rModelPart.AddGeometry(p_coupling_geometry);
             }
+        }
+    }
+
+    static GeometryPointerType ReadBrepPoint(
+        const Parameters rParameters,
+        ModelPart& rModelPart,
+        SizeType EchoLevel = 0)
+    {
+        auto p_geometry = GetGeometry(rParameters, rModelPart);
+
+        if (rParameters.Has("local_coordinates"))
+        {
+            auto coordinates_vector = rParameters["local_coordinates"].GetVector();
+            array_1d<double, 3> local_coordinates;
+            local_coordinates[0] = coordinates_vector[0];
+            local_coordinates[1] = coordinates_vector[1];
+            local_coordinates[2] = coordinates_vector[2];
+
+            GeometryPointerType p_brep_point = (p_geometry->LocalSpaceDimension() == 2)
+                ? Kratos::make_shared<BrepPointOnSurfaceType>(local_coordinates, p_geometry)
+                : Kratos::make_shared<BrepPointOnCurveType>(local_coordinates, p_geometry);
+
+            return p_brep_point;
+        }
+        else {
+            KRATOS_ERROR << "Topology of brep point does not provide local coordinates. No other import option provided. Provided topology: "
+                << rParameters << std::endl;
         }
     }
 
@@ -585,7 +605,8 @@ private:
                 NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                     control_points,
                     polynomial_degree,
-                    knot_vector));
+                    knot_vector,
+                    control_point_weights));
         }
         return Kratos::make_shared<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
             NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
