@@ -16,7 +16,7 @@ add_app () {
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-export PYTHON_EXECUTABLE="/usr/bin/python3.8"
+export PYTHON_EXECUTABLE="/usr/bin/python3.5"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Clean
@@ -31,12 +31,9 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DUSE_MPI=ON \
--DPYBIND11_PYTHON_VERSION="3.8" \
+-DPYBIND11_PYTHON_VERSION="3.5" \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++11 -O0 -fopenmp -Wall" \
--DBLAS_LIBRARIES="/usr/lib/x86_64-linux-gnu/blas/libblas.so.3" \
--DLAPACK_LIBRARIES="/usr/lib/x86_64-linux-gnu/liblapack.so.3" \
--DUSE_COTIRE=ON \
--DINCLUDE_MMG=ON                                    \
+-DUSE_COTIRE=ON                              \
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j1 && \
