@@ -455,7 +455,7 @@ public:
 
         const SizeType number_of_integration_points =
             knot_span_intervals_u.size() * knot_span_intervals_v.size()
-            * (NumPointsPerSpanU + 3) * (NumPointsPerSpanV+3);
+            * NumPointsPerSpanU * NumPointsPerSpanV;
 
         if (rIntegrationPoints.size() != number_of_integration_points) {
             rIntegrationPoints.resize(number_of_integration_points);
@@ -467,7 +467,7 @@ public:
             for (IndexType j = 0; j < knot_span_intervals_v.size(); ++j) {
                 IntegrationPointUtilities::IntegrationPoints2D(
                     integration_point_iterator,
-                    NumPointsPerSpanU + 3, NumPointsPerSpanV + 3,
+                    NumPointsPerSpanU, NumPointsPerSpanV,
                     knot_span_intervals_u[i].GetT0(), knot_span_intervals_u[i].GetT1(),
                     knot_span_intervals_v[j].GetT0(), knot_span_intervals_v[j].GetT1());
             }
