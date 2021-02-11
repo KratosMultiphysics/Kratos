@@ -14,6 +14,7 @@
 
 
 // System includes
+#include <type_traits>
 
 // External includes
 
@@ -54,7 +55,11 @@ namespace Kratos
  * Material nonlinearity is handled by means of the cross section object.
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N : public BaseShellElement<ShellT3_CoordinateTransformation> // template arg is not yet used
+template <ShellKinematics TKinematics>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N : public
+    BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>::type>
 {
 public:
 
@@ -63,7 +68,9 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThinElement3D3N);
 
-    using BaseType = BaseShellElement<ShellT3_CoordinateTransformation>;
+    using BaseType = BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>::type>;
 
     typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
 
@@ -102,13 +109,11 @@ public:
     ///@{
 
     ShellThinElement3D3N(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         bool NLGeom = false);
+                         GeometryType::Pointer pGeometry);
 
     ShellThinElement3D3N(IndexType NewId,
                          GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         bool NLGeom = false);
+                         PropertiesType::Pointer pProperties);
 
     ShellThinElement3D3N(IndexType NewId,
                          GeometryType::Pointer pGeometry,

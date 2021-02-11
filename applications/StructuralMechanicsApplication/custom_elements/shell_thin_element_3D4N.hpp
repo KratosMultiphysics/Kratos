@@ -14,6 +14,7 @@
 #define  SHELL_THIN_ELEMENT_3D4N_H_INCLUDED
 
 // System includes
+#include <type_traits>
 
 // External includes
 
@@ -79,7 +80,11 @@ quadrilateral thin flat layered shell element for the modeling of reinforced
 concrete walls". Dissertation. Los Angeles, California: University of
 Southern California, 2012. */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public BaseShellElement<ShellQ4_CoordinateTransformation> // template arg is not yet used
+template <ShellKinematics TKinematics>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public
+    BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellQ4_CorotationalCoordinateTransformation,
+        ShellQ4_CoordinateTransformation>::type>
 {
 public:
 
@@ -87,7 +92,9 @@ public:
     ///@{
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThinElement3D4N);
 
-    using BaseType = BaseShellElement<ShellQ4_CoordinateTransformation>;
+    using BaseType = BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellQ4_CorotationalCoordinateTransformation,
+        ShellQ4_CoordinateTransformation>::type>;
 
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
@@ -166,13 +173,11 @@ public:
     ///@name Life Cycle
     ///@{
     ShellThinElement3D4N(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         bool NLGeom = false);
+                         GeometryType::Pointer pGeometry);
 
     ShellThinElement3D4N(IndexType NewId,
                          GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         bool NLGeom = false);
+                         PropertiesType::Pointer pProperties);
 
     ShellThinElement3D4N(IndexType NewId,
                          GeometryType::Pointer pGeometry,

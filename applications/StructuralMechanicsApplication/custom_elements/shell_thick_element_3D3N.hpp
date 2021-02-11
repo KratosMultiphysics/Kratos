@@ -15,6 +15,7 @@
 
 
 // System includes
+#include <type_traits>
 
 // External includes
 
@@ -66,8 +67,11 @@ Shell formulation reference:
     Pages 420-431.
 */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N :
-    public BaseShellElement<ShellT3_CoordinateTransformation> // template arg is not yet used
+template <ShellKinematics TKinematics>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N : public
+    BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>::type>
 {
 public:
 
@@ -76,7 +80,9 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D3N);
 
-    using BaseType = BaseShellElement<ShellT3_CoordinateTransformation>;
+    using BaseType = BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>::type>;
 
     typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
 
@@ -113,13 +119,11 @@ public:
     ///@{
 
     ShellThickElement3D3N(IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          bool NLGeom = false);
+                          GeometryType::Pointer pGeometry);
 
     ShellThickElement3D3N(IndexType NewId,
                           GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties,
-                          bool NLGeom = false);
+                          PropertiesType::Pointer pProperties);
 
     ShellThickElement3D3N(IndexType NewId,
                           GeometryType::Pointer pGeometry,

@@ -40,9 +40,11 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-///@}
-///@name  Functions
-///@{
+enum class ShellKinematics
+{
+    LINEAR,
+    NONLINEAR_COROTATIONAL
+};
 
 ///@}
 ///@name Kratos Classes
