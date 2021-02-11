@@ -53,6 +53,7 @@ namespace Kratos
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
+
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N : public BaseShellElement<ShellT3_CoordinateTransformation> // template arg is not yet used
 {
 public:
@@ -71,6 +72,22 @@ public:
     typedef array_1d<double, 3> Vector3Type;
 
     typedef Quaternion<double> QuaternionType;
+
+    using GeometryType = Element::GeometryType;
+
+    using PropertiesType = Element::PropertiesType;
+
+    using NodesArrayType = Element::NodesArrayType;
+
+    using MatrixType = Element::MatrixType;
+
+    using VectorType = Element::VectorType;
+
+    using SizeType = Element::SizeType;
+
+    using Element::GetGeometry;
+
+    using Element::GetProperties;
 
     ///@}
 
@@ -98,7 +115,7 @@ public:
                          PropertiesType::Pointer pProperties,
                          CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-    ~ShellThinElement3D3N() override;
+    ~ShellThinElement3D3N() override = default;
 
     ///@}
 
@@ -177,7 +194,7 @@ protected:
     /**
      * Protected empty constructor
      */
-    ShellThinElement3D3N() : BaseShellElement()
+    ShellThinElement3D3N() : BaseType()
     {
     }
 

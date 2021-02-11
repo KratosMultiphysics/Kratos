@@ -92,10 +92,6 @@ ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
 {
 }
 
-ShellThinElement3D3N::~ShellThinElement3D3N()
-{
-}
-
 Element::Pointer ShellThinElement3D3N::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     GeometryType::Pointer newGeom(GetGeometry().Create(ThisNodes));
@@ -129,26 +125,26 @@ void ShellThinElement3D3N::InitializeNonLinearIteration(const ProcessInfo& rCurr
 {
     mpCoordinateTransformation->InitializeNonLinearIteration();
 
-    BaseInitializeNonLinearIteration(rCurrentProcessInfo);
+    this->BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
 void ShellThinElement3D3N::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     mpCoordinateTransformation->FinalizeNonLinearIteration();
 
-    BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
+    this->BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
 
 void ShellThinElement3D3N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    BaseInitializeSolutionStep(rCurrentProcessInfo);
+    this->BaseInitializeSolutionStep(rCurrentProcessInfo);
 
     mpCoordinateTransformation->InitializeSolutionStep();
 }
 
 void ShellThinElement3D3N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    BaseFinalizeSolutionStep(rCurrentProcessInfo);
+    this->BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
     mpCoordinateTransformation->FinalizeSolutionStep();
 }
@@ -171,11 +167,11 @@ void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, const Pr
 
     // Calculate avarage mass per unit area
 
-    const SizeType num_gps = GetNumberOfGPs();
+    const SizeType num_gps = this->GetNumberOfGPs();
 
     double av_mass_per_unit_area = 0.0;
     for (SizeType i = 0; i < num_gps; i++) {
-        av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea(GetProperties());
+        av_mass_per_unit_area += this->mSections[i]->CalculateMassPerUnitArea(GetProperties());
     }
     av_mass_per_unit_area /= double(num_gps);
 
@@ -204,7 +200,7 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& 
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType num_gps = GetNumberOfGPs();
+    const SizeType num_gps = this->GetNumberOfGPs();
 
     if (rValues.size() != num_gps) {
         rValues.resize(num_gps);
@@ -237,7 +233,7 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& 
         for (SizeType i = 0; i < num_gps; i++) {
             // set the current integration point index
             data.gpIndex = i;
-            ShellCrossSection::Pointer& section = mSections[i];
+            ShellCrossSection::Pointer& section = this->mSections[i];
 
             // calculate beta0
             CalculateBeta0(data);
@@ -276,7 +272,7 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& 
 
         // Get all laminae strengths
         const PropertiesType& props = GetProperties();
-        ShellCrossSection::Pointer& section = mSections[0];
+        ShellCrossSection::Pointer& section = this->mSections[0];
         std::vector<Matrix> Laminae_Strengths =
             std::vector<Matrix>(section->NumberOfPlies());
         for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++) {
@@ -294,7 +290,7 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& 
         for (SizeType i = 0; i < num_gps; i++) {
             // set the current integration point index
             data.gpIndex = i;
-            ShellCrossSection::Pointer& section = mSections[i];
+            ShellCrossSection::Pointer& section = this->mSections[i];
 
             // calculate beta0
             CalculateBeta0(data);
@@ -337,7 +333,7 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& 
         }// Gauss loop
     } else {
         for (SizeType i = 0; i < num_gps; i++) {
-            mSections[i]->GetValue(rVariable, GetProperties(), rValues[i]);
+            this->mSections[i]->GetValue(rVariable, GetProperties(), rValues[i]);
         }
     }
 
@@ -463,7 +459,7 @@ void ShellThinElement3D3N::CalculateStressesFromForceResultants(VectorType& rstr
 
 void ShellThinElement3D3N::CalculateLaminaStrains(CalculationData& data)
 {
-    ShellCrossSection::Pointer& section = mSections[data.gpIndex];
+    ShellCrossSection::Pointer& section = this->mSections[data.gpIndex];
 
     // Get laminate properties
     double thickness = section->GetThickness(GetProperties());
@@ -512,7 +508,7 @@ void ShellThinElement3D3N::CalculateLaminaStrains(CalculationData& data)
 
 void ShellThinElement3D3N::CalculateLaminaStresses(CalculationData& data)
 {
-    ShellCrossSection::Pointer& section = mSections[data.gpIndex];
+    ShellCrossSection::Pointer& section = this->mSections[data.gpIndex];
 
     // Setup flag to compute ply constitutive matrices
     // (units [Pa] and rotated to element orientation)
@@ -666,7 +662,7 @@ void ShellThinElement3D3N::DecimalCorrection(Vector& a)
 void ShellThinElement3D3N::SetupOrientationAngles()
 {
     if (this->Has(MATERIAL_ORIENTATION_ANGLE)) {
-        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) {
+        for (auto it = this->mSections.begin(); it != this->mSections.end(); ++it) {
             (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
         }
     } else {
@@ -717,7 +713,7 @@ void ShellThinElement3D3N::SetupOrientationAngles()
             }
         }
 
-        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) {
+        for (auto it = this->mSections.begin(); it != this->mSections.end(); ++it) {
             (*it)->SetOrientationAngle(angle);
         }
     }
@@ -765,10 +761,10 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     // implementation of a variable thickness
 
     double h = 0.0;
-    for (unsigned int i = 0; i < mSections.size(); i++) {
-        h += mSections[i]->GetThickness(GetProperties());
+    for (unsigned int i = 0; i < this->mSections.size(); i++) {
+        h += this->mSections[i]->GetThickness(GetProperties());
     }
-    h /= (double)mSections.size();
+    h /= (double)this->mSections.size();
 
     data.hMean = h;
     data.TotalArea = A;
@@ -782,7 +778,7 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     // that already take into accout the
     // thickness
 
-    const SizeType num_gps = GetNumberOfGPs();
+    const SizeType num_gps = this->GetNumberOfGPs();
 
     data.dA = A / (double)num_gps;
 
@@ -967,7 +963,7 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     // in global and local coordinate systems
 
     data.globalDisplacements.resize(18, false);
-    GetValuesVector(data.globalDisplacements);
+    this->GetValuesVector(data.globalDisplacements);
 
     data.localDisplacements =
         mpCoordinateTransformation->CalculateLocalDisplacements(
@@ -1178,7 +1174,7 @@ void ShellThinElement3D3N::CalculateSectionResponse(CalculationData& data)
     data.N(2) = loc[2];
 #endif // !OPT_USES_INTERIOR_GAUSS_POINTS
 
-    ShellCrossSection::Pointer& section = mSections[data.gpIndex];
+    ShellCrossSection::Pointer& section = this->mSections[data.gpIndex];
     data.SectionParameters.SetShapeFunctionsValues(data.N);
     data.SectionParameters.SetMaterialProperties(GetProperties());
     section->CalculateSectionResponse(data.SectionParameters, ConstitutiveLaw::StressMeasure_PK2);
@@ -1269,7 +1265,7 @@ void ShellThinElement3D3N::ApplyCorrectionToRHS(CalculationData& data, VectorTyp
 void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRightHandSideVector)
 {
     const GeometryType& geom = GetGeometry();
-    const SizeType num_gps = GetNumberOfGPs();
+    const SizeType num_gps = this->GetNumberOfGPs();
 
     // Get shape functions
 #ifdef OPT_USES_INTERIOR_GAUSS_POINTS
@@ -1292,7 +1288,7 @@ void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRig
     // gauss loop to integrate the external force vector
     for (unsigned int igauss = 0; igauss < num_gps; igauss++) {
         // get mass per unit area
-        double mass_per_unit_area = mSections[igauss]->CalculateMassPerUnitArea(GetProperties());
+        double mass_per_unit_area = this->mSections[igauss]->CalculateMassPerUnitArea(GetProperties());
 
         // interpolate nodal volume accelerations to this gauss point
         // and obtain the body force vector
@@ -1345,7 +1341,7 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     InitializeCalculationData(data);
 
     // Gauss Loop.
-    for (SizeType i = 0; i < GetNumberOfGPs(); ++i) {
+    for (SizeType i = 0; i < this->GetNumberOfGPs(); ++i) {
         data.gpIndex = i;
         CalculateGaussPointContribution(data, rLeftHandSideMatrix, rRightHandSideVector);
     }
@@ -1385,7 +1381,7 @@ bool ShellThinElement3D3N::TryCalculateOnIntegrationPoints_GeneralizedStrainsOrS
         return false;
     }
 
-    const SizeType num_gps = GetNumberOfGPs();
+    const SizeType num_gps = this->GetNumberOfGPs();
 
     // resize output
     if (rValues.size() != num_gps) {
@@ -1409,7 +1405,7 @@ bool ShellThinElement3D3N::TryCalculateOnIntegrationPoints_GeneralizedStrainsOrS
     for (SizeType i = 0; i < num_gps; i++) {
         // set the current integration point index
         data.gpIndex = i;
-        ShellCrossSection::Pointer& section = mSections[i];
+        ShellCrossSection::Pointer& section = this->mSections[i];
 
         // calculate beta0
         CalculateBeta0(data);
@@ -1582,9 +1578,9 @@ void ShellThinElement3D3N::load(Serializer& rSerializer)
     bool is_corotational;
     rSerializer.load("is_corotational", is_corotational);
     if (is_corotational) {
-        mpCoordinateTransformation = Kratos::make_shared<ShellT3_CorotationalCoordinateTransformation>(pGetGeometry());
+        mpCoordinateTransformation = Kratos::make_shared<ShellT3_CorotationalCoordinateTransformation>(this->pGetGeometry());
     } else {
-        mpCoordinateTransformation = Kratos::make_shared<ShellT3_CoordinateTransformation>(pGetGeometry());
+        mpCoordinateTransformation = Kratos::make_shared<ShellT3_CoordinateTransformation>(this->pGetGeometry());
     }
     rSerializer.load("CTr", *mpCoordinateTransformation);
 }

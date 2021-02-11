@@ -97,6 +97,22 @@ public:
 
     typedef Quaternion<double> QuaternionType;
 
+    using GeometryType = Element::GeometryType;
+
+    using PropertiesType = Element::PropertiesType;
+
+    using NodesArrayType = Element::NodesArrayType;
+
+    using MatrixType = Element::MatrixType;
+
+    using VectorType = Element::VectorType;
+
+    using SizeType = Element::SizeType;
+
+    using Element::GetGeometry;
+
+    using Element::GetProperties;
+
     ///@}
 
     ///@name Classes
@@ -163,7 +179,7 @@ public:
                          PropertiesType::Pointer pProperties,
                          CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-    ~ShellThinElement3D4N() override;
+    ~ShellThinElement3D4N() override = default;
 
     ///@}
 
@@ -239,7 +255,7 @@ protected:
     /**
     * Protected empty constructor
     */
-    ShellThinElement3D4N() : BaseShellElement()
+    ShellThinElement3D4N() : BaseType()
     {
     }
 
