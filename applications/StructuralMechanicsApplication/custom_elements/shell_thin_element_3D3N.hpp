@@ -311,8 +311,6 @@ private:
 
     void CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result);
 
-    void DecimalCorrection(Vector& a);
-
     void SetupOrientationAngles() override;
 
     void InitializeCalculationData(CalculationData& data);

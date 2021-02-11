@@ -408,8 +408,6 @@ private:
 
     double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
 
-    void DecimalCorrection(Vector& a);
-
     void SetupOrientationAngles() override;
 
     void CalculateBMatrix(double xi, double eta,

@@ -1142,17 +1142,6 @@ double ShellThickElement3D4N<TKinematics>::CalculateStenbergShearStabilization(c
 }
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::DecimalCorrection(Vector& a)
-{
-    double norm = norm_2(a);
-    double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
-    for (SizeType i = 0; i < a.size(); i++)
-        if (std::abs(a(i)) < tolerance) {
-            a(i) = 0.0;
-        }
-}
-
-template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::SetupOrientationAngles()
 {
     if (this->Has(MATERIAL_ORIENTATION_ANGLE)) {

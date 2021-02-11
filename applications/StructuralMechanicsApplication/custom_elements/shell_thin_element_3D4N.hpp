@@ -386,8 +386,6 @@ private:
 
     void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& iJob, bool& bGlobal);
 
-    void DecimalCorrection(Vector& a);
-
     void SetupOrientationAngles() override;
 
     void InitializeCalculationData(CalculationData& data);
