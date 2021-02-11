@@ -1326,7 +1326,7 @@ public:
             Vector master_dofs_values;
         };
 
-        block_for_each(r_master_slave_constraints, TLS(), [&rDx, &rModelPart, &r_current_process_info](const MasterSlaveConstraint &r_master_slave_constraint, TLS &rTLS) {
+        block_for_each(r_master_slave_constraints, TLS(), [&rDx, &r_current_process_info](const MasterSlaveConstraint &r_master_slave_constraint, TLS &rTLS) {
             // Detect if the constraint is active or not. If the user did not make any choice the constraint
             // It is active by default
             const bool constraint_is_active = r_master_slave_constraint.IsDefined(ACTIVE) ? r_master_slave_constraint.Is(ACTIVE) : true ;
