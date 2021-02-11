@@ -57,6 +57,16 @@ public:
         typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
         SizeType PointsInU, SizeType PointsInV,
         double U0, double U1, double V0, double V1);
+    
+    static void IntegrationPointsTriangle(
+        typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
+        SizeType PointsIn,
+        const Matrix &triangle);
+
+    static void getGaussPointLocationsTriangle(
+        SizeType degree,
+        Matrix& gaussian_coords,
+        Vector& weights);
 
     ///@}
 };
