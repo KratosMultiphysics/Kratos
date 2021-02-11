@@ -177,7 +177,7 @@ void AdjointFiniteDifferencingShellElement<TPrimalElement>::load(Serializer& rSe
 
 }
 
-template class AdjointFiniteDifferencingShellElement<ShellThinElement3D3N<false>>;
+template class AdjointFiniteDifferencingShellElement<ShellThinElement3D3N<ShellKinematics::LINEAR>>;
 
 } // namespace Kratos
 

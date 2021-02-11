@@ -58,9 +58,9 @@ namespace Kratos
  * Material nonlinearity is handled by means of the cross section object.
  */
 
-template <bool NLinGeom>
+template <ShellKinematics TKinematics>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N :
-    public BaseShellElement<typename std::conditional<NLinGeom,
+    public BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
         ShellQ4_CorotationalCoordinateTransformation,
         ShellQ4_CoordinateTransformation>::type>
 {
@@ -71,7 +71,7 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D4N);
 
-    using BaseType = BaseShellElement<typename std::conditional<NLinGeom,
+    using BaseType = BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
         ShellQ4_CorotationalCoordinateTransformation,
         ShellQ4_CoordinateTransformation>::type>;
 

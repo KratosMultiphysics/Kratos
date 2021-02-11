@@ -80,9 +80,9 @@ quadrilateral thin flat layered shell element for the modeling of reinforced
 concrete walls". Dissertation. Los Angeles, California: University of
 Southern California, 2012. */
 
-template <bool NLinGeom>
+template <ShellKinematics TKinematics>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public
-    BaseShellElement<typename std::conditional<NLinGeom,
+    BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
         ShellQ4_CorotationalCoordinateTransformation,
         ShellQ4_CoordinateTransformation>::type>
 {
@@ -92,7 +92,7 @@ public:
     ///@{
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThinElement3D4N);
 
-    using BaseType = BaseShellElement<typename std::conditional<NLinGeom,
+    using BaseType = BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
         ShellQ4_CorotationalCoordinateTransformation,
         ShellQ4_CoordinateTransformation>::type>;
 

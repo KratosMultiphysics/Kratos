@@ -67,9 +67,9 @@ Shell formulation reference:
     Pages 420-431.
 */
 
-template <bool NLinGeom>
+template <ShellKinematics TKinematics>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N : public
-    BaseShellElement<typename std::conditional<NLinGeom,
+    BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
         ShellT3_CorotationalCoordinateTransformation,
         ShellT3_CoordinateTransformation>::type>
 {
@@ -80,7 +80,7 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D3N);
 
-    using BaseType = BaseShellElement<typename std::conditional<NLinGeom,
+    using BaseType = BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
         ShellT3_CorotationalCoordinateTransformation,
         ShellT3_CoordinateTransformation>::type>;
 
