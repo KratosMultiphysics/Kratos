@@ -1,6 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import KratosMultiphysics as KM
+﻿import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class TestImporting(KratosUnittest.TestCase):
@@ -40,14 +38,14 @@ class TestImporting(KratosUnittest.TestCase):
     def test_has_application(self):
         current_model = KM.Model()
 
-        self.assertTrue(KM.Kernel().IsImported("KratosMultiphysics"))
+        self.assertTrue(KM.KratosGlobals.Kernel.IsImported("KratosMultiphysics"))
 
         try:
             import KratosMultiphysics.ExternalSolversApplication
         except:
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
 
-        self.assertTrue(KM.Kernel().IsImported("ExternalSolversApplication"))
+        self.assertTrue(KM.KratosGlobals.Kernel.IsImported("ExternalSolversApplication"))
 
     def test_variable_keys_reordering(self):
         key_vel_before_import = KM.VELOCITY.Key() # test a var from the Kernel

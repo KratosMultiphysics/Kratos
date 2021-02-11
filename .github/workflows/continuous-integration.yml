@@ -1,0 +1,157 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - master
+
+  workflow_dispatch:
+
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: [Custom, FullDebug]
+        compiler: [gcc, clang]
+    env:
+      KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
+      MKLVARS_ARCHITECTURE: intel64
+      MKLVARS_INTERFACE: lp64
+
+    container:
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      options: --user 1001
+      env:
+        CCACHE_SLOPPINESS: pch_defines,time_macros
+        CCACHE_COMPILERCHECK: content
+        CCACHE_COMPRESS: true
+        CCACHE_NODISABLE: true
+        CCACHE_MAXSIZE: 500M
+        FC: gfortran-7
+
+    steps:
+    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+    - uses: actions/checkout@v2
+
+    - name: Cache Build
+      id: cache-build
+      uses: actions/cache@v1
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-${{ matrix.build-type }}-${{ matrix.compiler }}-ccache-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-${{ matrix.build-type }}-${{ matrix.compiler }}-ccache-
+
+    - name: Build
+      run: |
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export CC=/usr/lib/ccache/gcc
+          export CXX=/usr/lib/ccache/g++
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wall -Wno-deprecated-declarations -Wignored-qualifiers"
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export CC=clang-9
+          export CXX=clang++-9
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wall -Wno-deprecated-declarations"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_4_1/"
+        else
+          echo 'Unsupported compiler: ${{ matrix.compiler }}'
+          exit 1
+        fi
+        . /opt/intel/mkl/bin/mklvars.sh
+        cp .github/workflows/configure.sh configure.sh
+        bash configure.sh
+        ccache -s
+
+    - name: Running small tests
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        python3 kratos/python_scripts/run_tests.py -l small -c python3
+
+    - name: Running MPICore C++ tests (2 Cores)
+      timeout-minutes : 10
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+
+    - name: Running MPICore C++ tests (3 Cores)
+      timeout-minutes : 10
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 3 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+
+    - name: Running MPICore C++ tests (4 Cores)
+      timeout-minutes : 10
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 4 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+
+    - name: Running Python MPI tests (2 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 2
+
+    - name: Running Python MPI tests (3 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 3 -f--oversubscribe
+
+    - name: Running Python MPI tests (4 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 4 -f--oversubscribe
+
+  windows:
+    runs-on: windows-latest
+    env:
+      KRATOS_BUILD_TYPE: Custom
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.6'
+    - name: Cache Build
+      id: cache-build
+      uses: actions/cache@v1
+      with:
+        path: build
+        key: ${{ runner.os }}-build-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-build-
+
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+
+    - name: Build
+      shell: cmd
+      run: |
+        copy .\.github\workflows\configure.cmd
+        configure.cmd
+
+    - name: Running small tests
+      shell: cmd
+      run: |
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+        python kratos/python_scripts/run_tests.py -l small -c python

@@ -18,6 +18,9 @@
 #include <unordered_set>
 
 /* External includes */
+#ifdef KRATOS_SMP_OPENMP
+#include <omp.h>
+#endif
 
 /* Project includes */
 #include "includes/define.h"
@@ -25,11 +28,11 @@
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
 #include "utilities/timer.h"
-#include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
 #include "includes/kratos_flags.h"
 #include "includes/lock_object.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
@@ -220,7 +223,7 @@ public:
         Element::EquationIdVectorType EquationId;
 
         // assemble all elements
-        double start_build = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
 
         #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
@@ -242,9 +245,6 @@ public:
 
                     //assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*it);
                 }
 
             }
@@ -267,15 +267,12 @@ public:
 
                     //assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*it);
                 }
             }
         }
 
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
+
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
@@ -317,7 +314,7 @@ public:
         Element::EquationIdVectorType equation_id;
 
         // Assemble all elements
-        double start_build = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
 
         #pragma omp parallel firstprivate(nelements, nconditions, lhs_contribution, equation_id )
         {
@@ -336,9 +333,6 @@ public:
 
                     // Assemble the elemental contribution
                     AssembleLHS(rA, lhs_contribution, equation_id);
-
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*it_elem);
                 }
 
             }
@@ -359,15 +353,11 @@ public:
 
                     // Assemble the elemental contribution
                     AssembleLHS(rA, lhs_contribution, equation_id);
-
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*it_cond);
                 }
             }
         }
 
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << timer.ElapsedSeconds() << std::endl;
 
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished parallel building LHS" << std::endl;
@@ -540,14 +530,14 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-        const double start_solve = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
         SystemSolveWithPhysics(A, Dx, b, rModelPart);
 
         Timer::Stop("Solve");
-        const double stop_solve = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
+
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
@@ -674,14 +664,14 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
-        const double start_solve = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
-        const double stop_solve = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
+
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
@@ -746,7 +736,7 @@ public:
 
         DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
 
-        unsigned int nthreads = OpenMPUtils::GetNumThreads();
+        unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
         typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
 
@@ -1619,6 +1609,34 @@ protected:
                 lock_array[ids[i]].UnSetLock();
             }
         }
+             
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            Element::EquationIdVectorType master_ids(3, 0);
+            Element::EquationIdVectorType slave_ids(3, 0);
+            
+            const int nmasterSlaveConstraints = rModelPart.MasterSlaveConstraints().size();
+            const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
+            
+            #pragma omp parallel for firstprivate(nmasterSlaveConstraints, slave_ids, master_ids)
+            for (int iii = 0; iii<nmasterSlaveConstraints; ++iii) {
+                auto i_const = const_begin + iii;
+                i_const->EquationIdVector(slave_ids, master_ids, CurrentProcessInfo);
+                
+                for (std::size_t i = 0; i < slave_ids.size(); i++) {
+                    lock_array[slave_ids[i]].SetLock();
+                    auto& row_indices = indices[slave_ids[i]];
+                    row_indices.insert(slave_ids[i]);
+                    lock_array[slave_ids[i]].UnSetLock();
+                }
+
+                for (std::size_t i = 0; i < master_ids.size(); i++) {
+                    lock_array[master_ids[i]].SetLock();
+                    auto& row_indices = indices[master_ids[i]];
+                    row_indices.insert(master_ids[i]);
+                    lock_array[master_ids[i]].UnSetLock();
+                }
+            }
+        }
 
         //destroy locks
         lock_array = std::vector< LockObject >();
@@ -1833,7 +1851,7 @@ protected:
 //         return max_diag;
 
         // Creating a buffer for parallel vector fill
-        const int num_threads = OpenMPUtils::GetNumThreads();
+        const int num_threads = ParallelUtilities::GetNumThreads();
         Vector max_vector(num_threads, 0.0);
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
@@ -1866,7 +1884,7 @@ protected:
 //         return min_diag;
 
         // Creating a buffer for parallel vector fill
-        const int num_threads = OpenMPUtils::GetNumThreads();
+        const int num_threads = ParallelUtilities::GetNumThreads();
         Vector min_vector(num_threads, std::numeric_limits<double>::max());
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {

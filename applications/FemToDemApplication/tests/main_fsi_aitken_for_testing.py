@@ -35,34 +35,28 @@ class MainCouplingPfemFemDemAitkenForTestingSolution(MainCouplingPfemFemDemAitke
 
         tol = 1e-5
         for node in self.FEMDEM_Solution.FEM_Solution.main_model_part.GetSubModelPart("testing_nodes").Nodes:
-            # KratosPrintInfo("hey")
+            dx = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+            vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
+
             if self.FEMDEM_Solution.FEM_Solution.step == 3:
-                dx = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-                vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-                ref_dx = 7.539979970827383e-06
-                ref_vx = 0.01089025506774863
-                if (dx - ref_dx) / ref_dx > tol or (vx - ref_vx) / ref_vx > tol:
+                ref_dx = 7.539973808874607e-06
+                ref_vx = 0.010890248303354633
+                if abs((dx - ref_dx) / ref_dx) > tol or abs((vx - ref_vx) / ref_vx) > tol:
                     raise ValueError('The computed displ or velocity at step = 3 is not correct')
             if self.FEMDEM_Solution.FEM_Solution.step == 5:
-                dx = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-                vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-                ref_dx = 7.605594669875214e-05
-                ref_vx = 0.05646212212293625
-                if (dx - ref_dx) / ref_dx > tol or (vx - ref_vx) / ref_vx > tol:
+                ref_dx = 7.605586153264591e-05
+                ref_vx = 0.056462044674854384
+                if abs((dx - ref_dx) / ref_dx) > tol or abs((vx - ref_vx) / ref_vx) > tol:
                     raise ValueError('The computed displ or velocity at step = 5 is not correct')
             if self.FEMDEM_Solution.FEM_Solution.step == 8:
-                dx = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-                vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-                ref_dx = 0.0001966109980103405
-                ref_vx = 0.030178525378407893
-                if (dx - ref_dx) / ref_dx > tol or (vx - ref_vx) / ref_vx > tol:
+                ref_dx = 0.00019661105040173912
+                ref_vx = 0.03017867725962859
+                if abs((dx - ref_dx) / ref_dx) > tol or abs((vx - ref_vx) / ref_vx) > tol:
                     raise ValueError('The computed displ or velocity at step = 8 is not correct')
             if self.FEMDEM_Solution.FEM_Solution.step == 11:
-                dx = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-                vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-                ref_dx = 0.0002784147973531396
-                ref_vx = 0.047863965496993656
-                if (dx - ref_dx) / ref_dx > tol or (vx - ref_vx) / ref_vx > tol:
+                ref_dx = 0.0002679109591405014
+                ref_vx = 0.03903172716826907
+                if abs((dx - ref_dx) / ref_dx) > tol or abs((vx - ref_vx) / ref_vx) > tol:
                     raise ValueError('The computed displ or velocity at step = 11 is not correct')
 
 

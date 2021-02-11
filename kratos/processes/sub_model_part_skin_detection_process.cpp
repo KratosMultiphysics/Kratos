@@ -12,9 +12,26 @@
 
 // Project includes
 #include "sub_model_part_skin_detection_process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
+
+template<SizeType TDim>
+void SubModelPartSkinDetectionProcess<TDim>::SelectIfAllNodesOnSubModelPart::Prepare(ModelPart& rMainModelPart) const
+{
+    VariableUtils().SetFlag(SubModelPartSkinDetectionProcess::NODE_SELECTED, true, rMainModelPart.GetSubModelPart(mName).Nodes());
+}
+
+template<SizeType TDim>
+bool SubModelPartSkinDetectionProcess<TDim>::SelectIfAllNodesOnSubModelPart::IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const
+{
+    bool select = true;
+    for (auto i_node = rNodes.begin(); i_node != rNodes.end(); ++i_node) {
+        select &= i_node->Is(SubModelPartSkinDetectionProcess::NODE_SELECTED);
+    }
+    return select;
+}
 
 template<SizeType TDim>
 SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(

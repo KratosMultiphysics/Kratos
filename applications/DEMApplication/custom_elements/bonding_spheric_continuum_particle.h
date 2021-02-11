@@ -63,7 +63,7 @@ namespace Kratos {
         virtual ~BondingSphericContinuumParticle() {
         };
 
-        void UpdateContinuumNeighboursVector(ProcessInfo& r_process_info) override;
+        void UpdateContinuumNeighboursVector(const ProcessInfo& r_process_info) override;
         bool NeighbourIsToBeBonded(const int nieghbour_id);
         void ComputeForceWithNeighbourFinalOperations() override;
 

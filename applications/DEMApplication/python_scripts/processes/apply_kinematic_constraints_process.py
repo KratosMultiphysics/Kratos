@@ -52,7 +52,6 @@ class ApplyKinematicConstraintsProcess(KratosMultiphysics.Process):
         if settings["velocity_constraints_settings"].Has("constrained"):
             if settings["velocity_constraints_settings"]["constrained"].IsBool():
                 is_fixed = settings["velocity_constraints_settings"]["constrained"].GetBool()
-                #print("is_fixed = ",is_fixed)
                 settings["velocity_constraints_settings"]["constrained"] = default_settings["velocity_constraints_settings"]["constrained"]
                 for i in range(3):
                     settings["velocity_constraints_settings"]["constrained"][i].SetBool(is_fixed)
@@ -60,7 +59,6 @@ class ApplyKinematicConstraintsProcess(KratosMultiphysics.Process):
         if settings["angular_velocity_constraints_settings"].Has("constrained"):
             if settings["angular_velocity_constraints_settings"]["constrained"].IsBool():
                 is_fixed = settings["angular_velocity_constraints_settings"]["constrained"].GetBool()
-                #print("is_fixed = ",is_fixed)
                 settings["angular_velocity_constraints_settings"]["constrained"] = default_settings["angular_velocity_constraints_settings"]["constrained"]
                 for i in range(3):
                     settings["angular_velocity_constraints_settings"]["constrained"][i].SetBool(is_fixed)

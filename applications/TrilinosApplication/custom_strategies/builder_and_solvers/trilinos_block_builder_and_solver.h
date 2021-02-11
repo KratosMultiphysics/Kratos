@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/timer.h"
+#include "utilities/builtin_timer.h"
 
 /* Trilinos includes */
 #include "Epetra_FECrsGraph.h"
@@ -187,6 +188,9 @@ public:
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        BuiltinTimer build_timer;
+
         // assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
             // detect if the element is active or not. If the user did not make
@@ -202,9 +206,6 @@ public:
                 // assemble the elemental contribution
                 TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
-
-                // clean local elemental memory
-                pScheme->CleanMemory(*(it));
             }
         }
 
@@ -225,15 +226,14 @@ public:
                 // assemble the condition contribution
                 TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
-
-                // clean local elemental memory
-                pScheme->CleanMemory(**it);
             }
         }
 
         // finalizing the assembly
         rA.GlobalAssemble();
         rb.GlobalAssemble();
+
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time: " << build_timer.ElapsedSeconds() << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -263,6 +263,8 @@ public:
         Element::EquationIdVectorType equation_ids_vector;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
+        BuiltinTimer build_timer;
+
         // assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
             pScheme->CalculateLHSContribution(**it, LHS_Contribution,
@@ -270,9 +272,6 @@ public:
 
             // assemble the elemental contribution
             TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-
-            // clean local elemental memory
-            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0, 0, false);
@@ -285,12 +284,13 @@ public:
 
             // assemble the elemental contribution
             TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-
-            // TODO CleanMemory is missing
         }
 
         // finalizing the assembly
         rA.GlobalAssemble();
+
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time LHS: " << build_timer.ElapsedSeconds() << std::endl;
+
         KRATOS_CATCH("")
     }
 
@@ -383,7 +383,7 @@ public:
         // apply dirichlet conditions
         ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
-        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
             << "\nBefore the solution of the system"
             << "\nSystem Matrix = " << rA << "\nunknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
@@ -391,12 +391,16 @@ public:
         if (BaseType::GetEchoLevel() > 0)
             START_TIMER("System solve time ", 0)
 
+        BuiltinTimer solve_timer;
+
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "System solve time: " << solve_timer.ElapsedSeconds() << std::endl;
 
         if (BaseType::GetEchoLevel() > 0)
             STOP_TIMER("System solve time ", 0)
 
-        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
             << "\nAfter the solution of the system"
             << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
@@ -421,7 +425,12 @@ public:
         KRATOS_TRY
 
         BuildRHS(pScheme, rModelPart, rb);
+
+        BuiltinTimer solve_timer;
+
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "System solve time: " << solve_timer.ElapsedSeconds() << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -590,12 +599,10 @@ public:
 
         BaseType::mEquationSystemSize = global_size;
         mLocalSystemSize = free_size;
-        KRATOS_INFO_IF_ALL_RANKS("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() > 0)
-            << std::endl
-            << current_rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize
-            << std::endl
-            << current_rank << " : mLocalSystemSize = " << mLocalSystemSize << std::endl
-            << current_rank << " : free_offset = " << free_offset << std::endl;
+        KRATOS_INFO_IF_ALL_RANKS("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() > 1)
+            << "\n    BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize
+            << "\n    mLocalSystemSize = " << mLocalSystemSize
+            << "\n    free_offset = " << free_offset << std::endl;
 
         // by Riccardo ... it may be wrong!
         mFirstMyId = free_offset - mLocalSystemSize;

@@ -49,7 +49,7 @@
     "combinedEstimatorInputDictionary": {
         "indexSetDimension": 0,
         "order": 1,
-        "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder2Dimension0",
+        "updatedPowerSums":"xmc.methodDefs_momentEstimator.updateCombinedPowerSums.updatePowerSumsOrder2Dimension0",
         "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper",
 "centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"
     },
@@ -69,18 +69,20 @@
         "index": [],
         "mappingOutputQuantities": false,
         "numberContributionsPerInstance": 1,
-        "numberQoI": 2,
-        "numberCombinedQoi": 2,
+        "numberMomentEstimator": 2,
+        "numberCombinedMomentEstimator": 2,
+        "numberMultiMomentEstimator": 0,
+        "numberMultiCombinedMomentEstimator": 0,
         "parameters": null,
         "printToFile": false,
         "problemId": "poisson_2d",
-        "projectParametersPath": "poisson_square_2d_xmc/problem_settings/parameters_poisson_square_2d_finer.json",
-        "refinementParametersPath": "poisson_square_2d_xmc/problem_settings/parameters_refinement.json",
+        "projectParametersPath": "poisson_square_2d/problem_settings/parameters_finer.json",
+        "refinementParametersPath": "poisson_square_2d/problem_settings/parameters_refinement.json",
         "refinementStrategy": "stochastic_adaptive_refinement",
         "outputBatchSize" : 2,
         "taskAllAtOnce": true
     },
-    "monoCriteriaInpuctDict" :{
+    "monoCriteriaInpuctDictionary" :{
         "statisticalError": {
             "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isLowerThanOrEqualTo",
             "tolerance": [0.15],
