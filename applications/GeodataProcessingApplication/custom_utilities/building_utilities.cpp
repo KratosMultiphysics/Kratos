@@ -18,6 +18,7 @@
 // Project includes
 #include "containers/model.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/binbased_fast_point_locator.h"
 
 // Application includes
 #include "building_utilities.h"
@@ -255,6 +256,24 @@ namespace Kratos
     //     rMaxId = aux;
     // }
     **********************************************************************************************/
+
+    int BuildingUtilities::CheckIfInternal(
+        array_1d<double, 3> coordinates)
+    {
+        // We create the locator
+        BinBasedFastPointLocator<2> point_locator = BinBasedFastPointLocator<2>(mrModelPart);      // mrModelPart = center_model_part
+        point_locator.UpdateSearchDatabase();
+        
+        Vector shape_functions;
+        Element::Pointer p_element = nullptr;
+
+        const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, 1000, 1e-5);
+
+        if (is_found)
+            return p_element->Id();
+        
+        return 0;
+    }
 
     /* External functions *****************************************************/
 

@@ -123,6 +123,16 @@ namespace Kratos
     void FindMaxNodeId(IndexType &new_node_id);
 
 
+    /**
+     * @brief Function to check if a node is in an element (2D)
+     * @param coordinates The vector containign the coordinates of the point to be searched
+     * @return The ID of the element containing the located point (0 if the point is outside elements)
+     *
+     */
+    // Element::Pointer& CheckIfInternal(array_1d<double, 3> coordinates);
+    int CheckIfInternal(array_1d<double, 3> coordinates);
+
+
     ///@}
     ///@name Access
     ///@{
