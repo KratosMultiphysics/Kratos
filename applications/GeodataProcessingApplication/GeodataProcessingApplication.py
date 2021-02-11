@@ -8,4 +8,4 @@ application = KratosGeodataProcessingApplication()
 application_name = "KratosGeodataProcessingApplication"
 application_folder = "GeodataProcessingApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name, application_folder, __path__)
