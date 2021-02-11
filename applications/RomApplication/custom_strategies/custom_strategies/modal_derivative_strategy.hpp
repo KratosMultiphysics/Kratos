@@ -68,12 +68,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-//     typedef std::set<Dof::Pointer,ComparePDof>                                    DofSetType;
-
     // Base type definition
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
-
-    typedef typename BaseType::TDataType TDataType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
@@ -82,10 +78,6 @@ public:
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
@@ -96,18 +88,6 @@ public:
     typedef typename BaseType::TBuilderAndSolverType::Pointer TBuilderAndSolverPointerType;
 
     typedef typename BaseType::TDofType TDofType;
-
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-
-    typedef typename BaseType::DofIteratorType DofIteratorType;
-
-    typedef typename BaseType::DofConstantIteratorType DofConstantIteratorType;
-
-    typedef typename BaseType::NodesArrayType NodesArrayType;
-
-    typedef typename BaseType::ElementsArrayType ElementsArrayType;
-
-    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
 
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(ModalDerivativeStrategy);
@@ -151,7 +131,7 @@ public:
             rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis + mNumberInitialBasis * ( mNumberInitialBasis + 1 ) / 2, true);
         
         // Set the ordering of DOFs in the input
-        const std::vector<std::string> nodal_variable_names = InputParameters["rom_settings"]["nodal_unknowns"].GetStringArray();
+        const auto nodal_variable_names = InputParameters["rom_settings"]["nodal_unknowns"].GetStringArray();
         const int number_of_nodal_dofs = nodal_variable_names.size();
         // Setting up mapping: VARIABLE_KEY --> CORRECT_ROW_IN_BASIS
         for(int k=0; k<number_of_nodal_dofs; k++){
@@ -207,11 +187,9 @@ public:
         KRATOS_TRY
 
         auto& r_model_part = BaseType::GetModelPart();
-        const auto rank = r_model_part.GetCommunicator().MyPID();
 
-        KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
-            <<  "Entering Initialize" << std::endl;
-
+        KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() > 2) <<  "Entering Initialize" << std::endl;
+        
         if (mInitializeWasPerformed == false)
         {
             auto& p_scheme = this->pGetScheme();
@@ -228,8 +206,7 @@ public:
             mInitializeWasPerformed = true;
         }
 
-        KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
-            <<  "Exiting Initialize" << std::endl;
+        KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() > 2) <<  "Exiting Initialize" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -291,8 +268,6 @@ public:
             auto& p_builder_and_solver = this->pGetBuilderAndSolver();
             auto& r_model_part = BaseType::GetModelPart();
             
-            const auto rank = r_model_part.GetCommunicator().MyPID();
-
             //set up the system, operation performed just once unless it is required
             //to reform the dof set at each iteration
             BuiltinTimer system_construction_time;
@@ -302,14 +277,13 @@ public:
                 // Setting up the list of DOFs to be solved
                 BuiltinTimer setup_dofs_time;
                 p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
-                KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0)
                     << setup_dofs_time.ElapsedSeconds() << std::endl;
 
                 // Set global equation ids
                 BuiltinTimer setup_system_time;
                 p_builder_and_solver->SetUpSystem(r_model_part);
-                KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                    << setup_system_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0) << setup_system_time.ElapsedSeconds() << std::endl;
 
                 // Setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
@@ -330,12 +304,10 @@ public:
                                                                  r_model_part);
                 }                
                 
-                KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                    << system_matrix_resize_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0) << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }
 
-            KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << system_construction_time.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0) << system_construction_time.ElapsedSeconds() << std::endl;
 
             auto& rA  = *mpA;
             auto& rDx = *mpDx;
@@ -361,9 +333,7 @@ public:
     {
         KRATOS_TRY
 
-        const auto rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-        KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
-            <<  "Entering FinalizeSolutionStep" << std::endl;
+        KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2 ) <<  "Entering FinalizeSolutionStep" << std::endl;
 
         auto& p_scheme = this->pGetScheme();
         auto& p_builder_and_solver = this->pGetBuilderAndSolver();
@@ -385,8 +355,7 @@ public:
         mInitializeWasPerformed = false;
         mSolutionStepIsInitialized = false;
 
-        KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
-            <<  "Exiting FinalizeSolutionStep" << std::endl;
+        KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2) <<  "Exiting FinalizeSolutionStep" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -560,7 +529,7 @@ public:
         KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time StiffnessMatrix: " << time_stiffness_matrix.ElapsedSeconds() << std::endl;
         
         // Get eigenvalues vector
-        LocalSystemVectorType& r_eigenvalues = r_current_process_info[EIGENVALUE_VECTOR];
+        auto& r_eigenvalues = r_current_process_info[EIGENVALUE_VECTOR];
 
         // Derivative of basis_i
         for (std::size_t basis_i = 0; basis_i < mNumberInitialBasis; basis_i++)
@@ -573,7 +542,7 @@ public:
 
             // If dynamic derivatives then build system matrix for each eigenvalue
             BuiltinTimer time_system_matrix;
-            const auto eigenvalue_i = r_eigenvalues[basis_i];            
+            const double eigenvalue_i = r_eigenvalues[basis_i];            
             rA = rStiffnessMatrix - (eigenvalue_i * rMassMatrix);
             KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time SystemMatrix: " << time_system_matrix.ElapsedSeconds() << std::endl;
 
@@ -671,8 +640,7 @@ public:
             
         }
 
-        KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) 
-        << "Eigenvalues and derivatives: " << r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR] << std::endl;
+        KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Eigenvalues and derivatives: " << r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR] << std::endl;
 
         return true;
 
@@ -713,7 +681,7 @@ public:
         auto& r_model_part = BaseType::GetModelPart();
         auto& rMassMatrix = *mpMassMatrix;
         TSystemVectorType basis(rMassMatrix.size1());
-        const auto current_basis_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
+        const std::size_t current_basis_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
 
         // Mass-Orthogonalization using modified Gram-Schmidt method
         for (std::size_t basis_index = 0; basis_index < current_basis_index; basis_index++){
@@ -892,7 +860,7 @@ public:
             r_model_part.Nodes(), [&](ModelPart::NodeType& r_node) 
             {
 
-                const auto derivative_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
+                const std::size_t derivative_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
                 const auto& node_dofs = r_node.GetDofs();
 
                 // fill the ROM_BASIS
@@ -946,10 +914,8 @@ public:
         KRATOS_TRY
 
         ModelPart& r_model_part = BaseType::GetModelPart();
-        const int rank = r_model_part.GetCommunicator().MyPID();
 
-        KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
-            <<  "Entering Check" << std::endl;
+        KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2) <<  "Entering Check" << std::endl;
 
         // check the model part
         BaseType::Check();
@@ -960,8 +926,7 @@ public:
         // check the builder and solver
         this->pGetBuilderAndSolver()->Check(r_model_part);
 
-        KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
-            <<  "Exiting Check" << std::endl;
+        KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2) <<  "Exiting Check" << std::endl;
 
         return 0;
 
