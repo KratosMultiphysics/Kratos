@@ -511,7 +511,7 @@ void DynamicVMS<TDim>::CalculateOnIntegrationPoints(const Variable<array_1d<doub
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::SetValuesOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::SetValuesOnIntegrationPoints(const Variable<double> &rVariable, const std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
 {
     unsigned int NumGauss = this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod);
 

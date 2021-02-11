@@ -24,6 +24,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -36,9 +37,22 @@ namespace Kratos
  * @param value value being added
  */
 template<class TDataType>
-inline void AtomicAdd(TDataType& target, const TDataType& value ) {
+inline void AtomicAdd(TDataType& target, const TDataType& value)
+{
     #pragma omp atomic
     target += value;
+}
+
+/** @param target variable being atomically updated by doing target += value
+ * @param value value being added
+ * Specialization for array_1d<double,3>
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+inline void AtomicAdd(array_1d<double,3>& target, const array_1d<double,3>& value)
+{
+    AtomicAdd(target[0], value[0]);
+    AtomicAdd(target[1], value[1]);
+    AtomicAdd(target[2], value[2]);
 }
 
 /** @param target vector variable being atomically updated by doing target += value
@@ -46,11 +60,11 @@ inline void AtomicAdd(TDataType& target, const TDataType& value ) {
  * Note that the update is not really atomic, but rather is done component by component
  */
 template<class TVectorType1, class TVectorType2>
-inline void AtomicAdd(TVectorType1& target, const TVectorType2& value ) {
+inline void AtomicAddVector(TVectorType1& target, const TVectorType2& value)
+{
+    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicAddVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
 
-    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicAdd- Sizes are: "
-        << target.size() << " for target and " << value.size() << " for value " <<std::endl;
-    for(unsigned int i=0; i<target.size(); ++i){
+    for(unsigned int i=0; i<target.size(); ++i) {
        AtomicAdd(target[i], value[i]);
     }
 }
@@ -59,9 +73,22 @@ inline void AtomicAdd(TVectorType1& target, const TVectorType2& value ) {
  * @param value vector value being subtracted
  */
 template<class TDataType>
-inline void AtomicSub(TDataType& target, const TDataType& value ) {
+inline void AtomicSub(TDataType& target, const TDataType& value)
+{
     #pragma omp atomic
     target -= value;
+}
+
+/** @param target variable being atomically updated by doing target -= value
+ * @param value value being subtracted
+ * Specialization for array_1d<double,3>
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+inline void AtomicSub(array_1d<double,3>& target, const array_1d<double,3>& value)
+{
+    AtomicSub(target[0], value[0]);
+    AtomicSub(target[1], value[1]);
+    AtomicSub(target[2], value[2]);
 }
 
 /** @param target vector variable being atomically updated by doing target -= value
@@ -69,10 +96,10 @@ inline void AtomicSub(TDataType& target, const TDataType& value ) {
  * Note that the update is not really atomic, but rather is done component by component
  */
 template<class TVectorType1, class TVectorType2>
-inline void AtomicSub(TVectorType1& target, const TVectorType2& value ) {
-    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicSub- Sizes are: "
-        << target.size() << " for target and " << value.size() << " for value " <<std::endl;
-    for(unsigned int i=0; i<target.size(); ++i){
+inline void AtomicSubVector(TVectorType1& target, const TVectorType2& value) {
+    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicSubVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
+
+    for(unsigned int i=0; i<target.size(); ++i) {
        AtomicSub(target[i], value[i]);
     }
 }
@@ -81,9 +108,36 @@ inline void AtomicSub(TVectorType1& target, const TVectorType2& value ) {
  * @param value vector value being multiplied
  */
 template<class TDataType>
-inline void AtomicMult(TDataType& target, const TDataType& value) {
+inline void AtomicMult(TDataType& target, const TDataType& value)
+{
     #pragma omp atomic
     target *= value;
+}
+
+/** @param target variable being atomically updated by doing target *= value
+ * @param value value being multiplied
+ * Specialization for array_1d<double,3>
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+inline void AtomicMult(array_1d<double,3>& target, const array_1d<double,3>& value)
+{
+    AtomicMult(target[0], value[0]);
+    AtomicMult(target[1], value[1]);
+    AtomicMult(target[2], value[2]);
+}
+
+/** @param target vector variable being atomically updated by doing target *= value
+ * @param value vector value being multiplied
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+template<class TVectorType1, class TVectorType2>
+inline void AtomicMultVector(TVectorType1& target, const TVectorType2& value)
+{
+    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicMultVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
+
+    for(unsigned int i=0; i<target.size(); ++i) {
+       AtomicMult(target[i], value[i]);
+    }
 }
 
 }  // namespace Kratos.
