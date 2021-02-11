@@ -56,24 +56,14 @@ array_1d<double, 3> VariableUtils::SumNonHistoricalNodeVectorVariable(
 {
     KRATOS_TRY
 
+    using ReductionType = typename std::conditional< std::is_scalar<array_1d<double, 3>>::value , SumReduction<double> , Array3Reduction >::type;
+
     array_1d<double, 3> sum_value = ZeroVector(3);
     auto& r_comm = rModelPart.GetCommunicator();
 
-    #pragma omp parallel
-    {
-        array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-        #pragma omp for
-        for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfNodes()); ++k) {
-            const auto it_node = r_comm.LocalMesh().NodesBegin() + k;
-            private_sum_value += it_node->GetValue(rVar);
-        }
-
-        for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
-            #pragma omp atomic
-            sum_value[j] += private_sum_value[j];
-        }
-    }
+    sum_value = block_for_each<ReductionType>(r_comm.LocalMesh().Nodes(),[&](Node<3>& rNode){
+            return rNode.GetValue(rVar);
+        });
 
     return r_comm.GetDataCommunicator().SumAll(sum_value);
 
@@ -90,24 +80,14 @@ array_1d<double, 3> VariableUtils::SumConditionVectorVariable(
 {
     KRATOS_TRY
 
+    using ReductionType = typename std::conditional< std::is_scalar<array_1d<double, 3>>::value , SumReduction<double> , Array3Reduction >::type;
+
     array_1d<double, 3> sum_value = ZeroVector(3);
-    const auto& r_comm = rModelPart.GetCommunicator();
+    auto& r_comm = rModelPart.GetCommunicator();
 
-    #pragma omp parallel
-    {
-        array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-        #pragma omp for
-        for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfConditions()); ++k) {
-            const auto it_cond = r_comm.LocalMesh().ConditionsBegin() + k;
-            private_sum_value += it_cond->GetValue(rVar);
-        }
-
-        for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
-            #pragma omp atomic
-            sum_value[j] += private_sum_value[j];
-        }
-    }
+    sum_value = block_for_each<ReductionType>(r_comm.LocalMesh().Conditions(),[&](ConditionType& rCond){
+            return rCond.GetValue(rVar);
+        });
 
     return r_comm.GetDataCommunicator().SumAll(sum_value);
 
@@ -124,24 +104,14 @@ array_1d<double, 3> VariableUtils::SumElementVectorVariable(
 {
     KRATOS_TRY
 
+    using ReductionType = typename std::conditional< std::is_scalar<array_1d<double, 3>>::value , SumReduction<double> , Array3Reduction >::type;
+
     array_1d<double, 3> sum_value = ZeroVector(3);
     auto& r_comm = rModelPart.GetCommunicator();
 
-    #pragma omp parallel
-    {
-        array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-        #pragma omp for
-        for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfElements()); ++k) {
-            const auto it_elem = r_comm.LocalMesh().ElementsBegin() + k;
-            private_sum_value += it_elem->GetValue(rVar);
-        }
-
-        for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
-            #pragma omp atomic
-            sum_value[j] += private_sum_value[j];
-        }
-    }
+    sum_value = block_for_each<ReductionType>(r_comm.LocalMesh().Elements(),[&](ElementType& rElem){
+            return rElem.GetValue(rVar);
+        });
 
     return r_comm.GetDataCommunicator().SumAll(sum_value);
 

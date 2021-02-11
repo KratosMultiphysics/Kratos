@@ -1178,8 +1178,9 @@ public:
         using ReductionType = typename std::conditional< std::is_scalar<TDataType>::value , SumReduction<double> , Array3Reduction >::type;
 
         const auto &r_communicator = rModelPart.GetCommunicator();
-        TDataType sum_value = block_for_each<ReductionType>(r_communicator.LocalMesh().Nodes(),[&](Node<3>&rNode){
-            return rNode.GetSolutionStepValue(rVariable,BuffStep);
+
+        TDataType sum_value = block_for_each<ReductionType>(r_communicator.LocalMesh().Nodes(),[&](Node<3>& rNode){
+            return rNode.GetSolutionStepValue(rVariable, BuffStep);
         });
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
