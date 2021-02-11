@@ -42,6 +42,18 @@ inline void AtomicAdd(TDataType& target, const TDataType& value)
     target += value;
 }
 
+/** @param target variable being atomically updated by doing target += value
+ * @param value value being added
+ * Specialization for array_1d<double,3>
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+inline void AtomicAdd(array_1d<double,3>& target, const array_1d<double,3>& value)
+{
+    AtomicAdd(target[0], value[0]);
+    AtomicAdd(target[1], value[1]);
+    AtomicAdd(target[2], value[2]);
+}
+
 /** @param target vector variable being atomically updated by doing target += value
  * @param value vector value being added
  * Note that the update is not really atomic, but rather is done component by component
@@ -66,6 +78,18 @@ inline void AtomicSub(TDataType& target, const TDataType& value)
     target -= value;
 }
 
+/** @param target variable being atomically updated by doing target -= value
+ * @param value value being subtracted
+ * Specialization for array_1d<double,3>
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+inline void AtomicSub(array_1d<double,3>& target, const array_1d<double,3>& value)
+{
+    AtomicSub(target[0], value[0]);
+    AtomicSub(target[1], value[1]);
+    AtomicSub(target[2], value[2]);
+}
+
 /** @param target vector variable being atomically updated by doing target -= value
  * @param value vector value being subtracted
  * Note that the update is not really atomic, but rather is done component by component
@@ -87,6 +111,18 @@ inline void AtomicMult(TDataType& target, const TDataType& value)
 {
     #pragma omp atomic
     target *= value;
+}
+
+/** @param target variable being atomically updated by doing target *= value
+ * @param value value being multiplied
+ * Specialization for array_1d<double,3>
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+inline void AtomicMult(array_1d<double,3>& target, const array_1d<double,3>& value)
+{
+    AtomicMult(target[0], value[0]);
+    AtomicMult(target[1], value[1]);
+    AtomicMult(target[2], value[2]);
 }
 
 /** @param target vector variable being atomically updated by doing target *= value
