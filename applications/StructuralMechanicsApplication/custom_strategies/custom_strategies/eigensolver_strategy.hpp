@@ -4,13 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//   License:        BSD License
-//   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 license: StructuralMechanicsApplication/license.txt
 //
-//   Project Name:        $StructuralMechanicsApplication $
-//   Last modified by:    $Author: michael.andre@tum.de   $
-//   Date:                $Date:         September 2016   $
-//   Revision:            $Revision:                0.0   $
+//  Main author:    Michael Andre, https://github.com/msandre
+//
 
 #if !defined(KRATOS_EIGENSOLVER_STRATEGY )
 #define  KRATOS_EIGENSOLVER_STRATEGY
@@ -23,6 +21,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/entities_utilities.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -404,6 +403,9 @@ public:
 
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
         TSparseSpace::SetToZero(rMassMatrix);
+
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
+
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
         if (master_slave_constraints_defined) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
@@ -426,6 +428,8 @@ public:
         if (matrix_contains_dirichlet_dofs) {
             this->ApplyDirichletConditions(rStiffnessMatrix, mStiffnessMatrixDiagonalValue);
         }
+
+        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(rModelPart);
 
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
@@ -647,7 +651,7 @@ private:
                         AtomicAdd(rEigenvectors(i_eigenvalue, r_slave_dofs_vector[i]->EquationId()), aux);
                     }
                 }
-            });            
+            });
         }
 
         KRATOS_CATCH("")

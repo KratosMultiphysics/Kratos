@@ -271,49 +271,6 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
 {
     KRATOS_TRY;
 
-    // Getting new metric (not necessary, only for post-process pourposes)
-    /* Tensor variable definition */
-    const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension) + "D");
-
-    // Iterate in the nodes
-    auto& r_nodes_array = mrThisModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-
-    // In case of considering meric tensor
-    if (it_node_begin->Has(r_tensor_variable)) {
-        // WARNING: This loop cannot be perfomed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-
-            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-            if (!old_entity) {
-                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
-
-                // We get the metric
-                TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
-
-                // We set the metric
-                mMmgUtilities.GetMetricTensor(r_metric);
-            }
-        }
-    } else {
-        // WARNING: This loop cannot be perfomed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-
-            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-            if (!old_entity) {
-                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(METRIC_SCALAR)) << "METRIC_SCALAR not defined for node " << it_node->Id() << std::endl;
-
-                // We get the metric
-                double& r_metric = it_node->GetValue(METRIC_SCALAR);
-
-                // We set the metric
-                mMmgUtilities.GetMetricScalar(r_metric);
-            }
-        }
-    }
-
     /* Save to file */
     const bool save_to_file = mThisParameters["save_external_files"].GetBool();
     if (GetMmgVersion() == "5.5" && mDiscretization == DiscretizationOption::ISOSURFACE && save_to_file) {
@@ -603,9 +560,6 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     // Writing the new mesh data on the model part
     mMmgUtilities.WriteMeshDataToModelPart(mrThisModelPart, mColors, mDofs, mmg_mesh_info, mpRefCondition, mpRefElement);
 
-    // Writing the new solution data on the model part
-    mMmgUtilities.WriteSolDataToModelPart(mrThisModelPart);
-
     // In case of prism collapse we extrapolate now (and later extrude)
     if (collapse_prisms_elements) {
         /* We interpolate all the values */
@@ -733,6 +687,9 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     if (mFramework == FrameworkEulerLagrange::EULERIAN) {
         ClearConditionsDuplicatedGeometries();
     }
+
+    // Writing the new solution data (metric) on the model part
+    mMmgUtilities.WriteSolDataToModelPart(mrThisModelPart);
 
     // We clear the OLD_ENTITY flag
     VariableUtils().ResetFlag(OLD_ENTITY, mrThisModelPart.Nodes());
