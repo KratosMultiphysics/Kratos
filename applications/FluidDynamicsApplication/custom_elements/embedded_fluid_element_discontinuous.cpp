@@ -134,8 +134,35 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
         this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
     }
 
-    // If the element is cut, add the interface contributions
-    if ( data.IsCut() ) {
+    // If the element is cut or Ausas incised, add the interface contributions
+    if ( data.IsAusasIncised() )
+    {
+        // Add the base element boundary contribution on the positive interface
+            const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
+            const unsigned int number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
+            for (unsigned int g = 0; g < number_of_positive_interface_gauss_points; ++g){
+                const size_t gauss_pt_index = g + volume_gauss_points;
+                this->UpdateIntegrationPointData(data, gauss_pt_index, data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
+                this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
+            }
+
+            // Add the base element boundary contribution on the negative interface
+            const unsigned int number_of_negative_interface_gauss_points = data.NegativeInterfaceWeights.size();
+            for (unsigned int g = 0; g < number_of_negative_interface_gauss_points; ++g){
+                const size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
+                this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeInterfaceWeights[g], row(data.NegativeInterfaceN, g), data.NegativeInterfaceDNDX[g]);
+                this->AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
+            }
+
+            // Add the Nitsche Navier boundary condition implementation (Winter, 2018)
+            data.InitializeBoundaryConditionData(rCurrentProcessInfo);
+            AddNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+
+    } else if ( data.IsCut() )
+    {
         // Add the base element boundary contribution on the positive interface
         const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
         const unsigned int number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
@@ -277,8 +304,26 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
         }
     }
 
-    if (rData.IsCut()){
-        this->DefineCutGeometryData(rData);
+    // Number of intersected edges
+    for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
+        if (rData.ElementalEdgeDistances[i] > 0.0) {
+            rData.NumIntersectedEdges++;
+        }
+    }
+
+    // Number of edges cut by extrapolated geometry, if not empty
+    for (size_t i = 0; i < rData.ElementalEdgeDistancesExtrapolated.size(); ++i) {
+        if (rData.ElementalEdgeDistancesExtrapolated[i] > 0.0) {
+            rData.NumIntersectedEdgesExtrapolated++;
+        }
+    }
+
+    // Check whether element is incised and whether user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES,
+    // then use Ausas incised shape functions
+    if ( rData.IsAusasIncised() ) {
+        this->DefineModifiedGeometryData(rData, true);
+    } else if ( rData.IsCut() ){
+        this->DefineModifiedGeometryData(rData);
     } else {
         this->DefineStandardGeometryData(rData);
     }
@@ -293,15 +338,26 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineStandardGeometryData
 }
 
 template <class TBaseElement>
-void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineModifiedGeometryData(EmbeddedDiscontinuousElementData& rData, const bool& IsAusasIncised) const
 {
     // Auxiliary distance vector for the element subdivision utility
     Vector elemental_distances = rData.ElementalDistances;
 
-    ModifiedShapeFunctions::Pointer p_calculator =
-        EmbeddedDiscontinuousInternals::GetShapeFunctionCalculator<EmbeddedDiscontinuousElementData::Dim, EmbeddedDiscontinuousElementData::NumNodes>(
-            *this,
-            elemental_distances);
+    ModifiedShapeFunctions::Pointer p_calculator;
+    if (IsAusasIncised) {
+        // Auxiliary edge distance vector of extrapolated intersecting geometry for the element subdivision utility
+        Vector edge_distances_extrapolated = rData.ElementalEdgeDistancesExtrapolated;
+        p_calculator =
+            EmbeddedDiscontinuousInternals::GetIncisedShapeFunctionCalculator<EmbeddedDiscontinuousElementData::Dim, EmbeddedDiscontinuousElementData::NumNodes>(
+                *this,
+                elemental_distances,
+                edge_distances_extrapolated);
+    } else {
+        p_calculator =
+            EmbeddedDiscontinuousInternals::GetShapeFunctionCalculator<EmbeddedDiscontinuousElementData::Dim, EmbeddedDiscontinuousElementData::NumNodes>(
+                *this,
+                elemental_distances);
+    }
 
     // Positive side volume
     p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(

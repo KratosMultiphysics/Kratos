@@ -307,11 +307,11 @@ protected:
     /**
      * @brief Intersected element geometry data fill
      * This method sets the data structure geometry fields (shape functions, gradients, interface normals, ...) for an
-     * intersected element. To do that, the modified shape functions utility is firstly created and then called to perform
-     * all operations in both the positive and negative sides of the element.
+     * intersected or incised element. To do that, the modified shape functions utility is firstly created and then called
+     * to perform all operations on both the positive and negative sides of the element.
      * @param rData reference to the element data structure
      */
-    void DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+    void DefineModifiedGeometryData(EmbeddedDiscontinuousElementData& rData, const bool& IsAusasIncised = false) const;
 
     /**
      * @brief For an intersected element, normalize the interface normals
