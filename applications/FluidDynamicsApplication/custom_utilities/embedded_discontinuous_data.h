@@ -140,7 +140,27 @@ static int Check(
  */
 bool IsCut()
 {
-    return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
+    if (IsAusasIncised()) {
+        return false;
+    } else {
+        return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
+    }
+}
+
+/**
+ * @brief Checks if the current element is partially intersected (incised) and if extrapolated intersections where calculated.
+ * Checks if the current element is partially intersected by checking the number of extrapolated intersected edges
+ * This number will only be non-zero if user provided flag to calculate extrapolated edge distances.
+ * The case in which three edges of a tetrahedra are cut and element is only incised is also considered.
+ * @return true if the element is incised
+ * @return false if the element is not incised
+ */
+bool IsAusasIncised()
+{
+    if (NumIntersectedEdgesExtrapolated > 0) {
+        return true;
+    }
+    return false;
 }
 
 ///@}
