@@ -306,7 +306,16 @@ protected:
         {   
             auto& node_lock = it_node->GetLock();
             // try to get a lock
-            if (!node_lock.try_lock())
+            if (node_lock.try_lock())
+            {
+                // if successful: increment the node iterator
+                ++it_node;
+
+                // check if all the nodes are locked
+                if (it_node == element_nodes.end())
+                    all_nodes_locked = true;
+            } 
+            else
             {
                 // if not successful: unlock all locked nodes and empty locked nodes vector
                 for (auto it_locked_node = element_nodes.begin(); it_locked_node != it_node; ++it_locked_node)
@@ -314,15 +323,6 @@ protected:
                     
                 // reset the iterator to the first node
                 it_node = element_nodes.begin();
-            } 
-            else
-            {
-                // if successful, increment the node iterator
-                ++it_node;
-
-                // check if all the nodes are locked
-                if (it_node == element_nodes.end())
-                    all_nodes_locked = true;
             }
         }
 
