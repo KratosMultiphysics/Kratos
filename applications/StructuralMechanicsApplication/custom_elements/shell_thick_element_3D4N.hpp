@@ -20,6 +20,8 @@
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
+#include "custom_utilities/shellq4_local_coordinate_system.hpp"
 
 namespace Kratos
 {
@@ -30,10 +32,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 ///@}
-
-class ShellQ4_CoordinateTransformation;
-
-class ShellQ4_LocalCoordinateSystem;
 
 ///@name  Enum's
 ///@{
@@ -58,7 +56,8 @@ class ShellQ4_LocalCoordinateSystem;
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N : public BaseShellElement
+
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N : public BaseShellElement<ShellQ4_CoordinateTransformation> // template arg is not yet used
 {
 public:
 
@@ -67,6 +66,8 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D4N);
 
+    using BaseType = BaseShellElement<ShellQ4_CoordinateTransformation>;
+
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
     typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
@@ -74,6 +75,22 @@ public:
     typedef array_1d<double, 3> Vector3Type;
 
     typedef Quaternion<double> QuaternionType;
+
+    using GeometryType = Element::GeometryType;
+
+    using PropertiesType = Element::PropertiesType;
+
+    using NodesArrayType = Element::NodesArrayType;
+
+    using MatrixType = Element::MatrixType;
+
+    using VectorType = Element::VectorType;
+
+    using SizeType = Element::SizeType;
+
+    using Element::GetGeometry;
+
+    using Element::GetProperties;
 
     ///@}
 
@@ -288,7 +305,7 @@ public:
                           PropertiesType::Pointer pProperties,
                           CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-    ~ShellThickElement3D4N() override;
+    ~ShellThickElement3D4N() override = default;
 
     ///@}
 
@@ -325,15 +342,15 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     // More results calculation on integration points to interface with python
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
@@ -367,7 +384,7 @@ protected:
     /**
      * Protected empty constructor
      */
-    ShellThickElement3D4N() : BaseShellElement()
+    ShellThickElement3D4N() : BaseType()
     {
     }
 

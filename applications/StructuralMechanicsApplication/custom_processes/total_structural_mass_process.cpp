@@ -111,7 +111,7 @@ void TotalStructuralMassProcess::Execute()
    total_mass = mrThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(total_mass);
 
     std::stringstream info_stream;
-    info_stream << "Total Mass of ModelPart \"" << mrThisModelPart.Name() << "\"";
+    info_stream << "Total Mass of ModelPart \"" << mrThisModelPart.FullName() << "\"";
 
     KRATOS_INFO(info_stream.str()) << total_mass << std::endl;
     KRATOS_INFO("Hint")  << "Check variable NODAL_MASS in the process info in "

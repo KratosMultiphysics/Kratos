@@ -14,8 +14,7 @@ from KratosMultiphysics.sympy_fe_utilities import *
 # ARTIFICIAL COMPRESSIBILITY:
 # If set to true, the time derivative of the density is introduced in the mass conservation equation together with the state equation
 # dp/drho=c^2 (being c the sound velocity). Besides, the velocity divergence is not considered to be 0. These assumptions add some extra terms
-# to the usual Navier-Stokes equations that are intended to act as a soft artificial compressibility, which is controlled by the value of "c".
-# In the derivation of the residual equations the space variations of the density are considered to be close to 0.
+# to the usual Navier-Stokes equations that act as a weak compressibility controlled by the value of "c".
 # CONVECTIVE TERM:
 # If set to true, the convective term is taken into account in the calculation of the variational form. This allows generating both
 # Navier-Stokes and Stokes elements.
@@ -26,21 +25,21 @@ do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 divide_by_rho = True                # Divide the mass conservation equation by rho
 ASGS_stabilization = True           # Consider ASGS stabilization terms
-formulation = "NavierStokes"        # Element type. Options: "NavierStokes", "Stokes"
+formulation = "WeaklyCompressibleNavierStokes" # Element type. Options: "WeaklyCompressibleNavierStokes", "Stokes"
 
-if formulation == "NavierStokes":
+if formulation == "WeaklyCompressibleNavierStokes":
     convective_term = True
     artificial_compressibility = True
     linearisation = "Picard" # Convective term linearisation type. Options: "Picard", "FullNR"
-    output_filename = "symbolic_navier_stokes.cpp"
-    template_filename = "symbolic_navier_stokes_cpp_template.cpp"
+    output_filename = "weakly_compressible_navier_stokes.cpp"
+    template_filename = "weakly_compressible_navier_stokes_cpp_template.cpp"
 elif formulation == "Stokes":
-    artificial_compressibility = False
     convective_term = False
+    artificial_compressibility = False
     output_filename = "symbolic_stokes.cpp"
     template_filename = "symbolic_stokes_cpp_template.cpp"
 else:
-    err_msg = "Wrong formulation. Given \'" + formulation + "\'. Available options are \'NavierStokes\' and \'Stokes\'."
+    err_msg = "Wrong formulation. Given \'" + formulation + "\'. Available options are \'WeaklyCompressibleNavierStokes\' and \'Stokes\'."
     raise Exception(err_msg)
 
 info_msg = "\n"
@@ -52,7 +51,8 @@ info_msg += "\t - Pseudo-compressibility: " + str(artificial_compressibility) + 
 info_msg += "\t - Divide mass conservation by rho: " + str(divide_by_rho) + "\n"
 print(info_msg)
 
-if formulation == "NavierStokes":
+#TODO: DO ALL ELEMENT TYPES FOR N-S TOO
+if formulation == "NavierStokes" or formulation == "WeaklyCompressibleNavierStokes":
     if (dim_to_compute == "2D"):
         dim_vector = [2]
         nnodes_vector = [3] # tria
@@ -60,7 +60,8 @@ if formulation == "NavierStokes":
         dim_vector = [3]
         nnodes_vector = [4] # tet
     elif (dim_to_compute == "Both"):
-        dim_vector = [2, 3] # tria, tet
+        dim_vector = [2, 3]
+        nnodes_vector = [3, 4] # tria, tet
 elif formulation == "Stokes":
     # all linear elements
     if (dim_to_compute == "2D"):
@@ -96,6 +97,19 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     pn = DefineVector('pn',nnodes)              # Previous step pressure
     pnn = DefineVector('pnn',nnodes)            # 2 previous step pressure
 
+    ## Fluid properties
+    if artificial_compressibility:
+        # If weak-compressibility is on, the density (rho) and speed of sound (c) become nodal variables
+        rho_nodes = DefineVector('rho',nnodes) # Nodal density
+        c_nodes = DefineVector('c',nnodes)     # Nodal sound speed
+        rho = rho_nodes.transpose()*N          # Density Gauss pt. interpolation
+        c = c_nodes.transpose()*N              # Sound speed Gauss pt. interpolation
+        rho = rho[0]
+        c = c[0]
+    else:
+        # With no weak-compressibility, the density (rho) is retrieved from the element properties and there is no speed of sound need
+        rho = Symbol('rho', positive = True)     # Density
+
     ## Test functions definition
     w = DefineMatrix('w',nnodes,dim)            # Velocity field test function
     q = DefineVector('q',nnodes)                # Pressure field test function
@@ -110,9 +124,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     stress = DefineVector('stress',strain_size)
 
     ## Other simbols definition
-    c   = Symbol('c',positive= True)            # Wave length number
     dt  = Symbol('dt', positive = True)         # Time increment
-    rho = Symbol('rho', positive = True)        # Density
     nu  = Symbol('nu', positive = True)         # Kinematic viscosity (mu/rho)
     mu  = Symbol('mu', positive = True)         # Dynamic viscosity
     h = Symbol('h', positive = True)
@@ -167,6 +179,8 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     grad_q = DfjDxi(DN,q)
     grad_p = DfjDxi(DN,p)
     grad_v = DfjDxi(DN,v)
+    if artificial_compressibility:
+        grad_rho = DfjDxi(DN,rho_nodes)
 
     div_w = div(DN,w)
     div_v = div(DN,v)
@@ -180,19 +194,24 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     # Convective term definition
     if convective_term:
         convective_term_gauss = (vconv_gauss.transpose()*grad_v)
+        rho_convective_term_gauss = vconv_gauss.transpose()*grad_rho
 
     ## Compute galerkin functional
     # Navier-Stokes functional
     if (divide_by_rho):
         rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
-        if (artificial_compressibility):
+        if artificial_compressibility:
             rv_galerkin -= (1/(rho*c*c))*q_gauss*pder_gauss
+            if convective_term:
+                rv_galerkin -= (1/rho)*q_gauss*rho_convective_term_gauss
         if convective_term:
             rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
     else:
         rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss  - grad_w_voigt.transpose()*stress + div_w*p_gauss - rho*q_gauss*div_v
-        if (artificial_compressibility):
+        if artificial_compressibility:
             rv_galerkin -= (1/(c*c))*q_gauss*pder_gauss
+            if convective_term:
+                rv_galerkin -= q_gauss*rho_convective_term_gauss
         if convective_term:
             rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
 
@@ -206,12 +225,16 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     # Mass conservation residual
     if (divide_by_rho):
         mas_residual = -div_v
-        if (artificial_compressibility):
+        if artificial_compressibility:
             mas_residual -= (1/(rho*c*c))*pder_gauss
+            if convective_term:
+                mas_residual -= (1/rho)*rho_convective_term_gauss
     else:
         mas_residual = -rho*div_v
-        if (artificial_compressibility):
+        if artificial_compressibility:
             mas_residual -= (1/(c*c))*pder_gauss
+            if convective_term:
+                mas_residual -= rho_convective_term_gauss
 
     vel_subscale = tau1*vel_residual
     mas_subscale = tau2*mas_residual

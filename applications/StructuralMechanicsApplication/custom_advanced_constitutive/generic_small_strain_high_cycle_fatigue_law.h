@@ -170,6 +170,7 @@ public:
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
+    using ConstitutiveLaw::Has;
     bool Has(const Variable<int>& rThisVariable) override;
 
     /**
@@ -188,6 +189,7 @@ public:
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
      */
+    using ConstitutiveLaw::SetValue;
     void SetValue(
         const Variable<int>& rThisVariable,
         const int& rValue);
@@ -208,6 +210,7 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
+    using ConstitutiveLaw::GetValue;
     int& GetValue(
         const Variable<int>& rThisVariable,
         int& rValue) override;

@@ -28,7 +28,7 @@ namespace Kratos {
         virtual double CalculateContactArea(double radius, double other_radius, Vector& v) override;
         void GetContactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) override;
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
-                                       double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
+                                    double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
         void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                 double &equiv_visco_damp_coeff_tangential,
@@ -38,36 +38,34 @@ namespace Kratos {
                 const double kt_el) override;
 
         double LocalMaxSearchDistance(const int i,
-                                      SphericContinuumParticle* element1,
-                                      SphericContinuumParticle* element2) override;
+                                    SphericContinuumParticle* element1,
+                                    SphericContinuumParticle* element2) override;
 
         void CalculateForces(const ProcessInfo& r_process_info,
-                             double OldLocalElasticContactForce[3],
-                             double LocalElasticContactForce[3],
-                             double LocalElasticExtraContactForce[3],
-                             double LocalCoordSystem[3][3],
-                             double LocalDeltDisp[3],
-                             const double kn_el,
-                             const double kt_el,
-                             double& contact_sigma,
-                             double& contact_tau,
-                             double& failure_criterion_state,
-                             double equiv_young,
-                             double equiv_shear,
-                             double indentation,
-                             double calculation_area,
-                             double& acumulated_damage,
-                             SphericContinuumParticle* element1,
-                             SphericContinuumParticle* element2,
-                             int i_neighbour_count,
-                             int time_steps,
-                             bool& sliding,
-                             int search_control,
-                             DenseVector<int>& search_control_vector,
-                             double &equiv_visco_damp_coeff_normal,
-                             double &equiv_visco_damp_coeff_tangential,
-                             double LocalRelVel[3],
-                             double ViscoDampingLocalContactForce[3]) override;
+                            double OldLocalElasticContactForce[3],
+                            double LocalElasticContactForce[3],
+                            double LocalElasticExtraContactForce[3],
+                            double LocalCoordSystem[3][3],
+                            double LocalDeltDisp[3],
+                            const double kn_el,
+                            const double kt_el,
+                            double& contact_sigma,
+                            double& contact_tau,
+                            double& failure_criterion_state,
+                            double equiv_young,
+                            double equiv_shear,
+                            double indentation,
+                            double calculation_area,
+                            double& acumulated_damage,
+                            SphericContinuumParticle* element1,
+                            SphericContinuumParticle* element2,
+                            int i_neighbour_count,
+                            int time_steps,
+                            bool& sliding,
+                            double &equiv_visco_damp_coeff_normal,
+                            double &equiv_visco_damp_coeff_tangential,
+                            double LocalRelVel[3],
+                            double ViscoDampingLocalContactForce[3]) override;
 
 
         void CalculateNormalForces(double LocalElasticContactForce[3],
@@ -100,8 +98,6 @@ namespace Kratos {
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
                 bool& sliding,
-                int search_control,
-                DenseVector<int>& search_control_vector,
                 const ProcessInfo& r_process_info) override;
 
         void AddContributionOfShearStrainParallelToBond(double OldLocalElasticContactForce[3],
@@ -115,24 +111,24 @@ namespace Kratos {
 
 
         void CalculateViscoDamping(double LocalRelVel[3],
-                                   double ViscoDampingLocalContactForce[3],
-                                   double indentation,
-                                   double equiv_visco_damp_coeff_normal,
-                                   double equiv_visco_damp_coeff_tangential,
-                                   bool& sliding,
-                                   int failure_id) override;
+                                double ViscoDampingLocalContactForce[3],
+                                double indentation,
+                                double equiv_visco_damp_coeff_normal,
+                                double equiv_visco_damp_coeff_tangential,
+                                bool& sliding,
+                                int failure_id) override;
 
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
-                                                      SphericContinuumParticle* neighbor,
-                                                      double equiv_young,
-                                                      double distance,
-                                                      double calculation_area,
-                                                      double LocalCoordSystem[3][3],
-                                                      double ElasticLocalRotationalMoment[3],
-                                                      double ViscoLocalRotationalMoment[3],
-                                                      double equiv_poisson,
-                                                      double indentation) override;
+                                                    SphericContinuumParticle* neighbor,
+                                                    double equiv_young,
+                                                    double distance,
+                                                    double calculation_area,
+                                                    double LocalCoordSystem[3][3],
+                                                    double ElasticLocalRotationalMoment[3],
+                                                    double ViscoLocalRotationalMoment[3],
+                                                    double equiv_poisson,
+                                                    double indentation) override;
 
         void AddPoissonContribution(const double equiv_poisson,
                                     double LocalCoordSystem[3][3],

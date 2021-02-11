@@ -77,7 +77,7 @@ namespace Kratos
         GeneralVariables Variables;
 
         // Calculating shape function
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+        MPMShapeFunctionPointValues(Variables.N);
 
         // Here MP contribution in terms of force are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -93,7 +93,7 @@ namespace Kratos
 
     void MPMParticlePointLoadCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag
         )
@@ -151,7 +151,7 @@ namespace Kratos
         return 1.0;
     }
 
-    void MPMParticlePointLoadCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+    void MPMParticlePointLoadCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
     {
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -162,7 +162,7 @@ namespace Kratos
 
         array_1d<double,3> delta_xg = ZeroVector(3);
 
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+        MPMShapeFunctionPointValues(Variables.N);
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {

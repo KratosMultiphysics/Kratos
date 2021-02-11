@@ -19,6 +19,54 @@ have_fem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("Structura
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
+class TestTinyFetiCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
+    '''This class contains "tiny" FETI CoSimulation-Cases, small enough to run in the CI
+    '''
+    def test_FEM_FEM_small_2d_plate_feti_explict_explicit(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_fem_fem_dependencies:
+            self.skipTest("FEM-FEM dependencies are not available!")
+
+        self.name = "test_FEM_FEM_small_2d_plate_feti_explict_explicit"
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fem_fem/small_2d_plate_feti/explicit_explicit", "cosim_fem_fem_small_2d_plate_feti_explicit_explicit")
+            self._runTest()
+
+    def test_FEM_FEM_small_2d_plate_feti_implict_explicit(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_fem_fem_dependencies:
+            self.skipTest("FEM-FEM dependencies are not available!")
+
+        self.name = "test_FEM_FEM_small_2d_plate_feti_implict_explicit"
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fem_fem/small_2d_plate_feti/implicit_explicit", "cosim_fem_fem_small_2d_plate_feti_implicit_explicit")
+            self._runTest()
+
+    def test_FEM_FEM_small_2d_plate_feti_implict_implicit(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_fem_fem_dependencies:
+            self.skipTest("FEM-FEM dependencies are not available!")
+
+        self.name = "test_FEM_FEM_small_2d_plate_feti_implict_implicit"
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fem_fem/small_2d_plate_feti/implicit_implicit", "cosim_fem_fem_small_2d_plate_feti_implicit_implicit")
+            self._runTest()
+
+    def test_FEM_FEM_small_2d_plate_feti_implict_explicit_mixed(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_fem_fem_dependencies:
+            self.skipTest("FEM-FEM dependencies are not available!")
+
+        self.name = "test_FEM_FEM_small_2d_plate_feti_implict_explicit_mixed"
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fem_fem/small_2d_plate_feti/implicit_explicit_mixed", "cosim_fem_fem_small_2d_plate_feti_implicit_explicit_mixed")
+            self._runTest()
+
+
 class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "small" CoSimulation-Cases, small enough to run in the nightly suite
     '''
@@ -55,6 +103,50 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fem_fem/small_2d_plate", "cosim_fem_fem_small_2d_plate_full_mortar")
             self._runTest()
+
+    #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit(self):
+    #    if not numpy_available:
+    #        self.skipTest("Numpy not available")
+    #    if not have_fem_fem_dependencies:
+    #        self.skipTest("FEM-FEM dependencies are not available!")
+    #
+    #    self.name = "test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit"
+    #    with KratosUnittest.WorkFolderScope(".", __file__):
+    #        self._createTest("fem_fem/dynamic_2d_cantilever/implicit_implicit", "fem_fem_dynamic_2d_cantilever")
+    #        self._runTest()
+    #
+    #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit_nonconforming(self):
+    #    if not numpy_available:
+    #        self.skipTest("Numpy not available")
+    #    if not have_fem_fem_dependencies:
+    #        self.skipTest("FEM-FEM dependencies are not available!")
+    #
+    #    self.name = "test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit_nonconforming"
+    #    with KratosUnittest.WorkFolderScope(".", __file__):
+    #        self._createTest("fem_fem/dynamic_2d_cantilever/implicit_implicit", "fem_fem_dynamic_2d_cantilever_nonconforming")
+    #        self._runTest()
+    #
+    #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit_mixed_timestep(self):
+    #    if not numpy_available:
+    #        self.skipTest("Numpy not available")
+    #    if not have_fem_fem_dependencies:
+    #        self.skipTest("FEM-FEM dependencies are not available!")
+    #
+    #    self.name = "test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit_mixed_timestep"
+    #    with KratosUnittest.WorkFolderScope(".", __file__):
+    #        self._createTest("fem_fem/dynamic_2d_cantilever/implicit_implicit", "fem_fem_dynamic_2d_cantilever_mixed_timestep")
+    #        self._runTest()
+    #
+    #def test_FEM_FEM_dynamic_2d_cantilever_implicit_explicit_mixed_nonconforming(self):
+    #    if not numpy_available:
+    #        self.skipTest("Numpy not available")
+    #    if not have_fem_fem_dependencies:
+    #        self.skipTest("FEM-FEM dependencies are not available!")
+    #
+    #    self.name = "test_FEM_FEM_dynamic_2d_cantilever_implicit_explicit_mixed_nonconforming"
+    #    with KratosUnittest.WorkFolderScope(".", __file__):
+    #        self._createTest("fem_fem/dynamic_2d_cantilever/implicit_explicit", "fem_fem_dynamic_2d_cantilever_mixed_nonconforming")
+    #        self._runTest()
 
     def test_sdof_static_fsi(self):
         if not numpy_available:

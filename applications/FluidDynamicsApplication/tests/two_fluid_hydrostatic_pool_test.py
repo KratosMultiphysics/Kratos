@@ -6,7 +6,7 @@ from fluid_dynamics_analysis import FluidDynamicsAnalysis
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 try:
-    import KratosMultiphysics.ExternalSolversApplication
+    import KratosMultiphysics.LinearSolversApplication
     have_external_solvers = True
 except ImportError as e:
     have_external_solvers = False

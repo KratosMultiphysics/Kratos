@@ -68,6 +68,11 @@ public:
         Matrix& gaussian_coords,
         Vector& weights);
 
+    static void IntegrationPoints3D(
+        typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
+        SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,
+        double U0, double U1, double V0, double V1, double W0, double W1);
+
     ///@}
 };
 

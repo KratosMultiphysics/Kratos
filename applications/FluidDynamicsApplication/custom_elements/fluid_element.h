@@ -186,7 +186,7 @@ public:
     /// Set up the element for solution.
     /** For FluidElement, this initializes the constitutive law using the data in the element's properties.
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief CalculateLocalSystem Return empty matrices and vectors of appropriate size.
@@ -199,7 +199,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief CalculateLeftHandSide Return an empty matrix of appropriate size.
@@ -210,7 +210,7 @@ public:
      */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief CalculateRightHandSide Return an empty matrix of appropriate size.
@@ -221,7 +221,7 @@ public:
      */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief CalculateLocalVelocityContribution Calculate the local contribution in terms of velocity and pressure.
@@ -232,7 +232,7 @@ public:
     void CalculateLocalVelocityContribution(
         MatrixType &rDampMatrix,
         VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief MassMatrix Calculate the local mass matrix.
@@ -241,7 +241,7 @@ public:
      */
     void CalculateMassMatrix(
         MatrixType &rMassMatrix,
-        ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo &rCurrentProcessInfo) override;
 
 
     /**
@@ -251,7 +251,7 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief GetDofList Returns a list of the element's Dofs.
@@ -260,7 +260,7 @@ public:
      */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /**
@@ -268,7 +268,7 @@ public:
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    void GetFirstDerivativesVector(Vector& Values, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& Values, int Step = 0) const override;
 
 
 
@@ -277,7 +277,7 @@ public:
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    void GetSecondDerivativesVector(Vector& Values, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& Values, int Step = 0) const override;
 
 
     /**
@@ -291,25 +291,30 @@ public:
     ///@name Access
     ///@{
 
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 3>> const& rVariable,
-                                     std::vector<array_1d<double, 3>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<array_1d<double, 3>> const& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<double> const& rVariable,
-                                     std::vector<double>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<double> const& rVariable,
+        std::vector<double>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
-                                     std::vector<array_1d<double, 6>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<array_1d<double, 6>> const& rVariable,
+        std::vector<array_1d<double, 6>>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
-                                     std::vector<Vector>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<Vector> const& rVariable,
+        std::vector<Vector>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
-                                     std::vector<Matrix>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -377,6 +382,17 @@ protected:
     virtual array_1d<double, 3> GetAtCoordinate(
         const typename TElementData::NodalVectorData& rValues,
         const typename TElementData::ShapeFunctionsType& rN) const;
+
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual BoundedMatrix<double, TElementData::Dim, TElementData::Dim> GetAtCoordinate(
+        const typename TElementData::NodalTensorData &rValues,
+        const typename TElementData::ShapeFunctionsType &rN) const;
 
     /// Get information from TElementData at a given point.
     /** This function serves as a wrapper so that the element does not need to

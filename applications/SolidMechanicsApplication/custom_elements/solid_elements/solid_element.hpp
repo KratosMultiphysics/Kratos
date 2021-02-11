@@ -336,17 +336,17 @@ public:
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
 
@@ -547,7 +547,7 @@ public:
      */
     void AddExplicitContribution(const VectorType& rRHSVector,
 					 const Variable<VectorType>& rRHSVariable,
-					 Variable<array_1d<double,3> >& rDestinationVariable,
+					 const Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo) override;
 
     //on integration points:
@@ -758,7 +758,7 @@ protected:
     /**
      * Get element size from the dofs
      */
-    virtual SizeType GetDofsSize();
+    virtual SizeType GetDofsSize() const;
 
 
     /**

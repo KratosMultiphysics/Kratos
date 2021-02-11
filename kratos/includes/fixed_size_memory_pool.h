@@ -64,7 +64,7 @@ namespace Kratos
 		  : LockObject()
 		  , mChunkSize(ChunkSize)
 	  {
-		  for (int i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
+		  for (int i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
 			  mThreadsPool.emplace_back(BlockSizeInBytes, ChunkSize, i_thread);
 	  }
 
@@ -86,23 +86,23 @@ namespace Kratos
 
 	  /// This function does not throw and returns zero if cannot allocate
 	  void* Allocate() {
-		  mThreadsPool[GetThreadNumber()].SetLock();
-		  void* p_result = mThreadsPool[GetThreadNumber()].Allocate();
-		  mThreadsPool[GetThreadNumber()].UnSetLock();
+		  mThreadsPool[OpenMPUtils::ThisThread()].SetLock();
+		  void* p_result = mThreadsPool[OpenMPUtils::ThisThread()].Allocate();
+		  mThreadsPool[OpenMPUtils::ThisThread()].UnSetLock();
 		  return p_result;
 	  }
 
 	  void Deallocate(void* pPointrerToRelease) {
 
-		  mThreadsPool[GetThreadNumber()].SetLock();
-		  if (mThreadsPool[GetThreadNumber()].Deallocate(pPointrerToRelease))
+		  mThreadsPool[OpenMPUtils::ThisThread()].SetLock();
+		  if (mThreadsPool[OpenMPUtils::ThisThread()].Deallocate(pPointrerToRelease))
 		  {
-			  mThreadsPool[GetThreadNumber()].UnSetLock();
+			  mThreadsPool[OpenMPUtils::ThisThread()].UnSetLock();
 			  return;
 		  }
 
-		  for (int i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
-			  if (i_thread != GetThreadNumber())
+		  for (int i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
+			  if (i_thread != OpenMPUtils::ThisThread())
 				  if (mThreadsPool[i_thread].Deallocate(pPointrerToRelease)) {
 					  mThreadsPool[i_thread].UnSetLock();
 					  return;
@@ -113,21 +113,21 @@ namespace Kratos
 
 	  std::size_t MemoryUsed() const {
 		  std::size_t memory_used = sizeof(FixedSizeMemoryPool);
-		  for (int i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
+		  for (int i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
 			  memory_used += mThreadsPool[i_thread].MemoryUsed();
 		  return memory_used;
 	  }
 
 	  std::size_t MemoryOverhead() const {
 		  std::size_t memory_overhead = sizeof(FixedSizeMemoryPool);
-		  for (int i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
+		  for (int i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
 			  memory_overhead += mThreadsPool[i_thread].MemoryOverhead();
 		  return memory_overhead;
 	  }
 
 	  std::size_t GetNumberOfAllocatedChunks() const {
 		  std::size_t number_of_allocated_chunks = 0;
-		  for (int i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
+		  for (int i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
 			  number_of_allocated_chunks += mThreadsPool[i_thread].GetNumberOfChunks() - mThreadsPool[i_thread].GetNumberOfReleasedChunks();
 		  return number_of_allocated_chunks;
 	  }

@@ -16,10 +16,12 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "custom_elements/base_shell_element.h"
 #include "custom_utilities/shell_utilities.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
-#include "includes/checks.h"
+#include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
+#include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 
 namespace Kratos
 {
@@ -27,24 +29,23 @@ namespace Kratos
 using SizeType = std::size_t;
 using IndexType = std::size_t;
 
-BaseShellElement::BaseShellElement(IndexType NewId,
+template <class TCoordinateTransformation>
+BaseShellElement<TCoordinateTransformation>::BaseShellElement(IndexType NewId,
                                    GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
 }
 
-BaseShellElement::BaseShellElement(IndexType NewId,
+template <class TCoordinateTransformation>
+BaseShellElement<TCoordinateTransformation>::BaseShellElement(IndexType NewId,
                                    GeometryType::Pointer pGeometry,
                                    PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
 }
 
-BaseShellElement::~BaseShellElement()
-{
-}
-
-void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::EquationIdVector(EquationIdVectorType& rResult,
                                         const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
@@ -69,7 +70,8 @@ void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
     }
 }
 
-void BaseShellElement::GetDofList(DofsVectorType& rElementalDofList,
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::GetDofList(DofsVectorType& rElementalDofList,
                                   const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
@@ -92,7 +94,8 @@ void BaseShellElement::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
-void BaseShellElement::GetValuesVector(Vector& rValues, int Step) const
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::GetValuesVector(Vector& rValues, int Step) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -118,7 +121,8 @@ void BaseShellElement::GetValuesVector(Vector& rValues, int Step) const
     }
 }
 
-void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -144,7 +148,8 @@ void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step) cons
     }
 }
 
-void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -170,7 +175,8 @@ void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step) con
     }
 }
 
-void BaseShellElement::ResetConstitutiveLaw()
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
@@ -185,70 +191,72 @@ void BaseShellElement::ResetConstitutiveLaw()
     KRATOS_CATCH("")
 }
 
-void BaseShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    const auto& r_geom = GetGeometry();
-    const auto& r_props = GetProperties();
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        const auto& r_geom = GetGeometry();
+        const auto& r_props = GetProperties();
 
-    const SizeType num_gps = GetNumberOfGPs();
+        const SizeType num_gps = GetNumberOfGPs();
 
-    if (mSections.size() != num_gps) {
-        const Matrix& r_shape_fct_values =
-            r_geom.ShapeFunctionsValues(GetIntegrationMethod());
+        if (mSections.size() != num_gps) {
+            const Matrix& r_shape_fct_values =
+                r_geom.ShapeFunctionsValues(GetIntegrationMethod());
 
-        ShellCrossSection::Pointer p_ref_section;
+            ShellCrossSection::Pointer p_ref_section;
 
-        if (r_props.Has(SHELL_CROSS_SECTION)) {
-            p_ref_section = r_props[SHELL_CROSS_SECTION];
-        } else if (ShellUtilities::IsOrthotropic(r_props)) {
-            // make new instance of shell cross section
-            p_ref_section = Kratos::make_shared<ShellCrossSection>();
+            if (ShellUtilities::IsOrthotropic(r_props)) {
+                // make new instance of shell cross section
+                p_ref_section = Kratos::make_shared<ShellCrossSection>();
 
-            // Parse material properties for each layer
-            p_ref_section->ParseOrthotropicPropertyMatrix(r_props);
-        } else {
-            p_ref_section = Kratos::make_shared<ShellCrossSection>();
-            const IndexType ply_index = 0;
-            const SizeType num_points = 5;
-            p_ref_section->BeginStack();
-            p_ref_section->AddPly(ply_index, num_points, r_props);
-            p_ref_section->EndStack();
+                // Parse material properties for each layer
+                p_ref_section->ParseOrthotropicPropertyMatrix(r_props);
+            } else {
+                p_ref_section = Kratos::make_shared<ShellCrossSection>();
+                const IndexType ply_index = 0;
+                const SizeType num_points = 5;
+                p_ref_section->BeginStack();
+                p_ref_section->AddPly(ply_index, num_points, r_props);
+                p_ref_section->EndStack();
+            }
+
+            mSections.clear();
+            for (SizeType i = 0; i < num_gps; ++i) {
+                ShellCrossSection::Pointer p_section_clone = p_ref_section->Clone();
+                p_section_clone->SetSectionBehavior(GetSectionBehavior());
+                p_section_clone->InitializeCrossSection(r_props, r_geom, row(r_shape_fct_values, i));
+                mSections.push_back(p_section_clone);
+            }
         }
 
-        mSections.clear();
-        for (SizeType i = 0; i < num_gps; ++i) {
-            ShellCrossSection::Pointer p_section_clone = p_ref_section->Clone();
-            p_section_clone->SetSectionBehavior(GetSectionBehavior());
-            p_section_clone->InitializeCrossSection(r_props, r_geom, row(r_shape_fct_values, i));
-            mSections.push_back(p_section_clone);
+        if (this->Has(LOCAL_MATERIAL_AXIS_1)) {
+            // calculate the angle between the prescribed direction and the local axis 1
+            // this is currently required in teh derived classes TODO refactor
+
+            std::vector<array_1d<double, 3>> local_axes_1;
+            std::vector<array_1d<double, 3>> local_axes_2;
+            this->CalculateOnIntegrationPoints(LOCAL_AXIS_1, local_axes_1 , rCurrentProcessInfo);
+            this->CalculateOnIntegrationPoints(LOCAL_AXIS_2, local_axes_2 , rCurrentProcessInfo);
+
+            const array_1d<double, 3> prescribed_direcition = this->GetValue(LOCAL_MATERIAL_AXIS_1);
+
+            double mat_orientation_angle = MathUtils<double>::VectorsAngle(local_axes_1[0], prescribed_direcition);
+
+            // make sure the angle is positively defined according to right hand rule
+            if (inner_prod(local_axes_2[0], prescribed_direcition) < 0.0) {
+                // mat_orientation_angle is currently negative, flip to positive definition
+                mat_orientation_angle *= -1.0;
+            }
+
+            this->SetValue(MATERIAL_ORIENTATION_ANGLE, mat_orientation_angle);
         }
-    }
-
-    if (this->Has(LOCAL_MATERIAL_AXIS_1)) {
-        // calculate the angle between the prescribed direction and the local axis 1
-        // this is currently required in teh derived classes TODO refactor
-
-        std::vector<array_1d<double, 3>> local_axes_1;
-		std::vector<array_1d<double, 3>> local_axes_2;
-        ProcessInfo tmp_process_info; // TODO refactor once Initialize gets ProcessInfo
-		this->CalculateOnIntegrationPoints(LOCAL_AXIS_1, local_axes_1 , tmp_process_info);
-		this->CalculateOnIntegrationPoints(LOCAL_AXIS_2, local_axes_2 , tmp_process_info);
-
-        const array_1d<double, 3> prescribed_direcition = this->GetValue(LOCAL_MATERIAL_AXIS_1);
-
-        double mat_orientation_angle = MathUtils<double>::VectorsAngle(local_axes_1[0], prescribed_direcition);
-
-        // make sure the angle is positively defined according to right hand rule
-        if (inner_prod(local_axes_2[0], prescribed_direcition) < 0.0) {
-            // mat_orientation_angle is currently negative, flip to positive definition
-            mat_orientation_angle *= -1.0;
-        }
-
-        this->SetValue(MATERIAL_ORIENTATION_ANGLE, mat_orientation_angle);
     }
 }
 
-void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::BaseInitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = this->GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -257,7 +265,8 @@ void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentPro
     }
 }
 
-void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::BaseFinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = this->GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -266,7 +275,8 @@ void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProce
     }
 }
 
-void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::BaseInitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
@@ -277,7 +287,8 @@ void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessIn
     }
 }
 
-void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::BaseFinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
@@ -288,9 +299,10 @@ void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo
     }
 }
 
-void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true;
@@ -300,9 +312,9 @@ void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
 }
 
-
-void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true;
@@ -313,8 +325,9 @@ void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
 }
 
-void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateRightHandSide(VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true; // TODO check is this can be false => see solids
@@ -325,14 +338,16 @@ void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
 }
 
-void BaseShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     // TODO unify implementation and move it to BaseClass
 }
 
-void BaseShellElement::CalculateDampingMatrix(
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
 )
 {
     const std::size_t matrix_size = GetNumberOfDofs();
@@ -344,13 +359,13 @@ void BaseShellElement::CalculateDampingMatrix(
         matrix_size);
 }
 
-int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+template <class TCoordinateTransformation>
+int BaseShellElement<TCoordinateTransformation>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
     Element::Check(rCurrentProcessInfo);
 
-    CheckVariables();
     CheckDofs();
     CheckProperties(rCurrentProcessInfo);
 
@@ -364,7 +379,8 @@ int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_CATCH("")
 }
 
-void BaseShellElement::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections)
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections)
 {
     KRATOS_TRY
 
@@ -378,34 +394,40 @@ void BaseShellElement::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCro
     KRATOS_CATCH("")
 }
 
-std::string BaseShellElement::Info() const
+template <class TCoordinateTransformation>
+std::string BaseShellElement<TCoordinateTransformation>::Info() const
 {
     std::stringstream buffer;
     buffer << "BaseShellElement #" << Id();
     return buffer.str();
 }
 
-void BaseShellElement::PrintInfo(std::ostream& rOStream) const
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << "BaseShellElement #" << Id();
 }
 
-void BaseShellElement::PrintData(std::ostream& rOStream) const
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::PrintData(std::ostream& rOStream) const
 {
     pGetGeometry()->PrintData(rOStream);
 }
 
-SizeType BaseShellElement::GetNumberOfDofs() const
+template <class TCoordinateTransformation>
+SizeType BaseShellElement<TCoordinateTransformation>::GetNumberOfDofs() const
 {
     return (6 * GetGeometry().PointsNumber());   // 6 dofs per node
 }
 
-SizeType BaseShellElement::GetNumberOfGPs() const
+template <class TCoordinateTransformation>
+SizeType BaseShellElement<TCoordinateTransformation>::GetNumberOfGPs() const
 {
     return GetGeometry().IntegrationPoints(mIntegrationMethod).size();
 }
 
-void BaseShellElement::CalculateAll(
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -416,33 +438,20 @@ void BaseShellElement::CalculateAll(
     KRATOS_ERROR << "You have called to the CalculateAll from the base class for shell elements" << std::endl;
 }
 
-ShellCrossSection::SectionBehaviorType BaseShellElement::GetSectionBehavior() const
+template <class TCoordinateTransformation>
+ShellCrossSection::SectionBehaviorType BaseShellElement<TCoordinateTransformation>::GetSectionBehavior() const
 {
     KRATOS_ERROR << "You have called to the GetSectionBehavior from the base class for shell elements" << std::endl;
 }
 
-void BaseShellElement::SetupOrientationAngles()
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::SetupOrientationAngles()
 {
     KRATOS_ERROR << "You have called to the SetupOrientationAngles from the base class for shell elements" << std::endl;
 }
 
-void BaseShellElement::CheckVariables() const
-{
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
-    KRATOS_CHECK_VARIABLE_KEY(SHELL_ORTHOTROPIC_LAYERS);
-    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
-    KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION);
-}
-
-void BaseShellElement::CheckDofs() const
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CheckDofs() const
 {
     // verify that the dofs exist
     for (const auto& r_node : GetGeometry().Points()) {
@@ -462,7 +471,8 @@ void BaseShellElement::CheckDofs() const
     }
 }
 
-void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
 {
     // check properties
     if (pGetProperties() == nullptr) {
@@ -473,14 +483,7 @@ void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo) c
 
     const auto& r_geom = GetGeometry(); // TODO check if this can be const
 
-    if (r_props.Has(SHELL_CROSS_SECTION)) { // if the user specified a cross section ...
-        const ShellCrossSection::Pointer& section = r_props[SHELL_CROSS_SECTION];
-        if (section == nullptr) {
-            KRATOS_ERROR << "SHELL_CROSS_SECTION not provided for element " << Id() << std::endl;
-        }
-
-        section->Check(r_props, r_geom, rCurrentProcessInfo);
-    } else if (r_props.Has(SHELL_ORTHOTROPIC_LAYERS)) {
+    if (r_props.Has(SHELL_ORTHOTROPIC_LAYERS)) {
         CheckSpecificProperties();
 
         const auto& r_props = GetProperties();
@@ -531,7 +534,8 @@ void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo) c
     }
 }
 
-void BaseShellElement::CheckSpecificProperties() const
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CheckSpecificProperties() const
 {
     const auto& r_props = GetProperties();
 
@@ -562,14 +566,16 @@ void BaseShellElement::CheckSpecificProperties() const
     }
 }
 
-void BaseShellElement::save(Serializer& rSerializer) const
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     rSerializer.save("Sections", mSections);
     rSerializer.save("IntM", (int)mIntegrationMethod);
 }
 
-void BaseShellElement::load(Serializer& rSerializer)
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     rSerializer.load("Sections", mSections);
@@ -578,16 +584,9 @@ void BaseShellElement::load(Serializer& rSerializer)
     mIntegrationMethod = (IntegrationMethod)temp;
 }
 
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream, BaseShellElement& rThis);
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream, const BaseShellElement& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << " : " << std::endl;
-    rThis.PrintData(rOStream);
-    return rOStream;
-}
+template class BaseShellElement< ShellT3_CoordinateTransformation >;
+template class BaseShellElement< ShellT3_CorotationalCoordinateTransformation  >;
+template class BaseShellElement< ShellQ4_CoordinateTransformation >;
+template class BaseShellElement< ShellQ4_CorotationalCoordinateTransformation  >;
 
 } // namespace Kratos.

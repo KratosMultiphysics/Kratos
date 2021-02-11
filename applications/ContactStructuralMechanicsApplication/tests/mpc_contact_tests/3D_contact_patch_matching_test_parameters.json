@@ -22,7 +22,6 @@
         "material_import_settings" :{
             "materials_filename": "mpc_contact_tests/3D_contact_patch_matching_test_materials.json"
         },
-        "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"	         : true,

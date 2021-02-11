@@ -87,11 +87,11 @@ Element::Pointer DynamicVMS<TDim>::Create(IndexType NewId, GeometryType::Pointer
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::Initialize()
+void DynamicVMS<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {}
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     this->CalculateGeometryData();
 
@@ -101,7 +101,7 @@ void DynamicVMS<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
 //    this->LinearUpdateSubscale(rCurrentProcessInfo);
     this->UpdateSubscale(rCurrentProcessInfo);
@@ -113,7 +113,7 @@ void DynamicVMS<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcess
 template< unsigned int TDim >
 void DynamicVMS<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                             VectorType &rRightHandSideVector,
-                                            ProcessInfo &rCurrentProcessInfo)
+                                            const ProcessInfo &rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -132,7 +132,7 @@ void DynamicVMS<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::CalculateRightHandSide(VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::CalculateRightHandSide(VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -148,7 +148,7 @@ void DynamicVMS<TDim>::CalculateRightHandSide(VectorType &rRightHandSideVector, 
 template< unsigned int TDim >
 void DynamicVMS<TDim>::CalculateLocalVelocityContribution(MatrixType &rDampingMatrix,
                                                           VectorType &rRightHandSideVector,
-                                                          ProcessInfo &rCurrentProcessInfo)
+                                                          const ProcessInfo &rCurrentProcessInfo)
 {
     if (rCurrentProcessInfo[OSS_SWITCH]==1.0)
         this->CalculateOSSVelocityContribution(rDampingMatrix,rRightHandSideVector,rCurrentProcessInfo);
@@ -158,7 +158,7 @@ void DynamicVMS<TDim>::CalculateLocalVelocityContribution(MatrixType &rDampingMa
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::CalculateMassMatrix(MatrixType &rMassMatrix, const ProcessInfo &rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -243,9 +243,9 @@ void DynamicVMS<TDim>::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo 
 
 
 template<>
-void DynamicVMS<2>::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<2>::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = NumNodes * 3;
     unsigned int Index = 0;
@@ -255,7 +255,7 @@ void DynamicVMS<2>::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo 
 
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
-        NodeType& rNode = rGeom[i];
+        const NodeType& rNode = rGeom[i];
         rResult[Index++] = rNode.GetDof(VELOCITY_X).EquationId();
         rResult[Index++] = rNode.GetDof(VELOCITY_Y).EquationId();
         rResult[Index++] = rNode.GetDof(PRESSURE).EquationId();
@@ -264,9 +264,9 @@ void DynamicVMS<2>::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo 
 
 
 template<>
-void DynamicVMS<3>::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<3>::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = NumNodes * 4;
     unsigned int Index = 0;
@@ -276,7 +276,7 @@ void DynamicVMS<3>::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo 
 
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
-        NodeType& rNode = rGeom[i];
+        const NodeType& rNode = rGeom[i];
         rResult[Index++] = rNode.GetDof(VELOCITY_X).EquationId();
         rResult[Index++] = rNode.GetDof(VELOCITY_Y).EquationId();
         rResult[Index++] = rNode.GetDof(VELOCITY_Z).EquationId();
@@ -286,9 +286,9 @@ void DynamicVMS<3>::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo 
 
 
 template<>
-void DynamicVMS<2>::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<2>::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = NumNodes * 3;
     unsigned int Index = 0;
@@ -298,7 +298,7 @@ void DynamicVMS<2>::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &r
 
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
-        NodeType& rNode = rGeom[i];
+        const NodeType& rNode = rGeom[i];
         rElementalDofList[Index++] = rNode.pGetDof(VELOCITY_X);
         rElementalDofList[Index++] = rNode.pGetDof(VELOCITY_Y);
         rElementalDofList[Index++] = rNode.pGetDof(PRESSURE);
@@ -307,9 +307,9 @@ void DynamicVMS<2>::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &r
 
 
 template<>
-void DynamicVMS<3>::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<3>::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = NumNodes * 4;
     unsigned int Index = 0;
@@ -319,7 +319,7 @@ void DynamicVMS<3>::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &r
 
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
-        NodeType& rNode = rGeom[i];
+        const NodeType& rNode = rGeom[i];
         rElementalDofList[Index++] = rNode.pGetDof(VELOCITY_X);
         rElementalDofList[Index++] = rNode.pGetDof(VELOCITY_Y);
         rElementalDofList[Index++] = rNode.pGetDof(VELOCITY_Z);
@@ -329,9 +329,9 @@ void DynamicVMS<3>::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &r
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step)
+void DynamicVMS<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = NumNodes * (TDim+1);
 
@@ -352,9 +352,9 @@ void DynamicVMS<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step)
 }
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::GetSecondDerivativesVector(Vector &rValues, int Step)
+void DynamicVMS<TDim>::GetSecondDerivativesVector(Vector &rValues, int Step) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = NumNodes * (TDim+1);
 
@@ -437,7 +437,7 @@ void DynamicVMS<TDim>::Calculate(const Variable<array_1d<double,3> > &rVariable,
 }
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
     const Matrix& NContainer = rGeom.ShapeFunctionsValues(this->mIntegrationMethod);
@@ -490,7 +490,7 @@ void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVari
 }
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> > &rVariable, std::vector<array_1d<double, 3 > > &rValues, const ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> > &rVariable, std::vector<array_1d<double, 3 > > &rValues, const ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(this->mIntegrationMethod);
