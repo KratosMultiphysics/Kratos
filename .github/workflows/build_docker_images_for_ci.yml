@@ -8,6 +8,7 @@ on:
       - 'master'
     paths:
       - 'scripts/docker_files/docker_file_ci_ubuntu_20_04/*'
+      - 'scripts/docker_files/docker_file_ci_centos_7_python35/*'
       - '.github/workflows/build_docker_images_for_ci.yml'
 
 jobs:
