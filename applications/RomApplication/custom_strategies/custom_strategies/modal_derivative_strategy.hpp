@@ -508,8 +508,7 @@ public:
         auto& rDx = *mpDx;
         TSystemVectorType basis(p_builder_and_solver->GetDofSet().size());
         const bool master_slave_constraints_defined = r_model_part.MasterSlaveConstraints().size() != 0;
-        bool dynamic_constraint_added = false;
-
+        
         /*
             BUILD_LEVEL = 1 : Scheme builds M
             BUILD_LEVEL = 2 : Scheme builds K
@@ -553,11 +552,11 @@ public:
             {
                 p_builder_and_solver->ApplyConstraints(p_scheme, r_model_part, rA, rb);
             }
-            // Add dynamic derivative dirichlet constraint
+            // LHS Dirichlet conditions
+            // Add dynamic derivative Dirichlet condition
             this->AddDynamicDerivativeConstraint(basis);
-            dynamic_constraint_added = true;
-            // Dirichlet conditions
             p_builder_and_solver->ApplyDirichletConditions_LHS(p_scheme, r_model_part, rA, rDx);
+            this->RemoveDynamicDerivativeConstraint();
             KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Apply LHS constraints and conditions: " << time_system_matrix.ElapsedSeconds() << std::endl;
             
             // Derivative wrt basis_j
@@ -594,12 +593,8 @@ public:
                     p_builder_and_solver->ApplyRHSConstraints(p_scheme, r_model_part, rb);
                 }
 
-                // Apply Dirichlet conditions
-                if (!dynamic_constraint_added)
-                {
-                    this->AddDynamicDerivativeConstraint(basis);
-                    dynamic_constraint_added = true;
-                }
+                // Apply RHS Dirichlet conditions
+                this->AddDynamicDerivativeConstraint(basis);
                 p_builder_and_solver->ApplyDirichletConditions_RHS(p_scheme, r_model_part, rDx, rb);
                 KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Apply RHS constraints and conditions: " << time_rhs_constraints_and_conditions.ElapsedSeconds() << std::endl;
 
@@ -608,18 +603,17 @@ public:
                 // Compute particular solution
                 p_builder_and_solver->SystemSolve(rA, rDx, rb);
 
-                // Remove dynamic derivative constraint
-                this->RemoveDynamicDerivativeConstraint();
-                dynamic_constraint_added = false;
-
                 // Reconstruct slave DOF solution
                 if (master_slave_constraints_defined)
                 {
                     p_builder_and_solver->ReconstructSlaveSolution(p_scheme, r_model_part, rA, rDx, rb);
                 }
 
-                // Compute and add null space solution for dynamic derivatives
+                // Compute and add null space solution
                 this->ComputeAndAddNullSpaceSolution(rDx, basis);
+                
+                // Remove dynamic derivative constraint
+                this->RemoveDynamicDerivativeConstraint();
 
                 KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "System solve time: " << time_solve.ElapsedSeconds() << std::endl;
 
