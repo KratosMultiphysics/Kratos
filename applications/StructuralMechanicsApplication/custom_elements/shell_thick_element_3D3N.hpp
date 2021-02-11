@@ -84,10 +84,6 @@ public:
         ShellT3_CorotationalCoordinateTransformation,
         ShellT3_CoordinateTransformation>::type>;
 
-    typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
-
-    typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
-
     typedef array_1d<double, 3> Vector3Type;
 
     typedef Quaternion<double> QuaternionType;
@@ -108,6 +104,8 @@ public:
 
     using Element::GetProperties;
 
+    using CoordinateTransformationPointerType = typename BaseType::CoordinateTransformationPointerType;
+
     ///@}
 
     ///@name Classes
@@ -124,11 +122,6 @@ public:
     ShellThickElement3D3N(IndexType NewId,
                           GeometryType::Pointer pGeometry,
                           PropertiesType::Pointer pProperties);
-
-    ShellThickElement3D3N(IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties,
-                          CoordinateTransformationBasePointerType pCoordinateTransformation);
 
     ~ShellThickElement3D3N() override = default;
 
@@ -192,6 +185,17 @@ public:
     void Calculate(const Variable<Matrix >& rVariable,
                    Matrix& Output,
                    const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
 
@@ -313,7 +317,7 @@ private:
 
     public:
 
-        CalculationData(const CoordinateTransformationBasePointerType& pCoordinateTransformation,
+        CalculationData(const CoordinateTransformationPointerType& pCoordinateTransformation,
                         const ProcessInfo& rCurrentProcessInfo);
 
     };
@@ -337,8 +341,6 @@ private:
     void CalculateShellElementEnergy(const CalculationData& data, const Variable<double>& rVariable, double& rEnergy_Result);
 
     void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& iJob, bool& bGlobal);
-
-    void DecimalCorrection(Vector& a);
 
     void SetupOrientationAngles() override;
 
@@ -378,8 +380,6 @@ private:
 
     ///@name Member Variables
     ///@{
-
-    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
     ///@}
 

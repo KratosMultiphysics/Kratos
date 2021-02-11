@@ -48,7 +48,7 @@ namespace Kratos
 // =====================================================================================
 
 template <ShellKinematics TKinematics>
-ShellThinElement3D3N<TKinematics>::CalculationData::CalculationData(const CoordinateTransformationBasePointerType& pCoordinateTransformation,
+ShellThinElement3D3N<TKinematics>::CalculationData::CalculationData(const CoordinateTransformationPointerType& pCoordinateTransformation,
         const ProcessInfo& rCurrentProcessInfo)
     : LCS0(pCoordinateTransformation->CreateReferenceCoordinateSystem())
     , LCS(pCoordinateTransformation->CreateLocalCoordinateSystem())
@@ -67,9 +67,6 @@ template <ShellKinematics TKinematics>
 ShellThinElement3D3N<TKinematics>::ShellThinElement3D3N(IndexType NewId,
         GeometryType::Pointer pGeometry)
     : BaseType(NewId, pGeometry)
-    , mpCoordinateTransformation(TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL ?
-                                 new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
-                                 new ShellT3_CoordinateTransformation(pGeometry))
 {
 }
 
@@ -78,19 +75,6 @@ ShellThinElement3D3N<TKinematics>::ShellThinElement3D3N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
     : BaseType(NewId, pGeometry, pProperties)
-    , mpCoordinateTransformation(TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL ?
-                                 new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
-                                 new ShellT3_CoordinateTransformation(pGeometry))
-{
-}
-
-template <ShellKinematics TKinematics>
-ShellThinElement3D3N<TKinematics>::ShellThinElement3D3N(IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties,
-        CoordinateTransformationBasePointerType pCoordinateTransformation)
-    : BaseType(NewId, pGeometry, pProperties)
-    , mpCoordinateTransformation(pCoordinateTransformation)
 {
 }
 
@@ -98,13 +82,13 @@ template <ShellKinematics TKinematics>
 Element::Pointer ShellThinElement3D3N<TKinematics>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     GeometryType::Pointer newGeom(GetGeometry().Create(ThisNodes));
-    return Kratos::make_intrusive< ShellThinElement3D3N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom));
+    return Kratos::make_intrusive< ShellThinElement3D3N >(NewId, newGeom, pProperties);
 }
 
 template <ShellKinematics TKinematics>
 Element::Pointer ShellThinElement3D3N<TKinematics>::Create(IndexType NewId,  GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive< ShellThinElement3D3N >(NewId, pGeom, pProperties, mpCoordinateTransformation->Create(pGeom));
+    return Kratos::make_intrusive< ShellThinElement3D3N >(NewId, pGeom, pProperties);
 }
 
 template <ShellKinematics TKinematics>
@@ -112,14 +96,11 @@ void ShellThinElement3D3N<TKinematics>::Initialize(const ProcessInfo& rCurrentPr
 {
     KRATOS_TRY
 
-    const int points_number = GetGeometry().PointsNumber();
-    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThinElement3D3N - Wrong number of nodes" << points_number << std::endl;
-
     BaseType::Initialize(rCurrentProcessInfo);
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        mpCoordinateTransformation->Initialize();
+        this->mpCoordinateTransformation->Initialize();
         this->SetupOrientationAngles();
     }
 
@@ -129,7 +110,7 @@ void ShellThinElement3D3N<TKinematics>::Initialize(const ProcessInfo& rCurrentPr
 template <ShellKinematics TKinematics>
 void ShellThinElement3D3N<TKinematics>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->InitializeNonLinearIteration();
+    this->mpCoordinateTransformation->InitializeNonLinearIteration();
 
     this->BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -137,7 +118,7 @@ void ShellThinElement3D3N<TKinematics>::InitializeNonLinearIteration(const Proce
 template <ShellKinematics TKinematics>
 void ShellThinElement3D3N<TKinematics>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->FinalizeNonLinearIteration();
+    this->mpCoordinateTransformation->FinalizeNonLinearIteration();
 
     this->BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -147,7 +128,7 @@ void ShellThinElement3D3N<TKinematics>::InitializeSolutionStep(const ProcessInfo
 {
     this->BaseInitializeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->InitializeSolutionStep();
+    this->mpCoordinateTransformation->InitializeSolutionStep();
 }
 
 template <ShellKinematics TKinematics>
@@ -155,7 +136,7 @@ void ShellThinElement3D3N<TKinematics>::FinalizeSolutionStep(const ProcessInfo& 
 {
     this->BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->FinalizeSolutionStep();
+    this->mpCoordinateTransformation->FinalizeSolutionStep();
 }
 
 template <ShellKinematics TKinematics>
@@ -169,7 +150,7 @@ void ShellThinElement3D3N<TKinematics>::CalculateMassMatrix(MatrixType& rMassMat
     // Compute the local coordinate system.
 
     ShellT3_LocalCoordinateSystem referenceCoordinateSystem(
-        mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+        this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
     // lumped area
 
@@ -235,7 +216,7 @@ void ShellThinElement3D3N<TKinematics>::CalculateOnIntegrationPoints(const Varia
             rVariable == VON_MISES_STRESS_BOTTOM_SURFACE) {
         // Von mises calcs
         // Initialize common calculation variables
-        CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
+        CalculationData data(this->mpCoordinateTransformation, rCurrentProcessInfo);
         data.CalculateLHS = false;
         data.CalculateRHS = true;
         InitializeCalculationData(data);
@@ -276,7 +257,7 @@ void ShellThinElement3D3N<TKinematics>::CalculateOnIntegrationPoints(const Varia
         Matrix R(mStrainSize, mStrainSize);
 
         // Initialize common calculation variables
-        CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
+        CalculationData data(this->mpCoordinateTransformation, rCurrentProcessInfo);
         data.CalculateLHS = false;
         data.CalculateRHS = true;
         InitializeCalculationData(data);
@@ -380,11 +361,11 @@ void ShellThinElement3D3N<TKinematics>::CalculateOnIntegrationPoints(const Varia
     if (rVariable == LOCAL_AXIS_1 ||
             rVariable == LOCAL_AXIS_2 ||
             rVariable == LOCAL_AXIS_3) {
-        BaseType::ComputeLocalAxis(rVariable, rOutput, mpCoordinateTransformation);
+        BaseType::ComputeLocalAxis(rVariable, rOutput, this->mpCoordinateTransformation);
     } else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
                rVariable == LOCAL_MATERIAL_AXIS_2 ||
                rVariable == LOCAL_MATERIAL_AXIS_3) {
-        BaseType::ComputeLocalMaterialAxis(rVariable, rOutput, mpCoordinateTransformation);
+        BaseType::ComputeLocalMaterialAxis(rVariable, rOutput, this->mpCoordinateTransformation);
     }
 }
 
@@ -395,9 +376,24 @@ void ShellThinElement3D3N<TKinematics>::Calculate(const Variable<Matrix>& rVaria
         Output.resize(3, 3, false);
 
         // Compute the local coordinate system.
-        ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+        ShellT3_LocalCoordinateSystem localCoordinateSystem(this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
         Output = trans(localCoordinateSystem.Orientation());
     }
+}
+
+template <ShellKinematics TKinematics>
+int ShellThinElement3D3N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+
+    BaseType::Check(rCurrentProcessInfo);
+
+    const int points_number = GetGeometry().PointsNumber();
+    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThinElement3D3N - Wrong number of nodes" << points_number << std::endl;
+
+    return 0;
+
+    KRATOS_CATCH("")
 }
 
 // =====================================================================================
@@ -670,17 +666,6 @@ void ShellThinElement3D3N<TKinematics>::CalculateVonMisesStress(const Calculatio
 }
 
 template <ShellKinematics TKinematics>
-void ShellThinElement3D3N<TKinematics>::DecimalCorrection(Vector& a)
-{
-    double norm = norm_2(a);
-    double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
-    for (SizeType i = 0; i < a.size(); i++)
-        if (std::abs(a(i)) < tolerance) {
-            a(i) = 0.0;
-        }
-}
-
-template <ShellKinematics TKinematics>
 void ShellThinElement3D3N<TKinematics>::SetupOrientationAngles()
 {
     if (this->Has(MATERIAL_ORIENTATION_ANGLE)) {
@@ -688,7 +673,7 @@ void ShellThinElement3D3N<TKinematics>::SetupOrientationAngles()
             (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
         }
     } else {
-        ShellT3_LocalCoordinateSystem lcs(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+        ShellT3_LocalCoordinateSystem lcs(this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
         Vector3Type normal;
         noalias(normal) = lcs.Vz();
@@ -989,7 +974,7 @@ void ShellThinElement3D3N<TKinematics>::InitializeCalculationData(CalculationDat
     this->GetValuesVector(data.globalDisplacements);
 
     data.localDisplacements =
-        mpCoordinateTransformation->CalculateLocalDisplacements(
+        this->mpCoordinateTransformation->CalculateLocalDisplacements(
             data.LCS, data.globalDisplacements);
 
     //--------------------------------------
@@ -1365,7 +1350,7 @@ void ShellThinElement3D3N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideMa
 
     // Initialize common calculation variables
 
-    CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
+    CalculationData data(this->mpCoordinateTransformation, rCurrentProcessInfo);
     data.CalculateLHS = CalculateStiffnessMatrixFlag;
     data.CalculateRHS = CalculateResidualVectorFlag;
     InitializeCalculationData(data);
@@ -1382,7 +1367,7 @@ void ShellThinElement3D3N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideMa
     // This will handle the transformation of the local matrices/vectors to
     // the global coordinate system.
 
-    mpCoordinateTransformation->FinalizeCalculations(data.LCS,
+    this->mpCoordinateTransformation->FinalizeCalculations(data.LCS,
             data.globalDisplacements,
             data.localDisplacements,
             rLeftHandSideMatrix,
@@ -1426,7 +1411,7 @@ bool ShellThinElement3D3N<TKinematics>::TryCalculateOnIntegrationPoints_Generali
 
     // Initialize common calculation variables
 
-    CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
+    CalculationData data(this->mpCoordinateTransformation, rCurrentProcessInfo);
     data.CalculateLHS = false;
     data.CalculateRHS = true;
     InitializeCalculationData(data);
@@ -1466,8 +1451,8 @@ bool ShellThinElement3D3N<TKinematics>::TryCalculateOnIntegrationPoints_Generali
         }
 
         // adjust output
-        DecimalCorrection(data.generalizedStrains);
-        DecimalCorrection(data.generalizedStresses);
+        this->DecimalCorrection(data.generalizedStrains);
+        this->DecimalCorrection(data.generalizedStresses);
 
         // store the results, but first rotate them back to the section coordinate system.
         // we want to visualize the results in that system not in the element one!
@@ -1600,23 +1585,12 @@ template <ShellKinematics TKinematics>
 void ShellThinElement3D3N<TKinematics>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
-    bool is_corotational = (nullptr != dynamic_cast<ShellT3_CorotationalCoordinateTransformation*>(mpCoordinateTransformation.get()));
-    rSerializer.save("is_corotational", is_corotational);
-    rSerializer.save("CTr", *mpCoordinateTransformation);
 }
 
 template <ShellKinematics TKinematics>
 void ShellThinElement3D3N<TKinematics>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
-    bool is_corotational;
-    rSerializer.load("is_corotational", is_corotational);
-    if (is_corotational) {
-        mpCoordinateTransformation = Kratos::make_shared<ShellT3_CorotationalCoordinateTransformation>(this->pGetGeometry());
-    } else {
-        mpCoordinateTransformation = Kratos::make_shared<ShellT3_CoordinateTransformation>(this->pGetGeometry());
-    }
-    rSerializer.load("CTr", *mpCoordinateTransformation);
 }
 
 template class ShellThinElement3D3N<ShellKinematics::LINEAR>;
