@@ -1307,17 +1307,18 @@ public:
         KRATOS_TRY
 
         auto& r_master_slave_constraints = rModelPart.MasterSlaveConstraints();
+        const auto& r_current_process_info = rModelPart.GetProcessInfo();
         // Reset slave dofs
         block_for_each(r_master_slave_constraints, [&rDx](const MasterSlaveConstraint &r_master_slave_constraint) {
             const auto &r_slave_dofs_vector = r_master_slave_constraint.GetSlaveDofsVector();
             for (const auto &r_slave_dof : r_slave_dofs_vector)
             {
-                #pragma omp atomic
-                rDx[r_slave_dof->EquationId()] *= 0.0;
+                AtomicMult(rDx[r_slave_dof->EquationId()], 0.0);
             }
         });
 
         // Apply constraints
+        // Thread Local Storage
         struct TLS
         {
             Matrix relation_matrix;
@@ -1325,12 +1326,10 @@ public:
             Vector master_dofs_values;
         };
 
-        block_for_each(r_master_slave_constraints, TLS(), [&rDx, &rModelPart](const MasterSlaveConstraint &r_master_slave_constraint, TLS &rTLS) {
+        block_for_each(r_master_slave_constraints, TLS(), [&rDx, &rModelPart, &r_current_process_info](const MasterSlaveConstraint &r_master_slave_constraint, TLS &rTLS) {
             // Detect if the constraint is active or not. If the user did not make any choice the constraint
             // It is active by default
-            bool constraint_is_active = true;
-            if (r_master_slave_constraint.IsDefined(ACTIVE))
-                constraint_is_active = r_master_slave_constraint.Is(ACTIVE);
+            const bool constraint_is_active = r_master_slave_constraint.IsDefined(ACTIVE) ? r_master_slave_constraint.Is(ACTIVE) : true ;
             if (constraint_is_active)
             {
                 // Saving the master dofs values
@@ -1342,7 +1341,7 @@ public:
                     rTLS.master_dofs_values[i] = rDx[r_master_dofs_vector[i]->EquationId()];
                 }
                 // Apply the constraint to the slave dofs
-                r_master_slave_constraint.GetLocalSystem(rTLS.relation_matrix, rTLS.constant_vector, rModelPart.GetProcessInfo());
+                r_master_slave_constraint.GetLocalSystem(rTLS.relation_matrix, rTLS.constant_vector, r_current_process_info);
                 double aux;
                 for (IndexType i = 0; i < rTLS.relation_matrix.size1(); ++i)
                 {
