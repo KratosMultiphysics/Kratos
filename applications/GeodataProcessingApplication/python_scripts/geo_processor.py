@@ -70,7 +70,7 @@ class GeoProcessor:
 
 
     def CreateGidControlOutput( self, output_name, gid_post_mode="GiD_PostBinary" ):
-        from gid_output_process import GiDOutputProcess
+        from KratosMultiphysics.gid_output_process import GiDOutputProcess
         gid_parameters = Kratos.Parameters("""
             {
                 "result_file_configuration" : {
