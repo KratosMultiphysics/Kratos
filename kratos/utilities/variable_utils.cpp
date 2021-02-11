@@ -240,7 +240,7 @@ void VariableUtils::AuxiliaryAtomicAdd(
     const array_1d<double, 3> &rPrivateValue,
     array_1d<double, 3> &rSumValue)
 {
-    AtomicAddVector(rSumValue, rPrivateValue);
+    AtomicAdd(rSumValue, rPrivateValue);
 }
 
 template <>
