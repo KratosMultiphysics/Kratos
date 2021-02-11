@@ -96,10 +96,6 @@ public:
         ShellQ4_CorotationalCoordinateTransformation,
         ShellQ4_CoordinateTransformation>::type>;
 
-    typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
-
-    typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
-
     typedef array_1d<double, 3> Vector3Type;
 
     typedef Quaternion<double> QuaternionType;
@@ -179,11 +175,6 @@ public:
                          GeometryType::Pointer pGeometry,
                          PropertiesType::Pointer pProperties);
 
-    ShellThinElement3D4N(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         CoordinateTransformationBasePointerType pCoordinateTransformation);
-
     ~ShellThinElement3D4N() override = default;
 
     ///@}
@@ -246,6 +237,17 @@ public:
     void Calculate(const Variable<Matrix >& rVariable,
                    Matrix& Output,
                    const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
 
@@ -395,8 +397,6 @@ private:
 
     void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& iJob, bool& bGlobal);
 
-    void DecimalCorrection(Vector& a);
-
     void SetupOrientationAngles() override;
 
     void InitializeCalculationData(CalculationData& data);
@@ -435,7 +435,6 @@ private:
 
     ///@name Member Variables
     ///@{
-    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
     ///@}
 

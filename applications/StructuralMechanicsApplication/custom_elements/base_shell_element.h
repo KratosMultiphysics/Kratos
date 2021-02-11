@@ -69,6 +69,8 @@ public:
 
     typedef Quaternion<double> QuaternionType;
 
+    using CoordinateTransformationPointerType = Kratos::unique_ptr<TCoordinateTransformation>;
+
     using SizeType = std::size_t;
 
     ///@}
@@ -101,11 +103,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-    * ELEMENTS inherited from this class have to implement next
-    * Create and Clone methods: MANDATORY
-    */
 
     /**
     * this determines the elemental equation ID vector for all elemental
@@ -210,6 +207,8 @@ protected:
     ///@{
 
     IntegrationMethod mIntegrationMethod = GeometryData::GI_GAUSS_2;
+
+    CoordinateTransformationPointerType mpCoordinateTransformation = nullptr;
 
     CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
@@ -332,6 +331,8 @@ protected:
         }
     }
 
+    // check if this function is really necessary
+    void DecimalCorrection(Vector& a);
 
     /**
     * Returns the behavior of this shell (thin/thick)
