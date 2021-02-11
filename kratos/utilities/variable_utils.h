@@ -25,6 +25,7 @@
 #include "includes/model_part.h"
 #include "includes/checks.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -1144,13 +1145,6 @@ public:
         const auto& r_communicator = rModelPart.GetCommunicator();
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_nodes_array = r_local_mesh.Nodes();
-        //const auto it_node_begin = r_nodes_array.begin();
-
-        /* #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(r_nodes_array.size()); ++k) {
-            const auto it_node = it_node_begin + k;
-            sum_value += it_node->GetValue(rVar);
-        } */
 
         sum_value = block_for_each<SumReduction<double>>(r_nodes_array, [&](Node<3>& rNode){
             return rNode.GetValue(rVar);
@@ -1181,29 +1175,43 @@ public:
     {
         KRATOS_TRY
 
-        TDataType sum_value;
-        AuxiliaryInitializeValue(sum_value);
-
-        const auto &r_communicator = rModelPart.GetCommunicator();
-        const int n_nodes = r_communicator.LocalMesh().NumberOfNodes();
-
-#pragma omp parallel firstprivate(n_nodes)
+        // TODO use SumReduction once it supports array3 (- Philipp)
+        class Array3Reduction
         {
-            TDataType private_sum_value;
-            AuxiliaryInitializeValue(private_sum_value);
+        public:
+            typedef array_1d<double,3> value_type;
+            array_1d<double,3> mValue = ZeroVector(3);
 
-#pragma omp for
-            for (int i_node = 0; i_node < n_nodes; ++i_node) {
-                const auto it_node = r_communicator.LocalMesh().NodesBegin() + i_node;
-                private_sum_value += it_node->GetSolutionStepValue(rVariable, BuffStep);
+            /// access to reduced value
+            array_1d<double,3> GetValue() const
+            {
+                return mValue;
             }
 
-            AuxiliaryAtomicAdd(private_sum_value, sum_value);
-        }
+            void LocalReduce(const array_1d<double,3>&value)
+            {
+                mValue += value;
+            }
+
+            void ThreadSafeReduce(const Array3Reduction& rOther)
+            {
+                AtomicAdd(mValue[0], rOther.mValue[0]);
+                AtomicAdd(mValue[1], rOther.mValue[1]);
+                AtomicAdd(mValue[2], rOther.mValue[2]);
+            }
+        };
+
+        using ReductionType = typename std::conditional< std::is_scalar<TDataType>::value , SumReduction<double> , Array3Reduction >::type;
+
+        const auto &r_communicator = rModelPart.GetCommunicator();
+        TDataType sum_value = block_for_each<ReductionType>(r_communicator.LocalMesh().Nodes(),[&](Node<3>&rNode){
+            return rNode.GetSolutionStepValue(rVariable,BuffStep);
+        });
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
+
     }
 
     /**
@@ -1237,13 +1245,7 @@ public:
         const auto& r_communicator = rModelPart.GetCommunicator();
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_conditions_array = r_local_mesh.Conditions();
-        //const auto it_cond_begin = r_conditions_array.begin();
 
-        /* #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(r_conditions_array.size()); ++k) {
-            const auto it_cond = it_cond_begin + k;
-            sum_value += it_cond->GetValue(rVar);
-        } */
         sum_value = block_for_each<SumReduction<double>>(r_conditions_array, [&](ConditionType& rCond){
             return rCond.GetValue(rVar);
         });
@@ -1284,13 +1286,6 @@ public:
         const auto& r_communicator = rModelPart.GetCommunicator();
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_elements_array = r_local_mesh.Elements();
-        //const auto it_elem_begin = r_elements_array.begin();
-
-        /* #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(r_elements_array.size()); ++k) {
-            const auto it_elem = it_elem_begin + k;
-            sum_value += it_elem->GetValue(rVar);
-        }*/
 
         sum_value = block_for_each<SumReduction<double>>(r_elements_array, [&](ElementType& rElem){
             return rElem.GetValue(rVar);
