@@ -155,3 +155,43 @@ jobs:
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/run_tests.py -l small -c python
+
+
+  centos:
+    runs-on: centos-latest
+    env:
+      KRATOS_BUILD_TYPE: Custom
+
+    container:
+      image: kratosmultiphysics/kratos-image-ci-centos7-python35:latest
+      options: --user 1001
+      env:
+        CCACHE_SLOPPINESS: pch_defines,time_macros
+        CCACHE_COMPILERCHECK: content
+        CCACHE_COMPRESS: true
+        CCACHE_NODISABLE: true
+        CCACHE_MAXSIZE: 500M
+        FC: gfortran-7
+
+    steps:
+    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+    - uses: actions/checkout@v2
+
+    - name: Cache Build
+      id: cache-build
+      uses: actions/cache@v1
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-ccache-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-ccache-
+
+    - name: Build
+      run: |
+        export CC=/usr/lib/ccache/gcc
+        export CXX=/usr/lib/ccache/g++
+        cp .github/workflows/configure.sh configure.sh
+        bash configure.sh
+        ccache -s
