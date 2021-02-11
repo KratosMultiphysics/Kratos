@@ -13,6 +13,8 @@
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
+#include "modified_shape_functions/triangle_2d_3_ausas_incised_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_ausas_incised_shape_functions.h"
 
 namespace Kratos {
 
@@ -1172,6 +1174,26 @@ ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<3, 4>(
     const Vector& rElementalDistances)
 {
     return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement.pGetGeometry(), rElementalDistances));
+}
+
+template <>
+ModifiedShapeFunctions::Pointer GetIncisedShapeFunctionCalculator<2, 3>(
+    const Element& rElement,
+    const Vector& rElementalDistancesWithExtrapolated,
+    const Vector& rElementalEdgeDistancesExtrapolated)
+{
+    return ModifiedShapeFunctions::Pointer(new Triangle2D3AusasIncisedShapeFunctions(rElement.pGetGeometry(),
+            rElementalDistancesWithExtrapolated, rElementalEdgeDistancesExtrapolated));
+}
+
+template <>
+ModifiedShapeFunctions::Pointer GetIncisedShapeFunctionCalculator<3, 4>(
+    const Element& rElement,
+    const Vector& rElementalDistancesWithExtrapolated,
+    const Vector& rElementalEdgeDistancesExtrapolated)
+{
+    return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4AusasIncisedShapeFunctions(rElement.pGetGeometry(),
+            rElementalDistancesWithExtrapolated, rElementalEdgeDistancesExtrapolated));
 }
 
 }
