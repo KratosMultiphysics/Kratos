@@ -96,10 +96,6 @@ public:
         ShellQ4_CorotationalCoordinateTransformation,
         ShellQ4_CoordinateTransformation>::type>;
 
-    typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
-
-    typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
-
     typedef array_1d<double, 3> Vector3Type;
 
     typedef Quaternion<double> QuaternionType;
@@ -178,11 +174,6 @@ public:
     ShellThinElement3D4N(IndexType NewId,
                          GeometryType::Pointer pGeometry,
                          PropertiesType::Pointer pProperties);
-
-    ShellThinElement3D4N(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         CoordinateTransformationBasePointerType pCoordinateTransformation);
 
     ~ShellThinElement3D4N() override = default;
 
@@ -435,7 +426,6 @@ private:
 
     ///@name Member Variables
     ///@{
-    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
     ///@}
 
