@@ -11,7 +11,7 @@ on:
       - '.github/workflows/build_docker_images_for_ci.yml'
 
 jobs:
-  build:
+  build-docker-ubuntu:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,7 +26,7 @@ jobs:
     - name: Publish the Docker image
       run: docker push kratosmultiphysics/kratos-image-ci-ubuntu-20-04
 
-  build:
+  build-docker-centos:
     runs-on: ubuntu-latest
 
     steps:
