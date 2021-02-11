@@ -38,6 +38,9 @@ using NodalVectorData = typename TFluidData::NodalVectorData;
 typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 typedef std::vector< Vector > InterfaceNormalsType;
 
+/// Number of edges of the element (simplex elements are assumed)
+constexpr static unsigned int NumEdges = (TFluidData::NumNodes == 3) ? 3 : 6;
+
 ///@}
 ///@name Public Members
 ///@{
@@ -46,6 +49,8 @@ double SlipLength;
 double PenaltyCoefficient;
 
 NodalScalarData ElementalDistances;
+Vector ElementalEdgeDistances;
+Vector ElementalEdgeDistancesExtrapolated;
 
 Matrix PositiveSideN;
 Matrix NegativeSideN;
@@ -68,6 +73,8 @@ std::vector< size_t > NegativeIndices;
 
 size_t NumPositiveNodes;
 size_t NumNegativeNodes;
+size_t NumIntersectedEdges;
+size_t NumIntersectedEdgesExtrapolated;
 
 ///@}
 ///@name Public Operations
@@ -77,7 +84,8 @@ size_t NumNegativeNodes;
  * @brief Discontinuous embedded formulation data container initialization
  * This method initializes the discontinuous embedded formulation data container. This implies to intialize
  * the base formulation data container as well as to get the elemental distances from the elemental variable
- * ELEMENTAL_DISTANCES (note that this requires the ELEMENTAL_DISTANCES to be set before this operation).
+ * ELEMENTAL_DISTANCES (note that this requires the ELEMENTAL_DISTANCES to be set before this operation) and
+ * the elemental edge distances from ELEMENTAL_EDGE_DISTANCES and ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED.
  * @param rElement reference to the element that owns the data container
  * @param rProcessInfo reference to the current ProcessInfo container
  */
@@ -87,9 +95,13 @@ void Initialize(
 {
     TFluidData::Initialize(rElement, rProcessInfo);
     this->FillFromElementData(ElementalDistances, ELEMENTAL_DISTANCES, rElement);
+    this->FillFromElementData(ElementalEdgeDistances, ELEMENTAL_EDGE_DISTANCES, rElement);
+    this->FillFromElementData(ElementalEdgeDistancesExtrapolated, ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, rElement);
 
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
+    NumIntersectedEdges = 0;
+    NumIntersectedEdgesExtrapolated = 0;
 }
 
 /**
