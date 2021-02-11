@@ -438,7 +438,7 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints) override
     {
         if (rIntegrationPoints.size() > 0) {
-            CreateIntegrationPoints(rIntegrationPoints);
+            this->CreateIntegrationPoints(rIntegrationPoints);
         }
 
         mpNurbsSurface->CreateQuadraturePointGeometries(
