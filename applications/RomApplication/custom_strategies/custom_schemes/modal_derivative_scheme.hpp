@@ -239,7 +239,10 @@ public:
         this->GetPhiElemental(phi_elemental, basis_i, rElement, r_element_dof_list, rCurrentProcessInfo);
 
         // Compute element LHS derivative
-        Matrix element_matrix_derivative(element_dofs_size, element_dofs_size);
+        // Lock element nodes for OMP parallelism
+        this->LockElementNodes(rElement);
+        Matrix element_matrix_derivative(element_dofs_size, element_dofs_size);        
+        // Perform FD
         switch (mFiniteDifferenceType) {
             case FiniteDifferenceType::Forward:
                 this->ForwardDifferencingWithBasis(element_matrix_derivative, basis_j, rElement, rCurrentProcessInfo);
@@ -248,6 +251,9 @@ public:
                 this->CentralDifferencingWithBasis(element_matrix_derivative, basis_j, rElement, rCurrentProcessInfo);
                 break;
         }
+        // Unlock element nodes
+        this->UnlockElementNodes(rElement);
+
         // Compute RHS contribution
         if (rRHS_Contribution.size() != element_dofs_size)
             rRHS_Contribution.resize(element_dofs_size);
@@ -398,9 +404,6 @@ protected:
     {
         KRATOS_TRY
 
-        // Lock element nodes for OMP parallelism
-        this->LockElementNodes(rElement);
-
         const std::size_t matrix_size = rElementMatrixDerivative.size1();
 
         // Positive perturbation
@@ -417,9 +420,6 @@ protected:
 
         // Compute ElementMatrixDerivative
         noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix) / mFiniteDifferenceStepSize;
-
-        // Unlock element nodes
-        this->UnlockElementNodes(rElement);
 
         KRATOS_CATCH("")
     }
@@ -440,9 +440,6 @@ protected:
     {
         KRATOS_TRY
 
-        // Lock element nodes for OMP parallelism
-        this->LockElementNodes(rElement);
-
         const std::size_t matrix_size = rElementMatrixDerivative.size1();
 
         // Positive perturbation
@@ -460,8 +457,6 @@ protected:
 
         // Compute LHS derivative
         noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix_n_perturbed) / (2.0 * mFiniteDifferenceStepSize);
-
-        this->UnlockElementNodes(rElement);
 
         KRATOS_CATCH("")
     }
