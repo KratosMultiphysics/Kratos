@@ -451,7 +451,6 @@ public:
             r_current_process_info[BASIS_I] = basis_i;
 
             // Get basis_i
-            TSparseSpace::SetToZero(basis);
             this->GetBasis(basis_i, basis);
             // Derivative wrt basis_j (starts from basis_i due to symmetry of static derivatives)
             for (std::size_t basis_j = basis_i; basis_j < mNumberInitialBasis; basis_j++)
@@ -570,7 +569,6 @@ public:
             r_current_process_info[BASIS_I] = basis_i;
 
             // Get basis_i
-            TSparseSpace::SetToZero(basis);
             this->GetBasis(basis_i, basis);
 
             // If dynamic derivatives then build system matrix for each eigenvalue
@@ -748,12 +746,13 @@ public:
         const auto& r_model_part = BaseType::GetModelPart();
         const auto& r_current_process_info = r_model_part.GetProcessInfo();
         const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
+        TSparseSpace::SetToZero(rBasis);
         
         block_for_each(
-            r_model_part.Nodes(),[&](ModelPart::NodeType& rNode)
+            r_model_part.Nodes(),[&](ModelPart::NodeType& r_node)
             {
-                auto& node_dofs = rNode.GetDofs();
-                const auto& r_nodal_basis = rNode.GetValue(ROM_BASIS);
+                auto& node_dofs = r_node.GetDofs();
+                const auto& r_nodal_basis = r_node.GetValue(ROM_BASIS);
 
                 for (const auto& rp_dof : node_dofs)
                 {
