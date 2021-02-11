@@ -27,7 +27,7 @@ jobs:
       run: docker push kratosmultiphysics/kratos-image-ci-ubuntu-20-04
 
   build:
-    runs-on: centos-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
