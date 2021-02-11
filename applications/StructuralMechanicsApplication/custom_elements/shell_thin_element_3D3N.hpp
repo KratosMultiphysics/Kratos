@@ -14,6 +14,7 @@
 
 
 // System includes
+#include <type_traits>
 
 // External includes
 
@@ -54,7 +55,11 @@ namespace Kratos
  * Material nonlinearity is handled by means of the cross section object.
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N : public BaseShellElement<ShellT3_CoordinateTransformation> // template arg is not yet used
+template <ShellKinematics TKinematics>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N : public
+    BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>::type>
 {
 public:
 
@@ -63,11 +68,9 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThinElement3D3N);
 
-    using BaseType = BaseShellElement<ShellT3_CoordinateTransformation>;
-
-    typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
-
-    typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
+    using BaseType = BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>::type>;
 
     typedef array_1d<double, 3> Vector3Type;
 
@@ -89,6 +92,8 @@ public:
 
     using Element::GetProperties;
 
+    using CoordinateTransformationPointerType = typename BaseType::CoordinateTransformationPointerType;
+
     ///@}
 
     ///@name Classes
@@ -102,18 +107,11 @@ public:
     ///@{
 
     ShellThinElement3D3N(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         bool NLGeom = false);
+                         GeometryType::Pointer pGeometry);
 
     ShellThinElement3D3N(IndexType NewId,
                          GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         bool NLGeom = false);
-
-    ShellThinElement3D3N(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         CoordinateTransformationBasePointerType pCoordinateTransformation);
+                         PropertiesType::Pointer pProperties);
 
     ~ShellThinElement3D3N() override = default;
 
@@ -177,6 +175,17 @@ public:
     void Calculate(const Variable<Matrix >& rVariable,
                    Matrix& Output,
                    const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
 
@@ -290,7 +299,7 @@ private:
 
     public:
 
-        CalculationData(const CoordinateTransformationBasePointerType& pCoordinateTransformation,
+        CalculationData(const CoordinateTransformationPointerType& pCoordinateTransformation,
                         const ProcessInfo& rCurrentProcessInfo);
 
     };
@@ -312,8 +321,6 @@ private:
     double CalculateTsaiWuPlaneStress(const CalculationData& data, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
 
     void CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result);
-
-    void DecimalCorrection(Vector& a);
 
     void SetupOrientationAngles() override;
 
@@ -355,8 +362,6 @@ private:
 
     ///@name Member Variables
     ///@{
-
-    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
     SizeType mStrainSize = 6;
 

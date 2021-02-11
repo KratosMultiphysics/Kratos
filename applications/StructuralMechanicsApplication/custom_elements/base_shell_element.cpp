@@ -32,7 +32,8 @@ using IndexType = std::size_t;
 template <class TCoordinateTransformation>
 BaseShellElement<TCoordinateTransformation>::BaseShellElement(IndexType NewId,
                                    GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+    : Element(NewId, pGeometry),
+      mpCoordinateTransformation(Kratos::make_unique<TCoordinateTransformation>(pGeometry))
 {
 }
 
@@ -40,7 +41,8 @@ template <class TCoordinateTransformation>
 BaseShellElement<TCoordinateTransformation>::BaseShellElement(IndexType NewId,
                                    GeometryType::Pointer pGeometry,
                                    PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+    : Element(NewId, pGeometry, pProperties),
+      mpCoordinateTransformation(Kratos::make_unique<TCoordinateTransformation>(pGeometry))
 {
 }
 
@@ -567,10 +569,23 @@ void BaseShellElement<TCoordinateTransformation>::CheckSpecificProperties() cons
 }
 
 template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::DecimalCorrection(Vector& a)
+{
+    const double norm = norm_2(a);
+    const double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
+    for (SizeType i = 0; i < a.size(); i++) {
+        if (std::abs(a(i)) < tolerance) {
+            a(i) = 0.0;
+        }
+    }
+}
+
+template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     rSerializer.save("Sections", mSections);
+    rSerializer.save("CoordinateTransformation", mpCoordinateTransformation);
     rSerializer.save("IntM", (int)mIntegrationMethod);
 }
 
@@ -579,6 +594,7 @@ void BaseShellElement<TCoordinateTransformation>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     rSerializer.load("Sections", mSections);
+    rSerializer.load("CoordinateTransformation", mpCoordinateTransformation);
     int temp;
     rSerializer.load("IntM", temp);
     mIntegrationMethod = (IntegrationMethod)temp;
