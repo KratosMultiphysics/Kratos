@@ -87,8 +87,9 @@ namespace Kratos
     void CleanIsolatedNodes();
 
     /**
-     * @brief [NG] Function to erase all conditions with nodes no longer in model part
-     *
+     * @brief Function to clear conditions.
+     * The nodes of the Conditions in the BottomModelPart are processed.
+     * If at least one node is not present at the same time in BottomModelPart and MainModelPart, the Condition will be deleted.
      */
     void CleanConditions();
 

@@ -85,7 +85,7 @@ namespace Kratos
     //     KRATOS_INFO("\nCleaningUtilities") << "In total " << (initial_cond - final_cond) <<" superfluous conditions were cleared" << std::endl;
     // }
 
-    // [NG] function to clear conditions
+
     void CleaningUtilities::CleanConditions(){
         const int initial_cond = mrModelPart.Conditions().size();
         // auto& r_conditions_array = mrModelPart.Conditions();
@@ -158,7 +158,7 @@ namespace Kratos
 				// 	count++;
 				// }
                 auto existing_node_in_skin_it = r_skin_nodes_array.find(r_geom[i_node].Id());
-                if (existing_node_in_skin_it == r_skin_model_part.NodesEnd()) {
+                if (existing_node_in_skin_it != r_skin_model_part.NodesEnd()) {
                     count++;
                 }
 			}
