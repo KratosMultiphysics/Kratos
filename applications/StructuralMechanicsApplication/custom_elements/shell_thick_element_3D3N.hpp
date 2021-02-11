@@ -15,6 +15,7 @@
 
 
 // System includes
+#include <type_traits>
 
 // External includes
 
@@ -66,8 +67,11 @@ Shell formulation reference:
     Pages 420-431.
 */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N :
-    public BaseShellElement<ShellT3_CoordinateTransformation> // template arg is not yet used
+template <ShellKinematics TKinematics>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N : public
+    BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>::type>
 {
 public:
 
@@ -76,15 +80,31 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D3N);
 
-    using BaseType = BaseShellElement<ShellT3_CoordinateTransformation>;
-
-    typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
-
-    typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
+    using BaseType = BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>::type>;
 
     typedef array_1d<double, 3> Vector3Type;
 
     typedef Quaternion<double> QuaternionType;
+
+    using GeometryType = Element::GeometryType;
+
+    using PropertiesType = Element::PropertiesType;
+
+    using NodesArrayType = Element::NodesArrayType;
+
+    using MatrixType = Element::MatrixType;
+
+    using VectorType = Element::VectorType;
+
+    using SizeType = Element::SizeType;
+
+    using Element::GetGeometry;
+
+    using Element::GetProperties;
+
+    using CoordinateTransformationPointerType = typename BaseType::CoordinateTransformationPointerType;
 
     ///@}
 
@@ -97,20 +117,13 @@ public:
     ///@{
 
     ShellThickElement3D3N(IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          bool NLGeom = false);
+                          GeometryType::Pointer pGeometry);
 
     ShellThickElement3D3N(IndexType NewId,
                           GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties,
-                          bool NLGeom = false);
+                          PropertiesType::Pointer pProperties);
 
-    ShellThickElement3D3N(IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties,
-                          CoordinateTransformationBasePointerType pCoordinateTransformation);
-
-    ~ShellThickElement3D3N() override;
+    ~ShellThickElement3D3N() override = default;
 
     ///@}
 
@@ -188,7 +201,7 @@ protected:
     /**
     * Protected empty constructor
     */
-    ShellThickElement3D3N() : BaseShellElement()
+    ShellThickElement3D3N() : BaseType()
     {
     }
 
@@ -293,7 +306,7 @@ private:
 
     public:
 
-        CalculationData(const CoordinateTransformationBasePointerType& pCoordinateTransformation,
+        CalculationData(const CoordinateTransformationPointerType& pCoordinateTransformation,
                         const ProcessInfo& rCurrentProcessInfo);
 
     };
@@ -358,8 +371,6 @@ private:
 
     ///@name Member Variables
     ///@{
-
-    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
     ///@}
 

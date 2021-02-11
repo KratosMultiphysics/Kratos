@@ -32,7 +32,8 @@ using IndexType = std::size_t;
 template <class TCoordinateTransformation>
 BaseShellElement<TCoordinateTransformation>::BaseShellElement(IndexType NewId,
                                    GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+    : Element(NewId, pGeometry),
+      mpCoordinateTransformation(Kratos::make_unique<TCoordinateTransformation>(pGeometry))
 {
 }
 
@@ -40,7 +41,8 @@ template <class TCoordinateTransformation>
 BaseShellElement<TCoordinateTransformation>::BaseShellElement(IndexType NewId,
                                    GeometryType::Pointer pGeometry,
                                    PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+    : Element(NewId, pGeometry, pProperties),
+      mpCoordinateTransformation(Kratos::make_unique<TCoordinateTransformation>(pGeometry))
 {
 }
 
@@ -571,6 +573,7 @@ void BaseShellElement<TCoordinateTransformation>::save(Serializer& rSerializer) 
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     rSerializer.save("Sections", mSections);
+    rSerializer.save("CoordinateTransformation", mpCoordinateTransformation);
     rSerializer.save("IntM", (int)mIntegrationMethod);
 }
 
@@ -579,6 +582,7 @@ void BaseShellElement<TCoordinateTransformation>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     rSerializer.load("Sections", mSections);
+    rSerializer.load("CoordinateTransformation", mpCoordinateTransformation);
     int temp;
     rSerializer.load("IntM", temp);
     mIntegrationMethod = (IntegrationMethod)temp;

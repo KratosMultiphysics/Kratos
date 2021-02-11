@@ -40,9 +40,11 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-///@}
-///@name  Functions
-///@{
+enum class ShellKinematics
+{
+    LINEAR,
+    NONLINEAR_COROTATIONAL
+};
 
 ///@}
 ///@name Kratos Classes
@@ -66,6 +68,8 @@ public:
     typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
     typedef Quaternion<double> QuaternionType;
+
+    using CoordinateTransformationPointerType = Kratos::unique_ptr<TCoordinateTransformation>;
 
     using SizeType = std::size_t;
 
@@ -99,11 +103,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-    * ELEMENTS inherited from this class have to implement next
-    * Create and Clone methods: MANDATORY
-    */
 
     /**
     * this determines the elemental equation ID vector for all elemental
@@ -208,6 +207,8 @@ protected:
     ///@{
 
     IntegrationMethod mIntegrationMethod = GeometryData::GI_GAUSS_2;
+
+    CoordinateTransformationPointerType mpCoordinateTransformation = nullptr;
 
     CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 

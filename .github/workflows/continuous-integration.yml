@@ -155,3 +155,27 @@ jobs:
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/run_tests.py -l small -c python
+
+
+  # centos:
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     KRATOS_BUILD_TYPE: Custom
+
+  #   container:
+  #     image: kratosmultiphysics/kratos-image-ci-centos7-python35:latest
+  #     options: --user 1001
+  #     env:
+  #       FC: gfortran-7
+
+  #   steps:
+  #   - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+  #     env:
+  #       GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+  #   - uses: actions/checkout@v2
+
+  #   - name: Build
+  #     run: |
+  #       cp .github/workflows/temp_centos_configure.sh temp_centos_configure.sh
+  #       bash temp_centos_configure.sh
