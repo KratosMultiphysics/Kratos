@@ -11,6 +11,7 @@
 from . import plane_based_packaging
 from . import mesh_based_packaging
 from . import surface_normal_shape_change
+from . import domain_decomposition_response
 
 
 def CreateResponseFunction(response_id, response_settings, model):
@@ -22,6 +23,8 @@ def CreateResponseFunction(response_id, response_settings, model):
         return mesh_based_packaging.MeshBasedPackaging(response_id, response_settings, model)
     elif response_type == "surface_normal_shape_change":
         return surface_normal_shape_change.SurfaceNormalShapeChange(response_id, response_settings, model)
+    elif response_type == "domain_decomposition":
+        return domain_decomposition_response.DomainDecompositionResponse(response_id, response_settings, model)
     else:
         raise NameError("The type of the following response function is not specified: "+ response_id +
                         ".\nAvailable types are: 'plane_based_packaging', 'mesh_based_packaging'.")
