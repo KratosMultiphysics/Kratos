@@ -331,6 +331,8 @@ protected:
         }
     }
 
+    // check if this function is really necessary
+    void DecimalCorrection(Vector& a);
 
     /**
     * Returns the behavior of this shell (thin/thick)

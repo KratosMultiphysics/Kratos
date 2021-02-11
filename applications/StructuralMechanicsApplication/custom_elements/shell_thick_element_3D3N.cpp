@@ -130,9 +130,6 @@ void ShellThickElement3D3N<TKinematics>::Initialize(const ProcessInfo& rCurrentP
 
     BaseType::Initialize(rCurrentProcessInfo);
 
-    const int points_number = GetGeometry().PointsNumber();
-    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThickElement3D3N - Wrong number of nodes" << points_number << std::endl;
-
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         this->mpCoordinateTransformation->Initialize();
@@ -470,6 +467,21 @@ void ShellThickElement3D3N<TKinematics>::Calculate(const Variable<Matrix>& rVari
         ShellT3_LocalCoordinateSystem localCoordinateSystem(this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
         Output = trans(localCoordinateSystem.Orientation());
     }
+}
+
+template <ShellKinematics TKinematics>
+int ShellThickElement3D3N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+
+    BaseType::Check(rCurrentProcessInfo);
+
+    const int points_number = GetGeometry().PointsNumber();
+    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThickElement3D3N - Wrong number of nodes" << points_number << std::endl;
+
+    return 0;
+
+    KRATOS_CATCH("")
 }
 
 // =====================================================================================
@@ -833,17 +845,6 @@ void ShellThickElement3D3N<TKinematics>::CheckGeneralizedStressOrStrainOutput(co
         // TESTING VARIABLE
         ijob = 99;
     }
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::DecimalCorrection(Vector& a)
-{
-    double norm = norm_2(a);
-    double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
-    for (SizeType i = 0; i < a.size(); i++)
-        if (std::abs(a(i)) < tolerance) {
-            a(i) = 0.0;
-        }
 }
 
 template <ShellKinematics TKinematics>
@@ -1763,11 +1764,11 @@ bool ShellThickElement3D3N<TKinematics>::TryCalculateOnIntegrationPoints_General
                                                      section->GetThickness(GetProperties()));
             }
         }
-        DecimalCorrection(data.generalizedStresses);
+        this->DecimalCorrection(data.generalizedStresses);
     }
 
     // adjust output
-    DecimalCorrection(data.generalizedStrains);
+    this->DecimalCorrection(data.generalizedStrains);
 
     // store the results, but first rotate them back to the section
     // coordinate system. we want to visualize the results in that system not

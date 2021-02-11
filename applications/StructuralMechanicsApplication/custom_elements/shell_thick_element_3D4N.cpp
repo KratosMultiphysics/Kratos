@@ -388,20 +388,13 @@ void ShellThickElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentP
 {
     KRATOS_TRY
 
-    const auto& r_geom = GetGeometry();
-
-    KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(this->GetIntegrationMethod())).size() == 4) << "ShellThickElement3D4N - needs a full integration scheme" << std::endl;
-
-    const int points_number = r_geom.PointsNumber();
-    KRATOS_ERROR_IF_NOT(points_number == 4) << "ShellThickElement3D4N - Wrong number of nodes" << points_number << std::endl;
-
     BaseType::Initialize(rCurrentProcessInfo);
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         this->mpCoordinateTransformation->Initialize();
         this->SetupOrientationAngles();
-        mEASStorage.Initialize(r_geom);
+        mEASStorage.Initialize(GetGeometry());
     }
 
     KRATOS_CATCH("")
@@ -828,6 +821,25 @@ void ShellThickElement3D4N<TKinematics>::Calculate(const Variable<Matrix>& rVari
     }
 }
 
+template <ShellKinematics TKinematics>
+int ShellThickElement3D4N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+
+    BaseType::Check(rCurrentProcessInfo);
+
+    const auto& r_geom = GetGeometry();
+
+    KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(this->GetIntegrationMethod())).size() == 4) << "ShellThickElement3D4N - needs a full integration scheme" << std::endl;
+
+    const int points_number = r_geom.PointsNumber();
+    KRATOS_ERROR_IF_NOT(points_number == 4) << "ShellThickElement3D4N - Wrong number of nodes" << points_number << std::endl;
+
+    return 0;
+
+    KRATOS_CATCH("")
+}
+
 // =====================================================================================
 //
 // Class ShellThickElement3D4N - Private methods
@@ -1139,17 +1151,6 @@ double ShellThickElement3D4N<TKinematics>::CalculateStenbergShearStabilization(c
     h_e = std::sqrt(h_e);
 
     return ((hMean*hMean) / (hMean*hMean + 0.1*h_e*h_e));
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::DecimalCorrection(Vector& a)
-{
-    double norm = norm_2(a);
-    double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
-    for (SizeType i = 0; i < a.size(); i++)
-        if (std::abs(a(i)) < tolerance) {
-            a(i) = 0.0;
-        }
 }
 
 template <ShellKinematics TKinematics>
@@ -1697,8 +1698,8 @@ bool ShellThickElement3D4N<TKinematics>::TryCalculateOnIntegrationPoints_General
 
         // save the results
 
-        DecimalCorrection(generalizedStrains);
-        DecimalCorrection(generalizedStresses);
+        this->DecimalCorrection(generalizedStrains);
+        this->DecimalCorrection(generalizedStresses);
 
         // now the results are in the element coordinate system
         // if necessary, rotate the results in the section (local) coordinate system

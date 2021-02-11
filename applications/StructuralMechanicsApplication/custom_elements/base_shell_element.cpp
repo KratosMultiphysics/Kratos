@@ -569,6 +569,18 @@ void BaseShellElement<TCoordinateTransformation>::CheckSpecificProperties() cons
 }
 
 template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::DecimalCorrection(Vector& a)
+{
+    const double norm = norm_2(a);
+    const double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
+    for (SizeType i = 0; i < a.size(); i++) {
+        if (std::abs(a(i)) < tolerance) {
+            a(i) = 0.0;
+        }
+    }
+}
+
+template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);

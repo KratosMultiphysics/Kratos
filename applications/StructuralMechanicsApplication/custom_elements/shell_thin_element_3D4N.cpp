@@ -136,9 +136,6 @@ void ShellThinElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentPr
 {
     KRATOS_TRY
 
-    const int points_number = GetGeometry().PointsNumber();
-    KRATOS_ERROR_IF_NOT(points_number == 4) <<"ShellThinElement3D4N - Wrong number of nodes" << points_number << std::endl;
-
     BaseType::Initialize(rCurrentProcessInfo);
 
     // Initialization should not be done again in a restart!
@@ -607,6 +604,21 @@ void ShellThinElement3D4N<TKinematics>::Calculate(const Variable<Matrix>& rVaria
     }
 }
 
+template <ShellKinematics TKinematics>
+int ShellThinElement3D4N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+
+    BaseType::Check(rCurrentProcessInfo);
+
+    const int points_number = GetGeometry().PointsNumber();
+    KRATOS_ERROR_IF_NOT(points_number == 4) <<"ShellThinElement3D4N - Wrong number of nodes" << points_number << std::endl;
+
+    return 0;
+
+    KRATOS_CATCH("")
+}
+
 // =========================================================================
 //
 // Class ShellThinElement3D4N - Private methods
@@ -916,17 +928,6 @@ void ShellThinElement3D4N<TKinematics>::CheckGeneralizedStressOrStrainOutput(con
         // TESTING VARIABLE
         ijob = 99;
     }
-}
-
-template <ShellKinematics TKinematics>
-void ShellThinElement3D4N<TKinematics>::DecimalCorrection(Vector& a)
-{
-    double norm = norm_2(a);
-    double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
-    for (SizeType i = 0; i < a.size(); i++)
-        if (std::abs(a(i)) < tolerance) {
-            a(i) = 0.0;
-        }
 }
 
 template <ShellKinematics TKinematics>
@@ -2047,11 +2048,11 @@ TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses
                                                          section->GetThickness(GetProperties()));
                 }
             }
-            DecimalCorrection(data.generalizedStresses);
+            this->DecimalCorrection(data.generalizedStresses);
         }
 
         // save the results
-        DecimalCorrection(data.generalizedStrains);
+        this->DecimalCorrection(data.generalizedStrains);
 
         // now the results are in the element coordinate system.
         // if necessary, rotate the results in the section (local)

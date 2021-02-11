@@ -96,9 +96,6 @@ void ShellThinElement3D3N<TKinematics>::Initialize(const ProcessInfo& rCurrentPr
 {
     KRATOS_TRY
 
-    const int points_number = GetGeometry().PointsNumber();
-    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThinElement3D3N - Wrong number of nodes" << points_number << std::endl;
-
     BaseType::Initialize(rCurrentProcessInfo);
 
     // Initialization should not be done again in a restart!
@@ -384,6 +381,21 @@ void ShellThinElement3D3N<TKinematics>::Calculate(const Variable<Matrix>& rVaria
     }
 }
 
+template <ShellKinematics TKinematics>
+int ShellThinElement3D3N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+
+    BaseType::Check(rCurrentProcessInfo);
+
+    const int points_number = GetGeometry().PointsNumber();
+    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThinElement3D3N - Wrong number of nodes" << points_number << std::endl;
+
+    return 0;
+
+    KRATOS_CATCH("")
+}
+
 // =====================================================================================
 //
 // Class ShellThinElement3D3N - Private methods
@@ -651,17 +663,6 @@ void ShellThinElement3D3N<TKinematics>::CalculateVonMisesStress(const Calculatio
             std::sqrt(std::max(von_mises_top,
                                std::max(von_mises_mid, von_mises_bottom)));
     }
-}
-
-template <ShellKinematics TKinematics>
-void ShellThinElement3D3N<TKinematics>::DecimalCorrection(Vector& a)
-{
-    double norm = norm_2(a);
-    double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
-    for (SizeType i = 0; i < a.size(); i++)
-        if (std::abs(a(i)) < tolerance) {
-            a(i) = 0.0;
-        }
 }
 
 template <ShellKinematics TKinematics>
@@ -1450,8 +1451,8 @@ bool ShellThinElement3D3N<TKinematics>::TryCalculateOnIntegrationPoints_Generali
         }
 
         // adjust output
-        DecimalCorrection(data.generalizedStrains);
-        DecimalCorrection(data.generalizedStresses);
+        this->DecimalCorrection(data.generalizedStrains);
+        this->DecimalCorrection(data.generalizedStresses);
 
         // store the results, but first rotate them back to the section coordinate system.
         // we want to visualize the results in that system not in the element one!
