@@ -1175,32 +1175,6 @@ public:
     {
         KRATOS_TRY
 
-        // TODO use SumReduction once it supports array3 (- Philipp)
-        class Array3Reduction
-        {
-        public:
-            typedef array_1d<double,3> value_type;
-            array_1d<double,3> mValue = ZeroVector(3);
-
-            /// access to reduced value
-            array_1d<double,3> GetValue() const
-            {
-                return mValue;
-            }
-
-            void LocalReduce(const array_1d<double,3>&value)
-            {
-                mValue += value;
-            }
-
-            void ThreadSafeReduce(const Array3Reduction& rOther)
-            {
-                AtomicAdd(mValue[0], rOther.mValue[0]);
-                AtomicAdd(mValue[1], rOther.mValue[1]);
-                AtomicAdd(mValue[2], rOther.mValue[2]);
-            }
-        };
-
         using ReductionType = typename std::conditional< std::is_scalar<TDataType>::value , SumReduction<double> , Array3Reduction >::type;
 
         const auto &r_communicator = rModelPart.GetCommunicator();
@@ -1409,6 +1383,31 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    // TODO use SumReduction once it supports array3 (- Philipp)
+    class Array3Reduction
+    {
+    public:
+        typedef array_1d<double,3> value_type;
+        array_1d<double,3> mValue = ZeroVector(3);
+
+        /// access to reduced value
+        array_1d<double,3> GetValue() const
+        {
+            return mValue;
+        }
+
+        void LocalReduce(const array_1d<double,3>&value)
+        {
+            mValue += value;
+        }
+
+        void ThreadSafeReduce(const Array3Reduction& rOther)
+        {
+            AtomicAdd(mValue[0], rOther.mValue[0]);
+            AtomicAdd(mValue[1], rOther.mValue[1]);
+            AtomicAdd(mValue[2], rOther.mValue[2]);
+        }
+    };
 
     ///@}
     ///@name Member Variables
@@ -1522,6 +1521,7 @@ private:
 
         KRATOS_CATCH("");
     }
+
 
     ///@}
     ///@name Private  Acces
