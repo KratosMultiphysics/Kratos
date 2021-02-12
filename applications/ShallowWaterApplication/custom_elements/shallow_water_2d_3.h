@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include "custom_friction_laws/friction_law.h"
 
 namespace Kratos
 {
@@ -275,19 +276,25 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
+    /**
+     * @brief Turn back information as a string.
+     */
     std::string Info() const override
     {
         return "Shallow water element";
     }
 
-    /// Print information about this object.
+    /**
+     * @brief Print information about this object.
+     */
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
 
-    /// Print object's data.
+    /**
+     * @brief Print object's data.
+     */
     void PrintData(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
@@ -315,12 +322,15 @@ protected:
         double height;
         array_1d<double,3> flow_rate;
         array_1d<double,3> velocity;
-        double manning2;
 
         array_1d<double,3> topography;
+        array_1d<double,3> wind;
         array_1d<double,3> rain;
         array_1d<double,9> unknown;
         array_1d<double,9> mesh_acc;
+
+        FrictionLaw::Pointer pBottomFriction;
+        FrictionLaw::Pointer pSurfaceFriction;
 
         void InitializeData(const ProcessInfo& rCurrentProcessInfo);
         void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
@@ -441,10 +451,6 @@ protected:
         const array_1d<double,3>& rVeector);
 
     double StabilizationParameter(const ElementData& rData);
-
-    double HeightInverse(double Height, double Epsilon);
-
-    double WetFraction(double Height, double Epsilon);
 
     ///@}
     ///@name Protected  Access
