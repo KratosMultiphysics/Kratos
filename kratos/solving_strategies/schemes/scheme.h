@@ -237,9 +237,7 @@ public:
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        block_for_each(rModelPart.Elements(), [&r_current_process_info](Element& rElement){
-            rElement.Initialize(r_current_process_info);
-        });
+        EntitiesUtilities::InitializeEntities<Element>(rModelPart);
 
         SetElementsAreInitialized();
 
