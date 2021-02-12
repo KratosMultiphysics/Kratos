@@ -188,60 +188,79 @@ public:
         return mGraph;
     }
 
+
+    //note that this function is slightly less efficient than the span version below
+    template<class TVectorType=DenseVector<IndexType>>
     IndexType ExportCSRArrays(
-        span<IndexType>& rRowIndices,
-        span<IndexType>& rColIndices
+        TVectorType& rRowIndices,
+        TVectorType& rColIndices
+    ) const
+    {
+        IndexType* pRowIndicesData=nullptr;
+        IndexType RowIndicesDataSize=0;
+        IndexType* pColIndicesData=nullptr;
+        IndexType ColIndicesDataSize=0;
+        ExportCSRArrays(pRowIndicesData,RowIndicesDataSize,pColIndicesData,ColIndicesDataSize);
+        rRowIndices = span<IndexType>(pRowIndicesData,RowIndicesDataSize); //here a copy happens!
+        rColIndices = span<IndexType>(pColIndicesData,ColIndicesDataSize);; //here a copy happens!
+        return rRowIndices.size();
+    }
+
+    IndexType ExportCSRArrays(
+        IndexType*& pRowIndicesData,
+        IndexType& rRowDataSize,
+        IndexType*& pColIndicesData,
+        IndexType& rColDataSize
     ) const
     {
         //need to detect the number of rows this way since there may be gaps
         IndexType nrows=this->Size();
 
-        if(rRowIndices.size() != nrows+1)
-        {
-            IndexType* pRowIndices = new IndexType[nrows+1];
-            rRowIndices = span<IndexType>(pRowIndices, nrows+1);
-        }
+        pRowIndicesData = new IndexType[nrows+1];
+        rRowDataSize = nrows+1;
+        span<IndexType> row_indices(pRowIndicesData, nrows+1);
+        
         //set it to zero in parallel to allow first touching
-        IndexPartition<IndexType>(rRowIndices.size()).for_each([&](IndexType i){
-                    rRowIndices[i] = 0;
+        IndexPartition<IndexType>(row_indices.size()).for_each([&](IndexType i){
+                    row_indices[i] = 0;
                 });            
 
         //count the entries TODO: do the loop in parallel if possible
         for(const auto& item : this->GetGraph())
         {
-            rRowIndices[item.first+1] = item.second.size();
+            row_indices[item.first+1] = item.second.size();
         }
 
         //sum entries
-        for(int i = 1; i<static_cast<int>(rRowIndices.size()); ++i){
-            rRowIndices[i] += rRowIndices[i-1];
+        for(int i = 1; i<static_cast<int>(row_indices.size()); ++i){
+            row_indices[i] += row_indices[i-1];
         }
 
 
-        IndexType nnz = rRowIndices[nrows];
-        if(rColIndices.size() != nnz){
-            IndexType* pColIndices = new IndexType[nnz];
-            rColIndices = span<IndexType>(pColIndices, nnz);
-        }
+        IndexType nnz = row_indices[nrows];
+        rColDataSize = nnz;
+        pColIndicesData = new IndexType[nnz];
+        span<IndexType> col_indices(pColIndicesData, nnz);
+        
         //set it to zero in parallel to allow first touching
-        IndexPartition<IndexType>(rColIndices.size()).for_each([&](IndexType i){
-                    rColIndices[i] = 0;
+        IndexPartition<IndexType>(col_indices.size()).for_each([&](IndexType i){
+                    col_indices[i] = 0;
                 });            
 
         //count the entries TODO: do the loop in parallel if possible
         for(const auto& item : this->GetGraph()){
-            IndexType start = rRowIndices[item.first];
+            IndexType start = row_indices[item.first];
 
             IndexType counter = 0;
             for(auto index : item.second){
-                rColIndices[start+counter] = index;
+                col_indices[start+counter] = index;
                 counter++;
             }
         }
 
         //reorder columns
-        IndexPartition<IndexType>(rRowIndices.size()-1).for_each([&](IndexType i){
-            std::sort(rColIndices.begin()+rRowIndices[i], rColIndices.begin()+rRowIndices[i+1]);
+        IndexPartition<IndexType>(row_indices.size()-1).for_each([&](IndexType i){
+            std::sort(col_indices.begin()+row_indices[i], col_indices.begin()+row_indices[i+1]);
         });
         return nrows;
     }

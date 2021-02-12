@@ -210,70 +210,84 @@ public:
         return mGraph;
     }
 
+    //note that this function is slightly less efficient than the span version below
     template<class TVectorType=DenseVector<IndexType>>
     IndexType ExportCSRArrays(
         TVectorType& rRowIndices,
         TVectorType& rColIndices
     ) const
     {
+        IndexType* pRowIndicesData=nullptr;
+        IndexType RowIndicesDataSize=0;
+        IndexType* pColIndicesData=nullptr;
+        IndexType ColIndicesDataSize=0;
+        ExportCSRArrays(pRowIndicesData,RowIndicesDataSize,pColIndicesData,ColIndicesDataSize);
+        rRowIndices = span<IndexType>(pRowIndicesData,RowIndicesDataSize); //here a copy happens!
+        rColIndices = span<IndexType>(pColIndicesData,ColIndicesDataSize);; //here a copy happens!
+        return rRowIndices.size();
+    }
+
+    IndexType ExportCSRArrays(
+        IndexType*& pRowIndicesData,
+        IndexType& rRowDataSize,
+        IndexType*& pColIndicesData,
+        IndexType& rColDataSize
+    ) const
+    {
         //need to detect the number of rows this way since there may be gaps
         IndexType nrows=Size();
 
-        if(rRowIndices.size() != nrows+1)
-        {
-            IndexType* pRowIndices = new IndexType[nrows+1];
-            rRowIndices = span<IndexType>(pRowIndices, nrows+1);
-            //rRowIndices.resize(nrows+1, false);
-        }
+        pRowIndicesData = new IndexType[nrows+1];
+        rRowDataSize=nrows+1;
+        span<IndexType> row_indices(pRowIndicesData, nrows+1);
 
         if(nrows == 0) //empty
         {
-            rRowIndices[0] = 0;
+            row_indices[0] = 0;
         }
         else
         {
             //set it to zero in parallel to allow first touching
             IndexPartition<IndexType>(nrows+1).for_each([&](IndexType i){
-                rRowIndices[i] = 0;
+                row_indices[i] = 0;
             });
 
             //count the entries 
             IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
-                rRowIndices[i+1] = mGraph[i].size();
+                row_indices[i+1] = mGraph[i].size();
             });
             
             //sum entries
-            for(IndexType i = 1; i<static_cast<IndexType>(rRowIndices.size()); ++i){
-                rRowIndices[i] += rRowIndices[i-1];
+            for(IndexType i = 1; i<static_cast<IndexType>(row_indices.size()); ++i){
+                row_indices[i] += row_indices[i-1];
             }
         }
 
-        IndexType nnz = rRowIndices[nrows];
-        if(rColIndices.size() != nnz){
-            IndexType* pColIndices = new IndexType[nnz];
-            rColIndices = span<IndexType>(pColIndices,nnz);
-            //rColIndices.resize(nnz, false);
-        }
+        IndexType nnz = row_indices[nrows];
+        rColDataSize=nnz;
+        pColIndicesData = new IndexType[nnz];
+        span<IndexType> col_indices(pColIndicesData,nnz);
+
         //set it to zero in parallel to allow first touching
-        IndexPartition<IndexType>(rColIndices.size()).for_each([&](IndexType i){
-            rColIndices[i] = 0;
+        IndexPartition<IndexType>(col_indices.size()).for_each([&](IndexType i){
+            col_indices[i] = 0;
         });
 
         //count the entries 
         IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
 
-            IndexType start = rRowIndices[i];
+            IndexType start = row_indices[i];
 
             IndexType counter = 0;
             for(auto index : mGraph[i]){
-                rColIndices[start+counter] = index;
+                col_indices[start+counter] = index;
                 counter++;
             }
         });
 
         //reorder columns
-        IndexPartition<IndexType>(rRowIndices.size()-1).for_each([&](IndexType i){
-            std::sort(rColIndices.begin()+rRowIndices[i], rColIndices.begin()+rRowIndices[i+1]);
+        IndexPartition<IndexType>(row_indices.size()-1).for_each([&](IndexType i){
+            std::sort(col_indices.begin()+row_indices[i], col_indices.begin()+row_indices[i+1]);
         });
 
         return nrows;

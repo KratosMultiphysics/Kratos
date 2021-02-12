@@ -80,11 +80,11 @@ public:
     template<class TGraphType>
     CsrMatrix(const TGraphType& rSparseGraph)
     {
-        span<TIndexType> tmp_row_indices;
-        span<TIndexType> tmp_col_indices;
-        rSparseGraph.ExportCSRArrays(tmp_row_indices,tmp_col_indices);
-        AssignIndex1Data(tmp_row_indices.begin(), tmp_row_indices.size());
-        AssignIndex2Data(tmp_col_indices.begin(), tmp_col_indices.size());
+        TIndexType row_data_size=0;
+        TIndexType col_data_size=0;
+        rSparseGraph.ExportCSRArrays(mpRowIndicesData,row_data_size,mpColIndicesData, col_data_size);
+        mRowIndices = span<TIndexType>(mpRowIndicesData, row_data_size); //no copying of data happening here
+        mColIndices = span<TIndexType>(mpColIndicesData, col_data_size);
 
         mNrows = size1();
 

@@ -39,7 +39,8 @@ public:
 	template< class TDataType, class TIndexType >
 	static Kratos::shared_ptr<amgcl::mpi::distributed_matrix<amgcl::backend::builtin<double>>> ConvertToAmgcl(
 			const DistributedCsrMatrix<TDataType, TIndexType>& rA,
-			DenseVector<TIndexType>& global_index2)
+			DenseVector<TIndexType>& global_index2,
+			bool MoveToBackend=true)
 	{
 
 		IndexType chunk = rA.local_size1();
@@ -60,9 +61,23 @@ public:
 		amgcl::mpi::communicator comm(raw_mpi_comm);
 
 		auto pAmgcl = Kratos::make_shared<amgcl::mpi::distributed_matrix<amgcl::backend::builtin<double>>>(comm, loc_a, rem_a);
-		pAmgcl->move_to_backend();
+		
+		if(MoveToBackend)
+			pAmgcl->move_to_backend();
+
 		return pAmgcl;
 	}
+
+	template< class TDataType, class TIndexType >
+	static DistributedCsrMatrix<TDataType, TIndexType> ConvertToCsrMatrix(
+			const amgcl::mpi::distributed_matrix<amgcl::backend::builtin<double>>& rA
+			)
+	{
+
+		
+
+		//return pAmgcl;
+	}	
 
 };
 
