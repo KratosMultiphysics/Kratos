@@ -14,9 +14,8 @@
 #define  KRATOS_SMALL_DISPLACEMENT_SIMP_ELEMENT_H_INCLUDED
 
 // Project includes
-#include <boost/numeric/ublas/storage.hpp> 
+///#include <boost/numeric/ublas/storage.hpp> 
 
-#include "includes/define.h"
 #include "structural_mechanics_application.h"
 #include "custom_elements/small_displacement.h"
 
@@ -61,6 +60,18 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
     ///Type for element variables
     ///typedef SmallDisplacement::ElementDataType ElementDataType;
+
+
+    /// hinugefügt am 10.02.
+    /// The base element type
+    typedef SmallDisplacement BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+    /// bis Hier!!!!!!!
 
     /// Counted pointer of SmallDisplacementSIMPElement
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementSIMPElement );
@@ -118,14 +129,14 @@ public:
     // =============================================================================================================================================
 
     /// Function that gets the value on the Integration Point (For printing purposes in the output GiD)
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Function to calculate the sensitivities and the objective function
-    void Calculate(const Variable<double> &rVariable, double &rOutput, const ProcessInfo &rCurrentProcessInfo);
+    void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Function that overwrites the CalculateOnIntegrationPoints, to insert the X_PHYS into all Gauss Points of the given element
     /// That allows printing X_PHYS as elemental value in GiD
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     // =============================================================================================================================================
     // =============================================================================================================================================
