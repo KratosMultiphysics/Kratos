@@ -48,6 +48,14 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
 
         super().Initialize()
 
+        # set formulation initialized historical solving variables to non historical nodal containers
+        # this is run after super().Initialize() so user can use initialization processes via
+        # json to initialize historical variables, and it will be copied here.
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(self.formulation_1.GetSolvingVariable(), self.GetBaseModelPart().Nodes)
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(self.formulation_2.GetSolvingVariable(), self.GetBaseModelPart().Nodes)
+        Kratos.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(self.formulation_1.GetSolvingVariable(), self.GetBaseModelPart(), self.GetBaseModelPart(), 0)
+        Kratos.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(self.formulation_2.GetSolvingVariable(), self.GetBaseModelPart(), self.GetBaseModelPart(), 0)
+
     def SetTimeSchemeSettings(self, settings):
         if (settings.Has("scheme_type")):
             scheme_type = settings["scheme_type"].GetString()
@@ -94,3 +102,14 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
                 return True
 
         return True
+
+    def ExecuteAfterCouplingSolveStep(self):
+        super().ExecuteAfterCouplingSolveStep()
+
+        # In here we transfer turbulence model variables to non-historical
+        # data value container of nodes so, nu_t can be calculated on those values
+        # this is done in order to achieve easier convergence.
+        Kratos.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
+            self.formulation_1.GetSolvingVariable(), self.GetBaseModelPart(), self.GetBaseModelPart(), 0)
+        Kratos.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
+            self.formulation_2.GetSolvingVariable(), self.GetBaseModelPart(), self.GetBaseModelPart(), 0)
