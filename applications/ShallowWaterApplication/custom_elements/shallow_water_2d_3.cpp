@@ -609,6 +609,8 @@ void ShallowWater2D3::ComputeGradientVector(
     const BoundedMatrix<double,3,2>& rDN_DX)
 {
     const double c2 = rData.gravity * rData.height; // c=sqrt(gh)
+    const double u_1 = rData.velocity[0];
+    const double u_2 = rData.velocity[1];
     const double l = StabilizationParameter(rData);
     const auto topography = rData.topography;
 
@@ -626,16 +628,30 @@ void ShallowWater2D3::ComputeGradientVector(
             /* Stabilization x-x
              * A1*G1
              */
-            rVector[i_block + 2] -= l * c2 * rDN_DX(i,0) * rDN_DX(j,0) * topography[j];
+            double d_ij = rDN_DX(i,0) * rDN_DX(j,0);
+            rVector[i_block]     -= l * d_ij * topography[j] * 2*u_1*c2;
+            rVector[i_block + 1] -= l * d_ij * topography[j] * u_2*c2;
+            rVector[i_block + 2] -= l * d_ij * topography[j] * c2;
 
             /* Stabilization y-y
              * A2*G2
              */
-            rVector[i_block + 2] -= l * c2 * rDN_DX(i,1) * rDN_DX(j,1) * topography[j];
+            d_ij = rDN_DX(i,1) * rDN_DX(j,1);
+            rVector[i_block]     -= l * d_ij * topography[j] * u_1*c2;
+            rVector[i_block + 1] -= l * d_ij * topography[j] * 2*u_2*c2;
+            rVector[i_block + 2] -= l * d_ij * topography[j] * c2;
 
-            /* Stabilization x-y and y-x
-             * A1*G2 = A2*G1 = 0
+            /* Stabilization x-y
+             * A1*G2
              */
+            d_ij = rDN_DX(i,0) * rDN_DX(j,1);
+            rVector[i_block + 1] -= l * d_ij * topography[j] * u_1*c2;
+
+            /* Stabilization y-x
+             * A2*G1
+             */
+            d_ij = rDN_DX(i,1) * rDN_DX(j,0);
+            rVector[i_block] -= l * d_ij * topography[j] * u_2*c2;
         }
     }
 }
