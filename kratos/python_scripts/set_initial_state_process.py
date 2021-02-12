@@ -13,7 +13,19 @@ def Factory(settings, Model):
 # All the processes python processes should be derived from "Process"
 
 
-def components_to_string(vect):
+def components_to_functions(vect):
+    """Receives a vector and converts its components to functions. Components can be
+    numbers or strings with valid function expressions (e.g. [0.0, "1.2", "3.4 + t"]).
+    It returns a vector whose components are the generated functions from the original
+    arguments (e.g. [f(0), f(1.2), f(3.4+t)]), where 't' will be later evaluated as the
+    current simulation time.
+
+    Keyword arguments:
+    vect -- Kratos parameters array containing numbers or strings with valid functions
+
+    Returns:
+    vector with functions rendered from the input's components
+    """
     v = []
     for c in vect:
         if c.IsNumber():
@@ -75,8 +87,8 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.dimension = settings["dimension"].GetInt()
 
-        self.strain_functions = components_to_string(settings["imposed_strain"])
-        self.stress_functions = components_to_string(settings["imposed_stress"])
+        self.strain_functions = components_to_functions(settings["imposed_strain"])
+        self.stress_functions = components_to_functions(settings["imposed_stress"])
         # to be implemented
         self.imposed_deformation_gradient = settings[
             "imposed_deformation_gradient"
@@ -89,8 +101,12 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        if self.interval.IsInInterval(current_time):
+        if self.dimension == 3:
             nr_comps = 6
+        else:
+            nr_comps = 4
+
+        if self.interval.IsInInterval(current_time):
             self.imposed_strain = [0.0] * nr_comps
             for i in range(nr_comps):
                 self.imposed_strain[i] = self.strain_functions[i].CallFunction(
