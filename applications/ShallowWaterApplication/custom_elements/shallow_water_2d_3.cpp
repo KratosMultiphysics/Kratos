@@ -168,13 +168,7 @@ void ShallowWater2D3::CalculateLocalSystem(
 
     AddGradientTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
 
-    KRATOS_WATCH("A")
-    KRATOS_WATCH(rRightHandSideVector -prod(rLeftHandSideMatrix, data.unknown))
-
     AddSourceTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
-
-    KRATOS_WATCH("B")
-    KRATOS_WATCH(rRightHandSideVector -prod(rLeftHandSideMatrix, data.unknown))
 
     AddShockCapturingTerm(rLeftHandSideMatrix, data, DN_DX);
 
