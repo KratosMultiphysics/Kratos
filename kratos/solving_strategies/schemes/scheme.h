@@ -259,9 +259,7 @@ public:
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        block_for_each(rModelPart.Conditions(), [&r_current_process_info](Condition& rCondition){
-            rCondition.Initialize(r_current_process_info);
-        });
+        EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
 
         SetConditionsAreInitialized();
 
