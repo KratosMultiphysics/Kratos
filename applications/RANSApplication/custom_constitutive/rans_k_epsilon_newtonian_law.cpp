@@ -83,6 +83,11 @@ int RansKEpsilonNewtonianLaw<TPrimalBaseType>::Check(
            "for RansKEpsilonNewtonianLaw: "
         << rMaterialProperties[DENSITY] << std::endl;
 
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo[TURBULENCE_RANS_C_MU] <= 0.0)
+        << "Incorrect or missing TURBULENCE_RANS_C_MU provided in process info "
+           "for RansKEpsilonNewtonianLaw: "
+        << rCurrentProcessInfo[TURBULENCE_RANS_C_MU] << std::endl;
+
     return 0;
 
     KRATOS_CATCH("");
@@ -112,7 +117,7 @@ double& RansKEpsilonNewtonianLaw<TPrimalBaseType>::CalculateValue(
 template<class TPrimalBaseType>
 std::string RansKEpsilonNewtonianLaw<TPrimalBaseType>::Info() const
 {
-    return "Rans" + TPrimalBaseType::Info();
+    return "RansKEpsilon" + TPrimalBaseType::Info();
 }
 
 template<class TPrimalBaseType>
