@@ -621,13 +621,8 @@ inline void ShellToSolidShellProcess<TNumNodes>::ComputeNodesMeanNormalModelPart
             auto& this_node = this_geometry[i];
             aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_node.Coordinates());
             const array_1d<double, 3>& r_normal = this_geometry.UnitNormal(aux_coords);
-            auto& aux_normal = this_node.GetValue(NORMAL);
-
-            for (unsigned int index = 0; index < 3; ++index) {
-                AtomicAdd(aux_normal[index], r_normal[index]);
-            }
-            //OR Vector form
-            //AtomicAdd< array_1d<double, 3>, const array_1d<double, 3> >(aux_normal, r_normal);
+            array_1d<double, 3>& aux_normal = this_node.GetValue(NORMAL);
+            AtomicAdd(aux_normal, r_normal);
         }
     }
 
