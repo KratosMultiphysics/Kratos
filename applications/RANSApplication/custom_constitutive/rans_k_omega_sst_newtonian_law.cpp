@@ -164,7 +164,7 @@ double RansKOmegaSSTNewtonianLaw<TDim, TPrimalBaseType>::CalculateTurbulentVisco
 
     const double t = norm_frobenius(symmetric_velocity_gradient) * 1.414;
 
-    return KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(tke, omega, t, f_2, a1);
+    return std::max(KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(tke, omega, t, f_2, a1), 1e-12);
 }
 
 template<unsigned int TDim, class TPrimalBaseType>
