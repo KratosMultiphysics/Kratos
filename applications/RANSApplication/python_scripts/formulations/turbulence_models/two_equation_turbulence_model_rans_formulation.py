@@ -7,8 +7,7 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
 # import utilities
-from KratosMultiphysics.RANSApplication import ScalarVariableDifferenceNormCalculationUtility
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
+from KratosMultiphysics.RANSApplication import RansNutUtility
 
 class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
     def __init__(self, model_part, settings, formulation_1, formulation_2):
@@ -25,7 +24,13 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
         self.AddRansFormulation(self.formulation_2)
 
         self.echo_level = settings["echo_level"].GetInt()
-        self.nu_t_convergence_utility = ScalarVariableDifferenceNormCalculationUtility(self.GetBaseModelPart(), Kratos.TURBULENT_VISCOSITY)
+        self.nu_t_convergence_utility = RansNutUtility(
+            self.GetBaseModelPart(),
+            self.formulation_1.GetSolvingVariable(),
+            self.formulation_2.GetSolvingVariable(),
+            settings["coupling_settings"]["relative_tolerance"].GetDouble(),
+            settings["coupling_settings"]["absolute_tolerance"].GetDouble(),
+            self.echo_level)
         self.SetMaxCouplingIterations(settings["coupling_settings"]["max_iterations"].GetInt())
 
     def GetMinimumBufferSize(self):
@@ -41,20 +46,12 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
         for process in self.auxiliar_process_list:
             self.AddProcess(process)
 
-        Kratos.VariableUtils().SetNonHistoricalVariableToZero(KratosRANS.RANS_Y_PLUS, self.GetBaseModelPart().Conditions)
-
-        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.TURBULENT_VISCOSITY, self.GetBaseModelPart().Elements)
-        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.TURBULENT_VISCOSITY, self.GetBaseModelPart().Conditions)
-
         super().Initialize()
 
         # set formulation initialized historical solving variables to non historical nodal containers
         # this is run after super().Initialize() so user can use initialization processes via
         # json to initialize historical variables, and it will be copied here.
-        Kratos.VariableUtils().SetNonHistoricalVariableToZero(self.formulation_1.GetSolvingVariable(), self.GetBaseModelPart().Nodes)
-        Kratos.VariableUtils().SetNonHistoricalVariableToZero(self.formulation_2.GetSolvingVariable(), self.GetBaseModelPart().Nodes)
-        Kratos.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(self.formulation_1.GetSolvingVariable(), self.GetBaseModelPart(), self.GetBaseModelPart(), 0)
-        Kratos.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(self.formulation_2.GetSolvingVariable(), self.GetBaseModelPart(), self.GetBaseModelPart(), 0)
+        self.nu_t_convergence_utility.Initialize()
 
     def SetTimeSchemeSettings(self, settings):
         if (settings.Has("scheme_type")):
@@ -78,9 +75,6 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
         super().SetTimeSchemeSettings(settings)
 
     def SolveCouplingStep(self):
-        settings = self.GetParameters()
-        relative_tolerance = settings["coupling_settings"]["relative_tolerance"].GetDouble()
-        absolute_tolerance = settings["coupling_settings"]["absolute_tolerance"].GetDouble()
         max_iterations = self.GetMaxCouplingIterations()
 
         for iteration in range(max_iterations):
@@ -91,14 +85,9 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
                 formulation.SolveCouplingStep()
             self.ExecuteAfterCouplingSolveStep()
 
-            relative_error, absolute_error = self.nu_t_convergence_utility.CalculateDifferenceNorm()
-            info = GetConvergenceInfo(Kratos.TURBULENT_VISCOSITY, relative_error, relative_tolerance, absolute_error, absolute_tolerance)
-            Kratos.Logger.PrintInfo(self.__class__.__name__ + " CONVERGENCE", info)
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling itr. {:d}/{:d}.".format(iteration + 1, max_iterations))
-
-            is_converged = relative_error < relative_tolerance or absolute_error < absolute_tolerance
+            is_converged = self.nu_t_convergence_utility.CheckConvergence()
             if (is_converged):
-                Kratos.Logger.PrintInfo(self.__class__.__name__ + " CONVERGENCE", "TURBULENT_VISCOSITY *** CONVERGENCE ACHIEVED ***")
                 return True
 
         return True
@@ -109,7 +98,9 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
         # In here we transfer turbulence model variables to non-historical
         # data value container of nodes so, nu_t can be calculated on those values
         # this is done in order to achieve easier convergence.
-        Kratos.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
-            self.formulation_1.GetSolvingVariable(), self.GetBaseModelPart(), self.GetBaseModelPart(), 0)
-        Kratos.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
-            self.formulation_2.GetSolvingVariable(), self.GetBaseModelPart(), self.GetBaseModelPart(), 0)
+        self.nu_t_convergence_utility.UpdateTurbulenceData()
+
+        # It is required to update nut here for old FractionalStep and
+        # VMS formulations, so this nut can be distributed via rans_nut_nodal_update process
+        # otherwise, this can be moved to FinalizeSolvingStep method
+        self.nu_t_convergence_utility.UpdateTurbulentViscosity()
