@@ -58,16 +58,6 @@
             }
         }],
         "loads_process_list"       : [],
-        "list_other_processes"     : [{
-            "python_module" : "postprocess_rom_basis_process",
-            "kratos_module" : "KratosMultiphysics.RomApplication",
-            "help"          : "This process postprocesses the ROM basis for GiD",
-            "process_name"  : "PostProcessRomBasisProcess",
-            "Parameters"    : {
-                "result_file_name" : "",
-                "animation_steps"  : 1,
-                "file_format"      : "vtk"
-            }
-        }]
+        "list_other_processes"     : []
     }
 }
