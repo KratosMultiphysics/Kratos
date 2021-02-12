@@ -12,8 +12,8 @@
 //-------------------------------------------------------------
 //
 
-#if !defined(KRATOS_BINGHAM_LAW_2D_H_INCLUDED)
-#define KRATOS_BINGHAM_LAW_2D_H_INCLUDED
+#if !defined(KRATOS_HERSCHEL_BULKLEY_LAW_2D_H_INCLUDED)
+#define KRATOS_HERSCHEL_BULKLEY_LAW_2D_H_INCLUDED
 
 // System includes
 
@@ -24,13 +24,13 @@
 
 namespace Kratos {
 /**
- * Defines a 2D Bingham non-Newtonian constitutive law
+ * Defines a 2D Herschel Bulkley non-Newtonian constitutive law
  * This material law is defined by the parameters:
  * 1) DYNAMIC_VISCOSITY
  * 2) YIELD_SHEAR
  * 3) ADAPTIVE_EXPONENT
  */
-class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HerschelBuckley2DLaw : public PfemFluidConstitutiveLaw {
+class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HerschelBulkley2DLaw : public PfemFluidConstitutiveLaw {
    public:
     /**
      * Type Definitions
@@ -40,9 +40,9 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HerschelBuckley2DLaw : public 
     typedef std::size_t SizeType;
 
     /**
-     * Counted pointer of HerschelBuckley2DLaw
+     * Counted pointer of HerschelBulkley2DLaw
      */
-    KRATOS_CLASS_POINTER_DEFINITION(HerschelBuckley2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(HerschelBulkley2DLaw);
 
     /**
      * Life Cycle
@@ -51,7 +51,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HerschelBuckley2DLaw : public 
     /**
      * Default constructor.
      */
-    HerschelBuckley2DLaw();
+    HerschelBulkley2DLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -62,12 +62,12 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HerschelBuckley2DLaw : public 
     /**
      * Copy constructor.
      */
-    HerschelBuckley2DLaw(const HerschelBuckley2DLaw& rOther);
+    HerschelBulkley2DLaw(const HerschelBulkley2DLaw& rOther);
 
     /**
      * Destructor.
      */
-    ~HerschelBuckley2DLaw() override;
+    ~HerschelBulkley2DLaw() override;
 
     /**
      * Operators
@@ -169,8 +169,8 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HerschelBuckley2DLaw : public 
     void load(Serializer& rSerializer) override;
     ///@}
 
-};  // Class HerschelBuckley2DLaw
+};  // Class HerschelBulkley2DLaw
 
 }  // namespace Kratos.
 
-#endif  // KRATOS_BINGHAM_LAW_2D_H_INCLUDED  defined
+#endif  // KRATOS_HERSCHEL_BULKLEY_LAW_2D_H_INCLUDED  defined

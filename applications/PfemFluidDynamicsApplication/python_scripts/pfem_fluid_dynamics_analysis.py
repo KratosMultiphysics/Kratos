@@ -370,7 +370,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
                 if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
-            elif (self.constitutive_laws_names[i].GetString()=="Bingham2DLaw" or self.constitutive_laws_names[i].GetString()=="Bingham3DLaw"):
+            elif (self.constitutive_laws_names[i].GetString()=="Bingham2DLaw" or self.constitutive_laws_names[i].GetString()=="Bingham3DLaw" or
+            self.constitutive_laws_names[i].GetString()=="HerschelBulkley2DLaw"):
                 if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX):
                     self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX)
                 if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR):
