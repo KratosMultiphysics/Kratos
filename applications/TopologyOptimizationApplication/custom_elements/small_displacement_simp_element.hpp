@@ -18,6 +18,9 @@
 
 #include "structural_mechanics_application.h"
 #include "custom_elements/small_displacement.h"
+#include "includes/define.h"
+#include "custom_elements/base_solid_element.h"
+#include "includes/variables.h"
 
 
 namespace Kratos
@@ -114,6 +117,12 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
+    Element::Pointer Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties
+    ) const override;
+
     /**
      * clones the selected element variables, creating a new one
      * @param NewId: the ID of the new element
@@ -172,6 +181,7 @@ protected:
     {
     }
 
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -204,7 +214,18 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    template<class TType>
+        void GetValueOnConstitutiveLaw(
+            const Variable<TType>& rVariable,
+            std::vector<TType>& rOutput
+            )
+        {
+            const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
 
+            for ( IndexType point_number = 0; point_number <integration_points.size(); ++point_number ) {
+                mConstitutiveLawVector[point_number]->GetValue( rVariable,rOutput[point_number]);
+            }
+        }
 
     ///@}
     ///@name Private  Access
