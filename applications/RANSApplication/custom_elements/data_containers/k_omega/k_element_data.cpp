@@ -64,10 +64,6 @@ void KElementData<TDim>::Check(
         << "DENSITY is not found in element properties [ Element.Id() = "
         << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
 
-    KRATOS_ERROR_IF_NOT(rElement.Has(TURBULENT_VISCOSITY))
-        << "TURBULENT_VISCOSITY is not found in element with id "
-        << rElement.Id() << ".\n";
-
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const auto& r_node = r_geometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
@@ -88,8 +84,10 @@ void KElementData<TDim>::CalculateConstants(
 {
     mSigmaK = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
     mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    mDensity = this->GetProperties().GetValue(DENSITY);
-    mTurbulentKinematicViscosity = this->GetGeometry().GetValue(TURBULENT_VISCOSITY);
+
+    const auto& r_properties = this->GetProperties();
+    mDensity = r_properties[DENSITY];
+    mKinematicViscosity = r_properties[DYNAMIC_VISCOSITY] / mDensity;
 }
 
 template <unsigned int TDim>
@@ -102,12 +100,6 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     using namespace RansCalculationUtilities;
 
-    auto& cl_parameters = this->GetConstitutiveLawParameters();
-    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
-
-    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, mKinematicViscosity);
-    mKinematicViscosity /= mDensity;
-
     FluidCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rShapeFunctions, Step,
         std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
@@ -116,6 +108,17 @@ void KElementData<TDim>::CalculateGaussPointData(
     FluidCalculationUtilities::EvaluateGradientInPoint(
         this->GetGeometry(), rShapeFunctionDerivatives,
         std::tie(mVelocityGradient, VELOCITY));
+
+    double tke_old, omega_old;
+    FluidCalculationUtilities::EvaluateNonHistoricalInPoint(
+        this->GetGeometry(), rShapeFunctions,
+        std::tie(tke_old, TURBULENT_KINETIC_ENERGY),
+        std::tie(omega_old, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
+
+    mTurbulentKinematicViscosity = 1e-12;
+    if (tke_old > 0.0 && omega_old > 0.0) {
+        mTurbulentKinematicViscosity = std::max(tke_old / omega_old, 1e-12);
+    }
 
     mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
 
