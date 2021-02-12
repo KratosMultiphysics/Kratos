@@ -235,8 +235,6 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
         EntitiesUtilities::InitializeEntities<Element>(rModelPart);
 
         SetElementsAreInitialized();
@@ -254,8 +252,6 @@ public:
         KRATOS_TRY
 
         KRATOS_ERROR_IF_NOT(mElementsAreInitialized) << "Before initilizing Conditions, initialize Elements FIRST" << std::endl;
-
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
 
