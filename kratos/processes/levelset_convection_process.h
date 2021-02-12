@@ -32,6 +32,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "utilities/variable_utils.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
