@@ -691,7 +691,6 @@ void TrussElement3D2N::AddExplicitContribution(
 
         for (int i = 0; i < msNumberOfNodes; ++i) {
             double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-            array_1d<double, msDimension>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
             int index = i * msDimension;
 
             AtomicAdd(r_nodal_mass, mass_vector[index]);

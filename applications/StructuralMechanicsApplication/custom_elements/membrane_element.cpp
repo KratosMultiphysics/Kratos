@@ -1150,7 +1150,6 @@ void MembraneElement::AddExplicitContribution(
 
         for (SizeType i = 0; i < number_of_nodes; ++i) {
             double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-            array_1d<double, 3>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
             SizeType index = i * dimension;
 
             AtomicAdd(r_nodal_mass, mass_vector[index]);
