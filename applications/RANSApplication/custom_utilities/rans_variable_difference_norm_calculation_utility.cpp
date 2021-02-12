@@ -22,6 +22,7 @@
 #include "utilities/reduction_utilities.h"
 
 // Application includes
+#include "custom_utilities/rans_calculation_utilities.h"
 
 // Include base h
 #include "rans_variable_difference_norm_calculation_utility.h"
@@ -34,6 +35,7 @@ void RansVariableDifferenceNormsCalculationUtility<TDataType>::InitializeCalcula
     KRATOS_TRY
 
     const auto& r_communicator = mrModelPart.GetCommunicator();
+    const auto& r_process_info = mrModelPart.GetProcessInfo();
     const auto& r_local_mesh = r_communicator.LocalMesh();
 
     const auto& r_local_elements = r_local_mesh.Elements();
@@ -42,20 +44,24 @@ void RansVariableDifferenceNormsCalculationUtility<TDataType>::InitializeCalcula
         mElementData.resize(number_of_elements);
     }
 
-    IndexPartition<int>(number_of_elements).for_each([&](const int iElement) {
-        const auto p_element = r_local_elements.begin() + iElement;
-        mElementData[iElement] = p_element->GetValue(mrVariable);
-    });
+    using tls_type = std::tuple<Vector, Matrix, Geometry<Node<3>>::ShapeFunctionsGradientsType>;
+    IndexPartition<int>(number_of_elements).for_each(tls_type(), [&](const int iElement, tls_type& rTLS) {
+        const auto& r_element = *(r_local_elements.begin() + iElement);
 
-    const auto& r_local_conditions = r_local_mesh.Conditions();
-    const int number_of_conditions = r_local_conditions.size();
-    if (static_cast<int>(mConditionData.size()) < number_of_conditions) {
-        mConditionData.resize(number_of_conditions);
-    }
+        auto& Ws = std::get<0>(rTLS);
+        auto& Ns = std::get<1>(rTLS);
+        auto& dNdXs = std::get<2>(rTLS);
 
-    IndexPartition<int>(number_of_conditions).for_each([&](const int iCondition) {
-        const auto p_condition = r_local_conditions.begin() + iCondition;
-        mConditionData[iCondition] = p_condition->GetValue(mrVariable);
+        RansCalculationUtilities::CalculateGeometryData(r_element.GetGeometry(), GeometryData::IntegrationMethod::GI_GAUSS_1, Ws, Ns, dNdXs);
+
+        ConstitutiveLaw::Parameters parameters(
+            r_element.GetGeometry(), r_element.GetProperties(), r_process_info);
+        parameters.SetShapeFunctionsValues(row(Ns, 0));
+        parameters.SetShapeFunctionsDerivatives(dNdXs[0]);
+
+        auto p_constitutive_law = r_element.GetValue(CONSTITUTIVE_LAW);
+
+        p_constitutive_law->CalculateValue(parameters, mrVariable, mElementData[iElement]);
     });
 
     KRATOS_CATCH("");
@@ -67,6 +73,7 @@ std::tuple<double, double> RansVariableDifferenceNormsCalculationUtility<TDataTy
     KRATOS_TRY
 
     const auto& r_communicator = mrModelPart.GetCommunicator();
+    const auto& r_process_info = mrModelPart.GetProcessInfo();
     const auto& r_local_mesh = r_communicator.LocalMesh();
 
     const auto& r_local_elements = r_local_mesh.Elements();
@@ -76,38 +83,36 @@ std::tuple<double, double> RansVariableDifferenceNormsCalculationUtility<TDataTy
         << "Data is not properly initialized for " << mrVariable.Name() << " in "
         << mrModelPart.Name() << ". Please use \"InitializeCalculation\" first.\n";
 
-    const auto& r_local_conditions = r_local_mesh.Conditions();
-    const int number_of_conditions = r_local_conditions.size();
-
-    KRATOS_ERROR_IF(static_cast<int>(mConditionData.size()) < number_of_conditions)
-        << "Data is not properly initialized for " << mrVariable.Name() << " in "
-        << mrModelPart.Name() << ". Please use \"InitializeCalculation\" first.\n";
+    using tls_type = std::tuple<Vector, Matrix, Geometry<Node<3>>::ShapeFunctionsGradientsType>;
 
     double element_dx, element_solution;
     std::tie(element_dx, element_solution) =
         IndexPartition<int>(number_of_elements)
-            .for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>(
-                [&](const int iElement) -> std::tuple<double, double> {
+            .for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>(tls_type(),
+                [&](const int iElement, tls_type& rTLS) -> std::tuple<double, double> {
                     const auto& r_element = *(r_local_elements.begin() + iElement);
-                    const double value = r_element.GetValue(mrVariable);
+
+                    auto& Ws = std::get<0>(rTLS);
+                    auto& Ns = std::get<1>(rTLS);
+                    auto& dNdXs = std::get<2>(rTLS);
+
+                    RansCalculationUtilities::CalculateGeometryData(r_element.GetGeometry(), GeometryData::IntegrationMethod::GI_GAUSS_1, Ws, Ns, dNdXs);
+
+                    ConstitutiveLaw::Parameters parameters(
+                        r_element.GetGeometry(), r_element.GetProperties(), r_process_info);
+                    parameters.SetShapeFunctionsValues(row(Ns, 0));
+                    parameters.SetShapeFunctionsDerivatives(dNdXs[0]);
+
+                    auto p_constitutive_law = r_element.GetValue(CONSTITUTIVE_LAW);
+
+                    double value;
+                    p_constitutive_law->CalculateValue(parameters, mrVariable, value);
 
                     return std::make_tuple<double, double>(
                         std::pow(value - mElementData[iElement], 2), std::pow(value, 2));
                 });
 
-    double condition_dx, condition_solution;
-    std::tie(condition_dx, condition_solution) =
-        IndexPartition<int>(number_of_conditions)
-            .for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>(
-                [&](const int iCondition) -> std::tuple<double, double> {
-                    const auto& r_condition = *(r_local_conditions.begin() + iCondition);
-                    const double value = r_condition.GetValue(mrVariable);
-
-                    return std::make_tuple<double, double>(
-                        std::pow(value - mConditionData[iCondition], 2), std::pow(value, 2));
-                });
-
-    const std::vector<double> norm_values = {element_dx + condition_dx, element_solution + condition_solution, static_cast<double>(number_of_elements + number_of_conditions)};
+    const std::vector<double> norm_values = {element_dx, element_solution, static_cast<double>(number_of_elements)};
     const auto& total_norm_values = r_communicator.GetDataCommunicator().SumAll(norm_values);
 
     const double dx = std::sqrt(total_norm_values[0]);

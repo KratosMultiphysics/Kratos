@@ -63,7 +63,6 @@ public:
     ~RansVariableDifferenceNormsCalculationUtility()
     {
         mElementData.clear();
-        mConditionData.clear();
     }
 
     ///@}
@@ -97,7 +96,6 @@ private:
     const ModelPart& mrModelPart;
     const Variable<TDataType>& mrVariable;
     std::vector<TDataType> mElementData;
-    std::vector<TDataType> mConditionData;
 
     ///@}
 
