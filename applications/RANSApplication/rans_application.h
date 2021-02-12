@@ -69,6 +69,7 @@
 // constitutive laws
 #include "custom_constitutive/rans_newtonian_2d_law.h"
 #include "custom_constitutive/rans_newtonian_3d_law.h"
+#include "custom_constitutive/rans_k_epsilon_newtonian_law.h"
 
 namespace Kratos
 {
@@ -248,6 +249,9 @@ private:
     // constitutive laws
     const RansNewtonian2DLaw mRansNewtonian2DLaw;
     const RansNewtonian3DLaw mRansNewtonian3DLaw;
+
+    const RansKEpsilonNewtonianLaw<Newtonian2DLaw> mRansKEpsilonNewtonian2DLaw;
+    const RansKEpsilonNewtonianLaw<Newtonian3DLaw> mRansKEpsilonNewtonian3DLaw;
 
     ///@}
     ///@name Un accessible methods
