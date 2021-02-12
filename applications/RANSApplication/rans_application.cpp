@@ -130,6 +130,7 @@ void KratosRANSApplication::Register()
 
     // wall function condition specific additional variables
     KRATOS_REGISTER_VARIABLE( RANS_Y_PLUS )
+    KRATOS_REGISTER_VARIABLE( GAUSS_RANS_Y_PLUS )
     KRATOS_REGISTER_VARIABLE( RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT )
     KRATOS_REGISTER_VARIABLE( WALL_SMOOTHNESS_BETA )
     KRATOS_REGISTER_VARIABLE( RANS_IS_WALL_FUNCTION_ACTIVE )
@@ -253,5 +254,11 @@ void KratosRANSApplication::Register()
     // registering constitutive laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKEpsilonNewtonian2DLaw", mRansKEpsilonNewtonian2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKEpsilonNewtonian3DLaw", mRansKEpsilonNewtonian3DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaNewtonian2DLaw", mRansKOmegaNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaNewtonian3DLaw", mRansKOmegaNewtonian3DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaSSTNewtonian2DLaw", mRansKOmegaSSTNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaSSTNewtonian3DLaw", mRansKOmegaSSTNewtonian3DLaw);
 }
 } // namespace Kratos.

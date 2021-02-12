@@ -67,6 +67,7 @@ namespace Kratos
 
     // wall function condition specific additional variables
     KRATOS_CREATE_VARIABLE( double, RANS_Y_PLUS )
+    KRATOS_CREATE_VARIABLE( Vector, GAUSS_RANS_Y_PLUS )
     KRATOS_CREATE_VARIABLE( double, RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT )
     KRATOS_CREATE_VARIABLE( double, WALL_SMOOTHNESS_BETA )
     KRATOS_CREATE_VARIABLE( int, RANS_IS_WALL_FUNCTION_ACTIVE )
