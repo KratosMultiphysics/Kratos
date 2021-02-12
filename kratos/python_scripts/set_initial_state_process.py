@@ -94,6 +94,8 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             "imposed_deformation_gradient"
         ].GetMatrix()
 
+        self.nr_comps = len(settings["imposed_strain"].GetVector())
+
     def ExecuteInitializeSolutionStep(self):
         """This method is executed in order to initialize the current step
 
@@ -101,10 +103,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        if self.dimension == 3:
-            nr_comps = 6
-        else:
-            nr_comps = 4
+        nr_comps = self.nr_comps
 
         if self.interval.IsInInterval(current_time):
             self.imposed_strain = [0.0] * nr_comps
