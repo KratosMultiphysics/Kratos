@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - master
-  
+
   workflow_dispatch:
 
 
@@ -57,7 +57,7 @@ jobs:
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
           export CXX=clang++-9
-          export KRATOS_CMAKE_CXX_FLAGS="-Werror=delete-non-abstract-non-virtual-dtor -Werror=extra-tokens -Werror=defaulted-function-deleted -Werror=potentially-evaluated-expression -Werror=instantiation-after-specialization -Werror=undefined-var-template -Werror=unused-lambda-capture -Werror=unused-const-variable -Werror=parentheses -Werror=pessimizing-move -Werror=c++17-extensions -Werror=logical-op-parentheses -Werror=range-loop-analysis"
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wall -Wno-deprecated-declarations"
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_4_1/"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
@@ -155,3 +155,27 @@ jobs:
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/run_tests.py -l small -c python
+
+
+  # centos:
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     KRATOS_BUILD_TYPE: Custom
+
+  #   container:
+  #     image: kratosmultiphysics/kratos-image-ci-centos7-python35:latest
+  #     options: --user 1001
+  #     env:
+  #       FC: gfortran-7
+
+  #   steps:
+  #   - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+  #     env:
+  #       GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+  #   - uses: actions/checkout@v2
+
+  #   - name: Build
+  #     run: |
+  #       cp .github/workflows/temp_centos_configure.sh temp_centos_configure.sh
+  #       bash temp_centos_configure.sh

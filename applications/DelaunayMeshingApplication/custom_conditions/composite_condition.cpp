@@ -331,7 +331,7 @@ void CompositeCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
 //*********************************SET VECTOR VALUE***********************************
 //************************************************************************************
 
-void CompositeCondition::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void CompositeCondition::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable, const std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
@@ -344,7 +344,7 @@ void CompositeCondition::SetValuesOnIntegrationPoints( const Variable<Vector>& r
 //************************************************************************************
 
 void CompositeCondition::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
+        const std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)

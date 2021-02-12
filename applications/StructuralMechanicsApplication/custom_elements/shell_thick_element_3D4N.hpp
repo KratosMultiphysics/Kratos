@@ -15,11 +15,14 @@
 
 
 // System includes
+#include <type_traits>
 
 // External includes
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
+#include "custom_utilities/shellq4_local_coordinate_system.hpp"
 
 namespace Kratos
 {
@@ -30,10 +33,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 ///@}
-
-class ShellQ4_CoordinateTransformation;
-
-class ShellQ4_LocalCoordinateSystem;
 
 ///@name  Enum's
 ///@{
@@ -58,7 +57,12 @@ class ShellQ4_LocalCoordinateSystem;
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N : public BaseShellElement
+
+template <ShellKinematics TKinematics>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N :
+    public BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellQ4_CorotationalCoordinateTransformation,
+        ShellQ4_CoordinateTransformation>::type>
 {
 public:
 
@@ -67,13 +71,29 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D4N);
 
-    typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
-
-    typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
+    using BaseType = BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellQ4_CorotationalCoordinateTransformation,
+        ShellQ4_CoordinateTransformation>::type>;
 
     typedef array_1d<double, 3> Vector3Type;
 
     typedef Quaternion<double> QuaternionType;
+
+    using GeometryType = Element::GeometryType;
+
+    using PropertiesType = Element::PropertiesType;
+
+    using NodesArrayType = Element::NodesArrayType;
+
+    using MatrixType = Element::MatrixType;
+
+    using VectorType = Element::VectorType;
+
+    using SizeType = Element::SizeType;
+
+    using Element::GetGeometry;
+
+    using Element::GetProperties;
 
     ///@}
 
@@ -275,20 +295,13 @@ public:
     ///@{
 
     ShellThickElement3D4N(IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          bool NLGeom = false);
+                          GeometryType::Pointer pGeometry);
 
     ShellThickElement3D4N(IndexType NewId,
                           GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties,
-                          bool NLGeom = false);
+                          PropertiesType::Pointer pProperties);
 
-    ShellThickElement3D4N(IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties,
-                          CoordinateTransformationBasePointerType pCoordinateTransformation);
-
-    ~ShellThickElement3D4N() override;
+    ~ShellThickElement3D4N() override = default;
 
     ///@}
 
@@ -351,6 +364,17 @@ public:
                    Matrix& Output,
                    const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
 
     ///@}
 
@@ -367,7 +391,7 @@ protected:
     /**
      * Protected empty constructor
      */
-    ShellThickElement3D4N() : BaseShellElement()
+    ShellThickElement3D4N() : BaseType()
     {
     }
 
@@ -394,8 +418,6 @@ private:
             int& iJob, bool& bGlobal);
 
     double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
-
-    void DecimalCorrection(Vector& a);
 
     void SetupOrientationAngles() override;
 
@@ -430,8 +452,6 @@ private:
 
     ///@name Member Variables
     ///@{
-
-    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
     EASOperatorStorage mEASStorage; /*!< The storage instance for the EAS Operator */
 

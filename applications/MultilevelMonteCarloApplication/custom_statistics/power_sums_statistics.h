@@ -178,7 +178,7 @@ namespace Kratos
         ///@name Member Variables
         ///@{
 
-        const ModelPart& mrModelPart;
+        ModelPart& mrModelPart;
         std::string mReferenceVariable;
 
         ///@}
