@@ -220,6 +220,8 @@ public:
         Vector& Values,
         int Step = 0) const override;
 
+    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+
     ///@}
     ///@name Input and output
     ///@{
