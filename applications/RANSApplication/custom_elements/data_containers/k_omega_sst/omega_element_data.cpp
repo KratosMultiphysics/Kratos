@@ -58,6 +58,8 @@ void OmegaElementData<TDim>::Check(
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(VON_KARMAN))
         << "VON_KARMAN is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_A1))
+        << "TURBULENCE_RANS_A1 is not found in process info.\n";
 
     KRATOS_ERROR_IF_NOT(r_properties.Has(DYNAMIC_VISCOSITY))
         << "DYNAMIC_VISCOSITY is not found in element properties [ Element.Id() = "
@@ -65,10 +67,6 @@ void OmegaElementData<TDim>::Check(
     KRATOS_ERROR_IF_NOT(r_properties.Has(DENSITY))
         << "DENSITY is not found in element properties [ Element.Id() = "
         << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
-
-    KRATOS_ERROR_IF_NOT(rElement.Has(TURBULENT_VISCOSITY))
-        << "TURBULENT_VISCOSITY is not found in element with id "
-        << rElement.Id() << ".\n";
 
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const auto& r_node = r_geometry[i_node];
@@ -95,9 +93,11 @@ void OmegaElementData<TDim>::CalculateConstants(
     mSigmaOmega2 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2];
     mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
     mKappa = rCurrentProcessInfo[VON_KARMAN];
-    mTurbulentKinematicViscosity = this->GetGeometry().GetValue(TURBULENT_VISCOSITY);
+    mA1 = rCurrentProcessInfo[TURBULENCE_RANS_A1];
 
-    mDensity = this->GetProperties().GetValue(DENSITY);
+    const auto& r_properties = this->GetProperties();
+    mDensity = r_properties[DENSITY];
+    mKinematicViscosity = r_properties[DYNAMIC_VISCOSITY] / mDensity;
 }
 
 template <unsigned int TDim>
@@ -109,12 +109,6 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
     KRATOS_TRY
 
     using namespace RansCalculationUtilities;
-
-    auto& cl_parameters = this->GetConstitutiveLawParameters();
-    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
-
-    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, mKinematicViscosity);
-    mKinematicViscosity /= mDensity;
 
     const auto& r_geometry = this->GetGeometry();
 
@@ -153,6 +147,22 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
     mBlendedGamma = KOmegaSSTElementData::CalculateBlendedPhi(gamma_1, gamma_2, mF1);
 
     mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
+
+    double tke_old, omega_old;
+    FluidCalculationUtilities::EvaluateNonHistoricalInPoint(
+        this->GetGeometry(), rShapeFunctions,
+        std::tie(tke_old, TURBULENT_KINETIC_ENERGY),
+        std::tie(omega_old, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
+
+    const double f_2 = KOmegaSSTElementData::CalculateF2(tke_old, omega_old, mKinematicViscosity, mWallDistance, mBetaStar);
+
+    const BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient =
+        (mVelocityGradient + trans(mVelocityGradient)) * 0.5;
+
+    const double t = norm_frobenius(symmetric_velocity_gradient) * 1.414;
+
+    mTurbulentKinematicViscosity = KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(tke_old, omega_old, t, f_2, mA1);
+    mTurbulentKinematicViscosity = std::max(mTurbulentKinematicViscosity, 1e-12);
 
     mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mBlendedSigmaOmega;
 
