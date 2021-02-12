@@ -458,12 +458,6 @@ public:
                 BuiltinTimer solve;
                 // Compute particular solution
                 p_builder_and_solver->SystemSolve(rA, rDx, rb);
-
-                // Reconstruct slave DOF solution
-                if (master_slave_constraints_defined)
-                {
-                    p_builder_and_solver->ReconstructSlaveSolution(p_scheme, r_model_part, rA, rDx, rb);
-                }
                 KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "System solve time: " << solve.ElapsedSeconds() << std::endl;
 
                 // Mass orthonormalization
@@ -603,18 +597,11 @@ public:
                 // Compute particular solution
                 p_builder_and_solver->SystemSolve(rA, rDx, rb);
 
-                // Reconstruct slave DOF solution
-                if (master_slave_constraints_defined)
-                {
-                    p_builder_and_solver->ReconstructSlaveSolution(p_scheme, r_model_part, rA, rDx, rb);
-                }
-
                 // Compute and add null space solution
                 this->ComputeAndAddNullSpaceSolution(rDx, basis);
                 
                 // Remove dynamic derivative constraint
                 this->RemoveDynamicDerivativeConstraint();
-
                 KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "System solve time: " << time_solve.ElapsedSeconds() << std::endl;
 
                 // Mass orthonormalization
