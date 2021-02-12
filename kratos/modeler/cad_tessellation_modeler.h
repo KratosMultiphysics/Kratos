@@ -18,6 +18,10 @@
 
 // Project includes
 #include "modeler.h"
+#include "utilities/nurbs_curve_tessellation.h"
+// #include "containers/pointer_vector.h"
+#include "geometries/brep_curve_on_surface.h"
+// #include "geometries/nurbs_curve_on_surface_geometry.h"
 
 namespace Kratos {
 

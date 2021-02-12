@@ -77,7 +77,7 @@ public:
     ///@{
 
     /// constructor for untrimmed surface
-    BrepCurveOnSurface( 
+    BrepCurveOnSurface(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
         bool SameCurveDirection = true)
@@ -220,6 +220,16 @@ public:
     SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
     {
         return mpCurveOnSurface->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    NurbsInterval DomainInterval() const
+    {
+        return mpCurveOnSurface->DomainInterval();
+    }
+
+    std::vector<NurbsInterval> KnotSpanIntervals() const
+    {
+        return mpCurveOnSurface->KnotSpanIntervals();
     }
 
     ///@}
@@ -381,6 +391,16 @@ public:
         const CoordinatesArrayType& rCoordinates) const override
     {
         return mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
+    }
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::Kratos_Brep;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::Kratos_Brep_Curve;
     }
 
     ///@}
