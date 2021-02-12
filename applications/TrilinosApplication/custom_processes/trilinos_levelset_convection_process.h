@@ -81,16 +81,22 @@ public:
     TrilinosLevelSetConvectionProcess(
         Epetra_MpiComm& rEpetraCommunicator,
         Variable<double>& rLevelSetVar,
+        Variable< array_1d< double, 3 > >& rConvectVar,
         ModelPart& rBaseModelPart,
         LinearSolverPointerType pLinearSolver,
         const double MaxCFL = 1.0,
         const double CrossWindStabilizationFactor = 0.7,
-        const unsigned int MaxSubSteps = 0)
+        const unsigned int MaxSubSteps = 0,
+        const bool IsBFECC = false,
+        const bool PartialDt = false)
         : LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>(
             rLevelSetVar,
+            rConvectVar,
             rBaseModelPart,
             MaxCFL,
-            MaxSubSteps),
+            MaxSubSteps,
+            IsBFECC,
+            PartialDt),
         mrEpetraCommunicator(rEpetraCommunicator)
     {
         KRATOS_TRY
@@ -101,7 +107,7 @@ public:
 
         if (n_nodes > 0){
             VariableUtils().CheckVariableExists< Variable< double > >(rLevelSetVar, rBaseModelPart.Nodes());
-            VariableUtils().CheckVariableExists< Variable< array_1d < double, 3 > > >(VELOCITY, rBaseModelPart.Nodes());
+            VariableUtils().CheckVariableExists< Variable< array_1d < double, 3 > > >(rConvectVar, rBaseModelPart.Nodes());
         }
 
         n_nodes = rBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_nodes);
@@ -132,7 +138,7 @@ public:
             ConvectionDiffusionSettings::Pointer p_conv_diff_settings = Kratos::make_unique<ConvectionDiffusionSettings>();
             rBaseModelPart.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(rLevelSetVar);
-            p_conv_diff_settings->SetConvectionVariable(VELOCITY);
+            p_conv_diff_settings->SetConvectionVariable(rConvectVar);
         }
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
@@ -169,6 +175,26 @@ public:
 
         KRATOS_CATCH("")
     }
+
+    TrilinosLevelSetConvectionProcess(
+        Epetra_MpiComm& rEpetraCommunicator,
+        Variable<double>& rLevelSetVar,
+        ModelPart& rBaseModelPart,
+        LinearSolverPointerType pLinearSolver,
+        const double MaxCFL = 1.0,
+        const double CrossWindStabilizationFactor = 0.7,
+        const unsigned int MaxSubSteps = 0)
+        :   TrilinosLevelSetConvectionProcess(
+                rEpetraCommunicator,
+                rLevelSetVar,
+                VELOCITY,
+                rBaseModelPart,
+                pLinearSolver,
+                MaxCFL,
+                CrossWindStabilizationFactor,
+                MaxSubSteps,
+                false,
+                false) {}
 
     /// Destructor.
     ~TrilinosLevelSetConvectionProcess() override {}

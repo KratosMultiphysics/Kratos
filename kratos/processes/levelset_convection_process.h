@@ -91,20 +91,20 @@ public:
         Variable<double>& rLevelSetVar,
         Variable< array_1d< double, 3 > >& rConvectVar,
         ModelPart& rBaseModelPart,
-        typename TLinearSolver::Pointer plinear_solver,
-        const double max_cfl = 1.0,
-        const double cross_wind_stabilization_factor = 0.7,
-        const unsigned int max_substeps = 0,
-        const bool is_bfecc = false,
-        const bool partial_dt = false)
+        typename TLinearSolver::Pointer pLinearSolver,
+        const double MaxCFL = 1.0,
+        const double CrossWindStabilizationFactor = 0.7,
+        const unsigned int MaxSubsteps = 0,
+        const bool IsBFECC = false,
+        const bool PartialDt = false)
         : mrBaseModelPart(rBaseModelPart),
           mrModel(rBaseModelPart.GetModel()),
           mrLevelSetVar(rLevelSetVar),
           mrConvectVar(rConvectVar),
-          mMaxAllowedCFL(max_cfl),
-          mMaxSubsteps(max_substeps),
-          mIsBfecc(is_bfecc),
-          mPartialDt(partial_dt),
+          mMaxAllowedCFL(MaxCFL),
+          mMaxSubsteps(MaxSubsteps),
+          mIsBfecc(IsBFECC),
+          mPartialDt(PartialDt),
           mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")/* ,
           mProjectedGradientProcess(ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(
             rBaseModelPart,
@@ -123,7 +123,7 @@ public:
         KRATOS_ERROR_IF(n_elems == 0) << "The model has no elements." << std::endl;
 
         VariableUtils().CheckVariableExists< Variable< double > >(rLevelSetVar, rBaseModelPart.Nodes());
-        VariableUtils().CheckVariableExists< Variable< array_1d < double, 3 > > >(VELOCITY, rBaseModelPart.Nodes());
+        VariableUtils().CheckVariableExists< Variable< array_1d < double, 3 > > >(rConvectVar, rBaseModelPart.Nodes());
 
         if(TDim == 2){
             KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
@@ -158,7 +158,7 @@ public:
         bool ReformDofAtEachIteration = false;
         bool CalculateNormDxFlag = false;
 
-        BuilderSolverTypePointer pBuilderSolver = Kratos::make_shared< ResidualBasedBlockBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver > >(plinear_solver);
+        BuilderSolverTypePointer pBuilderSolver = Kratos::make_shared< ResidualBasedBlockBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver > >(pLinearSolver);
         mpSolvingStrategy = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
             *mpDistanceModelPart,
             pscheme,
@@ -169,7 +169,7 @@ public:
 
         mpSolvingStrategy->SetEchoLevel(0);
 
-        rBaseModelPart.GetProcessInfo().SetValue(CROSS_WIND_STABILIZATION_FACTOR, cross_wind_stabilization_factor);
+        rBaseModelPart.GetProcessInfo().SetValue(CROSS_WIND_STABILIZATION_FACTOR, CrossWindStabilizationFactor);
 
         //TODO: check flag DO_EXPENSIVE_CHECKS
         mpSolvingStrategy->Check();
@@ -181,18 +181,18 @@ public:
     LevelSetConvectionProcess(
         Variable<double>& rLevelSetVar,
         ModelPart& rBaseModelPart,
-        typename TLinearSolver::Pointer plinear_solver,
-        const double max_cfl = 1.0,
-        const double cross_wind_stabilization_factor = 0.7,
-        const unsigned int max_substeps = 0)
+        typename TLinearSolver::Pointer pLinearSolver,
+        const double MaxCFL = 1.0,
+        const double CrossWindStabilizationFactor = 0.7,
+        const unsigned int MaxSubsteps = 0)
         :   LevelSetConvectionProcess(
             rLevelSetVar,
             VELOCITY,
             rBaseModelPart,
-            plinear_solver,
-            max_cfl,
-            cross_wind_stabilization_factor,
-            max_substeps,
+            pLinearSolver,
+            MaxCFL,
+            CrossWindStabilizationFactor,
+            MaxSubsteps,
             false,
             false) {}
 
@@ -299,8 +299,8 @@ public:
         #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(VELOCITY) = mVelocity[i_node];
-            it_node->FastGetSolutionStepValue(VELOCITY,1) = (mVelocityOld[i_node] - (1.0 - dt_factor)*mVelocity[i_node])/dt_factor;
+            it_node->FastGetSolutionStepValue(mrConvectVar) = mVelocity[i_node];
+            it_node->FastGetSolutionStepValue(mrConvectVar,1) = (mVelocityOld[i_node] - (1.0 - dt_factor)*mVelocity[i_node])/dt_factor;
             it_node->FastGetSolutionStepValue(mrLevelSetVar,1) = mOldDistance[i_node];
         }
 
@@ -405,6 +405,34 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /// Constructor without linear solver for derived classes (withBFECC, splitting, and rConvectVar)
+    LevelSetConvectionProcess(
+        Variable<double>& rLevelSetVar,
+        Variable< array_1d< double, 3 > >& rConvectVar,
+        ModelPart& rBaseModelPart,
+        const double MaxCFL = 1.0,
+        const unsigned int MaxSubsteps = 0,
+        const bool IsBFECC = false,
+        const bool PartialDt = false)
+        : mrBaseModelPart(rBaseModelPart),
+          mrModel(rBaseModelPart.GetModel()),
+          mrLevelSetVar(rLevelSetVar),
+          mrConvectVar(rConvectVar),
+          mMaxAllowedCFL(MaxCFL),
+          mMaxSubsteps(MaxSubsteps),
+          mIsBfecc(IsBFECC),
+          mPartialDt(PartialDt),
+          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")/* ,
+          mProjectedGradientProcess(ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(
+            rBaseModelPart,
+            rLevelSetVar,
+            DISTANCE_GRADIENT,      // TODO: Should be set as an input
+            NODAL_AREA,             // TODO: Should be set as an input
+            false)) */
+    {
+        mDistancePartIsInitialized = false;
+    }
 
     /// Constructor without linear solver for derived classes (without BFECC, without splitting, and only for VELOCITY)
     LevelSetConvectionProcess(
