@@ -14,7 +14,7 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "applications/TopologyOptimizationApplication/examples/01_Small_Cantilever_Hexahedra/Small_Cantilever_Hex"
+            "input_filename" : "Small_Cantilever_Hex"
         },
         "material_import_settings"           : {
             "materials_filename" : "StructuralMaterials.json"

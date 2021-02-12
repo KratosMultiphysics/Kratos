@@ -14,11 +14,13 @@
 #define  KRATOS_SMALL_DISPLACEMENT_SIMP_ELEMENT_H_INCLUDED
 
 // Project includes
-#include <boost/numeric/ublas/storage.hpp> 
+///#include <boost/numeric/ublas/storage.hpp> 
 
-#include "includes/define.h"
 #include "structural_mechanics_application.h"
 #include "custom_elements/small_displacement.h"
+#include "includes/define.h"
+#include "custom_elements/base_solid_element.h"
+#include "includes/variables.h"
 
 
 namespace Kratos
@@ -62,6 +64,18 @@ public:
     ///Type for element variables
     ///typedef SmallDisplacement::ElementDataType ElementDataType;
 
+
+    /// hinugefügt am 10.02.
+    /// The base element type
+    typedef SmallDisplacement BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+    /// bis Hier!!!!!!!
+
     /// Counted pointer of SmallDisplacementSIMPElement
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementSIMPElement );
     
@@ -103,6 +117,12 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
+    Element::Pointer Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties
+    ) const override;
+
     /**
      * clones the selected element variables, creating a new one
      * @param NewId: the ID of the new element
@@ -118,14 +138,14 @@ public:
     // =============================================================================================================================================
 
     /// Function that gets the value on the Integration Point (For printing purposes in the output GiD)
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Function to calculate the sensitivities and the objective function
-    void Calculate(const Variable<double> &rVariable, double &rOutput, const ProcessInfo &rCurrentProcessInfo);
+    void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Function that overwrites the CalculateOnIntegrationPoints, to insert the X_PHYS into all Gauss Points of the given element
     /// That allows printing X_PHYS as elemental value in GiD
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     // =============================================================================================================================================
     // =============================================================================================================================================
@@ -161,6 +181,7 @@ protected:
     {
     }
 
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -193,7 +214,18 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    template<class TType>
+        void GetValueOnConstitutiveLaw(
+            const Variable<TType>& rVariable,
+            std::vector<TType>& rOutput
+            )
+        {
+            const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
 
+            for ( IndexType point_number = 0; point_number <integration_points.size(); ++point_number ) {
+                mConstitutiveLawVector[point_number]->GetValue( rVariable,rOutput[point_number]);
+            }
+        }
 
     ///@}
     ///@name Private  Access

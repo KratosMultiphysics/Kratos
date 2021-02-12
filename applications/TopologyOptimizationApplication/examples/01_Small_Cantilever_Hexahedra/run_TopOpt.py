@@ -9,7 +9,7 @@ import OptimizationParameters as opt_parameters
 from importlib import import_module
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
-parameter_file = open("/home/philipp/opt/kratosDev/applications/TopologyOptimizationApplication/examples/01_Small_Cantilever_Hexahedra/ProjectParameters.json",'r')
+parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = km.Parameters(parameter_file.read())
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
 model = km.Model()
