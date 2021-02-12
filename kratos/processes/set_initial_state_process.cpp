@@ -15,11 +15,9 @@
 
 // External includes
 
-#include "includes/model_part.h"
+// Project includes
 #include "includes/mat_variables.h"
 #include "utilities/parallel_utilities.h"
-
-// Project includes
 #include "processes/set_initial_state_process.h"
 
 namespace Kratos

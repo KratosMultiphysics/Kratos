@@ -15,14 +15,14 @@
 #define  KRATOS_INITIAL_STATE_H_INCLUDED
 
 // System includes
-#include <iostream>
-#include <string>
-#include "includes/define.h"
-#include "includes/variables.h"
+#include <atomic>
 
 // External includes
 
 // Project includes
+#include "includes/define.h"
+#include "includes/variables.h"
+
 
 namespace Kratos
 {

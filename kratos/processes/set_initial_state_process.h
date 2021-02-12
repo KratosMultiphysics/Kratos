@@ -17,6 +17,7 @@
 // System includes
 
 // External includes
+#include "includes/model_part.h"
 #include "processes/process.h"
 
 // Project includes
