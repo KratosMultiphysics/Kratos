@@ -175,6 +175,26 @@ class KRATOS_API(KRATOS_CORE) InitialState
         }
     //*********************************************
 
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InitialState );
+        rSerializer.save("InitialStrainVector",mInitialStrainVector);
+        rSerializer.save("InitialStressVector",mInitialStressVector);
+        rSerializer.save("InitialDeformationGradientMatrix",mInitialDeformationGradientMatrix);
+    }
+
+    void load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, InitialState );
+        rSerializer.load("InitialStrainVector",mInitialStrainVector);
+        rSerializer.load("InitialStressVector",mInitialStressVector);
+        rSerializer.load("InitialDeformationGradientMatrix",mInitialDeformationGradientMatrix);
+    }
+
+
 }; // class
 ///@}
 
