@@ -1,0 +1,70 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Solid_Volume",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElastic3DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 7850.0,
+                "YOUNG_MODULUS" : 100.0,
+                "POISSON_RATIO" : 0.3
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Shell_Shell",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 7850.0,
+                "YOUNG_MODULUS" : 10000000.0,
+                "POISSON_RATIO" : 0.3,
+                "THICKNESS"     : 0.001
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Beam_Beam",
+        "properties_id"   : 3,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "BeamConstitutiveLaw"
+            },
+            "Variables"        : {
+                "DENSITY"           : 7850.0,
+                "YOUNG_MODULUS"     : 100.0,
+                "POISSON_RATIO"     : 0.3,
+                "CROSS_AREA"        : 2.5,
+                "TORSIONAL_INERTIA" : 1.5,
+                "I22"               : 0.75,
+                "I33"               : 0.75
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Truss_Truss",
+        "properties_id"   : 4,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "TrussConstitutiveLaw"
+            },
+            "Variables"        : {
+                "DENSITY"             : 7850.0,
+                "YOUNG_MODULUS"       : 10000000.0,
+                "POISSON_RATIO"       : 0.3,
+                "THICKNESS"           : 0.01,
+                "CROSS_AREA"          : 2.5,
+                "TORSIONAL_INERTIA"   : 1.5,
+                "I22"                 : 0.75,
+                "I33"                 : 0.75,
+                "TRUSS_PRESTRESS_PK2" : 1000.0
+            },
+            "Tables"           : {}
+        }
+    }]
+}
