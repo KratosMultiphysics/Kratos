@@ -46,7 +46,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
         ///@{
         typedef std::size_t SizeType;
 
-        enum class InitialImposingType {StrainOnly = 0, StressOnly = 1, DeformationGradientOnly = 2, StrainAndStress = 3, DeformationGradientAndStress = 4};
+        enum class InitialImposingType {STRAIN_ONLY = 0, STRESS_ONLY = 1, DEFORMATION_GRADIENT_ONLY = 2, STRAIN_AND_STRESS = 3, DEFORMATION_GRADIENT_AND_STRESS = 4};
 
         /// Pointer definition of NodeSearchUtility
         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(InitialState);
