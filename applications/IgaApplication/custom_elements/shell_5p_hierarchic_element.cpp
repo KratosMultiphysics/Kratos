@@ -102,7 +102,6 @@ namespace Kratos
         CalculateMetric(actual_metric);
         CalculateShearDifferenceVector(w, Dw_D1, Dw_D2, w_alpha, Dw_alpha_Dbeta, actual_metric);
 
-        double dV = 0.0;
         array_1d<double, 3> G1, G2, G1xG2;
         double thickness = GetProperties().GetValue(THICKNESS);
 
@@ -114,7 +113,7 @@ namespace Kratos
             // Differential Volume
             array_1d<double, 3> G1(3, 0.0), G2(3, 0.0), G1_con(3, 0.0), G2_con(3, 0.0);
             CalculateInitialBaseVectorsLinearised(G1, G2, G1_con, G2_con);
-            dV = inner_prod(MathUtils<double>::CrossProduct(G1, G2), mInitialMetric.a3_kirchhoff_love);   // mInitialMetric.a3_kirchhoff_love = G3
+            double dV = inner_prod(MathUtils<double>::CrossProduct(G1, G2), mInitialMetric.a3_kirchhoff_love);   // mInitialMetric.a3_kirchhoff_love = G3
 
             // Transformation Matrix
             CalculateTransformationMatrixInitialTransConToCar(G1_con, G2_con);
@@ -344,15 +343,14 @@ namespace Kratos
         const Matrix& r_N = r_geometry.ShapeFunctionsValues();
         const Matrix& r_DN_De = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
         const SizeType number_of_control_points = r_geometry.size();
-        double w_1, w_2;
 
         for (IndexType i = 0; i < number_of_control_points; ++i) 
         {
             // only ROTATION_X and ROTATION_Y used preliminarily, to avoid new declarations
             // ROTATION_X = w_1 (first component of hierarchic shear difference vector)
             // ROTATION_Y = w_2 (second component of hierarchic shear difference vector)
-            w_1 = r_geometry[i].GetDof(ROTATION_X).GetSolutionStepValue();
-            w_2 = r_geometry[i].GetDof(ROTATION_Y).GetSolutionStepValue();
+            double w_1 = r_geometry[i].GetDof(ROTATION_X).GetSolutionStepValue();
+            double w_2 = r_geometry[i].GetDof(ROTATION_Y).GetSolutionStepValue();
             rDw_alpha_Dbeta(0, 0) += r_DN_De(i, 0) * w_1;
             rDw_alpha_Dbeta(0, 1) += r_DN_De(i, 1) * w_1;
             rDw_alpha_Dbeta(1, 0) += r_DN_De(i, 0) * w_2;
@@ -1150,9 +1148,10 @@ namespace Kratos
         }   // loop GP_thickness
     
         // Cauchy stress at midspan
+        /*
         array_1d<double, 5> stress_cau_cart_mid;
         stress_cau_cart_mid = (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness-1] + stress_cau_cart[0]) / 2.0;
-        /*
+        
         if (rVariable == STRESS_CAUCHY_TOP_11){
             rValues = stress_cau_cart_mid[0] + (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness-1][0] 
                 - stress_cau_cart_mid[0]) / mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness-1);
