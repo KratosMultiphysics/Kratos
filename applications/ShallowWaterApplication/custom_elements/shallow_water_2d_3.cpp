@@ -283,7 +283,7 @@ void ShallowWater2D3::AddSourceTerms(
 
     // Friction term
     rLHS += rData.gravity * rData.pBottomFriction->CalculateLHS(rData.height, rData.velocity) * flow_mass_matrix;
-    rLHS -= rData.gravity * rData.pSurfaceFriction->CalculateLHS(rData.velocity, rData.wind) * flow_mass_matrix;
+    rLHS -= rData.gravity * rData.pSurfaceFriction->CalculateLHS(ZeroVector(3), rData.wind) * flow_mass_matrix;
 
     // Rain and mesh acceleration
     const double lumping_factor = 1.0 / 3.0;
