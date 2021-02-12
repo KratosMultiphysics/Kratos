@@ -15,6 +15,9 @@
 
 // External includes
 
+#include "includes/model_part.h"
+#include "includes/mat_variables.h"
+
 // Project includes
 #include "processes/set_initial_state_process.h"
 
@@ -132,27 +135,24 @@ namespace Kratos
         InitialState::Pointer p_initial_state = Kratos::make_intrusive<InitialState>
             (aux_initial_strain, aux_initial_stress, aux_initial_F);
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
-            auto it_elem = it_elem_begin + i;
-
+        block_for_each(mrModelPart.Elements(), [&](Element& r_element){
             // If the values are set element-wise have priority
             bool requires_unique_initial_state = false;
-            if (it_elem->GetGeometry().Has(INITIAL_STRAIN_VECTOR)) {
-                noalias(aux_initial_strain) = (it_elem->GetGeometry()).GetValue(INITIAL_STRAIN_VECTOR);
+            if (r_element.GetGeometry().Has(INITIAL_STRAIN_VECTOR)) {
+                noalias(aux_initial_strain) = (r_element.GetGeometry()).GetValue(INITIAL_STRAIN_VECTOR);
                 requires_unique_initial_state = true;
             }
-            if (it_elem->GetGeometry().Has(INITIAL_STRESS_VECTOR)) {
-                noalias(aux_initial_stress) = (it_elem->GetGeometry()).GetValue(INITIAL_STRESS_VECTOR);
+            if (r_element.GetGeometry().Has(INITIAL_STRESS_VECTOR)) {
+                noalias(aux_initial_stress) = (r_element.GetGeometry()).GetValue(INITIAL_STRESS_VECTOR);
                 requires_unique_initial_state = true;
             }
-            if (it_elem->GetGeometry().Has(INITIAL_DEFORMATION_GRADIENT_MATRIX)) {
-                noalias(aux_initial_F) = (it_elem->GetGeometry()).GetValue(INITIAL_DEFORMATION_GRADIENT_MATRIX);
+            if (r_element.GetGeometry().Has(INITIAL_DEFORMATION_GRADIENT_MATRIX)) {
+                noalias(aux_initial_F) = (r_element.GetGeometry()).GetValue(INITIAL_DEFORMATION_GRADIENT_MATRIX);
                 requires_unique_initial_state = true;
             }
 
             std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;
-            it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, mrModelPart.GetProcessInfo());
+            r_element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, mrModelPart.GetProcessInfo());
 
             if (requires_unique_initial_state) {
                 InitialState::Pointer p_initial_state_custom = Kratos::make_intrusive<InitialState>(aux_initial_strain, aux_initial_stress, aux_initial_F);
@@ -164,7 +164,41 @@ namespace Kratos
                     constitutive_law_vector[point_number]->SetInitialState(p_initial_state);
                 }
             }
-        }
+        });
+
+        // #pragma omp parallel for
+        // for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
+        //     auto it_elem = it_elem_begin + i;
+
+        //     // If the values are set element-wise have priority
+        //     bool requires_unique_initial_state = false;
+        //     if (it_elem->GetGeometry().Has(INITIAL_STRAIN_VECTOR)) {
+        //         noalias(aux_initial_strain) = (it_elem->GetGeometry()).GetValue(INITIAL_STRAIN_VECTOR);
+        //         requires_unique_initial_state = true;
+        //     }
+        //     if (it_elem->GetGeometry().Has(INITIAL_STRESS_VECTOR)) {
+        //         noalias(aux_initial_stress) = (it_elem->GetGeometry()).GetValue(INITIAL_STRESS_VECTOR);
+        //         requires_unique_initial_state = true;
+        //     }
+        //     if (it_elem->GetGeometry().Has(INITIAL_DEFORMATION_GRADIENT_MATRIX)) {
+        //         noalias(aux_initial_F) = (it_elem->GetGeometry()).GetValue(INITIAL_DEFORMATION_GRADIENT_MATRIX);
+        //         requires_unique_initial_state = true;
+        //     }
+
+        //     std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;
+        //     it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, mrModelPart.GetProcessInfo());
+
+        //     if (requires_unique_initial_state) {
+        //         InitialState::Pointer p_initial_state_custom = Kratos::make_intrusive<InitialState>(aux_initial_strain, aux_initial_stress, aux_initial_F);
+        //         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+        //             constitutive_law_vector[point_number]->SetInitialState(p_initial_state_custom);
+        //         }
+        //     } else {
+        //         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+        //             constitutive_law_vector[point_number]->SetInitialState(p_initial_state);
+        //         }
+        //     }
+        // }
         KRATOS_CATCH("")
     }
 

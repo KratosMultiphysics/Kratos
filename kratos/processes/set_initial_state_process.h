@@ -17,14 +17,9 @@
 // System includes
 
 // External includes
+#include "processes/process.h"
 
 // Project includes
-
-#include "processes/process.h"
-#include "includes/element.h"
-#include "includes/model_part.h"
-#include "includes/initial_state.h"
-#include "includes/mat_variables.h"
 
 namespace Kratos
 {
