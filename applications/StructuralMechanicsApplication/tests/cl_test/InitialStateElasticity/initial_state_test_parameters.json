@@ -14,10 +14,10 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "cl_test/InitialStateElasticity/serial_parallel_damage_test"
+            "input_filename" : "cl_test/InitialStateElasticity/initial_state_test"
         },
         "material_import_settings"           : {
-            "materials_filename" : "cl_test/InitialStateElasticity/serial_parallel_damage_test_materials.json"
+            "materials_filename" : "cl_test/InitialStateElasticity/initial_state_test_materials.json"
         },
         "time_stepping"                      : {
             "time_step" : 1.1
@@ -51,8 +51,8 @@
             "Parameters"    : {
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
-                "constrained"     : [false,false,true],
-                "value"           : [null,null,0.0],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
                 "interval"        : [0.0,"End"]
             }
         }],
@@ -65,7 +65,7 @@
             "model_part_name" : "Structure",
             "dimension"       : 2,
             "imposed_strain"  : [0.1,0,0,0,0,0],
-            "imposed_stress"  : [0,0,0,0,0,0],
+            "imposed_stress"  : [0,0,0,0,0,10000],
             "imposed_deformation_gradient"  : [[1,0],[0,1]],
             "interval"        : [0.0, 1e30]
             }
