@@ -204,10 +204,7 @@ public:
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX)
-            return true;
-
-        return false;
+        return Index == SURFACE_INDEX;
     }
 
     ///@}
