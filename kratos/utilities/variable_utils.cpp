@@ -56,14 +56,12 @@ array_1d<double, 3> VariableUtils::SumNonHistoricalNodeVectorVariable(
 {
     KRATOS_TRY
 
-    using ReductionType = typename std::conditional< std::is_scalar<array_1d<double, 3>>::value , SumReduction<double> , Array3Reduction >::type;
-
     array_1d<double, 3> sum_value = ZeroVector(3);
     auto& r_comm = rModelPart.GetCommunicator();
 
-    sum_value = block_for_each<ReductionType>(r_comm.LocalMesh().Nodes(),[&](Node<3>& rNode){
-            return rNode.GetValue(rVar);
-        });
+    sum_value = block_for_each<SumReduction<array_1d<double,3>>>(r_comm.LocalMesh().Nodes(),[&](Node<3>& rNode){
+        return rNode.GetValue(rVar);
+    });
 
     return r_comm.GetDataCommunicator().SumAll(sum_value);
 
@@ -80,14 +78,12 @@ array_1d<double, 3> VariableUtils::SumConditionVectorVariable(
 {
     KRATOS_TRY
 
-    using ReductionType = typename std::conditional< std::is_scalar<array_1d<double, 3>>::value , SumReduction<double> , Array3Reduction >::type;
-
     array_1d<double, 3> sum_value = ZeroVector(3);
     auto& r_comm = rModelPart.GetCommunicator();
 
-    sum_value = block_for_each<ReductionType>(r_comm.LocalMesh().Conditions(),[&](ConditionType& rCond){
-            return rCond.GetValue(rVar);
-        });
+    sum_value = block_for_each<SumReduction<array_1d<double,3>>>(r_comm.LocalMesh().Conditions(),[&](ConditionType& rCond){
+        return rCond.GetValue(rVar);
+    });
 
     return r_comm.GetDataCommunicator().SumAll(sum_value);
 
@@ -104,14 +100,12 @@ array_1d<double, 3> VariableUtils::SumElementVectorVariable(
 {
     KRATOS_TRY
 
-    using ReductionType = typename std::conditional< std::is_scalar<array_1d<double, 3>>::value , SumReduction<double> , Array3Reduction >::type;
-
     array_1d<double, 3> sum_value = ZeroVector(3);
     auto& r_comm = rModelPart.GetCommunicator();
 
-    sum_value = block_for_each<ReductionType>(r_comm.LocalMesh().Elements(),[&](ElementType& rElem){
-            return rElem.GetValue(rVar);
-        });
+    sum_value = block_for_each<SumReduction<array_1d<double, 3>>>(r_comm.LocalMesh().Elements(),[&](ElementType& rElem){
+        return rElem.GetValue(rVar);
+    });
 
     return r_comm.GetDataCommunicator().SumAll(sum_value);
 

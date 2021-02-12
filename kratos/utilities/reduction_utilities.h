@@ -33,6 +33,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/global_variables.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -63,6 +64,7 @@ public:
     {
         #pragma omp atomic
         mvalue += rOther.mvalue;
+        //AtomicAdd(mvalue, rOther.mvalue);
     }
 };
 
