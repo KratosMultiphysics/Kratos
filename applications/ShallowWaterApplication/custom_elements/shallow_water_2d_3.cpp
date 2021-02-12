@@ -400,19 +400,14 @@ void ShallowWater2D3::ComputeMassMatrix(
     const array_1d<double,3>& rN,
     const BoundedMatrix<double,3,2>& rDN_DX)
 {
+    // The scaling factors
     const double mu_q = 1.0;
     const double mu_h = 1.0;
-    const double lumping_factor = 1.0 / 3.0 * 0.0; //TODO: definitively remove the lumped mass matrix
-    for (size_t i = 0; i < 3; ++i)
-    {
-        const size_t block = 3 * i;
-        rMatrix(block, block) += lumping_factor * mu_q;
-        rMatrix(block+1, block+1) += lumping_factor * mu_q;
-        rMatrix(block+2, block+2) += lumping_factor * mu_h;
-    }
 
-    const double cmm = 1.0;
+    // Algebraic factor
     const double one_twelve = 1.0 / 12.0;
+
+    // Stabilization parameters
     using std::pow;
     const double c2 = rData.gravity * rData.height; // c=sqrt(gh)
     const double u_1 = rData.velocity[0];
@@ -427,31 +422,31 @@ void ShallowWater2D3::ComputeMassMatrix(
 
             // Algebraic mass matrix
             const double n = (i == j)? 2*one_twelve : one_twelve;
-            rMatrix(i_block,     j_block)     += cmm * mu_q * n;
-            rMatrix(i_block + 1, j_block + 1) += cmm * mu_q * n;
-            rMatrix(i_block + 2, j_block + 2) += cmm * mu_h * n;
+            rMatrix(i_block,     j_block)     += mu_q * n;
+            rMatrix(i_block + 1, j_block + 1) += mu_q * n;
+            rMatrix(i_block + 2, j_block + 2) += mu_h * n;
 
             /* Stabilization x
              * A1*M
              */
             const double s1_ij = rN[i] * rDN_DX(j,0);
-            rMatrix(i_block,     j_block)     += l * cmm * mu_q * s1_ij * 2*u_1;
-            rMatrix(i_block,     j_block + 2) += l * cmm * mu_h * s1_ij * (-pow(u_1,2) + c2);
-            rMatrix(i_block + 1, j_block)     += l * cmm * mu_q * s1_ij * u_2;
-            rMatrix(i_block + 1, j_block + 1) += l * cmm * mu_q * s1_ij * u_1;
-            rMatrix(i_block + 1, j_block + 2) -= l * cmm * mu_h * s1_ij * u_1*u_2;
-            rMatrix(i_block + 2, j_block)     += l * cmm * mu_q * s1_ij;
+            rMatrix(i_block,     j_block)     += l * mu_q * s1_ij * 2*u_1;
+            rMatrix(i_block,     j_block + 2) += l * mu_h * s1_ij * (-pow(u_1,2) + c2);
+            rMatrix(i_block + 1, j_block)     += l * mu_q * s1_ij * u_2;
+            rMatrix(i_block + 1, j_block + 1) += l * mu_q * s1_ij * u_1;
+            rMatrix(i_block + 1, j_block + 2) -= l * mu_h * s1_ij * u_1*u_2;
+            rMatrix(i_block + 2, j_block)     += l * mu_q * s1_ij;
 
              /* Stabilization y
               * A2*M
               */
             const double s2_ij = rN[i] * rDN_DX(j,1);
-            rMatrix(i_block,     j_block)     += l * cmm * mu_q * s2_ij * u_2;
-            rMatrix(i_block,     j_block + 1) += l * cmm * mu_q * s2_ij * u_1;
-            rMatrix(i_block,     j_block + 2) -= l * cmm * mu_h * s2_ij * u_1*u_2;
-            rMatrix(i_block + 1, j_block + 1) += l * cmm * mu_q * s2_ij * 2*u_2;
-            rMatrix(i_block + 1, j_block + 2) += l * cmm * mu_h * s2_ij * (-pow(u_2,2) + c2);
-            rMatrix(i_block + 2, j_block + 1) += l * cmm * mu_q * s2_ij;
+            rMatrix(i_block,     j_block)     += l * mu_q * s2_ij * u_2;
+            rMatrix(i_block,     j_block + 1) += l * mu_q * s2_ij * u_1;
+            rMatrix(i_block,     j_block + 2) -= l * mu_h * s2_ij * u_1*u_2;
+            rMatrix(i_block + 1, j_block + 1) += l * mu_q * s2_ij * 2*u_2;
+            rMatrix(i_block + 1, j_block + 2) += l * mu_h * s2_ij * (-pow(u_2,2) + c2);
+            rMatrix(i_block + 2, j_block + 1) += l * mu_q * s2_ij;
         }
     }
 }
@@ -463,15 +458,62 @@ void ShallowWater2D3::ComputeMassMatrix(
     const array_1d<double,3>& rN,
     const BoundedMatrix<double,3,2>& rDN_DX)
 {
+    // The scaling factors
+    const double mu_q = 1.0;
+    const double mu_h = 1.0;
+
+    // Algebraic factor
     const double lumping_factor = 1.0 / 3.0;
     for (size_t i = 0; i < 3; ++i)
     {
         const size_t block = 3 * i;
-        rFlowMatrix(block, block) += lumping_factor;
-        rFlowMatrix(block+1, block+1) += lumping_factor;
-        rHeightMatrix(block+2, block+2) += lumping_factor;
+        rFlowMatrix(block, block) += mu_q * lumping_factor;
+        rFlowMatrix(block+1, block+1) += mu_q * lumping_factor;
+        rHeightMatrix(block+2, block+2) += mu_h * lumping_factor;
+    }
 
-        // TODO: add consistent mass matrix with stabilization
+    // Stabilization parameters. NOTE: This stabilization term is not integrated by parts!!
+    using std::pow;
+    const double c2 = rData.gravity * rData.height; // c=sqrt(gh)
+    const double u_1 = rData.velocity[0];
+    const double u_2 = rData.velocity[1];
+    const double l = StabilizationParameter(rData);
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const size_t i_block = 3 * i;
+        for (size_t j = 0; j < 3; ++j)
+        {
+            const size_t j_block = 3 * j;
+
+            /**
+             * Note: In the source terms the consistent mass matrix
+             * is skiped in favour of the lumped mass matrix.
+             * It accelerates the convergence rate. The stabilization
+             * terms are included to guarantee consistency
+             */
+
+            /* Stabilization x
+             * A1*M
+             */
+            const double s1_ij = rN[j] * rDN_DX(i,0);
+            rFlowMatrix  (i_block,     j_block)     += l * mu_q * s1_ij * 2*u_1;
+            rHeightMatrix(i_block,     j_block + 2) += l * mu_h * s1_ij * (-pow(u_1,2) + c2);
+            rFlowMatrix  (i_block + 1, j_block)     += l * mu_q * s1_ij * u_2;
+            rFlowMatrix  (i_block + 1, j_block + 1) += l * mu_q * s1_ij * u_1;
+            rHeightMatrix(i_block + 1, j_block + 2) -= l * mu_h * s1_ij * u_1*u_2;
+            rFlowMatrix  (i_block + 2, j_block)     += l * mu_q * s1_ij;
+
+             /* Stabilization y
+              * A2*M
+              */
+            const double s2_ij = rN[j] * rDN_DX(i,1);
+            rFlowMatrix  (i_block,     j_block)     += l * mu_q * s2_ij * u_2;
+            rFlowMatrix  (i_block,     j_block + 1) += l * mu_q * s2_ij * u_1;
+            rHeightMatrix(i_block,     j_block + 2) -= l * mu_h * s2_ij * u_1*u_2;
+            rFlowMatrix  (i_block + 1, j_block + 1) += l * mu_q * s2_ij * 2*u_2;
+            rHeightMatrix(i_block + 1, j_block + 2) += l * mu_h * s2_ij * (-pow(u_2,2) + c2);
+            rFlowMatrix  (i_block + 2, j_block + 1) += l * mu_q * s2_ij;
+        }
     }
 }
 
