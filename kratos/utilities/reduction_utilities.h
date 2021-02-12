@@ -24,7 +24,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/lock_object.h"
 #include "utilities/atomic_utilities.h"
 
 namespace Kratos
@@ -110,10 +109,8 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MaxReduction<TDataType>& rOther)
     {
-        LockObject lock;
-        lock.SetLock();
+        #pragma omp critical
         mValue = std::max(mValue,rOther.mValue);
-        lock.UnSetLock();
     }
 };
 
@@ -141,10 +138,8 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MinReduction<TDataType>& rOther)
     {
-        LockObject lock;
-        lock.SetLock();
+        #pragma omp critical
         mValue = std::min(mValue,rOther.mValue);
-        lock.UnSetLock();
     }
 };
 
