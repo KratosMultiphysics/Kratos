@@ -994,7 +994,8 @@ private:
 
         Vector adjoint2_aux, adjoint3_aux;
         auto aux_TLS = std::make_pair(adjoint2_aux, adjoint3_aux);
-        block_for_each(rEntityContainer, aux_TLS, [&, this](typename TEntityContainerType::value_type& rEntity, std::pair<Vector,Vector>& rAdjointTLS){
+        using tls_type = std::tuple<Vector, Vector>;
+        block_for_each(rEntityContainer, tls_type(), [&, this](typename TEntityContainerType::value_type& rEntity, tls_type& rAdjointTLS){
             auto& r_adjoint2_aux = std::get<0>(rAdjointTLS);
             auto& r_adjoint3_aux = std::get<1>(rAdjointTLS);
 
