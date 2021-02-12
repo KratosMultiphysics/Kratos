@@ -72,6 +72,8 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Initialize(const Process
 
         mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, r_normal);
 
+        this->SetValue(GAUSS_RANS_Y_PLUS, Vector(2));
+
         KRATOS_ERROR_IF(mWallHeight == 0.0) << this->Info() << " has zero wall height.\n";
     }
 
@@ -323,12 +325,11 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 
         // get parent element
         auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
-        auto p_constitutive_law = r_parent_element.GetValue(CONSTITUTIVE_LAW);
 
         // get fluid properties from parent element
         const auto& r_elem_properties = r_parent_element.GetProperties();
         const double rho = r_elem_properties[DENSITY];
-        ConstitutiveLaw::Parameters cl_parameters(r_geometry, r_elem_properties, rCurrentProcessInfo);
+        const double nu = r_elem_properties[DYNAMIC_VISCOSITY] / rho;
 
         // get surface properties from condition
         const PropertiesType& r_cond_properties = this->GetProperties();
@@ -336,18 +337,14 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
         const double y_plus_limit = r_cond_properties.GetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT);
         const double inv_kappa = 1.0 / kappa;
 
-        double condition_y_plus{0.0};
-        array_1d<double, 3> condition_u_tau = ZeroVector(3);
-
-        double tke, nu;
+        double tke;
         array_1d<double, 3> wall_velocity;
+
+        auto& gauss_y_plus = this->GetValue(GAUSS_RANS_Y_PLUS);
 
         for (size_t g = 0; g < num_gauss_points; ++g) {
             const Vector& gauss_shape_functions = row(shape_functions, g);
-
-            cl_parameters.SetShapeFunctionsValues(gauss_shape_functions);
-            p_constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
-            nu /= rho;
+            double& y_plus = gauss_y_plus[g];
 
             FluidCalculationUtilities::EvaluateInPoint(
                 r_geometry, gauss_shape_functions,
@@ -356,19 +353,15 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 
             const double wall_velocity_magnitude = norm_2(wall_velocity);
 
-            double y_plus{0.0}, u_tau{0.0};
+            double u_tau{0.0};
             CalculateYPlusAndUtau(y_plus, u_tau, wall_velocity_magnitude,
                                   mWallHeight, nu, kappa, beta);
             y_plus = std::max(y_plus, y_plus_limit);
-
-            condition_y_plus += y_plus;
 
             if (wall_velocity_magnitude > eps) {
                 const double u_tau = SoftMax(
                     c_mu_25 * std::sqrt(std::max(tke, 0.0)),
                     wall_velocity_magnitude / (inv_kappa * std::log(y_plus) + beta));
-
-                noalias(condition_u_tau) += wall_velocity * u_tau / wall_velocity_magnitude;
 
                 const double value = rho * std::pow(u_tau, 2) *
                                      gauss_weights[g] / wall_velocity_magnitude;
@@ -385,14 +378,15 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
                 }
             }
         }
-
-        const double inv_number_of_gauss_points =
-            static_cast<double>(1.0 / num_gauss_points);
-        this->SetValue(RANS_Y_PLUS, condition_y_plus * inv_number_of_gauss_points);
-        this->SetValue(FRICTION_VELOCITY, condition_u_tau * inv_number_of_gauss_points);
     }
 
     KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+GeometryData::IntegrationMethod VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::GetIntegrationMethod()
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
