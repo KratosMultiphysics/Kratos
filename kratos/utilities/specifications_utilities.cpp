@@ -1057,7 +1057,7 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
 
         // Getting CL vectors
         cl_vector.clear();
-        it_elem_begin->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW, cl_vector, r_process_info);
+        it_elem_begin->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, cl_vector, r_process_info);
 
         specifications = it_elem_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
