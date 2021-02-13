@@ -592,8 +592,8 @@ void ShallowWater2D3::ComputeGradientMatrix(
             rMatrix(i_block + 1, j_block + 1) += l * d_ij * 2*u_1*u_2;
             rMatrix(i_block + 1, j_block + 2) += l * d_ij * (-2*u_1*pow(u_2,2) + u_1*c2);
             rMatrix(i_block + 2, j_block)     += l * d_ij * u_2;
-            rMatrix(i_block + 2, j_block)     += l * d_ij * u_1;
-            rMatrix(i_block + 2, j_block)     += -l * d_ij * u_1*u_2;
+            rMatrix(i_block + 2, j_block + 1) += l * d_ij * u_1;
+            rMatrix(i_block + 2, j_block + 2) += -l * d_ij * u_1*u_2;
 
             /* Stabilization y-x
              * A2*A1
@@ -606,8 +606,8 @@ void ShallowWater2D3::ComputeGradientMatrix(
             rMatrix(i_block + 1, j_block + 1) += l * d_ij * 2*u_1*u_2;
             rMatrix(i_block + 1, j_block + 2) += -l * d_ij * 2*u_1*pow(u_2,2);
             rMatrix(i_block + 2, j_block)     += l * d_ij * u_2;
-            rMatrix(i_block + 2, j_block)     += l * d_ij * u_1;
-            rMatrix(i_block + 2, j_block)     += -l * d_ij * u_1*u_2;
+            rMatrix(i_block + 2, j_block + 1) += l * d_ij * u_1;
+            rMatrix(i_block + 2, j_block + 2) += -l * d_ij * u_1*u_2;
         }
     }
 }
