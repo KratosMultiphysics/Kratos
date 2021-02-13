@@ -74,6 +74,8 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Initialize(const Process
 
         this->SetValue(GAUSS_RANS_Y_PLUS, Vector(2));
 
+        this->SetValue(DISTANCE, mWallHeight);
+
         KRATOS_ERROR_IF(mWallHeight == 0.0) << this->Info() << " has zero wall height.\n";
     }
 
