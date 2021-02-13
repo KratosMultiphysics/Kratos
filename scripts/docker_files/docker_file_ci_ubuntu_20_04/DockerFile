@@ -1,7 +1,7 @@
 FROM ubuntu:focal
 
 ENV HOME /root
-ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/external_libraries/mmg/mmg_5_4_1/lib:/external_libraries/mmg/mmg_5_5_1/lib:/external_libraries/ParMmg_4d272bb/lib
+ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/external_libraries/mmg/mmg_5_4_1/lib:/external_libraries/mmg/mmg_5_5_1/lib:/external_libraries/ParMmg_5ffc6ad/lib
 
 RUN apt-get update -y && apt-get upgrade -y && \
     apt-get -y install \
@@ -22,11 +22,9 @@ RUN apt-get update -y && apt-get upgrade -y && \
         gfortran-7 \
         git \
         intel-mkl-2020.0-088 \
-        libblas-dev \
         libboost-dev \
         libhdf5-dev \
         libhdf5-openmpi-dev \
-        liblapack-dev \
         libmetis-dev \
         libopenmpi-dev \
         libscotch-dev \
@@ -71,14 +69,14 @@ RUN apt-get update -y && apt-get upgrade -y && \
     make install && \
     cd / && \
     # install PARMMG
-    git clone https://github.com/MmgTools/ParMmg /tmp/ParMmg_4d272bb && \
-    mkdir /tmp/ParMmg_4d272bb/build && \
-    mkdir -p /external_libraries/ParMmg_4d272bb && \
-    cd /tmp/ParMmg_4d272bb/build && git checkout 4d272bb3d1a51d839a5fdfaa3eef93f340cafda3 && \
-    cmake .. -DCMAKE_INSTALL_PREFIX="/external_libraries/ParMmg_4d272bb" -DUSE_SCOTCH=OFF -DLIBPARMMG_SHARED=ON -DDOWNLOAD_MMG=OFF -DMMG_DIR="/tmp/mmg_5_5_1" -DMMG_BUILDDIR="/tmp/mmg_5_5_1/build" -DDOWNLOAD_METIS=OFF -DMETIS_DIR="/usr/include" && \
+    git clone https://github.com/MmgTools/ParMmg /tmp/ParMmg_5ffc6ad && \
+    mkdir /tmp/ParMmg_5ffc6ad/build && \
+    mkdir -p /external_libraries/ParMmg_5ffc6ad && \
+    cd /tmp/ParMmg_5ffc6ad/build && git checkout 5ffc6ada4afb1af50a43e1fa6f4c409cff2ea25c && \
+    cmake .. -DCMAKE_INSTALL_PREFIX="/external_libraries/ParMmg_5ffc6ad" -DUSE_SCOTCH=OFF -DLIBPARMMG_SHARED=ON -DDOWNLOAD_MMG=OFF -DMMG_DIR="/tmp/mmg_5_5_1" -DMMG_BUILDDIR="/tmp/mmg_5_5_1/build" -DDOWNLOAD_METIS=OFF -DMETIS_DIR="/usr/include" && \
     make install && \
     rm -r /tmp/mmg_5_5_1 && \
-    rm -r /tmp/ParMmg_4d272bb && \
+    rm -r /tmp/ParMmg_5ffc6ad && \
     cd / && \
     # remove some now unnecessary packages
     apt-get -y remove \

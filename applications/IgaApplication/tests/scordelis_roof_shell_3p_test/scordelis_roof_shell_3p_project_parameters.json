@@ -115,6 +115,7 @@
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
                 "check_variables": ["DISPLACEMENT"],
+	            "gauss_points_check_variables" : [],
                 "input_file_name": "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p_result.json",
                 "model_part_name": "IgaModelPart.StructuralAnalysis",
                 "time_frequency": 0.0

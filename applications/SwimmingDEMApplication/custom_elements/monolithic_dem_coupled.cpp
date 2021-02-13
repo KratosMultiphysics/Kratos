@@ -12,9 +12,7 @@ namespace Kratos
  * @see MonolithicDEMCoupled::EquationIdVector
  */
 template <>
-void MonolithicDEMCoupled<2>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
-{
+void MonolithicDEMCoupled<2>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
     if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
         const unsigned int NumNodes(3),LocalSize(9);
         unsigned int LocalIndex = 0;
@@ -55,9 +53,7 @@ void MonolithicDEMCoupled<2>::EquationIdVector(EquationIdVectorType& rResult,
  * @see MonolithicDEMCoupled::EquationIdVector
  */
 template <>
-void MonolithicDEMCoupled<3>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
-{
+void MonolithicDEMCoupled<3>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
     if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
         const unsigned int NumNodes(4),LocalSize(16);
         unsigned int LocalIndex = 0;
@@ -97,9 +93,7 @@ void MonolithicDEMCoupled<3>::EquationIdVector(EquationIdVectorType& rResult,
  * @see MonolithicDEMCoupled::GetDofList
  */
 template <>
-void MonolithicDEMCoupled<2>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
-{
+void MonolithicDEMCoupled<2>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
     if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
         const unsigned int NumNodes(3),LocalSize(9);
         if (rElementalDofList.size() != LocalSize)
@@ -134,9 +128,7 @@ void MonolithicDEMCoupled<2>::GetDofList(DofsVectorType& rElementalDofList,
  * @see MonolithicDEMCoupled::GetDofList
  */
 template <>
-void MonolithicDEMCoupled<3>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
-{
+void MonolithicDEMCoupled<3>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
     if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
         const unsigned int NumNodes(4),LocalSize(16);
         if (rElementalDofList.size() != LocalSize)

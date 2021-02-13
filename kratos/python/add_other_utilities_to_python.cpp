@@ -45,6 +45,7 @@
 #include "utilities/activation_utilities.h"
 #include "utilities/sensitivity_builder.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/entities_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
@@ -316,24 +317,27 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     // VariableRedistributionUtility
-    typedef void (*DistributePointDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&, double, unsigned int);
-    typedef void (*DistributePointArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&,double, unsigned int);
-
-    DistributePointDoubleType DistributePointDouble = &VariableRedistributionUtility::DistributePointValues;
-    DistributePointArrayType  DistributePointArray  = &VariableRedistributionUtility::DistributePointValues;
-
-    typedef void (*ConvertDistributedDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&);
-    typedef void (*ConvertDistributedArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&);
-
-    ConvertDistributedDoubleType ConvertDistributedDouble = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
-    ConvertDistributedArrayType  ConvertDistributedArray  = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
-
-    // Note: The StaticMethod thing should be done only once for each set of overloads
     py::class_< VariableRedistributionUtility >(m,"VariableRedistributionUtility")
-        .def_static("DistributePointValues",DistributePointDouble)
-        .def_static("DistributePointValues",DistributePointArray)
-        .def_static("ConvertDistributedValuesToPoint",ConvertDistributedDouble)
-        .def_static("ConvertDistributedValuesToPoint",ConvertDistributedArray)
+        .def_static("ConvertDistributedValuesToPoint", [](ModelPart& rModelPart, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPoint(rModelPart, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPoint", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPoint(rModelPart, rElements, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPoint", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPoint(rModelPart, rConditions, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPoint", [](ModelPart& rModelPart, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPoint(rModelPart, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPoint", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPoint(rModelPart, rElements, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPoint", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPoint(rModelPart, rConditions, rPointVariable, rDistributedVariable);})
+        .def_static("DistributePointValues", [](ModelPart& rModelPart, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValues(rModelPart, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValues", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValues(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValues", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValues(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValues", [](ModelPart& rModelPart, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValues(rModelPart, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValues", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValues(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValues", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValues(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("ConvertDistributedValuesToPointNonHistorical", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPointNonHistorical(rModelPart, rElements, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPointNonHistorical", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPointNonHistorical(rModelPart, rConditions, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPointNonHistorical", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPointNonHistorical(rModelPart, rElements, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPointNonHistorical", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPointNonHistorical(rModelPart, rConditions, rPointVariable, rDistributedVariable);})
+        .def_static("DistributePointValuesNonHistorical", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValuesNonHistorical", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValuesNonHistorical", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValuesNonHistorical", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
         ;
 
     // Auxiliar ModelPart Utility
@@ -505,12 +509,24 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     //OpenMP utilities
     py::class_<OpenMPUtils >(m,"OpenMPUtils")
         .def(py::init<>())
-        .def_static("SetNumThreads", &OpenMPUtils::SetNumThreads)
-        .def_static("GetNumThreads", &OpenMPUtils::GetNumThreads)
+        .def_static("SetNumThreads", [](const int NumThreads){
+            KRATOS_WARNING("OpenMPUtils") << "\"SetNumThreads\" is deprecated, please use ParallelUtilities.SetNumThreads instead" << std::endl;
+            ParallelUtilities::SetNumThreads(NumThreads);})
+        .def_static("GetNumThreads", [](){
+            KRATOS_WARNING("OpenMPUtils") << "\"GetNumThreads\" is deprecated, please use ParallelUtilities.GetNumThreads instead" << std::endl;
+            return ParallelUtilities::GetNumThreads();})
+        .def_static("GetNumberOfProcessors", [](){
+            KRATOS_WARNING("OpenMPUtils") << "\"GetNumberOfProcessors\" is deprecated, please use ParallelUtilities.GetNumProcs instead" << std::endl;
+            return ParallelUtilities::GetNumProcs();})
         .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
-        .def_static("GetNumberOfProcessors", &OpenMPUtils::GetNumberOfProcessors)
         ;
 
+    // ParallelUtilities
+    py::class_<ParallelUtilities >(m,"ParallelUtilities")
+        .def_static("GetNumThreads", &ParallelUtilities::GetNumThreads)
+        .def_static("SetNumThreads", &ParallelUtilities::SetNumThreads)
+        .def_static("GetNumProcs",   &ParallelUtilities::GetNumProcs)
+        ;
 
     // EntitiesUtilities
     auto entities_utilities = m.def_submodule("EntitiesUtilities");

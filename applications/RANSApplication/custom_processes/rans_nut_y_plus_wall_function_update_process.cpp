@@ -40,7 +40,6 @@ RansNutYPlusWallFunctionUpdateProcess::RansNutYPlusWallFunctionUpdateProcess(
 
     mEchoLevel = rParameters["echo_level"].GetInt();
     mModelPartName = rParameters["model_part_name"].GetString();
-    mVonKarman = rParameters["von_karman"].GetDouble();
     mMinValue = rParameters["min_value"].GetDouble();
 
     KRATOS_CATCH("");
@@ -49,14 +48,12 @@ RansNutYPlusWallFunctionUpdateProcess::RansNutYPlusWallFunctionUpdateProcess(
 RansNutYPlusWallFunctionUpdateProcess::RansNutYPlusWallFunctionUpdateProcess(
     Model& rModel,
     const std::string& rModelPartName,
-    const double VonKarman,
     const double MinValue,
     const int EchoLevel)
-: mrModel(rModel),
-  mModelPartName(rModelPartName),
-  mVonKarman(VonKarman),
-  mMinValue(MinValue),
-  mEchoLevel(EchoLevel)
+    : mrModel(rModel),
+      mModelPartName(rModelPartName),
+      mMinValue(MinValue),
+      mEchoLevel(EchoLevel)
 {
 }
 
@@ -65,10 +62,6 @@ int RansNutYPlusWallFunctionUpdateProcess::Check()
     KRATOS_TRY
 
     const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(KINEMATIC_VISCOSITY))
-        << "KINEMATIC_VISCOSITY is not found in nodal solution step variables list of "
-        << mModelPartName << ".";
 
     KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(VISCOSITY))
         << "VISCOSITY is not found in nodal solution step variables list of "
@@ -112,19 +105,36 @@ void RansNutYPlusWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
     VariableUtils().SetHistoricalVariableToZero(TURBULENT_VISCOSITY,
                                                 r_model_part.Nodes());
 
-    const double y_plus_limit =
-        r_model_part.GetProcessInfo()[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
+    const double von_karman = r_model_part.GetProcessInfo()[VON_KARMAN];
 
     block_for_each(r_model_part.Conditions(), [&](ModelPart::ConditionType& rCondition) {
         auto& r_geometry = rCondition.GetGeometry();
+        const auto& r_properties = rCondition.GetProperties();
+        const double y_plus_limit = r_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
         const double y_plus = std::max(rCondition.GetValue(RANS_Y_PLUS), y_plus_limit);
+
+        auto& r_parent_element = r_geometry.GetValue(NEIGHBOUR_ELEMENTS)[0];
+        auto constitutive_law = r_parent_element.GetValue(CONSTITUTIVE_LAW);
+        const auto& r_elem_properties = r_parent_element.GetProperties();
+        Vector gauss_weights;
+        Matrix shape_functions;
+        RansCalculationUtilities::CalculateConditionGeometryData(
+            r_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1,
+            gauss_weights, shape_functions);
+
+        ConstitutiveLaw::Parameters cl_parameters(
+            r_geometry, r_elem_properties, r_model_part.GetProcessInfo());
+        cl_parameters.SetShapeFunctionsValues(row(shape_functions, 0));
+
+        double nu;
+        constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+        nu /= r_elem_properties.GetValue(DENSITY);
 
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             auto& r_node = r_geometry[i_node];
-            const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
             r_node.SetLock();
             r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) +=
-                mVonKarman * y_plus * nu;
+                von_karman * y_plus * nu;
             r_node.UnSetLock();
         }
     });
@@ -137,8 +147,6 @@ void RansNutYPlusWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
             rNode.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS);
         r_nut = RansCalculationUtilities::SoftMax(
             r_nut / number_of_neighbour_conditions, mMinValue);
-        rNode.FastGetSolutionStepValue(VISCOSITY) =
-            rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + r_nut;
     });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
@@ -166,9 +174,8 @@ const Parameters RansNutYPlusWallFunctionUpdateProcess::GetDefaultParameters() c
     const auto default_parameters = Parameters(R"(
         {
             "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "von_karman"      : 0.41,
-            "echo_level"  : 0,
-            "min_value"   : 1e-18
+            "echo_level"      : 0,
+            "min_value"       : 1e-18
         })");
     return default_parameters;
 }
