@@ -78,12 +78,6 @@ void RansNutNodalUpdateProcess::ExecuteInitialize()
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
         << "Calculated number of neighbour elements in " << mModelPartName << ".\n";
-
-    RansCalculationUtilities::CalculateNumberOfNeighbourEntities<ModelPart::ConditionsContainerType>(
-        mrModel.GetModelPart(mModelPartName), NUMBER_OF_NEIGHBOUR_CONDITIONS);
-
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-        << "Calculated number of neighbour conditions in " << mModelPartName << ".\n";
 }
 
 void RansNutNodalUpdateProcess::ExecuteInitializeSolutionStep()
@@ -118,25 +112,6 @@ void RansNutNodalUpdateProcess::ExecuteAfterCouplingSolveStep()
         for (auto& r_node : rElement.GetGeometry()) {
             r_node.SetLock();
             r_node.FastGetSolutionStepValue(VISCOSITY) += (nu + nu_t) / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-            r_node.UnSetLock();
-        }
-    });
-
-    // clear again the nu computations on the conditions only nodes
-    block_for_each(r_model_part.Conditions(), [](ModelPart::ConditionType& rCondition) {
-        for (auto& r_node : rCondition.GetGeometry()) {
-            r_node.SetLock();
-            r_node.FastGetSolutionStepValue(VISCOSITY) = 0.0;
-            r_node.UnSetLock();
-        }
-    });
-
-    // compute nu with nu_t for condition nodes
-    block_for_each(r_model_part.Conditions(), [&](ModelPart::ConditionType& rCondition) {
-        const double nu_t = rCondition.GetValue(TURBULENT_VISCOSITY);
-        for (auto& r_node : rCondition.GetGeometry()) {
-            r_node.SetLock();
-            r_node.FastGetSolutionStepValue(VISCOSITY) += (nu + nu_t) / r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS);
             r_node.UnSetLock();
         }
     });
