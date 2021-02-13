@@ -1066,6 +1066,10 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
             const std::vector<std::string> compatible_constitutive_laws_dimension = specifications["compatible_constitutive_laws"]["dimension"].GetStringArray();
             const Vector compatible_constitutive_laws_strain_size = specifications["compatible_constitutive_laws"]["strain_size"].GetVector();
             const std::size_t number_of_cl_compatible = compatible_constitutive_laws_strain_size.size();
+            // If the vector is full of nullptr we just return true
+            if (cl_vector.size() > 0) 
+                if (cl_vector[0] == nullptr) 
+                    return true; 
             for (auto& p_cl : cl_vector) {
                 bool check = false;
                 for (std::size_t i = 0; i < number_of_cl_compatible; ++i) {
@@ -1107,6 +1111,10 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
                     const std::vector<std::string> compatible_constitutive_laws_dimension = specifications["compatible_constitutive_laws"]["dimension"].GetStringArray();
                     const Vector compatible_constitutive_laws_strain_size = specifications["compatible_constitutive_laws"]["strain_size"].GetVector();
                     const std::size_t number_of_cl_compatible = compatible_constitutive_laws_strain_size.size();
+                    // If the vector is full of nullptr we just return true
+                    if (cl_vector.size() > 0) 
+                        if (cl_vector[0] == nullptr) 
+                            return true; 
                     for (auto& p_cl : cl_vector) {
                         bool check = false;
                         for (std::size_t i = 0; i < number_of_cl_compatible; ++i) {
