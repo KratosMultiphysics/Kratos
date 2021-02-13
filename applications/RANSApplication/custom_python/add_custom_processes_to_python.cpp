@@ -27,11 +27,8 @@
 #include "custom_processes/rans_wall_function_update_process.h"
 #include "custom_processes/rans_k_turbulent_intensity_inlet_process.h"
 #include "custom_processes/rans_epsilon_turbulent_mixing_length_inlet_process.h"
-#include "custom_processes/rans_nut_k_epsilon_update_process.h"
 #include "custom_processes/rans_omega_turbulent_mixing_length_inlet_process.h"
-#include "custom_processes/rans_nut_k_omega_update_process.h"
 #include "custom_processes/rans_wall_distance_calculation_process.h"
-#include "custom_processes/rans_nut_k_omega_sst_update_process.h"
 #include "custom_processes/rans_apply_exact_nodal_periodic_condition_process.h"
 #include "custom_processes/rans_apply_flag_to_skin_process.h"
 #include "custom_processes/rans_clip_scalar_variable_process.h"
@@ -86,18 +83,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<RansNutNodalUpdateProcess, RansNutNodalUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutNodalUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const int>());
-
-    py::class_<RansNutKEpsilonUpdateProcess, RansNutKEpsilonUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKEpsilonUpdateProcess")
-        .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const int>());
-
-    py::class_<RansNutKOmegaSSTUpdateProcess, RansNutKOmegaSSTUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKOmegaSSTUpdateProcess")
-        .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const int>());
-
-    py::class_<RansNutKOmegaUpdateProcess, RansNutKOmegaUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKOmegaUpdateProcess")
-        .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const int>());
 
     py::class_<RansWallFunctionUpdateProcess, RansWallFunctionUpdateProcess::Pointer, RansFormulationProcess>(m, "RansWallFunctionUpdateProcess")
         .def(py::init<Model&, Parameters&>())
