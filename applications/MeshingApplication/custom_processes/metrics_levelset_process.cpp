@@ -59,7 +59,6 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
     // Iterate in the nodes
     NodesArrayType& r_nodes_array = mThisModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
-    const int num_nodes = r_nodes_array.end() - it_node_begin;
 
     // Some checks
     VariableUtils().CheckVariableExists(mVariableGradient, r_nodes_array);
@@ -68,7 +67,7 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 
     // Ratio reference variable
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mRatioReferenceVariable)) << "Variable " << mRatioReferenceVariable << " is not a double variable" << std::endl;
-    const auto& ani_reference_var = KratosComponents<Variable<double>>::Get(mRatioReferenceVariable);
+    const auto& r_ani_reference_var = KratosComponents<Variable<double>>::Get(mRatioReferenceVariable);
 
     // Size reference variable
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mSizeReferenceVariable)) << "Variable " << mSizeReferenceVariable << " is not a double variable" << std::endl;
@@ -80,37 +79,42 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
     // Setting r_metric in case not defined
     if (!it_node_begin->Has(r_tensor_variable)) {
         // Declaring auxiliar vector
-        const TensorArrayType aux_zero_vector = ZeroVector(3 * (TDim - 1));
-        #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
-            it_node->SetValue(r_tensor_variable, aux_zero_vector);
-        }
+        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [&it_node_begin,&r_tensor_variable](std::size_t i_node) {
+            auto it_node = it_node_begin + i_node;
+            it_node->SetValue(r_tensor_variable, r_tensor_variable.Zero());
+        });
     }
 
-    #pragma omp parallel for
-    for(int i = 0; i < num_nodes; ++i)  {
-        auto it_node = it_node_begin + i;
+    // Auxiliar variables
+    const auto& r_variable_gradient = mVariableGradient;
+    const auto enforce_current = mEnforceCurrent;
+    const auto min_size = mMinSize;
+    const auto size_boundary_layer = mSizeBoundLayer;
 
-        array_1d<double, 3>& r_gradient_value = it_node->FastGetSolutionStepValue(mVariableGradient);
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [this,&it_node_begin,&r_tensor_variable,&r_variable_gradient,&r_ani_reference_var,&r_size_reference_var,&enforce_current,&min_size,&size_boundary_layer](std::size_t i_node) {
+        auto it_node = it_node_begin + i_node;
+
+        array_1d<double, 3>& r_gradient_value = it_node->FastGetSolutionStepValue(r_variable_gradient);
 
         // Isotropic by default
         double ratio = 1.0;
-        if (it_node->SolutionStepsDataHas(ani_reference_var)) {
-            const double ratio_reference = it_node->FastGetSolutionStepValue(ani_reference_var);
+        if (it_node->SolutionStepsDataHas(r_ani_reference_var)) {
+            const double ratio_reference = it_node->FastGetSolutionStepValue(r_ani_reference_var);
             ratio = CalculateAnisotropicRatio(ratio_reference);
         }
 
         // MinSize by default
-        double element_size = mMinSize;
+        double element_size = min_size;
         const double nodal_h = it_node->GetValue(NODAL_H);
         if (it_node->SolutionStepsDataHas(r_size_reference_var)) {
             const double size_reference = it_node->FastGetSolutionStepValue(r_size_reference_var);
             element_size = CalculateElementSize(size_reference, nodal_h);
-            if (((element_size > nodal_h) && (mEnforceCurrent)) || (std::abs(size_reference) > mSizeBoundLayer))
+            if (((element_size > nodal_h) && enforce_current) || (std::abs(size_reference) > size_boundary_layer))
                 element_size = nodal_h;
         } else {
-            if (((element_size > nodal_h) && (mEnforceCurrent)))
+            if (((element_size > nodal_h) && enforce_current))
                 element_size = nodal_h;
         }
 
@@ -135,7 +139,7 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
         } else {
             noalias(r_metric) = ComputeLevelSetMetricTensor(r_gradient_value, ratio, element_size);
         }
-    }
+    });
 }
 
 /***********************************************************************************/
