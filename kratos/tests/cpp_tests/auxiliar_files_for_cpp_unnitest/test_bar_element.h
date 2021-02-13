@@ -225,6 +225,17 @@ namespace Kratos
             ) override;
 
         /**
+        * this is called during the initialize of the builder
+        * to calculate the lumped mass vector
+        * @param rLumpedMassVector the elemental lumped mass vector
+        * @param rCurrentProcessInfo the current process info instance
+        */
+        void CalculateLumpedMassVector(
+            VectorType& rLumpedMassVector,
+            const ProcessInfo& rCurrentProcessInfo
+            ) const override;
+
+        /**
         * @brief This function provides the place to perform checks on the completeness of the input.
         * @details It is designed to be called only once (or anyway, not often) typically at the beginning of the calculations, so to verify that nothing is missing from the input or that no common error is found.
         * @param rCurrentProcessInfo The current process info instance

@@ -32,7 +32,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "            \"input_filename\"             : \"$basename\""
     puts $FileVar "        \},"
     puts $FileVar "        \"echo_level\"                 : [GiD_AccessValue get gendata Echo_Level],"
-    puts $FileVar "        \"buffer_size\"                : 2,"
+    puts $FileVar "        \"time_integration_order\"     : 2,"
     puts $FileVar "        \"stabilization_factor\"       : [GiD_AccessValue get gendata Stabilization_parameter],"
     puts $FileVar "        \"shock_stabilization_factor\" : [GiD_AccessValue get gendata Shock_stabilization_parameter],"
     puts $FileVar "        \"relative_tolerance\"         : [GiD_AccessValue get gendata Relative_tolerance],"
@@ -61,13 +61,13 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "    \"output_processes\" : \{"
     puts $FileVar "        \"output_process_list\" : \[\{"
     set VariablesToPrint \"MOMENTUM\",\"VELOCITY\",\"HEIGHT\",\"FREE_SURFACE_ELEVATION\",\"TOPOGRAPHY\"
-    WriteGiDOutputProcess FileVar $basename $VariablesToPrint
+    WriteGiDOutputProcess FileVar "model_part" $basename $VariablesToPrint
     if {[GiD_AccessValue get gendata Print_topography_as_separate_output] eq true} {
-    puts $FileVar "        \},\{"
-    set TopographyFile $basename
-    append TopographyFile _topography
-    set TopographyVars \"TOPOGRAPHY\"
-    WriteGiDOutputProcess FileVar $TopographyFile $TopographyVars
+        puts $FileVar "        \},\{"
+        set TopographyFile $basename
+        append TopographyFile _topography
+        set TopographyVars \"TOPOGRAPHY\"
+        WriteGiDOutputProcess FileVar "topographic_model_part" $TopographyFile $TopographyVars
     }
     puts $FileVar "        \}\]"
     puts $FileVar "    \},"
@@ -115,6 +115,11 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     ## Imposed water flux
     set Groups [GiD_Info conditions Imposed_flow_rate groups]
     WriteConstantVectorConditionProcess FileVar iGroup $Groups lines $NumGroups
+    puts $FileVar "        \}\],"
+
+    # auxiliary processes
+    puts $FileVar "        \"auxiliary_process_list\"  : \[\{"
+    WriteVisualizationMeshProcess FileVar "model_part" "topographic_model_part"
     puts $FileVar "        \}\]"
 
     # end of processes

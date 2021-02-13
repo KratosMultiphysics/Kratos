@@ -20,6 +20,7 @@
 #include "custom_elements/nodal_concentrated_element.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -682,9 +683,8 @@ void NodalConcentratedElement::AddExplicitContribution(
 
             const double nodal_mass = HasProperties() ? (GetProperties().Has(NODAL_MASS) ? GetProperties().GetValue(NODAL_MASS) : rconst_this.GetValue(NODAL_MASS)) : rconst_this.GetValue(NODAL_MASS);
 
-            #pragma omp atomic
-            r_geom[0].GetValue(NODAL_MASS) += nodal_mass;
-
+            double& r_nodal_mass = r_geom[0].GetValue(NODAL_MASS);
+            AtomicAdd(r_nodal_mass, nodal_mass);
         }
     }
 
@@ -699,8 +699,7 @@ void NodalConcentratedElement::AddExplicitContribution(
             array_1d<double, 3>& r_nodal_inertia = r_geom[0].GetValue(NODAL_INERTIA);
 
             for (IndexType i_dim = 0; i_dim < 3; ++i_dim) {
-                #pragma omp atomic
-                r_nodal_inertia[i_dim] += const_nodal_inertia[i_dim];
+                AtomicAdd(r_nodal_inertia[i_dim], const_nodal_inertia[i_dim]);
             }
         }
     }
@@ -749,8 +748,7 @@ void NodalConcentratedElement::AddExplicitContribution(
             array_1d<double, 3>& r_force_residual = r_geom[0].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
             for (IndexType j = 0; j < dimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[j] - damping_residual_contribution[j];
+                AtomicAdd(r_force_residual[j], rRHSVector[j] - damping_residual_contribution[j]);
             }
 
             aux_index += dimension;
@@ -764,8 +762,7 @@ void NodalConcentratedElement::AddExplicitContribution(
             array_1d<double, 3>& r_moment_residual = r_geom[0].FastGetSolutionStepValue(MOMENT_RESIDUAL);
 
             for (IndexType j = 0; j < dimension; ++j) {
-                #pragma omp atomic
-                r_moment_residual[j] += rRHSVector[aux_index + j] - damping_residual_contribution[aux_index + j];
+                AtomicAdd(r_moment_residual[j], rRHSVector[aux_index + j] - damping_residual_contribution[aux_index + j]);
             }
         }
     }

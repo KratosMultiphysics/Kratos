@@ -25,7 +25,6 @@
 
 ///VARIABLES used:
 //Data:
-//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked)
 //          (set)
 //          (modified)
@@ -1925,9 +1924,6 @@ namespace Kratos
 				(*it)->Set(FLUID);
 				(*it)->Set(ACTIVE);
 				(*it)->Reset(TO_ERASE);
-				//correct contact_normal interpolation
-				if ((*it)->SolutionStepsDataHas(CONTACT_FORCE))
-					noalias((*it)->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
 			}
 
 			KRATOS_CATCH("")
@@ -2041,7 +2037,7 @@ namespace Kratos
 				(*it)->Set(FLUID);
 				(*it)->Set(ACTIVE);
 				(*it)->Reset(TO_ERASE);
-					
+
 				mrModelPart.Nodes().push_back(*(it));
 			}
 
@@ -2155,23 +2151,37 @@ namespace Kratos
 
 			KRATOS_TRY
 			MasterNode->FastGetSolutionStepValue(PROPERTY_ID) = SlaveNode->FastGetSolutionStepValue(PROPERTY_ID);
-			MasterNode->FastGetSolutionStepValue(BULK_MODULUS) = SlaveNode->FastGetSolutionStepValue(BULK_MODULUS);
-			MasterNode->FastGetSolutionStepValue(DENSITY) = SlaveNode->FastGetSolutionStepValue(DENSITY);
-			MasterNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = SlaveNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+			if (MasterNode->SolutionStepsDataHas(BULK_MODULUS) && SlaveNode->SolutionStepsDataHas(BULK_MODULUS))
+				MasterNode->FastGetSolutionStepValue(BULK_MODULUS) = SlaveNode->FastGetSolutionStepValue(BULK_MODULUS);
+			if (MasterNode->SolutionStepsDataHas(DENSITY) && SlaveNode->SolutionStepsDataHas(DENSITY))
+				MasterNode->FastGetSolutionStepValue(DENSITY) = SlaveNode->FastGetSolutionStepValue(DENSITY);
+			if (MasterNode->SolutionStepsDataHas(DYNAMIC_VISCOSITY) && SlaveNode->SolutionStepsDataHas(DYNAMIC_VISCOSITY))
+				MasterNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = SlaveNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 
-			MasterNode->FastGetSolutionStepValue(YIELD_SHEAR) = SlaveNode->FastGetSolutionStepValue(YIELD_SHEAR);
+			if (MasterNode->SolutionStepsDataHas(YIELD_SHEAR) && SlaveNode->SolutionStepsDataHas(YIELD_SHEAR))
+				MasterNode->FastGetSolutionStepValue(YIELD_SHEAR) = SlaveNode->FastGetSolutionStepValue(YIELD_SHEAR);
 
-			MasterNode->FastGetSolutionStepValue(FLOW_INDEX) = SlaveNode->FastGetSolutionStepValue(FLOW_INDEX);
-			MasterNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT) = SlaveNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-			MasterNode->FastGetSolutionStepValue(STATIC_FRICTION) = SlaveNode->FastGetSolutionStepValue(STATIC_FRICTION);
-			MasterNode->FastGetSolutionStepValue(DYNAMIC_FRICTION) = SlaveNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
-			MasterNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO) = SlaveNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
-			MasterNode->FastGetSolutionStepValue(GRAIN_DIAMETER) = SlaveNode->FastGetSolutionStepValue(GRAIN_DIAMETER);
-			MasterNode->FastGetSolutionStepValue(GRAIN_DENSITY) = SlaveNode->FastGetSolutionStepValue(GRAIN_DENSITY);
-			MasterNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT) = SlaveNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
+			if (MasterNode->SolutionStepsDataHas(FLOW_INDEX) && SlaveNode->SolutionStepsDataHas(FLOW_INDEX))
+				MasterNode->FastGetSolutionStepValue(FLOW_INDEX) = SlaveNode->FastGetSolutionStepValue(FLOW_INDEX);
+			if (MasterNode->SolutionStepsDataHas(ADAPTIVE_EXPONENT) && SlaveNode->SolutionStepsDataHas(ADAPTIVE_EXPONENT))
+				MasterNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT) = SlaveNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+			if (MasterNode->SolutionStepsDataHas(STATIC_FRICTION) && SlaveNode->SolutionStepsDataHas(STATIC_FRICTION))
+				MasterNode->FastGetSolutionStepValue(STATIC_FRICTION) = SlaveNode->FastGetSolutionStepValue(STATIC_FRICTION);
+			if (MasterNode->SolutionStepsDataHas(DYNAMIC_FRICTION) && SlaveNode->SolutionStepsDataHas(DYNAMIC_FRICTION))
+				MasterNode->FastGetSolutionStepValue(DYNAMIC_FRICTION) = SlaveNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
+			if (MasterNode->SolutionStepsDataHas(INERTIAL_NUMBER_ZERO) && SlaveNode->SolutionStepsDataHas(INERTIAL_NUMBER_ZERO))
+				MasterNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO) = SlaveNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
+			if (MasterNode->SolutionStepsDataHas(GRAIN_DIAMETER) && SlaveNode->SolutionStepsDataHas(GRAIN_DIAMETER))
+				MasterNode->FastGetSolutionStepValue(GRAIN_DIAMETER) = SlaveNode->FastGetSolutionStepValue(GRAIN_DIAMETER);
+			if (MasterNode->SolutionStepsDataHas(GRAIN_DENSITY) && SlaveNode->SolutionStepsDataHas(GRAIN_DENSITY))
+				MasterNode->FastGetSolutionStepValue(GRAIN_DENSITY) = SlaveNode->FastGetSolutionStepValue(GRAIN_DENSITY);
+			if (MasterNode->SolutionStepsDataHas(REGULARIZATION_COEFFICIENT) && SlaveNode->SolutionStepsDataHas(REGULARIZATION_COEFFICIENT))
+				MasterNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT) = SlaveNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
 
-			MasterNode->FastGetSolutionStepValue(FRICTION_ANGLE) = SlaveNode->FastGetSolutionStepValue(FRICTION_ANGLE);
-			MasterNode->FastGetSolutionStepValue(COHESION) = SlaveNode->FastGetSolutionStepValue(COHESION);
+			if (MasterNode->SolutionStepsDataHas(INTERNAL_FRICTION_ANGLE) && SlaveNode->SolutionStepsDataHas(INTERNAL_FRICTION_ANGLE))
+				MasterNode->FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE) = SlaveNode->FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+			if (MasterNode->SolutionStepsDataHas(COHESION) && SlaveNode->SolutionStepsDataHas(COHESION))
+				MasterNode->FastGetSolutionStepValue(COHESION) = SlaveNode->FastGetSolutionStepValue(COHESION);
 
 			if (MasterNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT) && SlaveNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT))
 			{

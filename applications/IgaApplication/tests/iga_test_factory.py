@@ -38,6 +38,11 @@ class IgaTestFactory(KratosUnittest.TestCase):
 class SinglePatchTest(IgaTestFactory):
     file_name = "single_patch_test/single_patch"
 
+class ScordelisRoofShell3pTest(IgaTestFactory):
+    file_name = "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p"
+
+class LinearBeamShell3pTest(IgaTestFactory):
+    file_name = "linear_beam_shell_3p_test/linear_beam_shell_3p"
 
 if __name__ == '__main__':
     KratosUnittest.main()

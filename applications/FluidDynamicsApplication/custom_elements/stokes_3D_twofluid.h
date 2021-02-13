@@ -116,7 +116,7 @@ public:
     }
 
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
         bool compute_lhs_matrix = true;
@@ -124,7 +124,7 @@ public:
         KRATOS_CATCH("Error in StokesTwoFluid Element Symbolic CalculateLocalSystem")
     }
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -139,7 +139,7 @@ public:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool ComputeLHSMatrix)
     {
         KRATOS_TRY
@@ -238,30 +238,13 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
         // Perform basic element checks
         int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
         if(ErrorCode != 0) return ErrorCode;
-
-        // Check that all required variables have been registered
-        if(VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-        if(DISTANCE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DISTANCE Key is 0. Check if the application was correctly registered.","");
-
-        if(PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-        if(DENSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-        if(DYNAMIC_TAU.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_TAU Key is 0. Check if the application was correctly registered.","");
-        if(DELTA_TIME.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check if the application was correctly registered.","");
-
-        // Checks on nodes
 
         //check Properties
         if(GetProperties().Has(DENSITY_AIR) == false)
@@ -403,7 +386,7 @@ public:
                              const double& Volume,
                              element_data<4,3>& data,
                              BoundedMatrix<double,NumNodes, NumNodes>& Ncontainer,
-                             ProcessInfo& rCurrentProcessInfo,
+                             const ProcessInfo& rCurrentProcessInfo,
                              bool ComputeLHSMatrix)
     {
         const double air_density = GetProperties()[DENSITY_AIR];
@@ -465,7 +448,7 @@ public:
                                const double& Volume,
                                element_data<4,3>& data,
                                BoundedMatrix<double,NumNodes, NumNodes>& Ncontainer,
-                               ProcessInfo& rCurrentProcessInfo,
+                               const ProcessInfo& rCurrentProcessInfo,
                                bool ComputeLHSMatrix)
     {
         const double weight = Volume/static_cast<double>(NumNodes);
@@ -522,7 +505,7 @@ public:
                                Vector& rRightHandSideVector,
                                const double& Volume,
                                element_data<4,3>& data,
-                               ProcessInfo& rCurrentProcessInfo,
+                               const ProcessInfo& rCurrentProcessInfo,
                                const array_1d<double,NumNodes>& distances,
                                bool ComputeLHSMatrix
                               )
@@ -848,7 +831,7 @@ private:
 
 ///@name Private Operations
 ///@{
-    virtual void ComputeConstitutiveResponse_AIR(element_data<4,3>& data, const double rho, const double nu,  ProcessInfo& rCurrentProcessInfo)
+    virtual void ComputeConstitutiveResponse_AIR(element_data<4,3>& data, const double rho, const double nu,  const ProcessInfo& rCurrentProcessInfo)
     {
         const unsigned int strain_size = 6;
 

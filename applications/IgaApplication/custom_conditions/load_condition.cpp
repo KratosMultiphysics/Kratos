@@ -23,7 +23,7 @@ namespace Kratos
     void LoadCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     )
@@ -190,8 +190,8 @@ namespace Kratos
 
     void LoadCondition::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
@@ -210,8 +210,8 @@ namespace Kratos
 
     void LoadCondition::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();

@@ -24,7 +24,6 @@
 #include "custom_utilities/omp_dem_search.h"
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/dem_fem_utilities.h"
-#include "custom_utilities/benchmark_utilities.h"
 #include "custom_utilities/inlet.h"
 #include "custom_utilities/force_based_inlet.h"
 #include "custom_utilities/reorder_consecutive_from_given_ids_model_part_io.h"
@@ -318,11 +317,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(py::init<>())
         .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
         .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)
-        ;
-
-    py::class_<BenchmarkUtils, BenchmarkUtils::Pointer>(m, "BenchmarkUtils")
-        .def(py::init<>())
-        .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
         ;
 
     py::class_<ReorderConsecutiveFromGivenIdsModelPartIO, ReorderConsecutiveFromGivenIdsModelPartIO::Pointer, ReorderConsecutiveModelPartIO>(m, "ReorderConsecutiveFromGivenIdsModelPartIO")

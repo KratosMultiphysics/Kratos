@@ -18,11 +18,11 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
+#include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "spaces/ublas_space.h"
 
 // Application includes
 #include "custom_python/add_convergence_accelerators_to_python.h"
-#include "custom_utilities/convergence_accelerator.hpp"
 #include "custom_utilities/constant_relaxation_convergence_accelerator.h"
 #include "custom_utilities/mvqn_convergence_accelerator.hpp"
 #include "custom_utilities/mvqn_recursive_convergence_accelerator.hpp"
@@ -38,52 +38,41 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, Matrix, Vector > TSpace;
-    typedef ConvergenceAccelerator< TSpace > BaseConvergenceAcceleratorType;
-
-    // Convergence accelerator base class
-    py::class_<ConvergenceAccelerator<TSpace>>(m, "ConvergenceAccelerator")
-        .def(py::init<>())
-        .def("Initialize", &ConvergenceAccelerator<TSpace>::Initialize)
-        .def("InitializeSolutionStep", &ConvergenceAccelerator<TSpace>::InitializeSolutionStep)
-        .def("InitializeNonLinearIteration", &ConvergenceAccelerator<TSpace>::InitializeNonLinearIteration)
-        .def("UpdateSolution", &ConvergenceAccelerator<TSpace>::UpdateSolution)
-        .def("FinalizeNonLinearIteration", &ConvergenceAccelerator<TSpace>::FinalizeNonLinearIteration)
-        .def("FinalizeSolutionStep", &ConvergenceAccelerator<TSpace>::FinalizeSolutionStep)
-        .def("SetEchoLevel", &ConvergenceAccelerator<TSpace>::SetEchoLevel);
+    typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef ConvergenceAccelerator<SparseSpaceType, DenseSpaceType> BaseConvergenceAcceleratorType;
 
     // Constant relaxation convergence accelerator
-    py::class_<ConstantRelaxationConvergenceAccelerator<TSpace>, BaseConvergenceAcceleratorType>(m, "ConstantRelaxationConvergenceAccelerator")
+    typedef ConstantRelaxationConvergenceAccelerator<SparseSpaceType, DenseSpaceType> ConstantRelaxationConvergenceAcceleratorType;
+    typedef typename ConstantRelaxationConvergenceAcceleratorType::Pointer ConstantRelaxationConvergenceAcceleratorPointerType;
+    py::class_<ConstantRelaxationConvergenceAcceleratorType, ConstantRelaxationConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "ConstantRelaxationConvergenceAccelerator")
         .def(py::init<double>())
-        .def(py::init<Parameters &>())
-        .def("UpdateSolution", &ConstantRelaxationConvergenceAccelerator<TSpace>::UpdateSolution);
+        .def(py::init<Parameters>())
+    ;
 
     // Aitken convergence accelerator
-    py::class_<AitkenConvergenceAccelerator<TSpace>, BaseConvergenceAcceleratorType>(m, "AitkenConvergenceAccelerator")
+    typedef AitkenConvergenceAccelerator<SparseSpaceType, DenseSpaceType> AitkenConvergenceAcceleratorType;
+    typedef typename AitkenConvergenceAcceleratorType::Pointer AitkenConvergenceAcceleratorPointerType;
+    py::class_<AitkenConvergenceAcceleratorType, AitkenConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "AitkenConvergenceAccelerator")
         .def(py::init<double>())
-        .def(py::init<Parameters &>())
-        .def("InitializeSolutionStep", &AitkenConvergenceAccelerator<TSpace>::InitializeSolutionStep)
-        .def("UpdateSolution", &AitkenConvergenceAccelerator<TSpace>::UpdateSolution)
-        .def("FinalizeNonLinearIteration", &AitkenConvergenceAccelerator<TSpace>::FinalizeNonLinearIteration)
-        .def("FinalizeSolutionStep", &AitkenConvergenceAccelerator<TSpace>::FinalizeSolutionStep);
+        .def(py::init<Parameters>())
+    ;
 
     // MVQN convergence accelerator
-    py::class_<MVQNFullJacobianConvergenceAccelerator<TSpace>, BaseConvergenceAcceleratorType>(m, "MVQNFullJacobianConvergenceAccelerator")
-        .def(py::init<Parameters &>())
+    typedef MVQNFullJacobianConvergenceAccelerator<SparseSpaceType, DenseSpaceType> MVQNFullJacobianConvergenceAcceleratorType;
+    typedef typename MVQNFullJacobianConvergenceAcceleratorType::Pointer MVQNFullJacobianConvergenceAcceleratorPointerType;
+    py::class_<MVQNFullJacobianConvergenceAcceleratorType, MVQNFullJacobianConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "MVQNFullJacobianConvergenceAccelerator")
+        .def(py::init<Parameters>())
         .def(py::init<double, double>())
-        .def("InitializeSolutionStep", &MVQNFullJacobianConvergenceAccelerator<TSpace>::InitializeSolutionStep)
-        .def("UpdateSolution", &MVQNFullJacobianConvergenceAccelerator<TSpace>::UpdateSolution)
-        .def("FinalizeNonLinearIteration", &MVQNFullJacobianConvergenceAccelerator<TSpace>::FinalizeNonLinearIteration)
-        .def("FinalizeSolutionStep", &MVQNFullJacobianConvergenceAccelerator<TSpace>::FinalizeSolutionStep);
+    ;
 
     // MVQN recursive convergence accelerator
-    py::class_<MVQNRecursiveJacobianConvergenceAccelerator<TSpace>, BaseConvergenceAcceleratorType>(m, "MVQNRecursiveJacobianConvergenceAccelerator")
-        .def(py::init<Parameters &>())
+    typedef MVQNRecursiveJacobianConvergenceAccelerator<SparseSpaceType, DenseSpaceType> MVQNRecursiveJacobianConvergenceAcceleratorType;
+    typedef typename MVQNRecursiveJacobianConvergenceAcceleratorType::Pointer MVQNRecursiveJacobianConvergenceAcceleratorPointerType;
+    py::class_<MVQNRecursiveJacobianConvergenceAcceleratorType, MVQNRecursiveJacobianConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "MVQNRecursiveJacobianConvergenceAccelerator")
+        .def(py::init<Parameters>())
         .def(py::init<double, unsigned int, double>())
-        .def("Initialize", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::Initialize)
-        .def("InitializeSolutionStep", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::InitializeSolutionStep)
-        .def("UpdateSolution", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::UpdateSolution)
-        .def("FinalizeNonLinearIteration", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::FinalizeNonLinearIteration);
+    ;
 }
 
 }  // namespace Python.

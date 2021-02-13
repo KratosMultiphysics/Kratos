@@ -83,7 +83,7 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
-  unsigned int MomentCondition::GetDofsSize()
+  unsigned int MomentCondition::GetDofsSize() const
   {
     KRATOS_TRY
 
@@ -170,7 +170,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void MomentCondition::GetValuesVector(Vector& rValues, int Step)
+  void MomentCondition::GetValuesVector(Vector& rValues, int Step) const
   {
     KRATOS_TRY
 
@@ -204,7 +204,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void MomentCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+  void MomentCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
   {
     KRATOS_TRY
 
@@ -238,7 +238,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void MomentCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+  void MomentCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
   {
     KRATOS_TRY
 
@@ -302,7 +302,7 @@ namespace Kratos
 
   void MomentCondition::AddExplicitContribution(const VectorType& rRHS,
 						const Variable<VectorType>& rRHSVariable,
-						Variable<array_1d<double,3> >& rDestinationVariable,
+						const Variable<array_1d<double,3> >& rDestinationVariable,
 						const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
@@ -516,11 +516,6 @@ namespace Kratos
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = BoundaryCondition::Check(rCurrentProcessInfo);
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
 
     return ErrorCode;
 

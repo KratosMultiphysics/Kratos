@@ -5,9 +5,9 @@ message("**** configuring KratosHDF5Application ****")
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # generate variables with the sources
-set( KRATOS_HDF5_APPLICATION_SOURCES
+set( KRATOS_HDF5_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/hdf5_application.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/hdf5_application_variables.cpp
+  	${CMAKE_CURRENT_SOURCE_DIR}/hdf5_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file_serial.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_model_part_io.cpp
@@ -15,31 +15,25 @@ set( KRATOS_HDF5_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_data_value_container_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_variables_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_data_io.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_bossak_io.cpp
+  	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_bossak_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_points_data.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_connectivities_data.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_container_component_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/hdf5_xdmf_connectivities_writer_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/hdf5_data_set_partition_utility.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/factor_elements_and_conditions_utility.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_ghost_splitting_utility.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/hdf5_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utils.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_file.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_file_serial.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_points_data.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_connectivities_data.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_model_part_io.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_nodal_solution_step_data_io.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_element_data_value_io.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_element_flag_value_io.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_nodal_data_value_io.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_nodal_flag_value_io.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_condition_data_value_io.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_condition_flag_value_io.cpp  
+  	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/factor_elements_and_conditions_utility.cpp
+  	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_ghost_splitting_utility.cpp
 )
+
+## HDF5Application python interface sources
+file(GLOB_RECURSE KRATOS_HDF5_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
+
+## HDF5Application testing
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+file(GLOB_RECURSE KRATOS_HDF5_APPLICATION_TESTING_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp
+)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_definitions(-DH5_USE_110_API)
 
@@ -47,8 +41,8 @@ set(HDF5_USE_STATIC_LIBRARIES OFF)
 if(USE_MPI)
   message(STATUS "Searching for parallel HDF5 libraries.")
   set(HDF5_PREFER_PARALLEL ON)
-  set(KRATOS_HDF5_APPLICATION_SOURCES ${KRATOS_HDF5_APPLICATION_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file_parallel.cpp)
-  set(KRATOS_HDF5_APPLICATION_SOURCES ${KRATOS_HDF5_APPLICATION_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_partitioned_model_part_io.cpp)
+  set(KRATOS_HDF5_APPLICATION_CORE ${KRATOS_HDF5_APPLICATION_CORE} ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file_parallel.cpp)
+  set(KRATOS_HDF5_APPLICATION_CORE ${KRATOS_HDF5_APPLICATION_CORE} ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_partitioned_model_part_io.cpp)
 else(USE_MPI)
   message(STATUS "Searching for serial HDF5 libraries.")
 endif(USE_MPI)
@@ -97,9 +91,13 @@ endif(USE_MPI)
 include_directories(${HDF5_INCLUDE_DIRS})
 add_definitions(${HDF5_DEFINITIONS})
 
+add_library(KratosHDF5Core SHARED ${KRATOS_HDF5_APPLICATION_CORE} ${KRATOS_HDF5_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosHDF5Core PUBLIC KratosCore PRIVATE ${HDF5_C_LIBRARIES} ${KRATOS_HDF5_APPLICATION_EXTRA_LIBS})
+set_target_properties(KratosHDF5Core PROPERTIES COMPILE_DEFINITIONS "HDF5_APPLICATION=EXPORT,API")
+
 # define library Kratos which defines the basic python interface
-pybind11_add_module(KratosHDF5Application MODULE THIN_LTO ${KRATOS_HDF5_APPLICATION_SOURCES})
-target_link_libraries(KratosHDF5Application PRIVATE KratosCore ${HDF5_C_LIBRARIES} ${KRATOS_HDF5_APPLICATION_EXTRA_LIBS})
+pybind11_add_module(KratosHDF5Application MODULE THIN_LTO ${KRATOS_HDF5_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosHDF5Application PRIVATE KratosHDF5Core)
 set_target_properties(KratosHDF5Application PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)
@@ -114,7 +112,8 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
-  cotire(KratosHDF5Application)
+    cotire(KratosHDF5Core)
+    cotire(KratosHDF5Application)
 endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
@@ -137,4 +136,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
+install(TARGETS KratosHDF5Core DESTINATION libs )
 install(TARGETS KratosHDF5Application DESTINATION libs)

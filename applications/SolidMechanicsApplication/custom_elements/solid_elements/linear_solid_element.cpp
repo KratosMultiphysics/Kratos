@@ -190,7 +190,7 @@ void LinearSolidElement::EquationIdVector( EquationIdVectorType& rResult, Proces
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void LinearSolidElement::GetValuesVector( Vector& rValues, int Step )
+void LinearSolidElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     const SizeType number_of_nodes  = GetGeometry().size();
@@ -216,7 +216,7 @@ void LinearSolidElement::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void LinearSolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void LinearSolidElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
     const SizeType number_of_nodes  = GetGeometry().size();
@@ -240,7 +240,7 @@ void LinearSolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void LinearSolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void LinearSolidElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
     const SizeType number_of_nodes  = GetGeometry().size();
@@ -545,7 +545,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 
 void LinearSolidElement::AddExplicitContribution(const VectorType& rRHSVector,
 						    const Variable<VectorType>& rRHSVariable,
-						    Variable<array_1d<double,3> >& rDestinationVariable,
+						    const Variable<array_1d<double,3> >& rDestinationVariable,
 						    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -1096,14 +1096,6 @@ int LinearSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
     // Perform base element checks
     int ErrorCode = 0;
     ErrorCode = Element::Check(rCurrentProcessInfo);
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
 
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)

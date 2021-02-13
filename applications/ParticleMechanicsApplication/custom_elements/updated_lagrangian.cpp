@@ -140,7 +140,7 @@ UpdatedLagrangian::~UpdatedLagrangian()
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::Initialize()
+void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1368,9 +1368,9 @@ void UpdatedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, const Proc
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::GetValuesVector( Vector& values, int Step )
+void UpdatedLagrangian::GetValuesVector( Vector& values, int Step ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
@@ -1391,9 +1391,9 @@ void UpdatedLagrangian::GetValuesVector( Vector& values, int Step )
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
+void UpdatedLagrangian::GetFirstDerivativesVector( Vector& values, int Step ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
@@ -1414,9 +1414,9 @@ void UpdatedLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::GetSecondDerivativesVector( Vector& values, int Step )
+void UpdatedLagrangian::GetSecondDerivativesVector( Vector& values, int Step ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
@@ -1609,13 +1609,13 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<Vector>& rVa
 ///@{
 
 void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
-    std::vector<int>& rValues,
+    const std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
 void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)
@@ -1638,7 +1638,7 @@ void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<double>& rVa
 }
 
 void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > > rValues,
+    const std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)
@@ -1667,7 +1667,7 @@ void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<array_1d<dou
 }
 
 void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
+    const std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)
@@ -1695,13 +1695,13 @@ void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<Vector>& rVa
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
+int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
     Element::Check(rCurrentProcessInfo);
 
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
@@ -1727,12 +1727,6 @@ int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
 
     KRATOS_ERROR_IF(correct_strain_measure == false ) << "Constitutive law is not compatible with the element type: Large Displacements " << std::endl;
 
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
-
     // Verify that the dofs exist
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {
         const NodeType &rnode = this->GetGeometry()[i];
@@ -1753,7 +1747,6 @@ int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
         // Verify that the constitutive law has the correct dimension
         if ( dimension == 2 )
         {
-            KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
             KRATOS_ERROR_IF_NOT(this->GetProperties().Has( THICKNESS )) << "THICKNESS not provided for element " << this->Id() << std::endl;
         }
         else

@@ -274,7 +274,7 @@ void RigidEdge2D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
 
 }
 
-void RigidEdge2D::FinalizeSolutionStep(ProcessInfo& r_process_info)
+void RigidEdge2D::FinalizeSolutionStep(const ProcessInfo& r_process_info)
 {
 
 

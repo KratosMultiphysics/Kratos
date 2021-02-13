@@ -9,7 +9,7 @@
 //
 //  Main authors: Martin Fusseder, https://github.com/MFusseder
 //                Michael Andre, https://github.com/msandre
-//
+//                Suneth Warnakulasuriya, https://github.com/sunethwarna
 //
 
 #if !defined(KRATOS_SENSITIVITY_BUILDER_H_INCLUDED)
@@ -26,6 +26,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "response_functions/adjoint_response_function.h"
+#include "solving_strategies/schemes/sensitivity_builder_scheme.h"
 
 namespace Kratos
 {
@@ -40,6 +41,73 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(SensitivityBuilder);
 
+    /**
+     * @brief Contains the sensitivity design and output variables
+     *
+     * The design variable is passed to CalculateSensitivityMatrix()
+     * and CalculatePartialSensitivity() when calculating the local
+     * sensitivity contributions. The local sensitivities are assembled
+     * to the output variable.
+     *
+     * Example 1:
+     * SensitivityVariables<double> vars("THICKNESS");
+     * vars.pDesignVariable->Name(); // "THICKNESS"
+     * vars.pOutputVariable->Name(); // "THICKNESS_SENSITIVITY"
+     *
+     * Example 2:
+     * SensitivityVariables<double> vars("THICKNESS_SENSITIVITY");
+     * vars.pDesignVariable->Name(); // "THICKNESS_SENSITIVITY"
+     * vars.pOutputVariable->Name(); // "THICKNESS_SENSITIVITY"
+     */
+    template <class TDataType>
+    struct SensitivityVariables
+    {
+        const Variable<TDataType>* pDesignVariable = nullptr;
+        const Variable<TDataType>* pOutputVariable = nullptr;
+
+        explicit SensitivityVariables(const std::string& rName)
+        {
+            KRATOS_TRY;
+            const std::string output_suffix = "_SENSITIVITY";
+            pDesignVariable = &KratosComponents<Variable<TDataType>>::Get(rName);
+            if (rName.size() > output_suffix.size() &&
+                std::equal(output_suffix.rbegin(), output_suffix.rend(), rName.rbegin()))
+            {
+                pOutputVariable = pDesignVariable;
+            }
+            else
+            {
+                pOutputVariable =
+                    &KratosComponents<Variable<TDataType>>::Get(rName + output_suffix);
+            }
+            KRATOS_CATCH("");
+        }
+    };
+
+
+    /**
+     * @brief This type holds list of variables for the sensitivity analysis
+     *
+     *      1. Design variable
+     *      2. Output variable
+     *
+     * In here, both design variable and output variable should be of the same type,
+     * hence they are homogeneous variables.
+     *
+     * @tparam TDataType
+     */
+    template <class TDataType>
+    using THomogeneousSensitivityVariables = std::vector<SensitivityVariables<TDataType>>;
+
+    /**
+     * @brief This type holds list of homogeneous variable lists.
+     *
+     */
+    using TSensitivityVariables = std::tuple<
+                                        THomogeneousSensitivityVariables<double>,
+                                        THomogeneousSensitivityVariables<array_1d<double, 3>>
+                                        >;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -49,72 +117,25 @@ public:
                        ModelPart& rModelPart,
                        AdjointResponseFunction::Pointer pResponseFunction);
 
-    ///@}
-    ///@name Operators
-    ///@{
+    /// Constructor with SensitivityBuilderScheme.
+    SensitivityBuilder(Parameters Settings,
+                       ModelPart& rModelPart,
+                       AdjointResponseFunction::Pointer pResponseFunction,
+                       SensitivityBuilderScheme::Pointer pSensitivityBuilderScheme);
 
     ///@}
     ///@name Operations
     ///@{
 
-    static void CalculateNodalSolutionStepSensitivities(const std::vector<std::string>& rVariables,
-                                                        ModelPart& rModelPart,
-                                                        AdjointResponseFunction& rResponseFunction,
-                                                        double ScalingFactor);
-
-    static void CalculateNonHistoricalSensitivities(const std::vector<std::string>& rVariables,
-                                                    ModelPart::ElementsContainerType& rElements,
-                                                    AdjointResponseFunction& rResponseFunction,
-                                                    const ProcessInfo& rProcessInfo,
-                                                    double ScalingFactor);
-
-    static void CalculateNonHistoricalSensitivities(const std::vector<std::string>& rVariables,
-                                                    ModelPart::ConditionsContainerType& rConditions,
-                                                    AdjointResponseFunction& rResponseFunction,
-                                                    const ProcessInfo& rProcessInfo,
-                                                    double ScalingFactor);
-
-    /**
-     * @brief Assigns entity derivatives to nodes based on a given constant weighting
-     *
-     * This method assigns derivatives of a value calculated on given entity to nodes. The derivatives given by entity
-     * should have the following order in the matrix
-     *
-     * \[
-     *      M\left(a, i\right) = \frac{\partial y^i}{\partial x^c_k}
-     * \]
-     *
-     * Where $a = c * DerivativeDimension + k$, and $i$ is the value dimension, $c$ is derivative node and $k$ is derivative node's direction
-     * When these derivatives are stored on nodes, following order is assumed.
-     *      Firstly, derivatives w.r.t. itself
-     *      Then in the order of rNeighbourNodeIdsMap[current_node.Id] vector
-     *
-     * rNeighbourNodeIdsMap can be generated using FindGlobalNodalNeighboursProcess
-     *
-     * @see FindGlobalNodalNeighboursProcess
-     *
-     * @tparam TContainerType           Container type
-     * @param rModelPart                Model part to use entities and nodes
-     * @param DerivativeDimension       Dimensionality of derivative variable
-     * @param rDerivativeVariable       Matrix type derivative variable which holds derivatives in an entity.
-     * @param rNeighbourNodeIdsMap      Neighbour node ids map for all the nodes in rModelPart
-     * @param Weight                    Constant weighting
-     * @param rFlag                     Flag to check in entities whether entity derivatives should be distributed to nodes or not
-     * @param CheckValue                Flag check value
-     */
-    template <class TContainerType>
-    static void AssignEntityDerivativesToNodes(
-        ModelPart& rModelPart,
-        const int DerivativeDimension,
-        const Variable<Matrix>& rDerivativeVariable,
-        const std::unordered_map<int, std::vector<int>>& rNeighbourNodeIdsMap,
-        const double Weight,
-        const Flags& rFlag,
-        const bool CheckValue = true);
-
     void Initialize();
 
+    void InitializeSolutionStep();
+
     void UpdateSensitivities();
+
+    void FinalizeSolutionStep();
+
+    void Finalize();
 
     void Clear();
 
@@ -125,6 +146,51 @@ public:
     void ClearSensitivities();
 
     ///@}
+    ///@name static Operations
+    ///@{
+
+    static void CalculateNodalSolutionStepSensitivities(
+        const std::vector<std::string>& rVariables,
+        ModelPart& rModelPart,
+        AdjointResponseFunction& rResponseFunction,
+        double ScalingFactor);
+
+    static void CalculateNodalSolutionStepSensitivities(
+        const TSensitivityVariables& rVariables,
+        ModelPart& rModelPart,
+        AdjointResponseFunction& rResponseFunction,
+        SensitivityBuilderScheme& rSensitivityBuilderScheme,
+        double ScalingFactor);
+
+    static void CalculateNonHistoricalSensitivities(
+        const std::vector<std::string>& rVariables,
+        ModelPart::ElementsContainerType& rElements,
+        AdjointResponseFunction& rResponseFunction,
+        const ProcessInfo& rProcessInfo,
+        double ScalingFactor);
+
+    static void CalculateNonHistoricalSensitivities(
+        const TSensitivityVariables& rVariables,
+        ModelPart::ElementsContainerType& rElements,
+        AdjointResponseFunction& rResponseFunction,
+        SensitivityBuilderScheme& rSensitivityBuilderScheme,
+        const ProcessInfo& rProcessInfo,
+        double ScalingFactor);
+
+    static void CalculateNonHistoricalSensitivities(
+        const std::vector<std::string>& rVariables,
+        ModelPart::ConditionsContainerType& rConditions,
+        AdjointResponseFunction& rResponseFunction,
+        const ProcessInfo& rProcessInfo,
+        double ScalingFactor);
+
+    static void CalculateNonHistoricalSensitivities(
+        const TSensitivityVariables& rVariables,
+        ModelPart::ConditionsContainerType& rConditions,
+        AdjointResponseFunction& rResponseFunction,
+        SensitivityBuilderScheme& rSensitivityBuilderScheme,
+        const ProcessInfo& rProcessInfo,
+        double ScalingFactor);
 
 private:
     ///@name Member Variables
@@ -133,19 +199,20 @@ private:
     ModelPart* mpModelPart = nullptr;
     ModelPart* mpSensitivityModelPart = nullptr;
     AdjointResponseFunction::Pointer mpResponseFunction;
-    std::vector<std::string> mNodalSolutionStepSensitivityVariables;
-    std::vector<std::string> mElementDataValueSensitivityVariables;
-    std::vector<std::string> mConditionDataValueSensitivityVariables;
+    SensitivityBuilderScheme::Pointer mpSensitivityBuilderScheme;
+
+    TSensitivityVariables mNodalSolutionStepSensitivityVariablesList;
+    TSensitivityVariables mElementDataValueSensitivityVariablesList;
+    TSensitivityVariables mConditionDataValueSensitivityVariablesList;
+
     std::string mBuildMode = "static";
     bool mNodalSolutionStepSensitivityCalculationIsThreadSafe = false;
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
     ///@name Private Operations
     ///@{
+
+    static TSensitivityVariables GetVariableLists(const std::vector<std::string>& rVariableNames);
 
     ///@}
 };

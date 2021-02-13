@@ -18,7 +18,7 @@ def GetFilePath(fileName):
 class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
 
     def Initialize(self):
-        super(DEM3D_ContinuumTestSolution, self).Initialize()
+        super().Initialize()
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
@@ -32,17 +32,16 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
     def CheckValues(self, x_vel, z_vel, x_force, z_force, dem_pressure, z_elastic, shear, x_tangential):
         tol = 1.0000+1.0e-3
         #DEM reference values
-        x_vel_ref           =0.02043790
-        z_vel_ref           =-0.8771226
-        x_force_ref         =-25240.795
-        z_force_ref         =1963237.70
+        x_vel_ref = 0.02043790
+        z_vel_ref = -0.8771226
+        x_force_ref = -25240.795
+        z_force_ref = 1963237.70
 
         #FEM reference values
-        dem_pressure_ref    =21558.5
-        z_elastic_ref       =-273320
-        shear_ref           =271.471
-        x_tangential_ref    =4524.52
-
+        dem_pressure_ref = 21558.5
+        z_elastic_ref = -273320
+        shear_ref = 271.471
+        x_tangential_ref = 4524.52
 
         if not (abs(x_vel_ref) < abs(x_vel*tol) and abs(x_vel_ref) > abs(x_vel/tol)):
             raise ValueError('Incorrect value for VELOCITY_X: expected value was '+ str(x_vel_ref) + ' but received ' + str(x_vel))
@@ -68,9 +67,6 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         if not (abs(x_tangential_ref) < abs(x_tangential*tol) and abs(x_tangential_ref) > abs(x_tangential/tol)):
             raise ValueError('Incorrect value for TANGENTIAL_ELASTIC_FORCE_Z: expected value was '+ str(x_tangential_ref) + ' but received ' + str(x_tangential))
 
-
-
-
     def Finalize(self):
         for node in self.spheres_model_part.Nodes:
             if node.Id == 1:
@@ -87,7 +83,7 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
                 x_tangential = node.GetSolutionStepValue(DEM.TANGENTIAL_ELASTIC_FORCES)[0]
 
         self.CheckValues(x_vel, z_vel, x_force, z_force, dem_pressure, z_elastic, shear, x_tangential)
-        super(DEM3D_ContinuumTestSolution, self).Finalize()
+        super().Finalize()
 
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):

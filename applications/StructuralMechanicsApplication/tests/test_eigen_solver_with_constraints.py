@@ -68,7 +68,6 @@ class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
                 "time_stepping"            : {
                     "time_step" : 1.1
                 },
-                "use_computing_model_part" : false,
                 "rotation_dofs"            : true,
                 "block_builder"            : true
             }
@@ -92,6 +91,8 @@ class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
 
         self.__CompareEigenSolution(model_part, model_part_with_constraints)
 
+        self.__CompareEigenSolutionMasterSlave(model_part_with_constraints)
+
     def __CompareEigenSolution(self, model_part, model_part_with_constraints):
         eigen_val_vec = model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]
         eigen_val_vec_with_constraints = model_part_with_constraints.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]
@@ -107,6 +108,21 @@ class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
             eig_vec_mat_contr = node_const[StructuralMechanicsApplication.EIGENVECTOR_MATRIX]
 
             self.__CompareMatrix(eig_vec_mat, eig_vec_mat_contr, 10) # Note: this might me too strict depending on the eigenvalue solver (works fine with eigen_eigensystem in compination with the eigen sparse-lu)
+
+    def __CompareEigenSolutionMasterSlave(self, model_part_with_constraints):
+        
+        num_nodes = model_part_with_constraints.NumberOfNodes()
+
+        master_node_id = int(num_nodes/2)
+        slave_node_id = num_nodes # note that this is different from before bcs now there is also the constraint node in the model-part
+
+        master_node = model_part_with_constraints.Nodes[master_node_id]
+        slave_node = model_part_with_constraints.Nodes[slave_node_id]
+
+        eig_vec_mat_master = master_node[StructuralMechanicsApplication.EIGENVECTOR_MATRIX]
+        eig_vec_mat_slave = slave_node[StructuralMechanicsApplication.EIGENVECTOR_MATRIX]
+
+        self.__CompareMatrix(eig_vec_mat_master, eig_vec_mat_slave)
 
     def __CompareMatrix(self, mat_1, mat_2, tol=7):
         self.assertEqual(mat_1.Size1(), mat_2.Size1())
