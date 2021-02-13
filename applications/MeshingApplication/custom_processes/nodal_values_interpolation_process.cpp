@@ -22,6 +22,7 @@
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/skin_detection_process.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -346,8 +347,7 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
             const array_1d<double, 3> normal = this_geometry.UnitNormal(aux_coords);
             auto& aux_normal = this_node.GetValue(NORMAL);
             for (IndexType index = 0; index < 3; ++index) {
-                #pragma omp atomic
-                aux_normal[index] += normal[index];
+                AtomicAdd(aux_normal[index], normal[index]); 
             }
         }
     }
