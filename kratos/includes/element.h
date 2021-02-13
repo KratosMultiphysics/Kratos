@@ -769,7 +769,7 @@ public:
      * Note, that these functions expect a std::vector of values for the specified variable type that
      * contains a value for each integration point!
      * SetValuesOnIntegrationPoints: set the values for given Variable.
-     * GetValueOnIntegrationPoints: get the values for given Variable.
+     * CalculateOnIntegrationPoints: get/calculate the values for given Variable.
      * these methods are: OPTIONAL
      */
 
