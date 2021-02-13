@@ -40,14 +40,17 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-///@}
-///@name  Functions
-///@{
+enum class ShellKinematics
+{
+    LINEAR,
+    NONLINEAR_COROTATIONAL
+};
 
 ///@}
 ///@name Kratos Classes
 ///@{
 
+template <class TCoordinateTransformation>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) BaseShellElement
     : public Element
 {
@@ -65,6 +68,8 @@ public:
     typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
     typedef Quaternion<double> QuaternionType;
+
+    using CoordinateTransformationPointerType = Kratos::unique_ptr<TCoordinateTransformation>;
 
     using SizeType = std::size_t;
 
@@ -88,7 +93,7 @@ public:
     /**
     * Destructor
     */
-    ~BaseShellElement() override;
+    ~BaseShellElement() override = default;
 
     ///@}
     ///@name Operators
@@ -98,11 +103,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-    * ELEMENTS inherited from this class have to implement next
-    * Create and Clone methods: MANDATORY
-    */
 
     /**
     * this determines the elemental equation ID vector for all elemental
@@ -130,19 +130,19 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override;
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -208,6 +208,8 @@ protected:
 
     IntegrationMethod mIntegrationMethod = GeometryData::GI_GAUSS_2;
 
+    CoordinateTransformationPointerType mpCoordinateTransformation = nullptr;
+
     CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
     ///@}
@@ -244,17 +246,16 @@ protected:
         const bool CalculateResidualVectorFlag
     );
 
-    void BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void BaseInitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
 
-    void BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void BaseFinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
 
-    void BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void BaseInitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
 
-    void BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void BaseFinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
 
     virtual void SetupOrientationAngles();
 
-    void CheckVariables() const;
     void CheckDofs() const;
     void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;
     void CheckSpecificProperties() const;
@@ -330,6 +331,8 @@ protected:
         }
     }
 
+    // check if this function is really necessary
+    void DecimalCorrection(Vector& a);
 
     /**
     * Returns the behavior of this shell (thin/thick)

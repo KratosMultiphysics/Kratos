@@ -1,7 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-class CoSimulationDataTransferOperator(object):
+class CoSimulationDataTransferOperator:
     """Baseclass for the data transfer operators used for CoSimulation
     It transfers data from one interface to another. This can e.g. be mapping or a copy of values.
     """

@@ -15,11 +15,13 @@
 
 
 // System includes
+#include <type_traits>
 
 // External includes
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shellt3_local_coordinate_system.hpp"
 
 namespace Kratos
@@ -31,8 +33,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 ///@}
-
-class ShellT3_CoordinateTransformation;
 
 ///@name  Enum's
 ///@{
@@ -67,8 +67,11 @@ Shell formulation reference:
     Pages 420-431.
 */
 
-
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N : public BaseShellElement
+template <ShellKinematics TKinematics>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N : public
+    BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>::type>
 {
 public:
 
@@ -77,13 +80,31 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D3N);
 
-    typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
-
-    typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
+    using BaseType = BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>::type>;
 
     typedef array_1d<double, 3> Vector3Type;
 
     typedef Quaternion<double> QuaternionType;
+
+    using GeometryType = Element::GeometryType;
+
+    using PropertiesType = Element::PropertiesType;
+
+    using NodesArrayType = Element::NodesArrayType;
+
+    using MatrixType = Element::MatrixType;
+
+    using VectorType = Element::VectorType;
+
+    using SizeType = Element::SizeType;
+
+    using Element::GetGeometry;
+
+    using Element::GetProperties;
+
+    using CoordinateTransformationPointerType = typename BaseType::CoordinateTransformationPointerType;
 
     ///@}
 
@@ -96,20 +117,13 @@ public:
     ///@{
 
     ShellThickElement3D3N(IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          bool NLGeom = false);
+                          GeometryType::Pointer pGeometry);
 
     ShellThickElement3D3N(IndexType NewId,
                           GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties,
-                          bool NLGeom = false);
+                          PropertiesType::Pointer pProperties);
 
-    ShellThickElement3D3N(IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties,
-                          CoordinateTransformationBasePointerType pCoordinateTransformation);
-
-    ~ShellThickElement3D3N() override;
+    ~ShellThickElement3D3N() override = default;
 
     ///@}
 
@@ -146,15 +160,15 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;    //corotational formulation
+    void InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;    //corotational formulation
 
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
+    void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override; //corotational formulation
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
+    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override; //corotational formulation
 
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
+    void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override; //corotational formulation
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     // More results calculation on integration points to interface with python
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
@@ -172,6 +186,17 @@ public:
                    Matrix& Output,
                    const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
     ///@}
 
     ///@name Public specialized Access - Temporary
@@ -187,7 +212,7 @@ protected:
     /**
     * Protected empty constructor
     */
-    ShellThickElement3D3N() : BaseShellElement()
+    ShellThickElement3D3N() : BaseType()
     {
     }
 
@@ -292,7 +317,7 @@ private:
 
     public:
 
-        CalculationData(const CoordinateTransformationBasePointerType& pCoordinateTransformation,
+        CalculationData(const CoordinateTransformationPointerType& pCoordinateTransformation,
                         const ProcessInfo& rCurrentProcessInfo);
 
     };
@@ -316,8 +341,6 @@ private:
     void CalculateShellElementEnergy(const CalculationData& data, const Variable<double>& rVariable, double& rEnergy_Result);
 
     void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& iJob, bool& bGlobal);
-
-    void DecimalCorrection(Vector& a);
 
     void SetupOrientationAngles() override;
 
@@ -357,8 +380,6 @@ private:
 
     ///@name Member Variables
     ///@{
-
-    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
     ///@}
 

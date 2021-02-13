@@ -107,7 +107,7 @@ namespace Kratos {
                 }
             }
 
-            if (!found) KRATOS_THROW_ERROR(std::logic_error, "This particle could not find its properties!!", "");
+            KRATOS_ERROR_IF_NOT(found) << "This particle could not find its properties!!" << std::endl;
         }
 
         KRATOS_CATCH("")
@@ -140,7 +140,7 @@ namespace Kratos {
             KRATOS_INFO("DEM") << "------------------DISCONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
         }
 
-        mNumberOfThreads = OpenMPUtils::GetNumThreads();
+        mNumberOfThreads = ParallelUtilities::GetNumThreads();
         DisplayThreadInfo();
 
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
@@ -314,7 +314,7 @@ namespace Kratos {
         bool has_mpi = false; //check MPI not available in this strategy. refer to continuum strategy
         //          Check_MPI(has_mpi);
 
-        std::vector<double> thread_maxima(OpenMPUtils::GetNumThreads(), 0.0);
+        std::vector<double> thread_maxima(ParallelUtilities::GetNumThreads(), 0.0);
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
         #pragma omp parallel for
@@ -324,7 +324,7 @@ namespace Kratos {
         }
 
         double max_across_threads = 0.0;
-        for (int i = 0; i < OpenMPUtils::GetNumThreads(); i++) {
+        for (int i = 0; i < ParallelUtilities::GetNumThreads(); i++) {
             if (thread_maxima[i] > max_across_threads) max_across_threads = thread_maxima[i];
         }
 
@@ -639,9 +639,7 @@ namespace Kratos {
         double force_reduction_factor = 1.0;
         if (virtual_mass_option) {
             force_reduction_factor = virtual_mass_coeff;
-            if ((force_reduction_factor > 1.0) || (force_reduction_factor < 0.0)) {
-                KRATOS_THROW_ERROR(std::runtime_error, "The force reduction factor is either larger than 1 or negative: FORCE_REDUCTION_FACTOR= ", virtual_mass_coeff)
-            }
+            KRATOS_ERROR_IF((force_reduction_factor > 1.0) || (force_reduction_factor < 0.0)) << "The force reduction factor is either larger than 1 or negative: FORCE_REDUCTION_FACTOR= "<< virtual_mass_coeff << std::endl;
         }
 
         bool rotation_option = r_process_info[ROTATION_OPTION];
@@ -698,11 +696,11 @@ namespace Kratos {
         KRATOS_TRY
 
         ModelPart& r_model_part = GetModelPart();
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         ModelPart& r_fem_model_part = GetFemModelPart();
-        ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
+        const ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
         ConditionsArrayType& pConditions = r_fem_model_part.GetCommunicator().LocalMesh().Conditions();
 
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
@@ -750,7 +748,7 @@ namespace Kratos {
 
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
         OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
 
@@ -769,6 +767,7 @@ namespace Kratos {
     void ExplicitSolverStrategy::InitializeElements() {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
+        const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
@@ -779,7 +778,7 @@ namespace Kratos {
             ElementsArrayType::iterator it_end = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
-                (it)->Initialize();
+                (it)->Initialize(r_process_info);
             }
         }
         KRATOS_CATCH("")
@@ -935,6 +934,7 @@ namespace Kratos {
         ClearFEMForces();
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
         ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
+        const ProcessInfo& r_const_process_info = GetFemModelPart().GetProcessInfo();
 
         Vector rhs_cond;
         Vector rhs_cond_elas;
@@ -954,7 +954,7 @@ namespace Kratos {
 
                 //double Element_Area = geom.Area();
 
-                it->CalculateRightHandSide(rhs_cond, r_process_info);
+                it->CalculateRightHandSide(rhs_cond, r_const_process_info);
                 DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
                 p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
                 array_1d<double, 3> Normal_to_Element = ZeroVector(3);
@@ -1424,7 +1424,7 @@ namespace Kratos {
 
         typedef std::map<SphericParticle*,std::vector<SphericParticle*>> ConnectivitiesMap;
         std::vector<ConnectivitiesMap> thread_maps_of_connectivities;
-        thread_maps_of_connectivities.resize(OpenMPUtils::GetNumThreads());
+        thread_maps_of_connectivities.resize(ParallelUtilities::GetNumThreads());
 
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
@@ -1806,7 +1806,7 @@ namespace Kratos {
         KRATOS_CATCH("")
         }//CheckHierarchyWithCurrentNeighbours
 
-    void ExplicitSolverStrategy::CalculateInitialMaxIndentations(ProcessInfo& r_process_info) {
+    void ExplicitSolverStrategy::CalculateInitialMaxIndentations(const ProcessInfo& r_process_info) {
         KRATOS_TRY
         std::vector<double> indentations_list, indentations_list_ghost;
         indentations_list.resize(mListOfSphericParticles.size());

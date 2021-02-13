@@ -126,7 +126,7 @@ namespace Kratos {
 
 
             //Allocate auxiliary memory
-            int NumThreads = OpenMPUtils::GetNumThreads();
+            int NumThreads = ParallelUtilities::GetNumThreads();
             mMass.resize(NumThreads);
             mDamp.resize(NumThreads);
             mvel.resize(NumThreads);
@@ -154,7 +154,7 @@ namespace Kratos {
 
 
             //Allocate auxiliary memory
-            int NumThreads = OpenMPUtils::GetNumThreads();
+            int NumThreads = ParallelUtilities::GetNumThreads();
             mMass.resize(NumThreads);
             mDamp.resize(NumThreads);
             mvel.resize(NumThreads);
@@ -183,7 +183,7 @@ namespace Kratos {
 
 
             //Allocate auxiliary memory
-            int NumThreads = OpenMPUtils::GetNumThreads();
+            int NumThreads = ParallelUtilities::GetNumThreads();
             mMass.resize(NumThreads);
             mDamp.resize(NumThreads);
             mvel.resize(NumThreads);
@@ -212,7 +212,7 @@ namespace Kratos {
 
 
             //Allocate auxiliary memory
-            int NumThreads = OpenMPUtils::GetNumThreads();
+            int NumThreads = ParallelUtilities::GetNumThreads();
             mMass.resize(NumThreads);
             mDamp.resize(NumThreads);
             mvel.resize(NumThreads);
@@ -243,7 +243,7 @@ namespace Kratos {
 
 
             //Allocate auxiliary memory
-            int NumThreads = OpenMPUtils::GetNumThreads();
+            int NumThreads = ParallelUtilities::GetNumThreads();
             mMass.resize(NumThreads);
             mDamp.resize(NumThreads);
             mvel.resize(NumThreads);
@@ -298,7 +298,7 @@ namespace Kratos {
         {
             KRATOS_TRY
 
-            int NumThreads = OpenMPUtils::GetNumThreads();
+            int NumThreads = ParallelUtilities::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
             OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
@@ -357,7 +357,7 @@ namespace Kratos {
             // if (rModelPart.GetCommunicator().MyPID() == 0)
             //     std::cout << "prediction" << std::endl;
 
-            int NumThreads = OpenMPUtils::GetNumThreads();
+            int NumThreads = ParallelUtilities::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
             OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
@@ -958,10 +958,11 @@ namespace Kratos {
         {
             //adding inertia contribution
             if (rM.size1() != 0) {
+                const auto& r_const_elem_ref = rCurrentElement;
                 int k = OpenMPUtils::ThisThread();
-                rCurrentElement.GetSecondDerivativesVector(macc[k], 0);
+                r_const_elem_ref.GetSecondDerivativesVector(macc[k], 0);
                 (macc[k]) *= (1.00 - mAlphaBossak);
-                rCurrentElement.GetSecondDerivativesVector(maccold[k], 1);
+                r_const_elem_ref.GetSecondDerivativesVector(maccold[k], 1);
                 noalias(macc[k]) += mAlphaBossak * maccold[k];
                 noalias(rRHS_Contribution) -= prod(rM, macc[k]);
             }
@@ -986,10 +987,11 @@ namespace Kratos {
             //adding inertia contribution
             if (rM.size1() != 0)
             {
+                const auto& r_const_cond_ref = rCurrentCondition;
                 int k = OpenMPUtils::ThisThread();
-                rCurrentCondition.GetSecondDerivativesVector(macc[k], 0);
+                r_const_cond_ref.GetSecondDerivativesVector(macc[k], 0);
                 (macc[k]) *= (1.00 - mAlphaBossak);
-                rCurrentCondition.GetSecondDerivativesVector(maccold[k], 1);
+                r_const_cond_ref.GetSecondDerivativesVector(maccold[k], 1);
                 noalias(macc[k]) += mAlphaBossak * maccold[k];
 
                 noalias(rRHS_Contribution) -= prod(rM, macc[k]);

@@ -129,24 +129,19 @@ namespace Kratos {
             mSafetyFactor = safety_factor;
 
             mpDem_model_part = &(*(settings.r_model_part));
-            if (mpDem_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.r_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpDem_model_part == NULL) << "Undefined settings.r_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             mpContact_model_part = &(*(settings.contact_model_part));
-            if (mpContact_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.contact_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpContact_model_part == NULL) << "Undefined settings.contact_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             mpFem_model_part = &(*(settings.fem_model_part));
-            if (mpFem_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.fem_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpFem_model_part == NULL) << "Undefined settings.fem_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             mpCluster_model_part = &(*(settings.cluster_model_part));
-            if (mpCluster_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.cluster_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpCluster_model_part == NULL) << "Undefined settings.cluster_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             mpInlet_model_part = &(*(settings.inlet_model_part));
-            if (mpInlet_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.inlet_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpInlet_model_part == NULL) << "Undefined settings.inlet_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             if(mParameters["RemoveBallsInitiallyTouchingWalls"].GetBool()) mRemoveBallsInitiallyTouchingWallsOption = true;
             else mRemoveBallsInitiallyTouchingWallsOption = false;
@@ -254,7 +249,7 @@ namespace Kratos {
         virtual void SearchRigidFaceNeighbours();
         void CheckHierarchyWithCurrentNeighbours();
         /* This should work only with one iteration, but it with mpi does not */
-        void CalculateInitialMaxIndentations(ProcessInfo& r_process_info);
+        void CalculateInitialMaxIndentations(const ProcessInfo& r_process_info);
         void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
         void PrepareElementsForPrinting();
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);

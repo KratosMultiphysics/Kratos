@@ -100,28 +100,6 @@ int AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::Check( const Pro
 
     KRATOS_ERROR_IF_NOT(this->pGetPrimalElement()) << "Primal element pointer is nullptr!" << std::endl;
 
-    // Check that all required variables have been registered
-
-    // The displacement terms
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_MASS)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_DISPLACEMENT_STIFFNESS)
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT)
-
-    // The rotational terms
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION)
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_INERTIA)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_ROTATIONAL_STIFFNESS)
-
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_DAMPING_RATIO)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_ROTATIONAL_DAMPING_RATIO)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION)
-
     // Verify that the dofs exist
     for ( std::size_t i = 0; i < this->GetGeometry().size(); i++ ) {
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom

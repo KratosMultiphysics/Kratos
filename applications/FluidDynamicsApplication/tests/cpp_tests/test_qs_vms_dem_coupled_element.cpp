@@ -17,7 +17,7 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
-#include "includes/dem_variables.h"
+#include "fluid_dynamics_application_variables.h"
 
 // Application includes
 #include "custom_constitutive/newtonian_2d_law.h"
@@ -29,6 +29,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite
 {
     Model model;
     unsigned int buffer_size = 2;
+    unsigned int Dim = 2;
     ModelPart& model_part = model.CreateModelPart("Main",buffer_size);
 
     // Variables addition
@@ -46,6 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite
     model_part.AddNodalSolutionStepVariable(FLUID_FRACTION);
     model_part.AddNodalSolutionStepVariable(FLUID_FRACTION_RATE);
     model_part.AddNodalSolutionStepVariable(FLUID_FRACTION_GRADIENT);
+    model_part.AddNodalSolutionStepVariable(PERMEABILITY);
 
     // Process info creation
     double delta_time = 0.1;
@@ -72,6 +74,11 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite
         it_node->AddDof(PRESSURE,REACTION_WATER_PRESSURE);
         double& r_fluid_fraction = it_node->FastGetSolutionStepValue(FLUID_FRACTION);
         r_fluid_fraction = 1.0;
+        Matrix& r_permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
+        r_permeability = ZeroMatrix(Dim, Dim);
+        for (unsigned int d = 0; d < Dim; ++d){
+            r_permeability(d,d) = 1.0e+30;
+        }
     }
 
     std::vector<ModelPart::IndexType> element_nodes {1, 2, 4, 3};
@@ -111,9 +118,12 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite
     std::vector<double> output = {-2.665425819,-1.87894198,-0.02477280423,-10.27651236,-5.037560437,-0.05013494554,-19.87147169,-19.57971097,-0.06709466598,-14.8532568,-21.17045328,-0.05799758425}; // QSVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
-        i->Initialize(); // Initialize constitutive law
-        i->Check(model_part.GetProcessInfo());
-        i->CalculateLocalVelocityContribution(LHS, RHS, model_part.GetProcessInfo());
+        const auto& r_process_info = model_part.GetProcessInfo();
+        i->Initialize(r_process_info); // Initialize constitutive law
+
+        const auto& rElem = *i;
+        rElem.Check(r_process_info);
+        i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
         //std::cout << i->Info() << std::setprecision(10) << std::endl;
         //KRATOS_WATCH(RHS);

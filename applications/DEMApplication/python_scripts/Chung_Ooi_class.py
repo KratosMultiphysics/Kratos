@@ -226,7 +226,7 @@ class Benchmark3:
             final_restitution_numbers_error+=fabs(i-j)
         final_restitution_numbers_error/=summation_of_Chung_data
 
-        print("Error in restitution numbers =", 100*final_restitution_numbers_error,"%")
+        Logger.PrintInfo("Error in restitution numbers =", 100*final_restitution_numbers_error,"%")
 
         error1 = 100*final_restitution_numbers_error
 
@@ -369,7 +369,7 @@ class Benchmark4:
         for i, j in zip(DEM_data, Chung_data):
             final_tangential_restitution_coefficient_error+=fabs(i-j)
         final_tangential_restitution_coefficient_error/=summation_of_Chung_data
-        print("Error in tangential restitution coefficient =", 100*final_tangential_restitution_coefficient_error,"%")
+        Logger.PrintInfo("Error in tangential restitution coefficient =", 100*final_tangential_restitution_coefficient_error,"%")
 
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
         i = 0
@@ -394,7 +394,7 @@ class Benchmark4:
         for i, j in zip(DEM_data, Chung_data):
             final_angular_vel_total_error+=fabs(i-j)
         final_angular_vel_total_error/=summation_of_Chung_data
-        print("Error in final angular vel =", 100*final_angular_vel_total_error,"%")
+        Logger.PrintInfo("Error in final angular vel =", 100*final_angular_vel_total_error,"%")
 
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
         i = 0
@@ -419,7 +419,7 @@ class Benchmark4:
         for i, j in zip(DEM_data, Chung_data):
             final_rebound_angle_error+=fabs(i-j)
         final_rebound_angle_error/=summation_of_Chung_data
-        print("Error in final rebound angle =", 100*final_rebound_angle_error,"%")
+        Logger.PrintInfo("Error in final rebound angle =", 100*final_rebound_angle_error,"%")
 
         error1 = 100*final_tangential_restitution_coefficient_error
         error2 = 100*final_angular_vel_total_error
@@ -544,7 +544,7 @@ class Benchmark5:
 
         final_Vst_prima_div_mu_per_Vcn_prima_error/=summation_of_Chung_data
 
-        print("Error in final Vst prima div mu per Vcn prima =", 100*final_Vst_prima_div_mu_per_Vcn_prima_error,"%")
+        Logger.PrintInfo("Error in final Vst prima div mu per Vcn prima =", 100*final_Vst_prima_div_mu_per_Vcn_prima_error,"%")
 
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
         i = 0
@@ -570,7 +570,7 @@ class Benchmark5:
             final_r_w1_prima_div_mu_per_Vcn_error+=fabs(i-j)
 
         final_r_w1_prima_div_mu_per_Vcn_error/=summation_of_Chung_data
-        print("Error in final r w1 prima div mu per Vcn =", 100*final_r_w1_prima_div_mu_per_Vcn_error,"%")
+        Logger.PrintInfo("Error in final r w1 prima div mu per Vcn =", 100*final_r_w1_prima_div_mu_per_Vcn_error,"%")
 
         error1 = 100*final_Vst_prima_div_mu_per_Vcn_prima_error
         error2 = 100*final_r_w1_prima_div_mu_per_Vcn_error
@@ -699,7 +699,7 @@ class Benchmark6:
             final_beta_list_outfile_name_error+=fabs(i-j)
 
         final_beta_list_outfile_name_error/=summation_of_Chung_data
-        print("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
+        Logger.PrintInfo("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
 
         lines_Chung = list(range(13, 17)); lines_DEM = list(range(12, 16)) # Sliding regime for the time being
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
@@ -727,7 +727,7 @@ class Benchmark6:
             final_Vst_prima_div_Vcn_prima_error+=fabs(i-j)
 
         final_Vst_prima_div_Vcn_prima_error/=summation_of_Chung_data
-        print("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
+        Logger.PrintInfo("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
 
         error1 = 100*final_beta_list_outfile_name_error
         error2 = 100*final_Vst_prima_div_Vcn_prima_error
@@ -851,7 +851,7 @@ class Benchmark7:
 
         for i, j in zip(DEM_data, Chung_data):
             final_tangential_center_vel_error+=fabs(i-j)
-        print("Error in final tangential center vel =", final_tangential_center_vel_error)
+        Logger.PrintInfo("Error in final tangential center vel =", final_tangential_center_vel_error)
 
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
         i = 0
@@ -877,7 +877,7 @@ class Benchmark7:
             final_angular_vel_error+=fabs(i-j)
 
         final_angular_vel_error/=summation_of_Chung_data
-        print("Error in final angular vel =", 100*final_angular_vel_error,"%")
+        Logger.PrintInfo("Error in final angular vel =", 100*final_angular_vel_error,"%")
 
         error1 = 100*final_tangential_center_vel_error
         error2 = 100*final_angular_vel_error
@@ -1007,7 +1007,7 @@ class Benchmark8:
             final_beta_list_outfile_name_error+=fabs(i-j)
 
         final_beta_list_outfile_name_error/=summation_of_Chung_data
-        print("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
+        Logger.PrintInfo("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
 
         lines_Chung = []; lines_DEM = []; lines_DEM = list(range(4, 0, -1)); lines_Chung = list(range(13, 17)) # Sliding regime for the time being
         #lines_Chung = list(range(1, 17)); lines_DEM = list(range(0, 16)) # Whole diagram
@@ -1037,7 +1037,7 @@ class Benchmark8:
             final_Vst_prima_div_Vcn_prima_error+=fabs(i-j)
 
         final_Vst_prima_div_Vcn_prima_error/=summation_of_Chung_data
-        print("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
+        Logger.PrintInfo("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
 
         error1 = 100*final_beta_list_outfile_name_error
         error2 = 100*final_Vst_prima_div_Vcn_prima_error
@@ -1151,7 +1151,7 @@ class Benchmark9:
             final_restitution_numbers_error+=fabs(i-j)
         final_restitution_numbers_error/=summation_of_Chung_data
 
-        print("Error in restitution numbers =", 100*final_restitution_numbers_error,"%")
+        Logger.PrintInfo("Error in restitution numbers =", 100*final_restitution_numbers_error,"%")
 
         error1 = 100*final_restitution_numbers_error
 
