@@ -14,6 +14,7 @@
 #include "utilities/math_utils.h"
 #include "utilities/variable_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/atomic_utilities.h"
 #include "custom_utilities/metrics_math_utils.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "custom_processes/metrics_hessian_process.h"
@@ -282,8 +283,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     auto& aux_hessian = r_geometry[i_node].GetValue(AUXILIAR_HESSIAN);
                     for(IndexType k = 0; k < 3; ++k) {
-                        #pragma omp atomic
-                        aux_hessian[k] += N[i_node] * gauss_point_volume * hessian_cond[k];
+                        AtomicAdd(aux_hessian[k], N[i_node] * gauss_point_volume * hessian_cond[k]);
                     }
                 }
             }
@@ -315,8 +315,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     auto& aux_hessian = r_geometry[i_node].GetValue(AUXILIAR_HESSIAN);
                     for(IndexType k = 0; k < 6; ++k) {
-                        #pragma omp atomic
-                        aux_hessian[k] += N[i_node] * gauss_point_volume * hessian_cond[k];
+                        AtomicAdd(aux_hessian[k], N[i_node] * gauss_point_volume * hessian_cond[k]);
                     }
                 }
             }
