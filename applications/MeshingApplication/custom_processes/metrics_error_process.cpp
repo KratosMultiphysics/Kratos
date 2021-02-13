@@ -20,6 +20,7 @@
 #include "processes/find_nodal_neighbours_process.h"
 #include "custom_processes/metrics_error_process.h"
 #include "custom_utilities/meshing_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -56,9 +57,10 @@ void MetricErrorProcess<TDim>::Execute()
     if (!r_nodes_array.begin()->Has(METRIC_SCALAR)) {
         const auto it_node_begin = r_nodes_array.begin();
         // We iterate over the nodes
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i)
-            (it_node_begin + i)->SetValue(METRIC_SCALAR, 0.0);
+        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [&it_node_begin](std::size_t i_node) {
+            (it_node_begin + i_node)->SetValue(METRIC_SCALAR, 0.0);
+        });
     }
 
     /******************************************************************************
@@ -87,13 +89,21 @@ void MetricErrorProcess<TDim>::CalculateElementSize()
     const double tolerance = std::numeric_limits<double>::epsilon();
 
      // Loop over all elements:
-    ElementsArrayType& elements_array = mrThisModelPart.Elements();
-    const int num_elem = static_cast<int>(elements_array.size());
+    ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
+
+    // Auxiliar member variables
+    const auto& r_min_size = mMinSize;
+    const auto& r_max_size = mMaxSize;
+    const auto& r_set_element_number = mSetElementNumber;
+    const auto& r_element_number = mElementNumber;
+    const auto& r_target_error = mTargetError;
+    const auto number_of_elements = mrThisModelPart.NumberOfElements();
 
     // Compute new element size
-    #pragma omp parallel for
-    for(int i_elem = 0; i_elem < num_elem; ++i_elem){
-        auto it_elem = elements_array.begin() + i_elem;
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each(
+        [&it_elem_begin,&r_min_size,&r_max_size,&r_set_element_number,&r_element_number,&r_target_error,&tolerance,&energy_norm_overall,&error_overall,&number_of_elements](std::size_t i_elem) {
+        auto it_elem = it_elem_begin + i_elem;
 
         //Compute the current element size h
         MeshingUtilities::ComputeElementSize(it_elem);
@@ -104,21 +114,20 @@ void MetricErrorProcess<TDim>::CalculateElementSize()
         double new_element_size = coeff * it_elem->GetValue(ELEMENT_H);
 
         // If a target number for elements is given: use this, else: use current element number
-        // if(mSetElementNumber == true && mElementNumber<mrThisModelPart.Elements().size())
-        if(mSetElementNumber == true)
-            new_element_size *= std::sqrt((std::pow(energy_norm_overall, 2) + std::pow(error_overall, 2))/mElementNumber) * mTargetError;
+        // if(r_set_element_number && r_element_number < number_of_elements)
+        if(r_set_element_number)
+            new_element_size *= std::sqrt((std::pow(energy_norm_overall, 2) + std::pow(error_overall, 2))/r_element_number) * r_target_error;
         else
-            new_element_size *= std::sqrt((energy_norm_overall*energy_norm_overall+error_overall*error_overall)/mrThisModelPart.Elements().size())*mTargetError;
-
+            new_element_size *= std::sqrt((energy_norm_overall*energy_norm_overall+error_overall*error_overall)/number_of_elements)*r_target_error;
 
         // Check if element sizes are in specified limits. If not, set them to the limit case
-        if(new_element_size < mMinSize)
-            new_element_size = mMinSize;
-        if(new_element_size > mMaxSize)
-            new_element_size = mMaxSize;
+        if(new_element_size < r_min_size)
+            new_element_size = r_min_size;
+        if(new_element_size > r_max_size)
+            new_element_size = r_max_size;
 
         it_elem->SetValue(ELEMENT_H, new_element_size);
-    }
+    });
 }
 
 /***********************************************************************************/
@@ -138,22 +147,27 @@ void MetricErrorProcess<TDim>::CalculateMetric()
     }
 
     // Iteration over all nodes
+    const auto it_node_begin = r_nodes_array.begin();
     const int num_nodes = static_cast<int>(r_nodes_array.size());
     KRATOS_DEBUG_ERROR_IF(num_nodes == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
 
-    #pragma omp parallel for
-    for(int i_node = 0; i_node < num_nodes; ++i_node) {
-        auto it_node = r_nodes_array.begin() + i_node;
+    // Auxiliar variables
+    const auto average_nodal_h = mAverageNodalH;
+    const auto echo_level = mEchoLevel;
+
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [&it_node_begin,&average_nodal_h,&echo_level](std::size_t i_node) {
+        auto it_node = it_node_begin + i_node;
         /**************************************************************************
         ** Determine nodal element size h:
-        ** if mAverageNodalH == true : the nodal element size is averaged from the element size of neighboring elements
-        ** if mAverageNodalH == false: the nodal element size is the minimum element size from neighboring elements
+        ** if average_nodal_h == true : the nodal element size is averaged from the element size of neighboring elements
+        ** if average_nodal_h == false: the nodal element size is the minimum element size from neighboring elements
         */
         double h_min = 0.0;
         auto& neigh_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
         for(auto i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++){
             const double element_h = i_neighbour_elements->GetValue(ELEMENT_H);
-            if(mAverageNodalH == false) {
+            if(average_nodal_h == false) {
                 if(h_min == 0.0 || h_min > element_h)
                     h_min = element_h;
             } else {
@@ -162,13 +176,13 @@ void MetricErrorProcess<TDim>::CalculateMetric()
         }
 
         // Average Nodal H
-        if(mAverageNodalH) h_min = h_min/static_cast<double>(neigh_elements.size());
+        if(average_nodal_h) h_min = h_min/static_cast<double>(neigh_elements.size());
 
         // Setting value
         it_node->SetValue(METRIC_SCALAR, h_min);
 
-        KRATOS_INFO_IF("MetricErrorProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< h_min << std::endl;
-    }
+        KRATOS_INFO_IF("MetricErrorProcess", echo_level > 2) << "Node " << it_node->Id() << " has metric: "<< h_min << std::endl;
+    });
 }
 
 /***********************************************************************************/
