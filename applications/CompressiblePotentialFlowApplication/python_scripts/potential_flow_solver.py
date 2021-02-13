@@ -93,12 +93,14 @@ class PotentialFlowFormulation(object):
 
     def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "embedded_compressible"
+            "element_type": "embedded_compressible",
+            "penalty_coefficient": 0.0
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "EmbeddedCompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
+        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
 def CreateSolver(model, custom_settings):
     return PotentialFlowSolver(model, custom_settings)

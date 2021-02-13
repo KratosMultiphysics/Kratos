@@ -135,6 +135,11 @@ private:
     void CalculateEmbeddedLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
+
+    void AddPotentialGradientStabilizationTerm(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo);
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override;
@@ -145,4 +150,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_EMBEDDED_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H  defined
+#endif // KRATOS_EMBEDDED_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H  defined
