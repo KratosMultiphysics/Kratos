@@ -172,6 +172,8 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
     mTurbulentKinematicViscosity = KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(tke_old, omega_old, t, f_2, mA1);
     mTurbulentKinematicViscosity = std::max(mTurbulentKinematicViscosity, 1e-12);
 
+    mEffectiveVelocity -= mTurbulentKineticEnergyGradient * (2.0 * (1-mF1) * mSigmaOmega2 / omega_old);
+
     mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mBlendedSigmaOmega;
 
     const double omega = std::max(mTurbulentSpecificEnergyDissipationRate, 1e-12);

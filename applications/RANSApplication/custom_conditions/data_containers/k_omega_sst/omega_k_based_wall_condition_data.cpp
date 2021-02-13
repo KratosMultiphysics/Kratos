@@ -93,8 +93,11 @@ double OmegaKBasedWallConditionData::CalculateWallFlux(
     const double f1 = KOmegaSSTElementData::CalculateF1(
         tke, omega, rParameters.mKinematicViscosity, mWallHeight, mBetaStar, 1e-10, mSigmaOmega2);
 
-    const double blended_sigma_omega =
+    double blended_sigma_omega =
         KOmegaSSTElementData::CalculateBlendedPhi(mSigmaOmega1, mSigmaOmega2, f1);
+
+    // temporarily disable blending
+    blended_sigma_omega = 0.0;
 
     return (rParameters.mKinematicViscosity + blended_sigma_omega * rParameters.mWallTurbulentViscosity) * std::pow(u_tau, 3) /
            (rParameters.mKappa * std::pow(mCmu25 * rParameters.mYPlus * rParameters.mKinematicViscosity, 2));
