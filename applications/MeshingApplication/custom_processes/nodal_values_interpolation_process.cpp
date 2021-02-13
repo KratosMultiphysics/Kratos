@@ -328,9 +328,9 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = it_cond_begin + i;
+    IndexPartition<std::size_t>(r_conditions_array.size()).for_each(
+        [&it_cond_begin](std::size_t i_cond) {
+        auto it_cond = it_cond_begin + i_cond;
         GeometryType& this_geometry = it_cond->GetGeometry();
 
         // Aux coordinates
@@ -350,7 +350,7 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
                 AtomicAdd(aux_normal[index], normal[index]); 
             }
         }
-    }
+    });
 
     // Iterate over nodes
     NodesArrayType& r_nodes_array = rModelPart.Nodes();
