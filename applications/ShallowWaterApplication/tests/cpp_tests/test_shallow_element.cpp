@@ -114,7 +114,13 @@ KRATOS_TEST_CASE_IN_SUITE(SWE2D3N, ShallowWaterApplicationFastSuite)
     KRATOS_CHECK_NEAR(RHS(8),  1.66667, tolerance);
 }
 
-void PerformSteadyStateSimpleTest(const double rManning, const double rHeight, const double rVelocity)
+void PerformSteadyStateTest(
+    const double& rManning,
+    const double& rHeight,
+    const array_1d<double,3>& rMomentum,
+    const array_1d<double,3>& rTopographySlope,
+    const array_1d<double,3>& rHeightGradient = ZeroVector(3),
+    const double& rTolerance = 1e-12)
 {
     Model model;
     ModelPart& model_part = model.CreateModelPart("main", 2);
@@ -134,7 +140,7 @@ void PerformSteadyStateSimpleTest(const double rManning, const double rHeight, c
 
     // Process info creation
     const double gravity = 9.81;
-    const double stab_factor = 0.000001;
+    const double stab_factor = 0.005;
     const double shock_stab_factor = 1.0;
     const double relative_dry_height = 0.1;
     const double density_water = 1000.0;
@@ -155,39 +161,108 @@ void PerformSteadyStateSimpleTest(const double rManning, const double rHeight, c
     Element::Pointer element = model_part.CreateNewElement("ShallowWater2D3N", 1, elem_nodes, property);
     auto r_geom = element->GetGeometry();
 
-    const double slope = std::pow(rManning, 2.) * std::pow(rVelocity, 2.) / std::pow(rHeight, 4./3.);
-    array_1d<double,3> u, q = ZeroVector(3);
-    u[0] = rVelocity;
-    q[0] = rVelocity * rHeight;
-
     // Set the nodal values
     for (IndexType i = 0; i < 3; i++)
     {
-        const auto x = r_geom[i].X();
-        r_geom[i].FastGetSolutionStepValue(HEIGHT) = rHeight;
-        r_geom[i].FastGetSolutionStepValue(VELOCITY) = u;
-        r_geom[i].FastGetSolutionStepValue(MOMENTUM) = q;
+        const array_1d<double,3> coords = r_geom[i].Coordinates();
+        const auto height = rHeight + inner_prod(coords, rHeightGradient);
+        const auto velocity = rMomentum / height;
+        const auto topography = inner_prod(coords, rTopographySlope);
+
+        r_geom[i].FastGetSolutionStepValue(HEIGHT) = height;
+        r_geom[i].FastGetSolutionStepValue(VELOCITY) = velocity;
+        r_geom[i].FastGetSolutionStepValue(MOMENTUM) = rMomentum;
         r_geom[i].FastGetSolutionStepValue(MANNING) = rManning;
-        r_geom[i].FastGetSolutionStepValue(TOPOGRAPHY) = -slope * x;
+        r_geom[i].FastGetSolutionStepValue(TOPOGRAPHY) = topography;
     }
 
     // Compute RHS and LHS
-    Vector RHS = ZeroVector(9);
-    Matrix LHS = ZeroMatrix(9,9);
+    Vector rhs = ZeroVector(9);
+    Matrix lhs = ZeroMatrix(9,9);
     const ProcessInfo& r_process_info = model_part.GetProcessInfo();
-    element->CalculateLocalSystem(LHS, RHS, r_process_info);
+    element->CalculateLocalSystem(lhs, rhs, r_process_info);
 
     // Check the RHS values. Since it is a steady solution the RHS must be zero
-    double tolerance = 1e-6;
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, ZeroVector(9), tolerance);
+    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(rhs, ZeroVector(9), rTolerance);
 }
 
 /**
- * Checks the ShallowWater2D3N element
+ * @brief Check the ShallowWater2D3N element with still free surface
+ */
+KRATOS_TEST_CASE_IN_SUITE(SteadyStillSurfaceShallowWater2D3N, ShallowWaterApplicationFastSuite)
+{
+    const double manning = 0.0;
+    const double height = 5.0;
+    const array_1d<double,3> momentum = ZeroVector(3);
+    const array_1d<double,3> slope = ZeroVector(3);
+
+    PerformSteadyStateTest(manning, height, momentum, slope);
+}
+
+/**
+ * @brief Check the ShallowWater2D3N element with subcritical x-aligned flow
  */
 KRATOS_TEST_CASE_IN_SUITE(SteadySubcriticalShallowWater2D3N, ShallowWaterApplicationFastSuite)
 {
-    PerformSteadyStateSimpleTest(0.0382, 5.0, 1.0);
+    const double manning = 0.0328;
+    const double height = 5.0;
+    array_1d<double,3> momentum = ZeroVector(3);
+    momentum[0] = 5.0;
+    const array_1d<double,3> slope = -std::pow(manning, 2.) * norm_2(momentum) * momentum / std::pow(height, 10./3.);
+
+    PerformSteadyStateTest(manning, height, momentum, slope);
+}
+
+/**
+ * @brief Check the ShallowWater2D3N element with subcritical flow
+ */
+KRATOS_TEST_CASE_IN_SUITE(SteadySubcriticalSkewShallowWater2D3N, ShallowWaterApplicationFastSuite)
+{
+    const double manning = 0.0328;
+    const double height = 5.0;
+    array_1d<double,3> momentum = ZeroVector(3);
+    momentum[0] = -3.0;
+    momentum[1] = 4.0;
+    const array_1d<double,3> slope = -std::pow(manning, 2.) * norm_2(momentum) * momentum / std::pow(height, 10./3.);
+
+    PerformSteadyStateTest(manning, height, momentum, slope);
+}
+
+/**
+ * @brief Check the ShallowWater2D3N element with subcritical flow (Froude = 2.72789)
+ */
+KRATOS_TEST_CASE_IN_SUITE(SteadySupercriticalShallowWater2D3N, ShallowWaterApplicationFastSuite)
+{
+    const double manning = 0.0328;
+    const double height = 1.0;
+    array_1d<double,3> momentum = ZeroVector(3);
+    momentum[0] = 3.0;
+    momentum[1] = 8.0;
+    const array_1d<double,3> slope = -std::pow(manning, 2.) * norm_2(momentum) * momentum / std::pow(height, 10./3.);
+
+    PerformSteadyStateTest(manning, height, momentum, slope);
+}
+
+/**
+ * @brief Check the ShallowWater2D3N element with variable free surface
+ * @detail A linear element can not pass this parcel test analytically, since the velocity is not linear.
+ */
+KRATOS_TEST_CASE_IN_SUITE(SteadyVariableFreeSurfaceShallowWater2D3N, ShallowWaterApplicationFastSuite)
+{
+    const double manning = 0.0;
+    const double height = 5.0;
+    array_1d<double,3> height_grad = ZeroVector(3);
+    array_1d<double,3> momentum = ZeroVector(3);
+    height_grad[0] = .05;
+    momentum[0] = 5.0;
+    momentum[1] = 0.0;
+    const double gravity = 9.81;
+    const double central_height = height + height_grad[0] / 3.; // at the barycenter of the element
+    const array_1d<double,3> friction = std::pow(manning, 2.) * norm_2(momentum) * momentum / std::pow(central_height, 10./3.);
+    const array_1d<double,3> slope = (inner_prod(momentum, momentum) / (gravity * std::pow(central_height, 3.)) -1.) * height_grad - friction;
+    const double tolerance = 1e-3;
+
+    PerformSteadyStateTest(manning, height, momentum, slope, height_grad, tolerance);
 }
 
 } // namespace Testing
