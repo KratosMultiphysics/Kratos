@@ -50,15 +50,6 @@ void OmegaKBasedWallConditionData::Check(
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
 
-    KRATOS_ERROR_IF_NOT(rCondition.Has(DISTANCE))
-        << "DISTANCE variable is not found in condition with id "
-        << rCondition.Id() << ".\n";
-
-    KRATOS_ERROR_IF(rCondition.GetValue(DISTANCE) == 0.0)
-        << "DISTANCE variable is not set with wall distance in condition with "
-           "id "
-        << rCondition.Id() << ".\n";
-
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
         const auto& r_node = r_geometry[i_node];
