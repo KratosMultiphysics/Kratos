@@ -5,12 +5,19 @@ from test_utilities import RunParametricTestCase
 
 class PeriodicTurbulenceModellingTestCase(UnitTest.TestCase):
     @classmethod
-    def setUpCase(cls, working_folder, parameters_file_name, print_output):
+    def setUpCase(cls, working_folder, parameters_file_name, materials_file_name, print_output):
         cls.working_folder = working_folder
         cls.parameters_file_name = parameters_file_name
+        cls.materials_file_name = materials_file_name
         cls.print_output = print_output
         cls.parameters = {}
         cls.parameters["<LINEAR_SOLVER_TYPE>"] = "skyline_lu_factorization"
+
+    @classmethod
+    def tearDownClass(cls):
+        with UnitTest.WorkFolderScope(cls.working_folder , __file__):
+            kratos_utilities.DeleteTimeFiles(".")
+            kratos_utilities.DeleteFileIfExisting(cls.materials_file_name)
 
     def setUp(self):
         if (IsDistributedRun()):
@@ -52,8 +59,6 @@ class PeriodicTurbulenceModellingTestCase(UnitTest.TestCase):
         self._runTest()
 
     def _runTest(self):
-        self.addCleanup(lambda: kratos_utilities.DeleteTimeFiles("."))
-
-        RunParametricTestCase(self.parameters_file_name, self.working_folder,
+        RunParametricTestCase(self.parameters_file_name, self.materials_file_name, self.working_folder,
                                self.parameters, self.print_output)
 
