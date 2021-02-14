@@ -201,14 +201,24 @@ int ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Chec
         TScalarWallFluxConditionData::Check(*this, rCurrentProcessInfo);
     }
 
-    KRATOS_ERROR_IF(!this->Has(NEIGHBOUR_ELEMENTS))
-        << "NEIGHBOUR_ELEMENTS were not assigned properly for condition "
+    KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOUR_ELEMENTS))
+        << "NEIGHBOUR_ELEMENTS were not found in condition "
         << this->Info() << ".\n";
 
-    KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() != 1)
+    KRATOS_ERROR_IF_NOT(this->GetValue(NEIGHBOUR_ELEMENTS).size() == 1)
         << "More than one parent element was found for condition " << this->Info()
         << " [ number of parents = " << this->GetValue(NEIGHBOUR_ELEMENTS).size()
         << " ].\n";
+
+    KRATOS_ERROR_IF_NOT(this->Has(GAUSS_RANS_Y_PLUS))
+        << "GAUSS_RANS_Y_PLUS were not found in condition "
+        << this->Info() << ".\n";
+
+    KRATOS_ERROR_IF_NOT(this->GetValue(GAUSS_RANS_Y_PLUS).size() == 2)
+        << "GAUSS_RANS_Y_PLUS were not initialized properly in condition "
+        << this->Info()
+        << " [ GAUSS_RANS_Y_PLUS.size() = " << this->GetValue(GAUSS_RANS_Y_PLUS).size()
+        << ", required size = " << 2 << " ].\n";
 
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(VON_KARMAN)) << "VON_KARMAN is not found in process info.\n";
 
