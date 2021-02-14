@@ -318,13 +318,6 @@ void SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements)
 
             auto p_constitutive_law = r_properties[CONSTITUTIVE_LAW]->Clone();
 
-            const auto rans_cl_name = p_constitutive_law->Info();
-            KRATOS_ERROR_IF(rans_cl_name.substr(0, 4) != "Rans")
-                << "Incompatible constitutive law is used. Please use constitutive "
-                "laws which starts with \"Rans*\" [ Constitutive law "
-                "name = "
-                << rans_cl_name << " ].\n";
-
             const auto& r_geometry = rElement.GetGeometry();
             const auto& r_shape_functions =
                 r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
