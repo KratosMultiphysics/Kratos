@@ -47,7 +47,7 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
     const auto& set_element_properties = [](Properties& rProperties) {
         rProperties.SetValue(DENSITY, 2.0);
         rProperties.SetValue(DYNAMIC_VISCOSITY, 2e-2);
-        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansNewtonian2DLaw").Clone());
+        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansKEpsilonNewtonian2DLaw").Clone());
     };
 
     const auto& set_condition_properties = [](Properties& rProperties) {

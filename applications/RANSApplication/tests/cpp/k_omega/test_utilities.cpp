@@ -50,7 +50,7 @@ ModelPart& RansKOmegaK2D3NSetUp(
     const auto set_properties = [](Properties& rProperties) {
         rProperties.SetValue(DENSITY, 1.0);
         rProperties.SetValue(DYNAMIC_VISCOSITY, 1e-2);
-        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansNewtonian2DLaw").Clone());
+        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansKOmegaNewtonian2DLaw").Clone());
     };
 
     using namespace RansApplicationTestUtilities;
@@ -68,7 +68,10 @@ ModelPart& RansKOmegaK2D3NSetUp(
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_1, 1.0, 10.0);
 
-    FluidTestUtilities::RandomFillContainerNonHistoricalVariable(r_model_part.Elements(), TURBULENT_VISCOSITY, 2, 1e-3, 1e-1);
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.SetValue(TURBULENT_KINETIC_ENERGY, r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY));
+        r_node.SetValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node.FastGetSolutionStepValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
+    }
 
     // set process info variables
     auto& r_process_info = r_model_part.GetProcessInfo();
@@ -93,7 +96,7 @@ ModelPart& RansKOmegaOmega2D3NSetUp(
     const auto set_properties = [](Properties& rProperties) {
         rProperties.SetValue(DENSITY, 1.0);
         rProperties.SetValue(DYNAMIC_VISCOSITY, 1e-2);
-        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansNewtonian2DLaw").Clone());
+        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansKOmegaNewtonian2DLaw").Clone());
     };
 
     using namespace RansApplicationTestUtilities;
@@ -111,7 +114,10 @@ ModelPart& RansKOmegaOmega2D3NSetUp(
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
 
-    FluidTestUtilities::RandomFillContainerNonHistoricalVariable(r_model_part.Elements(), TURBULENT_VISCOSITY, 2, 1e-3, 1e-1);
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.SetValue(TURBULENT_KINETIC_ENERGY, r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY));
+        r_node.SetValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node.FastGetSolutionStepValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
+    }
 
     // set process info variables
     auto& r_process_info = r_model_part.GetProcessInfo();
@@ -136,7 +142,7 @@ ModelPart& RansKOmegaOmega2D2NSetUp(
     const auto set_element_properties = [](Properties& rProperties) {
         rProperties.SetValue(DENSITY, 1.0);
         rProperties.SetValue(DYNAMIC_VISCOSITY, 1e-2);
-        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansNewtonian2DLaw").Clone());
+        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansKOmegaNewtonian2DLaw").Clone());
     };
 
     const auto set_condition_properties = [](Properties& rProperties) {
@@ -158,8 +164,12 @@ ModelPart& RansKOmegaOmega2D2NSetUp(
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
     FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
 
-    FluidTestUtilities::RandomFillContainerNonHistoricalVariable(r_model_part.Conditions(), RANS_Y_PLUS, 2, 10.0, 100.0);
-    FluidTestUtilities::RandomFillContainerNonHistoricalVariable(r_model_part.Elements(), TURBULENT_VISCOSITY, 2, 1e-3, 1e-1);
+    for (auto& r_condition : r_model_part.Conditions()) {
+        Vector values(2);
+        values[0] = r_condition.Id();
+        values[1] = 20.0 * r_condition.Id();
+        r_condition.SetValue(GAUSS_RANS_Y_PLUS, values);
+    }
 
     // set process info variables
     auto& r_process_info = r_model_part.GetProcessInfo();
