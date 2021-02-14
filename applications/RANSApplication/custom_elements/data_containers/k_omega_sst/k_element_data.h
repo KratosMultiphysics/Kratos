@@ -117,6 +117,7 @@ protected:
     double mBlendedSimgaK;
     double mVelocityDivergence;
     double mDensity;
+    double mA1;
 
     ///@}
     ///@name Protected Operations

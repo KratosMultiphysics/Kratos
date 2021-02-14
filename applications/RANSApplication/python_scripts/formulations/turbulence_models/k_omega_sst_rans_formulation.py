@@ -110,15 +110,6 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         wall_distance_process = RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
         self.AddProcess(wall_distance_process)
 
-        minimum_nut = settings["minimum_turbulent_viscosity"].GetDouble()
-
-        nut_process = KratosRANS.RansNutKOmegaSSTUpdateProcess(
-                                            model,
-                                            self.GetBaseModelPart().Name,
-                                            minimum_nut,
-                                            self.echo_level)
-        self.AddProcess(nut_process)
-
         super().Initialize()
 
     def SetConstants(self, settings):

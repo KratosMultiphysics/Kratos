@@ -10,15 +10,20 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_NEWTONIAN_LAW_2D_H_INCLUDED)
-#define KRATOS_RANS_NEWTONIAN_LAW_2D_H_INCLUDED
+#if !defined(KRATOS_RANS_K_EPSILON_NEWTONIAN_LAW_H_INCLUDED)
+#define KRATOS_RANS_K_EPSILON_NEWTONIAN_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/newtonian_2d_law.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
+#include "includes/constitutive_law.h"
+
+// Application includes
+
 
 namespace Kratos
 {
@@ -29,13 +34,18 @@ namespace Kratos
  * to include turbulent viscosity from Bossinesq Hypothesis.
  *
  */
-class KRATOS_API(RANS_APPLICATION) RansNewtonian2DLaw : public Newtonian2DLaw
+template<class TPrimalBaseType>
+class KRATOS_API(RANS_APPLICATION) RansKEpsilonNewtonianLaw : public TPrimalBaseType
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = Newtonian2DLaw;
+    using BaseType = TPrimalBaseType;
+
+    using NodeType = Node<3>;
+
+    using GeometryType = Geometry<NodeType>;
 
     ///@}
     ///@name Life Cycle
@@ -45,7 +55,7 @@ public:
      * Counted pointer of Newtonian3DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(RansNewtonian2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(RansKEpsilonNewtonianLaw);
 
     /**
      * Life Cycle
@@ -54,7 +64,7 @@ public:
     /**
      * Default constructor.
      */
-    RansNewtonian2DLaw();
+    RansKEpsilonNewtonianLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -65,12 +75,12 @@ public:
     /**
      * Copy constructor.
      */
-    RansNewtonian2DLaw(const RansNewtonian2DLaw& rOther);
+    RansKEpsilonNewtonianLaw(const RansKEpsilonNewtonianLaw& rOther);
 
     /**
      * Destructor.
      */
-    ~RansNewtonian2DLaw();
+    ~RansKEpsilonNewtonianLaw();
 
     /**
      * Operations needed by the base class:
@@ -93,6 +103,13 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    double& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameters,
+        const Variable<double>& rThisVariable,
+        double& rValue) override;
+
 
     ///@}
     ///@name Access
@@ -117,6 +134,14 @@ protected:
 
     ///@}
 private:
+    ///@name Private Operations
+    ///@{
+
+    double CalculateTurbulentViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+
+    double GetDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+
+    ///@}
     ///@name Serialization
     ///@{
 
@@ -127,6 +152,6 @@ private:
     void load(Serializer& rSerializer) override;
 
     ///@}
-}; // Class RansNewtonian2DLaw
+}; // Class RansKEpsilonNewtonianLaw
 } // namespace Kratos.
-#endif // KRATOS_RANS_NEWTONIAN_LAW_2D_H_INCLUDED  defined
+#endif // KRATOS_RANS_K_EPSILON_NEWTONIAN_LAW_H_INCLUDED  defined

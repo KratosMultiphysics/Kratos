@@ -21,7 +21,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utilities.h"
-#include "custom_utilities/rans_variable_difference_norm_calculation_utility.h"
+#include "custom_utilities/rans_nut_utility.h"
 #include "custom_utilities/test_utilities.h"
 
 namespace Kratos
@@ -32,11 +32,14 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    using RansScalarVariableDifferenceNormCalculationUtilityType = RansVariableDifferenceNormsCalculationUtility<double>;
-    py::class_<RansScalarVariableDifferenceNormCalculationUtilityType, RansScalarVariableDifferenceNormCalculationUtilityType::Pointer>(m, "ScalarVariableDifferenceNormCalculationUtility")
-        .def(py::init<const ModelPart&, const Variable<double>&>())
-        .def("InitializeCalculation", &RansScalarVariableDifferenceNormCalculationUtilityType::InitializeCalculation)
-        .def("CalculateDifferenceNorm", &RansScalarVariableDifferenceNormCalculationUtilityType::CalculateDifferenceNorm);
+    py::class_<RansNutUtility, RansNutUtility::Pointer>(m, "RansNutUtility")
+        .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const double, const double, const int>())
+        .def("Initialize", &RansNutUtility::Initialize)
+        .def("InitializeCalculation", &RansNutUtility::InitializeCalculation)
+        .def("CheckConvergence", &RansNutUtility::CheckConvergence)
+        .def("UpdateTurbulenceData", &RansNutUtility::UpdateTurbulenceData)
+        .def("UpdateTurbulentViscosity", &RansNutUtility::UpdateTurbulentViscosity)
+        ;
 
     m.def_submodule("RansVariableUtilities")
         .def("ClipScalarVariable", &RansVariableUtilities::ClipScalarVariable)

@@ -7,7 +7,6 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.testing.utilities  import ReadModelPart
 
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateDuplicateModelPart
 from KratosMultiphysics.FluidDynamicsApplication.check_and_prepare_model_process_fluid import CheckAndPrepareModelProcess
 
 
@@ -45,18 +44,6 @@ class CustomProcessTest(UnitTest.TestCase):
                 "skin_parts" : ["AutomaticInlet2D_inlet", "Outlet2D_outlet", "Slip2D"],
                 "assign_neighbour_elements_to_conditions": true
             }""")).Execute()
-
-            # Add constitutive laws and material properties from json file to model parts.
-            material_settings = Kratos.Parameters(
-                """{
-                    "Parameters": {
-                            "materials_filename": "BackwardFacingStepTest/backward_facing_step_material_properties.json"
-                        }
-                    }""")
-
-            Kratos.ReadMaterialsUtility(material_settings, cls.model)
-
-        KratosRANS.RansVariableUtilities.SetElementConstitutiveLaws(cls.model_part.Elements)
 
     def setUp(self):
         # reinitialize variables for each test
@@ -322,124 +309,6 @@ class CustomProcessTest(UnitTest.TestCase):
 
         for node in self.model.GetModelPart(test_model_part_name).Nodes:
             self.assertEqual(node.IsFixed(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE), True)
-
-    def testNutKEpsilonUpdateProcess(self):
-        settings = Kratos.Parameters(r'''
-        [
-            {
-                "kratos_module" : "KratosMultiphysics.RANSApplication",
-                "python_module" : "cpp_process_factory",
-                "process_name"  : "NutKEpsilonUpdateProcess",
-                "Parameters" : {
-                    "model_part_name"     : "FluidModelPart"
-                }
-            },
-            {
-                "kratos_module" : "KratosMultiphysics.RANSApplication",
-                "python_module" : "cpp_process_factory",
-                "process_name"  : "NutNodalUpdateProcess",
-                "Parameters" : {
-                    "model_part_name"     : "FluidModelPart"
-                }
-            }
-        ]''')
-
-        test_variables = ["TURBULENT_VISCOSITY", "VISCOSITY"]
-        test_model_part_name = "FluidModelPart.AutomaticInlet2D_inlet"
-        test_file_name = "nut_k_epsilon_test_output"
-        CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-        # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
-
-        self._RunProcessTest(settings)
-
-    def testNutKOmegaUpdateProcess(self):
-        settings = Kratos.Parameters(r'''
-        [
-            {
-                "kratos_module" : "KratosMultiphysics.RANSApplication",
-                "python_module" : "cpp_process_factory",
-                "process_name"  : "NutKOmegaUpdateProcess",
-                "Parameters" : {
-                    "model_part_name"     : "FluidModelPart"
-                }
-            },
-            {
-                "kratos_module" : "KratosMultiphysics.RANSApplication",
-                "python_module" : "cpp_process_factory",
-                "process_name"  : "NutNodalUpdateProcess",
-                "Parameters" : {
-                    "model_part_name"     : "FluidModelPart"
-                }
-            }
-        ]''')
-
-        test_variables = ["TURBULENT_VISCOSITY", "VISCOSITY"]
-        test_model_part_name = "FluidModelPart.AutomaticInlet2D_inlet"
-        test_file_name = "nut_k_omega_test_output"
-        CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-        # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
-
-        self._RunProcessTest(settings)
-
-    def testNutKOmegaSSTUpdateProcess(self):
-        settings = Kratos.Parameters(r'''
-        [
-            {
-                "kratos_module" : "KratosMultiphysics.RANSApplication",
-                "python_module" : "cpp_process_factory",
-                "process_name"  : "NutKOmegaSSTUpdateProcess",
-                "Parameters" : {
-                    "model_part_name"     : "k_omega_sst"
-                }
-            },
-            {
-                "kratos_module" : "KratosMultiphysics.RANSApplication",
-                "python_module" : "cpp_process_factory",
-                "process_name"  : "NutNodalUpdateProcess",
-                "Parameters" : {
-                    "model_part_name"     : "k_omega_sst"
-                }
-            }
-        ]''')
-
-        self.model_part.ProcessInfo.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, 0.09)
-        self.model_part.ProcessInfo.SetValue(KratosRANS.TURBULENCE_RANS_A1, 0.31)
-
-        test_variables = ["TURBULENT_VISCOSITY", "VISCOSITY"]
-        test_model_part_name = "FluidModelPart.AutomaticInlet2D_inlet"
-        test_file_name = "nut_k_omega_sst_test_output"
-        CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-        # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
-
-        test_model_part = CreateDuplicateModelPart(self.model_part, "k_omega_sst", "RansKOmegaSSTKRFC2D3N", "")
-
-        for element in test_model_part.Elements:
-            element.Initialize(self.model_part.ProcessInfo)
-
-        self._RunProcessTest(settings)
-
-    def testComputeReactionsProcess(self):
-        settings = Kratos.Parameters(r'''
-        [
-            {
-                "kratos_module" : "KratosMultiphysics.RANSApplication",
-                "python_module" : "cpp_process_factory",
-                "process_name"  : "ComputeReactionsProcess",
-                "Parameters" : {
-                    "model_part_name"     : "FluidModelPart"
-                }
-            }
-        ]''')
-
-        KratosCFD.FluidTestUtilities.RandomFillConditionVariable(self.model.GetModelPart("FluidModelPart").Conditions, KratosRANS.FRICTION_VELOCITY, 2, 10.0, 100.0)
-
-        test_variables = ["REACTION"]
-        test_model_part_name = "FluidModelPart.Slip2D.Slip2D_walls"
-        test_file_name = "compute_reactions_test_output"
-        CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
-        # CustomProcessTest._AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
-
-        self._RunProcessTest(settings)
 
     def testWallDistanceCalculationProcess(self):
         settings = Kratos.Parameters(r'''

@@ -48,24 +48,8 @@ def Factory(settings, Model):
             KratosRANS.RansNutNodalUpdateProcess
         ],
         [
-            "NutKEpsilonUpdateProcess",
-            KratosRANS.RansNutKEpsilonUpdateProcess
-        ],
-        [
-            "NutKOmegaUpdateProcess",
-            KratosRANS.RansNutKOmegaUpdateProcess
-        ],
-        [
-            "NutKOmegaSSTUpdateProcess",
-            KratosRANS.RansNutKOmegaSSTUpdateProcess
-        ],
-        [
             "WallFunctionUpdateProcess",
             KratosRANS.RansWallFunctionUpdateProcess
-        ],
-        [
-            "ComputeReactionsProcess",
-            KratosRANS.RansComputeReactionsProcess
         ],
         [
             "CheckScalarBoundsProcess",

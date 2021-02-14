@@ -16,10 +16,9 @@
 // System includes
 
 // Project includes
-#include "containers/variable.h"
-#include "geometries/geometry_data.h"
-#include "includes/node.h"
+#include "includes/condition.h"
 #include "includes/process_info.h"
+#include "includes/properties.h"
 #include "includes/ublas_interface.h"
 
 // Application includes
@@ -32,14 +31,22 @@ namespace Kratos
 
 namespace KOmegaSSTWallConditionData
 {
-template<unsigned int TDim>
+
 class OmegaKBasedWallConditionData : public ScalarWallFluxConditionData
 {
 public:
+    ///@name Type Definitions
+    ///@{
+
     using BaseType = ScalarWallFluxConditionData;
-    using NodeType = Node<3>;
+
     using GeometryType = typename BaseType::GeometryType;
+
     using ShapeFunctionDerivativesArrayType = typename GeometryType::ShapeFunctionsGradientsType;
+
+    ///@}
+    ///@name Static Operations
+    ///@{
 
     static const Variable<double>& GetScalarVariable();
 
@@ -47,9 +54,11 @@ public:
         const Condition& rCondition,
         const ProcessInfo& rCurrentProcessInfo);
 
-    static GeometryData::IntegrationMethod GetIntegrationMethod();
+    static const std::string GetName() { return "KOmegaOmegaKBasedConditionData"; }
 
-    static const std::string GetName() {return "KOmegaOmegaKBasedConditionData";}
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     OmegaKBasedWallConditionData(
         const GeometryType& rGeometry,
@@ -59,24 +68,30 @@ public:
     {
     }
 
+    ///@}
+    ///@name Operations
+    ///@{
+
     void CalculateConstants(
         const ProcessInfo& rCurrentProcessInfo);
 
-    bool IsWallFluxComputable() const;
-
     double CalculateWallFlux(
-        const Vector& rShapeFunctions);
+        const Vector& rShapeFunctions,
+        const ScalarWallFluxConditionData::Parameters& rParameters);
+
+    ///@}
 
 protected:
-    double mKappa;
-    double mYPlus;
+    ///@name Protected Members
+    ///@{
+
     double mCmu25;
-    double mDensity;
-    double mTurbulentViscosity;
     double mSigmaOmega1;
     double mSigmaOmega2;
     double mBetaStar;
     double mWallHeight;
+
+    ///@}
 };
 
 ///@}

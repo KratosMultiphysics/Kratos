@@ -199,14 +199,14 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
                 self.fractional_step_model_part,
                 self.solver_settings,
                 settings["predictor_corrector"].GetBool(),
-                False,
+                settings["compute_reactions"].GetBool(),
                 KratosCFD.PATCH_INDEX)
         else:
             self.solver = solver_type(
                 self.fractional_step_model_part,
                 self.solver_settings,
                 settings["predictor_corrector"].GetBool(),
-                False)
+                settings["compute_reactions"].GetBool(),)
 
         process_info.SetValue(Kratos.DYNAMIC_TAU, settings["dynamic_tau"].GetDouble())
         process_info.SetValue(Kratos.OSS_SWITCH, settings["oss_switch"].GetInt())

@@ -4,6 +4,7 @@ from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
 
 def RunParametricTestCase(
     settings_file_name,
+    material_properties_file_name,
     work_folder,
     parameters_dict,
     print_output = False):
@@ -20,6 +21,19 @@ def RunParametricTestCase(
     }
 
     with UnitTest.WorkFolderScope(work_folder, __file__):
+        # first load existing material properties
+        with open(material_properties_file_name + ".orig", "r") as file_input:
+            material_lines = file_input.read()
+
+        for key, value in parameters_dict.items():
+            material_lines = material_lines.replace(key, value)
+            if (key in shortened_keys_map.keys()):
+                material_lines = material_lines.replace("<SHORT_" + key[1:], shortened_keys_map[key][value])
+
+        # write modified lines
+        with open(material_properties_file_name, "w") as file_output:
+            file_output.write(material_lines)
+
         model = km.Model()
         with open(settings_file_name, 'r') as settings_file:
             file_data = settings_file.read()

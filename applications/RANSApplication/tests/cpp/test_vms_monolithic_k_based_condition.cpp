@@ -47,7 +47,7 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
     const auto& set_element_properties = [](Properties& rProperties) {
         rProperties.SetValue(DENSITY, 2.0);
         rProperties.SetValue(DYNAMIC_VISCOSITY, 2e-2);
-        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansNewtonian2DLaw").Clone());
+        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansKEpsilonNewtonian2DLaw").Clone());
     };
 
     const auto& set_condition_properties = [](Properties& rProperties) {
@@ -244,14 +244,14 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix
     r_condition.CalculateDampingMatrix(LHS, r_process_info);
 
     // setting reference values
-    ref_LHS(0, 0) = 1.0196283284946956e+00;
-    ref_LHS(0, 3) = 1.0196283284946956e+00;
-    ref_LHS(1, 1) = 1.0196283284946956e+00;
-    ref_LHS(1, 4) = 1.0196283284946956e+00;
-    ref_LHS(3, 0) = 1.0196283284946956e+00;
-    ref_LHS(3, 3) = 1.0196283284946956e+00;
-    ref_LHS(4, 1) = 1.0196283284946956e+00;
-    ref_LHS(4, 4) = 1.0196283284946956e+00;
+    ref_LHS(0, 0) =  1.2959320308354529e+00;
+    ref_LHS(0, 3) =  6.5106952680296248e-01;
+    ref_LHS(1, 1) =  1.2959320308354529e+00;
+    ref_LHS(1, 4) =  6.5106952680296248e-01;
+    ref_LHS(3, 0) =  6.5106952680296248e-01;
+    ref_LHS(3, 3) =  1.3083460763763965e+00;
+    ref_LHS(4, 1) =  6.5106952680296248e-01;
+    ref_LHS(4, 4) =  1.3083460763763965e+00;
 
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
@@ -288,31 +288,31 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
     r_condition.CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
     // setting reference values
-    ref_RHS[0] = 1.7511206373263968e+00;
-    ref_RHS[1] = 9.1427000264416627e+00;
-    ref_RHS[3] = 1.7511206373263968e+00;
-    ref_RHS[4] = 9.1427000264416627e+00;
+    ref_RHS[0] =  5.3244284443146106e-02;
+    ref_RHS[1] =  8.2493527945119283e+00;
+    ref_RHS[3] =  3.3323773458214871e+00;
+    ref_RHS[4] =  9.2737153157236367e+00;
 
-    ref_LHS(0, 0) = 1.0196283284946956e+00;
-    ref_LHS(0, 3) = 1.0196283284946956e+00;
-    ref_LHS(1, 1) = 1.0196283284946956e+00;
-    ref_LHS(1, 4) = 1.0196283284946956e+00;
-    ref_LHS(3, 0) = 1.0196283284946956e+00;
-    ref_LHS(3, 3) = 1.0196283284946956e+00;
-    ref_LHS(4, 1) = 1.0196283284946956e+00;
-    ref_LHS(4, 4) = 1.0196283284946956e+00;
+    ref_LHS(0, 0) =  1.2959320308354529e+00;
+    ref_LHS(0, 3) =  6.5106952680296248e-01;
+    ref_LHS(1, 1) =  1.2959320308354529e+00;
+    ref_LHS(1, 4) =  6.5106952680296248e-01;
+    ref_LHS(3, 0) =  6.5106952680296248e-01;
+    ref_LHS(3, 3) =  1.3083460763763965e+00;
+    ref_LHS(4, 1) =  6.5106952680296248e-01;
+    ref_LHS(4, 4) =  1.3083460763763965e+00;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
-    const array_1d<double, 3>& friction_velocity = r_condition.GetValue(FRICTION_VELOCITY);
-    array_1d<double, 3> ref_friction_velocity;
-    ref_friction_velocity[0] = -5.7394090005334475e-01;
-    ref_friction_velocity[1] = -2.9965779457121395e+00;
-    ref_friction_velocity[2] = 0.0;
-    KRATOS_CHECK_VECTOR_NEAR(friction_velocity, ref_friction_velocity, 1e-12);
+    const Vector& gauss_rans_y_plus = r_condition.GetValue(GAUSS_RANS_Y_PLUS);
 
-    KRATOS_CHECK_NEAR(r_condition.GetValue(RANS_Y_PLUS), 3.1398913006428085e+01, 1e-12);
+    Vector ref_gauss_rans_y_plus(2);
+
+    ref_gauss_rans_y_plus[0] = 2.8353913475450781e+01;
+    ref_gauss_rans_y_plus[1] = 3.6969057985705675e+01;
+
+    KRATOS_CHECK_VECTOR_NEAR(gauss_rans_y_plus, ref_gauss_rans_y_plus, 1e-12);
 }
 
 } // namespace Testing

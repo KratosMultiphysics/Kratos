@@ -316,23 +316,12 @@ void SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements)
                 << ": No CONSTITUTIVE_LAW defined for property "
                 << r_properties.Id() << "." << std::endl;
 
-            const auto rans_cl_name = r_properties[CONSTITUTIVE_LAW]->Info();
-
-            KRATOS_ERROR_IF(rans_cl_name.substr(0, 4) != "Rans")
-                << "Incompatible constitutive law is used. Please use constitutive "
-                "laws which starts with \"Rans*\" [ Constitutive law "
-                "name = "
-                << rans_cl_name << " ].\n";
-
-            // get the fluid constitutive law here because, turbulence models need the mu of fluid
-            auto p_constitutive_law =
-                KratosComponents<ConstitutiveLaw>::Get(rans_cl_name.substr(4)).Clone();
+            auto p_constitutive_law = r_properties[CONSTITUTIVE_LAW]->Clone();
 
             const auto& r_geometry = rElement.GetGeometry();
             const auto& r_shape_functions =
                 r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-            p_constitutive_law->InitializeMaterial(r_properties, r_geometry,
-                                                row(r_shape_functions, 0));
+            p_constitutive_law->InitializeMaterial(r_properties, r_geometry, row(r_shape_functions, 0));
 
             rElement.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
         }

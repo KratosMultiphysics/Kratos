@@ -13,14 +13,12 @@
 // System includes
 
 // Project includes
-#include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/variables.h"
 
 // Application includes
 #include "custom_utilities/fluid_calculation_utilities.h"
-#include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -48,20 +46,10 @@ void OmegaUBasedWallConditionData::Check(
         << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
-    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(VON_KARMAN))
-        << "VON_KARMAN is not found in process info.\n";
 
-    KRATOS_ERROR_IF_NOT(r_properties.Has(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT))
-        << "RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT is not found in condition properties [ Condition.Id() = "
-        << rCondition.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
     KRATOS_ERROR_IF_NOT(r_properties.Has(WALL_SMOOTHNESS_BETA))
         << "WALL_SMOOTHNESS_BETA is not found in condition properties [ Condition.Id() = "
         << rCondition.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
-
-    KRATOS_ERROR_IF_NOT(rCondition.Has(TURBULENT_VISCOSITY))
-        << "TURBULENT_VISCOSITY value is not set at in condition with id " << rCondition.Id() << "\n";
-    KRATOS_ERROR_IF_NOT(rCondition.Has(RANS_Y_PLUS))
-        << "RANS_Y_PLUS value is not set at in condition with id " << rCondition.Id() << "\n";
 
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
@@ -75,10 +63,6 @@ void OmegaUBasedWallConditionData::Check(
 
     KRATOS_CATCH("");
 }
-GeometryData::IntegrationMethod OmegaUBasedWallConditionData::GetIntegrationMethod()
-{
-    return GeometryData::GI_GAUSS_1;
-}
 
 void OmegaUBasedWallConditionData::CalculateConstants(
     const ProcessInfo& rCurrentProcessInfo)
@@ -87,52 +71,24 @@ void OmegaUBasedWallConditionData::CalculateConstants(
 
     mOmegaSigma = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA];
     mCmu25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
-    mKappa = rCurrentProcessInfo[VON_KARMAN];
-
-    mDensity = this->GetElementProperties()[DENSITY];
-
-    const auto& r_properties = this->GetConditionProperties();
-    mBeta = r_properties[WALL_SMOOTHNESS_BETA];
-    const double y_plus_limit = r_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
-
-    mInvKappa = 1.0 / mKappa;
-
-    const auto& r_geometry = this->GetGeometry();
-    mYPlus = std::max(r_geometry.GetValue(RANS_Y_PLUS), y_plus_limit);
-    mTurbulentViscosity = r_geometry.GetValue(TURBULENT_VISCOSITY);
+    mBeta = this->GetConditionProperties()[WALL_SMOOTHNESS_BETA];
 
     KRATOS_CATCH("");
 }
 
-bool OmegaUBasedWallConditionData::IsWallFluxComputable() const
-{
-    return true;
-}
-
 double OmegaUBasedWallConditionData::CalculateWallFlux(
-    const Vector& rShapeFunctions)
+    const Vector& rShapeFunctions,
+    const ScalarWallFluxConditionData::Parameters& rParameters)
 {
-    using namespace RansCalculationUtilities;
-
-    auto& cl_parameters = this->GetConstitutiveLawParameters();
-    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
-
-    double nu;
     array_1d<double, 3> velocity;
-
-    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
-    nu /= mDensity;
-
     FluidCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rShapeFunctions,
         std::tie(velocity, VELOCITY));
 
-    const double velocity_magnitude = norm_2(velocity);
+    const double u_tau = norm_2(velocity) / ((1.0 / rParameters.mKappa) * std::log(rParameters.mYPlus) + mBeta);
 
-    const double u_tau = velocity_magnitude / (mInvKappa * std::log(mYPlus) + mBeta);
-
-    return (nu + mOmegaSigma * mTurbulentViscosity) * std::pow(u_tau, 3) /
-           (mKappa * std::pow(mCmu25 * mYPlus * nu, 2));
+    return (rParameters.mKinematicViscosity + mOmegaSigma * rParameters.mWallTurbulentViscosity) * std::pow(u_tau, 3) /
+           (rParameters.mKappa * std::pow(mCmu25 * rParameters.mYPlus * rParameters.mKinematicViscosity, 2));
 }
 
 } // namespace KOmegaWallConditionData
