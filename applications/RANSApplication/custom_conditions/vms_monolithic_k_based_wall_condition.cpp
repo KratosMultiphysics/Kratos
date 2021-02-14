@@ -72,7 +72,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Initialize(const Process
 
         mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, r_normal);
 
-        this->SetValue(GAUSS_RANS_Y_PLUS, Vector(2));
+        this->SetValue(GAUSS_RANS_Y_PLUS, Vector(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod())));
 
         this->SetValue(DISTANCE, mWallHeight);
 
