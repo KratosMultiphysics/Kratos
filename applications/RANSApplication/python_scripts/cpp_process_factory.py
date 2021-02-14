@@ -52,10 +52,6 @@ def Factory(settings, Model):
             KratosRANS.RansWallFunctionUpdateProcess
         ],
         [
-            "ComputeReactionsProcess",
-            KratosRANS.RansComputeReactionsProcess
-        ],
-        [
             "CheckScalarBoundsProcess",
             RansCheckScalarBoundsProcess
         ]

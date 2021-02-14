@@ -33,7 +33,6 @@
 #include "custom_processes/rans_apply_flag_to_skin_process.h"
 #include "custom_processes/rans_clip_scalar_variable_process.h"
 #include "custom_processes/rans_line_output_process.h"
-#include "custom_processes/rans_compute_reactions_process.h"
 #include "custom_processes/rans_nut_nodal_update_process.h"
 
 // Include base h
@@ -66,9 +65,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<Model&, Parameters&>());
 
     py::class_<RansLineOutputProcess, RansLineOutputProcess::Pointer, Process>(m, "RansLineOutputProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    py::class_<RansComputeReactionsProcess, RansComputeReactionsProcess::Pointer, Process>(m, "RansComputeReactionsProcess")
         .def(py::init<Model&, Parameters&>());
 
     // adding RansFormulationProcesses
