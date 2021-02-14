@@ -196,11 +196,7 @@ void UpdatedLagrangian::UpdateHistoricalDatabase(
     const SizeType PointNumber
     )
 {
-    KRATOS_WATCH(rThisKinematicVariables.detF)
-    KRATOS_WATCH(mDetF0[PointNumber])
     mDetF0[PointNumber] = rThisKinematicVariables.detF;
-    KRATOS_WATCH(rThisKinematicVariables.F)
-    KRATOS_WATCH(mF0[PointNumber])
     noalias(mF0[PointNumber]) = rThisKinematicVariables.F;
 }
 
@@ -322,9 +318,6 @@ void UpdatedLagrangian::CalculateKinematicVariables(
     const SizeType strain_size = (rThisKinematicVariables.B).size1();
     Matrix DF = prod( J, rThisKinematicVariables.InvJ0 );
 
-    KRATOS_WATCH(J)
-    KRATOS_WATCH(rThisKinematicVariables.InvJ0)
-
     // Axisymmetric case
     if (strain_size == 4) {
         BoundedMatrix<double, 2, 2> DF2x2 = DF;
@@ -339,18 +332,6 @@ void UpdatedLagrangian::CalculateKinematicVariables(
         const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Initial);
         DF(2, 2) = current_radius/initial_radius;
     }
-    Matrix mat;
-    GetGeometry().Jacobian(mat, 0);
-    KRATOS_WATCH(mat)
-    KRATOS_WATCH(DF)
-    KRATOS_WATCH(GetGeometry()[0].GetInitialPosition())
-    KRATOS_WATCH(GetGeometry()[1].GetInitialPosition())
-    KRATOS_WATCH(GetGeometry()[2].GetInitialPosition())
-    KRATOS_WATCH(GetGeometry()[3].GetInitialPosition())
-    KRATOS_WATCH(GetGeometry()[0].Coordinates())
-    KRATOS_WATCH(GetGeometry()[1].Coordinates())
-    KRATOS_WATCH(GetGeometry()[2].Coordinates())
-    KRATOS_WATCH(GetGeometry()[3].Coordinates())
 
     const double detDF = MathUtils<double>::Det(DF);
     rThisKinematicVariables.detF = detDF * this->ReferenceConfigurationDeformationGradientDeterminant(PointNumber);
