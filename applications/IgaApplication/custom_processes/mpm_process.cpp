@@ -42,11 +42,6 @@ void MpmProcess::ExecuteInitializeSolutionStep()
         r_geometry.GlobalCoordinates(mpm_location, 0);
         array_1d<double, 3> local_coordinates_2 = element.GetGeometry().IntegrationPoints()[0];
         element.SetValue(MPM_LOCATION, mpm_location);
-
-        // Update weight
-        double weight = r_geometry.IntegrationPoints()[0].Weight();
-        const double det_J = r_geometry.DeterminantOfJacobian(0);
-        element.SetValue(MPM_WEIGHT, weight * det_J);
     }
     ResetNodalVariables(r_model_part);
 
