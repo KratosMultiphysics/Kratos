@@ -15,6 +15,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 
 #include "custom_processes/output_quadrature_domain_process.h"
+#include "custom_processes/mpm_process.h"
 
 #include "iga_application_variables.h"
 
@@ -28,6 +29,10 @@ void AddCustomProcessesToPython(
     namespace py = pybind11;
 
     py::class_<OutputQuadratureDomainProcess, OutputQuadratureDomainProcess::Pointer, Process>(m, "OutputQuadratureDomainProcess")
+        .def(py::init<Model&, Parameters >())
+        ;
+
+    py::class_<MpmProcess, MpmProcess::Pointer, Process>(m, "MpmProcess")
         .def(py::init<Model&, Parameters >())
         ;
 }
