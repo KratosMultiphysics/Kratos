@@ -93,7 +93,7 @@ namespace Testing
         auto p_geom = GenerateRightTriangle3D3<NodeType>();
 
         const auto& r_edges = p_geom->GenerateEdges();
-        
+
         KRATOS_CHECK_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
         KRATOS_CHECK_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
         KRATOS_CHECK_NEAR((r_edges[0])[0].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
@@ -212,6 +212,28 @@ namespace Testing
         auto geom = GenerateRightTriangle3D3<NodeType>();
 
         KRATOS_CHECK_NEAR(geom->Inradius(), 0.292893, TOLERANCE);
+    }
+
+    /** Checks the ProjectionPoint test for a given point respect to the triangle
+    * Checks the ProjectionPoint test for a given point respect to the triangle
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ProjectionPoint, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightTriangle3D3<NodeType>();
+
+        Point point(0.5 * std::cos(Globals::Pi/4), 0.55, 0.5 * std::sin(Globals::Pi/4));
+
+        Geometry<Point>::CoordinatesArrayType global_coords;
+        Geometry<Point>::CoordinatesArrayType local_coords;
+
+        geom->ProjectionPoint(point.Coordinates(), global_coords, local_coords);
+
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[0], 0.353553, 1.0e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[1], 0.55, 1.0e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[2], 0.353553, 1.0e-4);
+
+        KRATOS_CHECK_RELATIVE_NEAR(local_coords[0], 0.5, 1.0e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], 0.55, 1.0e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(local_coords[2], 0.0, 1.0e-4);
     }
 
     /** Checks the inside test for a given point respect to the triangle
