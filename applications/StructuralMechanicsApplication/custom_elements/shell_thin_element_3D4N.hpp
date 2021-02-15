@@ -20,6 +20,7 @@
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shell_utilities.h"
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shellq4_local_coordinate_system.hpp"
 
@@ -115,54 +116,6 @@ public:
     using Element::GetProperties;
 
     using Vector3Type = typename BaseType::Vector3Type;
-
-    ///@}
-
-    ///@name Classes
-    ///@{
-    /** \brief JacobianOperator
-    *
-    * This class is a utility to compute at a given integration point,
-    * the Jacobian, its inverse, its determinant
-    * and the derivatives of the shape functions in the local
-    * cartesian coordinate system.
-    */
-
-    class JacobianOperator // TODO cannot this be taken from the Geometry?
-    {
-    public:
-
-        JacobianOperator();
-
-        void Calculate(const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN);
-
-        inline const Matrix& Jacobian()const
-        {
-            return mJac;
-        }
-
-        inline const Matrix& Inverse()const
-        {
-            return mInv;
-        }
-
-        inline const Matrix& XYDerivatives()const
-        {
-            return mXYDeriv;
-        }
-
-        inline double Determinant()const
-        {
-            return mDet;
-        }
-
-    private:
-
-        Matrix mJac;     //!< Jacobian matrix
-        Matrix mInv;    //!< Inverse of the Jacobian matrix
-        Matrix mXYDeriv; //*!< Shape function derivatives in cartesian coordinates
-        double mDet;     //*!< Determinant of the Jacobian matrix
-    };
 
     ///@}
 
@@ -345,7 +298,7 @@ private:
         std::vector<VectorType> rlaminateStrains;    /*!< laminate strain vector at all surfaces at the current integration point */
         std::vector<VectorType> rlaminateStresses;    /*!< laminate stress vector at all surfaces at the current integration point */
 
-        JacobianOperator jacOp;
+        ShellUtilities::JacobianOperator jacOp;
         ShellCrossSection::SectionParameters SectionParameters; /*!< parameters for cross section calculations */
 
     public:

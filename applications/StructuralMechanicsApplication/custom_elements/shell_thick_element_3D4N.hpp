@@ -21,6 +21,7 @@
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shell_utilities.h"
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shellq4_local_coordinate_system.hpp"
 
@@ -99,49 +100,6 @@ public:
 
     ///@name Classes
     ///@{
-
-    /** \brief JacobianOperator
-     *
-     * This class is a utility to compute at a given integration point,
-     * the Jacobian, its inverse, its determinant
-     * and the derivatives of the shape functions in the local
-     * cartesian coordinate system.
-     */
-    class JacobianOperator
-    {
-    public:
-
-        JacobianOperator();
-
-        void Calculate(const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN);
-
-        inline const Matrix& Jacobian()const
-        {
-            return mJac;
-        }
-
-        inline const Matrix& Inverse()const
-        {
-            return mInv;
-        }
-
-        inline const Matrix& XYDerivatives()const
-        {
-            return mXYDeriv;
-        }
-
-        inline double Determinant()const
-        {
-            return mDet;
-        }
-
-    private:
-
-        Matrix mJac;     /*!< Jacobian matrix */
-        Matrix mInv;     /*!< Inverse of the Jacobian matrix */
-        Matrix mXYDeriv; /*!< Shape function derivatives in cartesian coordinates */
-        double mDet;     /*!< Determinant of the Jacobian matrix */
-    };
 
     /** \brief MITC4Params
      *
@@ -254,7 +212,7 @@ public:
          * after the standard strain-displacement matrix has been computed, as well as the standard
          * generalized strains, but before the computation of the constitutive laws.
          */
-        inline void GaussPointComputation_Step1(double xi, double eta, const JacobianOperator& jac,
+        inline void GaussPointComputation_Step1(double xi, double eta, const ShellUtilities::JacobianOperator& jac,
                                                 Vector& generalizedStrains,
                                                 EASOperatorStorage& storage);
 
@@ -410,7 +368,7 @@ private:
     double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
 
     void CalculateBMatrix(double xi, double eta,
-                          const JacobianOperator& Jac, const MITC4Params& params,
+                          const ShellUtilities::JacobianOperator& Jac, const MITC4Params& params,
                           const Vector& N,
                           Matrix& B, Vector& Bdrill);
 

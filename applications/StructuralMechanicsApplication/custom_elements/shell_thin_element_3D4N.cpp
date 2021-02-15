@@ -11,7 +11,6 @@
 //
 
 #include "shell_thin_element_3D4N.hpp"
-#include "custom_utilities/shell_utilities.h"
 
 #include <string>
 #include <iomanip>
@@ -52,44 +51,6 @@ Southern California, 2012.
 
 namespace Kratos
 {
-// =========================================================================
-//
-// Class JacobianOperator
-//
-// =========================================================================
-
-template <ShellKinematics TKinematics>
-ShellThinElement3D4N<TKinematics>::JacobianOperator::JacobianOperator()
-    : mJac(2, 2, 0.0)
-    , mInv(2, 2, 0.0)
-    , mXYDeriv(4, 2, 0.0)
-    , mDet(0.0)
-{
-}
-
-template <ShellKinematics TKinematics>
-void ShellThinElement3D4N<TKinematics>::JacobianOperator::Calculate
-(const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN)
-{
-    mJac(0, 0) = dN(0, 0) * CS.X1() + dN(1, 0) * CS.X2() +
-                 dN(2, 0) * CS.X3() + dN(3, 0) * CS.X4();
-    mJac(0, 1) = dN(0, 0) * CS.Y1() + dN(1, 0) * CS.Y2() +
-                 dN(2, 0) * CS.Y3() + dN(3, 0) * CS.Y4();
-    mJac(1, 0) = dN(0, 1) * CS.X1() + dN(1, 1) * CS.X2() +
-                 dN(2, 1) * CS.X3() + dN(3, 1) * CS.X4();
-    mJac(1, 1) = dN(0, 1) * CS.Y1() + dN(1, 1) * CS.Y2() +
-                 dN(2, 1) * CS.Y3() + dN(3, 1) * CS.Y4();
-
-    mDet = mJac(0, 0) * mJac(1, 1) - mJac(1, 0) * mJac(0, 1);
-    double mult = 1.0 / mDet;
-
-    mInv(0, 0) = mJac(1, 1) * mult;
-    mInv(0, 1) = -mJac(0, 1) * mult;
-    mInv(1, 0) = -mJac(1, 0) * mult;
-    mInv(1, 1) = mJac(0, 0) * mult;
-
-    noalias(mXYDeriv) = prod(dN, trans(mInv));
-}
 
 // =========================================================================
 //

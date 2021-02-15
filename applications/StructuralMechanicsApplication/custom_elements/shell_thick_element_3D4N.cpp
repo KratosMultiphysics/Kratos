@@ -10,47 +10,12 @@
 //
 
 #include "shell_thick_element_3D4N.hpp"
-#include "custom_utilities/shell_utilities.h"
 
 #include <string>
 #include <iomanip>
 
 namespace Kratos
 {
-// =====================================================================================
-//
-// Class JacobianOperator
-//
-// =====================================================================================
-
-template <ShellKinematics TKinematics>
-ShellThickElement3D4N<TKinematics>::JacobianOperator::JacobianOperator()
-    : mJac(2, 2, 0.0)
-    , mInv(2, 2, 0.0)
-    , mXYDeriv(4, 2, 0.0)
-    , mDet(0.0)
-{
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::JacobianOperator::Calculate(const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN)
-{
-    mJac(0, 0) = dN(0, 0) * CS.X1() + dN(1, 0) * CS.X2() + dN(2, 0) * CS.X3() + dN(3, 0) * CS.X4();
-    mJac(0, 1) = dN(0, 0) * CS.Y1() + dN(1, 0) * CS.Y2() + dN(2, 0) * CS.Y3() + dN(3, 0) * CS.Y4();
-    mJac(1, 0) = dN(0, 1) * CS.X1() + dN(1, 1) * CS.X2() + dN(2, 1) * CS.X3() + dN(3, 1) * CS.X4();
-    mJac(1, 1) = dN(0, 1) * CS.Y1() + dN(1, 1) * CS.Y2() + dN(2, 1) * CS.Y3() + dN(3, 1) * CS.Y4();
-
-    mDet = mJac(0, 0) * mJac(1, 1) - mJac(1, 0) * mJac(0, 1);
-    double mult = 1.0 / mDet;
-
-    mInv(0, 0) =   mJac(1, 1) * mult;
-    mInv(0, 1) = - mJac(0, 1) * mult;
-    mInv(1, 0) = - mJac(1, 0) * mult;
-    mInv(1, 1) =   mJac(0, 0) * mult;
-
-    noalias(mXYDeriv) = prod(dN, trans(mInv));
-}
-
 // =====================================================================================
 //
 // Class MITC4Params
@@ -277,7 +242,7 @@ ShellThickElement3D4N<TKinematics>::EASOperator::EASOperator(const ShellQ4_Local
 }
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step1(double xi, double eta, const JacobianOperator& jac,
+void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step1(double xi, double eta, const ShellUtilities::JacobianOperator& jac,
         Vector& generalizedStrains,
         EASOperatorStorage& storage)
 {
@@ -483,7 +448,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
         // the jacobian matrix, its inverse, its determinant
         // and the derivatives of the shape functions in the local
         // coordinate system
-        JacobianOperator jacOp;
+        ShellUtilities::JacobianOperator jacOp;
 
         // Instantiate all strain-displacement matrices.
         Matrix B(8, 24, 0.0);
@@ -587,7 +552,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
         MITC4Params shearParameters(referenceCoordinateSystem);
 
         // Instantiate the Jacobian Operator.
-        JacobianOperator jacOp;
+        ShellUtilities::JacobianOperator jacOp;
 
         // Instantiate all strain-displacement matrices.
         Matrix B(8, 24, 0.0);
@@ -1071,7 +1036,7 @@ double ShellThickElement3D4N<TKinematics>::CalculateStenbergShearStabilization(c
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CalculateBMatrix(double xi, double eta,
-        const JacobianOperator& Jac, const MITC4Params& mitc_params,
+        const ShellUtilities::JacobianOperator& Jac, const MITC4Params& mitc_params,
         const Vector& N,
         Matrix& B, Vector& Bdrill)
 {
@@ -1224,7 +1189,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
     // and the derivatives of the shape functions in the local
     // coordinate system
 
-    JacobianOperator jacOp;
+    ShellUtilities::JacobianOperator jacOp;
     array_1d<double, 4> dArea;
 
     // Instantiate all strain-displacement matrices.
@@ -1450,7 +1415,7 @@ bool ShellThickElement3D4N<TKinematics>::TryCalculateOnIntegrationPoints_General
     // and the derivatives of the shape functions in the local
     // coordinate system
 
-    JacobianOperator jacOp;
+    ShellUtilities::JacobianOperator jacOp;
 
     // Instantiate all strain-displacement matrices.
 
