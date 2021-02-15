@@ -18,6 +18,7 @@
 #include "includes/variables.h"
 
 // Application includes
+#include "custom_conditions/data_containers/k_epsilon/condition_data_utilities.h"
 #include "custom_utilities/fluid_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -84,8 +85,9 @@ double EpsilonUBasedWallConditionData::CalculateWallFlux(
 
     const double u_tau = norm_2(velocity) / ((1.0 / rParameters.mKappa) * std::log(rParameters.mYPlus) + mBeta);
 
-    return (rParameters.mKinematicViscosity + rParameters.mWallTurbulentViscosity / mEpsilonSigma) * std::pow(u_tau, 5) /
-           (rParameters.mKappa * std::pow(rParameters.mYPlus * rParameters.mKinematicViscosity, 2));
+    return KEpsilonConditionDataUtilities::CalculateWallFlux(
+        rParameters.mKinematicViscosity, mEpsilonSigma, u_tau,
+        rParameters.mKappa, rParameters.mYPlus);
 }
 
 } // namespace KEpsilonWallConditionData
