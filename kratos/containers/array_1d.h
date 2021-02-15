@@ -104,6 +104,7 @@ public:
     {
         std::fill(data().begin(), data().end(), value_type());
     }
+
     explicit BOOST_UBLAS_INLINE
     array_1d (size_type array_size):
         vector_expression<self_type> ()
