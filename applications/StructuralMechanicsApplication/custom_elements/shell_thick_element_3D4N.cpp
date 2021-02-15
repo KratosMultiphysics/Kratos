@@ -392,8 +392,6 @@ void ShellThickElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentP
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        this->mpCoordinateTransformation->Initialize();
-        this->SetupOrientationAngles();
         mEASStorage.Initialize(GetGeometry());
     }
 
