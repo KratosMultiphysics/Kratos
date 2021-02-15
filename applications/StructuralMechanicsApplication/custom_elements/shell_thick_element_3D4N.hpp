@@ -75,8 +75,6 @@ public:
         ShellQ4_CorotationalCoordinateTransformation,
         ShellQ4_CoordinateTransformation>::type>;
 
-    typedef array_1d<double, 3> Vector3Type;
-
     typedef Quaternion<double> QuaternionType;
 
     using GeometryType = Element::GeometryType;
@@ -94,6 +92,8 @@ public:
     using Element::GetGeometry;
 
     using Element::GetProperties;
+
+    using Vector3Type = typename BaseType::Vector3Type;
 
     ///@}
 
@@ -410,8 +410,6 @@ private:
             int& iJob, bool& bGlobal);
 
     double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
-
-    void SetupOrientationAngles() override;
 
     void CalculateBMatrix(double xi, double eta,
                           const JacobianOperator& Jac, const MITC4Params& params,

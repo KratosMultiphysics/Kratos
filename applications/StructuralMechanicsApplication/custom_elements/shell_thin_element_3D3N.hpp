@@ -72,8 +72,6 @@ public:
         ShellT3_CorotationalCoordinateTransformation,
         ShellT3_CoordinateTransformation>::type>;
 
-    typedef array_1d<double, 3> Vector3Type;
-
     typedef Quaternion<double> QuaternionType;
 
     using GeometryType = Element::GeometryType;
@@ -91,6 +89,8 @@ public:
     using Element::GetGeometry;
 
     using Element::GetProperties;
+
+    using Vector3Type = typename BaseType::Vector3Type;
 
     using CoordinateTransformationPointerType = typename BaseType::CoordinateTransformationPointerType;
 
@@ -305,8 +305,6 @@ private:
     double CalculateTsaiWuPlaneStress(const CalculationData& data, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
 
     void CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result);
-
-    void SetupOrientationAngles() override;
 
     void InitializeCalculationData(CalculationData& data);
 

@@ -96,8 +96,6 @@ public:
         ShellQ4_CorotationalCoordinateTransformation,
         ShellQ4_CoordinateTransformation>::type>;
 
-    typedef array_1d<double, 3> Vector3Type;
-
     typedef Quaternion<double> QuaternionType;
 
     using GeometryType = Element::GeometryType;
@@ -115,6 +113,8 @@ public:
     using Element::GetGeometry;
 
     using Element::GetProperties;
+
+    using Vector3Type = typename BaseType::Vector3Type;
 
     ///@}
 
@@ -380,8 +380,6 @@ private:
     void CalculateShellElementEnergy(const CalculationData& data, const Variable<double>& rVariable, double& rEnergy_Result);
 
     void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& iJob, bool& bGlobal);
-
-    void SetupOrientationAngles() override;
 
     void InitializeCalculationData(CalculationData& data);
 

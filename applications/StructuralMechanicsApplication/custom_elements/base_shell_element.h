@@ -73,6 +73,8 @@ public:
 
     using SizeType = std::size_t;
 
+    using Vector3Type = array_1d<double, 3>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -263,7 +265,7 @@ protected:
         const bool CalculateResidualVectorFlag
     );
 
-    virtual void SetupOrientationAngles();
+    void SetupOrientationAngles();
 
     void CheckDofs() const;
     void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;
