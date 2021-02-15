@@ -72,6 +72,15 @@ public:
 
     ///@}
 
+protected:
+
+    /** @brief Initializes members.
+     * Note that this method must only be called once at startup
+     * The Kernel takes care of it
+     */
+    friend class Kernel; // forward declaring to avoid the include ("parallel_utilities.h" is included in many places but "kernel.h" should not be!)
+    static void Initialize();
+
 private:
     ///@name Static Member Variables
     ///@{
@@ -91,12 +100,6 @@ private:
     static int InitializeNumberOfThreads();
     ///@}
 
-    ///@name Private Access
-    ///@{
-
-    static int& GetNumberOfThreads();
-
-    ///@}
 }; // Class ParallelUtilities
 
 

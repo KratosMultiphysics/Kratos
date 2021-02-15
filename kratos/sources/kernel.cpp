@@ -43,11 +43,12 @@ void Kernel::Initialize() {
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
                     << "           Multi-Physics " << GetVersionString() << std::endl;
 
-    PrintParallelismSupportInfo();
-
     if (!IsImported("KratosMultiphysics")) {
         this->ImportApplication(mpKratosCoreApplication);
+        ParallelUtilities::Initialize();
     }
+
+    PrintParallelismSupportInfo();
 }
 
 std::unordered_set<std::string> &Kernel::GetApplicationsList() {
