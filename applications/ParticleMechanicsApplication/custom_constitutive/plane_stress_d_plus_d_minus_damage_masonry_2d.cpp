@@ -249,7 +249,8 @@ void DamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
 		UniaxialStressTension			= 0.0;
 		UniaxialStressCompression		= 0.0;
 
-		this->ComputeCharacteristicLength(rElementGeometry, InitialCharacteristicLength); // TODO update for material point
+		this->ComputeCharacteristicLength(rElementGeometry, rMaterialProperties,
+			InitialCharacteristicLength);
 
 		// Begin IMPLEX Integration - Only if switched on
 		if (rMaterialProperties[INTEGRATION_IMPLEX] != 0){
@@ -343,7 +344,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	Vector& PredictiveStressVector	= rValues.GetStressVector();
 
 	CalculationData data;
-	data.StrainRate = std::sqrt(0.5 * norm_2_square(strain_rate_vec));
+	data.StrainRate = std::sqrt(0.5 * inner_prod(strain_rate_vec, strain_rate_vec));
 	mStrainOld = Vector(rValues.GetStrainVector()); // only needed for the strain rate calc.
 
 	this->InitializeCalculationData(props, geom, pinfo, data);
@@ -364,7 +365,6 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 			this->CalculateSecantTensor(rValues, data);
 		}
 	}
-	// TODO update mStrainOld
 }
 
 /***********************************************************************************/
@@ -487,22 +487,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponse(const Vector& Stra
 	int CalculateTangent,
 	bool SaveInternalVariables)
 {
-	// TODO check this works for MPM
-
-	ConstitutiveLaw::Parameters parameters(rElementGeometry, rMaterialProperties, rCurrentProcessInfo);
-	Vector E(StrainVector);
-	parameters.SetStrainVector( E );
-	parameters.SetStressVector( StressVector );
-	parameters.SetConstitutiveMatrix( AlgorithmicTangent ); // TODO Remove?
-	Flags& options = parameters.GetOptions();
-	options.Set(ConstitutiveLaw::COMPUTE_STRESS, CalculateStresses);
-	options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, CalculateTangent);
-	double detF = 1.0; // TODO remove and make the same as RHT  or JC
-	Matrix F(IdentityMatrix(2,2));
-	parameters.SetDeterminantF(detF);
-	parameters.SetDeformationGradientF(F);
-	parameters.SetShapeFunctionsValues(rShapeFunctionsValues);
-	this->CalculateMaterialResponseCauchy(parameters);
+	KRATOS_ERROR << "Hit DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponse\n";
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -912,16 +897,16 @@ void DamageDPlusDMinusMasonry2DLaw::EvaluateBezierCurve(
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry2DLaw::ComputeCharacteristicLength(
     const GeometryType& geom,
+	const Properties& rMaterialProperties,
     double& rCharacteristicLength)
 {
-	// Updated for MPM
+	// Updated for MPM - we take the material point volume
+	rCharacteristicLength = 0.0;
+	const double area = geom.GetValue(MP_VOLUME) / rMaterialProperties[THICKNESS];
+	rCharacteristicLength = std::sqrt(area);
 
-	KRATOS_ERROR << "UPDATE FOR MPM";
-
-
-    rCharacteristicLength = geom.Length();
-
-
+	KRATOS_ERROR_IF(rCharacteristicLength == 0.0) << "Characteristic length not set properly!\n"
+		<< "Geom MP_VOLUME = " << geom.GetValue(MP_VOLUME) << "\n";
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -979,6 +964,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 		this->CalculateDamageCompression(data, ThresholdCompression, DamageParameterCompression);
 	}
 	else { // IMPLICIT Integration
+		KRATOS_ERROR << "PLEASE SET 'INTEGRATION_IMPLEX' = 1 IN PROPERTIES\n";
 		if(UniaxialStressTension > ThresholdTension)
 			ThresholdTension = UniaxialStressTension;
 		this->CalculateDamageTension(data, ThresholdTension, DamageParameterTension);
@@ -1083,11 +1069,13 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateSecantTensor(
 const double DamageDPlusDMinusMasonry2DLaw::GetDIF(const Properties& rProps,
 	const double strain_rate, const bool is_tensile)
 {
-	// Adapted from Ozbo2014
+	// Power strain rate laws to match Cusa2011
+	// DIF = c_1 * e_dot^c_2
+
 	const double c_1 = (is_tensile) ? rProps[STRAIN_RATE_FACTOR_C1_TENSION] : rProps[STRAIN_RATE_FACTOR_C1_COMPRESSION];
 	const double c_2 = (is_tensile) ? rProps[STRAIN_RATE_FACTOR_C2_TENSION] : rProps[STRAIN_RATE_FACTOR_C2_COMPRESSION];
 
-	double dif = 1.0 + c_2 * std::log(strain_rate / c_1);
+	double dif = c_1 * std::pow(strain_rate, c_2);
 	dif = std::max(1.0, dif);
 
 	return dif;

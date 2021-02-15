@@ -407,7 +407,6 @@ public:
 		const GeometryType& rElementGeometry,
 		const ProcessInfo& rCurrentProcessInfo) override;
 
-
 	void CalculateMaterialResponse(const Vector& StrainVector,
 		const Matrix& DeformationGradient,
 		Vector& StressVector,
@@ -628,6 +627,7 @@ protected:
 	*/
 	void ComputeCharacteristicLength(
 		const GeometryType& geom,
+		const Properties& rMaterialProperties,
 		double& rCharacteristicLength);
 
 	/**
