@@ -1094,16 +1094,8 @@ public:
         ) const override
     {
         Point point_projected;
-        const double distance = GeometricalProjectionUtilities::FastProjectOnLine2D(*this, Point{rPointGlobalCoordinates}, point_projected);
+        GeometricalProjectionUtilities::FastProjectOnLine2D(*this, Point{rPointGlobalCoordinates}, point_projected);
         noalias(rProjectedPointGlobalCoordinates) = point_projected.Coordinates();
-        
-        // We check if we are on the plane
-        if (std::abs(distance) > Tolerance) {
-            if (std::abs(distance) > 1.0e-6 * Length()) {
-                KRATOS_WARNING_FIRST_N("Line2D2", 10) << "The point of coordinates X: " << rPointGlobalCoordinates[0] << "\tY: " << rPointGlobalCoordinates[1] << " it is in a distance: " << std::abs(distance) << std::endl;
-                return 0;
-            }
-        }
 
         PointLocalCoordinates( rProjectedPointLocalCoordinates, rProjectedPointGlobalCoordinates );
 
