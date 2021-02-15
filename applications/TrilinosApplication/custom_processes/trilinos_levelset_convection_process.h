@@ -416,9 +416,9 @@ protected:
             );
 
             auto distance_proxy = pointer_comm.Apply(
-                [](GlobalPointer<Node<3> >& global_pointer) -> double
+                [&](GlobalPointer<Node<3> >& global_pointer) -> double
                 {
-                    return global_pointer->FastGetSolutionStepValue(DISTANCE); //TODO: Get mrLevelSetVar
+                    return global_pointer->FastGetSolutionStepValue(this->mrLevelSetVar); //TODO: Get mrLevelSetVar
                 }
             );
 
