@@ -168,7 +168,7 @@ class MacDonaldShockBenchmark(BaseBenchmarkProcess):
     def _dZ(self, z, x):
         q = self.q
         g = self.g
-        return (q**2 / (g * self._H(x)**2) - 1) * self._dH(x) - self._Sf(self._H(x))
+        return (q**2 / (g * self._H(x)**3) - 1) * self._dH(x) - self._Sf(self._H(x))
 
     def _InitialH(self, x):
         return np.maximum(self.h100 - self._Z(x), self.h0)
