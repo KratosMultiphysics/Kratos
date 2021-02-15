@@ -49,6 +49,8 @@ void OmegaKBasedWallConditionData::Check(
         << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2 is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(WALL_CORRECTION_FACTOR))
+        << "WALL_CORRECTION_FACTOR is not found in process info.\n";
 
     KRATOS_ERROR_IF_NOT(r_geometry.Has(DISTANCE))
         << "DISTANCE is not found in condition with id " << rCondition.Id() << ".\n";
@@ -74,6 +76,7 @@ void OmegaKBasedWallConditionData::CalculateConstants(
     mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
     mSigmaOmega1 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1];
     mSigmaOmega2 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2];
+    mWallCorrectionFactor = rCurrentProcessInfo[WALL_CORRECTION_FACTOR];
     mCmu25 = std::pow(mBetaStar, 0.25);
 
     mWallHeight = this->GetGeometry().GetValue(DISTANCE);
@@ -96,13 +99,10 @@ double OmegaKBasedWallConditionData::CalculateWallFlux(
     const double f1 = KOmegaSSTElementData::CalculateF1(
         tke, omega, rParameters.mKinematicViscosity, mWallHeight, mBetaStar, 1e-10, mSigmaOmega2);
 
-    double blended_sigma_omega =
+    const double blended_sigma_omega =
         KOmegaSSTElementData::CalculateBlendedPhi(mSigmaOmega1, mSigmaOmega2, f1);
 
-    // temporarily disable blending
-    blended_sigma_omega = 0.0;
-
-    return (rParameters.mKinematicViscosity + blended_sigma_omega * rParameters.mWallTurbulentViscosity) * std::pow(u_tau, 3) /
+    return (rParameters.mKinematicViscosity + mWallCorrectionFactor * blended_sigma_omega * rParameters.mWallTurbulentViscosity) * std::pow(u_tau, 3) /
            (rParameters.mKappa * std::pow(mCmu25 * rParameters.mYPlus * rParameters.mKinematicViscosity, 2));
 }
 

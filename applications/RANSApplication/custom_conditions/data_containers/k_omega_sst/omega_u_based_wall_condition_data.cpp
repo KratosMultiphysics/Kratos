@@ -49,6 +49,8 @@ void OmegaUBasedWallConditionData::Check(
         << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2 is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(WALL_CORRECTION_FACTOR))
+        << "WALL_CORRECTION_FACTOR is not found in process info.\n";
 
     KRATOS_ERROR_IF_NOT(r_properties.Has(WALL_SMOOTHNESS_BETA))
         << "WALL_SMOOTHNESS_BETA is not found in condition properties [ Condition.Id() = "
@@ -79,6 +81,7 @@ void OmegaUBasedWallConditionData::CalculateConstants(
     mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
     mSigmaOmega1 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1];
     mSigmaOmega2 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2];
+    mWallCorrectionFactor = rCurrentProcessInfo[WALL_CORRECTION_FACTOR];
     mCmu25 = std::pow(mBetaStar, 0.25);
     mBeta = this->GetConditionProperties()[WALL_SMOOTHNESS_BETA];
 
@@ -108,7 +111,7 @@ double OmegaUBasedWallConditionData::CalculateWallFlux(
     const double blended_sigma_omega =
         KOmegaSSTElementData::CalculateBlendedPhi(mSigmaOmega1, mSigmaOmega2, f1);
 
-    return (rParameters.mKinematicViscosity + blended_sigma_omega * rParameters.mWallTurbulentViscosity) * std::pow(u_tau, 3) /
+    return (rParameters.mKinematicViscosity + mWallCorrectionFactor * blended_sigma_omega * rParameters.mWallTurbulentViscosity) * std::pow(u_tau, 3) /
            (rParameters.mKappa * std::pow(mCmu25 * rParameters.mYPlus * rParameters.mKinematicViscosity, 2));
 }
 

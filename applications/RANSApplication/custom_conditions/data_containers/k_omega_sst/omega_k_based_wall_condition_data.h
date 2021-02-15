@@ -90,6 +90,7 @@ protected:
     double mSigmaOmega2;
     double mBetaStar;
     double mWallHeight;
+    double mWallCorrectionFactor;
 
     ///@}
 };
