@@ -48,7 +48,6 @@ void MpmProcess::ExecuteInitializeSolutionStep()
     for (auto& element : r_model_part.Elements()) {
         const auto& mpm_location = element.GetValue(MPM_LOCATION);
         auto& r_parent_geometry = element.GetGeometry().GetGeometryParent(0);
-        array_1d<double, 3> local_coordinates_2 = element.GetGeometry().IntegrationPoints()[0];
         array_1d<double, 3> local_coordinates = element.GetGeometry().IntegrationPoints()[0];
         array_1d<double, 3> global_coordinates = ZeroVector(3);
         int check = r_parent_geometry.ProjectionPoint(mpm_location, global_coordinates, local_coordinates);
