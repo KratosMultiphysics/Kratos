@@ -59,7 +59,7 @@ public:
 
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    using AdjointSlipUtilities = typename FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>;
+    using AdjointSlipUtilities = typename FluidAdjointUtilities<TDim>::template SlipUtilities<TBlockSize>;
 
     ///@}
     ///@name Life Cycle
