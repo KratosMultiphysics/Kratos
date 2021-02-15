@@ -118,6 +118,28 @@ namespace Testing {
         KRATOS_CHECK_NEAR(high_point.Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
     }
 
+    /** Checks the ProjectionPoint test for a given point respect to the line
+    * Checks the ProjectionPoint test for a given point respect to the line
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2ProjectionPoint, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsDiagonalLine2D2();
+
+        Point point(0.5, 0.55, 0.0);
+
+        Geometry<Point>::CoordinatesArrayType global_coords;
+        Geometry<Point>::CoordinatesArrayType local_coords;
+
+        geom->ProjectionPoint(point.Coordinates(), global_coords, local_coords);
+
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[0], 0.517678, TOLERANCE);
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[1], 0.532322, TOLERANCE);
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[2], 0.0, TOLERANCE);
+
+        KRATOS_CHECK_RELATIVE_NEAR(local_coords[0], 0.0501021, TOLERANCE);
+        KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], 0.0, TOLERANCE);
+        KRATOS_CHECK_RELATIVE_NEAR(local_coords[2], 0.0, TOLERANCE);
+    }
+
     /** Checks the inside test for a given point respect to the line
     * Checks the inside test for a given point respect to the line
     * It performs 4 tests:
