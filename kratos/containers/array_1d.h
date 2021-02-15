@@ -12,17 +12,16 @@
 //
 //
 
-
 #if	!defined(KRATOS_ARRAY_1D_H_INCLUDED	)
 #define	 KRATOS_ARRAY_1D_H_INCLUDED
-
 
 
 // System includes
 #include <string>
 #include <iostream>
 #include <array>
-
+#include <algorithm>
+#include <initializer_list>
 
 // External	includes
 
@@ -118,10 +117,21 @@ public:
     {
         std::fill (data().begin(), data().begin() + array_size, v);
     }
+
+    explicit BOOST_UBLAS_INLINE
+    array_1d (const std::initializer_list<value_type>& rInitList):
+        vector_expression<self_type> ()
+    {
+        KRATOS_DEBUG_ERROR_IF(rInitList.size()>=N) << "Size of list greater than the size of the array!" << std::endl;
+        std::copy(rInitList().begin(), rInitList().end(), data().begin()); // copy content of initializer list
+        std::fill(data().begin()+rInitList.size(), rInitList().end(), value_type()); // if initializer list is shorter than array, default initialize the remaining entries
+    }
+
     BOOST_UBLAS_INLINE
     array_1d (size_type array_size,	const array_type & rdata):
         vector_expression<self_type> (),
         data_ (rdata) {}
+
     BOOST_UBLAS_INLINE
     array_1d (const array_1d &v):
         vector_expression<self_type> (),
@@ -144,7 +154,6 @@ public:
     {
         boost::numeric::ublas::vector_assign<boost::numeric::ublas::scalar_assign> (*this, ae);
     }
-
 
     ///@}
     ///@name Operators
