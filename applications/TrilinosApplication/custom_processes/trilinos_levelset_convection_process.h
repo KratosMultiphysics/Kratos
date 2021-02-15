@@ -390,6 +390,8 @@ protected:
 
             this->mSigmaPlus[i_node] = std::min(1.0, (std::abs(S_minus)+epsilon)/(S_plus+epsilon));
             this->mSigmaMinus[i_node] = std::min(1.0, (S_plus+epsilon)/(std::abs(S_minus)+epsilon));
+
+            pointer_comm.~GlobalPointerCommunicator();
         }
 
         //Calculating beta_ij in a way that the linearity is preserved on non-symmetrical meshes
@@ -442,6 +444,8 @@ protected:
 
             const double fraction = (std::abs(numerator)/*  + epsilon */) / (denominator + epsilon);
             this->mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
+
+            pointer_comm.~GlobalPointerCommunicator();
         }
     }
 
