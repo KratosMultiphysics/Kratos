@@ -179,11 +179,6 @@ public:
                                       3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
-    // Calculate functions
-    void Calculate(const Variable<Matrix >& rVariable,
-                   Matrix& Output,
-                   const ProcessInfo& rCurrentProcessInfo) override;
-
     /**
     * This method provides the place to perform checks on the completeness of the input
     * and the compatibility with the problem options as well as the contitutive laws selected

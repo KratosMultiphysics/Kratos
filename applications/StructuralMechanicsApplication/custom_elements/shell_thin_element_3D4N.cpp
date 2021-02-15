@@ -576,19 +576,6 @@ void ShellThinElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
 }
 
 template <ShellKinematics TKinematics>
-void ShellThinElement3D4N<TKinematics>::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
-        Output.resize(3, 3, false);
-
-        // Compute the local coordinate system.
-        ShellQ4_LocalCoordinateSystem localCoordinateSystem(
-            this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-        Output = trans(localCoordinateSystem.Orientation());
-    }
-}
-
-template <ShellKinematics TKinematics>
 int ShellThinElement3D4N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;

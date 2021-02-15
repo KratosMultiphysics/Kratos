@@ -365,6 +365,20 @@ void BaseShellElement<TCoordinateTransformation>::CalculateDampingMatrix(
 }
 
 template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::Calculate(
+    const Variable<Matrix>& rVariable, Matrix& Output,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
+        Output.resize(3, 3, false);
+
+        // Compute the local coordinate system.
+        auto localCoordinateSystem(this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+        Output = trans(localCoordinateSystem.Orientation());
+    }
+}
+
+template <class TCoordinateTransformation>
 int BaseShellElement<TCoordinateTransformation>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;

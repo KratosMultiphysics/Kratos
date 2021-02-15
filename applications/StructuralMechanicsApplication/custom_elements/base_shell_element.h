@@ -144,6 +144,11 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 const ProcessInfo& rCurrentProcessInfo) override;
 
+    // Calculate functions
+    void Calculate(const Variable<Matrix >& rVariable,
+                   Matrix& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override;
+
 
     /**
     * This method provides the place to perform checks on the completeness of the input
