@@ -58,7 +58,7 @@ public:
 
     using DofsArrayType = typename BaseType::DofsArrayType;
 
-    using AdjointSlipUtilities = typename FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>;
+    using AdjointSlipUtilities = typename FluidAdjointUtilities<TDim>::template SlipUtilities<TBlockSize>;
 
     using BossakConstants = typename BaseType::BossakConstants;
 
