@@ -1594,16 +1594,8 @@ public:
 
         noalias(rProjectedPointGlobalCoordinates) = projected_point;
 
-        // We check if we are on the plane
-        if (std::abs(distance) > Tolerance) {
-            if (std::abs(distance) > 1.0e-6 * Length()) {
-                KRATOS_WARNING_FIRST_N("Quadrilateral3D4", 10) << "The " << rPointGlobalCoordinates << " is in a distance: " << std::abs(distance) << std::endl;
-                return 0;
-            }
-
-            // Not in the plane, but allowing certain distance, projecting
-            noalias(rProjectedPointGlobalCoordinates) = rPointGlobalCoordinates - normal * distance;
-        }
+        // Projecting
+        noalias(rProjectedPointGlobalCoordinates) = rPointGlobalCoordinates - normal * distance;
 
         PointLocalCoordinates( rProjectedPointLocalCoordinates, rProjectedPointGlobalCoordinates );
 
