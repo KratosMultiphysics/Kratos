@@ -209,14 +209,6 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateMassMatrix(MatrixType& rMassMatrix,
                              const ProcessInfo& rCurrentProcessInfo) override;
 

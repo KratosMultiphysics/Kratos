@@ -261,8 +261,10 @@ void BaseShellElement<TCoordinateTransformation>::Initialize(const ProcessInfo& 
 }
 
 template <class TCoordinateTransformation>
-void BaseShellElement<TCoordinateTransformation>::BaseInitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement<TCoordinateTransformation>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
+    this->mpCoordinateTransformation->InitializeNonLinearIteration();
+
     const auto& r_geom = this->GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
     for (IndexType i = 0; i < mSections.size(); ++i) {
@@ -271,8 +273,10 @@ void BaseShellElement<TCoordinateTransformation>::BaseInitializeNonLinearIterati
 }
 
 template <class TCoordinateTransformation>
-void BaseShellElement<TCoordinateTransformation>::BaseFinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement<TCoordinateTransformation>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
+    this->mpCoordinateTransformation->FinalizeNonLinearIteration();
+
     const auto& r_geom = this->GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
     for (IndexType i = 0; i < mSections.size(); ++i) {
@@ -281,7 +285,7 @@ void BaseShellElement<TCoordinateTransformation>::BaseFinalizeNonLinearIteration
 }
 
 template <class TCoordinateTransformation>
-void BaseShellElement<TCoordinateTransformation>::BaseInitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement<TCoordinateTransformation>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
@@ -290,10 +294,12 @@ void BaseShellElement<TCoordinateTransformation>::BaseInitializeSolutionStep(con
     for (IndexType i = 0; i < mSections.size(); ++i) {
         mSections[i]->InitializeSolutionStep(r_props, r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
     }
+
+    this->mpCoordinateTransformation->InitializeSolutionStep();
 }
 
 template <class TCoordinateTransformation>
-void BaseShellElement<TCoordinateTransformation>::BaseFinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement<TCoordinateTransformation>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
@@ -302,6 +308,8 @@ void BaseShellElement<TCoordinateTransformation>::BaseFinalizeSolutionStep(const
     for (IndexType i = 0; i < mSections.size(); ++i) {
         mSections[i]->FinalizeSolutionStep(r_props, r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
     }
+
+    this->mpCoordinateTransformation->FinalizeSolutionStep();
 }
 
 template <class TCoordinateTransformation>

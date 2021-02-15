@@ -124,39 +124,6 @@ Element::Pointer ShellThickElement3D3N<TKinematics>::Create(IndexType NewId,
 }
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::InitializeNonLinearIteration
-(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->mpCoordinateTransformation->InitializeNonLinearIteration();
-
-    this->BaseInitializeNonLinearIteration(rCurrentProcessInfo);
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->mpCoordinateTransformation->FinalizeNonLinearIteration();
-
-    this->BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->BaseInitializeSolutionStep(rCurrentProcessInfo);
-
-    this->mpCoordinateTransformation->InitializeSolutionStep();
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->BaseFinalizeSolutionStep(rCurrentProcessInfo);
-
-    this->mpCoordinateTransformation->FinalizeSolutionStep();
-}
-
-template <ShellKinematics TKinematics>
 void ShellThickElement3D3N<TKinematics>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     if ((rMassMatrix.size1() != 18) || (rMassMatrix.size2() != 18)) {

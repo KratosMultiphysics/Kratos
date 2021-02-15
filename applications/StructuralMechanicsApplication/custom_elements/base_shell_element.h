@@ -130,6 +130,14 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
@@ -250,14 +258,6 @@ protected:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     );
-
-    void BaseInitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
-
-    void BaseFinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
-
-    void BaseInitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
-
-    void BaseFinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
 
     virtual void SetupOrientationAngles();
 

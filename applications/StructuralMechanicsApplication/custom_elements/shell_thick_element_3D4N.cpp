@@ -399,17 +399,9 @@ void ShellThickElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentP
 }
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->mpCoordinateTransformation->InitializeNonLinearIteration();
-
-    this->BaseInitializeNonLinearIteration(rCurrentProcessInfo);
-}
-
-template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    this->mpCoordinateTransformation->FinalizeNonLinearIteration();
+    BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
 
     ShellQ4_LocalCoordinateSystem LCS(this->mpCoordinateTransformation->CreateLocalCoordinateSystem());
     Vector globalDisplacementVector(24);
@@ -417,16 +409,12 @@ void ShellThickElement3D4N<TKinematics>::FinalizeNonLinearIteration(const Proces
     Vector localDisplacementVector(this->mpCoordinateTransformation->CalculateLocalDisplacements(LCS, globalDisplacementVector));
 
     mEASStorage.FinalizeNonLinearIteration(localDisplacementVector);
-
-    this->BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    this->BaseInitializeSolutionStep(rCurrentProcessInfo);
-
-    this->mpCoordinateTransformation->InitializeSolutionStep();
+    BaseType::InitializeSolutionStep(rCurrentProcessInfo);
 
     mEASStorage.InitializeSolutionStep();
 }
@@ -434,9 +422,7 @@ void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(const ProcessInf
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    this->BaseFinalizeSolutionStep(rCurrentProcessInfo);
-
-    this->mpCoordinateTransformation->FinalizeSolutionStep();
+    BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
 
     mEASStorage.FinalizeSolutionStep();
 }

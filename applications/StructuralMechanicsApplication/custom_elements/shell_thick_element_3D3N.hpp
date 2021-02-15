@@ -158,14 +158,6 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
-    void InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;    //corotational formulation
-
-    void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override; //corotational formulation
-
-    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override; //corotational formulation
-
-    void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override; //corotational formulation
-
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     // More results calculation on integration points to interface with python
