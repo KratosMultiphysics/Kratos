@@ -333,7 +333,7 @@ public:
             }
         }
         
-
+        
         if(this->DoF==5){
             VariableUtils().SetFlag(TO_ERASE, true, mrThisModelPart.MasterSlaveConstraints());
             mrThisModelPart.RemoveMasterSlaveConstraints(TO_ERASE);
@@ -342,6 +342,12 @@ public:
                 std::cout<<this->master_stiffness<<std::endl;
                 this->json_parameters.AddEmptyValue("Stiffness Matrix");
                 this->json_parameters["Stiffness Matrix"].SetMatrix(this->master_stiffness);
+                this->json_parameters.AddEmptyValue("Displacement");
+                this->json_parameters["Displacement"].SetDouble(this->value);
+                this->json_parameters.AddEmptyValue("Rotation");
+                this->json_parameters["Rotation"].SetDouble(this->inf_rot);
+                this->json_parameters.AddEmptyValue("Interface Frame Origins");
+                this->json_parameters["Interface Frame Origins"].SetMatrix(this->master_coor);
                 this->CreateJSONfile(); 
             }
         }
