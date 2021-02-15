@@ -115,8 +115,9 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{
             "wall_law_constants":{
-                "kappa"       : 0.41,
-                "c_mu"        : 0.09
+                "kappa"            : 0.41,
+                "c_mu"             : 0.09,
+                "correction_factor": 1.0
             },
             "k_omega_constants": {
                 "sigma_k"    : 0.85,
@@ -142,6 +143,7 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         constants = settings["wall_law_constants"]
         process_info.SetValue(KratosRANS.VON_KARMAN, constants["kappa"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, constants["c_mu"].GetDouble())
+        process_info.SetValue(KratosRANS.WALL_CORRECTION_FACTOR, constants["correction_factor"].GetDouble())
 
         # k-omega constants
         constants = settings["k_omega_constants"]
