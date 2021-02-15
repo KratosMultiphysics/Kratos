@@ -38,7 +38,7 @@ KRATOS_TEST_CASE_IN_SUITE(Array1DInitializationValue, KratosCoreFastSuite) {
     Vector ref(3);
     ref[0] = 2.2;
     ref[1] = 2.2;
-    ref[2] = 2.2;
+    ref[2] = 0.0;
     KRATOS_CHECK_VECTOR_EQUAL(arr, ref);
 }
 
