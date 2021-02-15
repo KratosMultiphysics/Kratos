@@ -38,6 +38,7 @@
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
+#include "custom_utilities/calculate_cut_area.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -63,6 +64,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateC",&DynamicSmagorinskyUtils::CalculateC)
         .def("CorrectFlagValues",&DynamicSmagorinskyUtils::CorrectFlagValues)
         ;
+
+    py::class_<CalculateCutArea > (m,"CalculateCutArea")
+        .def(py::init<ModelPart& >())  
+        .def("Execute", &CalculateCutArea::Calculate)  
+        ; 
 
     // Estimate time step utilities
     py::class_<EstimateDtUtility>(m,"EstimateDtUtility")
