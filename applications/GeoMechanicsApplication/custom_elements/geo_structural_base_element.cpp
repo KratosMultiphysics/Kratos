@@ -481,7 +481,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 void GeoStructuralBaseElement<TDim,TNumNodes>::
     SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-                                std::vector<double>& rValues,
+                                const std::vector<double>& rValues,
                                 const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY

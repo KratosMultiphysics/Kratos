@@ -573,7 +573,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
 //----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::
     SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-                                 std::vector<double>& rValues,
+                                 const std::vector<double>& rValues,
                                  const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
@@ -592,7 +592,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
 //----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::
     SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                 std::vector<Matrix>& rValues,
+                                 const std::vector<Matrix>& rValues,
                                  const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT) {

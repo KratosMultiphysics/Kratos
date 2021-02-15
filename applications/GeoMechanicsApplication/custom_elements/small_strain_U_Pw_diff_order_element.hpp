@@ -98,15 +98,15 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-                                      std::vector<double>& rValues,
+                                      const std::vector<double>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                      std::vector<Vector>& rValues,
+                                      const std::vector<Vector>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>& rValues,
+                                      const std::vector<Matrix>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

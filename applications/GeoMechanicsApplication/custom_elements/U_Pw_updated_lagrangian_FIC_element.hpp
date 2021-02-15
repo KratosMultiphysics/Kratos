@@ -185,7 +185,7 @@ public:
       * @param rCurrentProcessInfo the current process info instance
       */
     void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-                                      std::vector<double>& rValues,
+                                      const std::vector<double>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
      /**
@@ -195,7 +195,7 @@ public:
       * @param rCurrentProcessInfo the current process info instance
       */
     void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>& rValues,
+                                      const std::vector<Matrix>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
