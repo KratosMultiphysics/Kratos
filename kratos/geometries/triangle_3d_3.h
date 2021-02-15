@@ -1740,6 +1740,71 @@ public:
     }
 
     ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    /**
+    * @brief Projects a certain point on the geometry, or finds
+    *        the closest point, depending on the provided
+    *        initial guess. The external point does not necessary
+    *        lay on the geometry.
+    *        It shall deal as the interface to the mathematical
+    *        projection function e.g. the Newton-Raphson.
+    *        Thus, the breaking criteria does not necessarily mean
+    *        that it found a point on the surface, if it is really
+    *        the closest if or not. It shows only if the breaking
+    *        criteria, defined by the tolerance is reached.
+    *
+    *        This function requires an initial guess, provided by
+    *        rProjectedPointLocalCoordinates.
+    *        This function can be a very costly operation.
+    *
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointGlobalCoordinates the location of the
+    *        projection in global coordinates.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    *        The variable is as initial guess!
+    * @param Tolerance accepted of orthogonal error to projection.
+    * @return It is chosen to take an int as output parameter to
+    *         keep more possibilities within the interface.
+    *         0 -> failed
+    *         1 -> converged
+    */
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
+        const auto center = this->Center();
+        const array_1d<double, 3> normal = this->UnitNormal(center);
+
+        // We compute the distance, if it is not in the plane we project
+        const Point point_to_project(rPointGlobalCoordinates);
+        double distance;
+        rProjectedPointGlobalCoordinates = GeometricalProjectionUtilities::FastProject( center, point_to_project, normal, distance);
+
+        // We check if we are on the plane
+        if (std::abs(distance) > Tolerance) {
+            if (std::abs(distance) > 1.0e-6 * Length()) {
+                KRATOS_WARNING_FIRST_N("Triangle3D3", 10) << "The " << rPointGlobalCoordinates << " is in a distance: " << std::abs(distance) << std::endl;
+                return 0;
+            }
+
+            // Not in the plane, but allowing certain distance, projecting
+            noalias(rProjectedPointGlobalCoordinates) = rPointGlobalCoordinates - normal * distance;
+        }
+
+        PointLocalCoordinates( rProjectedPointLocalCoordinates, rProjectedPointGlobalCoordinates );
+
+        return 1;
+    }
+
+    ///@}
     ///@name Friends
     ///@{
 
