@@ -1408,9 +1408,7 @@ private:
 
         void ThreadSafeReduce(const Array3Reduction& rOther)
         {
-            AtomicAdd(mValue[0], rOther.mValue[0]);
-            AtomicAdd(mValue[1], rOther.mValue[1]);
-            AtomicAdd(mValue[2], rOther.mValue[2]);
+            AtomicAdd(mValue, rOther.mValue);
         }
     };
 
