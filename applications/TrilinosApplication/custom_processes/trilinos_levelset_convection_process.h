@@ -367,9 +367,10 @@ protected:
             double S_minus = 0.0;
 
             GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
-            GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, global_pointer_list);
+            std::unique_ptr<GlobalPointerCommunicator< Node<3 > > > pointer_comm(new
+                GlobalPointerCommunicator< Node<3 > >(r_default_comm, global_pointer_list));
 
-            auto coordinate_proxy = pointer_comm.Apply(
+            auto coordinate_proxy = pointer_comm->Apply(
                 [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
                 {
                     return global_pointer->Coordinates();
@@ -391,7 +392,7 @@ protected:
             this->mSigmaPlus[i_node] = std::min(1.0, (std::abs(S_minus)+epsilon)/(S_plus+epsilon));
             this->mSigmaMinus[i_node] = std::min(1.0, (S_plus+epsilon)/(std::abs(S_minus)+epsilon));
 
-            pointer_comm.~GlobalPointerCommunicator();
+            //pointer_comm.~GlobalPointerCommunicator();
         }
 
         //Calculating beta_ij in a way that the linearity is preserved on non-symmetrical meshes
@@ -406,16 +407,18 @@ protected:
             double denominator = 0.0;
 
             GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
-            GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, global_pointer_list);
+            //GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, global_pointer_list);
+            std::unique_ptr<GlobalPointerCommunicator< Node<3 > > > pointer_comm(new
+                GlobalPointerCommunicator< Node<3 > >(r_default_comm, global_pointer_list));
 
-            auto coordinate_proxy = pointer_comm.Apply(
+            auto coordinate_proxy = pointer_comm->Apply(
                 [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
                 {
                     return global_pointer->Coordinates();
                 }
             );
 
-            auto distance_proxy = pointer_comm.Apply(
+            auto distance_proxy = pointer_comm->Apply(
                 [&](GlobalPointer<Node<3> >& global_pointer) -> double
                 {
                     return global_pointer->FastGetSolutionStepValue(this->mrLevelSetVar); //TODO: Get mrLevelSetVar
@@ -445,7 +448,7 @@ protected:
             const double fraction = (std::abs(numerator)/*  + epsilon */) / (denominator + epsilon);
             this->mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
 
-            pointer_comm.~GlobalPointerCommunicator();
+            //pointer_comm.~GlobalPointerCommunicator();
         }
     }
 
