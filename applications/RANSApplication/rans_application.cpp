@@ -90,7 +90,10 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKOmegaSSTOmegaKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKOmegaSSTOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKOmegaSSTOmegaUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-      mRansKOmegaSSTOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
+      mRansKOmegaSSTOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // adjoint elements
+      mRansKEpsilonQSVMSRFCAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mRansKEpsilonQSVMSRFCAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
 {
 }
 
@@ -158,6 +161,17 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( ANALYSIS_STEPS )
     KRATOS_REGISTER_VARIABLE( WALL_MODEL_PART_NAME )
     KRATOS_REGISTER_VARIABLE( NUMBER_OF_NEIGHBOUR_CONDITIONS )
+
+    // adjoint variables
+    KRATOS_REGISTER_VARIABLE( RANS_SCALAR_1_ADJOINT_1 )
+    KRATOS_REGISTER_VARIABLE( RANS_SCALAR_1_ADJOINT_2 )
+    KRATOS_REGISTER_VARIABLE( RANS_SCALAR_1_ADJOINT_3 )
+    KRATOS_REGISTER_VARIABLE( RANS_AUX_ADJOINT_SCALAR_1 )
+
+    KRATOS_REGISTER_VARIABLE( RANS_SCALAR_2_ADJOINT_1 )
+    KRATOS_REGISTER_VARIABLE( RANS_SCALAR_2_ADJOINT_2 )
+    KRATOS_REGISTER_VARIABLE( RANS_SCALAR_2_ADJOINT_3 )
+    KRATOS_REGISTER_VARIABLE( RANS_AUX_ADJOINT_SCALAR_2 )
 
     // registering elements
     // registering incompressible potential flow elements
@@ -261,5 +275,9 @@ void KratosRANSApplication::Register()
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaSSTNewtonian2DLaw", mRansKOmegaSSTNewtonian2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaSSTNewtonian3DLaw", mRansKOmegaSSTNewtonian3DLaw);
+
+    // registering adjoint elements
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonQSVMSRFCAdjoint2D3N", mRansKEpsilonQSVMSRFCAdjoint2D3N);
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonQSVMSRFCAdjoint3D4N", mRansKEpsilonQSVMSRFCAdjoint3D4N);
 }
 } // namespace Kratos.
