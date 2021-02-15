@@ -354,10 +354,44 @@ void BaseShellElement<TCoordinateTransformation>::CalculateRightHandSide(VectorT
 template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo);
+    const bool compute_lumped_mass_matrix = true;//StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo);
+
+    const SizeType num_gps = GetNumberOfGPs();
+    const SizeType num_dofs = GetNumberOfDofs();
+    const SizeType num_nodes = GetGeometry().PointsNumber();
+
+    if ((rMassMatrix.size1() != num_dofs) || (rMassMatrix.size2() != num_dofs)) {
+        rMassMatrix.resize(num_dofs, num_dofs, false);
+    }
+    noalias(rMassMatrix) = ZeroMatrix(num_dofs, num_dofs);
+
+    // Compute the local coordinate system.
+    auto referenceCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+
+    // Average mass per unit area over the whole element
+    double av_mass_per_unit_area = 0.0;
+
+    for (SizeType i = 0; i < num_gps; i++) {
+        av_mass_per_unit_area += this->mSections[i]->CalculateMassPerUnitArea(GetProperties());
+    }
+    av_mass_per_unit_area /= static_cast<double>(num_gps);
 
     if (compute_lumped_mass_matrix) {
+        // lumped area
+        double lump_area = referenceCoordinateSystem.Area() / static_cast<double>(num_nodes);
+        double nodal_mass = av_mass_per_unit_area * lump_area;
 
+        // loop on nodes
+        for (SizeType i=0; i < num_nodes; i++) {
+            SizeType index = i * 6;
+
+            // translational mass
+            rMassMatrix(index, index) = nodal_mass;
+            rMassMatrix(index + 1, index + 1) = nodal_mass;
+            rMassMatrix(index + 2, index + 2) = nodal_mass;
+
+            // rotational mass - neglected for the moment...
+        }
     } else { // consistent mass matrix
         KRATOS_ERROR << "Consistent mass matrix is not yet implemented!" << std::endl;
     }
