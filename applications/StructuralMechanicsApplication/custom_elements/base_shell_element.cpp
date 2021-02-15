@@ -233,16 +233,16 @@ void BaseShellElement<TCoordinateTransformation>::Initialize(const ProcessInfo& 
             }
         }
 
-        if (this->Has(LOCAL_MATERIAL_AXIS_1)) {
+        if (Has(LOCAL_MATERIAL_AXIS_1)) {
             // calculate the angle between the prescribed direction and the local axis 1
             // this is currently required in teh derived classes TODO refactor
 
             std::vector<array_1d<double, 3>> local_axes_1;
             std::vector<array_1d<double, 3>> local_axes_2;
-            this->CalculateOnIntegrationPoints(LOCAL_AXIS_1, local_axes_1 , rCurrentProcessInfo);
-            this->CalculateOnIntegrationPoints(LOCAL_AXIS_2, local_axes_2 , rCurrentProcessInfo);
+            CalculateOnIntegrationPoints(LOCAL_AXIS_1, local_axes_1 , rCurrentProcessInfo);
+            CalculateOnIntegrationPoints(LOCAL_AXIS_2, local_axes_2 , rCurrentProcessInfo);
 
-            const array_1d<double, 3> prescribed_direcition = this->GetValue(LOCAL_MATERIAL_AXIS_1);
+            const array_1d<double, 3> prescribed_direcition = GetValue(LOCAL_MATERIAL_AXIS_1);
 
             double mat_orientation_angle = MathUtils<double>::VectorsAngle(local_axes_1[0], prescribed_direcition);
 
@@ -252,20 +252,20 @@ void BaseShellElement<TCoordinateTransformation>::Initialize(const ProcessInfo& 
                 mat_orientation_angle *= -1.0;
             }
 
-            this->SetValue(MATERIAL_ORIENTATION_ANGLE, mat_orientation_angle);
+            SetValue(MATERIAL_ORIENTATION_ANGLE, mat_orientation_angle);
         }
 
-        this->mpCoordinateTransformation->Initialize();
-        this->SetupOrientationAngles();
+        mpCoordinateTransformation->Initialize();
+        SetupOrientationAngles();
     }
 }
 
 template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    this->mpCoordinateTransformation->InitializeNonLinearIteration();
+    mpCoordinateTransformation->InitializeNonLinearIteration();
 
-    const auto& r_geom = this->GetGeometry();
+    const auto& r_geom = GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
     for (IndexType i = 0; i < mSections.size(); ++i) {
         mSections[i]->InitializeNonLinearIteration(GetProperties(), r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
@@ -275,9 +275,9 @@ void BaseShellElement<TCoordinateTransformation>::InitializeNonLinearIteration(c
 template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    this->mpCoordinateTransformation->FinalizeNonLinearIteration();
+    mpCoordinateTransformation->FinalizeNonLinearIteration();
 
-    const auto& r_geom = this->GetGeometry();
+    const auto& r_geom = GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
     for (IndexType i = 0; i < mSections.size(); ++i) {
         mSections[i]->FinalizeNonLinearIteration(GetProperties(), r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
@@ -295,7 +295,7 @@ void BaseShellElement<TCoordinateTransformation>::InitializeSolutionStep(const P
         mSections[i]->InitializeSolutionStep(r_props, r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
     }
 
-    this->mpCoordinateTransformation->InitializeSolutionStep();
+    mpCoordinateTransformation->InitializeSolutionStep();
 }
 
 template <class TCoordinateTransformation>
@@ -309,7 +309,7 @@ void BaseShellElement<TCoordinateTransformation>::FinalizeSolutionStep(const Pro
         mSections[i]->FinalizeSolutionStep(r_props, r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
     }
 
-    this->mpCoordinateTransformation->FinalizeSolutionStep();
+    mpCoordinateTransformation->FinalizeSolutionStep();
 }
 
 template <class TCoordinateTransformation>
@@ -398,7 +398,7 @@ void BaseShellElement<TCoordinateTransformation>::Calculate(
         Output.resize(3, 3, false);
 
         // Compute the local coordinate system.
-        auto localCoordinateSystem(this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+        auto localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
         Output = trans(localCoordinateSystem.Orientation());
     }
 }
@@ -434,7 +434,7 @@ void BaseShellElement<TCoordinateTransformation>::SetCrossSectionsOnIntegrationP
     for (IndexType i = 0; i < crossSections.size(); ++i) {
         mSections.push_back(crossSections[i]);
     }
-    this->SetupOrientationAngles();
+    SetupOrientationAngles();
     KRATOS_CATCH("")
 }
 
@@ -491,9 +491,9 @@ ShellCrossSection::SectionBehaviorType BaseShellElement<TCoordinateTransformatio
 template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::SetupOrientationAngles()
 {
-    if (this->Has(MATERIAL_ORIENTATION_ANGLE)) {
+    if (Has(MATERIAL_ORIENTATION_ANGLE)) {
         for (auto it = mSections.begin(); it != mSections.end(); ++it) {
-            (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
+            (*it)->SetOrientationAngle(GetValue(MATERIAL_ORIENTATION_ANGLE));
         }
     } else {
         auto lcs(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
@@ -711,7 +711,7 @@ void BaseShellElement<TCoordinateTransformation>::CheckSpecificProperties() cons
     // KRATOS_ERROR_IF(LawFeatures.mOptions.Is(ConstitutiveLaw::ANISOTROPIC) &&
     //                 !Has(MATERIAL_ORIENTATION_ANGLE))
     //     << "Using an Anisotropic Constitutive law requires the specification of "
-    //     << "\"MATERIAL_ORIENTATION_ANGLE\" for shell element with Id " << this->Id() << std::endl;
+    //     << "\"MATERIAL_ORIENTATION_ANGLE\" for shell element with Id " << Id() << std::endl;
 
     if (GetSectionBehavior() == ShellCrossSection::Thick) {
         // Check constitutive law has been verified with Stenberg stabilization
