@@ -11,6 +11,8 @@ import KratosMultiphysics.kratos_utilities as KratosUtils
 from KratosMultiphysics.mpi import distributed_import_model_part_utility
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
+from KratosMultiphysics import ParallelEnvironment
+
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
@@ -148,7 +150,8 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             KratosMultiphysics.Parameters("""{"solver_type" : "amesos" }""")
         )
         epetra_comm = TrilinosApplication.CreateCommunicator()
-        comm = self.model_part.GetCommunicator().GetDataCommunicator()
+        comm = ParallelEnvironment.GetDefaultDataCommunicator()
+        #self.model_part.GetCommunicator().GetDataCommunicator()
 
         # Fake time advance
         self.model_part.CloneTimeStep(30.0)

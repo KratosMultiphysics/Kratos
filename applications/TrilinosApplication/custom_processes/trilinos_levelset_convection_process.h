@@ -22,6 +22,8 @@
 #include "containers/model.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 #include "processes/levelset_convection_process.h"
+#include "utilities/pointer_communicator.h"
+#include "utilities/pointer_map_communicator.h"
 
 namespace Kratos
 {
@@ -336,6 +338,111 @@ protected:
         (this->mDistancePartIsInitialized) = true;
 
         KRATOS_CATCH("")
+    }
+
+
+    void EvaluateLimiter() override
+    {
+        // ****************************************************************************************
+        // ****************************************************************************************
+        // Calculating nodal limiter using \beta_ij = 1 (works fine on symmetric structural meshes)
+        // D. Kuzmin et al. / Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41
+        const double epsilon = 1.0e-15;
+        const double power_bfecc = 2.0;
+
+        //mProjectedGradientProcess.Execute();
+
+        DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+
+        #pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(this->mpDistanceModelPart->NumberOfNodes()); ++i_node){
+            auto it_node = this->mpDistanceModelPart->NodesBegin() + i_node;
+
+            it_node->SetValue(this->mrLevelSetVar, it_node->FastGetSolutionStepValue(this->mrLevelSetVar)); //Store mrLevelSetVar
+
+            const auto X_i = it_node->Coordinates();
+            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+
+            double S_plus = 0.0;
+            double S_minus = 0.0;
+
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, global_pointer_list);
+
+            auto coordinate_proxy = pointer_comm.Apply(
+                [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
+                {
+                    return global_pointer->Coordinates();
+                }
+            );
+
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+                // if (it_node->Id() == j_node->Id())
+                //     continue;
+
+                auto& global_pointer = global_pointer_list(j);
+                auto X_j = coordinate_proxy.Get(global_pointer);
+
+                S_plus += std::max(0.0, inner_prod(grad_i, X_i-X_j));
+                S_minus += std::min(0.0, inner_prod(grad_i, X_i-X_j));
+            }
+
+            this->mSigmaPlus[i_node] = std::min(1.0, (std::abs(S_minus)+epsilon)/(S_plus+epsilon));
+            this->mSigmaMinus[i_node] = std::min(1.0, (S_plus+epsilon)/(std::abs(S_minus)+epsilon));
+        }
+
+        //Calculating beta_ij in a way that the linearity is preserved on non-symmetrical meshes
+        #pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(this->mpDistanceModelPart->NumberOfNodes()); ++i_node){
+            auto it_node = this->mpDistanceModelPart->NodesBegin() + i_node;
+            const double distance_i = it_node->FastGetSolutionStepValue(this->mrLevelSetVar);
+            const auto X_i = it_node->Coordinates();
+            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+
+            double numerator = 0.0;
+            double denominator = 0.0;
+
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, global_pointer_list);
+
+            auto coordinate_proxy = pointer_comm.Apply(
+                [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
+                {
+                    return global_pointer->Coordinates();
+                }
+            );
+
+            auto distance_proxy = pointer_comm.Apply(
+                [](GlobalPointer<Node<3> >& global_pointer) -> double
+                {
+                    return global_pointer->FastGetSolutionStepValue(DISTANCE); //TODO: Get mrLevelSetVar
+                }
+            );
+
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+                // if (it_node->Id() == j_node->Id())
+                //     continue;
+
+                auto& global_pointer = global_pointer_list(j);
+                auto X_j = coordinate_proxy.Get(global_pointer);
+                const double distance_j = distance_proxy.Get(global_pointer);
+
+                double beta_ij = 1.0;
+
+                if (inner_prod(grad_i, X_i-X_j) > 0)
+                    beta_ij = this->mSigmaPlus[i_node];
+                else if (inner_prod(grad_i, X_i-X_j) < 0)
+                    beta_ij = this->mSigmaMinus[i_node];
+
+                numerator += beta_ij*(distance_i - distance_j);
+                denominator += beta_ij*std::abs(distance_i - distance_j);
+            }
+
+            const double fraction = (std::abs(numerator)/*  + epsilon */) / (denominator + epsilon);
+            this->mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
+        }
     }
 
     ///@}
