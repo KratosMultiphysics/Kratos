@@ -163,7 +163,6 @@ void KElementData<TDim>::CalculateGaussPointData(
     mEffectiveKinematicViscosity = mKinematicViscosity + mBlendedSimgaK * mTurbulentKinematicViscosity;
     mReactionTerm = std::max(mBetaStar * mTurbulentKineticEnergy / mTurbulentKinematicViscosity + (2.0 / 3.0) * mVelocityDivergence, 0.0);
     mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity);
-    mSourceTerm = std::min(mSourceTerm, 10.0 * mBetaStar * mTurbulentSpecificEnergyDissipationRate * tke_old);
 
     KRATOS_CATCH("");
 }
