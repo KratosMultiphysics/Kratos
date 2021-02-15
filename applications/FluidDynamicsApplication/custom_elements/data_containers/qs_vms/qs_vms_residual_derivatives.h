@@ -182,6 +182,7 @@ public:
             // assumed be independent of each other, so no cross derivative terms are there. Hence
             // it is only sufficient to derrive w.r.t. current derivative variable.
             mrData.mrConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, derivatives_type.GetDerivativeVariable(), effective_viscosity_derivative);
+            effective_viscosity_derivative *= rN[NodeIndex];
 
             // calculate derivative contributions w.r.t. its dependent variable gradients. Dependent variable gradients
             // may be dependent of each other. therefore it is required to calculate derivatives w.r.t. gradients of
