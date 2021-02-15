@@ -354,21 +354,13 @@ private:
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
-//             ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
-
-             #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
+            block_for_each(mr_model_part.GetMesh(mmesh_id).Nodes(), [&](Node<3>& rNode){
                 if(to_be_fixed)
                 {
-                    it->Fix(rVar);
+                    rNode.Fix(rVar);
                 }
-
-                it->FastGetSolutionStepValue(rVar) = value;
-            }
+                rNode.FastGetSolutionStepValue(rVar) = value;
+            });
         }
     }
 
@@ -379,16 +371,9 @@ private:
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
-//             ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
-
-             #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                it->FastGetSolutionStepValue(rVar) = value;
-            }
+            block_for_each(mr_model_part.GetMesh(mmesh_id).Nodes(), [&](Node<3>& rNode){
+                rNode.FastGetSolutionStepValue(rVar) = value;
+            });
         }
     }
 
