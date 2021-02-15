@@ -1579,13 +1579,14 @@ public:
 
         // We iterate until we find the properly projected point
         for (iter = 0; iter < max_number_of_iterations; ++iter) {
-            if (norm_2(this->UnitNormal(projected_point) - normal) < Tolerance * 1.0e4) break; // If the normal corresponds means that we have converged
+            // We compute the distance, if it is not in the plane we project
+            projected_point = GeometricalProjectionUtilities::FastProject( projected_point, point_to_project, normal, distance);
+
+            // If the normal corresponds means that we have converged
+            if (norm_2(this->UnitNormal(projected_point) - normal) < Tolerance * 1.0e4) break;
 
             // Compute normal
             noalias(normal) = this->UnitNormal(projected_point);
-
-            // We compute the distance, if it is not in the plane we project
-            projected_point = GeometricalProjectionUtilities::FastProject( projected_point, point_to_project, normal, distance);
         }
 
         // We do check to print warning
