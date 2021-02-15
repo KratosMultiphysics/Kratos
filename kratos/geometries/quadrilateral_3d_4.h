@@ -27,6 +27,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -1522,6 +1523,90 @@ public:
         }
 
         return rResult;
+    }
+
+    ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    /**
+    * @brief Projects a certain point on the geometry, or finds
+    *        the closest point, depending on the provided
+    *        initial guess. The external point does not necessary
+    *        lay on the geometry.
+    *        It shall deal as the interface to the mathematical
+    *        projection function e.g. the Newton-Raphson.
+    *        Thus, the breaking criteria does not necessarily mean
+    *        that it found a point on the surface, if it is really
+    *        the closest if or not. It shows only if the breaking
+    *        criteria, defined by the tolerance is reached.
+    *
+    *        This function requires an initial guess, provided by
+    *        rProjectedPointLocalCoordinates.
+    *        This function can be a very costly operation.
+    *
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointGlobalCoordinates the location of the
+    *        projection in global coordinates.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    *        The variable is as initial guess!
+    * @param Tolerance accepted of orthogonal error to projection.
+    * @return It is chosen to take an int as output parameter to
+    *         keep more possibilities within the interface.
+    *         0 -> failed
+    *         1 -> converged
+    */
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        // Max number of iterations
+        const std::size_t max_number_of_iterations = 100;
+
+        // We do a first guess in the center of the geometry
+        auto projected_point = this->Center();
+        array_1d<double, 3> normal = this->UnitNormal(projected_point);
+
+        // SOme auxiliar variables
+        const Point point_to_project(rPointGlobalCoordinates);
+        double distance;
+        std::size_t iter;
+
+        // We iterate until we find the properly projected point
+        for (iter = 0; iter < max_number_of_iterations; ++iter) {
+            if (norm_2(this->UnitNormal(projected_point) - normal) < Tolerance * 1.0e4) break; // If the normal corresponds means that we have converged
+
+            // Compute normal
+            noalias(normal) = this->UnitNormal(projected_point);
+
+            // We compute the distance, if it is not in the plane we project
+            projected_point = GeometricalProjectionUtilities::FastProject( projected_point, point_to_project, normal, distance);
+        }
+
+        // We do check to print warning
+        if (iter >= max_number_of_iterations - 1) KRATOS_WARNING_FIRST_N("Quadrilateral3D4", 10) << "The point " << rPointGlobalCoordinates << " has not converged when projecting the point after" << max_number_of_iterations << " iterations" << std::endl;
+
+        noalias(rProjectedPointGlobalCoordinates) = projected_point;
+
+        // We check if we are on the plane
+        if (std::abs(distance) > Tolerance) {
+            if (std::abs(distance) > 1.0e-6 * Length()) {
+                KRATOS_WARNING_FIRST_N("Quadrilateral3D4", 10) << "The " << rPointGlobalCoordinates << " is in a distance: " << std::abs(distance) << std::endl;
+                return 0;
+            }
+
+            // Not in the plane, but allowing certain distance, projecting
+            noalias(rProjectedPointGlobalCoordinates) = rPointGlobalCoordinates - normal * distance;
+        }
+
+        PointLocalCoordinates( rProjectedPointLocalCoordinates, rProjectedPointGlobalCoordinates );
+
+        return 1;
     }
 
     ///@}
