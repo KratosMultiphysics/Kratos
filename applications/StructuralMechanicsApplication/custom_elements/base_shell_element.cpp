@@ -254,6 +254,9 @@ void BaseShellElement<TCoordinateTransformation>::Initialize(const ProcessInfo& 
 
             this->SetValue(MATERIAL_ORIENTATION_ANGLE, mat_orientation_angle);
         }
+
+        this->mpCoordinateTransformation->Initialize();
+        this->SetupOrientationAngles();
     }
 }
 
