@@ -659,6 +659,7 @@ protected:
                 const auto X_j = j_node->Coordinates();
 
                 double beta_ij = 1.0;
+                KRATOS_WATCH(X_j)
                 if (inner_prod(grad_i, X_i-X_j) > 0)
                     beta_ij = mSigmaPlus[i_node];
                 else if (inner_prod(grad_i, X_i-X_j) < 0)

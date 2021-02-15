@@ -326,6 +326,13 @@ protected:
         (this->mVelocityOld).resize(n_nodes);
         (this->mOldDistance).resize(n_nodes);
 
+        if (this->mIsBfecc){
+            (this->mError).resize(n_nodes);
+            (this->mSigmaPlus).resize(n_nodes);
+            (this->mSigmaMinus).resize(n_nodes);
+            (this->mLimiter).resize(n_nodes);
+        }
+
         (this->mDistancePartIsInitialized) = true;
 
         KRATOS_CATCH("")
