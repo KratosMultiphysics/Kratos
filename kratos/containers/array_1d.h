@@ -116,7 +116,10 @@ public:
     array_1d (size_type array_size, value_type v):
         vector_expression<self_type> ()
     {
+        KRATOS_DEBUG_ERROR_IF(array_size>N) << "Given size is greater than the size of the array!" << std::endl;
+
         std::fill(data().begin(), data().begin() + array_size, v);
+        std::fill(data().begin()+array_size, data().end(), value_type()); // default initialize the remaining entries
     }
 
     explicit BOOST_UBLAS_INLINE
@@ -124,8 +127,9 @@ public:
         vector_expression<self_type> ()
     {
         KRATOS_DEBUG_ERROR_IF(rInitList.size()>N) << "Size of list greater than the size of the array!" << std::endl;
+
         std::copy(rInitList.begin(), rInitList.end(), data().begin()); // copy content of initializer list
-        std::fill(data().begin()+rInitList.size(), data().end(), value_type());// if initializer list is shorter than array, default initialize the remaining entries
+        std::fill(data().begin()+rInitList.size(), data().end(), value_type()); // if initializer list is shorter than array, default initialize the remaining entries
     }
 
     BOOST_UBLAS_INLINE
