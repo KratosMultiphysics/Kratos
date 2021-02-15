@@ -427,45 +427,6 @@ void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(const ProcessInfo&
     mEASStorage.FinalizeSolutionStep();
 }
 
-template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    if ((rMassMatrix.size1() != 24) || (rMassMatrix.size2() != 24)) {
-        rMassMatrix.resize(24, 24, false);
-    }
-    noalias(rMassMatrix) = ZeroMatrix(24, 24);
-
-    // Compute the local coordinate system.
-
-    ShellQ4_LocalCoordinateSystem referenceCoordinateSystem(
-        this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-
-    // lumped area
-
-    double lump_area = referenceCoordinateSystem.Area() / 4.0;
-
-    // Calculate avarage mass per unit area
-    double av_mass_per_unit_area = 0.0;
-    for (SizeType i = 0; i < 4; i++) {
-        av_mass_per_unit_area += this->mSections[i]->CalculateMassPerUnitArea(GetProperties());
-    }
-    av_mass_per_unit_area /= 4.0;
-
-    // Gauss Loop
-
-    for (SizeType i = 0; i < 4; i++) {
-        SizeType index = i * 6;
-
-        double nodal_mass = av_mass_per_unit_area * lump_area;
-
-        // translational mass
-        rMassMatrix(index, index)            = nodal_mass;
-        rMassMatrix(index + 1, index + 1)    = nodal_mass;
-        rMassMatrix(index + 2, index + 2)    = nodal_mass;
-
-        // rotational mass - neglected for the moment...
-    }
-}
 
 // =====================================================================================
 //

@@ -91,48 +91,6 @@ Element::Pointer ShellThinElement3D3N<TKinematics>::Create(IndexType NewId,  Geo
     return Kratos::make_intrusive< ShellThinElement3D3N >(NewId, pGeom, pProperties);
 }
 
-template <ShellKinematics TKinematics>
-void ShellThinElement3D3N<TKinematics>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    if ((rMassMatrix.size1() != 18) || (rMassMatrix.size2() != 18)) {
-        rMassMatrix.resize(18, 18, false);
-    }
-    noalias(rMassMatrix) = ZeroMatrix(18, 18);
-
-    // Compute the local coordinate system.
-
-    ShellT3_LocalCoordinateSystem referenceCoordinateSystem(
-        this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-
-    // lumped area
-
-    double lump_area = referenceCoordinateSystem.Area() / 3.0;
-
-    // Calculate avarage mass per unit area
-
-    const SizeType num_gps = this->GetNumberOfGPs();
-
-    double av_mass_per_unit_area = 0.0;
-    for (SizeType i = 0; i < num_gps; i++) {
-        av_mass_per_unit_area += this->mSections[i]->CalculateMassPerUnitArea(GetProperties());
-    }
-    av_mass_per_unit_area /= double(num_gps);
-
-    // loop on nodes
-    for (SizeType i = 0; i < 3; i++) {
-        SizeType index = i * 6;
-
-        double nodal_mass = av_mass_per_unit_area * lump_area;
-
-        // translational mass
-        rMassMatrix(index, index)            = nodal_mass;
-        rMassMatrix(index + 1, index + 1)    = nodal_mass;
-        rMassMatrix(index + 2, index + 2)    = nodal_mass;
-
-        // rotational mass - neglected for the moment...
-    }
-}
-
 // =====================================================================================
 //
 // Class ShellThinElement3D3N - Results on Gauss Points

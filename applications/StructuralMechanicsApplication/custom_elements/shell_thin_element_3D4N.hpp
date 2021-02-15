@@ -209,8 +209,6 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
 
     // More results calculation on integration points to interface with python
 
