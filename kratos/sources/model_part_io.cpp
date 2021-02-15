@@ -14,6 +14,7 @@
 // System includes
 #include <unordered_set>
 
+#include "includes/memory_inspector.h"
 // External includes
 
 // Project includes
@@ -547,12 +548,17 @@ void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
 
 std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnectivities)
 {
+    double vm, rss;
     // 1. Define an auxiliary vector of vectors
     //ConnectivitiesContainerType rAuxConnectivities(0);
 
     // 2. Fill the auxiliary vector by reading elemental and conditional connectivities
     ResetInput();
     std::string word;
+
+    process_mem_usage(vm, rss);
+    std::cout << "\t After Reseting input: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+
     while(true)
     {
         ReadWord(word);
@@ -565,17 +571,26 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
             // a chance to the derived class to process and renumber
             // the nodes before reading elements/conditions.
             ScanNodeBlock();
+            process_mem_usage(vm, rss);
+            std::cout << "\t\t NODES: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
         }
         else if (word == "Elements") {
             FillNodalConnectivitiesFromElementBlock(rAuxConnectivities);
+            process_mem_usage(vm, rss);
+            std::cout << "\t\t ELEMS: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
         }
         else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlock(rAuxConnectivities);
+            process_mem_usage(vm, rss);
+            std::cout << "\t\t CONDS: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
         }
         else {
             SkipBlock(word);
         }
     }
+
+    process_mem_usage(vm, rss);
+    std::cout << "\t After Loop: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
 
     // Checking the connectivities
     SizeType n=0;
@@ -585,6 +600,9 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
             << "The node is a hanging node, not connected to any element or condition\n"
             << "The nodes are not consecutively numbered. This can be avoided by using the \"ReorderConsecutiveModelPartIO\"" << std::endl;
     }
+
+    process_mem_usage(vm, rss);
+    std::cout << "\t After check: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
 
     // 3. Sort each entry in the auxiliary connectivities vector, remove duplicates
     SizeType num_entries = 0;
@@ -596,6 +614,9 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
         num_entries += it->size();
     }
     SizeType num_nodes = rAuxConnectivities.size();
+
+    process_mem_usage(vm, rss);
+    std::cout << "\t After Sorting: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
 
     /*// 4. Write connectivity data in CSR format
     SizeType num_nodes = rAuxConnectivities.size();
@@ -885,7 +906,7 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
     WritePartitionIndices(output_files, NodesPartitions, NodesAllPartitions);
 
     WriteCommunicatorData(output_files, NumberOfPartitions, DomainsColoredGraph, NodesPartitions, ElementsPartitions, ConditionsPartitions, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
-    KRATOS_INFO("ModelPartIO") << "  [Total Lines Read : " << mNumberOfLines<<"]" << std::endl;
+    KRATOS_INFO("ModelPartIO") << "  [DM Total Lines Read : " << mNumberOfLines<<"]" << std::endl;
 
     for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
         delete output_files[i];
@@ -946,7 +967,7 @@ void ModelPartIO::DivideInputToPartitions(
     WritePartitionIndices(output_files, NodesPartitions, NodesAllPartitions);
 
     WriteCommunicatorData(output_files, NumberOfPartitions, DomainsColoredGraph, NodesPartitions, ElementsPartitions, ConditionsPartitions, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
-    KRATOS_INFO("ModelPartIO") << "  [Total Lines Read : " << mNumberOfLines<<"]" << std::endl;
+    KRATOS_INFO("ModelPartIO") << "  [DPM Total Lines Read : " << mNumberOfLines<<"]" << std::endl;
 
     // for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
     //     delete output_files[i];
@@ -1326,52 +1347,7 @@ void ModelPartIO::ReadNodesBlock(NodesContainerType& rThisNodes)
 void ModelPartIO::ReadNodesBlock(ModelPart& rModelPart)
 {
     KRATOS_TRY
-/*
-NodeType temp_node;
-    SizeType temp_id;
 
-    // Giving model part's variables list to the node
-    temp_node.SetSolutionStepVariablesList(&rModelPart.GetNodalSolutionStepVariablesList());
-
-    //set buffer size
-    temp_node.SetBufferSize(rModelPart.GetBufferSize());
-
-
-    std::string word;
-
-    SizeType number_of_nodes_read = 0;
-
-    KRATOS_INFO("ModelPartIO") << "  [Reading Nodes    : ";
-
-    while(!mpStream->eof())
-    {
-        ReadWord(word);
-        if(CheckEndBlock("Nodes", word))
-            break;
-
-        ExtractValue(word, temp_id);
-        temp_node.SetId(ReorderedNodeId(temp_id));
-        ReadWord(word);
-        ExtractValue(word, temp_node.X());
-        ReadWord(word);
-        ExtractValue(word, temp_node.Y());
-        ReadWord(word);
-        ExtractValue(word, temp_node.Z());
-
-        temp_node.X0() = temp_node.X();
-        temp_node.Y0() = temp_node.Y();
-        temp_node.Z0() = temp_node.Z();
-
-
-        rModelPart.Nodes().push_back(temp_node);
-        number_of_nodes_read++;
-    }
-    KRATOS_INFO("") << number_of_nodes_read << " nodes read]" << std::endl;
-
-    unsigned int numer_of_nodes_read = rModelPart.Nodes().size();
-    rModelPart.Nodes().Unique();
-    KRATOS_WARNING_IF("ModelPartIO", rModelPart.Nodes().size() != numer_of_nodes_read) << "attention! we read " << numer_of_nodes_read << " but there are only " << rModelPart.Nodes().size() << " non repeated nodes" << std::endl;
-*/
     SizeType id;
     double x;
     double y;
@@ -2595,6 +2571,12 @@ void ModelPartIO::FillNodalConnectivitiesFromElementBlock(ConnectivitiesContaine
     SizeType n_nodes_in_elem = r_clone_element.GetGeometry().size();
     ConnectivitiesContainerType::value_type temp_element_nodes;
 
+    double vm, rss;
+    double old_vm, old_rss;
+    SizeType old_id = 0;
+    process_mem_usage(vm, rss);
+    std::cout << "\t\t\tEntering element block: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+
     while(!mpStream->eof())
     {
         ReadWord(word); // Reading the element id or End
@@ -2622,13 +2604,31 @@ void ModelPartIO::FillNodalConnectivitiesFromElementBlock(ConnectivitiesContaine
                     reserved_size = (used_size > reserved_size) ? 2*used_size : 2*reserved_size;
                     rNodalConnectivities.reserve(reserved_size);
                 }
-                rNodalConnectivities.resize(used_size);
+                // process_mem_usage(vm, rss);
+                // std::cout << "\t\t\tBefore Resize element block: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+                // rNodalConnectivities.resize(used_size);
+                // process_mem_usage(vm, rss);
+                // std::cout << "\t\t\tAfter Resize element block: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
             }
 
             for (SizeType j = 0; j < i; j++)
                 rNodalConnectivities[position].push_back(temp_element_nodes[j]);
             for (SizeType j = i+1; j < n_nodes_in_elem; j++)
                 rNodalConnectivities[position].push_back(temp_element_nodes[j]);
+        }
+        process_mem_usage(old_vm, old_rss);
+        if(old_vm != vm) {
+            double mem_per_element = double(old_vm - vm) / double(id - old_id);
+            vm = old_vm;
+            rss = old_rss;
+            old_id = id;
+            
+            int computed_size = 0;
+            for(int ii = 0; ii < rNodalConnectivities.size(); ii++) {
+                computed_size += sizeof(std::size_t) * rNodalConnectivities[ii].size() + sizeof(std::vector<std::size_t>);
+            }
+
+            std::cout << "\t\t\t" << id << " elem finished: VM:\t " << vm << "; \tRSS: " << rss << " mem per elem:" << mem_per_element << "rNodalConnectivities.size: " << rNodalConnectivities.size() << " computed_size:"<< " " << computed_size / (1024.0 * 1024.0) << std::endl;
         }
     }
 

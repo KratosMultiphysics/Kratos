@@ -15,6 +15,11 @@
 #ifndef KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_IN_MEMORY_PROCESS_H
 #define KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_IN_MEMORY_PROCESS_H
 
+#include "includes/memory_inspector.h"
+#include "utilities/timer.h"
+#define KRATOS_TIMER_START(t) Timer::Start(t);
+#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
+
 #ifdef KRATOS_USE_METIS_5
   #include "metis.h"
 #else
@@ -109,6 +114,14 @@ public:
     /// Destructor.
     virtual ~MetisDivideHeterogeneousInputInMemoryProcess()
     {
+        int mpi_rank;
+        int mpi_size;
+
+        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+        if(mpi_rank == 0)
+            Timer::PrintTimingInformation(std::cout);
     }
 
 
@@ -120,7 +133,6 @@ public:
     {
         this->Execute();
     }
-
 
     ///@}
     ///@name Operations
@@ -158,13 +170,48 @@ public:
           streams[i] = Kratos::shared_ptr<std::iostream>(new std::iostream(&stringbufs[i]));
         }
 
+        if(mpi_rank == 0) {
+            double vm, rss;
+            process_mem_usage(vm, rss);
+            std::cout << "Before Partitions Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+        }
         // Main process calculates the partitions and writes the result into temporal streams
         if(mpi_rank == 0) {
+            KRATOS_TIMER_START("Partitions")
             // Read nodal graph from input
 
             IO::ConnectivitiesContainerType KratosFormatNodeConnectivities;
 
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "Before Read Nodal Graph Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
+
             SizeType NumNodes = BaseType::mrIO.ReadNodalGraph(KratosFormatNodeConnectivities);
+
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "After Read Nodal Graph Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
+
+            int computed_size = 0;
+            int computed_capc = 0;
+            for(int i = 0; i < KratosFormatNodeConnectivities.size(); i++) {
+                computed_size += sizeof(std::size_t) * KratosFormatNodeConnectivities[i].size() + sizeof(std::vector<std::size_t>);
+                // std::cout << "\t" << i << ":\t";
+                // for(int j = 0; j < KratosFormatNodeConnectivities[i].size(); j++) {
+                //     std::cout << KratosFormatNodeConnectivities[i][j] << " ";
+                // }
+                // std::cout << std::endl;
+            }
+
+            computed_capc = KratosFormatNodeConnectivities.capacity() * sizeof(std::vector<std::size_t>) - KratosFormatNodeConnectivities.size() * sizeof(std::vector<std::size_t>);
+
+            std::cout << "\tSizeof(KratosFormatNodeConnectivities): " << computed_size / (1024.0 * 1024.0) << std::endl;
+            std::cout << "\tCapact(KratosFormatNodeConnectivities): " << computed_capc / (1024.0 * 1024.0) << std::endl;
+            std::cout << "\tSIZE/CAPC: " << KratosFormatNodeConnectivities.size() << " " << KratosFormatNodeConnectivities.capacity() << std::endl;
 
             // Write connectivity data in CSR format
             idxtype* NodeIndices = 0;
@@ -172,12 +219,30 @@ public:
 
             ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, &NodeIndices, &NodeConnectivities);
 
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "Convert to CSR Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
+
             std::vector<idxtype> NodePartition;
             PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);
+
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "Partition Nodes Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
 
             // Free some memory we no longer need
             delete [] NodeIndices;
             delete [] NodeConnectivities;
+
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "Partition Nodes (De) Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
 
             // Partition elements
             IO::ConnectivitiesContainerType ElementConnectivities;
@@ -193,12 +258,24 @@ public:
                 KRATOS_ERROR << Msg.str();
             }
 
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "Read Elem Connect Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
+
             std::vector<idxtype> ElementPartition;
 
             if (mSynchronizeConditions)
                 PartitionElementsSynchronous(NodePartition,ElementConnectivities,ElementPartition);
             else
                 PartitionMesh(NodePartition,ElementConnectivities,ElementPartition);
+
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "PartitionElementsSynchronous Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
 
             // Partition conditions
             IO::ConnectivitiesContainerType ConditionConnectivities;
@@ -214,6 +291,12 @@ public:
                 KRATOS_ERROR << Msg.str();
             }
 
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "Read Cond Connect Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
+
             std::vector<idxtype> ConditionPartition;
 
             if (mSynchronizeConditions)
@@ -221,18 +304,43 @@ public:
             else
                 PartitionMesh(NodePartition,ConditionConnectivities,ConditionPartition);
 
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "PartitionConditionsSynchronous Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
+
             // Detect hanging nodes (nodes that belong to a partition where no local elements have them) and send them to another partition.
             // Hanging nodes should be avoided, as they can cause problems when setting the Dofs
             RedistributeHangingNodes(NodePartition,ElementPartition,ElementConnectivities,ConditionPartition,ConditionConnectivities);
+
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "RedistributeHangingNodes Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
 
             // Coloring
             GraphType DomainGraph = zero_matrix<int>(mNumberOfPartitions);
             CalculateDomainsGraph(DomainGraph,NumElements,ElementConnectivities,NodePartition,ElementPartition);
             CalculateDomainsGraph(DomainGraph,NumConditions,ConditionConnectivities,NodePartition,ConditionPartition);
 
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "Domain Graph Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
+
             int NumColors;
             GraphType ColoredDomainGraph;
             GraphColoringProcess(mNumberOfPartitions,DomainGraph,ColoredDomainGraph,NumColors).Execute();
+
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "Coloring Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
+
 
             if (mVerbosity > 0) {
                 KRATOS_INFO("NumColors") << NumColors << std::endl;
@@ -252,6 +360,13 @@ public:
             DividingElements(elements_all_partitions, ElementPartition);
             DividingConditions(conditions_all_partitions, ConditionPartition);
 
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "Dividing Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
+
+
             if (mVerbosity > 1) {
                 std::cout << "Final list of nodes known by each partition" << std::endl;
                 for(SizeType i = 0 ; i < NumNodes ; i++) {
@@ -266,15 +381,24 @@ public:
             IO::PartitionIndicesType io_nodes_partitions(NodePartition.begin(), NodePartition.end());
             IO::PartitionIndicesType io_elements_partitions(ElementPartition.begin(), ElementPartition.end());
             IO::PartitionIndicesType io_conditions_partitions(ConditionPartition.begin(), ConditionPartition.end());
+            KRATOS_TIMER_STOP("Partitions")
 
             // Write files
+            KRATOS_TIMER_START("Divide Input")
             mrIO.DivideInputToPartitions(
                 streams, mNumberOfPartitions, ColoredDomainGraph,
                 io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
                 nodes_all_partitions, elements_all_partitions, conditions_all_partitions
             );
+            if(mpi_rank == 0) {
+                double vm, rss;
+                process_mem_usage(vm, rss);
+                std::cout << "DivideInputToPartitions Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+            }
+            KRATOS_TIMER_STOP("Divide Input")
         }
 
+        KRATOS_TIMER_START("Post Comms")
         // Calculate the message and prepare the buffers
         if(mpi_rank == 0) {
             for(auto i = 0; i < mpi_size; i++) {
@@ -328,6 +452,13 @@ public:
 
         // Free buffers
         free(mpi_recv_buffer[mpi_rank]);
+        KRATOS_TIMER_STOP("Post Comms")
+
+        if(mpi_rank == 0) {
+            double vm, rss;
+            process_mem_usage(vm, rss);
+            std::cout << "End Before Deallocation: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+        }
 
         delete [] reqs;
         delete [] stats;
@@ -338,6 +469,12 @@ public:
 
         delete [] msgSendSize;
         delete [] msgRecvSize;
+
+        if(mpi_rank == 0) {
+            double vm, rss;
+            process_mem_usage(vm, rss);
+            std::cout << "End After Deallocation: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
+        }
     }
 
     ///@}

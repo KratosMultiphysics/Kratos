@@ -1,9 +1,12 @@
+# Other imports
+from pathlib import Path
+
+# Performance
+import time as Time
+
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
-
-# Other imports
-from pathlib import Path
 
 class DistributedImportModelPartUtility:
 
@@ -20,6 +23,8 @@ class DistributedImportModelPartUtility:
         self.ImportModelPart()
 
     def ImportModelPart(self):
+        import_begin = Time.time() 
+
         model_part_import_settings = self.settings["model_import_settings"]
         input_type = model_part_import_settings["input_type"].GetString()
 
@@ -82,9 +87,18 @@ class DistributedImportModelPartUtility:
                     # Create a second io that does not reorder the parts while reading from memory
                     serial_model_part_io = KratosMultiphysics.ModelPartIO(input_filename, import_flags)
 
+                    import_pa_begin = Time.time() 
                     partitioner = KratosMetis.MetisDivideHeterogeneousInputInMemoryProcess(model_part_io, serial_model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
                     partitioner.Execute()
+                    import_pa_end = Time.time() 
+                    if self.comm.Rank() == 0:
+                        print("Modelpart part time:", import_pa_end-import_pa_begin)
+
+                    import_rs_begin = Time.time() 
                     serial_model_part_io.ReadModelPart(self.main_model_part)
+                    import_rs_end = Time.time() 
+                    if self.comm.Rank() == 0:
+                        print("Modelpart read-parallel time:", import_rs_end-import_rs_begin)
 
                     KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "Metis divide finished.",data_communicator=self.comm)
 
@@ -128,6 +142,11 @@ class DistributedImportModelPartUtility:
 
         else:
             raise Exception("Other input options are not yet implemented.")
+
+        import_end = Time.time() 
+
+        if self.comm.Rank() == 0:
+            print("Modelpart import time:", import_end-import_begin)
 
     def CreateCommunicators(self):
         ## Construct and execute the Parallel fill communicator (also sets the MPICommunicator)
