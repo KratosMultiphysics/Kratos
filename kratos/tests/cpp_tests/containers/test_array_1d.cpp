@@ -25,12 +25,12 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(Array1DInitialization, KratosCoreFastSuite) {
     array_1d<double, 3> arr;
-    KRATOS_CHECK_VECTOR_EQUAL(arr, ZeroVector());
+    KRATOS_CHECK_VECTOR_EQUAL(arr, ZeroVector(3));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Array1DInitializationSize, KratosCoreFastSuite) {
     array_1d<double, 3> arr(2);
-    KRATOS_CHECK_VECTOR_EQUAL(arr, ZeroVector()); // still initializes all entries
+    KRATOS_CHECK_VECTOR_EQUAL(arr, ZeroVector(3)); // still initializes all entries
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Array1DInitializationValue, KratosCoreFastSuite) {
