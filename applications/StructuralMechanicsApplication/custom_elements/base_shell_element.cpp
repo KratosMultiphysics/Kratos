@@ -373,6 +373,23 @@ void BaseShellElement<TCoordinateTransformation>::CalculateDampingMatrix(
 }
 
 template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3> >& rVariable,
+    std::vector<array_1d<double, 3> >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == LOCAL_AXIS_1 ||
+            rVariable == LOCAL_AXIS_2 ||
+            rVariable == LOCAL_AXIS_3) {
+        ComputeLocalAxis(rVariable, rOutput);
+    } else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
+               rVariable == LOCAL_MATERIAL_AXIS_2 ||
+               rVariable == LOCAL_MATERIAL_AXIS_3) {
+        ComputeLocalMaterialAxis(rVariable, rOutput);
+    }
+}
+
+template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::Calculate(
     const Variable<Matrix>& rVariable, Matrix& Output,
     const ProcessInfo& rCurrentProcessInfo)
@@ -475,6 +492,65 @@ template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::SetupOrientationAngles()
 {
     KRATOS_ERROR << "You have called to the SetupOrientationAngles from the base class for shell elements" << std::endl;
+}
+
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::ComputeLocalAxis(
+    const Variable<array_1d<double, 3> >& rVariable,
+    std::vector<array_1d<double, 3> >& rOutput) const
+{
+    const SizeType num_gps = GetNumberOfGPs();
+    if (rOutput.size() != num_gps) {
+        rOutput.resize(num_gps);
+    }
+
+    for (IndexType i=1; i<num_gps; ++i) {
+        noalias(rOutput[i]) = ZeroVector(3);
+    }
+
+    const auto localCoordinateSystem(mpCoordinateTransformation->CreateLocalCoordinateSystem());
+    if (rVariable == LOCAL_AXIS_1) {
+        noalias(rOutput[0]) = localCoordinateSystem.Vx();
+    } else if (rVariable == LOCAL_AXIS_2) {
+        noalias(rOutput[0]) = localCoordinateSystem.Vy();
+    } else if (rVariable == LOCAL_AXIS_3) {
+        noalias(rOutput[0]) = localCoordinateSystem.Vz();
+    } else {
+        KRATOS_ERROR << "Wrong variable: " << rVariable.Name() << "!" << std::endl;
+    }
+}
+
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::ComputeLocalMaterialAxis(
+    const Variable<array_1d<double, 3> >& rVariable,
+    std::vector<array_1d<double, 3> >& rOutput) const
+{
+    const double mat_angle = GetValue(MATERIAL_ORIENTATION_ANGLE);
+
+    const SizeType num_gps = GetNumberOfGPs();
+    if (rOutput.size() != num_gps) {
+        rOutput.resize(num_gps);
+    }
+
+    for (IndexType i=1; i<num_gps; ++i) {
+        noalias(rOutput[i]) = ZeroVector(3);
+    }
+
+    const auto localCoordinateSystem(mpCoordinateTransformation->CreateLocalCoordinateSystem());
+
+    const auto eZ = localCoordinateSystem.Vz();
+
+    if (rVariable == LOCAL_MATERIAL_AXIS_1) {
+        const auto q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mat_angle);
+        q.RotateVector3(localCoordinateSystem.Vx(), rOutput[0]);
+    } else if (rVariable == LOCAL_MATERIAL_AXIS_2) {
+        const auto q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mat_angle);
+        q.RotateVector3(localCoordinateSystem.Vy(), rOutput[0]);
+    } else if (rVariable == LOCAL_MATERIAL_AXIS_3) {
+        noalias(rOutput[0]) = eZ;
+    } else {
+        KRATOS_ERROR << "Wrong variable: " << rVariable.Name() << "!" << std::endl;
+    }
 }
 
 template <class TCoordinateTransformation>

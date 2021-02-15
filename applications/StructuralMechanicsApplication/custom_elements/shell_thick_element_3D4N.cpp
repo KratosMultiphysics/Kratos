@@ -777,22 +777,6 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
 }
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
-        std::vector<array_1d<double,3> >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == LOCAL_AXIS_1 ||
-            rVariable == LOCAL_AXIS_2 ||
-            rVariable == LOCAL_AXIS_3) {
-        BaseType::ComputeLocalAxis(rVariable, rOutput, this->mpCoordinateTransformation);
-    } else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
-               rVariable == LOCAL_MATERIAL_AXIS_2 ||
-               rVariable == LOCAL_MATERIAL_AXIS_3) {
-        BaseType::ComputeLocalMaterialAxis(rVariable, rOutput, this->mpCoordinateTransformation);
-    }
-}
-
-template <ShellKinematics TKinematics>
 int ShellThickElement3D4N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
