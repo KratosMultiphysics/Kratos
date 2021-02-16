@@ -546,7 +546,7 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
     // use element provided strain incremented from velocity gradient
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
 
     // Compute explicit element kinematics, strain is incremented here.

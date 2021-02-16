@@ -111,6 +111,8 @@ double& DamageDPlusDMinusMasonry2DLaw::GetValue(
 		rValue = ThresholdTension;
 	else if(rThisVariable == THRESHOLD_COMPRESSION)
 		rValue = ThresholdCompression;
+	else if(rThisVariable == EQ_STRAIN_RATE)
+		rValue = mStrainRate;
 	return rValue;
 }
 /***********************************************************************************/
@@ -212,13 +214,17 @@ bool DamageDPlusDMinusMasonry2DLaw::ValidateInput(
 	if( !rMaterialProperties.Has(YIELD_STRAIN_COMPRESSION) ) 		return false;
 	if( !rMaterialProperties.Has(FRACTURE_ENERGY_COMPRESSION) ) 	return false;
 	if( !rMaterialProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER) ) 	return false;
+	if( !rMaterialProperties.Has(STRAIN_RATE_FACTOR_C1_TENSION) ) 	return false;
+	if( !rMaterialProperties.Has(STRAIN_RATE_FACTOR_C2_TENSION) ) 	return false;
+	if( !rMaterialProperties.Has(STRAIN_RATE_FACTOR_C1_COMPRESSION) ) 	return false;
+	if( !rMaterialProperties.Has(STRAIN_RATE_FACTOR_C2_COMPRESSION) ) 	return false;
 	return true;
 }
 /***********************************************************************************/
 /***********************************************************************************/
 DamageDPlusDMinusMasonry2DLaw::StrainMeasure DamageDPlusDMinusMasonry2DLaw::GetStrainMeasure()
 {
-	return ConstitutiveLaw::StrainMeasure_Infinitesimal;
+	return ConstitutiveLaw::StrainMeasure_Almansi;
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -333,21 +339,22 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	const GeometryType& geom  = rValues.GetElementGeometry();
 	const Properties&   props = rValues.GetMaterialProperties();
 
+	CalculationData data;
+
 	const Vector& StrainVector   	= rValues.GetStrainVector();
+
 	KRATOS_ERROR_IF_NOT(StrainVector.size() == mStrainOld.size())
 		<< "The new and old strain vectors are different sizes!"
 		<< "\nStrainVector = " << StrainVector
 		<< "\nStrainVectorOld = " << mStrainOld
 		<< std::endl;
 	const Vector strain_rate_vec = (StrainVector - mStrainOld) / pinfo[DELTA_TIME];
-
-	Vector& PredictiveStressVector	= rValues.GetStressVector();
-
-	CalculationData data;
-	data.StrainRate = std::sqrt(0.5 * inner_prod(strain_rate_vec, strain_rate_vec));
+	mStrainRate = std::sqrt(0.5 * inner_prod(strain_rate_vec, strain_rate_vec));
 	mStrainOld = Vector(rValues.GetStrainVector()); // only needed for the strain rate calc.
 
 	this->InitializeCalculationData(props, geom, pinfo, data);
+
+	Vector& PredictiveStressVector	= rValues.GetStressVector();
 
 	this->CalculateMaterialResponseInternal(StrainVector, PredictiveStressVector, data, props);
 
@@ -417,11 +424,11 @@ void DamageDPlusDMinusMasonry2DLaw::GetLawFeatures(
 {
 	//Set the type of law
 	rFeatures.mOptions.Set( PLANE_STRESS_LAW );
-	rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
+	rFeatures.mOptions.Set( FINITE_STRAINS);
 	rFeatures.mOptions.Set( ISOTROPIC );
 
 	//Set strain measure required by the consitutive law
-	rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
+	rFeatures.mStrainMeasures.push_back(StrainMeasure_Almansi);
 
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
@@ -468,6 +475,21 @@ int DamageDPlusDMinusMasonry2DLaw::Check(
 	if( !rMaterialProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER) )
 		KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BIAXIAL_COMPRESSION_MULTIPLIER", "");
 
+	if( !rMaterialProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER) )
+		KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BIAXIAL_COMPRESSION_MULTIPLIER", "");
+
+	if( !rMaterialProperties.Has(STRAIN_RATE_FACTOR_C1_TENSION) )
+		KRATOS_THROW_ERROR(std::logic_error, "Missing variable: STRAIN_RATE_FACTOR_C1_TENSION", "");
+
+	if( !rMaterialProperties.Has(STRAIN_RATE_FACTOR_C2_TENSION) )
+		KRATOS_THROW_ERROR(std::logic_error, "Missing variable: STRAIN_RATE_FACTOR_C2_TENSION", "");
+
+	if( !rMaterialProperties.Has(STRAIN_RATE_FACTOR_C1_COMPRESSION) )
+		KRATOS_THROW_ERROR(std::logic_error, "Missing variable: STRAIN_RATE_FACTOR_C1_COMPRESSION", "");
+
+	if( !rMaterialProperties.Has(STRAIN_RATE_FACTOR_C2_COMPRESSION) )
+		KRATOS_THROW_ERROR(std::logic_error, "Missing variable: STRAIN_RATE_FACTOR_C2_COMPRESSION", "");
+
 	return 0;
 
 	KRATOS_CATCH("");
@@ -503,20 +525,20 @@ void DamageDPlusDMinusMasonry2DLaw::InitializeCalculationData(
 	this->CalculateElasticityMatrix(data);
 
 	// Include strain rate effects
-	const double dif_tension = GetDIF(props, data.StrainRate, true);
-	const double dif_compression = GetDIF(props, data.StrainRate, false);
+	const double dif_tension = GetDIF(props, true);
+	const double dif_compression = GetDIF(props, false);
 
 	// Tension Damage Properties
 	data.YieldStressTension 		= props[YIELD_STRESS_TENSION]* dif_tension;
 	data.FractureEnergyTension 		= props[FRACTURE_ENERGY_TENSION]* dif_tension;
 
 	// Compression Damage Properties
-	data.DamageOnsetStressCompression 	= props[DAMAGE_ONSET_STRESS_COMPRESSION];
+	data.DamageOnsetStressCompression 	= props[DAMAGE_ONSET_STRESS_COMPRESSION] * dif_compression;
 	data.YieldStressCompression 		= props[YIELD_STRESS_COMPRESSION]* dif_compression;
 	data.ResidualStressCompression 		= props[RESIDUAL_STRESS_COMPRESSION];
-	data.YieldStrainCompression  		= props[YIELD_STRAIN_COMPRESSION];
-	data.BezierControllerC1  			= props.Has(BEZIER_CONTROLLER_C1) ? props[BEZIER_CONTROLLER_C1] : 0.65;
-	data.BezierControllerC2  			= props.Has(BEZIER_CONTROLLER_C2) ? props[BEZIER_CONTROLLER_C2] : 0.50;
+	data.YieldStrainCompression  		= props[YIELD_STRAIN_COMPRESSION]* dif_compression;
+	data.BezierControllerC1  			= props.Has(BEZIER_CONTROLLER_C1) ? props[BEZIER_CONTROLLER_C1] : 0.80; // Updated for concrete
+	data.BezierControllerC2  			= props.Has(BEZIER_CONTROLLER_C2) ? props[BEZIER_CONTROLLER_C2] : 0.30; // Updated for concrete
 	data.BezierControllerC3  			= props.Has(BEZIER_CONTROLLER_C3) ? props[BEZIER_CONTROLLER_C3] : 1.50;
 	data.FractureEnergyCompression  	= props[FRACTURE_ENERGY_COMPRESSION]* dif_compression;
 	data.BiaxialCompressionMultiplier  	= props[BIAXIAL_COMPRESSION_MULTIPLIER];
@@ -790,7 +812,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 		const double e_i 	= s_p / young_modulus;
 		const double alpha  = 2.0 * (e_p - s_p / young_modulus);
 		double e_j    		= e_p + alpha * c2;
-		double e_k   		= e_j + alpha * (1 - c2);
+		double e_k   		= e_j + alpha * (1.0 - c2);
 		double e_r    		= (e_k - e_j) / (s_p - s_k) * (s_p - s_r) + e_j;
 		double e_u    		= e_r * c3;
 
@@ -964,7 +986,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 		this->CalculateDamageCompression(data, ThresholdCompression, DamageParameterCompression);
 	}
 	else { // IMPLICIT Integration
-		KRATOS_ERROR << "PLEASE SET 'INTEGRATION_IMPLEX' = 1 IN PROPERTIES\n";
+
 		if(UniaxialStressTension > ThresholdTension)
 			ThresholdTension = UniaxialStressTension;
 		this->CalculateDamageTension(data, ThresholdTension, DamageParameterTension);
@@ -980,6 +1002,8 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 	// calculation of stress tensor
 	noalias(PredictiveStressVector)  = (1.0 - DamageParameterTension)     * data.EffectiveTensionStressVector;
 	noalias(PredictiveStressVector) += (1.0 - DamageParameterCompression) * data.EffectiveCompressionStressVector;
+
+
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1067,7 +1091,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateSecantTensor(
 }
 
 const double DamageDPlusDMinusMasonry2DLaw::GetDIF(const Properties& rProps,
-	const double strain_rate, const bool is_tensile)
+	const bool is_tensile)
 {
 	// Power strain rate laws to match Cusa2011
 	// DIF = c_1 * e_dot^c_2
@@ -1075,7 +1099,7 @@ const double DamageDPlusDMinusMasonry2DLaw::GetDIF(const Properties& rProps,
 	const double c_1 = (is_tensile) ? rProps[STRAIN_RATE_FACTOR_C1_TENSION] : rProps[STRAIN_RATE_FACTOR_C1_COMPRESSION];
 	const double c_2 = (is_tensile) ? rProps[STRAIN_RATE_FACTOR_C2_TENSION] : rProps[STRAIN_RATE_FACTOR_C2_COMPRESSION];
 
-	double dif = c_1 * std::pow(strain_rate, c_2);
+	double dif = c_1 * std::pow(mStrainRate, c_2);
 	dif = std::max(1.0, dif);
 
 	return dif;

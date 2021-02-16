@@ -444,6 +444,7 @@ protected:
 
 	// Misc
 	double InitialCharacteristicLength = 0.0;
+	double mStrainRate = 0.0;
 
 	// for IMPLEX Integration
 	double CurrentDeltaTime  = 0.0;					// at time step n + 1
@@ -679,7 +680,6 @@ protected:
      */
 	const double GetDIF(
 		const Properties& rProps,
-		const double strain_rate,
 		const bool is_tensile);
 
 
