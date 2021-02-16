@@ -556,7 +556,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
                 (
                     "The metric settings are passed through the \"hessian_metric\" key."
                     " This is deprecated and will be removed soon."
-                    " Instead, you should pass the metric settings using the \"hessian_metric\" key."
+                    " Instead, you should pass the metric settings using the \"metric\" key."
                 ),
                 FutureWarning,
             )
