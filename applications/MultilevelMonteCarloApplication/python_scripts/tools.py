@@ -63,3 +63,31 @@ class ParametersWrapper(object):
         else:
             project_parameters["solver_settings"]["model_import_settings"]["input_type"].SetString(string)
             return project_parameters
+
+    def GetMaterialsFilename(self):
+        """
+        Method returning materials filename.
+
+        Input:
+        - self: an instance of the class
+
+        Output:
+        - materials_filename: the materials filename
+        """
+        return self.project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+
+
+    def SetMaterialsFilename(self,string):
+        """
+        Method returning project parameters with modified materials filename.
+
+        Input:
+        - self: an instance of the class
+        - string: string to be set as input type
+
+        Output:
+        - project_parameters: Kratos parameters with modified model_import_settings
+        """
+        project_parameters = self.project_parameters
+        project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].SetString(string)
+        return project_parameters
