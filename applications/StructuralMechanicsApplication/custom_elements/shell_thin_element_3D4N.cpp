@@ -132,22 +132,6 @@ Element::Pointer ShellThinElement3D4N<TKinematics>::Create(IndexType NewId,
 }
 
 template <ShellKinematics TKinematics>
-void ShellThinElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    BaseType::Initialize(rCurrentProcessInfo);
-
-    // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        this->mpCoordinateTransformation->Initialize();
-        this->SetupOrientationAngles();
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <ShellKinematics TKinematics>
 void ShellThinElement3D4N<TKinematics>::InitializeNonLinearIteration
 (const ProcessInfo& rCurrentProcessInfo)
 {

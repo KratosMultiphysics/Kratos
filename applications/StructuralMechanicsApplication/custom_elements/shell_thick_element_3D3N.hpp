@@ -158,8 +158,6 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
     void InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;    //corotational formulation
 
     void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override; //corotational formulation
