@@ -1092,9 +1092,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        Point point_projected;
-        GeometricalProjectionUtilities::FastProjectOnLine2D(*this, Point{rPointGlobalCoordinates}, point_projected);
-        noalias(rProjectedPointGlobalCoordinates) = point_projected.Coordinates();
+        GeometricalProjectionUtilities::FastProjectOnLine2D(*this, rPointGlobalCoordinates, rProjectedPointGlobalCoordinates);
 
         PointLocalCoordinates( rProjectedPointLocalCoordinates, rProjectedPointGlobalCoordinates );
 
