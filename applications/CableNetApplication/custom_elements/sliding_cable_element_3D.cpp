@@ -748,14 +748,9 @@ void SlidingCableElement3D::AddExplicitContribution(
 
         for (int i = 0; i < points_number; ++i) {
             double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-            array_1d<double, dimension> &r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
             int index = i * dimension;
 
             AtomicAdd(r_nodal_mass, mass_vector[index]);
-
-            for (int k = 0; k < dimension; ++k) {
-                AtomicAdd(r_nodal_inertia[k], 0.0);
-            }
         }
     }
     KRATOS_CATCH("")
