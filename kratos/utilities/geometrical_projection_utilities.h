@@ -202,22 +202,24 @@ public:
     /**
      * @brief Project a point over a line (2D only)
      * @tparam TGeometryType The type of the line
+     * @tparam TPointClass1 The type of point (I)
+     * @tparam TPointClass2 The type of point (II)
      * @param rGeometry The line where to be projected
      * @param rPointToProject The point to be projected
      * @param rPointProjected The point pojected over the line
      * @return Distance The distance between point and line
      */
-    template<class TGeometryType>
+    template<class TGeometryType, class TPointClass1, class TPointClass2 = TPointClass1>
     static inline double FastProjectOnLine2D(
         const TGeometryType& rGeometry,
-        const Point& rPointToProject,
-        PointType& rPointProjected
+        const TPointClass1& rPointToProject,
+        TPointClass2& rPointProjected
         )
     {
         // Node coordinates
-        const array_1d<double, 3>& r_p_a = rGeometry[0].Coordinates();
-        const array_1d<double, 3>& r_p_b = rGeometry[1].Coordinates();
-        const array_1d<double, 3>& r_p_c = rPointToProject.Coordinates();
+        const array_1d<double, 3>& r_p_a = rGeometry[0];
+        const array_1d<double, 3>& r_p_b = rGeometry[1];
+        const array_1d<double, 3>& r_p_c = rPointToProject;
 
         // We compute the normal
         array_1d<double,3> normal;
@@ -231,7 +233,7 @@ public:
 
         const array_1d<double,3> vector_points = r_p_a - r_p_c;
         const double distance = inner_prod(vector_points, normal)/norm_normal;
-        noalias(rPointProjected.Coordinates()) = r_p_c + normal * distance;
+        noalias(rPointProjected) = r_p_c + normal * distance;
 
         return distance;
     }
