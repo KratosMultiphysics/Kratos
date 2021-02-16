@@ -125,7 +125,8 @@ class EmbeddedFormulation(object):
             "element_type": "embedded_weakly_compressible_navier_stokes_discontinuous",
             "is_slip": true,
             "slip_length": 1.0e8,
-            "penalty_coefficient": 0.1,
+            "penalty_coefficient": 10.0,
+            "incised_edge_penalty_coefficient": 0.0,
             "dynamic_tau": 1.0,
             "level_set_type": "discontinuous"
         }""")
@@ -141,6 +142,7 @@ class EmbeddedFormulation(object):
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KratosCFD.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosCFD.INCISED_EDGE_PENALTY_COEFFICIENT] = formulation_settings["incised_edge_penalty_coefficient"].GetDouble()
         if formulation_settings["is_slip"].GetBool():
             self.process_info_data[KratosCFD.SLIP_LENGTH] = formulation_settings["slip_length"].GetDouble()
         else:
