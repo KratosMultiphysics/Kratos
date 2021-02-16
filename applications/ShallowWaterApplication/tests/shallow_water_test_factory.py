@@ -43,3 +43,7 @@ class TestVisualizationMeshProcess(ShallowWaterTestFactory):
 class TestMacDonaldShockBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "mac_donald_shock_benchmark"
+
+class DamBreakBenchmark(ShallowWaterTestFactory):
+    execution_directory = "processes_tests"
+    execution_file = "dam_break_benchmark"
