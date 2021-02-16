@@ -71,6 +71,7 @@ InterfaceNormalsType NegativeInterfaceUnitNormals;
 
 std::vector< size_t > PositiveIndices;
 std::vector< size_t > NegativeIndices;
+std::vector< size_t > IntersectedEdges;
 
 size_t NumPositiveNodes;
 size_t NumNegativeNodes;
@@ -152,11 +153,7 @@ static int Check(
  */
 bool IsCut()
 {
-    if (IsAusasIncised()) {
-        return false;
-    } else {
-        return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
-    }
+    return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
 }
 
 /**
@@ -164,8 +161,8 @@ bool IsCut()
  * Checks if the current element is partially intersected by checking the number of extrapolated intersected edges
  * This number will only be non-zero if user provided flag to calculate extrapolated edge distances.
  * The case in which three edges of a tetrahedra are cut and element is only incised is also considered.
- * @return true if the element is incised
- * @return false if the element is not incised
+ * @return true if the element is Ausas incised
+ * @return false if the element is not Ausas incised
  */
 bool IsAusasIncised()
 {
@@ -173,6 +170,19 @@ bool IsAusasIncised()
         return true;
     }
     return false;
+}
+
+/**
+ * @brief Checks if the current element is partially intersected (incised)
+ * Checks if the current element is partially intersected by checking the number of intersected edges
+ * This method will identify an incised element even if user did not provide the flag to calculate extrapolated edge distances.
+ * The case in which three edges of a tetrahedra are cut and element is only incised is not considered.
+ * @return true if the element is incised
+ * @return false if the element is not incised
+ */
+bool IsIncised()
+{
+    return (NumIntersectedEdges > 0) && (NumIntersectedEdges < TFluidData::Dim);
 }
 
 ///@}

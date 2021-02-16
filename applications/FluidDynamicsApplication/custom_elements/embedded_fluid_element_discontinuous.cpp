@@ -135,6 +135,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     }
 
     // If the element is cut or Ausas incised, add the interface contributions
+    // NOTE: IsAusasIncised() has to be checked before IsCut() and IsIncised(), because both would return true for incised elements qualifying for using Ausas incised shape functions!
     if ( data.IsAusasIncised() )
     {
         // Add the base element boundary contribution on the positive interface
@@ -186,6 +187,14 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
         AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
         AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
         AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+
+    } else if ( data.IsIncised() )
+    {
+        // Add a penalty for the incised element or incised edges to avoid the conformity problems
+        data.InitializeIncisedEdgesData(rCurrentProcessInfo);
+        // AddIncisedEdgeGradientPenalization(rLeftHandSideMatrix, rRightHandSideVector, data);
+        // AddIncisedElementGradientPenalization(rLeftHandSideMatrix, rRightHandSideVector, data);
+        // AddIncisedElementProjectedGradientPenalization(rLeftHandSideMatrix, rRightHandSideVector, data);
     }
 }
 
@@ -292,6 +301,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
 {
     rData.PositiveIndices.clear();
     rData.NegativeIndices.clear();
+    rData.IntersectedEdges.clear();
 
     // Number of positive and negative distance function values
     for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumNodes; ++i){
@@ -308,6 +318,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
     for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
         if (rData.ElementalEdgeDistances[i] > 0.0) {
             rData.NumIntersectedEdges++;
+            rData.IntersectedEdges.push_back(i);
         }
     }
 
