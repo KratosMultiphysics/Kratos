@@ -16,7 +16,7 @@ from shallow_water_test_factory import TestSetTopographyProcess
 from shallow_water_test_factory import TestVisualizationMeshProcess
 from shallow_water_test_factory import TestNodesOutputProcess
 from shallow_water_test_factory import TestMacDonaldShockBenchmark
-from shallow_water_test_factory import DamBreakBenchmark
+from shallow_water_test_factory import TestDamBreakBenchmark
 from processes_tests.test_convergence_output_process import TestConvergenceOutputProcess
 
 def AssembleTestSuites():
