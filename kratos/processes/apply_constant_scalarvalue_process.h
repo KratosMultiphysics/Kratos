@@ -29,6 +29,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -371,9 +372,7 @@ private:
 
         if(nnodes != 0)
         {
-            block_for_each(mr_model_part.GetMesh(mmesh_id).Nodes(), [&](Node<3>& rNode){
-                rNode.FastGetSolutionStepValue(rVar) = value;
-            });
+            VariableUtils().SetVariable(rVar, value, mr_model_part.GetMesh(mmesh_id).Nodes());
         }
     }
 
