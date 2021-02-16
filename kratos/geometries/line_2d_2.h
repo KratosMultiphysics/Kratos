@@ -910,9 +910,8 @@ public:
         ) const override
     {
         // We compute the distance, if it is not in the pane we
-        const Point point_to_project(rPoint);
-        Point point_projected;
-        const double distance = GeometricalProjectionUtilities::FastProjectOnLine2D(*this, point_to_project, point_projected);
+        CoordinatesArrayType point_projected;
+        const double distance = GeometricalProjectionUtilities::FastProjectOnLine2D(*this, rPoint, point_projected);
 
         // We check if we are on the plane
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
