@@ -595,8 +595,10 @@ void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) 
 
     auto& Values = rData.ConstitutiveLawValues;
 
-    const Vector shape_functions_vector(rData.N);
+    const Vector& shape_functions_vector = rData.N;
+    const Matrix& shape_functions_derivative_matrix = rData.DN_DX;
     Values.SetShapeFunctionsValues(shape_functions_vector);
+    Values.SetShapeFunctionsDerivatives(shape_functions_derivative_matrix);
 
     //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
     //this is ok under the hypothesis that no history dependent behavior is employed
