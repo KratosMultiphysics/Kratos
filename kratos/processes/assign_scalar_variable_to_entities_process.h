@@ -23,6 +23,8 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -199,13 +201,13 @@ private:
 
         if(number_of_entities != 0) {
             const auto it_begin = r_entities_array.begin();
-
-            #pragma omp parallel for
-            for(int i = 0; i<number_of_entities; i++) {
-                auto it_entity = it_begin + i;
-
+            //Using Parallel Utilities
+            IndexPartition<std::size_t>(number_of_entities).for_each([&](std::size_t index){
+                auto it_entity = it_begin + index;
                 it_entity->SetValue(rVar, Value);
-            }
+            });
+            //Or using Variable Utitlities
+            //VariableUtils().SetNonHistoricalVariable(rVar, Value, r_entities_array);
         }
     }
 

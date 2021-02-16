@@ -20,6 +20,7 @@
 #include "utilities/string_utilities.h"
 #include "utilities/variable_utils.h"
 #include "processes/assign_scalar_input_to_entities_process.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -101,18 +102,14 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ExecuteInitialize
         ResetValues();
 
         if(number_of_entities != 0) {
-            const auto it_begin = r_entities_array.begin();
-
-            #pragma omp parallel for
-            for(int i = 0; i < number_of_entities; i++) {
-                auto it_entity = it_begin + i;
-
-                const auto& r_weights = mWeightExtrapolation[i];
+            IndexPartition<std::size_t>(number_of_entities).for_each([&](std::size_t index){
+                auto it_entity = r_entities_array.begin() + index;
+                const auto& r_weights = mWeightExtrapolation[index];
                 double& r_value = GetValue(*it_entity, *mpVariable);
                 for (auto& r_weight : r_weights) {
                     r_value += r_weight.second * r_var_database.GetValue(r_weight.first, time);
                 }
-            }
+            });
         }
     }
 
@@ -600,9 +597,8 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ComputeExtrapolat
     // Considering different algorithms to fill the weights
     const SizeType number_of_definitions = mCoordinates.size();
     if (mAlgorithm == Algorithm::NEAREST_NEIGHBOUR) {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(number_of_entities); ++i) {
-            auto it_ent = it_ent_begin + i;
+        IndexPartition<std::size_t>(number_of_entities).for_each([&](std::size_t It_Index){
+            auto it_ent = it_ent_begin + It_Index;
             const IndexType id = it_ent->Id();
             const array_1d<double, 3> coordinates = GetCoordinatesEntity(id);
             double distance = 1.0e24;
@@ -615,8 +611,8 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ComputeExtrapolat
                 }
             }
             std::unordered_map<IndexType, double> aux_map({{index, 1.0}});
-            mWeightExtrapolation[i] = aux_map;
-        }
+            mWeightExtrapolation[It_Index] = aux_map;
+        });
     } else {
         KRATOS_ERROR << "Algorithm not defined" << std::endl;
     }
@@ -640,12 +636,12 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::InternalAssignVal
 
     if(number_of_entities != 0) {
         const auto it_begin = r_entities_array.begin();
-
-        #pragma omp parallel for
-        for(int i = 0; i<number_of_entities; i++) {
-            auto it_entity = it_begin + i;
+        IndexPartition<std::size_t>(number_of_entities).for_each([&](std::size_t index){
+            auto it_entity = it_begin + index;
             SetValue(*it_entity, rVariable, Value);
-        }
+        });
+        //Or using Variable Utitlities
+        //VariableUtils().SetNonHistoricalVariable(rVariable, Value, r_entities_array);
     }
 
     KRATOS_CATCH("");
