@@ -1569,33 +1569,27 @@ public:
         const std::size_t max_number_of_iterations = 100;
 
         // We do a first guess in the center of the geometry
-        auto projected_point = this->Center();
-        array_1d<double, 3> normal = this->UnitNormal(projected_point);
+        noalias(rProjectedPointGlobalCoordinates) = this->Center();
+        array_1d<double, 3> normal = this->UnitNormal(rProjectedPointGlobalCoordinates);
 
-        // SOme auxiliar variables
-        const Point point_to_project(rPointGlobalCoordinates);
+        // Some auxiliar variables
         double distance;
         std::size_t iter;
 
         // We iterate until we find the properly projected point
         for (iter = 0; iter < max_number_of_iterations; ++iter) {
             // We compute the distance, if it is not in the plane we project
-            projected_point = GeometricalProjectionUtilities::FastProject( projected_point, point_to_project, normal, distance);
+            rProjectedPointGlobalCoordinates = GeometricalProjectionUtilities::FastProject<CoordinatesArrayType,CoordinatesArrayType,CoordinatesArrayType>( rProjectedPointGlobalCoordinates, rPointGlobalCoordinates, normal, distance);
 
             // If the normal corresponds means that we have converged
-            if (norm_2(this->UnitNormal(projected_point) - normal) < Tolerance * 1.0e4) break;
+            if (norm_2(this->UnitNormal(rProjectedPointGlobalCoordinates) - normal) < Tolerance * 1.0e4) break;
 
             // Compute normal
-            noalias(normal) = this->UnitNormal(projected_point);
+            noalias(normal) = this->UnitNormal(rProjectedPointGlobalCoordinates);
         }
 
         // We do check to print warning
         KRATOS_WARNING_IF("Quadrilateral3D4", iter >= max_number_of_iterations - 1) << "The point " << rPointGlobalCoordinates << " has not converged when projecting the point after" << max_number_of_iterations << " iterations" << std::endl;
-
-        noalias(rProjectedPointGlobalCoordinates) = projected_point;
-
-        // Projecting
-        noalias(rProjectedPointGlobalCoordinates) = rPointGlobalCoordinates - normal * distance;
 
         PointLocalCoordinates( rProjectedPointLocalCoordinates, rProjectedPointGlobalCoordinates );
 
