@@ -15,6 +15,7 @@ from shallow_water_test_factory import TestMonotonicShallowWater2D3NElement
 from shallow_water_test_factory import TestSetTopographyProcess
 from shallow_water_test_factory import TestVisualizationMeshProcess
 from shallow_water_test_factory import TestNodesOutputProcess
+from shallow_water_test_factory import TestMacDonaldShockBenchmark
 from processes_tests.test_convergence_output_process import TestConvergenceOutputProcess
 
 def AssembleTestSuites():
@@ -38,6 +39,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TestSetTopographyProcess('test_execution'))
     smallSuite.addTest(TestVisualizationMeshProcess('test_execution'))
     smallSuite.addTest(TestNodesOutputProcess('test_execution'))
+    smallSuite.addTest(TestMacDonaldShockBenchmark('test_execution'))
     smallSuite.addTests(_loadTestsFromTestCases(TestConvergenceOutputProcess))
 
     # Create a test suit with the selected tests plus all small tests
