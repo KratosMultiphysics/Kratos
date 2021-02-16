@@ -315,6 +315,19 @@ class NavierStokesSolverMonolithic(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def Initialize(self):
+    	# My shock process
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" : "FluidModelPart",
+            "calculate_nodal_area_at_each_step" : false,
+            "shock_sensor" : true,
+            "shear_sensor" : true,
+            "thermal_sensor" : false,
+            "thermally_coupled_formulation" : false
+        }""")
+
+        self.shock_process = KratosCFD.ShockCapturingProcess(self.model, settings)
+        self.shock_process.Check()
+        self.shock_process.ExecuteInitialize()
         # If the solver requires an instance of the stabilized formulation class, set the process info variables
         if hasattr(self, 'formulation'):
             self.formulation.SetProcessInfo(self.GetComputingModelPart())
@@ -333,6 +346,10 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
             # Perform the solver InitializeSolutionStep
             self._GetSolutionStrategy().InitializeSolutionStep()
+            
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+        self.shock_process.ExecuteFinalizeSolutionStep()
 
     def _SetFormulation(self):
         self.formulation = StabilizedFormulation(self.settings["formulation"])
