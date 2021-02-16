@@ -47,6 +47,7 @@ constexpr static unsigned int NumEdges = (TFluidData::NumNodes == 3) ? 3 : 6;
 
 double SlipLength;
 double PenaltyCoefficient;
+double IncisedEdgePenaltyCoefficient;
 
 NodalScalarData ElementalDistances;
 Vector ElementalEdgeDistances;
@@ -114,6 +115,17 @@ void InitializeBoundaryConditionData(const ProcessInfo& rProcessInfo)
 {
     this->FillFromProcessInfo(SlipLength, SLIP_LENGTH, rProcessInfo);
     this->FillFromProcessInfo(PenaltyCoefficient, PENALTY_COEFFICIENT, rProcessInfo);
+}
+
+/**
+ * @brief Fills the incised condition data fields
+ * This method needs to be called in incised elements. It fills the data structure fields related to the incised
+ * condition imposition (incised edge penalty coefficient) by retrieving their value from the ProcessInfo.
+ * @param rProcessInfo
+ */
+void InitializeIncisedEdgesData(const ProcessInfo& rProcessInfo)
+{
+    this->FillFromProcessInfo(IncisedEdgePenaltyCoefficient, INCISED_EDGE_PENALTY_COEFFICIENT, rProcessInfo);
 }
 
 /**
