@@ -72,8 +72,6 @@ public:
         ShellT3_CorotationalCoordinateTransformation,
         ShellT3_CoordinateTransformation>::type>;
 
-    typedef array_1d<double, 3> Vector3Type;
-
     typedef Quaternion<double> QuaternionType;
 
     using GeometryType = Element::GeometryType;
@@ -91,6 +89,8 @@ public:
     using Element::GetGeometry;
 
     using Element::GetProperties;
+
+    using Vector3Type = typename BaseType::Vector3Type;
 
     using CoordinateTransformationPointerType = typename BaseType::CoordinateTransformationPointerType;
 
@@ -148,31 +148,15 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
     // More results calculation on integration points to interface with python
+
+    using BaseType::CalculateOnIntegrationPoints;
+
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-                                      3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
-    // Calculate functions
-    void Calculate(const Variable<Matrix >& rVariable,
-                   Matrix& Output,
-                   const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * This method provides the place to perform checks on the completeness of the input
@@ -319,8 +303,6 @@ private:
     double CalculateTsaiWuPlaneStress(const CalculationData& data, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
 
     void CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result);
-
-    void SetupOrientationAngles() override;
 
     void InitializeCalculationData(CalculationData& data);
 
