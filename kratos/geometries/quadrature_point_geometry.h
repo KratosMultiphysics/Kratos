@@ -318,7 +318,7 @@ public:
     CoordinatesArrayType& GlobalCoordinates(
         CoordinatesArrayType& rResult,
         CoordinatesArrayType const& LocalCoordinates,
-        Matrix& DeltaPosition
+        const Matrix& DeltaPosition
     ) const override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)

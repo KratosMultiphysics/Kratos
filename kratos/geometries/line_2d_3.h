@@ -523,7 +523,7 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix& rDeltaPosition ) const override
+    JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, const Matrix& rDeltaPosition ) const override
     {
         // Getting derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =  CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );

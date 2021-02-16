@@ -1644,6 +1644,63 @@ public:
         return rResult;
     }
 
+    /**
+     * @brief Returns the local coordinates of a given arbitrary point, considering additionally
+     *              a certain increment in the coordinates
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    virtual CoordinatesArrayType& PointLocalCoordinates(
+            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint,
+            const Matrix& rDeltaPosition
+            ) const
+    {
+        KRATOS_ERROR_IF(WorkingSpaceDimension() != LocalSpaceDimension()) << "ERROR:: Attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
+
+        Matrix J = ZeroMatrix( WorkingSpaceDimension(), LocalSpaceDimension() );
+
+        rResult.clear();
+
+        Vector DeltaXi = ZeroVector( LocalSpaceDimension() );
+
+        CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
+
+        static constexpr double MaxNormPointLocalCoordinates = 30.0;
+        static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 1000;
+        static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
+
+        //Newton iteration:
+        for(std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++) {
+            CurrentGlobalCoords.clear();
+            DeltaXi.clear();
+
+            GlobalCoordinates( CurrentGlobalCoords, rResult, rDeltaPosition );
+            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
+            InverseOfJacobian( J, rResult, rDeltaPosition );
+            for(unsigned int i = 0; i < WorkingSpaceDimension(); i++) {
+                for(unsigned int j = 0; j < WorkingSpaceDimension(); j++) {
+                    DeltaXi[i] += J(i,j)*CurrentGlobalCoords[j];
+                }
+                rResult[i] += DeltaXi[i];
+            }
+
+            const double norm2DXi = norm_2(DeltaXi);
+
+            if(norm2DXi > MaxNormPointLocalCoordinates) {
+                KRATOS_WARNING("Geometry") << "Computation of local coordinates failed at iteration " << k << std::endl;
+                break;
+            }
+
+            if(norm2DXi < MaxTolerancePointLocalCoordinates) {
+                break;
+            }
+        }
+
+        return rResult;
+    }
+
     ///@}
     ///@name IsInside
     ///@{
@@ -1668,6 +1725,36 @@ public:
         PointLocalCoordinates(
             rResult,
             rPointGlobalCoordinates);
+
+        if (IsInsideLocalSpace(rResult, Tolerance) == 0) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+    * @brief Checks if given point in global space coordinates
+    *        is inside the geometry boundaries, considering additionally
+    *        a certain increment in the coordinates. This function
+    *        computes the local coordinates and checks then if
+    *        this point lays within the boundaries.
+    * @param rPointGlobalCoordinates the global coordinates of the
+    *        external point.
+    * @param rResult the local coordinates of the point.
+    * @param Tolerance the tolerance to the boundary.
+    * @return true if the point is inside, false otherwise
+    */
+    virtual bool IsInside(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rResult,
+        const Matrix& rDeltaPosition,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const
+    {
+        PointLocalCoordinates(
+            rResult,
+            rPointGlobalCoordinates,
+            rDeltaPosition);
 
         if (IsInsideLocalSpace(rResult, Tolerance) == 0) {
             return false;
@@ -2125,20 +2212,21 @@ public:
      */
     virtual CoordinatesArrayType& GlobalCoordinates(
         CoordinatesArrayType& rResult,
-        CoordinatesArrayType const& LocalCoordinates,
-        Matrix& DeltaPosition
+        CoordinatesArrayType const& rLocalCoordinates,
+        const Matrix& rDeltaPosition
         ) const
     {
         constexpr std::size_t dimension = 3;
         noalias( rResult ) = ZeroVector( 3 );
-        if (DeltaPosition.size2() != 3)
-            DeltaPosition.resize(DeltaPosition.size1(), dimension,false);
+        if (rDeltaPosition.size2() != 3)
+            KRATOS_ERROR << "The second dimension of DeltaPosition matrix"
+                << " must be 3" << std::endl;
 
         Vector N( this->size() );
-        ShapeFunctionsValues( N, LocalCoordinates );
+        ShapeFunctionsValues( N, rLocalCoordinates );
 
         for ( IndexType i = 0 ; i < this->size() ; i++ )
-            noalias( rResult ) += N[i] * ((*this)[i] + row(DeltaPosition, i));
+            noalias( rResult ) += N[i] * ((*this)[i] + row(rDeltaPosition, i));
 
         return rResult;
     }
@@ -2526,20 +2614,20 @@ public:
     matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
     point index of given integration method.
 
-    @param DeltaPosition Matrix with the nodes position increment which describes
+    @param rDeltaPosition Matrix with the nodes position increment which describes
     the configuration where the jacobian has to be calculated.
 
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const
+    virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, const Matrix & rDeltaPosition ) const
     {
         if( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
             rResult.resize( this->IntegrationPointsNumber( ThisMethod ), false );
 
         for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
         {
-            this->Jacobian( rResult[pnt], pnt, ThisMethod, DeltaPosition);
+            this->Jacobian( rResult[pnt], pnt, ThisMethod, rDeltaPosition);
         }
         return rResult;
     }
@@ -2700,7 +2788,7 @@ public:
     @see InverseOfJacobian
     */
 
-    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates, Matrix& rDeltaPosition ) const
+    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates, const Matrix& rDeltaPosition ) const
     {
         const SizeType working_space_dimension = this->WorkingSpaceDimension();
         const SizeType local_space_dimension = this->LocalSpaceDimension();
@@ -2943,6 +3031,31 @@ public:
     virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates ) const
     {
         Jacobian(rResult,rCoordinates); //this will be overwritten
+
+        double detJ;
+        Matrix Jinv(this->WorkingSpaceDimension(), this->WorkingSpaceDimension());
+
+        MathUtils<double>::GeneralizedInvertMatrix(rResult, Jinv, detJ);
+        noalias(rResult) = Jinv;
+
+        return rResult;
+    }
+
+    /** Inverse of jacobian in given point, considering additionally a certain increment
+    in the coordinates. This method calculate inverse of jacobian matrix in given point.
+
+    @param rPoint point which inverse of jacobians has to
+    be calculated in it.
+
+    @return Inverse of jacobian matrix \f$ J^{-1} \f$ in given point.
+
+    @see DeterminantOfJacobian
+    @see InverseOfJacobian
+    */
+    virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates,
+        const Matrix& rDeltaPosition ) const
+    {
+        Jacobian(rResult, rCoordinates, rDeltaPosition); //this will be overwritten
 
         double detJ;
         Matrix Jinv(this->WorkingSpaceDimension(), this->WorkingSpaceDimension());
