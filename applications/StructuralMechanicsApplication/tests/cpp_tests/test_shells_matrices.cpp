@@ -167,6 +167,38 @@ KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_4N_LumpedMassMatrix, KratosSt
     ConductShellMassMatrixTest("ShellThinElementCorotational3D4N", ref_lumped_mass_matrix, true);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_3N_ConsistentMassMatrix, KratosStructuralMechanicsFastSuite)
+{
+    Matrix ref_lumped_mass_matrix(18, 18);
+    ref_lumped_mass_matrix = ZeroMatrix(18,18);
+    const double ref_val = 16.6666666666666666666666;
+    for (std::size_t i=0; i<3; ++i) {
+        std::size_t idx = i*6;
+        ref_lumped_mass_matrix(idx, idx) = ref_val;
+        ref_lumped_mass_matrix(idx+1, idx+1) = ref_val;
+        ref_lumped_mass_matrix(idx+2, idx+2) = ref_val;
+    }
+
+    ConductShellMassMatrixTest("ShellThickElementCorotational3D3N", ref_lumped_mass_matrix, false);
+    ConductShellMassMatrixTest("ShellThinElementCorotational3D3N", ref_lumped_mass_matrix, false);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_4N_ConsistentMassMatrix, KratosStructuralMechanicsFastSuite)
+{
+    Matrix ref_lumped_mass_matrix(24, 24);
+    ref_lumped_mass_matrix = ZeroMatrix(24,24);
+    const double ref_val = 100;
+    for (std::size_t i=0; i<4; ++i) {
+        std::size_t idx = i*6;
+        ref_lumped_mass_matrix(idx, idx) = ref_val;
+        ref_lumped_mass_matrix(idx+1, idx+1) = ref_val;
+        ref_lumped_mass_matrix(idx+2, idx+2) = ref_val;
+    }
+
+    ConductShellMassMatrixTest("ShellThickElementCorotational3D4N", ref_lumped_mass_matrix, false);
+    ConductShellMassMatrixTest("ShellThinElementCorotational3D4N", ref_lumped_mass_matrix, false);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ShellThickElementCorotational3D3N_DampingMatrix, KratosStructuralMechanicsFastSuite)
 {
     Matrix ref_damping_matrix(18, 18);
