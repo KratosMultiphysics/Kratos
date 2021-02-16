@@ -1582,7 +1582,7 @@ public:
             rProjectedPointGlobalCoordinates = GeometricalProjectionUtilities::FastProject<CoordinatesArrayType,CoordinatesArrayType,CoordinatesArrayType>( rProjectedPointGlobalCoordinates, rPointGlobalCoordinates, normal, distance);
 
             // If the normal corresponds means that we have converged
-            if (norm_2(this->UnitNormal(rProjectedPointGlobalCoordinates) - normal) < Tolerance * 1.0e4) break;
+            if (norm_2(this->UnitNormal(rProjectedPointGlobalCoordinates) - normal) < Tolerance) break;
 
             // Compute normal
             noalias(normal) = this->UnitNormal(rProjectedPointGlobalCoordinates);
