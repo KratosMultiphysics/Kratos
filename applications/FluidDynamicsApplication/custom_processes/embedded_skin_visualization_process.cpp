@@ -940,6 +940,15 @@ const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::Ele
     return nodal_distances;
 }
 
+const Vector EmbeddedSkinVisualizationProcess::SetEdgeDistancesExtrapolatedVector(ModelPart::ElementIterator ItElem)
+{
+    Vector edge_distances_extrapolated;
+    if (mLevelSetType == LevelSetType::Discontinuous) {
+        edge_distances_extrapolated = ItElem->GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
+    }
+    return edge_distances_extrapolated;
+}
+
 ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedShapeFunctionsUtility(
     const Geometry<Node<3>>::Pointer pGeometry,
     const Vector& rNodalDistances)

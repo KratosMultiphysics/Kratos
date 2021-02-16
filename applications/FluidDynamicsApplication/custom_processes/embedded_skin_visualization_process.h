@@ -492,6 +492,13 @@ private:
     const Vector SetDistancesVector(ModelPart::ElementIterator ItElem);
 
     /**
+     * Sets the extrapolated edge distance values.
+     * @param ItElem Element iterator
+     * @return Vector containing the distance values
+     */
+    const Vector SetEdgeDistancesExtrapolatedVector(ModelPart::ElementIterator ItElem);
+
+    /**
      * Sets the the modified shape functions utility according to the
      * distance values for a cut element.
      * @param pGeometry Pointer to the element geometry
