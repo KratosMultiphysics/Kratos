@@ -126,7 +126,15 @@ void UpdatedLagrangian::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessI
     // Displacements vector
     Vector displacements;
     GetValuesVector(displacements);
+    
+    // for (IndexType i = 0; i < number_of_nodes; i++ ){
+    //     const NodeType &rnode = this->GetGeometry()[i];
+    //     if (rnode.Id() == 11528){
+    //         std::cout.precision(20); 
 
+    //         std::cout<<"DISPLACEMENT_Y"<<rnode.GetSolutionStepValue(DISPLACEMENT_Y)<<std::endl;
+    //     }
+    // }
     // Reading integration points
     for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
         // Compute element kinematics B, F, DN_DX ...
