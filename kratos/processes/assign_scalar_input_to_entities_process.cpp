@@ -631,9 +631,7 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::InternalAssignVal
 {
     KRATOS_TRY;
 
-    auto& r_entities_array = GetEntitiesContainer();
-
-    VariableUtils().SetNonHistoricalVariable(rVariable, Value, r_entities_array);
+    VariableUtils().SetNonHistoricalVariable(rVariable, Value, GetEntitiesContainer());
 
     KRATOS_CATCH("");
 }

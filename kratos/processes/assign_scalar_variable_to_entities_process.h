@@ -196,9 +196,7 @@ private:
     template< class TVarType, class TDataType >
     void InternalAssignValue(TVarType& rVar, const TDataType Value)
     {
-        auto& r_entities_array = GetEntitiesContainer();
-
-        VariableUtils().SetNonHistoricalVariable(rVar, Value, r_entities_array);
+        VariableUtils().SetNonHistoricalVariable(rVar, Value, GetEntitiesContainer());
     }
 
     /**
