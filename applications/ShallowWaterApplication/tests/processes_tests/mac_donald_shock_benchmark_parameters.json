@@ -66,7 +66,8 @@
                 "model_part_name"  : "model_part",
                 "check_variables"  : ["TOPOGRAPHY"],
                 "input_file_name"  : "mac_donald_shock_benchmark_reference.json",
-                "time_frequency"   : 0.9
+                "time_frequency"   : 0.9,
+                "tolerance"        : 1e-12
             }
         }]
     }
