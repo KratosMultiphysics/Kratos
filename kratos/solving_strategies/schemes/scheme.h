@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -20,8 +20,10 @@
 
 /* Project includes */
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
 #include "includes/kratos_parameters.h"
+#include "utilities/entities_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -233,13 +235,7 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
-            auto it_elem = rModelPart.ElementsBegin() + i;
-            it_elem->Initialize(r_current_process_info);
-        }
+        EntitiesUtilities::InitializeEntities<Element>(rModelPart);
 
         SetElementsAreInitialized();
 
@@ -257,13 +253,7 @@ public:
 
         KRATOS_ERROR_IF_NOT(mElementsAreInitialized) << "Before initilizing Conditions, initialize Elements FIRST" << std::endl;
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
-            auto it_cond = rModelPart.ConditionsBegin() + i;
-            it_cond->Initialize(r_current_process_info);
-        }
+        EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
 
         SetConditionsAreInitialized();
 
@@ -288,37 +278,8 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        // Initializes solution step for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->InitializeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        // Initializes solution step for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->InitializeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        // Initializes solution step for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->InitializeSolutionStep(r_current_process_info);
-        }
+        // Initializes solution step for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeSolutionStepAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -338,37 +299,8 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        // Finalizes solution step for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->FinalizeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        // Finalizes solution step for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->FinalizeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        // Finalizes solution step for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->FinalizeSolutionStep(r_current_process_info);
-        }
+        // Finalizes solution step for all of the elements, conditions and constraints
+        EntitiesUtilities::FinalizeSolutionStepAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -493,37 +425,8 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        // Finalizes non-linear iteration for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->FinalizeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        // Finalizes non-linear iteration  for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->FinalizeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        // Finalizes non-linear iteration for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->FinalizeNonLinearIteration(r_current_process_info);
-        }
+        // Finalizes non-linear iteration for all of the elements, conditions and constraints
+        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -632,31 +535,29 @@ public:
     {
         KRATOS_TRY
 
+        //TODO: This is required for the exception handling. It can be removed once we move to the C++ parallelism
+#ifdef KRATOS_SMP_CXX11
+        int num_threads = ParallelUtilities::GetNumThreads();
+#else
+        int num_threads = 1;
+#endif
+
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Checks for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.NumberOfElements()); i++) {
-            auto it_elem = rModelPart.ElementsBegin() + i;
-            const auto& r_elem = *it_elem;
-            r_elem.Check(r_current_process_info);
-        }
+        BlockPartition<const ModelPart::ElementsContainerType>(rModelPart.Elements(), num_threads).for_each([&r_current_process_info](const Element& rElement){
+            rElement.Check(r_current_process_info);
+        });
 
         // Checks for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.NumberOfConditions()); i++) {
-            auto it_cond = rModelPart.ConditionsBegin() + i;
-            const auto& r_cond = *it_cond;
-            r_cond.Check(r_current_process_info);
-        }
+        BlockPartition<const ModelPart::ConditionsContainerType>(rModelPart.Conditions(), num_threads).for_each([&r_current_process_info](const Condition& rCondition){
+            rCondition.Check(r_current_process_info);
+        });
 
         // Checks for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.NumberOfMasterSlaveConstraints()); i++) {
-            auto it_constraint = rModelPart.MasterSlaveConstraintsBegin() + i;
-            const auto& r_constraint = *it_constraint;
-            r_constraint.Check(r_current_process_info);
-        }
+        BlockPartition<const ModelPart::MasterSlaveConstraintContainerType>(rModelPart.MasterSlaveConstraints(), num_threads).for_each([&r_current_process_info](const MasterSlaveConstraint& rConstraint){
+            rConstraint.Check(r_current_process_info);
+        });
 
         return 0;
         KRATOS_CATCH("");
@@ -986,5 +887,3 @@ private:
 } // namespace Kratos.
 
 #endif /* KRATOS_SCHEME  defined */
-
-

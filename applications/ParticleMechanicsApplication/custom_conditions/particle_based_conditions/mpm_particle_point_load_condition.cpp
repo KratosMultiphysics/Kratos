@@ -77,7 +77,7 @@ namespace Kratos
         GeneralVariables Variables;
 
         // Calculating shape function
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+        MPMShapeFunctionPointValues(Variables.N);
 
         // Here MP contribution in terms of force are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -162,7 +162,7 @@ namespace Kratos
 
         array_1d<double,3> delta_xg = ZeroVector(3);
 
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+        MPMShapeFunctionPointValues(Variables.N);
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -196,7 +196,7 @@ namespace Kratos
     }
     void MPMParticlePointLoadCondition::SetValuesOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > > rValues,
+        const std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_ERROR_IF(rValues.size() > 1)

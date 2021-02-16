@@ -35,8 +35,6 @@
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_periodic.h"
 #include "custom_strategies/builder_and_solvers/trilinos_elimination_builder_and_solver.h"
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
-#include "custom_strategies/strategies/trilinos_laplacian_meshmoving_strategy.h"
-#include "custom_strategies/strategies/trilinos_structural_meshmoving_strategy.h"
 
 //configuration files
 #include "linear_solvers/linear_solver.h"
@@ -156,21 +154,6 @@ void AddStrategies(pybind11::module& m)
         }))
     .def(py::init< ModelPart&, TrilinosBaseSchemeType::Pointer, TrilinosConvergenceCriteria::Pointer, TrilinosBuilderAndSolverType::Pointer, int, bool, bool, bool >())
     ;
-
-    // Mesh Moving ********************************************************************************************
-    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
-
-    using TrilinosLaplacianMeshMovingStrategyType = TrilinosLaplacianMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >;
-    py::class_< TrilinosLaplacianMeshMovingStrategyType, typename TrilinosLaplacianMeshMovingStrategyType::Pointer, TrilinosBaseSolvingStrategyType >
-    (m,"TrilinosLaplacianMeshMovingStrategy").def(py::init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int, bool, bool, bool, int >() )
-    ;
-
-    using TrilinosStructuralMeshMovingStrategyType = TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >;
-    py::class_< TrilinosStructuralMeshMovingStrategyType, typename TrilinosStructuralMeshMovingStrategyType::Pointer, TrilinosBaseSolvingStrategyType  >
-    (m,"TrilinosStructuralMeshMovingStrategy").def(py::init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int, bool, bool, bool, int >() )
-    ;
-
 }
 
 } // namespace Python.

@@ -41,25 +41,15 @@ void MPMParticleBaseCondition::EquationIdVector(
 
     const unsigned int pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
 
-    if(dimension == 2)
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            const unsigned int index = i * 2;
-            rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
-            rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
-        }
+        const unsigned int index = i * dimension;
+        rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
+        rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
+        if ( dimension == 3 )
+            rResult[index + 2] = r_geometry[i].GetDof( DISPLACEMENT_Z,pos + 2 ).EquationId();
     }
-    else
-    {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            const unsigned int index = i * 3;
-            rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
-            rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
-            rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
-        }
-    }
+
     KRATOS_CATCH("")
 }
 
@@ -78,23 +68,16 @@ void MPMParticleBaseCondition::GetDofList(
     rElementalDofList.resize(0);
     rElementalDofList.reserve(dimension * number_of_nodes);
 
-    if(dimension == 2)
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
+        rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
+        rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
+        if ( dimension == 3 ){
+            rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_Z ) );
         }
+        
     }
-    else
-    {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Z));
-        }
-    }
+
     KRATOS_CATCH("")
 }
 
@@ -276,67 +259,12 @@ int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo ) co
    * Shape function values in given point. This method calculate the shape function
    * vector in given point.
    *
-   * @param rPoint point which shape function values have to
-   * be calculated in it.
-   *
-   * @return Vector of double which is shape function vector \f$ N \f$ in given point.
-   *
  */
-Vector& MPMParticleBaseCondition::MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint)
+void MPMParticleBaseCondition::MPMShapeFunctionPointValues(Vector& rResult) const
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    rResult.resize(number_of_nodes, false);
-
-    // Get local point coordinate
-    array_1d<double,3> rPointLocal = ZeroVector(3);
-    rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
-
-    if (dimension == 2)
-    {
-        // Get Shape functions: N depending on number of nodes
-        switch (number_of_nodes)
-        {
-            case 3:
-                rResult[0] = 1 - rPointLocal[0] - rPointLocal[1] ;
-                rResult[1] = rPointLocal[0];
-                rResult[2] = rPointLocal[1];
-                break;
-            case 4:
-                rResult[0] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
-                rResult[1] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
-                rResult[2] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
-                rResult[3] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
-                break;
-        }
-    }
-    else if (dimension == 3)
-    {
-        // Get Shape functions: N depending on number of nodes
-        switch (number_of_nodes)
-        {
-            case 4:
-                rResult[0] =  1.0-(rPointLocal[0]+rPointLocal[1]+rPointLocal[2]) ;
-                rResult[1] = rPointLocal[0];
-                rResult[2] = rPointLocal[1];
-                rResult[3] = rPointLocal[2];
-                break;
-            case 8:
-                rResult[0] = 0.125 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) * (1 - rPointLocal[2]) ;
-                rResult[1] = 0.125 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) * (1 - rPointLocal[2]) ;
-                rResult[2] = 0.125 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) * (1 - rPointLocal[2]) ;
-                rResult[3] = 0.125 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) * (1 - rPointLocal[2]) ;
-                rResult[4] = 0.125 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) * (1 + rPointLocal[2]) ;
-                rResult[5] = 0.125 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) * (1 + rPointLocal[2]) ;
-                rResult[6] = 0.125 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) * (1 + rPointLocal[2]) ;
-                rResult[7] = 0.125 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) * (1 + rPointLocal[2]) ;
-                break;
-        }
-    }
-
-    return rResult;
+    rResult = row(GetGeometry().ShapeFunctionsValues(), 0);
 
     KRATOS_CATCH( "" )
 }
@@ -413,7 +341,7 @@ void MPMParticleBaseCondition::CalculateOnIntegrationPoints(const Variable<array
 
 void MPMParticleBaseCondition::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo) {
     KRATOS_ERROR_IF(rValues.size() > 1)
         << "Only 1 value per integration point allowed! Passed values vector size: "
@@ -428,7 +356,7 @@ void MPMParticleBaseCondition::SetValuesOnIntegrationPoints(
 }
 
 void MPMParticleBaseCondition::SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > > rValues,
+    const std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)
