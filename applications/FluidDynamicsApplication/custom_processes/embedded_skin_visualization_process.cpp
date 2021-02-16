@@ -624,23 +624,33 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
     for (int i_elem = 0; i_elem < n_elems; ++i_elem){
         ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i_elem;
 
-        // Get element geometry
+        // Get element geometry and distances
         const Geometry<Node<3>>::Pointer p_geometry = it_elem->pGetGeometry();
         const unsigned int n_nodes = p_geometry->PointsNumber();
         const Vector nodal_distances = this->SetDistancesVector(it_elem);
+        const Vector edge_distances_extrapolated = this->SetEdgeDistancesExtrapolatedVector(it_elem);
 
-        // Check if the element is split
+        // Check if the element is split or Ausas incised
         const double zero_tol = 1.0e-10;
         const double nodal_distances_norm = norm_2(nodal_distances);
         if (nodal_distances_norm < zero_tol) {
             KRATOS_WARNING_FIRST_N("EmbeddedSkinVisualizationProcess", 10) << "Element: " << it_elem->Id() << " Distance vector norm: " << nodal_distances_norm << ". Please check the level set function." << std::endl;
         }
+        const bool is_ausas_incised = this->ElementIsAusasIncised(edge_distances_extrapolated);
         const bool is_split = this->ElementIsSplit(p_geometry, nodal_distances);
 
-        // If the element is split, create the new entities
-        if (is_split){
-            // Set the split utility and compute the splitting pattern
-            ModifiedShapeFunctions::Pointer p_modified_shape_functions = this->SetModifiedShapeFunctionsUtility(p_geometry, nodal_distances);
+        // If the element is split or Ausas incised, create the new entities
+        if (is_split) {
+            // Set the split utility
+            // NOTE: Check if is_ausas_incised needs to be done first, because ElementIsSplit() also returns 'true' for Ausas incised elements!
+            ModifiedShapeFunctions::Pointer p_modified_shape_functions;
+            if (is_ausas_incised) {
+                p_modified_shape_functions = this->SetModifiedShapeFunctionsUtility(p_geometry, nodal_distances, edge_distances_extrapolated);
+            } else {
+                p_modified_shape_functions = this->SetModifiedShapeFunctionsUtility(p_geometry, nodal_distances);
+            }
+
+            // Compute the splitting pattern
             DivideGeometry::Pointer p_split_utility = p_modified_shape_functions->pGetSplittingUtil();
 
             // Create the auxiliar map that will be used to generate the skin
