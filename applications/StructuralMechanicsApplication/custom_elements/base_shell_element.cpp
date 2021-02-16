@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Based on the work of Massimo Petracca and Peter Wilson
 //
 
@@ -366,7 +366,8 @@ void BaseShellElement<TCoordinateTransformation>::CalculateMassMatrix(MatrixType
     noalias(rMassMatrix) = ZeroMatrix(num_dofs, num_dofs);
 
     // Compute the local coordinate system.
-    auto referenceCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+    auto ref_coord_sys(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+    const double ref_area = ref_coord_sys.Area();
 
     // Average mass per unit area over the whole element
     double av_mass_per_unit_area = 0.0;
@@ -378,7 +379,7 @@ void BaseShellElement<TCoordinateTransformation>::CalculateMassMatrix(MatrixType
 
     if (compute_lumped_mass_matrix) {
         // lumped area
-        double lump_area = referenceCoordinateSystem.Area() / static_cast<double>(num_nodes);
+        double lump_area = ref_area / static_cast<double>(num_nodes);
         double nodal_mass = av_mass_per_unit_area * lump_area;
 
         // loop on nodes
@@ -393,7 +394,82 @@ void BaseShellElement<TCoordinateTransformation>::CalculateMassMatrix(MatrixType
             // rotational mass - neglected for the moment...
         }
     } else { // consistent mass matrix
-        KRATOS_ERROR << "Consistent mass matrix is not yet implemented!" << std::endl;
+        if (num_nodes == 3) { // triangular element
+            // General matrix form as per Felippa plane stress CST eqn 31.27:
+            // http://kis.tu.kielce.pl/mo/COLORADO_FEM/colorado/IFEM.Ch31.pdf
+
+            // Density and thickness are averaged over element.
+
+            // Average thickness over the whole element
+            double thickness = 0.0;
+            for (SizeType i = 0; i < num_gps; i++) {
+                thickness += this->mSections[i]->GetThickness(GetProperties());
+            }
+            thickness /= static_cast<double>(num_gps);
+
+            // Populate mass matrix with integation results
+            for (SizeType row = 0; row < num_dofs; row++) {
+                if (row % 6 < 3) { // translational entry
+                    for (SizeType col = 0; col < 3; col++) {
+                        rMassMatrix(row, 6 * col + row % 6) = 1.0;
+                    }
+                } else { // rotational entry
+                    for (SizeType col = 0; col < 3; col++) {
+                        rMassMatrix(row, 6 * col + row % 6) = thickness*thickness / 12.0;
+                    }
+                }
+
+                // Diagonal entry
+                rMassMatrix(row, row) *= 2.0;
+            }
+
+            rMassMatrix *= av_mass_per_unit_area * ref_area / 12.0;
+
+        } else { // quadrilateral element
+            // Get shape function values and setup jacobian
+            const GeometryType& geom = GetGeometry();
+            const Matrix& shapeFunctions = geom.ShapeFunctionsValues();
+            ShellUtilities::JacobianOperator jac_operator;
+
+            // Get integration points
+            const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->mIntegrationMethod);
+
+            // Setup matrix of shape functions
+            Matrix N = Matrix(6, 24, 0.0);
+
+            // Gauss loop
+            for (SizeType gauss_point = 0; gauss_point < 4; gauss_point++) {
+                // Calculate average mass per unit area and thickness at the
+                // current GP
+                av_mass_per_unit_area =
+                    this->mSections[gauss_point]->CalculateMassPerUnitArea(GetProperties());
+                const double thickness = this->mSections[gauss_point]->GetThickness(GetProperties());
+
+                // Calc jacobian and weighted dA at current GP
+                jac_operator.Calculate(ref_coord_sys, geom.ShapeFunctionLocalGradient(gauss_point));
+                const double dA = integration_points[gauss_point].Weight() *
+                    jac_operator.Determinant();
+
+                // Assemble shape function matrix over nodes
+                for (SizeType node = 0; node < 4; node++) {
+                    // translational entries - dofs 1-3
+                    for (SizeType dof = 0; dof < 3; dof++) {
+                        N(dof, 6 * node + dof) =
+                            shapeFunctions(gauss_point, node);
+                    }
+
+                    // rotational inertia entries - dofs 4-6
+                    for (SizeType dof = 0; dof < 3; dof++) {
+                        N(dof + 3, 6 * node + dof + 3) =
+                            thickness / std::sqrt(12.0) *
+                            shapeFunctions(gauss_point, node);
+                    }
+                }
+
+                // Add contribution to total mass matrix
+                rMassMatrix += prod(trans(N), N)*dA*av_mass_per_unit_area;
+            }
+        }
     }
 }
 
