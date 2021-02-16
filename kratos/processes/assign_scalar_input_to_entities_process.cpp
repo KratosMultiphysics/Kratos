@@ -632,17 +632,8 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::InternalAssignVal
     KRATOS_TRY;
 
     auto& r_entities_array = GetEntitiesContainer();
-    const int number_of_entities = static_cast<int>(r_entities_array.size());
 
-    if(number_of_entities != 0) {
-        const auto it_begin = r_entities_array.begin();
-        IndexPartition<std::size_t>(number_of_entities).for_each([&](std::size_t index){
-            auto it_entity = it_begin + index;
-            SetValue(*it_entity, rVariable, Value);
-        });
-        //Or using Variable Utitlities
-        //VariableUtils().SetNonHistoricalVariable(rVariable, Value, r_entities_array);
-    }
+    VariableUtils().SetNonHistoricalVariable(rVariable, Value, r_entities_array);
 
     KRATOS_CATCH("");
 }

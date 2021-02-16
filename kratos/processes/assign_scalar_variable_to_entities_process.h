@@ -197,18 +197,8 @@ private:
     void InternalAssignValue(TVarType& rVar, const TDataType Value)
     {
         auto& r_entities_array = GetEntitiesContainer();
-        const int number_of_entities = static_cast<int>(r_entities_array.size());
 
-        if(number_of_entities != 0) {
-            const auto it_begin = r_entities_array.begin();
-            //Using Parallel Utilities
-            IndexPartition<std::size_t>(number_of_entities).for_each([&](std::size_t index){
-                auto it_entity = it_begin + index;
-                it_entity->SetValue(rVar, Value);
-            });
-            //Or using Variable Utitlities
-            //VariableUtils().SetNonHistoricalVariable(rVar, Value, r_entities_array);
-        }
+        VariableUtils().SetNonHistoricalVariable(rVar, Value, r_entities_array);
     }
 
     /**
