@@ -892,10 +892,9 @@ public:
         const array_1d<double, 3> normal = this->UnitNormal(center);
 
         // We compute the distance, if it is not in the plane we project
-        const Point point_to_project(rPoint);
         double distance;
         CoordinatesArrayType point_projected;
-        point_projected = GeometricalProjectionUtilities::FastProject( center, point_to_project, normal, distance);
+        point_projected = GeometricalProjectionUtilities::FastProject( center, rPoint, normal, distance);
 
         // We check if we are on the plane
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
