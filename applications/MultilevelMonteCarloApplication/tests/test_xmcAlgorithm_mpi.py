@@ -9,8 +9,22 @@ sh test_runcompss_xmcALgorithm_mpi.sh
 In this last case, the appropriate import has to be changed in xmc/distributedEnvironmentFramework.py
 and in test_runcompss_xmcALgorithm_mpi.sh the test to run must be selected.
 
-Required KratosMultiphysics application are: "FluidDynamicsApplication", "LinearSolversApplication", "MappingApplication", "MeshingApplication", "MetisApplication", "MultilevelMonteCarloApplication", "StatisticsApplication", "TrilinosApplication".
-It is required to configure Kratos with the CMAKE flag USE_MPI set to "ON".
+Dependencies
+------------
+- KratosMultiphysics ≥ 9.0."Dev"-14ca0bbc78 configured with the CMAKE flag USE_MPI set to "ON",
+  and applications:
+   - FluidDynamicsApplication,
+   - LinearSolversApplication,
+   - MappingApplication,
+   - MeshingApplication,
+   - MetisApplication,
+   - MultilevelMonteCarloApplication,
+   - StatisticsApplication,
+   - TrilinosApplication.
+- COMPSs ≥ 2.8 (to run in parallel) with its optional dependency: mpi4py.
+- ParMmg ≥ commit 5ffc6ada4afb1af50a43e1fa6f4c409cff2ea25c (as of 2020-02-16, this is branch 'develop' of https://github.com/MmgTools/parmmg) for "mpi_test_mlmc_Kratos_ParMmg" test.
+  See https://github.com/KratosMultiphysics/Kratos/wiki/%5BUtilities%5D-ParMmg-Process
+  for compiling KratosMultiphysics with ParMmg support.
 """
 
 # Import Python libraries
@@ -101,7 +115,7 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
             "problem_settings/parameters_xmc_asynchronous_mc_RFF.json",
         ]
 
-        with WorkFolderScope("rectangle_wind_mpi/", __file__, add_to_path = True):
+        with WorkFolderScope("caarc_wind_mpi/", __file__, add_to_path = True):
             for parametersPath in parametersList:
                 with open(parametersPath, "r") as parameter_file:
                     parameters = json.load(parameter_file)
@@ -188,8 +202,7 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 # and coarse meshes instead of hundreds of seconds and finer meshes
                 # check quantity of interest used to check convergence
                 estimations = get_value_from_remote(algo.estimation())
-                estimated_mean = 143
-                self.assertAlmostEqual(estimations[0], estimated_mean, delta=100.0)
+                self.assertGreater(-estimations[0], 0)
                 self.assertEqual(algo.hierarchy()[0][1], 10)
                 # check moment estimator
                 sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[0]._sampleCounter
@@ -199,7 +212,7 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 h1 = get_value_from_remote(
                     ccm.computeCentralMomentsOrderOneDimensionZero(S1, sample_counter)
                 )
-                self.assertAlmostEqual(h1, 143, delta=100.0)
+                self.assertGreater(-h1, 0)
                 self.assertEqual(sample_counter, 10)
                 # check multi moment estimator
                 sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[1]._sampleCounter
@@ -212,11 +225,11 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 h1 = get_value_from_remote(
                     ccm.computeCentralMomentsOrderOneDimensionZero(S1, sample_counter)
                 )
-                self.assertAlmostEqual(h1, 143, delta=100.0)
-                self.assertEqual(sample_counter, 60)
+                self.assertGreater(-h1, 0)
+                self.assertEqual(sample_counter, 10)
                 # check multi combined moment estimator
                 sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[3]._sampleCounter
-                self.assertEqual(sample_counter, 60)
+                self.assertEqual(sample_counter, 10)
 
 
     @unittest.skipIf(not is_Kratos, "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details.")
@@ -227,7 +240,7 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
             "problem_settings/parameters_xmc_asynchronous_mlmc_RFF.json"
         ]
 
-        with WorkFolderScope("rectangle_wind_mpi/", __file__, add_to_path = True):
+        with WorkFolderScope("caarc_wind_mpi/", __file__, add_to_path = True):
             for parametersPath in parametersList:
                 with open(parametersPath, "r") as parameter_file:
                     parameters = json.load(parameter_file)
@@ -304,8 +317,7 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 # such results are not accurate, since we run the problem for few decimals
                 # and coarse meshes instead of hundreds of seconds and finer meshes
                 estimations = get_value_from_remote(algo.estimation())
-                estimated_mean = 220
-                self.assertAlmostEqual(sum(estimations), estimated_mean, delta=100.0)
+                self.assertGreater(sum(estimations), 0)
                 for level in algo.hierarchy():
                     self.assertEqual(level[1], 10)
                 # check moment estimator - level 0
@@ -316,7 +328,7 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 h1 = get_value_from_remote(
                     ccm.computeCentralMomentsOrderOneDimensionZero(S1, sample_counter)
                 )
-                self.assertAlmostEqual(h1, 143, delta=100.0)
+                self.assertGreater(-h1, 0)
                 self.assertEqual(sample_counter, 10)
                 # check multi moment estimator - level 1
                 sample_counter = algo.monteCarloSampler.indices[1].qoiEstimator[1]._sampleCounter
@@ -329,11 +341,10 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 h1 = get_value_from_remote(
                     ccm.computeCentralMomentsOrderOneDimensionZero(S1, sample_counter)
                 )
-                self.assertAlmostEqual(h1, -950, delta=100.0)
-                self.assertEqual(sample_counter, 60)
+                self.assertEqual(sample_counter, 10)
                 # check multi combined moment estimator - level 2
                 sample_counter = algo.monteCarloSampler.indices[2].qoiEstimator[3]._sampleCounter
-                self.assertEqual(sample_counter, 60)
+                self.assertEqual(sample_counter, 10)
 
 
     @unittest.skipIf(not is_Kratos, "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details.")

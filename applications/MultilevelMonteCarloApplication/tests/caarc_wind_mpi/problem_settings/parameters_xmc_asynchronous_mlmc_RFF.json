@@ -47,11 +47,11 @@
         "indexConstructor": "xmc.monteCarloIndex.MonteCarloIndex",
         "indices": [],
         "qoiPredictor": [],
-        "initialNumberBatches": 1
+        "initialNumberBatches": 2
     },
     "randomGeneratorInputDictionary": {
         "generator": "xmc.methodDefs_randomGeneratorWrapper.generator.returnUniformAndNormal",
-        "parameters": [0,429496729,20.0,0.2]
+        "parameters": [0,429496729,2.0,0.02]
     },
     "samplerInputDictionary": {
         "randomGenerator": "xmc.randomGeneratorWrapper.RandomGeneratorWrapper",
@@ -59,9 +59,9 @@
         "solverWrapperIndices": null
     },
     "solverWrapperInputDictionary": {
-        "adaptiveRefinementJumpToFinestLevel": true,
+        "adaptiveRefinementJumpToFinestLevel": false,
         "asynchronous": true,
-        "fakeRandomVariable": [0,40.0,0.1],
+        "fakeRandomVariable": [0,2.0],
         "index": [],
         "isMpi": true,
         "mappingOutputQuantities": true,
@@ -70,9 +70,9 @@
         "parameters": null,
         "printToFile": false,
         "problemId": "caarc_wind_mpi",
-        "projectParametersPath": "problem_settings/ProjectParametersCAARC_steadyInlet.json",
+        "projectParametersPath": ["problem_settings/ProjectParametersCAARC_steadyInlet_lev0.json","problem_settings/ProjectParametersCAARC_steadyInlet_lev1.json","problem_settings/ProjectParametersCAARC_steadyInlet_lev2.json"],
         "refinementParametersPath": "problem_settings/parameters_refinement.json",
-        "refinementStrategy": "deterministic_adaptive_refinement",
+        "refinementStrategy": "reading_from_file",
         "sizeMultiXMomentEstimator": 8,
         "taskAllAtOnce": true
     },
@@ -89,7 +89,7 @@
         },
         "maxNumberIterations": {
             "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isGreaterThanOrEqualTo",
-            "tolerance": [0],
+            "tolerance": [1],
             "input": "algorithmCost"
         }
     },

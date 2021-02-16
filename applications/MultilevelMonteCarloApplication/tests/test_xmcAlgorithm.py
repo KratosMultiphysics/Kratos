@@ -8,7 +8,14 @@ To run with runcompss the second scenario:
 sh test_runcompss_xmcALgorithm.sh
 In this last case, the appropriate import has to be changed in xmc/distributedEnvironmentFramework.py.
 
-Required KratosMultiphysics application are: "ConvectionDiffusionApplication", "LinearSolversApplication", "MeshingApplication", "MultilevelMonteCarloApplication".
+Dependencies
+------------
+- KratosMultiphysics ≥ 9.0."Dev"-14ca0bbc78, and applications:
+   - ConvectionDiffusionApplication, 
+   - LinearSolversApplication,  
+   - MeshingApplication and 
+   - MultilevelMonteCarloApplication.
+- COMPSs ≥ 2.8 (to run in parallel).
 """
 
 # Import Python libraries
