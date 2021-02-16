@@ -471,7 +471,7 @@ private:
      * @param rEdgeDistancesExtrapolated vector containing the element edge distances of extrapolated geometry
      * @return true if the element is incised and extrapolated edge distances are provided; false if not
      */
-    const bool ElementIsAusasIncised(const Vector& rEdgeDistancesExtrapolated);
+    const bool ElementIsAusasIncised(const Vector &rEdgeDistancesExtrapolated);
 
     /**
      * Checks wether the element is in the positive side or not
@@ -493,7 +493,7 @@ private:
 
     /**
      * Sets the the modified shape functions utility according to the
-     * distance values.
+     * distance values for a cut element.
      * @param pGeometry Pointer to the element geometry
      * @param rNodalDistances Vector containing the distance values
      * @return A pointer to the modified shape functions utility
@@ -501,6 +501,18 @@ private:
     ModifiedShapeFunctions::Pointer SetModifiedShapeFunctionsUtility(
         const Geometry<Node<3>>::Pointer pGeometry,
         const Vector &rNodalDistances);
+
+    /**
+     * Sets the the modified shape functions utility for an Ausas incised element.
+     * @param pGeometry Pointer to the element geometry
+     * @param rNodalDistancesWithExtra Vector containing the distance values including extrapolated intersections
+     * @param rEdgeDistancesExtrapolated Vector containing the edge distances rations of extrapolated intersections
+     * @return A pointer to the modified shape functions utility
+     */
+    ModifiedShapeFunctions::Pointer SetModifiedShapeFunctionsUtility(
+        const Geometry<Node<3>>::Pointer pGeometry,
+        const Vector &rNodalDistancesWithExtra,
+        const Vector &rEdgeDistancesExtrapolated);
 
     /**
      * Sets the new interface condition geometry

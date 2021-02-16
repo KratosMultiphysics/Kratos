@@ -27,6 +27,10 @@
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
+#include "modified_shape_functions/triangle_2d_3_ausas_incised_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_ausas_incised_shape_functions.h"
+
+
 
 // Application includes
 #include "embedded_skin_visualization_process.h"
@@ -899,7 +903,7 @@ bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
     return is_split;
 }
 
-const bool EmbeddedSkinVisualizationProcess::ElementIsAusasIncised(const Vector& rEdgeDistancesExtrapolated)
+const bool EmbeddedSkinVisualizationProcess::ElementIsAusasIncised(const Vector &rEdgeDistancesExtrapolated)
 {
     // Check whether one edge has intersection ratio with extrapolated skin if the vector is not empty
     if (mShapeFunctionsType == ShapeFunctionsType::Ausas) {
@@ -965,6 +969,25 @@ ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedSha
             }
         default:
             KRATOS_ERROR << "Asking for a non-implemented modified shape functions type.";
+    }
+}
+
+ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedShapeFunctionsUtility(
+    const Geometry<Node<3>>::Pointer pGeometry,
+    const Vector& rNodalDistancesWithExtra,
+    const Vector& rEdgeDistancesExtrapolated)
+{
+    // Get the geometry type
+    const GeometryData::KratosGeometryType geometry_type = pGeometry->GetGeometryType();
+
+    // Return the modified shape functions utility
+    switch (geometry_type) {
+        case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+            return Kratos::make_shared<Triangle2D3AusasIncisedShapeFunctions>(pGeometry, rNodalDistancesWithExtra, rEdgeDistancesExtrapolated);
+        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+            return Kratos::make_shared<Tetrahedra3D4AusasIncisedShapeFunctions>(pGeometry, rNodalDistancesWithExtra, rEdgeDistancesExtrapolated);
+        default:
+            KRATOS_ERROR << "Asking for a non-implemented Ausas modified shape functions geometry.";
     }
 }
 
