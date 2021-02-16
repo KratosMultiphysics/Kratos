@@ -130,17 +130,17 @@ void ConductShellMassMatrixTest(std::string const& rElementName, const Matrix& r
     p_elem->CalculateMassMatrix(lhs, r_process_info);
 
     // for writing the reference values
-    int counter = 0;
-    std::cout << std::endl<< std::endl << "    ";
-    for (int i=0;i<rRefMatrix.size1();++i) {
-        for (int j=0;j<rRefMatrix.size2();++j) {
-            const double val = lhs(i,j);
-            if (std::abs(val) > 1e-10) {
-                std::cout << std::setprecision(13) << "ref_mass_matrix("<<i<<","<<j<< ")=" << val << "; ";
-                if (++counter%3 == 0) { std::cout << std::endl << "    "; }
-            }
-        }
-    }
+    // int counter = 0;
+    // std::cout << std::endl<< std::endl << "    ";
+    // for (int i=0;i<rRefMatrix.size1();++i) {
+    //     for (int j=0;j<rRefMatrix.size2();++j) {
+    //         const double val = lhs(i,j);
+    //         if (std::abs(val) > 1e-10) {
+    //             std::cout << std::setprecision(13) << "ref_mass_matrix("<<i<<","<<j<< ")=" << val << "; ";
+    //             if (++counter%3 == 0) { std::cout << std::endl << "    "; }
+    //         }
+    //     }
+    // }
 
     KRATOS_CHECK_MATRIX_NEAR(lhs, rRefMatrix, 1e-8);
 
