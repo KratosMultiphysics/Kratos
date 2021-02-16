@@ -1590,7 +1590,7 @@ public:
         }
 
         // We do check to print warning
-        if (iter >= max_number_of_iterations - 1) KRATOS_WARNING_FIRST_N("Quadrilateral3D4", 10) << "The point " << rPointGlobalCoordinates << " has not converged when projecting the point after" << max_number_of_iterations << " iterations" << std::endl;
+        KRATOS_WARNING_IF("Quadrilateral3D4", iter >= max_number_of_iterations - 1) << "The point " << rPointGlobalCoordinates << " has not converged when projecting the point after" << max_number_of_iterations << " iterations" << std::endl;
 
         noalias(rProjectedPointGlobalCoordinates) = projected_point;
 
