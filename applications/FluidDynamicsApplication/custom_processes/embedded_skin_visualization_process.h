@@ -471,7 +471,7 @@ private:
      * @param rEdgeDistancesExtrapolated vector containing the element edge distances of extrapolated geometry
      * @return true if the element is incised and extrapolated edge distances are provided; false if not
      */
-    const bool ElementIsAusasIncised(const Vector &rEdgeDistancesExtrapolated);
+    bool ElementIsAusasIncised(const Vector &rEdgeDistancesExtrapolated);
 
     /**
      * Checks wether the element is in the positive side or not

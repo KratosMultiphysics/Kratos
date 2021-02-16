@@ -913,7 +913,7 @@ bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
     return is_split;
 }
 
-const bool EmbeddedSkinVisualizationProcess::ElementIsAusasIncised(const Vector &rEdgeDistancesExtrapolated)
+bool EmbeddedSkinVisualizationProcess::ElementIsAusasIncised(const Vector &rEdgeDistancesExtrapolated)
 {
     // Check whether one edge has intersection ratio with extrapolated skin if the vector is not empty
     if (mShapeFunctionsType == ShapeFunctionsType::Ausas) {
