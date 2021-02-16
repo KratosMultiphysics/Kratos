@@ -354,7 +354,7 @@ void BaseShellElement<TCoordinateTransformation>::CalculateRightHandSide(VectorT
 template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    const bool compute_lumped_mass_matrix = true;//StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo);
+    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo);
 
     const SizeType num_gps = GetNumberOfGPs();
     const SizeType num_dofs = GetNumberOfDofs();
