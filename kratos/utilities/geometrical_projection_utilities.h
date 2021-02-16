@@ -112,28 +112,32 @@ public:
 
     /**
      * @brief Project a point over a plane (avoiding some steps)
+     * @tparam TPointClass1 The type of point (I)
+     * @tparam TPointClass2 The type of point (II)
+     * @tparam TPointClass2 The type of point (III)
      * @param rPointOrigin A point in the plane
      * @param rPointToProject The point to be projected
      * @param rNormal The normal of the plane
      * @param rDistance The distance to the projection
      * @return PointProjected The point pojected over the plane
      */
-    static inline PointType FastProject(
-        const PointType& rPointOrigin,
-        const PointType& rPointToProject,
+    template<class TPointClass1, class TPointClass2 = TPointClass1, class TPointClass3 = PointType>
+    static inline TPointClass3 FastProject(
+        const TPointClass1& rPointOrigin,
+        const TPointClass2& rPointToProject,
         const array_1d<double,3>& rNormal,
         double& rDistance
         )
     {
-        const array_1d<double,3> vector_points = rPointToProject.Coordinates() - rPointOrigin.Coordinates();
+        const array_1d<double,3> vector_points = rPointToProject - rPointOrigin;
 
         rDistance = inner_prod(vector_points, rNormal);
 
-        PointType point_projected;
+        TPointClass3 point_projected;
     #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        point_projected.Coordinates() = rPointToProject.Coordinates() - rNormal * rDistance;
+        point_projected = rPointToProject - rNormal * rDistance;
     #else
-        noalias(point_projected.Coordinates()) = rPointToProject.Coordinates() - rNormal * rDistance;
+        noalias(point_projected) = rPointToProject - rNormal * rDistance;
     #endif // ifdef KRATOS_USE_AMATRIX
 
         return point_projected;
