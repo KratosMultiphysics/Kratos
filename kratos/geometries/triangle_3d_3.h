@@ -1779,16 +1779,12 @@ public:
         ) const override
     {
         // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
-        const auto center = this->Center();
-        const array_1d<double, 3> normal = this->UnitNormal(center);
+        noalias(rProjectedPointGlobalCoordinates) = this->Center();
+        const array_1d<double, 3> normal = this->UnitNormal(rProjectedPointGlobalCoordinates);
 
         // We compute the distance, if it is not in the plane we project
-        const Point point_to_project(rPointGlobalCoordinates);
         double distance;
-        rProjectedPointGlobalCoordinates = GeometricalProjectionUtilities::FastProject( center, point_to_project, normal, distance);
-
-        // Projecting
-        noalias(rProjectedPointGlobalCoordinates) = rPointGlobalCoordinates - normal * distance;
+        rProjectedPointGlobalCoordinates = GeometricalProjectionUtilities::FastProject<CoordinatesArrayType,CoordinatesArrayType,CoordinatesArrayType>( rProjectedPointGlobalCoordinates, rPointGlobalCoordinates, normal, distance);
 
         PointLocalCoordinates( rProjectedPointLocalCoordinates, rProjectedPointGlobalCoordinates );
 
