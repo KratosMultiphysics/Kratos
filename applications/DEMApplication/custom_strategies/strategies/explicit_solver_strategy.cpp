@@ -295,10 +295,10 @@ namespace Kratos {
 
             Condition::GeometryType& geometry = it->GetGeometry();
             double Element_Area = geometry.Area();
-
-            for (unsigned int i = 0; i < geometry.size(); i++) { //talking about each of the three nodes of the condition
+            const double inv_geometry_size = 1.0 / geometry.size();
+            for (unsigned int i = 0; i < geometry.size(); i++) {
                 double& node_area = geometry[i].FastGetSolutionStepValue(DEM_NODAL_AREA);
-                node_area += 0.333333333333333 * Element_Area; //TODO: ONLY FOR TRIANGLE... Generalize for 3 or 4 nodes
+                node_area += inv_geometry_size * Element_Area;
             }
 
         }

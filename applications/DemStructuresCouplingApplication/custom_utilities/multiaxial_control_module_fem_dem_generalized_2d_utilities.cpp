@@ -22,9 +22,9 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitialize() {
     KRATOS_TRY;
 
     // Iterate through all actuators
-    for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
-        const std::string actuator_name = mOrderedMapKeys[map_index];
-        std::vector<ModelPart*> SubModelPartList = mFEMBoundariesSubModelParts[actuator_name];
+    for(unsigned int ind = 0; ind < mVectorOfActuatorNames.size(); ind++) {
+        const std::string actuator_name = mVectorOfActuatorNames[ind];
+        std::vector<ModelPart*> SubModelPartList = mListsOfFEMSubModelPartsForEachActuator[actuator_name];
         if (actuator_name == "Radial") {
             // In axisymmetric cases we assume there is only 1 actuator in the FEM boundary
             ModelPart& rSubModelPart = *(SubModelPartList[0]);
@@ -92,18 +92,18 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
         mCMTime += mCMDeltaTime;
         mCMStep += 1;
 
-        const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
+        const unsigned int number_of_actuators = mListsOfFEMSubModelPartsForEachActuator.size();
 
         Vector next_target_stress(number_of_actuators);
         noalias(next_target_stress) = ZeroVector(number_of_actuators);
 
         // Iterate through all actuators
-        for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
-            const std::string actuator_name = mOrderedMapKeys[map_index];
-            std::vector<ModelPart*> FEMSubModelPartList = mFEMBoundariesSubModelParts[actuator_name];
+        for(unsigned int ind = 0; ind < mVectorOfActuatorNames.size(); ind++) {
+            const std::string actuator_name = mVectorOfActuatorNames[ind];
+            std::vector<ModelPart*> FEMSubModelPartList = mListsOfFEMSubModelPartsForEachActuator[actuator_name];
             unsigned int target_stress_table_id = mTargetStressTableIds[actuator_name];
             TableType::Pointer pFEMTargetStressTable = (*(FEMSubModelPartList[0])).pGetTable(target_stress_table_id);
-            next_target_stress[map_index] = pFEMTargetStressTable->GetValue(mCMTime);
+            next_target_stress[ind] = pFEMTargetStressTable->GetValue(mCMTime);
         }
 
         Vector target_stress_perturbation(number_of_actuators);
@@ -117,9 +117,9 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
     // Move Actuators
 
     // Iterate through all actuators
-    for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
-        const std::string actuator_name = mOrderedMapKeys[map_index];
-        std::vector<ModelPart*> SubModelPartList = mFEMBoundariesSubModelParts[actuator_name];
+    for(unsigned int ind = 0; ind < mVectorOfActuatorNames.size(); ind++) {
+        const std::string actuator_name = mVectorOfActuatorNames[ind];
+        std::vector<ModelPart*> SubModelPartList = mListsOfFEMSubModelPartsForEachActuator[actuator_name];
         if (actuator_name == "Radial") {
             // In axisymmetric cases we assume there is only 1 actuator in the FEM boundary
             ModelPart& rSubModelPart = *(SubModelPartList[0]);
@@ -133,12 +133,12 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
                 const double cos_theta = it->X()/external_radius;
                 const double sin_theta = it->Y()/external_radius;
                 array_1d<double,3>& r_displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
-                r_displacement[0] += mVelocity[map_index] * cos_theta * delta_time;
-                r_displacement[1] += mVelocity[map_index] * sin_theta * delta_time;
+                r_displacement[0] += mVelocity[ind] * cos_theta * delta_time;
+                r_displacement[1] += mVelocity[ind] * sin_theta * delta_time;
             }
         } else if (actuator_name == "Z") {
             // DEM
-            mrDemModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE] += mVelocity[map_index]*delta_time/1.0;
+            mrDemModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE] += mVelocity[ind]*delta_time/1.0;
             // FEM
             const double imposed_z_strain = mrDemModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE];
             const ProcessInfo& CurrentProcessInfo = mrFemModelPart.GetProcessInfo();
@@ -175,7 +175,7 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
                 for(int j = 0; j<NNodes; j++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
                     array_1d<double,3>& r_displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
-                    noalias(r_displacement) += mVelocity[map_index] * mFEMOuterNormals[actuator_name][i] * delta_time;
+                    noalias(r_displacement) += mVelocity[ind] * mFEMOuterNormals[actuator_name][i] * delta_time;
                 }
             }
         }
@@ -190,7 +190,7 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
 void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutionStep() {
     const double current_time = mrFemModelPart.GetProcessInfo()[TIME];
     const double delta_time = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
-    const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
+    const unsigned int number_of_actuators = mListsOfFEMSubModelPartsForEachActuator.size();
 
     // Update ReactionStresses
     Vector reaction_stress_estimated(number_of_actuators);
@@ -211,9 +211,9 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
     // Print results
 
     // Iterate through all on plane actuators to set variables to 0.0
-    for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
-        const std::string actuator_name = mOrderedMapKeys[map_index];
-        std::vector<ModelPart*> SubModelPartList = mFEMBoundariesSubModelParts[actuator_name];
+    for(unsigned int ind = 0; ind < mVectorOfActuatorNames.size(); ind++) {
+        const std::string actuator_name = mVectorOfActuatorNames[ind];
+        std::vector<ModelPart*> SubModelPartList = mListsOfFEMSubModelPartsForEachActuator[actuator_name];
         if (actuator_name != "Radial" && actuator_name != "Z") {
             // Iterate through all FEMBoundaries
             for (unsigned int i = 0; i < SubModelPartList.size(); i++) {
@@ -236,10 +236,10 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
     }
 
     // Iterate through all actuators
-    for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
-        const std::string actuator_name = mOrderedMapKeys[map_index];
-        std::vector<ModelPart*> FEMSubModelPartList = mFEMBoundariesSubModelParts[actuator_name];
-        std::vector<ModelPart*> DEMSubModelPartList = mDEMBoundariesSubModelParts[actuator_name];
+    for(unsigned int ind = 0; ind < mVectorOfActuatorNames.size(); ind++) {
+        const std::string actuator_name = mVectorOfActuatorNames[ind];
+        std::vector<ModelPart*> FEMSubModelPartList = mListsOfFEMSubModelPartsForEachActuator[actuator_name];
+        std::vector<ModelPart*> DEMSubModelPartList = mListsOfDEMSubModelPartsForEachActuator[actuator_name];
         unsigned int target_stress_table_id = mTargetStressTableIds[actuator_name];
         if (actuator_name == "Radial") {
             // In axisymmetric cases we assume there is only 1 actuator in the FEM boundary
@@ -257,10 +257,10 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
                 const double sin_theta = it->Y()/external_radius;
                 it->GetValue(TARGET_STRESS_X) = current_target_stress * cos_theta;
                 it->GetValue(TARGET_STRESS_Y) = current_target_stress * sin_theta;
-                it->GetValue(REACTION_STRESS_X) = mReactionStress[map_index] * cos_theta;
-                it->GetValue(REACTION_STRESS_Y) = mReactionStress[map_index] * sin_theta;
-                it->GetValue(LOADING_VELOCITY_X) = mVelocity[map_index] * cos_theta;
-                it->GetValue(LOADING_VELOCITY_Y) = mVelocity[map_index] * sin_theta;
+                it->GetValue(REACTION_STRESS_X) = mReactionStress[ind] * cos_theta;
+                it->GetValue(REACTION_STRESS_Y) = mReactionStress[ind] * sin_theta;
+                it->GetValue(LOADING_VELOCITY_X) = mVelocity[ind] * cos_theta;
+                it->GetValue(LOADING_VELOCITY_Y) = mVelocity[ind] * sin_theta;
             }
         } else if (actuator_name == "Z") {
             // Note: we only print on FEM nodes
@@ -276,8 +276,8 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
                 for(int j = 0; j<NNodes; j++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
                     it->GetValue(TARGET_STRESS_Z) = current_target_stress;
-                    it->GetValue(REACTION_STRESS_Z) = mReactionStress[map_index];
-                    it->GetValue(LOADING_VELOCITY_Z) = mVelocity[map_index];
+                    it->GetValue(REACTION_STRESS_Z) = mReactionStress[ind];
+                    it->GetValue(LOADING_VELOCITY_Z) = mVelocity[ind];
                 }
                 mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(current_target_stress);
             }
@@ -297,8 +297,8 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
                     array_1d<double,3>& r_reaction_stress = it->GetValue(REACTION_STRESS);
                     array_1d<double,3>& r_loading_velocity = it->GetValue(LOADING_VELOCITY);
                     noalias(r_target_stress) += current_target_stress * mFEMOuterNormals[actuator_name][i];
-                    noalias(r_reaction_stress) += mReactionStress[map_index] * mFEMOuterNormals[actuator_name][i];
-                    noalias(r_loading_velocity) += mVelocity[map_index] * mFEMOuterNormals[actuator_name][i];
+                    noalias(r_reaction_stress) += mReactionStress[ind] * mFEMOuterNormals[actuator_name][i];
+                    noalias(r_loading_velocity) += mVelocity[ind] * mFEMOuterNormals[actuator_name][i];
                 }
             }
         }
@@ -309,15 +309,15 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
 
 Vector MultiaxialControlModuleFEMDEMGeneralized2DUtilities::MeasureReactionStress(const Variable<array_1d<double,3>>& rVariable) {
 
-    const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
+    const unsigned int number_of_actuators = mListsOfFEMSubModelPartsForEachActuator.size();
     Vector reaction_stress(number_of_actuators);
     noalias(reaction_stress) = ZeroVector(number_of_actuators);
 
     // Iterate through all actuators
-    for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
-        const std::string actuator_name = mOrderedMapKeys[map_index];
-        std::vector<ModelPart*> FEMSubModelPartList = mFEMBoundariesSubModelParts[actuator_name];
-        std::vector<ModelPart*> DEMSubModelPartList = mDEMBoundariesSubModelParts[actuator_name];
+    for(unsigned int ind = 0; ind < mVectorOfActuatorNames.size(); ind++) {
+        const std::string actuator_name = mVectorOfActuatorNames[ind];
+        std::vector<ModelPart*> FEMSubModelPartList = mListsOfFEMSubModelPartsForEachActuator[actuator_name];
+        std::vector<ModelPart*> DEMSubModelPartList = mListsOfDEMSubModelPartsForEachActuator[actuator_name];
         double face_area = 0.0;
         double face_reaction = 0.0;
         if (actuator_name == "Radial") {
@@ -357,9 +357,9 @@ Vector MultiaxialControlModuleFEMDEMGeneralized2DUtilities::MeasureReactionStres
                 }
             }
             if (std::abs(face_area) > 1.0e-12) {
-                reaction_stress[map_index] = face_reaction/face_area;
+                reaction_stress[ind] = face_reaction/face_area;
             } else {
-                reaction_stress[map_index] = 0.0;
+                reaction_stress[ind] = 0.0;
             }
         } else if (actuator_name == "Z") {
             // Calculate face_area
@@ -431,9 +431,9 @@ Vector MultiaxialControlModuleFEMDEMGeneralized2DUtilities::MeasureReactionStres
                 }
             }
             if (std::abs(face_area) > 1.0e-12) {
-                reaction_stress[map_index] = face_reaction/face_area;
+                reaction_stress[ind] = face_reaction/face_area;
             } else {
-                reaction_stress[map_index] = 0.0;
+                reaction_stress[ind] = 0.0;
             }
         } else {
             // Calculate face_area
@@ -464,9 +464,9 @@ Vector MultiaxialControlModuleFEMDEMGeneralized2DUtilities::MeasureReactionStres
                 }
             }
             if (std::abs(face_area) > 1.0e-12) {
-                reaction_stress[map_index] = face_reaction/face_area;
+                reaction_stress[ind] = face_reaction/face_area;
             } else {
-                reaction_stress[map_index] = 0.0;
+                reaction_stress[ind] = 0.0;
             }
         }
     }

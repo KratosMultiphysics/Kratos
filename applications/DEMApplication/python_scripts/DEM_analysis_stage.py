@@ -244,6 +244,9 @@ class DEMAnalysisStage(AnalysisStage):
     def AddVariables(self):
         self.procedures.AddAllVariablesInAllModelParts(self._GetSolver(), self.translational_scheme, self.rotational_scheme, self.all_model_parts, self.DEM_parameters)
 
+    def _GetOrderOfProcessesInitialization(self):
+        return ["constraints_process_list"]
+
     def FillAnalyticSubModelParts(self):
         if not self.spheres_model_part.HasSubModelPart("AnalyticParticlesPart"):
             self.spheres_model_part.CreateSubModelPart('AnalyticParticlesPart')

@@ -21,6 +21,7 @@
                 "model_part_name" : "dems",
                 "outer_normal": [0.0,0.0,1.0]
             }],
+            "list_of_fem_boundaries": [],
             "target_stress_table": {
                 "input_variable": "TIME",
                 "output_variable": "TARGET_STRESS",
@@ -31,49 +32,22 @@
             }
         },{
             "Parameters"    : {
-                "actuator_name": "X",
+                "actuator_name": "Radial",
                 "initial_velocity" : 0.0,
-                "compression_length" : 0.1524,
+                "compression_length" : 0.0505,
                 "young_modulus" : 7.0e9
             },
             "list_of_dem_boundaries": [],
             "list_of_fem_boundaries": [{
-                "model_part_name" : "left",
-                "outer_normal": [-1.0,0.0,0.0]
-                },{
-                "model_part_name" : "right",
-                "outer_normal": [1.0,0.0,0.0]
+                "model_part_name" : "1",
+                "outer_normal": [0.0,0.0,0.0]
             }],
             "target_stress_table": {
                 "input_variable": "TIME",
                 "output_variable": "TARGET_STRESS",
                 "data": [
                     [0.0, 0.0],
-                    [5.0e-7, -5.0e4]
-                ]
-            }
-        },{
-            "Parameters"    : {
-                "actuator_name": "Y",
-                "initial_velocity" : 0.0,
-                "compression_length" : 0.1524,
-                "young_modulus" : 7.0e9
-            },
-            "list_of_dem_boundaries": [],
-            "list_of_fem_boundaries": [{
-                "model_part_name" : "bot",
-                "outer_normal": [0.0,-1.0,0.0]
-                },{
-                "model_part_name" : "top",
-                "outer_normal": [0.0,1.0,0.0]
-            }],
-            "target_stress_table": {
-                "input_variable": "TIME",
-                "output_variable": "TARGET_STRESS",
-                "data": [
-                    [0.0, 0.0],
-                    [5.0e-7, -5.0e4],
-                    [2.0E-2, -5.0e4]
+                    [2.0E-2, -1.0e9]
                 ]
             }
         }]
