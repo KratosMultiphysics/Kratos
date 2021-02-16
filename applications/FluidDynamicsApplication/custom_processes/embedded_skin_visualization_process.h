@@ -456,14 +456,22 @@ private:
     void InitializeNonHistoricalVariables(const std::vector<const Variable<TDataType>*>& rNonHistoricalVariablesVector);
 
     /**
-     * Checks wether the element is split or not
+     * Checks whether the element is split or not
      * @param pGeometry Pointer to the element geometry
      * @param rNodalDistances Vector containing the distance values
      * @return True if it is split and false if not
      */
     bool ElementIsSplit(
-        Geometry<Node<3>>::Pointer pGeometry,
+        const Geometry<Node<3>>::Pointer pGeometry,
         const Vector &rNodalDistances);
+
+    /**
+     * @brief Checks whether the element is incised and using Ausas shape functions
+     * This method checks if an element geometry is incised and Ausas shape functions are being used
+     * @param rEdgeDistancesExtrapolated vector containing the element edge distances of extrapolated geometry
+     * @return true if the element is incised and extrapolated edge distances are provided; false if not
+     */
+    const bool ElementIsAusasIncised(const Vector& rEdgeDistancesExtrapolated);
 
     /**
      * Checks wether the element is in the positive side or not

@@ -881,7 +881,7 @@ bool EmbeddedSkinVisualizationProcess::ElementIsPositive(
 }
 
 bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
-    Geometry<Node<3>>::Pointer pGeometry,
+    const Geometry<Node<3>>::Pointer pGeometry,
     const Vector &rNodalDistances)
 {
     const unsigned int pts_number = pGeometry->PointsNumber();
@@ -897,6 +897,19 @@ bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
     const bool is_split = (n_pos > 0 && n_neg > 0) ? true : false;
 
     return is_split;
+}
+
+const bool EmbeddedSkinVisualizationProcess::ElementIsAusasIncised(const Vector& rEdgeDistancesExtrapolated)
+{
+    // Check whether one edge has intersection ratio with extrapolated skin if the vector is not empty
+    if (mShapeFunctionsType == ShapeFunctionsType::Ausas) {
+        for (unsigned int i_edge = 0; i_edge < rEdgeDistancesExtrapolated.size(); ++i_edge){
+            if (rEdgeDistancesExtrapolated[i_edge] > 0.0) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::ElementIterator ItElem)
