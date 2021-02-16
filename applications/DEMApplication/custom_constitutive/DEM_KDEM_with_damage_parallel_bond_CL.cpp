@@ -143,7 +143,29 @@ namespace Kratos {
                 sliding,
                 r_process_info);
 
-        FindMaximumValueOfNormalAndTangentialDamageComponents();
+        FindMaximumValueOfNormalAndTangentialDamageComponents(element1, element2);
+
+        KRATOS_CATCH("")
+    }
+
+    void DEM_KDEM_with_damage_parallel_bond::FindMaximumValueOfNormalAndTangentialDamageComponents(SphericContinuumParticle* element1,
+                                                                                                   SphericContinuumParticle* element2) {
+
+        KRATOS_TRY
+
+        unsigned int sphere_id = 1;
+        unsigned int neigh_sphere_id = 2;
+        
+        /*if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
+
+            KRATOS_WATCH(mDamageNormal)
+            KRATOS_WATCH(mDamageTangential)
+            KRATOS_WATCH(mDamageMoment)
+        }*/
+
+        mDamageNormal = std::max(mDamageNormal, mDamageTangential);
+        mDamageTangential = std::max(mDamageNormal, mDamageTangential);
+        mDamageMoment = std::max(mDamageNormal, mDamageTangential);
 
         KRATOS_CATCH("")
     }
@@ -193,30 +215,24 @@ namespace Kratos {
         double limit_force = 0.0;
         static bool first_time_entered = true;
 
-        // printing Id, DamageCoeff and calculation area
-        /*const std::string filename = "id_damage_and_calculation_area.txt";
-        static std::ifstream ifile(filename.c_str());
-        if ((bool) ifile && first_time_entered) {
-            std::remove("id_damage_and_calculation_area.txt");
-            first_time_entered = false;
-        }
-        static std::ofstream id_damage_and_calculation_area_file("id_damage_and_calculation_area.txt", std::ios_base::out | std::ios_base::app);
-        id_damage_and_calculation_area_file << element1->Id() << " " << mDamageEnergyCoeff << " " <<  element1->GetRadius() << '\n';
-        id_damage_and_calculation_area_file.flush();
-        */
-
         if (mDamageEnergyCoeff < 0.0) {
             mDamageEnergyCoeff = 0.0;
         }
 
         if (mDebugPrintingOption) {
-            unsigned int sphere_id = 22222222;
-            const std::string filename = "normal_forces_damage.txt";
+            unsigned int sphere_id = 1;
+            unsigned int neigh_sphere_id = 2;
+            const std::string filename = "nl.txt";
 
-            if (element1->Id() == sphere_id) {
+            if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
+
+                /*KRATOS_WATCH(mDamageNormal)
+                KRATOS_WATCH(mDamageTangential)
+                KRATOS_WATCH(mDamageMoment)*/
+
                 static std::ifstream ifile(filename.c_str());
                 if ((bool) ifile && first_time_entered) {
-                    std::remove("normal_forces_damage.txt");
+                    std::remove("nl.txt");
                     first_time_entered = false;
                 }
             }
@@ -274,9 +290,18 @@ namespace Kratos {
                         BondedLocalElasticContactForce2 = -returned_by_mapping_force;
 
                         mDamageNormal = 1.0 - (returned_by_mapping_force / delta_accumulated) / kn_el;
+
+                        //KRATOS_WATCH(mDamageNormal)
+
                         if (mDamageNormal > mDamageThresholdTolerance) {
                             failure_type = 4; // failure by traction
                         }
+
+                        //
+                        if (mDamageTangential >= mDamageNormal) {
+                            mDamageNormal = mDamageTangential;
+                        }
+                        //
                     }
                 }
             } else {
@@ -288,17 +313,30 @@ namespace Kratos {
             mUnbondedLocalElasticContactForce2 = mUnbondedNormalElasticConstant * indentation;
         }
 
+        //
+        double BondedLocalElasticContactForce2_module = sqrt(BondedLocalElasticContactForce2 * BondedLocalElasticContactForce2);
+        if (BondedLocalElasticContactForce2_module >= limit_force) {
+            if (BondedLocalElasticContactForce2_module) {
+                BondedLocalElasticContactForce2 = limit_force * BondedLocalElasticContactForce2 / BondedLocalElasticContactForce2_module;
+            } else {
+                BondedLocalElasticContactForce2 = 0.0;
+            }
+        }
+        //
+
         LocalElasticContactForce[2] = BondedLocalElasticContactForce2 + mUnbondedLocalElasticContactForce2;
 
         if (mDebugPrintingOption) {
-            unsigned int sphere_id = 22222222;
+            unsigned int sphere_id = 1;
+            unsigned int neigh_sphere_id = 2;
 
-            if (element1->Id() == sphere_id) {
-                static std::ofstream normal_forces_file("normal_forces_damage.txt", std::ios_base::out | std::ios_base::app);
-                normal_forces_file << r_process_info[TIME] << " " << indentation << " " << LocalElasticContactForce[2] << " " << limit_force << " "
-                                << delta_accumulated << " " << returned_by_mapping_force << " " << kn_updated << " " << mDamageNormal << " "
-                                << failure_type << " " << current_normal_force_module << " " << mDamageTangential << " " << BondedLocalElasticContactForce2 << " "
-                                << mUnbondedLocalElasticContactForce2 << '\n';
+            if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
+                static std::ofstream normal_forces_file("nl.txt", std::ios_base::out | std::ios_base::app);
+                normal_forces_file << r_process_info[TIME] << " " << indentation/*2*/ << " " << LocalElasticContactForce[2]/*3*/ << " "
+                                   << limit_force/*4*/ << " " << delta_accumulated/*5*/ << " " << returned_by_mapping_force/*6*/ << " "
+                                   << kn_updated/*7*/ << " " << mDamageNormal/*8*/ << " " << failure_type/*9*/ << " "
+                                   << current_normal_force_module/*10*/ << " " << mDamageTangential/*11*/ << " " << BondedLocalElasticContactForce2/*12*/ << " "
+                                   << mUnbondedLocalElasticContactForce2/*13*/ << " " << kn_el/*14*/ << '\n';
                 normal_forces_file.flush();
             }
         }
@@ -332,14 +370,16 @@ namespace Kratos {
         double tau_strength = 0.0;
         static bool first_time_entered = true;
 
-        if (mDebugPrintingOption) {
-            unsigned int sphere_id = 22222222;
-            const std::string filename = "tangential_forces_damage.txt";
+        unsigned int sphere_id = 1;
+        unsigned int neigh_sphere_id = 2;
 
-            if (element1->Id() == sphere_id) {
+        if (mDebugPrintingOption) {
+            const std::string filename = "tg.txt";
+
+            if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
                 static std::ifstream ifile(filename.c_str());
                 if ((bool) ifile && first_time_entered) {
-                    std::remove("tangential_forces_damage.txt");
+                    std::remove("tg.txt");
                     first_time_entered = false;
                 }
             }
@@ -366,17 +406,23 @@ namespace Kratos {
             BondedLocalElasticContactForce[1] = 0.0; // 1: second tangential
         }
 
+        //if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id) && (r_process_info[TIME] > 5e-7)) {
+        //}
+
+        double delta_accumulated = 0.0;
+        double current_tangential_force_module = 0.0;
+        double returned_by_mapping_force = 0.0;
+
         if (!failure_type) { // This means it has not broken yet
 
-            double current_tangential_force_module = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
+            current_tangential_force_module = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
                                                     + BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
 
-            double delta_accumulated = 0.0;
             if (kt_updated) {
                 delta_accumulated = current_tangential_force_module / kt_updated;
             }
 
-            double returned_by_mapping_force = current_tangential_force_module;
+            //returned_by_mapping_force = current_tangential_force_module;
 
             if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) { //TODO: use this only for intact bonds (not broken))
                 AddContributionOfShearStrainParallelToBond(OldBondedLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
@@ -416,13 +462,22 @@ namespace Kratos {
                         BondedLocalElasticContactForce[1] = (returned_by_mapping_force / current_tangential_force_module) * BondedLocalElasticContactForce[1];
                     }
 
-                    current_tangential_force_module = returned_by_mapping_force; // computed only for printing purposes
+                    //current_tangential_force_module = returned_by_mapping_force; // computed only for printing purposes
+                    
+                    mDamageTangential = 1.0 - (returned_by_mapping_force / delta_accumulated) / kt_el; // This is 1 - quotient of K_damaged/K_intact
 
-                    mDamageTangential = 1.0 - (returned_by_mapping_force / delta_accumulated) / kt_el;
+                    //KRATOS_WATCH(mDamageTangential)
 
                     if (mDamageTangential > mDamageThresholdTolerance) {
+                        KRATOS_WATCH("entered2")
                         failure_type = 2; // failure by shear
                     }
+
+                    //
+                    if (0) {//mDamageNormal >= mDamageTangential) {
+                        mDamageTangential = mDamageNormal;
+                    }
+                    //
                 }
             }
         }
@@ -445,7 +500,7 @@ namespace Kratos {
         const double neighbour_tg_of_dynamic_friction_angle = element2->GetTgOfDynamicFrictionAngle();
         const double equiv_tg_of_dynamic_fri_ang            = 0.5 * (my_tg_of_dynamic_friction_angle + neighbour_tg_of_dynamic_friction_angle);
 
-        if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
+        if (equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
             KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
         }
 
@@ -502,9 +557,28 @@ namespace Kratos {
         LocalElasticContactForce[0] = BondedLocalElasticContactForce[0] + UnbondedLocalElasticContactForce[0];
         LocalElasticContactForce[1] = BondedLocalElasticContactForce[1] + UnbondedLocalElasticContactForce[1];
 
-        const double local_elastic_force_modulus = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] +
-                                                        LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+        double local_elastic_force_modulus = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] +
+                                                  LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+        
+        double local_elastic_force_modulus_bonded_only = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0] +
+                                                              BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
+        
+        double local_elastic_force_modulus_unbonded_only = sqrt(UnbondedLocalElasticContactForce[0] * UnbondedLocalElasticContactForce[0] +
+                                                              UnbondedLocalElasticContactForce[1] * UnbondedLocalElasticContactForce[1]);
 
+        //
+        double effective_tau_strength = local_elastic_force_modulus_bonded_only / calculation_area;
+        if (effective_tau_strength > tau_strength) {
+            BondedLocalElasticContactForce[0] = calculation_area * tau_strength * BondedLocalElasticContactForce[0] / local_elastic_force_modulus_bonded_only;
+            BondedLocalElasticContactForce[1] = calculation_area * tau_strength * BondedLocalElasticContactForce[1] / local_elastic_force_modulus_bonded_only;
+            local_elastic_force_modulus_bonded_only = calculation_area * tau_strength;
+        }
+        LocalElasticContactForce[0] = BondedLocalElasticContactForce[0] + UnbondedLocalElasticContactForce[0];
+        LocalElasticContactForce[1] = BondedLocalElasticContactForce[1] + UnbondedLocalElasticContactForce[1];
+        local_elastic_force_modulus = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] +
+                                            LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+        //
+        
         if (local_elastic_force_modulus) {
             mBondedScalingFactor = (BondedLocalElasticContactForce[0] * LocalElasticContactForce[0] +
                                     BondedLocalElasticContactForce[1] * LocalElasticContactForce[1]) / (local_elastic_force_modulus * local_elastic_force_modulus);
@@ -514,22 +588,30 @@ namespace Kratos {
         } else {
             mBondedScalingFactor = mUnbondedScalingFactor = 0.0;
         }
+        double returned_by_mapping_tension = returned_by_mapping_force / calculation_area;
 
         if (mDebugPrintingOption) {
-            unsigned int sphere_id = 22222222;
+            unsigned int sphere_id = 1;
+            unsigned int neigh_sphere_id = 2;
+            double quotient = local_elastic_force_modulus / calculation_area;
+            double quotient_bonded_only = local_elastic_force_modulus_bonded_only / calculation_area;
+            double quotient_unbonded_only = local_elastic_force_modulus_unbonded_only / calculation_area;
 
-            if (element1->Id() == sphere_id) {
-                static std::ofstream tangential_forces_file("tangential_forces_damage.txt", std::ios_base::out | std::ios_base::app);
-                tangential_forces_file << r_process_info[TIME] << " " << int(failure_type) << " " << tau_strength << " " << 0.0 << " "
-                                    << 0.0 << " " << kt_updated << " " << 0.0 << " " << int(sliding) << " "
-                                    << contact_sigma << " " << mDamageNormal << " " << contact_tau << " " << 0.0 << " "
-                                    << max_admissible_shear_force << " " << mDamageTangential << " " << LocalElasticContactForce[0] << " "
-                                    << OldBondedLocalElasticContactForce[0] << " " << mUnbondedLocalElasticContactForce2 << " "
-                                    << BondedLocalElasticContactForce[0] << " " << mBondedScalingFactor << " "
-                                    << UnbondedLocalElasticContactForce[0] << " " << LocalDeltDisp[0] << " " << mUnbondedScalingFactor << " "
-                                    << OldLocalElasticContactForce[0] << " " << LocalDeltDisp[1] << " " << LocalElasticContactForce[1] << " "
-                                    << BondedLocalElasticContactForce[1] << " " << UnbondedLocalElasticContactForce[1] << " "
-                                    << OldBondedLocalElasticContactForce[1] << " " << OldUnbondedLocalElasticContactForce[1] << '\n';
+            if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
+                static std::ofstream tangential_forces_file("tg.txt", std::ios_base::out | std::ios_base::app);
+                tangential_forces_file << r_process_info[TIME] << " " << int(failure_type)/*2*/ << " " << tau_strength/*3*/ << " "
+                                    << kt_updated/*4*/ << " " << int(sliding)/*5*/ << " "
+                                    << contact_sigma/*6*/ << " " << mDamageNormal/*7*/ << " " << contact_tau/*8*/ << " "
+                                    << max_admissible_shear_force/*9*/ << " " << mDamageTangential/*10*/ << " " << LocalElasticContactForce[0]/*11*/ << " "
+                                    << OldBondedLocalElasticContactForce[0]/*12*/ << " " << mUnbondedLocalElasticContactForce2/*13*/ << " "
+                                    << BondedLocalElasticContactForce[0]/*14*/ << " " << mBondedScalingFactor/*15*/ << " "
+                                    << UnbondedLocalElasticContactForce[0]/*16*/ << " " << LocalDeltDisp[0]/*17*/ << " " << mUnbondedScalingFactor/*18*/ << " "
+                                    << OldLocalElasticContactForce[0]/*19*/ << " " << LocalDeltDisp[1]/*20*/ << " " << LocalElasticContactForce[1]/*21*/ << " "
+                                    << BondedLocalElasticContactForce[1]/*22*/ << " " << UnbondedLocalElasticContactForce[1]/*23*/ << " "
+                                    << OldBondedLocalElasticContactForce[1]/*24*/ << " " << OldUnbondedLocalElasticContactForce[1]/*25*/ << " "
+                                    << delta_accumulated/*26*/ << " " << current_tangential_force_module/*27*/ << " "
+                                    << returned_by_mapping_force/*28*/ << " " << quotient/*29*/ << " "
+                                    << quotient_bonded_only/*30*/ << " " << quotient_unbonded_only/*31*/ << " " << returned_by_mapping_tension/*32*/ << '\n';
                 tangential_forces_file.flush();
             }
         }

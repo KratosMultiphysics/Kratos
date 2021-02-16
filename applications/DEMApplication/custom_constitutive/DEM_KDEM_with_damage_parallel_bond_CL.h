@@ -102,6 +102,8 @@ namespace Kratos {
         virtual void AdjustTauStrengthAndUpdatedMaxTauStrength(double& tau_strength, double& updated_max_tau_strength, const double internal_friction,
                                                                double contact_sigma, SphericContinuumParticle* element1, SphericContinuumParticle* element2);
 
+        virtual void FindMaximumValueOfNormalAndTangentialDamageComponents(SphericContinuumParticle* element1, SphericContinuumParticle* element2);
+
         double mUnbondedLocalElasticContactForce2 = 0.0;
         double mUnbondedNormalElasticConstant;
         double mUnbondedTangentialElasticConstant;

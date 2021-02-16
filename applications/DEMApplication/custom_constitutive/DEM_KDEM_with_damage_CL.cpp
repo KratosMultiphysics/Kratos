@@ -373,8 +373,40 @@ namespace Kratos {
 
         mDamageNormal = std::max(mDamageNormal, mDamageTangential);
         mDamageTangential = std::max(mDamageNormal, mDamageTangential);
+        mDamageMoment = std::max(mDamageNormal, mDamageTangential);
 
         KRATOS_CATCH("")
     }
+
+    void DEM_KDEM_with_damage::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+                                                    SphericContinuumParticle* neighbor,
+                                                    double equiv_young,
+                                                    double distance,
+                                                    double calculation_area,
+                                                    double LocalCoordSystem[3][3],
+                                                    double ElasticLocalRotationalMoment[3],
+                                                    double ViscoLocalRotationalMoment[3],
+                                                    double equiv_poisson,
+                                                    double indentation) {
+
+        KRATOS_TRY
+
+        DEM_KDEM_soft_torque::ComputeParticleRotationalMoments(element,
+                                                    neighbor,
+                                                    equiv_young,
+                                                    distance,
+                                                    calculation_area,
+                                                    LocalCoordSystem,
+                                                    ElasticLocalRotationalMoment,
+                                                    ViscoLocalRotationalMoment,
+                                                    equiv_poisson,
+                                                    indentation);
+
+        ElasticLocalRotationalMoment[0] *= (1.0 - mDamageMoment);
+        ElasticLocalRotationalMoment[1] *= (1.0 - mDamageMoment);
+        ElasticLocalRotationalMoment[2] *= (1.0 - mDamageMoment);
+
+        KRATOS_CATCH("")
+    }//ComputeParticleRotationalMoments
 
 } // namespace Kratos
