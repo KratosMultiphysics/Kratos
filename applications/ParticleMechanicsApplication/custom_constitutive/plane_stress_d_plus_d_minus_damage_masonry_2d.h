@@ -680,7 +680,7 @@ protected:
      */
 	const double GetDIF(
 		const Properties& rProps,
-		const bool is_tensile);
+		const int dif_case);
 
 
 	///@}
