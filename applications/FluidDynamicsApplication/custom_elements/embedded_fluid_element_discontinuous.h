@@ -46,6 +46,13 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
+namespace EmbeddedFluidElementDiscontinuousInternals
+{
+    typedef std::vector<std::array<std::size_t,2>> EdgesLocalIdsType;
+
+    inline const EdgesLocalIdsType GetEdgesLocalIds(const GeometryData::KratosGeometryType& rGeometryType);
+}
+
 ///@}
 ///@name Kratos Classes
 ///@{

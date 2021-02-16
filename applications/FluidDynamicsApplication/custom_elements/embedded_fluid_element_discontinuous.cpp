@@ -18,6 +18,29 @@
 
 namespace Kratos {
 
+namespace EmbeddedFluidElementDiscontinuousInternals
+{
+    inline const EdgesLocalIdsType GetEdgesLocalIds(const GeometryData::KratosGeometryType& rGeometryType)
+    {
+        EdgesLocalIdsType edges_local_ids;
+
+        switch (rGeometryType)
+        {
+        case GeometryData::Kratos_Triangle2D3:
+            edges_local_ids = {{{1,2},{2,0},{0,1}}};
+            break;
+        case GeometryData::Kratos_Tetrahedra3D4:
+            edges_local_ids = {{{0,1},{1,2},{2,0},{0,3},{1,3},{2,3}}};
+            break;
+        default:
+            KRATOS_ERROR << "Not supported geometry type." << std::endl;
+            break;
+        }
+
+        return edges_local_ids;
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
