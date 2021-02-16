@@ -48,6 +48,10 @@ class TestDamBreakBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "dam_break_benchmark"
 
+class TestDryDamBreakBenchmark(ShallowWaterTestFactory):
+    execution_directory = "processes_tests"
+    execution_file = "dry_dam_break_benchmark"
+
 class TestPlanarSurfaceInParabolaBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "planar_surface_in_parabola_benchmark"
