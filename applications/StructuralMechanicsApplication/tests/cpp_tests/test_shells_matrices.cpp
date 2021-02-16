@@ -128,7 +128,21 @@ void ConductShellMassMatrixTest(std::string const& rElementName, const Matrix& r
 
     Matrix lhs;
     p_elem->CalculateMassMatrix(lhs, r_process_info);
-    KRATOS_CHECK_MATRIX_NEAR(lhs, rRefMatrix, 1e-12);
+
+    // for writing the reference values
+    int counter = 0;
+    std::cout << std::endl<< std::endl << "    ";
+    for (int i=0;i<rRefMatrix.size1();++i) {
+        for (int j=0;j<rRefMatrix.size2();++j) {
+            const double val = lhs(i,j);
+            if (std::abs(val) > 1e-10) {
+                std::cout << std::setprecision(13) << "ref_mass_matrix("<<i<<","<<j<< ")=" << val << "; ";
+                if (++counter%3 == 0) { std::cout << std::endl << "    "; }
+            }
+        }
+    }
+
+    KRATOS_CHECK_MATRIX_NEAR(lhs, rRefMatrix, 1e-8);
 
     KRATOS_CATCH("ConductShellMassMatrixTest");
 }
@@ -137,66 +151,104 @@ void ConductShellMassMatrixTest(std::string const& rElementName, const Matrix& r
 
 KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_3N_LumpedMassMatrix, KratosStructuralMechanicsFastSuite)
 {
-    Matrix ref_lumped_mass_matrix(18, 18);
-    ref_lumped_mass_matrix = ZeroMatrix(18,18);
+    Matrix ref_mass_matrix(18, 18);
+    ref_mass_matrix = ZeroMatrix(18,18);
     const double ref_val = 16.6666666666666666666666;
     for (std::size_t i=0; i<3; ++i) {
         std::size_t idx = i*6;
-        ref_lumped_mass_matrix(idx, idx) = ref_val;
-        ref_lumped_mass_matrix(idx+1, idx+1) = ref_val;
-        ref_lumped_mass_matrix(idx+2, idx+2) = ref_val;
+        ref_mass_matrix(idx, idx) = ref_val;
+        ref_mass_matrix(idx+1, idx+1) = ref_val;
+        ref_mass_matrix(idx+2, idx+2) = ref_val;
     }
 
-    ConductShellMassMatrixTest("ShellThickElementCorotational3D3N", ref_lumped_mass_matrix, true);
-    ConductShellMassMatrixTest("ShellThinElementCorotational3D3N", ref_lumped_mass_matrix, true);
+    ConductShellMassMatrixTest("ShellThickElementCorotational3D3N", ref_mass_matrix, true);
+    ConductShellMassMatrixTest("ShellThinElementCorotational3D3N", ref_mass_matrix, true);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_4N_LumpedMassMatrix, KratosStructuralMechanicsFastSuite)
 {
-    Matrix ref_lumped_mass_matrix(24, 24);
-    ref_lumped_mass_matrix = ZeroMatrix(24,24);
+    Matrix ref_mass_matrix(24, 24);
+    ref_mass_matrix = ZeroMatrix(24,24);
     const double ref_val = 100;
     for (std::size_t i=0; i<4; ++i) {
         std::size_t idx = i*6;
-        ref_lumped_mass_matrix(idx, idx) = ref_val;
-        ref_lumped_mass_matrix(idx+1, idx+1) = ref_val;
-        ref_lumped_mass_matrix(idx+2, idx+2) = ref_val;
+        ref_mass_matrix(idx, idx) = ref_val;
+        ref_mass_matrix(idx+1, idx+1) = ref_val;
+        ref_mass_matrix(idx+2, idx+2) = ref_val;
     }
 
-    ConductShellMassMatrixTest("ShellThickElementCorotational3D4N", ref_lumped_mass_matrix, true);
-    ConductShellMassMatrixTest("ShellThinElementCorotational3D4N", ref_lumped_mass_matrix, true);
+    ConductShellMassMatrixTest("ShellThickElementCorotational3D4N", ref_mass_matrix, true);
+    ConductShellMassMatrixTest("ShellThinElementCorotational3D4N", ref_mass_matrix, true);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_3N_ConsistentMassMatrix, KratosStructuralMechanicsFastSuite)
 {
-    Matrix ref_lumped_mass_matrix(18, 18);
-    ref_lumped_mass_matrix = ZeroMatrix(18,18);
-    const double ref_val = 16.6666666666666666666666;
-    for (std::size_t i=0; i<3; ++i) {
-        std::size_t idx = i*6;
-        ref_lumped_mass_matrix(idx, idx) = ref_val;
-        ref_lumped_mass_matrix(idx+1, idx+1) = ref_val;
-        ref_lumped_mass_matrix(idx+2, idx+2) = ref_val;
-    }
+    Matrix ref_mass_matrix(18, 18);
+    ref_mass_matrix = ZeroMatrix(18,18);
 
-    ConductShellMassMatrixTest("ShellThickElementCorotational3D3N", ref_lumped_mass_matrix, false);
-    ConductShellMassMatrixTest("ShellThinElementCorotational3D3N", ref_lumped_mass_matrix, false);
+    ref_mass_matrix(0,0)=8.333333333333; ref_mass_matrix(0,6)=4.166666666667; ref_mass_matrix(0,12)=4.166666666667;
+    ref_mass_matrix(1,1)=8.333333333333; ref_mass_matrix(1,7)=4.166666666667; ref_mass_matrix(1,13)=4.166666666667;
+    ref_mass_matrix(2,2)=8.333333333333; ref_mass_matrix(2,8)=4.166666666667; ref_mass_matrix(2,14)=4.166666666667;
+    ref_mass_matrix(3,3)=0.006944444444444; ref_mass_matrix(3,9)=0.003472222222222; ref_mass_matrix(3,15)=0.003472222222222;
+    ref_mass_matrix(4,4)=0.006944444444444; ref_mass_matrix(4,10)=0.003472222222222; ref_mass_matrix(4,16)=0.003472222222222;
+    ref_mass_matrix(5,5)=0.006944444444444; ref_mass_matrix(5,11)=0.003472222222222; ref_mass_matrix(5,17)=0.003472222222222;
+    ref_mass_matrix(6,0)=4.166666666667; ref_mass_matrix(6,6)=8.333333333333; ref_mass_matrix(6,12)=4.166666666667;
+    ref_mass_matrix(7,1)=4.166666666667; ref_mass_matrix(7,7)=8.333333333333; ref_mass_matrix(7,13)=4.166666666667;
+    ref_mass_matrix(8,2)=4.166666666667; ref_mass_matrix(8,8)=8.333333333333; ref_mass_matrix(8,14)=4.166666666667;
+    ref_mass_matrix(9,3)=0.003472222222222; ref_mass_matrix(9,9)=0.006944444444444; ref_mass_matrix(9,15)=0.003472222222222;
+    ref_mass_matrix(10,4)=0.003472222222222; ref_mass_matrix(10,10)=0.006944444444444; ref_mass_matrix(10,16)=0.003472222222222;
+    ref_mass_matrix(11,5)=0.003472222222222; ref_mass_matrix(11,11)=0.006944444444444; ref_mass_matrix(11,17)=0.003472222222222;
+    ref_mass_matrix(12,0)=4.166666666667; ref_mass_matrix(12,6)=4.166666666667; ref_mass_matrix(12,12)=8.333333333333;
+    ref_mass_matrix(13,1)=4.166666666667; ref_mass_matrix(13,7)=4.166666666667; ref_mass_matrix(13,13)=8.333333333333;
+    ref_mass_matrix(14,2)=4.166666666667; ref_mass_matrix(14,8)=4.166666666667; ref_mass_matrix(14,14)=8.333333333333;
+    ref_mass_matrix(15,3)=0.003472222222222; ref_mass_matrix(15,9)=0.003472222222222; ref_mass_matrix(15,15)=0.006944444444444;
+    ref_mass_matrix(16,4)=0.003472222222222; ref_mass_matrix(16,10)=0.003472222222222; ref_mass_matrix(16,16)=0.006944444444444;
+    ref_mass_matrix(17,5)=0.003472222222222; ref_mass_matrix(17,11)=0.003472222222222; ref_mass_matrix(17,17)=0.006944444444444;
+
+    ConductShellMassMatrixTest("ShellThickElementCorotational3D3N", ref_mass_matrix, false);
+    ConductShellMassMatrixTest("ShellThinElementCorotational3D3N", ref_mass_matrix, false);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_4N_ConsistentMassMatrix, KratosStructuralMechanicsFastSuite)
 {
-    Matrix ref_lumped_mass_matrix(24, 24);
-    ref_lumped_mass_matrix = ZeroMatrix(24,24);
-    const double ref_val = 100;
-    for (std::size_t i=0; i<4; ++i) {
-        std::size_t idx = i*6;
-        ref_lumped_mass_matrix(idx, idx) = ref_val;
-        ref_lumped_mass_matrix(idx+1, idx+1) = ref_val;
-        ref_lumped_mass_matrix(idx+2, idx+2) = ref_val;
-    }
+    Matrix ref_mass_matrix(24, 24);
+    ref_mass_matrix = ZeroMatrix(24,24);
 
-    ConductShellMassMatrixTest("ShellThickElementCorotational3D4N", ref_lumped_mass_matrix, false);
-    ConductShellMassMatrixTest("ShellThinElementCorotational3D4N", ref_lumped_mass_matrix, false);
+    ref_mass_matrix(0,0)=44.44444444444; ref_mass_matrix(0,6)=22.22222222222; ref_mass_matrix(0,12)=11.11111111111;
+    ref_mass_matrix(0,18)=22.22222222222; ref_mass_matrix(1,1)=44.44444444444; ref_mass_matrix(1,7)=22.22222222222;
+    ref_mass_matrix(1,13)=11.11111111111; ref_mass_matrix(1,19)=22.22222222222; ref_mass_matrix(2,2)=44.44444444444;
+    ref_mass_matrix(2,8)=22.22222222222; ref_mass_matrix(2,14)=11.11111111111; ref_mass_matrix(2,20)=22.22222222222;
+    ref_mass_matrix(3,3)=0.03703703703704; ref_mass_matrix(3,9)=0.01851851851852; ref_mass_matrix(3,15)=0.009259259259259;
+    ref_mass_matrix(3,21)=0.01851851851852; ref_mass_matrix(4,4)=0.03703703703704; ref_mass_matrix(4,10)=0.01851851851852;
+    ref_mass_matrix(4,16)=0.009259259259259; ref_mass_matrix(4,22)=0.01851851851852; ref_mass_matrix(5,5)=0.03703703703704;
+    ref_mass_matrix(5,11)=0.01851851851852; ref_mass_matrix(5,17)=0.009259259259259; ref_mass_matrix(5,23)=0.01851851851852;
+    ref_mass_matrix(6,0)=22.22222222222; ref_mass_matrix(6,6)=44.44444444444; ref_mass_matrix(6,12)=22.22222222222;
+    ref_mass_matrix(6,18)=11.11111111111; ref_mass_matrix(7,1)=22.22222222222; ref_mass_matrix(7,7)=44.44444444444;
+    ref_mass_matrix(7,13)=22.22222222222; ref_mass_matrix(7,19)=11.11111111111; ref_mass_matrix(8,2)=22.22222222222;
+    ref_mass_matrix(8,8)=44.44444444444; ref_mass_matrix(8,14)=22.22222222222; ref_mass_matrix(8,20)=11.11111111111;
+    ref_mass_matrix(9,3)=0.01851851851852; ref_mass_matrix(9,9)=0.03703703703704; ref_mass_matrix(9,15)=0.01851851851852;
+    ref_mass_matrix(9,21)=0.009259259259259; ref_mass_matrix(10,4)=0.01851851851852; ref_mass_matrix(10,10)=0.03703703703704;
+    ref_mass_matrix(10,16)=0.01851851851852; ref_mass_matrix(10,22)=0.009259259259259; ref_mass_matrix(11,5)=0.01851851851852;
+    ref_mass_matrix(11,11)=0.03703703703704; ref_mass_matrix(11,17)=0.01851851851852; ref_mass_matrix(11,23)=0.009259259259259;
+    ref_mass_matrix(12,0)=11.11111111111; ref_mass_matrix(12,6)=22.22222222222; ref_mass_matrix(12,12)=44.44444444444;
+    ref_mass_matrix(12,18)=22.22222222222; ref_mass_matrix(13,1)=11.11111111111; ref_mass_matrix(13,7)=22.22222222222;
+    ref_mass_matrix(13,13)=44.44444444444; ref_mass_matrix(13,19)=22.22222222222; ref_mass_matrix(14,2)=11.11111111111;
+    ref_mass_matrix(14,8)=22.22222222222; ref_mass_matrix(14,14)=44.44444444444; ref_mass_matrix(14,20)=22.22222222222;
+    ref_mass_matrix(15,3)=0.009259259259259; ref_mass_matrix(15,9)=0.01851851851852; ref_mass_matrix(15,15)=0.03703703703704;
+    ref_mass_matrix(15,21)=0.01851851851852; ref_mass_matrix(16,4)=0.009259259259259; ref_mass_matrix(16,10)=0.01851851851852;
+    ref_mass_matrix(16,16)=0.03703703703704; ref_mass_matrix(16,22)=0.01851851851852; ref_mass_matrix(17,5)=0.009259259259259;
+    ref_mass_matrix(17,11)=0.01851851851852; ref_mass_matrix(17,17)=0.03703703703704; ref_mass_matrix(17,23)=0.01851851851852;
+    ref_mass_matrix(18,0)=22.22222222222; ref_mass_matrix(18,6)=11.11111111111; ref_mass_matrix(18,12)=22.22222222222;
+    ref_mass_matrix(18,18)=44.44444444444; ref_mass_matrix(19,1)=22.22222222222; ref_mass_matrix(19,7)=11.11111111111;
+    ref_mass_matrix(19,13)=22.22222222222; ref_mass_matrix(19,19)=44.44444444444; ref_mass_matrix(20,2)=22.22222222222;
+    ref_mass_matrix(20,8)=11.11111111111; ref_mass_matrix(20,14)=22.22222222222; ref_mass_matrix(20,20)=44.44444444444;
+    ref_mass_matrix(21,3)=0.01851851851852; ref_mass_matrix(21,9)=0.009259259259259; ref_mass_matrix(21,15)=0.01851851851852;
+    ref_mass_matrix(21,21)=0.03703703703704; ref_mass_matrix(22,4)=0.01851851851852; ref_mass_matrix(22,10)=0.009259259259259;
+    ref_mass_matrix(22,16)=0.01851851851852; ref_mass_matrix(22,22)=0.03703703703704; ref_mass_matrix(23,5)=0.01851851851852;
+    ref_mass_matrix(23,11)=0.009259259259259; ref_mass_matrix(23,17)=0.01851851851852; ref_mass_matrix(23,23)=0.03703703703704;
+
+    ConductShellMassMatrixTest("ShellThickElementCorotational3D4N", ref_mass_matrix, false);
+    ConductShellMassMatrixTest("ShellThinElementCorotational3D4N", ref_mass_matrix, false);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ShellThickElementCorotational3D3N_DampingMatrix, KratosStructuralMechanicsFastSuite)
