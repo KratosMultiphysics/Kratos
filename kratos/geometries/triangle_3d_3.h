@@ -1778,15 +1778,15 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
-        noalias(rProjectedPointGlobalCoordinates) = this->Center();
-        const array_1d<double, 3> normal = this->UnitNormal(rProjectedPointGlobalCoordinates);
 
-        // We compute the distance, if it is not in the plane we project
-        double distance;
-        rProjectedPointGlobalCoordinates = GeometricalProjectionUtilities::FastProject<CoordinatesArrayType,CoordinatesArrayType,CoordinatesArrayType>( rProjectedPointGlobalCoordinates, rPointGlobalCoordinates, normal, distance);
+        PointLocalCoordinates(rProjectedPointLocalCoordinates, rPointGlobalCoordinates);
 
-        PointLocalCoordinates( rProjectedPointLocalCoordinates, rProjectedPointGlobalCoordinates );
+        for (std::size_t  i = 0; i < 3; i++) {
+            rProjectedPointLocalCoordinates[i] = (rProjectedPointLocalCoordinates[i] < 0.0) ? 0.00 :  rProjectedPointLocalCoordinates[i];
+            rProjectedPointLocalCoordinates[i] = (rProjectedPointLocalCoordinates[i] > 1.0) ? 1.00 :  rProjectedPointLocalCoordinates[i];
+        }
+
+        this->GlobalCoordinates(rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates);
 
         return 1;
     }
