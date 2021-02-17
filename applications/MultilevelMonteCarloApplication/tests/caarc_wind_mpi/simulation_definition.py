@@ -204,7 +204,6 @@ class SimulationScenario(FluidDynamicsAnalysisMC):
                     pressure_power_sums_list_new.extend(list_to_extend)
             else:
                 pickled_list = communicator.SendRecvString(string_to_send, 0, 0)
-            print("SYNCINFO", len(pressure_power_sums_list_new))
             qoi_list.append(pressure_power_sums_list_new)
 
             # qoi_list is complete only in rank 0
