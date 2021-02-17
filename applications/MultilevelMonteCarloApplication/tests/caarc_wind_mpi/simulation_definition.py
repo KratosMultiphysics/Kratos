@@ -104,7 +104,7 @@ class SimulationScenario(FluidDynamicsAnalysisMC):
             self.power_sums_process = KratosMultiphysics.MultilevelMonteCarloApplication.PowerSumsStatistics(self.model.GetModelPart(self.interest_model_part),power_sums_parameters)
             self.power_sums_process.ExecuteInitialize()
             KratosMultiphysics.Logger.PrintInfo("[SCREENING] number nodes of submodelpart + drag force x:",self.model.GetModelPart(self.interest_model_part).NumberOfNodes()+1) # +1 is for drag force x
-        print("[SCREENING] mapping flag:",self.mapping)
+        KratosMultiphysics.Logger.PrintInfo("[SCREENING] mapping flag:",self.mapping)
 
     def FinalizeSolutionStep(self):
         """
