@@ -25,7 +25,7 @@ namespace Kratos
     ///@name Initialize Functions
     ///@{
 
-    void SupportNitscheCondition::Initialize()
+    void SupportNitscheCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -291,7 +291,7 @@ namespace Kratos
     void SupportNitscheCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag)
     {
@@ -522,7 +522,7 @@ namespace Kratos
     void SupportNitscheCondition::CalculateQMatrix(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -970,7 +970,7 @@ namespace Kratos
 
     void SupportNitscheCondition::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
 
@@ -994,7 +994,7 @@ namespace Kratos
 
     void SupportNitscheCondition::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
 

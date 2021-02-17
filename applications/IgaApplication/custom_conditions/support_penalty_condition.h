@@ -111,7 +111,7 @@ namespace Kratos
         */
         void CalculateRightHandSide(
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             MatrixType left_hand_side_matrix = Matrix(0, 0);
 
@@ -127,7 +127,7 @@ namespace Kratos
         */
         void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
-            ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             VectorType right_hand_side_vector = Vector(0);
 
@@ -146,7 +146,7 @@ namespace Kratos
         void CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
                 rCurrentProcessInfo, true, true);
@@ -159,8 +159,8 @@ namespace Kratos
         */
         void EquationIdVector(
             EquationIdVectorType& rResult,
-            ProcessInfo& rCurrentProcessInfo
-        ) override;
+            const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
         /**
         * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
@@ -169,8 +169,8 @@ namespace Kratos
         */
         void GetDofList(
             DofsVectorType& rElementalDofList,
-            ProcessInfo& rCurrentProcessInfo
-        ) override;
+            const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
         /**
         * This functions calculates both the RHS and the LHS
@@ -183,7 +183,7 @@ namespace Kratos
         void CalculateAll(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo,
+            const ProcessInfo& rCurrentProcessInfo,
             const bool CalculateStiffnessMatrixFlag,
             const bool CalculateResidualVectorFlag
         );
@@ -203,7 +203,7 @@ namespace Kratos
         * or that no common error is found.
         * @param rCurrentProcessInfo
         */
-        int Check(const ProcessInfo& rCurrentProcessInfo) override;
+        int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
         ///@}
         ///@name Input and output

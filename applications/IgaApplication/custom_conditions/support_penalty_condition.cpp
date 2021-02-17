@@ -24,7 +24,7 @@ namespace Kratos
     void SupportPenaltyCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     )
@@ -147,7 +147,7 @@ namespace Kratos
         }
     }
 
-    int SupportPenaltyCondition::Check(const ProcessInfo& rCurrentProcessInfo)
+    int SupportPenaltyCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR)) << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyPointDiscreteCondition" << std::endl;
@@ -158,8 +158,8 @@ namespace Kratos
 
     void SupportPenaltyCondition::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
@@ -178,8 +178,8 @@ namespace Kratos
 
     void SupportPenaltyCondition::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();

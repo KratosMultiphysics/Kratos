@@ -24,7 +24,7 @@ namespace Kratos
     void SupportLagrangeCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     )
@@ -199,7 +199,7 @@ namespace Kratos
     }
 
 
-    int SupportLagrangeCondition::Check(const ProcessInfo& rCurrentProcessInfo)
+    int SupportLagrangeCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
         //KRATOS_WATCH(GetGeometry())
@@ -209,8 +209,8 @@ namespace Kratos
 
     void SupportLagrangeCondition::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
@@ -237,8 +237,8 @@ namespace Kratos
 
     void SupportLagrangeCondition::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
