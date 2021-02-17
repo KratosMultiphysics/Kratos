@@ -27,7 +27,7 @@ def GenerateSample(problem_name):
         if sample[0] >= 1.0 or sample[0] <= 0.0 :
             raise Exception ("stochastic Mach number computed > 1 or < 0")
 
-    # # Problem zero problem
+    # Problem zero problem
     if (problem_name == "ProblemZero"):
         sample = []
         uref = 10 # wind speed of 10 m/s
