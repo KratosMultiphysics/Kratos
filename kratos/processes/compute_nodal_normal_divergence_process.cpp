@@ -88,13 +88,11 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
             for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
                 double& r_divergence = GetDivergence(r_geometry, i_node);
 
-                #pragma omp atomic
-                r_divergence += N[i_node] * gauss_point_volume * divergence;
+                AtomicAdd(r_divergence, N[i_node] * gauss_point_volume * divergence );
 
                 double& vol = r_geometry[i_node].GetValue(*mpAreaVariable);
 
-                #pragma omp atomic
-                vol += N[i_node] * gauss_point_volume;
+                AtomicAdd(vol, N[i_node] * gauss_point_volume );
             }
         }
     });
