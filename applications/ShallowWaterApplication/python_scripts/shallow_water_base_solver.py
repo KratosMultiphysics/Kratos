@@ -140,6 +140,7 @@ class ShallowWaterBaseSolver(PythonSolver):
                 "input_filename"           : "unknown_name"
             },
             "echo_level"               : 0,
+            "convergence_criterion"    : "displacement",
             "relative_tolerance"       : 1e-6,
             "absolute_tolerance"       : 1e-9,
             "maximum_iterations"       : 20,
@@ -237,9 +238,21 @@ class ShallowWaterBaseSolver(PythonSolver):
         return builder_and_solver
 
     def _CreateConvergenceCriterion(self):
-        convergence_criterion = KM.DisplacementCriteria(
-            self.settings["relative_tolerance"].GetDouble(),
-            self.settings["absolute_tolerance"].GetDouble())
+        convergence_criterion_type = self.settings["convergence_criterion"].GetString()
+        if convergence_criterion_type == "displacement":
+            convergence_criterion = KM.DisplacementCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+        elif convergence_criterion_type == "residual":
+            convergence_criterion = KM.ResidualCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+        else:
+            msg = "The displacement criterion specified is '{}'\n".format(convergence_criterion_type)
+            msg += "The following options are available:\n"
+            msg += "    - 'displacement'"
+            msg += "    - 'residual'"
+            raise Exception(msg)
         convergence_criterion.SetEchoLevel(self.echo_level)
         return convergence_criterion
 

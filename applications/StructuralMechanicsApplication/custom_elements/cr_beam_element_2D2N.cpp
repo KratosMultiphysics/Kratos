@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -159,12 +160,9 @@ void CrBeamElement2D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
     const double A = GetProperties()[CROSS_AREA];
     const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
-    bool use_consistent_mass_matrix = true;
-    if (GetProperties().Has(USE_CONSISTENT_MASS_MATRIX)) {
-        use_consistent_mass_matrix = GetProperties()[USE_CONSISTENT_MASS_MATRIX];
-    }
+    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo);
 
-    if (use_consistent_mass_matrix) {
+    if (!compute_lumped_mass_matrix) {
         const double pre_beam = (rho * A * L) / 420.00;
         const double pre_bar = (rho * A * L) / 6.00;
 
@@ -911,12 +909,11 @@ void CrBeamElement2D2N::AddExplicitContribution(
                 aux_nodal_inertia += element_mass_matrix(index + msDimension, j);
             }
 
-            #pragma omp atomic
-            GetGeometry()[i].GetValue(NODAL_MASS) += aux_nodal_mass;
+            AtomicAdd(GetGeometry()[i].GetValue(NODAL_MASS), aux_nodal_mass);
+
 
             array_1d<double, 3>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
-            #pragma omp atomic
-            r_nodal_inertia[msDimension] += std::abs(aux_nodal_inertia);
+            AtomicAdd(r_nodal_inertia[msDimension], std::abs(aux_nodal_inertia));
         }
     }
 
