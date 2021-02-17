@@ -207,7 +207,7 @@ void CalulateLevelsetConsistentNodalGradientProcess::CalculateScalarNodalGradien
             // Atomic addition of the gradient and the weight
             for(unsigned int i_node=0; i_node<number_of_nodes; ++i_node) {
                 auto& r_gradient = r_geometry[i_node].GetValue(PRESSURE_GRADIENT);
-                AtomicAdd(r_gradient, r_N[i_node]*gauss_point_volume*r_grad);
+                AtomicAddVector(r_gradient, r_N[i_node]*gauss_point_volume*r_grad);
 
                 double& r_vol = r_geometry[i_node].GetValue(NODAL_AREA);
                 AtomicAdd(r_vol, r_N[i_node] * gauss_point_volume);

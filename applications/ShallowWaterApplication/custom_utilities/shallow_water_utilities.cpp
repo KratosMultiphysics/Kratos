@@ -320,6 +320,11 @@ double ShallowWaterUtilities::InverseHeight(const double Height, const double Ep
     return std::sqrt(2) * std::max(Height, .0) / std::sqrt(h4 + std::max(h4, epsilon4));
 }
 
+double ShallowWaterUtilities::WetFraction(const double Height, const double Epsilon)
+{
+    return Height * InverseHeight(Height, Epsilon);
+}
+
 void ShallowWaterUtilities::CalculateMassMatrix(Matrix& rMassMatrix, const GeometryType& rGeometry)
 {
     const size_t num_nodes = rGeometry.size();
