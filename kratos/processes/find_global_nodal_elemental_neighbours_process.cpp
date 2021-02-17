@@ -122,11 +122,8 @@ namespace Kratos
                 [](GlobalPointer<Element> const& gp){return gp->Id();}
         );
 
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(mr_model_part.Nodes().size()); ++i)
-        {
-            auto it = mr_model_part.NodesBegin() + i;
-            auto& neighbours = it->GetValue(NEIGHBOUR_ELEMENTS);
+        block_for_each(mr_model_part.Nodes(), [&](Node<3>& rNode){
+            auto& neighbours = rNode.GetValue(NEIGHBOUR_ELEMENTS);
             neighbours.shrink_to_fit();
             std::sort(neighbours.ptr_begin(), neighbours.ptr_end(),
                 [&id_proxy](GlobalPointer<Element> const& gp1, GlobalPointer<Element> const& gp2)
@@ -134,8 +131,7 @@ namespace Kratos
                     return id_proxy.Get(gp1) < id_proxy.Get(gp2);
                 }
             );
-        }
-    
+        });
     }
 
     void FindGlobalNodalElementalNeighboursProcess::ClearNeighbours()
@@ -162,19 +158,15 @@ namespace Kratos
                 [](GlobalPointer<Element>& gp){return gp->Id();}
         );
 
-        #pragma omp parallel for
-        for(int k=0; k<static_cast<int>(rNodes.size()); ++k)
-        {
-            auto in = rNodes.begin() + k;
-            auto& neighbours = in->GetValue(NEIGHBOUR_ELEMENTS);
+        block_for_each(rNodes, [&](Node<3>& rNode){
+            auto& neighbours = rNode.GetValue(NEIGHBOUR_ELEMENTS);
             std::vector<int> tmp(neighbours.size());
             for(unsigned int i=0; i<neighbours.size(); ++i)
             {
                 tmp[i] = result_proxy.Get(neighbours(i));
             }
-            output[in->Id()] = tmp;  
-        }
-
+            output[rNode.Id()] = tmp;
+        });
 
         return output;
     }
