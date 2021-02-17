@@ -3,7 +3,7 @@ import numpy as np
 # TODO: move in an external file and create a generator class, e.g. MonteCarlo.generator.Generate()
 
 '''
-function generatng the random variable
+function generating the random variable
 '''
 def GenerateSample(problem_name):
 
