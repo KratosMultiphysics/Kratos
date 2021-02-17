@@ -169,7 +169,7 @@ namespace Kratos
 
     void PenaltyCouplingCondition::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY;

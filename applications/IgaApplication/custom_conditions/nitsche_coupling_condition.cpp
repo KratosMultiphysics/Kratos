@@ -25,7 +25,7 @@ namespace Kratos
     ///@name Initialize Functions
     ///@{
 
-    void NitscheCouplingCondition::Initialize()
+    void NitscheCouplingCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -335,7 +335,7 @@ namespace Kratos
     void NitscheCouplingCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag)
     {
@@ -688,7 +688,7 @@ namespace Kratos
 
     void NitscheCouplingCondition::CalculateInitialStiffnessMatrix(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY
@@ -909,7 +909,7 @@ namespace Kratos
     void NitscheCouplingCondition::CalculateQMatrix(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -1203,7 +1203,7 @@ namespace Kratos
 
     void NitscheCouplingCondition::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY;
@@ -1740,7 +1740,7 @@ namespace Kratos
 
     void NitscheCouplingCondition::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
 
@@ -1774,7 +1774,7 @@ namespace Kratos
 
     void NitscheCouplingCondition::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
 

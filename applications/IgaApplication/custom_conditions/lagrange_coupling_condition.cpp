@@ -25,7 +25,7 @@ namespace Kratos
     void LagrangeCouplingCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag)
     {
@@ -217,7 +217,7 @@ namespace Kratos
 
     void LagrangeCouplingCondition::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY;
@@ -414,7 +414,7 @@ namespace Kratos
 
     void LagrangeCouplingCondition::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
 
@@ -456,7 +456,7 @@ namespace Kratos
 
     void LagrangeCouplingCondition::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
 
