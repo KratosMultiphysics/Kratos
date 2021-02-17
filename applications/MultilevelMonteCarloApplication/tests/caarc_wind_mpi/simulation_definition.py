@@ -217,7 +217,7 @@ class SimulationScenario(FluidDynamicsAnalysisMC):
                 qoi_list = pickle.loads(pickled_list_qoi.encode("latin1"))
 
         else:
-            print("[SCREENING] computing qoi current index:",self.is_current_index_maximum_index)
+            KratosMultiphysics.Logger.PrintInfo("[SCREENING] computing qoi current index:",self.is_current_index_maximum_index)
             qoi_list = None
         # print("[SCREENING] qoi list:",qoi_list)
         return qoi_list
