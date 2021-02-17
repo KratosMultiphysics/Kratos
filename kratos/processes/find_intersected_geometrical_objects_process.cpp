@@ -20,6 +20,7 @@
 #include "geometries/line_2d_2.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "utilities/intersection_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -186,12 +187,11 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
 
         const auto it_elements_begin = r_elements_array.begin();
 
-        #pragma omp parallel for private(leaves)
-        for (int i = 0; i < static_cast<int>(number_of_elements); i++) {
-            auto it_elem = it_elements_begin + i;
+        IndexPartition<std::size_t>(number_of_elements).for_each(leaves ,[&](std::size_t index, OtreeCellVectorType& local_leaves){
+            auto it_elem = it_elements_begin + index;
             leaves.clear();
-            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_elem.base()), leaves);
-        }
+            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_elem.base()), local_leaves);
+        });
     }
 
     // Iterate over conditions
@@ -201,12 +201,11 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
 
         const auto it_conditions_begin = r_conditions_array.begin();
 
-        #pragma omp parallel for private(leaves)
-        for (int i = 0; i < static_cast<int>(number_of_conditions); i++) {
-            auto it_cond = it_conditions_begin + i;
+        IndexPartition<std::size_t>(number_of_conditions).for_each(leaves, [&](std::size_t index, OtreeCellVectorType& local_leaves){
+            auto it_cond = it_conditions_begin + index;
             leaves.clear();
-            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
-        }
+            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), local_leaves);
+        });
     }
 }
 
