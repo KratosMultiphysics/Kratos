@@ -983,8 +983,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddIncisedElementGradientP
             noalias(gauss_pt_a) += rN(i_node) * (row(rData.Velocity, i_node) - row(rData.MeshVelocity, i_node));
         }
         const double gauss_pt_a_norm = norm_2(gauss_pt_a);
-        const double v_pen = k * (gauss_pt_rho * gauss_pt_a_norm * h + eff_mu*1e5);
-        const double p_pen = k * gauss_pt_rho * gauss_pt_a_norm * h*h / eff_mu/1e5;
+        const double v_pen = k * (gauss_pt_rho * gauss_pt_a_norm * h + eff_mu);
+        const double p_pen = k * gauss_pt_rho * gauss_pt_a_norm * h*h / eff_mu;
         // Add Gauss point contribution
         for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
             for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
@@ -1019,8 +1019,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddIncisedElementGradientP
             noalias(gauss_pt_a) += rN(i_node) * (row(rData.Velocity, i_node) - row(rData.MeshVelocity, i_node));
         }
         const double gauss_pt_a_norm = norm_2(gauss_pt_a);
-        const double v_pen = k * (gauss_pt_rho * gauss_pt_a_norm * h + eff_mu*1e5);
-        const double p_pen = k * gauss_pt_rho * gauss_pt_a_norm * h*h / eff_mu/1e5;
+        const double v_pen = k * (gauss_pt_rho * gauss_pt_a_norm * h + eff_mu);
+        const double p_pen = k * gauss_pt_rho * gauss_pt_a_norm * h*h / eff_mu;
         // Add Gauss point contribution
         for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
             for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
@@ -1090,8 +1090,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddIncisedElementProjected
                 noalias(gauss_pt_a) += rN(i_node) * (row(rData.Velocity, i_node) - row(rData.MeshVelocity, i_node));
             }
             const double gauss_pt_a_norm = norm_2(gauss_pt_a);
-            const double v_pen = k * (gauss_pt_rho * gauss_pt_a_norm * h*h + eff_mu*1e5 * h);
-            const double p_pen = k * gauss_pt_rho * gauss_pt_a_norm * h*h*h / eff_mu/1e5;
+            const double v_pen = k * (gauss_pt_rho * gauss_pt_a_norm * h*h + eff_mu * h);
+            const double p_pen = k * gauss_pt_rho * gauss_pt_a_norm * h*h*h / eff_mu;
             // Add Gauss point contribution
             const BoundedMatrix<double,NumNodes,Dim> DN_edge_dir = prod(rDN, edge_dir);
             const BoundedMatrix<double,NumNodes,NumNodes> aux_LHS = weight * prod(DN_edge_dir, trans(rDN));
@@ -1124,8 +1124,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddIncisedElementProjected
                 noalias(gauss_pt_a) += rN(i_node) * (row(rData.Velocity, i_node) - row(rData.MeshVelocity, i_node));
             }
             const double gauss_pt_a_norm = norm_2(gauss_pt_a);
-            const double v_pen = k * (gauss_pt_rho * gauss_pt_a_norm * h*h + eff_mu*1e5 * h);
-            const double p_pen = k * gauss_pt_rho * gauss_pt_a_norm * h*h*h / eff_mu/1e5;
+            const double v_pen = k * (gauss_pt_rho * gauss_pt_a_norm * h*h + eff_mu * h);
+            const double p_pen = k * gauss_pt_rho * gauss_pt_a_norm * h*h*h / eff_mu;
             // Add Gauss point contribution
             const BoundedMatrix<double,NumNodes,Dim> DN_edge_dir = prod(rDN, edge_dir);
             const BoundedMatrix<double,NumNodes,NumNodes> aux_LHS = weight * prod(DN_edge_dir, trans(rDN));
