@@ -17,6 +17,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "includes/global_variables.h"
 #include "utilities/function_parser_utility.h"
 
 namespace Kratos {
