@@ -14,6 +14,7 @@
 // System includes
 
 // External includes
+#include "muparser/muparser/muParser.h"
 
 // Project includes
 #include "includes/global_variables.h"
@@ -86,6 +87,7 @@ GenericFunctionUtility::GenericFunctionUtility(GenericFunctionUtility const& rOt
 
 GenericFunctionUtility::~GenericFunctionUtility()
 {
+//    delete [] mpParser;
 }
 
 /***********************************************************************************/
@@ -143,7 +145,7 @@ double GenericFunctionUtility::CallFunction(
     mNameSpace["Z"] = Z;
     mNameSpace["t"] = t;
 
-    return mParser.Eval();
+    return mpParser->Eval();
 }
 
 /***********************************************************************************/
@@ -151,6 +153,11 @@ double GenericFunctionUtility::CallFunction(
 
 void GenericFunctionUtility::InitializeParser()
 {
+    // Initialize
+    if (mpParser == nullptr) {
+        mpParser = new mu::Parser;
+    }
+
     // Defining table
     double& x = mNameSpace["x"];
     double& y = mNameSpace["y"];
@@ -161,16 +168,16 @@ void GenericFunctionUtility::InitializeParser()
     double& Z = mNameSpace["Z"];
     double& pi = mNameSpace["pi"];
 
-    mParser.DefineVar("x", &x);
-    mParser.DefineVar("y", &y);
-    mParser.DefineVar("z", &z);
-    mParser.DefineVar("t", &t);
-    mParser.DefineVar("X", &X);
-    mParser.DefineVar("Y", &Y);
-    mParser.DefineVar("Z", &Z);
-    mParser.DefineVar("pi", &pi);
+    mpParser->DefineVar("x", &x);
+    mpParser->DefineVar("y", &y);
+    mpParser->DefineVar("z", &z);
+    mpParser->DefineVar("t", &t);
+    mpParser->DefineVar("X", &X);
+    mpParser->DefineVar("Y", &Y);
+    mpParser->DefineVar("Z", &Z);
+    mpParser->DefineVar("pi", &pi);
 
-    mParser.SetExpr(mFunctionBody);
+    mpParser->SetExpr(mFunctionBody);
 }
 
 } /// namespace Kratos

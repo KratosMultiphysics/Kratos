@@ -18,11 +18,16 @@
 #include <unordered_map>
 
 // External includes
-#include "muparser/muparser/muParser.h"
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+
+// Forward declaration to reduce compilation time
+namespace mu
+{
+    class Parser;
+}
 
 namespace Kratos
 {
@@ -183,7 +188,7 @@ private:
     ///@{
 
     std::unordered_map<std::string, double>  mNameSpace;   /// The variables considered on the function
-    mu::Parser mParser;                                    /// The function parser
+    mu::Parser* mpParser = nullptr;                        /// The function parser
     std::string mFunctionBody;                             /// The function body
 
     bool mDependsOnSpace = true;                 /// If it depends on space
