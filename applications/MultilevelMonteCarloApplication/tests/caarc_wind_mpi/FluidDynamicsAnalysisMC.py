@@ -48,7 +48,7 @@ class FluidDynamicsAnalysisMC(FluidDynamicsAnalysis):
         burnin_time = self.project_parameters["problem_data"]["burnin_time"].GetDouble()
         drag_force_x_post_burnin = [self.drag_force_vector[i,1] for i in range (1,len(self.drag_force_vector[:,0])) if (self.drag_force_vector[i-1,0] >= burnin_time)] # not even check time step 0
         self.mean_drag_force_x = np.mean(drag_force_x_post_burnin)
-        print("[INFO] Final averaged drag value", self.mean_drag_force_x)
+        KratosMultiphysics.Logger.PrintInfo("[INFO] Final averaged drag value", self.mean_drag_force_x)
 
 if __name__ == "__main__":
 
