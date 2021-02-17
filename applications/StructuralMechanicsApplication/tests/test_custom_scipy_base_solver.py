@@ -140,7 +140,7 @@ def SetupSystem(model_part):
     props[StructuralMechanicsApplication.TORSIONAL_INERTIA] = 0.00001
     props[StructuralMechanicsApplication.I22] = 0.00002
     props[StructuralMechanicsApplication.I33] = 0.00001
-    props[StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX] = True
+    props[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = False
 
     for i_elem, connectivity in enumerate(element_connectivities):
         model_part.CreateNewElement("CrLinearBeamElement3D2N", i_elem+1, connectivity, props)

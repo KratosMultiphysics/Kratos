@@ -313,7 +313,6 @@ protected:
 
     struct ElementData
     {
-        double dt_inv;
         double stab_factor;
         double shock_stab_factor;
         double rel_dry_height;
