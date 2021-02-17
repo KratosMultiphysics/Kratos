@@ -46,6 +46,7 @@ public:
 
     typedef NurbsSurfaceGeometry<3, TSurfaceContainerPointType> NurbsSurfaceType;
     typedef NurbsCurveGeometry<2, TCurveContainerPointType> NurbsCurveType;
+    typename typedef NurbsCurveType::Pointer NurbsCurvePointerType;
 
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::PointsArrayType PointsArrayType;
@@ -175,6 +176,22 @@ public:
     std::vector<NurbsInterval> KnotSpanIntervals() const
     {
         return mpNurbsCurve->KnotSpanIntervals();
+    }
+
+    ///@}
+    ///@name Set/ Get functions
+    ///@{
+
+    /// Returns the NurbsCurve::Pointer of this CurveOnSurface.
+    NurbsCurvePointerType pGetCurve()
+    {
+        return mpNurbsCurve;
+    }
+
+    /// Returns the const NurbsCurveOnSurface::Pointer of this brep.
+    const NurbsCurvePointerType pGetCurve() const
+    {
+        return mpNurbsCurve;
     }
 
     ///@}
