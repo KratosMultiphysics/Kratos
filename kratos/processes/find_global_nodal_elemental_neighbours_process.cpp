@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/find_global_nodal_elemental_neighbours_process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -30,12 +31,7 @@ namespace Kratos
 
         //first of all the neighbour nodes and elements array are initialized to the guessed size
         //and empties the old entries
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rNodes.size()); ++i)
-        {
-            auto in = rNodes.begin() + i;
-            in->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector< Element >());
-        }
+        VariableUtils().SetVariable(NEIGHBOUR_ELEMENTS, GlobalPointersVector< Element >(), rNodes);
 
         //compute the complete list of local neighbours
         for(auto& relem : mr_model_part.Elements())
@@ -146,13 +142,7 @@ namespace Kratos
     {
         NodesContainerType& rNodes = mr_model_part.Nodes();
 
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rNodes.size()); ++i)
-        {
-            auto in = rNodes.begin() + i;
-            auto& rN = in->GetValue(NEIGHBOUR_ELEMENTS);
-            rN = GlobalPointersVector< Element >();
-        }
+        VariableUtils().SetVariable(NEIGHBOUR_ELEMENTS, GlobalPointersVector< Element >(), rNodes);
     }
 
     std::unordered_map<int, std::vector<int> > FindGlobalNodalElementalNeighboursProcess::GetNeighbourIds(
