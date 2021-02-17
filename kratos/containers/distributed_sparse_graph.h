@@ -65,7 +65,7 @@ namespace Kratos
  * IMPORTANT NOTE: it is BY DESIGN NOT threadsafe! (a graph should be computed in each thread and then merged)
 */
 template< class TIndexType=std::size_t >
-class DistributedSparseGraph 
+class DistributedSparseGraph
 {
 public:
     ///@name Type Definitions
@@ -90,7 +90,7 @@ public:
       mLocalGraph(LocalSize)
     {
         mNonLocalGraphs.resize(mrComm.Size(),false);
-        mNonLocalLocks.resize(mrComm.Size());
+        mNonLocalLocks = std::vector<LockObject>(mrComm.Size());
 
         mpRowNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(mrComm,LocalSize);
     }
@@ -109,7 +109,7 @@ public:
         return *mpRowNumbering;
     }
 
-    inline IndexType Size() const{ 
+    inline IndexType Size() const{
         return mpRowNumbering->Size();
     }
 
@@ -250,7 +250,7 @@ public:
             if(color >= 0) //-1 would imply no communication
             {
                 //TODO: this can be made nonblocking
-                
+
                 //using serialization
                 //const auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
                 // for(auto row_it=recv_graph.begin(); row_it!=recv_graph.end(); ++row_it)

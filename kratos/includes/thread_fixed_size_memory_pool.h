@@ -61,9 +61,6 @@ namespace Kratos
 	  /// Copy constructor is deleted.
 	  ThreadFixedSizeMemoryPool(ThreadFixedSizeMemoryPool const& rOther) = delete;
 
-	  /// Move constructor to be used in STL containers.
-	  ThreadFixedSizeMemoryPool(ThreadFixedSizeMemoryPool&& rOther) = default;
-
 	  /// The constructor to be called
 	  ThreadFixedSizeMemoryPool(std::size_t BlockSizeInBytes, SizeType ChunkSize, std::size_t ThreadNumber)
 		  : LockObject()
