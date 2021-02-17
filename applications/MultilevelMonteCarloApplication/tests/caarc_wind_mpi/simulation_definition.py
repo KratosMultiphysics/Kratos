@@ -154,7 +154,7 @@ class SimulationScenario(FluidDynamicsAnalysisMC):
 
         # run if current index is index of interest
         if (self.is_current_index_maximum_index is True):
-            print("[SCREENING] computing qoi current index:",self.is_current_index_maximum_index)
+            KratosMultiphysics.Logger.PrintInfo("[SCREENING] computing qoi current index:",self.is_current_index_maximum_index)
             qoi_list = []
 
             # append time average drag force
