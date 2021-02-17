@@ -19,6 +19,7 @@
 
 // Project includes
 #include "processes/find_nodal_h_process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -34,11 +35,14 @@ void FindNodalHProcess<THistorical>::Execute()
     }
 
     // Initialize NODAL_H values
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-        auto it_node = mrModelPart.NodesBegin() + i;
-        SetInitialValue(it_node);
-    }
+
+    //Using Parallel Utilities
+    IndexPartition<std::size_t>(mrModelPart.Nodes().size()).for_each([&](std::size_t index){
+        SetInitialValue(mrModelPart.NodesBegin() + index);
+    });
+
+    //Or Using Variable_utils
+    //VariableUtils().SetVariable(NODAL_H, std::numeric_limits<double>::max(), mrModelPart.Nodes());
 
     // Calculate the NODAL_H values
     for(IndexType i=0; i < mrModelPart.Elements().size(); ++i) {
