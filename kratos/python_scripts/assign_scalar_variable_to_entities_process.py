@@ -116,7 +116,7 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
                 self.model_part.Set(KratosMultiphysics.MARKER, True) # Me mark the model part, so in case any other process is outside the interval it will not clear the conditions
         elif self.model_part.IsNot(KratosMultiphysics.MARKER):
             for process in self.aux_processes:
-                process.ClearValueAssign()
+                process.Clear()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
