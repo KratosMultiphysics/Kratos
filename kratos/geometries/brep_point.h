@@ -221,7 +221,6 @@ public:
 
         mpBackgroundGeometry->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives, integration_point);
-        rResultGeometries(0).SetValue(PenaltyPointCoupling);
     }
 
     ///@}
