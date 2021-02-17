@@ -29,6 +29,7 @@ namespace Kratos {
  * 1) DYNAMIC_VISCOSITY
  * 2) YIELD_SHEAR
  * 3) ADAPTIVE_EXPONENT
+ * 4) FLOW_INDEX
  */
 class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HerschelBulkley2DLaw : public PfemFluidConstitutiveLaw {
    public:
@@ -134,6 +135,9 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HerschelBulkley2DLaw : public 
 
     /// Get the effective dynamic viscosity for the fluid.
     double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+
+    /// Get the flow index for the fluid.
+    double GetFlowIndex(ConstitutiveLaw::Parameters& rParameters) const;
 
     ///@}
 

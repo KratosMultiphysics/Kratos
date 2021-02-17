@@ -26,7 +26,6 @@
 
 namespace Kratos
 {
-//HASTA AQUI DE MOMENTO!!
     //********************************CONSTRUCTOR*********************************
     //****************************************************************************
 
@@ -64,13 +63,13 @@ namespace Kratos
         const double yield_shear = this->GetEffectiveYieldShear(rValues);
         const double adaptive_exponent = r_properties[ADAPTIVE_EXPONENT];
         double effective_dynamic_viscosity;
+        const double flow_index = this->GetFlowIndex(rValues);
 
         const double equivalent_strain_rate =
             std::sqrt(2.0 * r_strain_vector[0] * r_strain_vector[0] + 2.0 * r_strain_vector[1] * r_strain_vector[1] +
                       4.0 * r_strain_vector[2] * r_strain_vector[2]);
         
-        // KRATOS_WATCH("hola que tal")
-        // KRATOS_WATCH(equivalent_strain_rate)
+        KRATOS_WATCH("Hola que tal")
 
         // Ensuring that the case of equivalent_strain_rate = 0 is not problematic.
         const double tolerance = 1e-8;
@@ -80,8 +79,10 @@ namespace Kratos
         }
         else
         {
+            // Se está modificando está parte!! Se añade "equivalent_strain_rate"
+
             double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
-            effective_dynamic_viscosity = dynamic_viscosity + regularization * yield_shear / equivalent_strain_rate;
+            effective_dynamic_viscosity = dynamic_viscosity * pow(equivalent_strain_rate,flow_index - 1) + regularization * yield_shear / equivalent_strain_rate;
         }
 
         const double strain_trace = r_strain_vector[0] + r_strain_vector[1];
@@ -110,6 +111,7 @@ namespace Kratos
         KRATOS_CHECK_VARIABLE_KEY(YIELD_SHEAR);
         KRATOS_CHECK_VARIABLE_KEY(ADAPTIVE_EXPONENT);
         KRATOS_CHECK_VARIABLE_KEY(BULK_MODULUS);
+        KRATOS_CHECK_VARIABLE_KEY(FLOW_INDEX);
 
         if (rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
         {
@@ -135,6 +137,12 @@ namespace Kratos
                          << rMaterialProperties[BULK_MODULUS] << std::endl;
         }
 
+        if (rMaterialProperties[FLOW_INDEX] <= 0.0)
+        {
+            KRATOS_ERROR << "Incorrect or missing FLOW_INDEX provided in process info for HerschelBulkley2DLaw: "
+                         << rMaterialProperties[FLOW_INDEX] << std::endl;
+        }
+
         return 0;
     }
 
@@ -156,6 +164,11 @@ namespace Kratos
     double HerschelBulkley2DLaw::GetEffectiveYieldShear(ConstitutiveLaw::Parameters &rParameters) const
     {
         return rParameters.GetMaterialProperties()[YIELD_SHEAR];
+    }
+
+    double HerschelBulkley2DLaw::GetFlowIndex(ConstitutiveLaw::Parameters &rParameters) const
+    {
+        return rParameters.GetMaterialProperties()[FLOW_INDEX];
     }
 
     void HerschelBulkley2DLaw::save(Serializer &rSerializer) const
