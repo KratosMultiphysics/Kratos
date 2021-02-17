@@ -462,7 +462,7 @@ private:
             << "Skin model part solution step data missing variable: " << rVariable << std::endl;
 
         // Initialize embedded variable value
-        VariableUtils().SetNonHistoricalVariable(rEmbeddedVariable, rEmbeddedVariable.Zero(), mrVolumePart.Elements());
+        VariableUtils().SetNonHistoricalVariableToZero(rEmbeddedVariable, mrVolumePart.Elements());
 
         // Compute the embedded variable value for each element
         #pragma omp parallel for schedule(dynamic)
