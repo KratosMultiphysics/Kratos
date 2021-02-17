@@ -125,6 +125,11 @@ private:
     ///@{
 
     /**
+     * @brief This method returns the tessellation of the boundary curves
+     */
+    void ComputeBoundaryTessellation();
+
+    /**
      * @brief This method returns the triangulation of a NURBS surface
      */
     void ComputeTriangulation();

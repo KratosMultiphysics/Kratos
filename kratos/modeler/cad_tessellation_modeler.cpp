@@ -55,14 +55,13 @@ namespace Kratos
                     array_1d<double,3> local_coordinate = ZeroVector(3);
                     local_coordinate[0] = tessellation.at(i).first;
 
-                    for (IndeyType j = 0; j < 2; ++j)
+                    for (IndexType j = 0; j < 2; ++j)
                     {
                         boundary_loop_uv[point_id][j] = p_curve_on_surface_geom->pGetCurve()->GlobalCoordinates(result, local_coordinate)[j];
                     }
                     point_id += 1;
                 }
             }
-
         }
 
         // initiliazing the i/o containers
@@ -83,7 +82,6 @@ namespace Kratos
         point_id = 0;
         IndexType point_marker_id = 0;
         IndexType point_marker = 0;
-
 
         for (IndexType node_i = 0; node_i < boundary_loop_uv.size(); ++node_i)
         {
@@ -156,7 +154,6 @@ namespace Kratos
 
         Properties::Pointer p_properties(new Properties(0));
 
-
         // create elements in skin_model_part
         for (int element_i = 0; element_i < triangulation_uv.size(); ++element_i)
         {
@@ -166,16 +163,24 @@ namespace Kratos
         }
 
     }
+
+
+    /**
+     * @brief This method returns the tessellation of the boundary curves
+     */
+    void CadTessellationModeler::ComputeBoundaryTessellation()
+    {
+
+    }
+
     /**
      * @brief This method returns the triangulation of a NURBS surface
      */
     void CadTessellationModeler::ComputeTriangulation()
     {
 
-
-
-
     }
+
 
     /**
      * @brief This method initializes the necessary data structure for triangle
