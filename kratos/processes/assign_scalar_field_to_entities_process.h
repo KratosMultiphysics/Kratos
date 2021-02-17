@@ -119,7 +119,7 @@ public:
     /**
      * @brief This method clears the assignation of the conditions
      */
-    void ClearValueAssign();
+    void Clear() override;
 
 
     /**
