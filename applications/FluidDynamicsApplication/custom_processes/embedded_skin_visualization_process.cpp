@@ -94,17 +94,6 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
         r_visualization_variables_list.Add(r_var);
     }
 
-    // Set the origin model part as temporary communicator
-    // This is required to perform all the IsDistributed checks that appear before creating the visualization mesh
-    // Note that these checks might be required outside this process (i.e. in the creation of the visualization mesh output)
-    // This will be updated by a proper one by the ParallelFillCommunicator after the creation of the visualization entities
-    r_visualization_model_part.SetCommunicator(r_origin_model_part.pGetCommunicator());
-
-    // If MPI, add the PARTITION_INDEX variable to the visualization model part variables
-    if (r_visualization_model_part.IsDistributed()) {
-        r_visualization_variables_list.Add(PARTITION_INDEX);
-    }
-
     return r_visualization_model_part;
 }
 
@@ -549,9 +538,6 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
     // Creates the visualization model part geometrical entities (elements and conditions)
     this->CreateVisualizationGeometries();
 
-    // If MPI, this creates the communication plan among processes
-    ParallelEnvironment::CreateFillCommunicator(mrVisualizationModelPart)->Execute();
-
     // Initialize (allocate) non-historical variables
     InitializeNonHistoricalVariables<double>(mVisualizationNonHistoricalScalarVariables);
     InitializeNonHistoricalVariables<array_1d<double,3>>(mVisualizationNonHistoricalVectorVariables);
@@ -567,7 +553,6 @@ void EmbeddedSkinVisualizationProcess::CopyOriginNodes()
     for (int i_node = 0; i_node < n_nodes; ++i_node){
         auto it_node = orig_nodes_begin + i_node;
         auto p_vis_node = mrVisualizationModelPart.CreateNewNode(it_node->Id(), *it_node);
-        SetPartitionIndexFromOriginNode<IsDistributed>(*it_node, *p_vis_node);
     }
 }
 
@@ -697,7 +682,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
                         Node<3>::Pointer p_new_node = mrVisualizationModelPart.CreateNewNode(temp_node_id, point_coords[0], point_coords[1], point_coords[2]);
                         sub_geom_nodes_array.push_back(p_new_node);
                         new_nodes_vect.push_back(p_new_node);
-                        set_partition_index_func(my_pyd, *p_new_node);
+                        //set_partition_index_func(my_pyd, *p_new_node);
 
                         // Add the new node info to the hash map
                         const Node<3>::Pointer p_node_i = p_geometry->operator()(node_i);
