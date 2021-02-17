@@ -64,9 +64,7 @@ namespace Kratos
 		const double char_length = this->CalculateCharacteristicLength();
 
 		// Initialize the nodal distance values to a maximum positive value
-		block_for_each(ModelPart1.Nodes(), char_length, [&](Node<3>& rNode, const double r_char_length){
-			rNode.GetSolutionStepValue(DISTANCE) = r_char_length;
-		});
+		VariableUtils().SetVariable(DISTANCE, char_length, ModelPart1.Nodes());
 	}
 
 	template<std::size_t TDim>
