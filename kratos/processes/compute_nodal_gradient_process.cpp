@@ -96,7 +96,7 @@ void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndV
     TLS.detJ0 = detJ0;
 
     // Iterate over the elements
-    block_for_each(mrModelPart.Elements(), TLS, [&](Element& rElem, tls_type rTLS){
+    block_for_each(mrModelPart.Elements(), TLS, [&](Element& rElem, tls_type& rTLS){
         auto& r_geometry = rElem.GetGeometry();
 
         // Current geometry information
