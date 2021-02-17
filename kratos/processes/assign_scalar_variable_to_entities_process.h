@@ -23,7 +23,6 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-#include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos
