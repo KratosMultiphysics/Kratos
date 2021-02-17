@@ -53,31 +53,39 @@ void MassConservationUtility::ValidateInputAndInitialize(
  }
 
 /// Initialization function to find the initial volumes and print first lines in the log-file
-std::string MassConservationUtility::Initialize(){
-    double neg_vol = 0.0;
-    double inter_area = 0.0;
+/// NOTE THAT WE DO THIS IN THE CalculateInitialVolume TO ENSURE THAT THE LEVEL SET IS ALREADY SET.
+/// IT MIGHT HAPPEN THAT THE LEVEL SET IS NOT INITIALIZED AT THIS POINT
+// std::string MassConservationUtility::Initialize(){
+//     double neg_vol = 0.0;
+//     double inter_area = 0.0;
 
-    ComputeVolumesAndInterface(neg_vol, inter_area );
+//     // ComputeVolumesAndInterface(neg_vol, inter_area );
 
-    this->mInitialNegativeVolume = neg_vol;
-    this->mTheoreticalNegativeVolume = neg_vol;
-
-    std::string output_line =   "------ Initial values ----------------- \n";
-    output_line +=              "  negative volume (water) = " + std::to_string(this->mInitialNegativeVolume) + "\n";
-    output_line +=              "  fluid interface (area)  = " + std::to_string(inter_area) + "\n\n";
-    output_line +=              "------ Time step values --------------- \n";
-    output_line +=              "sim_time \t\twater_vol \t\tair_vol \t\twater_err \t\tnet_inf \t\t";
-    output_line +=              "net_outf \t\tint_area \n";
-
-    return output_line;
-}
+//     // mInitialNegativeVolume = neg_vol;
+//     std::string output_line =   "------ Initial values ----------------- \n";
+//     output_line +=              "  negative volume (water) = " + std::to_string(this->mInitialNegativeVolume) + "\n";
+//     output_line +=              "------ Time step values --------------- \n";
+//     output_line +=              " negative volume simulation (water) \t\terror_relative \t\tvolumen de agua teorico \t\tvolumen de agua teorico dentro del tanque \t\tincremento de volumen teorico \t\ttime  \n";
+//     return output_line;
+// }
 // Esto calcularlo antes de la simulación del paso de tiempo que toca 
-void MassConservationUtility::CalculateWaterVolume()
+double MassConservationUtility::CalculateWaterVolume()
 {
     double neg_vol=0.0;
     double inter_area=0.0;
     ComputeVolumesAndInterface(neg_vol, inter_area);
-    mTheoreticalNegativeVolumeInEachTimeStep = neg_vol;
+    return neg_vol;
+}
+
+std::string MassConservationUtility::CalculateInitialVolume()
+{
+    mInitialNegativeVolume = CalculateWaterVolume();
+
+    std::string output_line =   "------ Initial values ----------------- \n";
+    output_line +=              "  negative volume (water) = " + std::to_string(mInitialNegativeVolume) + "\n";
+    output_line +=              "------ Time step values --------------- \n";
+    output_line +=              " negative volume simulation (water) \t\terror_relative \t\tvolumen de agua teorico \t\tvolumen de agua teorico dentro del tanque \t\tincremento de volumen teorico \t\ttime  \n";
+    return output_line;
 }
 
 std::string MassConservationUtility::ComputeBalancedVolume(){
@@ -89,53 +97,129 @@ std::string MassConservationUtility::ComputeBalancedVolume(){
     double net_inflow_inlet = ComputeFlowOverBoundary(INLET);
     double net_inflow_outlet = ComputeFlowOverBoundary(OUTLET);
     mInterfaceArea = inter_area;
-
+    const double current_time = mrModelPart.GetProcessInfo()[TIME];
     const double current_dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
     mQNet0 = net_inflow_inlet + net_inflow_outlet;
     mDeltaTheoreticalNegativeVolume += current_dt * mQNet0;
-    
-    KRATOS_WATCH(mTheoreticalNegativeVolumeInEachTimeStep)
+    KRATOS_WATCH(net_inflow_inlet)
+    KRATOS_WATCH(net_inflow_outlet)
+    KRATOS_WATCH(mQNet0)
+    KRATOS_WATCH(mInitialNegativeVolume)
+    KRATOS_WATCH(mDeltaTheoreticalNegativeVolume)
     std::cout << "HOLA!!!" << std::endl;
 
-    mTheoreticalNegativeVolume= mTheoreticalNegativeVolumeInEachTimeStep + mDeltaTheoreticalNegativeVolume;
+    mTheoreticalNegativeVolume= mInitialNegativeVolume + mDeltaTheoreticalNegativeVolume;
 
     mVolumeError = neg_vol - mTheoreticalNegativeVolume;
+
+    KRATOS_WATCH(neg_vol)
+    KRATOS_WATCH(mTheoreticalNegativeVolume)
+    KRATOS_WATCH(mVolumeError)
 
     KRATOS_INFO_IF("MassConservationUtility", mEchoLevel > 0) << "Theoretical Negative Volume: " << mTheoreticalNegativeVolume << std::endl;
     KRATOS_INFO_IF("MassConservationUtility", mEchoLevel > 0) << "Volume error: " << mVolumeError << std::endl;
 
     // assembly of the log message
-    std::string output_line_timestep =  std::to_string(neg_vol) + "\t\t";
-    output_line_timestep +=             std::to_string(mVolumeError) + "\t\t";
-    output_line_timestep +=             std::to_string(net_inflow_inlet) + "\t\t";
-    output_line_timestep +=             std::to_string(net_inflow_outlet) + "\t\t";
-    output_line_timestep +=             std::to_string(inter_area) + "\n";
+    std::string output_line_timestep =   std::to_string(neg_vol) + "\t\t";
+    output_line_timestep +=            std::to_string(mVolumeError) + "\t\t";
+    output_line_timestep +=              std::to_string( mTheoreticalNegativeVolume) + "\t\t";
+    output_line_timestep +=              std::to_string(mInitialNegativeVolume) + "\t\t";
+    output_line_timestep +=             std::to_string(mDeltaTheoreticalNegativeVolume) + "\t\t";
+    output_line_timestep +=             std::to_string(current_time) + "\n";
+
 
     return output_line_timestep;
 }
 
 
 
-double MassConservationUtility::ComputeTimeStepForConvection(){
+// double MassConservationUtility::ComputeTimeStepForConvectionSign(double& rOrthogonalFlow){
+//     const double tol = 1e-14;
+//     double time_step_for_convection = 0.0; 
+//     double corrected_time_step= 0.0; 
+//     const double current_dt = mrModelPart.GetProcessInfo()[TIME];
+//     if ( mVolumeError < 0.0 ){
+//         // case: water volume was lost by mistake
+//         mFluidVolumeConservation = FluidVolumeConservation::VOLUME_LOST;
+//         double water_outflow_over_boundary = rOrthogonalFlow;
+//         KRATOS_WATCH(mVolumeError)
+//         KRATOS_WATCH(water_outflow_over_boundary)
+//         // checking if flow is sufficient (avoid division by 0)
+//         if ( std::abs(water_outflow_over_boundary) > tol ){
+//             time_step_for_convection = -mVolumeError / water_outflow_over_boundary;
+//              KRATOS_WATCH(time_step_for_convection )
+//             corrected_time_step= current_dt + std::abs(time_step_for_convection);
+            
+
+//         }
+//     }
+//     else if ( mVolumeError > 0.0) {
+//         // case: water volume was gained by mistake
+//         mFluidVolumeConservation = FluidVolumeConservation::VOLUME_GAINED;
+//         double water_inflow_over_boundary = rOrthogonalFlow;
+//         KRATOS_WATCH(mVolumeError)
+//         KRATOS_WATCH(water_inflow_over_boundary)
+//         // checking if flow is sufficient (avoid division by 0)
+//         if ( std::abs(water_inflow_over_boundary) > tol ){
+//             time_step_for_convection =- mVolumeError / water_inflow_over_boundary;
+//             KRATOS_WATCH(time_step_for_convection )
+//             corrected_time_step= current_dt - std::abs(time_step_for_convection);
+
+//         }
+//     }
+//     else {
+//         // case: Exactly the correct volume of water is present
+//         mFluidVolumeConservation = FluidVolumeConservation::EXACT_VOLUME;
+//     }
+//     KRATOS_WARNING_IF("MassConservationUtility", time_step_for_convection < 0.0) << "A time step smaller than 0.0 was computed." << std::endl;
+
+//     return time_step_for_convection;
+// }
+
+
+
+
+
+
+
+
+
+
+double MassConservationUtility::ComputeTimeStepForConvection(double& rOrthogonalFlow){
     const double tol = 1e-14;
-    double time_step_for_convection = 0.0;
+    double time_step_for_convection = 0.0; 
+    double corrected_time_step= 0.0; 
+
+    const double current_dt = mrModelPart.GetProcessInfo()[TIME];
+    const double limiter_dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
     if ( mVolumeError < 0.0 ){
         // case: water volume was lost by mistake
         mFluidVolumeConservation = FluidVolumeConservation::VOLUME_LOST;
-        double water_outflow_over_boundary = OrthogonalFlowIntoAir();
+        double water_outflow_over_boundary = rOrthogonalFlow;
+        KRATOS_WATCH(mVolumeError)
+        KRATOS_WATCH(water_outflow_over_boundary)
         // checking if flow is sufficient (avoid division by 0)
         if ( std::abs(water_outflow_over_boundary) > tol ){
             time_step_for_convection = -mVolumeError / water_outflow_over_boundary;
+            KRATOS_WATCH(time_step_for_convection)
+            corrected_time_step= current_dt + std::abs(time_step_for_convection);
+            
+
         }
     }
     else if ( mVolumeError > 0.0) {
         // case: water volume was gained by mistake
         mFluidVolumeConservation = FluidVolumeConservation::VOLUME_GAINED;
-        double water_inflow_over_boundary = -OrthogonalFlowIntoAir();
+        double water_inflow_over_boundary = rOrthogonalFlow;
+        KRATOS_WATCH(mVolumeError)
+        KRATOS_WATCH(water_inflow_over_boundary)
         // checking if flow is sufficient (avoid division by 0)
         if ( std::abs(water_inflow_over_boundary) > tol ){
-            time_step_for_convection = mVolumeError / water_inflow_over_boundary;
+            time_step_for_convection =- mVolumeError / water_inflow_over_boundary;
+            KRATOS_WATCH(time_step_for_convection )
+            corrected_time_step= current_dt + std::abs(time_step_for_convection);
+
         }
     }
     else {
@@ -143,9 +227,21 @@ double MassConservationUtility::ComputeTimeStepForConvection(){
         mFluidVolumeConservation = FluidVolumeConservation::EXACT_VOLUME;
     }
     KRATOS_WARNING_IF("MassConservationUtility", time_step_for_convection < 0.0) << "A time step smaller than 0.0 was computed." << std::endl;
+   
 
-    return time_step_for_convection;
+    if (std::abs(time_step_for_convection) > limiter_dt){
+        time_step_for_convection=0.7*limiter_dt;
+    
+    }
+    
+    KRATOS_WATCH(limiter_dt)
+    KRATOS_WATCH(time_step_for_convection )
+    return time_step_for_convection ;
 }
+
+
+
+
 
 
 
@@ -168,7 +264,9 @@ void MassConservationUtility::ReCheckTheMassConservation(){
     ComputeVolumesAndInterface(neg_vol, inter_area );
 
     mVolumeError = neg_vol - mTheoreticalNegativeVolume;
+
     mInterfaceArea = inter_area;
+    KRATOS_INFO_IF("MassConservationUtility", mEchoLevel > 0) << "WATERVOLUME: " << neg_vol<< std::endl;
     KRATOS_INFO_IF("MassConservationUtility", mEchoLevel > 0) << "Volume error after correction: " << mVolumeError << std::endl;
 }
 
@@ -557,5 +655,19 @@ double MassConservationUtility::GetTheoreticalVolume()
     return mTheoreticalNegativeVolume;
 }
 
+
+// double MassConservationUtility::GetDistanceDelta()
+// {   
+//      const int number_nodes = mrModelPart.NumberOfNodes();
+//      for (int i = 0; i < number_nodes; ++i) {
+//          auto inode = mrModelPart.NodesBegin() + i;
+//          inode->GetSolutionStepValue(DISTANCE,1);
+//          ;
+//          inode->GetSolutionStepValue(AUX_DISTANCE)= inode->GetSolutionStepValue(DISTANCE)-inode->GetSolutionStepValue(DISTANCE,1)
+         
+//          mDeltaDistance= inode->GetSolutionStepValue(AUX_DISTANCE)
+//         }
+//     return mDeltaDistance
+//     }
 
 };  // namespace Kratos.

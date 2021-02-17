@@ -176,7 +176,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_< MassConservationUtility > (m,"MassConservationUtility")
         .def(py::init< ModelPart&, Parameters >())
-        .def("Initialize", &MassConservationUtility::Initialize)
         .def("ComputeBalancedVolume", &MassConservationUtility::ComputeBalancedVolume)
         .def("GetVolumeError", &MassConservationUtility::GetVolumeError)
         .def("OrthogonalFlowIntoAir", &MassConservationUtility::OrthogonalFlowIntoAir)
@@ -185,6 +184,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeTimeStepForConvection", &MassConservationUtility::ComputeTimeStepForConvection)
         .def("RevertVelocityDirection", &MassConservationUtility::RevertVelocityDirection)
         .def("CalculateWaterVolume", &MassConservationUtility::CalculateWaterVolume)
+        .def("CalculateInitialVolume", &MassConservationUtility::CalculateInitialVolume)
+        // .def("ComputeTimeStepForConvectionSign", &MassConservationUtility::ComputeTimeStepForConvectionSign)
+
+       
         ;
 
 

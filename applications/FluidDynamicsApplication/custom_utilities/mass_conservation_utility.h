@@ -119,9 +119,11 @@ public:
      *
      * @return std::string Output message (can appear in log-file)
      */
-    std::string Initialize();
+    // std::string Initialize();
     
-    void CalculateWaterVolume();
+    std::string CalculateInitialVolume();
+
+    double CalculateWaterVolume();
 
     /**
      * @brief Execution of the utility in each time step (global conservation)
@@ -135,8 +137,13 @@ public:
      * @brief Function to compute the time step for the forward convection of the current distance field to find the auxiliary distance field
      *
      * @return double Time step
+
+     ComputeTimeStepForConvection(const Variable<double>& rOrthogonalFlow){
      */
-    double ComputeTimeStepForConvection();
+    double ComputeTimeStepForConvection(double& rOrthogonalFlow);
+
+
+    // double  ComputeTimeStepForConvectionSign(double& rOrthogonalFlow);
     /**
      * @brief Function to re-evaluate the mass conservation status after the local correction and before the global correction
      *
@@ -221,7 +228,7 @@ private:
     int mEchoLevel;
 
     // Inital volume with negative distance field ("water" volume)
-    double mInitialNegativeVolume = -1.0;
+    double mInitialNegativeVolume;
 
     // Balance parameter resulting from an integration of the net inflow into the domain over time
     // The initial value is the "mInitialNegativeVolume" meaning "water" is considered here
@@ -237,8 +244,7 @@ private:
 
     double mAverageEdge;
 
-    double mTheoreticalNegativeVolumeInEachTimeStep = 0.0;
-    double mDeltaTheoreticalNegativeVolume = -1.0;
+    double mDeltaTheoreticalNegativeVolume = 0.0;
 
     ///@}
     ///@name Protected Operators
