@@ -44,7 +44,7 @@ class SimulationScenario(FluidDynamicsAnalysisMC):
         super().ApplyBoundaryConditions()
         if (self.IsVelocityFieldPerturbed is False) and (self.project_parameters["problem_data"]["perturbation"]["type"].GetString() == "uncorrelated"):
             np.random.seed(self.sample[0])
-            print("[SCREENING] perturbing the domain:","Yes")
+            KratosMultiphysics.Logger.PrintInfo("[SCREENING] perturbing the domain:","Yes")
             self.main_model_part = self.model.GetModelPart("FluidModelPart")
             # load velocity field
             with open("average_velocity_field_CAARC_3d_combinedPressureVelocity_312k_690.0.dat") as dat_file:
