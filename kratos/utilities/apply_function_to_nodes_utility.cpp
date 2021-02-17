@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "utilities/apply_function_to_nodes_utility.h"
 
 namespace Kratos
@@ -25,24 +26,26 @@ void ApplyFunctionToNodesUtility::ApplyFunction(
     const Variable<double>& rVariable,
     const double t
     )
-{
-    // The first node iterator
-    const auto it_node_begin = mrNodes.begin();
+{    
+    // Get function
+    auto& r_function = *mpFunction;
 
-    if(!mpFunction[0]->UseLocalSystem()) {
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(mrNodes.size()); k++) {
-            auto it_node = it_node_begin + k;
-            const double value = mpFunction[OpenMPUtils::ThisThread()]->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
-            it_node->FastGetSolutionStepValue(rVariable) = value;
-        }
+    if(!mpFunction->UseLocalSystem()) {
+        block_for_each(
+            mrNodes,r_function,
+            [&rVariable,&t](Node<3>& rNode, GenericFunctionUtility& rFunction) {
+                const double value = rFunction.CallFunction(rNode.X(), rNode.Y(), rNode.Z(), t, rNode.X0(), rNode.Y0(), rNode.Z0());
+                rNode.FastGetSolutionStepValue(rVariable) = value;
+            }
+        );
     } else {
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(mrNodes.size()); k++) {
-            auto it_node = it_node_begin + k;
-            const double value = mpFunction[OpenMPUtils::ThisThread()]->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
-            it_node->FastGetSolutionStepValue(rVariable) = value;
-        }
+        block_for_each(
+            mrNodes,r_function,
+            [&rVariable,&t](Node<3>& rNode, GenericFunctionUtility& rFunction) {
+                const double value = rFunction.RotateAndCallFunction(rNode.X(), rNode.Y(), rNode.Z(), t, rNode.X0(), rNode.Y0(), rNode.Z0());
+                rNode.FastGetSolutionStepValue(rVariable) = value;
+            }
+        );
     }
 }
 
@@ -57,18 +60,16 @@ std::vector<double> ApplyFunctionToNodesUtility::ReturnFunction(const double t)
     // The vector containing the values
     std::vector<double> values(mrNodes.size());
 
-    if(!mpFunction[0]->UseLocalSystem()) {
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(mrNodes.size()); k++) {
+    if(!mpFunction->UseLocalSystem()) {
+        for (std::size_t k = 0; k < mrNodes.size(); k++) {
             auto it_node = it_node_begin + k;
-            const double value = mpFunction[OpenMPUtils::ThisThread()]->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
+            const double value = mpFunction->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
             values[k] = value;
         }
     } else {
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(mrNodes.size()); k++) {
+        for (std::size_t k = 0; k < mrNodes.size(); k++) {
             auto it_node = it_node_begin + k;
-            const double value = mpFunction[OpenMPUtils::ThisThread()]->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
+            const double value = mpFunction->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
             values[k] = value;
         }
     }
