@@ -12,16 +12,26 @@
 #if !defined(KRATOS_CAD_TESSELLATION_MODELER_INCLUDED)
 #define KRATOS_CAD_TESSELLATION_MODELER_INCLUDED
 
+extern "C"
+{
+    #ifdef SINGLE
+        #define REAL float
+    #else /* not SINGLE */
+        #define REAL double
+    #endif /* not SINGLE */
+    void triangulate(char *, struct triangulateio *, struct triangulateio *,struct triangulateio *);
+}
+
 // System includes
 
 // External includes
+//this is not ideal...
+#include "../../external_libraries/triangle/triangle.h"
 
 // Project includes
 #include "modeler.h"
 #include "utilities/nurbs_curve_tessellation.h"
-// #include "containers/pointer_vector.h"
 #include "geometries/brep_curve_on_surface.h"
-// #include "geometries/nurbs_curve_on_surface_geometry.h"
 
 namespace Kratos {
 
@@ -41,6 +51,9 @@ public:
 
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
+
+
+
 
     ///@}
     ///@name Life Cycle
@@ -96,7 +109,7 @@ public:
     ///@}
 
 private:
-    ///@name CAD functionalities
+    ///@name Member Variables
     ///@{
 
     Model* mpModel = nullptr;
@@ -108,6 +121,28 @@ private:
     friend class Serializer;
 
     ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief This method returns the triangulation of a NURBS surface
+     */
+    void ComputeTriangulation();
+
+    /**
+     * @brief This method initializes the necessary data structure for triangle
+     * @param tr This is a struct used to pass data into and out of the triangulate() procedure
+     */
+    void InitTriangulationDataStructure(triangulateio& tr);
+
+    /**
+     * @brief This method clears the data structure for triangle
+     * @param tr This is a struct used to pass data into and out of the triangulate() procedure
+     */
+    void CleanTriangulationDataStructure(triangulateio& tr);
+
+
+
 }; // Class CadTessellationModeler
 
 ///@}
