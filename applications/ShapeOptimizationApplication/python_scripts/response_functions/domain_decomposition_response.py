@@ -14,6 +14,7 @@ from KratosMultiphysics import Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 try:
     import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+    from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 except ModuleNotFoundError:
     print("DomainDecompositionResponse requires StructuralMechanicsApplication. Make sure this is compiled.")
 
@@ -27,7 +28,7 @@ def _GetModelPart(model, mp_name, dimension):
         model_part = model.CreateModelPart(mp_name, 2)
         if dimension < 0:
             raise Exception('Please specify a "domain_size" >= 0!')
-        model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
+        model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, dimension)
     else:
         model_part = model.GetModelPart(mp_name)
 
@@ -52,9 +53,10 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
         self.model = model
 
         self.cad_model_part = None
+        self.trimming_curve = None
 
         with open(response_settings["primal_settings"].GetString()) as parameters_file:
-            ProjectParametersPrimal = Parameters(parameters_file.read())
+            ProjectParametersPrimal = KM.Parameters(parameters_file.read())
 
         self.primal_analysis = StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.primal_analysis_done = False
@@ -67,12 +69,14 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
     def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "response_type"             : "UNKNOWN_TYPE",
-            "type"                      : "stress_aggregation"
+            "type"                      : "stress_aggregation",
             "cad_model_part_name"       : "UNKNOWN_NAME",
             "domain_size"               : 3,
             "cad_model_import_settings" : {
                 "input_filename"    : "UNKNOWN_NAME"
-            }
+            },
+            "step_size"             : 1e-08 ,
+            "trimming_curve_id"     : 10,
             "primal_settings"       : "primal_parameters.json"
         }""")
         return this_defaults
@@ -87,6 +91,10 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
             ### Here import the cad model from the file.
             cad_model_part_io = KM.CadJsonInput(file_name)
             cad_model_part_io.ReadModelPart(self.cad_model_part)
+
+            
+
+            ### TODO: Get the trimming curve
         else:
             RuntimeError("Cad Geometry can only be imported from JSON file. https://github.com/orbingol/rw3dm can be helpful.")
 
