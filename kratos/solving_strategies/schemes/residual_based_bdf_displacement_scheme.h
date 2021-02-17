@@ -277,14 +277,14 @@ public:
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
                     if (it_node->GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
                         dotun0[i_dim] = dot2un0[i_dim];
-                        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                            dotun0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(*vel_components[i_dim], i_order);
-                        dotun0[i_dim] /= BDFBaseType::mBDF[i_dim];
+                        for (std::size_t i_order = 1; i_order < this->mOrder + 1; ++i_order)
+                            dotun0[i_dim] -= this->mBDF[i_order] * it_node->FastGetSolutionStepValue(*vel_components[i_dim], i_order);
+                        dotun0[i_dim] /= this->mBDF[i_dim];
 
                         un0[i_dim] = dotun0[i_dim];
-                        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                            un0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(*disp_components[i_dim], i_order);
-                        un0[i_dim] /= BDFBaseType::mBDF[i_dim];
+                        for (std::size_t i_order = 1; i_order < this->mOrder + 1; ++i_order)
+                            un0[i_dim] -= this->mBDF[i_order] * it_node->FastGetSolutionStepValue(*disp_components[i_dim], i_order);
+                        un0[i_dim] /= this->mBDF[i_dim];
                         rPredictedTLS[i_dim] = true;
                     }
                 }
@@ -293,9 +293,9 @@ public:
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
                     if (it_node->GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !rPredictedTLS[i_dim]) {
                         un0[i_dim] = dotun0[i_dim];
-                        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                            un0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(*disp_components[i_dim], i_order);
-                        un0[i_dim] /= BDFBaseType::mBDF[i_dim];
+                        for (std::size_t i_order = 1; i_order < this->mOrder + 1; ++i_order)
+                            un0[i_dim] -= this->mBDF[i_order] * it_node->FastGetSolutionStepValue(*disp_components[i_dim], i_order);
+                        un0[i_dim] /= this->mBDF[i_dim];
                         rPredictedTLS[i_dim] = true;
                     }
                 }
@@ -430,9 +430,9 @@ protected:
     inline void UpdateFirstDerivative(NodesArrayType::iterator itNode) override
     {
         array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(VELOCITY);
-        noalias(dotun0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(DISPLACEMENT);
-        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-            noalias(dotun0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(DISPLACEMENT, i_order);
+        noalias(dotun0) = this->mBDF[0] * itNode->FastGetSolutionStepValue(DISPLACEMENT);
+        for (std::size_t i_order = 1; i_order < this->mOrder + 1; ++i_order)
+            noalias(dotun0) += this->mBDF[i_order] * itNode->FastGetSolutionStepValue(DISPLACEMENT, i_order);
     }
 
     /**
@@ -442,9 +442,9 @@ protected:
     inline void UpdateSecondDerivative(NodesArrayType::iterator itNode) override
     {
         array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(ACCELERATION);
-        noalias(dot2un0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(VELOCITY);
-        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-            noalias(dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(VELOCITY, i_order);
+        noalias(dot2un0) = this->mBDF[0] * itNode->FastGetSolutionStepValue(VELOCITY);
+        for (std::size_t i_order = 1; i_order < this->mOrder + 1; ++i_order)
+            noalias(dot2un0) += this->mBDF[i_order] * itNode->FastGetSolutionStepValue(VELOCITY, i_order);
     }
 
     ///@}
