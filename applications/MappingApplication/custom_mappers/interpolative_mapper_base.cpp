@@ -52,6 +52,16 @@ I.e. Operations that can be performed several times in the livetime of the mappe
 template<class TSparseSpace, class TDenseSpace>
 void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos::Flags MappingOptions)
 {
+    const bool use_initial_configuration = mMapperSettings["use_initial_configuration"].GetBool();
+
+    if (use_initial_configuration) {
+        MapperUtilities::SaveCurrentConfiguration(mrModelPartOrigin);
+        MapperUtilities::SaveCurrentConfiguration(mrModelPartDestination);
+
+        VariableUtils().UpdateCurrentToInitialConfiguration(mrModelPartOrigin.Nodes());
+        VariableUtils().UpdateCurrentToInitialConfiguration(mrModelPartDestination.Nodes());
+    }
+
     AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
 
     KRATOS_ERROR_IF_NOT(mpIntefaceCommunicator) << "mpIntefaceCommunicator is a nullptr!" << std::endl;
@@ -75,6 +85,11 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Krat
 
     if (echo_level > 0) {
         PrintPairingInfo(echo_level);
+    }
+
+    if (use_initial_configuration) {
+        MapperUtilities::RestoreCurrentConfiguration(mrModelPartOrigin);
+        MapperUtilities::RestoreCurrentConfiguration(mrModelPartDestination);
     }
 }
 

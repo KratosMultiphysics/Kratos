@@ -23,6 +23,8 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "includes/kratos_parameters.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -124,8 +126,9 @@ public:
     explicit SolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : mpModelPart(&rModelPart)
     {
-        const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
-        SetMoveMeshFlag(move_mesh_flag);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -339,20 +342,14 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
+        KRATOS_ERROR_IF_NOT(GetModelPart().HasNodalSolutionStepVariable(DISPLACEMENT_X)) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
-        NodesArrayType& NodesArray = GetModelPart().Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        block_for_each(GetModelPart().Nodes(), [](Node<3>& rNode){
+            noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
+            noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
+        });
 
-        #pragma omp parallel for
-        for(int i = 0; i < numNodes; ++i) {
-            auto it_node = NodesArray.begin() + i;
-
-            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
-        }
-
-        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0) <<" MESH MOVED "<<std::endl;
+        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0) << " MESH MOVED " << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -400,6 +397,61 @@ public:
         return 0;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    virtual Parameters GetDefaultParameters() const
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name"                         : "solving_strategy",
+            "move_mesh_flag"               : false,
+            "echo_level"                   : 1,
+            "build_level"                  : 2
+        })");
+        return default_parameters;
+    }
+
+    /**
+     * @brief This method returns the LHS matrix
+     * @return The LHS matrix
+     */
+    virtual TSystemMatrixType& GetSystemMatrix()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "GetSystemMatrix not implemented in base SolvingStrategy" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method returns the RHS vector
+     * @return The RHS vector
+     */
+    virtual TSystemVectorType& GetSystemVector()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "GetSystemVector not implemented in base SolvingStrategy" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method returns the solution vector
+     * @return The Dx vector
+     */
+    virtual TSystemVectorType& GetSolutionVector()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "GetSolutionVector not implemented in base SolvingStrategy" << std::endl;
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -459,6 +511,36 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
+     */
+    virtual Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
+        const Parameters DefaultParameters
+        ) const
+    {
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+        // By default mesh is not moved
+        mMoveMeshFlag = ThisParameters["move_mesh_flag"].GetBool();
+
+        // Be default the minimal information is shown
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
+
+        // By default the matrices are rebuilt at each iteration
+        mRebuildLevel = ThisParameters["build_level"].GetInt();
+    }
 
     ///@}
     ///@name Protected  Access

@@ -113,7 +113,9 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(1e-15,1e-15)
+        convergence_criterion = KratosMultiphysics.MixedGenericCriteria(
+            [(KratosMultiphysics.DISPLACEMENT, 1e-15,1e-15),
+             (KratosMultiphysics.ROTATION,     1e-15,1e-15)])
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000
@@ -717,7 +719,9 @@ class BasePatchTestCrBeam2D2N(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(1e-15,1e-15)
+        convergence_criterion = KratosMultiphysics.MixedGenericCriteria(
+            [(KratosMultiphysics.DISPLACEMENT, 1e-15,1e-15),
+             (KratosMultiphysics.ROTATION,     1e-15,1e-15)])
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000

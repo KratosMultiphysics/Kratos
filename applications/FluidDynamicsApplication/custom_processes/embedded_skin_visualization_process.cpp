@@ -19,6 +19,7 @@
 #include "containers/model.h"
 #include "includes/checks.h"
 #include "includes/model_part.h"
+#include "includes/parallel_environment.h"
 #include "utilities/variable_utils.h"
 #include "utilities/divide_triangle_2d_3.h"
 #include "utilities/divide_tetrahedra_3d_4.h"
@@ -35,7 +36,7 @@ namespace Kratos
 {
 
 /* Public functions *******************************************************/
-Parameters EmbeddedSkinVisualizationProcess::GetDefaultSettings()
+Parameters EmbeddedSkinVisualizationProcess::StaticGetDefaultParameters()
 {
     Parameters default_settings(R"(
     {
@@ -71,7 +72,7 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
 
     // Create the visualization model part
     auto& r_visualization_model_part = rModel.CreateModelPart(visualization_mp_name, buffer_size);
-    
+
     // Set visualization model part ProcessInfo
     // Note that the visualization model part and the origin model part share the ProcessInfo container
     const auto p_process_info = r_origin_model_part.pGetProcessInfo();
@@ -87,6 +88,17 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
         KRATOS_ERROR_IF_NOT(r_origin_variables_list.Has(r_var)) << "Requested variable " << var_name << " is not in the origin model part." << std::endl;
         // Add the variable to the visualization model part
         r_visualization_variables_list.Add(r_var);
+    }
+
+    // Set the origin model part as temporary communicator
+    // This is required to perform all the IsDistributed checks that appear before creating the visualization mesh
+    // Note that these checks might be required outside this process (i.e. in the creation of the visualization mesh output)
+    // This will be updated by a proper one by the ParallelFillCommunicator after the creation of the visualization entities
+    r_visualization_model_part.SetCommunicator(r_origin_model_part.pGetCommunicator());
+
+    // If MPI, add the PARTITION_INDEX variable to the visualization model part variables
+    if (r_visualization_model_part.IsDistributed()) {
+        r_visualization_variables_list.Add(PARTITION_INDEX);
     }
 
     return r_visualization_model_part;
@@ -208,7 +220,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     , mrVisualizationModelPart(rVisualizationModelPart)
     , mLevelSetType(
         [&] (Parameters& x) {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             LevelSetType aux_level_set_type;
             CheckAndSetLevelSetType(x, aux_level_set_type);
             return aux_level_set_type;
@@ -216,7 +228,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     )
     , mShapeFunctionsType(
         [&] (Parameters& x) {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             ShapeFunctionsType aux_shape_func_type;
             CheckAndSetShapeFunctionsType(x, aux_shape_func_type);
             return aux_shape_func_type;
@@ -224,7 +236,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     )
     , mReformModelPartAtEachTimeStep(
         [&] (Parameters& x) {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             return x["reform_model_part_at_each_time_step"].GetBool();
         } (rParameters)
     )
@@ -233,7 +245,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
             const Variable<double>* p_aux;
             switch (mLevelSetType) {
                 case LevelSetType::Continuous: {
-                    x.ValidateAndAssignDefaults(GetDefaultSettings());
+                    x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
                     const std::string dist_var_name(CheckAndReturnDistanceVariableName(x, mLevelSetType));
                     p_aux = &(KratosComponents<Variable<double>>::Get(dist_var_name));
                     return p_aux;
@@ -249,7 +261,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
             const Variable<Vector>* p_aux;
             switch (mLevelSetType) {
                 case LevelSetType::Discontinuous: {
-                    x.ValidateAndAssignDefaults(GetDefaultSettings());
+                    x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
                     const std::string dist_var_name(CheckAndReturnDistanceVariableName(x, mLevelSetType));
                     p_aux = &(KratosComponents<Variable<Vector>>::Get(dist_var_name));
                     return p_aux;
@@ -262,7 +274,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     )
     , mVisualizationScalarVariables(
         [&] (Parameters& x) -> std::vector<const Variable<double>*> {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             std::vector<const Variable<double>*> aux_list;
             FillVariablesList<double>(x["visualization_variables"], aux_list);
             return aux_list;
@@ -270,7 +282,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     )
     , mVisualizationVectorVariables(
         [&] (Parameters& x) -> std::vector<const Variable<array_1d<double,3>>*> {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             std::vector<const Variable<array_1d<double,3>>*> aux_list;
             FillVariablesList<array_1d<double,3>>(x["visualization_variables"], aux_list);
             return aux_list;
@@ -278,7 +290,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     )
     , mVisualizationNonHistoricalScalarVariables(
         [&] (Parameters& x) -> std::vector<const Variable<double>*> {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             std::vector<const Variable<double>*> aux_list;
             FillVariablesList<double>(x["visualization_nonhistorical_variables"], aux_list);
             return aux_list;
@@ -286,7 +298,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     )
     , mVisualizationNonHistoricalVectorVariables(
         [&] (Parameters& x) -> std::vector<const Variable<array_1d<double,3>>*> {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             std::vector<const Variable<array_1d<double,3>>*> aux_list;
             FillVariablesList<array_1d<double,3>>(x["visualization_nonhistorical_variables"], aux_list);
             return aux_list;
@@ -300,12 +312,12 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     Parameters rParameters)
     : EmbeddedSkinVisualizationProcess(
         [&] (Model& x, Parameters& y) -> ModelPart& {
-            y.ValidateAndAssignDefaults(GetDefaultSettings());
+            y.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             KRATOS_ERROR_IF(y["model_part_name"].GetString() == "") << "\'model_part_name\' is empty. Please provide the origin model part name." << std::endl;
             return x.GetModelPart(y["model_part_name"].GetString());
         } (rModel, rParameters),
         [&] (Model& x, Parameters& y) -> ModelPart& {
-            y.ValidateAndAssignDefaults(GetDefaultSettings());
+            y.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             return CreateAndPrepareVisualizationModelPart(x, y);
         } (rModel, rParameters),
         rParameters)
@@ -385,6 +397,36 @@ int EmbeddedSkinVisualizationProcess::Check()
 /* Protected functions ****************************************************/
 
 /* Private functions ******************************************************/
+
+template<>
+void EmbeddedSkinVisualizationProcess::SetPartitionIndexFromOriginNode<true>(
+    const Node<3>& rOriginNode,
+    Node<3>& rVisualizationNode)
+{
+    rVisualizationNode.FastGetSolutionStepValue(PARTITION_INDEX) = rOriginNode.FastGetSolutionStepValue(PARTITION_INDEX);
+}
+
+template<>
+void EmbeddedSkinVisualizationProcess::SetPartitionIndexFromOriginNode<false>(
+    const Node<3>& rOriginNode,
+    Node<3>& rVisualizationNode)
+{
+}
+
+template<>
+void EmbeddedSkinVisualizationProcess::SetPartitionIndex<true>(
+    const int PartitionIndex,
+    Node<3>& rVisualizationNode)
+{
+    rVisualizationNode.FastGetSolutionStepValue(PARTITION_INDEX) = PartitionIndex;
+}
+
+template<>
+void EmbeddedSkinVisualizationProcess::SetPartitionIndex<false>(
+    const int PartitionIndex,
+    Node<3>& rVisualizationNode)
+{
+}
 
 void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation()
 {
@@ -494,16 +536,24 @@ array_1d<double,3>& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<false>(
 void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
 {
     // Copy the original nodes to the visualization model part
-    this->CopyOriginNodes();
+    if (mrVisualizationModelPart.IsDistributed()) {
+        this->CopyOriginNodes<true>();
+    } else {
+        this->CopyOriginNodes<false>();
+    }
 
     // Creates the visualization model part geometrical entities (elements and conditions)
     this->CreateVisualizationGeometries();
+
+    // If MPI, this creates the communication plan among processes
+    ParallelEnvironment::CreateFillCommunicator(mrVisualizationModelPart)->Execute();
 
     // Initialize (allocate) non-historical variables
     InitializeNonHistoricalVariables<double>(mVisualizationNonHistoricalScalarVariables);
     InitializeNonHistoricalVariables<array_1d<double,3>>(mVisualizationNonHistoricalVectorVariables);
 }
 
+template<const bool IsDistributed>
 void EmbeddedSkinVisualizationProcess::CopyOriginNodes()
 {
     // Creates a copy of all the origin model part nodes to the visualization model part
@@ -512,7 +562,8 @@ void EmbeddedSkinVisualizationProcess::CopyOriginNodes()
     ModelPart::NodeIterator orig_nodes_begin = mrModelPart.NodesBegin();
     for (int i_node = 0; i_node < n_nodes; ++i_node){
         auto it_node = orig_nodes_begin + i_node;
-        auto p_node = mrVisualizationModelPart.CreateNewNode(it_node->Id(), *it_node);
+        auto p_vis_node = mrVisualizationModelPart.CreateNewNode(it_node->Id(), *it_node);
+        SetPartitionIndexFromOriginNode<IsDistributed>(*it_node, *p_vis_node);
     }
 }
 
@@ -537,6 +588,18 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
     int n_nodes = mrModelPart.NumberOfNodes();
     int n_elems = mrModelPart.NumberOfElements();
     int n_conds = mrModelPart.NumberOfConditions();
+
+    // Get the current rank
+    // New intersection nodes will be assigned this one
+    // Note that these are duplicated among intersected elements so there is no sync required
+    const auto& r_comm = mrModelPart.GetCommunicator();
+    const int my_pyd = r_comm.MyPID();
+    std::function<void(const int, Node<3>&)> set_partition_index_func;
+    if (r_comm.IsDistributed()) {
+        set_partition_index_func = &(this->SetPartitionIndex<true>);
+    } else {
+        set_partition_index_func = &(this->SetPartitionIndex<false>);
+    }
 
     // Initialize the ids. for the new entries
     // For the temporal ids. there is no necessity of synchronizing between processors
@@ -606,8 +669,8 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
                     if (local_id < sub_geom_n_nodes){
                         const unsigned int aux_gl_id = (p_geometry->operator()(local_id))->Id();
                         sub_geom_nodes_array.push_back(mrVisualizationModelPart.pGetNode(aux_gl_id));
-                        // Intersection node. The node is located in an intersected edge.
-                        // Thus, take it from the geometry created by the splitting util.
+                    // Intersection node. The node is located in an intersected edge.
+                    // Thus, take it from the geometry created by the splitting util.
                     } else {
                         const unsigned int intersected_edge_id = local_id - n_nodes;
 
@@ -620,6 +683,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
                         Node<3>::Pointer p_new_node = mrVisualizationModelPart.CreateNewNode(temp_node_id, point_coords[0], point_coords[1], point_coords[2]);
                         sub_geom_nodes_array.push_back(p_new_node);
                         new_nodes_vect.push_back(p_new_node);
+                        set_partition_index_func(my_pyd, *p_new_node);
 
                         // Add the new node info to the hash map
                         const Node<3>::Pointer p_node_i = p_geometry->operator()(node_i);
@@ -728,14 +792,14 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
 
     // Once all the entities have been created, renumber the ids.
     // Created entities local number partial reduction
-    const DataCommunicator& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+    const auto& r_data_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
     int n_nodes_local = new_nodes_vect.size();
     int n_elems_local = mNewElementsPointers.size();
     int n_conds_local = new_conds_vect.size();
 
     std::vector<int> local_data{n_nodes_local, n_elems_local, n_conds_local};
     std::vector<int> reduced_data{0, 0, 0};
-    r_comm.ScanSum(local_data, reduced_data);
+    r_data_comm.ScanSum(local_data, reduced_data);
 
     int n_nodes_local_scansum = reduced_data[0];
     int n_elems_local_scansum = reduced_data[1];
@@ -746,7 +810,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
     int n_elems_orig = mrModelPart.NumberOfElements();
     int n_conds_orig = mrModelPart.NumberOfConditions();
     local_data = {n_nodes_orig, n_elems_orig, n_conds_orig};
-    r_comm.SumAll(local_data, reduced_data);
+    r_data_comm.SumAll(local_data, reduced_data);
     n_nodes_orig = reduced_data[0];
     n_elems_orig = reduced_data[1];
     n_conds_orig = reduced_data[2];
@@ -783,7 +847,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
     mrVisualizationModelPart.AddConditions(new_conds_vect.begin(), new_conds_vect.end());
 
     // Wait for all nodes to renumber its nodes
-    r_comm.Barrier();
+    r_data_comm.Barrier();
 }
 
 template<class TDataType>

@@ -527,6 +527,12 @@ public:
         return this->size();
     }
 
+    /// Returns number of points per direction.
+    virtual SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const
+    {
+        KRATOS_ERROR << "Trying to access PointsNumberInDirection from geometry base class." << std::endl;
+    }
+
     virtual SizeType max_size() const
     {
         return mPoints.max_size();
@@ -599,12 +605,6 @@ public:
      * Check if the Data exists with Has(..) methods:
      */
     template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
-    {
-        return mData.Has(rThisVariable);
-    }
-
-    template<class TAdaptorType> bool Has(
-        const VariableComponent<TAdaptorType>& rThisVariable) const
     {
         return mData.Has(rThisVariable);
     }
@@ -1043,6 +1043,20 @@ public:
     {
         return mpGeometryData->LocalSpaceDimension();
     }
+
+    ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the geometry in a certain direction
+    virtual SizeType PolynomialDegree(IndexType LocalDirectionIndex) const
+    {
+        KRATOS_ERROR << "Trying to access PolynomialDegree from geometry base class." << std::endl;
+    }
+
+    ///@}
+    ///@name Geometrical Informations
+    ///@{
 
     /** This method calculate and return Length or charactereistic
      * length of this geometry depending to it's dimension. For one

@@ -54,6 +54,7 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -127,13 +128,6 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-
-    /**
-     * @brief Get the Default Settings object
-     * Static method to get the default settings inside the contructor
-     * @return Parameters The parameters object containing the default settings
-     */
-    static Parameters GetDefaultSettings();
 
     /**
      * @brief Create a And Prepare Visualization Model Part object
@@ -251,6 +245,21 @@ public:
     void ExecuteAfterOutputStep() override;
 
     int Check() override;
+
+    /**
+     * @brief Get the Default Settings object
+     * Static method to get the default settings inside the contructor
+     * @return Parameters The parameters object containing the default settings
+     */
+    static Parameters StaticGetDefaultParameters();
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        return StaticGetDefaultParameters();
+    }
 
     ///@}
     ///@name Access
@@ -401,10 +410,14 @@ private:
         const double WeightI,
         const double WeightJ,
         const std::vector<const Variable<TDataType>*>& rVariablesList);
-    
+
     /**
+     * @brief Create the visualization model part nodes
      * Copies the non-interface nodes from the origin model part to the visualization one
+     * If the simulation is MPI parallel it also copies the PARTITION_INDEX from the origin model part
+     * @tparam IsDistributed Bool template argument indicating if the simulation is MPI parallel
      */
+    template<const bool IsDistributed>
     void CopyOriginNodes();
 
     /**
@@ -504,6 +517,16 @@ private:
      * When it is required, this function searchs for the visualization properties to remove them.
      */
     void RemoveVisualizationProperties();
+
+    template<const bool IsDistributed>
+    static void SetPartitionIndexFromOriginNode(
+        const Node<3>& rOriginNode,
+        Node<3>& rVisualizationNode);
+
+    template<const bool IsDistributed>
+    static void SetPartitionIndex(
+        const int PartitionIndex,
+        Node<3>& rVisualizationNode);
 
     ///@}
     ///@name Private  Access

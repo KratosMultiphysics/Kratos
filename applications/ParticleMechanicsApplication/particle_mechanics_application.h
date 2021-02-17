@@ -98,7 +98,7 @@ namespace Kratos
  * for particle mechanics problems.
  * Currently developed methods are: (1) Material Point Method
  */
-class KratosParticleMechanicsApplication : public KratosApplication
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) KratosParticleMechanicsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -252,6 +252,11 @@ private:
     const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D3N;
     const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D4N;
     // Particle Conditions:
+    const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition;
+    const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition;
+    const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition;
+    
+    // Deprecated Conditions
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D3N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D4N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition3D4N;

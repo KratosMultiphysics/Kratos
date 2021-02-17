@@ -127,7 +127,7 @@ protected:
     * @param rEdgeNodeJ Integers array containing the nodes "J" that conform the edges.
     * @param rSplitEdges Integers array containing the original nodes ids and the intersected edges nodes ones.
     */
-    void SetPositiveSideCondensationMatrix(
+    virtual void SetPositiveSideCondensationMatrix(
         Matrix& rPosSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
@@ -142,7 +142,7 @@ protected:
     * @param rEdgeNodeJ Integers array containing the nodes "J" that conform the edges.
     * @param rSplitEdges Integers array containing the original nodes ids and the intersected edges nodes ones.
     */
-    void SetNegativeSideCondensationMatrix(
+    virtual void SetNegativeSideCondensationMatrix(
         Matrix& rNegSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,

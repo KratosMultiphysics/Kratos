@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
@@ -27,7 +25,7 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
     def Initialize(self):
 
-        super(PotentialFlowWrapper, self).Initialize()
+        super().Initialize()
 
         sub_project_parameters = self.project_parameters["processes"]["boundary_conditions_process_list"]
 
@@ -50,7 +48,7 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
         self._analysis_stage._GetSolver().Clear()
         self._analysis_stage._GetSolver().InitializeSolutionStep()
 
-        super(PotentialFlowWrapper, self).SolveSolutionStep()
+        super().SolveSolutionStep()
 
         self.lift_process.ExecuteFinalizeSolutionStep()
         self.conversion_process.ExecuteFinalizeSolutionStep()

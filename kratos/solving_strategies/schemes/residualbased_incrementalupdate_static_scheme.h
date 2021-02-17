@@ -20,6 +20,7 @@
 /* Project includes */
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
+#include "utilities/entities_utilities.h"
 
 namespace Kratos
 {
@@ -101,12 +102,9 @@ public:
     explicit ResidualBasedIncrementalUpdateStaticScheme(Parameters ThisParameters)
         : BaseType()
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name" : "ResidualBasedIncrementalUpdateStaticScheme"
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /** Default onstructor.
@@ -202,34 +200,8 @@ public:
     {
         KRATOS_TRY;
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->InitializeNonLinearIteration(r_current_process_info);
-        }
+        // Initializes non-linear iteration for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
 
         KRATOS_CATCH( "" );
     }
@@ -244,7 +216,8 @@ public:
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        (rCurrentCondition)->InitializeNonLinearIteration(rCurrentProcessInfo);
+        const auto& r_const_process_info = rCurrentProcessInfo;
+        (rCurrentCondition)->InitializeNonLinearIteration(r_const_process_info);
     }
 
     /**
@@ -257,7 +230,8 @@ public:
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        (pCurrentElement)->InitializeNonLinearIteration(rCurrentProcessInfo);
+        const auto& r_const_process_info = rCurrentProcessInfo;
+        (pCurrentElement)->InitializeNonLinearIteration(r_const_process_info);
     }
 
     /**
@@ -386,6 +360,23 @@ public:
     void Clear() override
     {
         this->mpDofUpdater->Clear();
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "static_scheme"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
     }
 
     /**

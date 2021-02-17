@@ -16,9 +16,8 @@ def CreateSolver(main_model_part, custom_settings):
 
 class CoupledThermoMechanicalSolver(PythonSolver):
 
-    def __init__(self, model, custom_settings):
-
-        super(CoupledThermoMechanicalSolver, self).__init__(model, custom_settings)
+    @classmethod
+    def GetDefaultParameters(cls):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -48,12 +47,17 @@ class CoupledThermoMechanicalSolver(PythonSolver):
                 "material_import_settings": {
                         "materials_filename": "ThermalMaterials.json"
                 }
-            }
+            },
+            "time_integration_method": "implicit"
         }
         """)
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
+        return default_settings
+
+    def __init__(self, model, custom_settings):
+
+        super(CoupledThermoMechanicalSolver, self).__init__(model, custom_settings)
 
         ## Get domain size
         self.domain_size = self.settings["domain_size"].GetInt()
@@ -153,4 +157,3 @@ class CoupledThermoMechanicalSolver(PythonSolver):
     def FinalizeSolutionStep(self):
         self.structural_solver.FinalizeSolutionStep()
         self.thermal_solver.FinalizeSolutionStep()
-

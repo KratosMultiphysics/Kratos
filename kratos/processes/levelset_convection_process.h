@@ -148,7 +148,6 @@ public:
         mpSolvingStrategy = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
             *mpDistanceModelPart,
             pscheme,
-            plinear_solver,
             pBuilderSolver,
             CalculateReactions,
             ReformDofAtEachIteration,
@@ -423,7 +422,7 @@ protected:
         const double dt = mpDistanceModelPart->GetProcessInfo()[DELTA_TIME];
 
 		// Vector where each thread will store its maximum (VS does not support OpenMP reduce max)
-		int NumThreads = OpenMPUtils::GetNumThreads();
+		int NumThreads = ParallelUtilities::GetNumThreads();
 		std::vector<double> list_of_max_local_cfl(NumThreads, 0.0);
 
         //TODO: Update this loop to avoid using thread id
@@ -573,4 +572,3 @@ inline std::ostream& operator << (
 }  // namespace Kratos.
 
 #endif // KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined
-

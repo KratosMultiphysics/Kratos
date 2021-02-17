@@ -5,9 +5,9 @@ message("**** configuring KratosPoromechanicsApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/PoromechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/PoromechanicsApplication )
 
 ## Define application core sources (pure C++ parts)
 set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
@@ -27,8 +27,6 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/bilinear_cohesive_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/exponential_cohesive_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/exponential_cohesive_2D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/simplified_bilinear_3D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/simplified_bilinear_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/local_damage_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/local_damage_plane_strain_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/local_damage_plane_stress_2D_law.cpp
@@ -88,7 +86,7 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
 
 if(${USE_PORO_MPI} MATCHES ON)
 
-    include_directories( ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication )
+    include_directories( ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication )
     include_directories(${TRILINOS_INCLUDE_DIR})
 
     ## Define python interface sources

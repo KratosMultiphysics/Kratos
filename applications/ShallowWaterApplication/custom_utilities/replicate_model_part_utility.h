@@ -48,7 +48,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @ingroup ShallowWaterApplication
  * @class ReplicateModelPartUtility
  * @brief This utility replicates a model part to print the topography in the post-process
@@ -93,7 +93,7 @@ public:
      * @brief This method copies a variable from the origin model part to the destination model part for post-process purpose.
      */
     template<class TVarType>
-    void TransferVariable(TVarType& rVariable)
+    void TransferVariable(const TVarType& rVariable)
     {
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
@@ -108,7 +108,7 @@ public:
      * @brief This method copies a variable from the origin model part to the destination model part for post-process purpose.
      */
     template<class TVarType>
-    void TransferNonHistoricalVariable(TVarType& rVariable)
+    void TransferNonHistoricalVariable(const TVarType& rVariable)
     {
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
@@ -118,26 +118,6 @@ public:
             dest_node->SetValue(rVariable, it_node->GetValue(rVariable));
         }
     }
-
-    /**
-     * @brief This method sets the origin mesh Z-coordinate to zero.
-     */
-    void SetOriginMeshZCoordinate();
-
-    /**
-     * @brief This method sets the origin mesh Z-coordinate to a given scalar variable.
-     */
-    void SetOriginMeshZCoordinate(Variable<double>& rVariable);
-
-    /**
-     * @brief This method sets the destination mesh Z-coordinate to zero.
-     */
-    void SetDestinationMeshZCoordinate();
-
-    /**
-     * @brief This method sets the destination mesh Z-coordinate to a given scalar variable.
-     */
-    void SetDestinationMeshZCoordinate(Variable<double>& rVariable);
 
     ///@}
     ///@name Access
@@ -198,10 +178,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void SetMeshZCoordinate(ModelPart& rModelPart);
-
-    void SetMeshZCoordinate(ModelPart& rModelPart, Variable<double>& rVariable);
 
     void GetMaximumIds(IndexType& rUniqueNodeId, IndexType& rUniqueElemId, IndexType& rUniqueCondId, IndexType& rUniquePropId);
 

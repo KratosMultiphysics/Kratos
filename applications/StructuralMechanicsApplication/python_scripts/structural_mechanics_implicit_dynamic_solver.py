@@ -24,7 +24,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "time_integration_method" : "implicit",
             "scheme_type"             : "bossak",
@@ -33,7 +33,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
             "rayleigh_alpha"          : 0.0,
             "rayleigh_beta"           : 0.0
         }""")
-        this_defaults.AddMissingParameters(super(ImplicitMechanicalSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(ImplicitMechanicalSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def GetMinimumBufferSize(self):

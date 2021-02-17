@@ -138,6 +138,8 @@
 #include "custom_advanced_constitutive/generic_small_strain_orthotropic_damage.h"
 #include "custom_advanced_constitutive/serial_parallel_rule_of_mixtures_law.h"
 #include "custom_advanced_constitutive/generic_anisotropic_3d_law.h"
+#include "custom_advanced_constitutive/multi_linear_elastic_1d_law.h"
+#include "custom_advanced_constitutive/multi_linear_isotropic_plane_stress_2d.h"
 
 // Integrators
 #include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
@@ -344,12 +346,12 @@ private:
 
     // Adding the shells elements
     const IsotropicShellElement mIsotropicShellElement3D3N;
-    const ShellThickElement3D4N mShellThickElement3D4N;
-    const ShellThickElement3D4N mShellThickCorotationalElement3D4N;
-    const ShellThinElement3D4N   mShellThinCorotationalElement3D4N;
-    const ShellThinElement3D3N mShellThinElement3D3N;
-    const ShellThinElement3D3N mShellThinCorotationalElement3D3N;
-    const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
+    const ShellThickElement3D4N<ShellKinematics::LINEAR>                 mShellThickElement3D4N;
+    const ShellThickElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D4N;
+    const ShellThinElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL>  mShellThinCorotationalElement3D4N;
+    const ShellThinElement3D3N<ShellKinematics::LINEAR>                  mShellThinElement3D3N;
+    const ShellThinElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL>  mShellThinCorotationalElement3D3N;
+    const ShellThickElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D3N;
 
     // Adding the membrane element
     const MembraneElement mMembraneElement3D4N;
@@ -442,7 +444,7 @@ private:
     const SpringDamperElement3D2N mSpringDamperElement3D2N;
 
     // Adding adjoint elements
-    const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N> mAdjointFiniteDifferencingShellThinElement3D3N;
+    const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N<ShellKinematics::LINEAR>> mAdjointFiniteDifferencingShellThinElement3D3N;
     const AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N> mAdjointFiniteDifferenceCrBeamElementLinear3D2N;
     const AdjointFiniteDifferenceTrussElement<TrussElement3D2N> mAdjointFiniteDifferenceTrussElement3D2N;
     const AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N> mAdjointFiniteDifferenceTrussLinearElement3D2N;
@@ -538,6 +540,8 @@ private:
     const HyperElasticIsotropicOgden1D mHyperElasticIsotropicOgden1D;
     const HyperElasticIsotropicHenky1D mHyperElasticIsotropicHenky1D;
     const WrinklingLinear2DLaw mWrinklingLinear2DLaw;
+    const MultiLinearElastic1DLaw mMultiLinearElastic1DLaw;
+    const MultiLinearIsotropicPlaneStress2D mMultiLinearIsotropicPlaneStress2D;
 
     // Damage and plasticity laws
     const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;
@@ -923,7 +927,7 @@ private:
 	const ParallelRuleOfMixturesLaw<2> mParallelRuleOfMixturesLaw2D;
 
     // Anisotropic law
-    
+
     const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
 #endif // STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 

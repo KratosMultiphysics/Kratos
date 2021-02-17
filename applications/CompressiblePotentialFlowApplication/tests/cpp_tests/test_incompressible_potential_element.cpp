@@ -130,7 +130,8 @@ namespace Kratos {
       Vector RHS = ZeroVector(3);
       Matrix LHS = ZeroMatrix(3, 3);
 
-      pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+      pElement->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
@@ -160,7 +161,8 @@ namespace Kratos {
       Vector RHS = ZeroVector(6);
       Matrix LHS = ZeroMatrix(6, 6);
 
-      pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+      pElement->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
@@ -195,7 +197,8 @@ namespace Kratos {
       Vector RHS = ZeroVector(3);
       Matrix LHS = ZeroMatrix(3, 3);
 
-      pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+      pElement->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
@@ -223,13 +226,14 @@ namespace Kratos {
         pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
 
       Element::DofsVectorType ElementalDofList;
-      pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
+      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+      pElement->GetDofList(ElementalDofList, r_current_process_info);
 
       for (int i = 0; i < 3; i++)
         ElementalDofList[i]->SetEquationId(i);
 
       Element::EquationIdVectorType EquationIdVector;
-      pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
+      pElement->EquationIdVector(EquationIdVector, r_current_process_info);
 
       // Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
@@ -259,13 +263,14 @@ namespace Kratos {
       }
 
       Element::DofsVectorType ElementalDofList;
-      pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
+      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+      pElement->GetDofList(ElementalDofList, r_current_process_info);
 
       for (int i = 0; i < 6; i++)
         ElementalDofList[i]->SetEquationId(i);
 
       Element::EquationIdVectorType EquationIdVector;
-      pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
+      pElement->EquationIdVector(EquationIdVector, r_current_process_info);
 
       //Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
@@ -486,7 +491,8 @@ namespace Kratos {
 
       AssignPotentialsToNormalElement(pElement);
 
-      double pressure_coefficient = PotentialFlowUtilities::ComputeIncompressiblePressureCoefficient<2,3>(*pElement, model_part.GetProcessInfo());
+      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+      double pressure_coefficient = PotentialFlowUtilities::ComputeIncompressiblePressureCoefficient<2,3>(*pElement, r_current_process_info);
 
       KRATOS_CHECK_NEAR(pressure_coefficient, 0.98, 1e-7);
     }

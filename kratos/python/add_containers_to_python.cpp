@@ -20,7 +20,6 @@
 #include "includes/ublas_interface.h"
 #include "containers/data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
-#include "containers/vector_component_adaptor.h"
 #include "containers/flags.h"
 #include "includes/kratos_flags.h"
 #include "includes/variables.h"
@@ -153,10 +152,6 @@ void  AddContainersToPython(pybind11::module& m)
     py::class_<Variable<RadiationSettings::Pointer > ,VariableData>(m,"RadiationSettingsVariable")
     .def("__str__", PrintObject<Variable<RadiationSettings::Pointer >>)
     ;
-    py::class_<VariableComponent<VectorComponentAdaptor<Vector > >,VariableData>(m, "VectorComponentVariable")
-    .def("__str__", PrintObject<VariableComponent<VectorComponentAdaptor<Vector > >>)
-    // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<Vector > >::GetSourceVariable ) // components for vector are not yet fully supported
-    ;
 
     py::class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
     .def("__str__", PrintObject<Variable<Quaternion<double> >>)
@@ -276,6 +271,8 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MARKER_MESHES )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENTAL_DISTANCES )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENTAL_EDGE_DISTANCES )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NL_ITERATION_NUMBER )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRACTIONAL_STEP )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, STEP )
@@ -291,6 +288,8 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RESIDUAL_NORM )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONVERGENCE_RATIO )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BUILD_SCALE_FACTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSTRAINT_SCALE_FACTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIAR_CONSTRAINT_SCALE_FACTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TEMPERATURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TEMPERATURE_OLD_IT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESSURE )
@@ -325,6 +324,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, EXTERNAL_FORCE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CONTACT_FORCE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CONTACT_NORMAL )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TEMPERATURE_GRADIENT )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EXTERNAL_FORCES_VECTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTERNAL_FORCES_VECTOR )
@@ -422,6 +422,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NORMAL_SENSITIVITY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NUMBER_OF_NEIGHBOUR_ELEMENTS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, UPDATE_SENSITIVITIES )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NORMAL_SHAPE_DERIVATIVE )
 
     //for electric application
 

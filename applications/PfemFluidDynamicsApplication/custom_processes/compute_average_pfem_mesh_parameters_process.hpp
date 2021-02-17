@@ -27,7 +27,6 @@
 
 ///VARIABLES used:
 //Data:
-//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked)
 //          (set)
 //          (modified)
@@ -71,7 +70,7 @@ public:
       : mrModelPart(rModelPart),
         mrRemesh(rRemeshingParameters)
   {
-    KRATOS_INFO("ComputeAveragePfemMeshParametersProcess") << " inlet_management CONSTRUCTOR ";
+    KRATOS_INFO("ComputeAveragePfemMeshParametersProcess") << " activated "<< std::endl;
 
     mEchoLevel = EchoLevel;
   }

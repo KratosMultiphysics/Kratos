@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
 // System includes
@@ -15,13 +15,42 @@
 // External includes
 
 // Project includes
+#include "includes/variables.h"
 #include "shell_utilities.h"
+#include "shellq4_local_coordinate_system.hpp"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos {
 namespace ShellUtilities {
 using SizeType = std::size_t;
 using IndexType = std::size_t;
+
+
+JacobianOperator::JacobianOperator()
+    : mJac(2, 2, 0.0)
+    , mInv(2, 2, 0.0)
+    , mXYDeriv(4, 2, 0.0)
+    , mDet(0.0)
+{
+}
+
+void JacobianOperator::Calculate(const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN)
+{
+    mJac(0, 0) = dN(0, 0) * CS.X1() + dN(1, 0) * CS.X2() + dN(2, 0) * CS.X3() + dN(3, 0) * CS.X4();
+    mJac(0, 1) = dN(0, 0) * CS.Y1() + dN(1, 0) * CS.Y2() + dN(2, 0) * CS.Y3() + dN(3, 0) * CS.Y4();
+    mJac(1, 0) = dN(0, 1) * CS.X1() + dN(1, 1) * CS.X2() + dN(2, 1) * CS.X3() + dN(3, 1) * CS.X4();
+    mJac(1, 1) = dN(0, 1) * CS.Y1() + dN(1, 1) * CS.Y2() + dN(2, 1) * CS.Y3() + dN(3, 1) * CS.Y4();
+
+    mDet = mJac(0, 0) * mJac(1, 1) - mJac(1, 0) * mJac(0, 1);
+    double mult = 1.0 / mDet;
+
+    mInv(0, 0) =   mJac(1, 1) * mult;
+    mInv(0, 1) = - mJac(0, 1) * mult;
+    mInv(1, 0) = - mJac(1, 0) * mult;
+    mInv(1, 1) =   mJac(0, 0) * mult;
+
+    noalias(mXYDeriv) = prod(dN, trans(mInv));
+}
 
 double dN_seren_dxi(const int nNode, const double Xi, const double Eta)
 {

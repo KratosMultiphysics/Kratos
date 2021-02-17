@@ -11,6 +11,3 @@ E.g.
 - Added Foo Application
 - Fixed X (#XXXX Reference to issue if apply) 
 - etc...
-
-**Additional info**
-Add any other relevant information here.

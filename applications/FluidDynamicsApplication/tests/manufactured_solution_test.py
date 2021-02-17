@@ -9,10 +9,11 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
+have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
-@KratosUnittest.skipUnless(have_external_solvers, "Missing required application: ExternalSolversApplication")
+@KratosUnittest.skipUnless(have_external_solvers, "Missing required application: LinearSolversApplication")
 class ManufacturedSolutionTest(KratosUnittest.TestCase):
     def testManufacturedSolution(self):
         self.runTest()
@@ -23,14 +24,14 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
         self.problem_type = "manufactured_solution" # Available problem types: "manufactured_solution" "analytical_solution"
         self.analytical_solution_type = "sinusoidal_transient_field" # Available fields: "nonlinear_transient_field" "sinusoidal_transient_field" "nonlinear_stationary_field"
 
-        self.work_folder = "ManufacturedSolutionTest"
+        self.work_folder = "manufactured_solution_test"
         self.settings = "ManufacturedSolutionTestParameters.json"
 
         self.meshes_list = ["manufactured_solution_ref0",
                             "manufactured_solution_ref1",
                             "manufactured_solution_ref2",
                             "manufactured_solution_ref3"]
-                            #"manufactured_solution_ref4"]
+                            # "manufactured_solution_ref4"]
 
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
@@ -54,8 +55,7 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
                 # Solve the problem imposing the previously obtained values
                 CaseProjectParameters = self.OriginalProjectParameters.Clone()
                 FluidProblem = ManufacturedSolutionProblem(CaseProjectParameters, mesh_name, self.print_output, self.problem_type, self.analytical_solution_type)
-                FluidProblem.SetFluidProblem()
-                FluidProblem.SolveFluidProblem()
+                FluidProblem.Run()
 
                 # Compute the obtained solution error
                 h.append(mesh_0_characteristic_size/den)
@@ -110,205 +110,77 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
                 plt.savefig('l2_norm_convergence.png')
 
             # Check obtained solution
-            expected_velocity_errors = [0.01708951546622635, 0.005366727106714455, 0.0013142808355902074, 0.00032206907919625683, 8.037719698951708e-05]
-            expected_pressure_errors = [44.03061907965929, 4.8775536490608316, 0.8950814197625788, 0.2200468445178847, 0.0666813658821848]
+            expected_velocity_errors = [0.01620828837402704, 0.005181479513472467, 0.0012944061647766365, 0.0003215070966125507, 8.577306473469384e-05]
+            expected_pressure_errors = [43.89258161784579, 5.237699459045566, 0.9428016719803961, 0.24671881227746087, 0.09607645760134441]
 
             for i in range(len(self.meshes_list)):
                 self.assertAlmostEqual(err_v[i], expected_velocity_errors[i])
                 self.assertAlmostEqual(err_p[i], expected_pressure_errors[i])
 
-class ManufacturedSolutionProblem:
+class ManufacturedSolutionProblem(FluidDynamicsAnalysis):
 
-    def __init__(self, ProjectParameters, input_file_name, print_output, problem_type, analytical_solution_type):
-
+    def __init__(self, project_parameters, input_file_name, print_output, problem_type, analytical_solution_type):
         self.problem_type = problem_type
         self.print_output = print_output
         self.input_file_name = input_file_name
-        self.ProjectParameters = ProjectParameters
+        self.project_parameters = project_parameters
         self.analytical_solution_type = analytical_solution_type
         self.model = KratosMultiphysics.Model()
 
-
-    def SetFluidProblem(self):
-
         ## Set the current mesh case problem info
         if (self.problem_type == "analytical_solution"):
-            self.ProjectParameters["problem_data"]["problem_name"].SetString(self.input_file_name+"_manufactured")
+            self.project_parameters["problem_data"]["problem_name"].SetString(self.input_file_name+"_manufactured")
         else:
-            self.ProjectParameters["problem_data"]["problem_name"].SetString(self.input_file_name)
-        self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.input_file_name)
+            self.project_parameters["problem_data"]["problem_name"].SetString(self.input_file_name)
+        self.project_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.input_file_name)
 
-        ## Solver construction
-        self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
+        ## If required, set up the GiD I/O
+        if self.print_output:
+            self._AddOutput()
 
-        self.solver.AddVariables()
+        ## Note that the base fluid analysis constructor is called after the creation of the model and parameters customization
+        super().__init__(self.model, self.project_parameters)
 
-        ## Read the model - note that SetBufferSize is done here
-        self.solver.ImportModelPart()
-        self.solver.PrepareModelPart()
+    def ModifyAfterSolverInitialize(self):
+        super().ModifyAfterSolverInitialize()
 
-        self.main_model_part = self.model.GetModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-
-        ## Add AddDofs
-        self.solver.AddDofs()
-
-        ## Initialize GiD  I/O
-        if (self.print_output):
-            from gid_output_process import GiDOutputProcess
-            self.gid_output = GiDOutputProcess(self.solver.GetComputingModelPart(),
-                                               self.ProjectParameters["problem_data"]["problem_name"].GetString() ,
-                                               self.ProjectParameters["output_configuration"])
-
-            self.gid_output.ExecuteInitialize()
-
-        ## Solver initialization
-        self.solver.Initialize()
-
-        ## Compute and set the nodal area
-        self.SetNodalArea()
-
-        ## Set the distance to 1 to have full fluid elements
-        if (self.ProjectParameters["solver_settings"]["solver_type"].GetString() == "Embedded"):
-            for node in self.main_model_part.Nodes:
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, 1.0)
+        ## Calculate NODAL_AREA
+        nodal_area_process = KratosMultiphysics.CalculateNonHistoricalNodalAreaProcess(self._GetSolver().GetComputingModelPart())
+        nodal_area_process.Execute()
 
         ## Fix the pressure in one node (bottom left corner)
-        for node in self.main_model_part.Nodes:
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
             if ((node.X<0.001) and (node.Y<0.001)):
                 node.Fix(KratosMultiphysics.PRESSURE)
                 node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 0, 0.0)
 
-    def SolveFluidProblem(self):
+        ## Initialize the buffer with the analytical solution
+        for i_buff in range(self._GetSolver().GetComputingModelPart().GetBufferSize()):
+            self._SetManufacturedSolutionValues(buffer_position = i_buff, fix = False)
 
-        ## Stepping and time settings
-        end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
+    def ApplyBoundaryConditions(self):
+        super().ApplyBoundaryConditions()
 
-        time = 0.0
-
-        if (self.print_output):
-            self.gid_output.ExecuteBeforeSolutionLoop()
-
-        while(time <= end_time):
-
-            time = self.solver.AdvanceInTime(time)
-
-            if (self.print_output):
-                self.gid_output.ExecuteInitializeSolutionStep()
-
-            if (self.problem_type == "analytical_solution"):
-                # Fix the manufactured solution values (only for visualization purposes)
-                self.SetManufacturedSolutionValues(fix=True, set_only_boundaries=False)
-            else:
-                # Set the manufactured solution source terms
-                self.SetManufacturedSolutionValues(fix=True, set_only_boundaries=True)
-                self.SetManufacturedSolutionSourceValues()
-
-            if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] < 3):
-                self.SetManufacturedSolutionValues(False) # Set the analytical solution in the two first steps
-            else:
-                if (self.problem_type != "analytical_solution"):
-                    self.solver.InitializeSolutionStep()
-                    self.solver.Predict()
-                    self.solver.SolveSolutionStep()
-                    self.solver.FinalizeSolutionStep()
-
-            if (self.print_output):
-                self.gid_output.ExecuteFinalizeSolutionStep()
-
-                if self.gid_output.IsOutputStep():
-                    self.gid_output.PrintOutput()
-
-        if (self.print_output):
-            self.gid_output.ExecuteFinalize()
-
-    def SetManufacturedSolutionValues(self, fix=True, set_only_boundaries=False):
-        ## Set the analytical solution for the manufactured solution computation
-        time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-
-        if (set_only_boundaries == False):
-            for node in self.main_model_part.Nodes:
-                vel = self.ComputeNodalVelocityManufacturedSolution(node, time)
-                pres = self.ComputeNodalPressureManufacturedSolution(node)
-
-                if (fix == True):
-                    node.Fix(KratosMultiphysics.VELOCITY_X)
-                    node.Fix(KratosMultiphysics.VELOCITY_Y)
-                    node.Fix(KratosMultiphysics.PRESSURE)
-
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0, vel[0])
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0, vel[1])
-                node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 0, pres)
+        ## Apply manufactured solution BCs
+        if (self.problem_type == "analytical_solution"):
+            # Fix the manufactured solution values (only for visualization purposes)
+            self._SetManufacturedSolutionValues(fix=True, set_only_boundaries=False)
         else:
-            for node in self.main_model_part.GetSubModelPart("Inlet2D_Contour").Nodes:
-                vel = self.ComputeNodalVelocityManufacturedSolution(node, time)
+            # Set the manufactured solution source terms
+            self._SetManufacturedSolutionValues(fix=True, set_only_boundaries=True)
+            self._SetManufacturedSolutionSourceValues()
 
-                if (fix == True):
-                    node.Fix(KratosMultiphysics.VELOCITY_X)
-                    node.Fix(KratosMultiphysics.VELOCITY_Y)
-
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0, vel[0])
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0, vel[1])
-
-    def SetNodalArea(self):
-        # Compute nodal area
-        for element in self.main_model_part.Elements:
-            x = []
-            y = []
-            for node in element.GetNodes():
-                x.append(node.X)
-                y.append(node.Y)
-
-            Area = 0.5*((x[1]*y[2]-x[2]*y[1])+(x[2]*y[0]-x[0]*y[2])+(x[0]*y[1]-x[1]*y[0])) # Element area (Jacobian/2)
-            # print("Element "+str(element.Id)+" area: "+str(Area))
-
-            for node in element.GetNodes():
-                aux = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)  # Current nodal area (from other elements)
-                aux += Area/3.0                              # Accumulate the current element nodal area
-                node.SetSolutionStepValue(KratosMultiphysics.NODAL_AREA, 0, aux)
-                node.SetValue(KratosMultiphysics.NODAL_AREA, aux)
-
-        ## Check nodal area computation (squared shaped domain of 1x1 m)
-        AreaTotal = 0.0
-        for node in self.main_model_part.Nodes:
-            # print("Node id "+str(node.Id)+" nodal area: "+str(node.GetValue(KratosMultiphysics.NODAL_AREA)))
-            AreaTotal += node.GetValue(KratosMultiphysics.NODAL_AREA)
-
-        if (abs(1.0-AreaTotal) > 1e-5):
-            print("Obtained total area: "+str(AreaTotal))
-            raise Exception("Error in NODAL_AREA computation.")
-
-    def SetManufacturedSolutionSourceValues(self):
-        ## Set the body force as source term
-        time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        solver_type = self.ProjectParameters["solver_settings"]["solver_type"].GetString()
-
-        for node in self.main_model_part.Nodes:
-            if solver_type == "Monolithic":
-                # If VMS2D element is used, set mu as the Kinematic viscosity and density in the nodes
-                rho = node.GetSolutionStepValue(KratosMultiphysics.DENSITY)
-                mu = rho*node.GetSolutionStepValue(KratosMultiphysics.VISCOSITY)
-            elif solver_type == "Embedded":
-                # If the symbolic elements are used, get the density and viscosity from the first element properties
-                for elem in self.main_model_part.Elements:
-                    rho = elem.Properties[KratosMultiphysics.DENSITY]
-                    mu = elem.Properties[KratosMultiphysics.DYNAMIC_VISCOSITY]
-                    break
-
-            rhof = self.ComputeNodalSourceTermManufacturedSolution(node, time, rho, mu)
-
-            node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_X, 0, rhof[0]/rho)  # Set the x-component body force field
-            node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y, 0, rhof[1]/rho)  # Set the y-component body force field
-
+    ## We enhance the class with these two methods to calculate the error norms
     def ComputeVelocityErrorNorm(self):
         err_v = 0
 
-        for node in self.main_model_part.Nodes:
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
             weight = node.GetValue(KratosMultiphysics.NODAL_AREA)
             vel_x = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
             vel_y = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-            end_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            end_time = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
 
-            analytical_vel = self.ComputeNodalVelocityManufacturedSolution(node, end_time)
+            analytical_vel = self._ComputeNodalVelocityManufacturedSolution(node, end_time)
 
             err_x = analytical_vel[0] - vel_x
             err_y = analytical_vel[1] - vel_y
@@ -320,15 +192,59 @@ class ManufacturedSolutionProblem:
     def ComputePressureErrorNorm(self):
         err_p = 0
 
-        for node in self.main_model_part.Nodes:
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
             weight = node.GetValue(KratosMultiphysics.NODAL_AREA)
             pres = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
-            analytical_pres = self.ComputeNodalPressureManufacturedSolution(node)
+            analytical_pres = self._ComputeNodalPressureManufacturedSolution(node)
             err_p += weight*(analytical_pres - pres)**2
 
         return math.sqrt(err_p) # Note, there is no need of dividing by the total area (sum of weights) since it is 1
 
-    def ComputeNodalSourceTermManufacturedSolution(self, node, time, rho, mu):
+    ## Internal methods required for the manufactured solution calculation
+    def _SetManufacturedSolutionValues(self, buffer_position = 0, fix=True, set_only_boundaries=False):
+        ## Set the analytical solution for the manufactured solution computation
+        time = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
+
+        if set_only_boundaries == False:
+            for node in self._GetSolver().GetComputingModelPart().Nodes:
+                vel = self._ComputeNodalVelocityManufacturedSolution(node, time)
+                pres = self._ComputeNodalPressureManufacturedSolution(node)
+
+                if fix:
+                    node.Fix(KratosMultiphysics.VELOCITY_X)
+                    node.Fix(KratosMultiphysics.VELOCITY_Y)
+                    node.Fix(KratosMultiphysics.PRESSURE)
+
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, buffer_position, vel[0])
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, buffer_position, vel[1])
+                node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, buffer_position, pres)
+        else:
+            root_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
+            for node in root_model_part.GetSubModelPart("Inlet2D_Contour").Nodes:
+                vel = self._ComputeNodalVelocityManufacturedSolution(node, time)
+
+                if fix:
+                    node.Fix(KratosMultiphysics.VELOCITY_X)
+                    node.Fix(KratosMultiphysics.VELOCITY_Y)
+
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, buffer_position, vel[0])
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, buffer_position, vel[1])
+
+    def _SetManufacturedSolutionSourceValues(self):
+        ## Set the body force as source term
+        ## Note 1: it is assumed that the DENSITY is nodally stored
+        ## Note 2: it is assumed that the DYNAMIC_VISCOSITY is constant and stored in the properties
+        model_part = self._GetSolver().GetComputingModelPart()
+        time = model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+        mu = model_part.GetElement(1).Properties[KratosMultiphysics.DYNAMIC_VISCOSITY]
+        for node in model_part.Nodes:
+            rho = node.GetSolutionStepValue(KratosMultiphysics.DENSITY)
+            rho_f = self._ComputeNodalSourceTermManufacturedSolution(node, time, rho, mu)
+            node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_X, 0, rho_f[0]/rho)  # Set the x-component body force field
+            node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y, 0, rho_f[1]/rho)  # Set the y-component body force field
+
+    def _ComputeNodalSourceTermManufacturedSolution(self, node, time, rho, mu):
         if (self.analytical_solution_type == "sinusoidal_transient_field"):
             rhofx = -rho*math.pi*math.sin(math.pi*node.X)*math.cos(math.pi*node.Y)*math.sin(math.pi*time) + 2*mu*math.pi*math.pi*math.sin(math.pi*node.X)*math.cos(math.pi*node.Y)*math.cos(math.pi*time) + rho*math.pi*(math.cos(math.pi*time)**2)*math.sin(math.pi*node.X)*math.cos(math.pi*node.X)
             rhofy =  rho*math.pi*math.cos(math.pi*node.X)*math.sin(math.pi*node.Y)*math.sin(math.pi*time) - 2*mu*math.pi*math.pi*math.cos(math.pi*node.X)*math.sin(math.pi*node.Y)*math.cos(math.pi*time) + rho*math.pi*(math.cos(math.pi*time)**2)*math.sin(math.pi*node.Y)*math.cos(math.pi*node.Y)
@@ -343,7 +259,7 @@ class ManufacturedSolutionProblem:
 
         return [rhofx, rhofy]
 
-    def ComputeNodalVelocityManufacturedSolution(self, node, time):
+    def _ComputeNodalVelocityManufacturedSolution(self, node, time):
         if (self.analytical_solution_type == "sinusoidal_transient_field"):
             vx =  math.sin(math.pi*node.X)*math.cos(math.pi*node.Y)*math.cos(math.pi*time)
             vy = -math.cos(math.pi*node.X)*math.sin(math.pi*node.Y)*math.cos(math.pi*time)
@@ -358,12 +274,44 @@ class ManufacturedSolutionProblem:
 
         return [vx, vy]
 
-    def ComputeNodalPressureManufacturedSolution(self, node):
+    def _ComputeNodalPressureManufacturedSolution(self, node):
         # We consider solenoidal velocity fields in order to have a known zero pressure solution on the continuum
         return 0.0
 
+    def _AddOutput(self):
+        gid_output_settings = KratosMultiphysics.Parameters("""{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "FluidModelPart.fluid_computational_model_part",
+                "output_name"            : "TO_BE_SET_BELOW",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"               : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"                  : "time",
+                        "output_control_type"         : "step",
+                        "output_interval"             : 1,
+                        "body_output"                 : true,
+                        "node_output"                 : false,
+                        "skin_output"                 : false,
+                        "plane_output"                : [],
+                        "nodal_results"               : ["VELOCITY","PRESSURE","BODY_FORCE"],
+                        "gauss_point_results"         : [],
+                        "nodal_nonhistorical_results" : []
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }""")
+        gid_output_settings["Parameters"]["output_name"].SetString(self.input_file_name)
+        self.project_parameters["output_processes"]["gid_output"].Append(gid_output_settings)
+
 if __name__ == '__main__':
-    test = ManufacturedSolutionTest()
-    test.setUp()
-    test.runTest()
-    test.tearDown()
+    KratosUnittest.main()

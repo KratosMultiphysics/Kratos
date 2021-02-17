@@ -154,9 +154,22 @@ public:
 
     /**
      * @brief This method returns the mapping-matrix
-     * @return The mapping-matrix
+     * @return Reference to the mapping-matrix
      */
-    virtual TMappingMatrixType* pGetMappingMatrix() = 0;
+    virtual TMappingMatrixType& GetMappingMatrix()
+    {
+        KRATOS_ERROR << "This mapper doesn't implement \"GetMappingMatrix\"!" << std::endl;
+    }
+
+    virtual ModelPart& GetInterfaceModelPartOrigin()
+    {
+        KRATOS_ERROR << "This mapper doesn't implement \"GetInterfaceModelPartOrigin\"!" << std::endl;
+    }
+
+    virtual ModelPart& GetInterfaceModelPartDestination()
+    {
+        KRATOS_ERROR << "This mapper doesn't implement \"GetInterfaceModelPartDestination\"!" << std::endl;
+    }
 
     ///@}
     ///@name Inquiry

@@ -339,11 +339,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        // Check that all required variables have been registered
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for ( std::size_t i = 0; i < this->GetGeometry().size(); ++i ) {
             const Node<3>& rnode = this->GetGeometry()[i];

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -20,7 +18,7 @@ def Create(settings):
 
 class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
     def __init__(self, settings):
-        super(RelativeNormPreviousResidualConvergenceCriteria, self).__init__(settings)
+        super().__init__(settings)
 
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
@@ -63,12 +61,12 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
         pass
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "abs_tolerance" : 1e-5,
             "rel_tolerance" : 1e-5,
             "label"         : ""
         }""")
-        this_defaults.AddMissingParameters(super(RelativeNormPreviousResidualConvergenceCriteria, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 

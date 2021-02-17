@@ -4,7 +4,6 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
 import co_simulation_test_case
 import os
 
@@ -16,8 +15,6 @@ except ImportError:
 
 have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "LinearSolversApplication")
 
-using_pykratos = UsingPyKratos()
-
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
@@ -27,8 +24,6 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
     def setUp(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
-        if using_pykratos:
-            self.skipTest("This test cannot be run with pyKratos!")
         if not have_fsi_dependencies:
             self.skipTest("FSI dependencies are not available!")
 

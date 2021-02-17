@@ -51,7 +51,7 @@ Element::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Clon
 
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     const EmbeddedIncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -77,7 +77,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
 
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
         rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
@@ -115,7 +115,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
 
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGradientStabilizationTerm(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     array_1d<double, NumNodes> potential;
     potential = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(*this);
@@ -129,7 +129,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
             auto neighbour_elem = this->GetGeometry()[i_node].GetValue(NEIGHBOUR_ELEMENTS);
             KRATOS_ERROR_IF(neighbour_elem.size() == 0) << this->Info() << " neighbour elements were not computed\n";
 
-            for (const auto r_elem : neighbour_elem){
+            for (const auto& r_elem : neighbour_elem){
 
                 BoundedVector<double,NumNodes> neighbour_distances;
                 for(unsigned int i = 0; i<NumNodes; i++){
@@ -218,7 +218,7 @@ ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<3,4>:
 // Inquiry
 
 template <int Dim, int NumNodes>
-int EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

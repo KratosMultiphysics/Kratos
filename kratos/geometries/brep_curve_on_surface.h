@@ -53,6 +53,7 @@ public:
 
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
+    typedef typename GeometryType::Pointer GeometryPointer;
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
@@ -71,6 +72,9 @@ public:
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
+
+    static constexpr IndexType SURFACE_INDEX = -1;
+    static constexpr IndexType CURVE_ON_SURFACE_INDEX = -3;
 
     ///@}
     ///@name Life Cycle
@@ -213,6 +217,66 @@ public:
     }
 
     ///@}
+    ///@name Access to Geometry Parts
+    ///@{
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the index.
+    *        Possible indices are:
+    *        SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @param Index: SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    GeometryPointer pGetGeometryPart(const IndexType Index) override
+    {
+        const auto& const_this = *this;
+        return std::const_pointer_cast<GeometryType>(
+            const_this.pGetGeometryPart(Index));
+    }
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the index.
+    *        Possible indices are:
+    *        SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @param Index: SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
+    {
+        if (Index == SURFACE_INDEX)
+            return mpCurveOnSurface->pGetGeometryPart(SURFACE_INDEX);
+
+        if (Index == CURVE_ON_SURFACE_INDEX)
+            return mpCurveOnSurface;
+
+        KRATOS_ERROR << "Index " << Index << " not existing in BrepCurveOnSurface: "
+            << this->Id() << std::endl;
+    }
+
+    /**
+    * @brief This function is used to check if the index is either
+    *        SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @param Index of the geometry part.
+    * @return true if SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
+    */
+    bool HasGeometryPart(const IndexType Index) const override
+    {
+        return (Index == SURFACE_INDEX || Index == CURVE_ON_SURFACE_INDEX);
+    }
+
+    ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the nurbs curve on surface
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpCurveOnSurface->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
     ///@name Set/ Get functions
     ///@{
 
@@ -237,6 +301,12 @@ public:
     const NurbsCurveOnSurfacePointerType pGetCurveOnSurface() const
     {
         return mpCurveOnSurface;
+    }
+
+    /// Returns number of points of NurbsCurveOnSurface.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    {
+        return mpCurveOnSurface->PointsNumberInDirection(DirectionIndex);
     }
 
     ///@}
@@ -291,6 +361,24 @@ public:
     }
 
     ///@}
+    ///@name Geometrical Informations
+    ///@{
+
+    /// Computes the length of a nurbs curve
+    double Length() const override
+    {
+        IntegrationPointsArrayType integration_points;
+        CreateIntegrationPoints(integration_points);
+
+        double length = 0.0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            const double determinant_jacobian = mpCurveOnSurface->DeterminantOfJacobian(integration_points[i]);
+            length += integration_points[i].Weight() * determinant_jacobian;
+        }
+        return length;
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -325,6 +413,10 @@ public:
     {
         mpCurveOnSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives);
+
+        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
+            rResultGeometries(i)->SetGeometryParent(this);
+        }
     }
 
     ///@}

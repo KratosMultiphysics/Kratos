@@ -142,7 +142,7 @@ namespace Kratos {
     // DEM-FEM INTERACTION //
     /////////////////////////
 
-    void DEM_D_Bentonite_Colloid::CalculateForcesWithFEM(ProcessInfo& r_process_info,
+    void DEM_D_Bentonite_Colloid::CalculateForcesWithFEM(const ProcessInfo& r_process_info,
                                                          const double OldLocalContactForce[3],
                                                          double LocalElasticContactForce[3],
                                                          double LocalDeltDisp[3],

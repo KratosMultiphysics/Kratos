@@ -214,7 +214,7 @@ void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIn
 
             current_part->Nodes().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
 
@@ -917,7 +917,7 @@ void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType 
 
             current_part->Elements().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
     KRATOS_CATCH("");
@@ -980,8 +980,8 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
 
 /** Inserts an element in the mesh with ThisIndex.
 */
-ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName, 
-        ModelPart::IndexType Id, typename GeometryType::Pointer pGeometry, 
+ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName,
+        ModelPart::IndexType Id, typename GeometryType::Pointer pGeometry,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
@@ -1176,7 +1176,7 @@ void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSl
 
             current_part->MasterSlaveConstraints().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
     KRATOS_CATCH("");
@@ -1436,7 +1436,7 @@ void ModelPart::AddConditions(std::vector<IndexType> const& ConditionIds, IndexT
 
             current_part->Conditions().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
     KRATOS_CATCH("");
@@ -1758,12 +1758,21 @@ void ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
 }
 
 
-ModelPart* ModelPart::GetParentModelPart() const
+ModelPart& ModelPart::GetParentModelPart()
 {
     if (IsSubModelPart()) {
-        return mpParentModelPart;
+        return *mpParentModelPart;
     } else {
-        return const_cast<ModelPart*>(this);
+        return *this;
+    }
+}
+
+const ModelPart& ModelPart::GetParentModelPart() const
+{
+    if (IsSubModelPart()) {
+        return *mpParentModelPart;
+    } else {
+        return *this;
     }
 }
 
@@ -1816,17 +1825,26 @@ void ModelPart::SetBufferSizeSubModelParts(ModelPart::IndexType NewBufferSize)
 }
 
 /// run input validation
-int ModelPart::Check(ProcessInfo& rCurrentProcessInfo) const
+int ModelPart::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     int err = 0;
     for (ElementConstantIterator elem_iterator = ElementsBegin(); elem_iterator != ElementsEnd(); elem_iterator++)
-        err = elem_iterator->Check(rCurrentProcessInfo);
+    {
+        const auto& r_elem = *elem_iterator;
+        err = r_elem.Check(rCurrentProcessInfo);
+    }
     for (ConditionConstantIterator condition_iterator = ConditionsBegin(); condition_iterator != ConditionsEnd(); condition_iterator++)
-        err = condition_iterator->Check(rCurrentProcessInfo);
+    {
+        const auto& r_cond = *condition_iterator;
+        err = r_cond.Check(rCurrentProcessInfo);
+    }
     for (MasterSlaveConstraintConstantIteratorType constraint_iterator = MasterSlaveConstraintsBegin();
             constraint_iterator != MasterSlaveConstraintsEnd(); constraint_iterator++)
-        err = constraint_iterator->Check(rCurrentProcessInfo);
+    {
+        const auto& r_constraint = *constraint_iterator;
+        err = r_constraint.Check(rCurrentProcessInfo);
+    }
     return err;
     KRATOS_CATCH("");
 }

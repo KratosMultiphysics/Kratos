@@ -18,7 +18,7 @@ def CreateSolver(model, custom_settings):
 class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ## Default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -39,6 +39,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "compute_reactions": false,
+            "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
             "relative_velocity_tolerance": 1e-5,
             "absolute_velocity_tolerance": 1e-7,
@@ -64,7 +65,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "move_mesh_flag": false
         }""")
 
-        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverMonolithic, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverMonolithic, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
@@ -73,11 +74,8 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).__init__(model,custom_settings)
 
-        self.formulation = navier_stokes_solver_vmsmonolithic.StabilizedFormulation(self.settings["formulation"])
-        self.element_name = self.formulation.element_name
-        self.condition_name = self.formulation.condition_name
-        self.element_integrates_in_time = self.formulation.element_integrates_in_time
-        self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
+        # Set up the auxiliary class with the formulation settings
+        self._SetFormulation()
 
         scheme_type = self.settings["time_scheme"].GetString()
         if scheme_type == "bossak":
@@ -182,11 +180,9 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 self.settings["relative_velocity_tolerance"].GetDouble(),
                 self.settings["absolute_velocity_tolerance"].GetDouble())
         else:
-            convergence_criterion = KratosTrilinos.TrilinosUPCriteria(
-                self.settings["relative_velocity_tolerance"].GetDouble(),
-                self.settings["absolute_velocity_tolerance"].GetDouble(),
-                self.settings["relative_pressure_tolerance"].GetDouble(),
-                self.settings["absolute_pressure_tolerance"].GetDouble())
+            convergence_criterion = KratosTrilinos.TrilinosMixedGenericCriteria(
+                [(KratosMultiphysics.VELOCITY, self.settings["relative_velocity_tolerance"].GetDouble(), self.settings["absolute_velocity_tolerance"].GetDouble()),
+                (KratosMultiphysics.PRESSURE, self.settings["relative_pressure_tolerance"].GetDouble(), self.settings["absolute_pressure_tolerance"].GetDouble())])
         convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 
@@ -216,13 +212,11 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         time_scheme = self._GetScheme()
-        linear_solver = self._GetLinearSolver()
         convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
         return KratosTrilinos.TrilinosNewtonRaphsonStrategy(
             computing_model_part,
             time_scheme,
-            linear_solver,
             convergence_criterion,
             builder_and_solver,
             self.settings["maximum_iterations"].GetInt(),

@@ -201,6 +201,35 @@ public:
     }
 
     ///@}
+    ///@name Point Access
+    ///@{
+
+    PointType& operator[](const SizeType& i) override
+    {
+        return (*mpNurbsSurface)[i];
+    }
+
+    PointType const& operator[](const SizeType& i) const override
+    {
+        return (*mpNurbsSurface)[i];
+    }
+
+    typename PointType::Pointer& operator()(const SizeType& i) override
+    {
+        return (*mpNurbsSurface)(i);
+    }
+
+    const typename PointType::Pointer& operator()(const SizeType& i) const override
+    {
+        return (*mpNurbsSurface)(i);
+    }
+
+    SizeType size() const override
+    {
+        return mpNurbsSurface->size();
+    }
+
+    ///@}
     ///@name Access to Geometry Parts
     ///@{
 
@@ -285,6 +314,16 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the nurbs surface
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpNurbsSurface->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
@@ -297,9 +336,56 @@ public:
         return mIsTrimmed;
     }
 
+    /// Returns number of points of NurbsSurface.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    {
+        return mpNurbsSurface->PointsNumberInDirection(DirectionIndex);
+    }
+
     ///@}
     ///@name Geometrical Operations
     ///@{
+
+    /**
+    * @brief Calls projection of its nurbs surface.
+    *        Projects a certain point on the geometry, or finds
+    *        the closest point, depending on the provided
+    *        initial guess. The external point does not necessary
+    *        lay on the geometry.
+    *        It shall deal as the interface to the mathematical
+    *        projection function e.g. the Newton-Raphson.
+    *        Thus, the breaking criteria does not necessarily mean
+    *        that it found a point on the surface, if it is really
+    *        the closest if or not. It shows only if the breaking
+    *        criteria, defined by the tolerance is reached.
+    *
+    *        This function requires an initial guess, provided by
+    *        rProjectedPointLocalCoordinates.
+    *        This function can be a very costly operation.
+    *
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointGlobalCoordinates the location of the
+    *        projection in global coordinates.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    *        The variable is as initial guess!
+    * @param Tolerance accepted of orthogonal error to projection.
+    * @return It is chosen to take an int as output parameter to
+    *         keep more possibilities within the interface.
+    *         0 -> failed
+    *         1 -> converged
+    */
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return mpNurbsSurface->ProjectionPoint(
+            rPointGlobalCoordinates, rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
+    }
 
     /*
     * @brief This method maps from dimension space to working space.
@@ -336,12 +422,34 @@ public:
     ///@name Quadrature Point Geometries
     ///@{
 
-    /* @brief creates a list of quadrature point geometries
-     *        from a list of integration points on the
-     *        nurbs surface of this geometry.
+    /* @brief calls function of undelying nurbs surface and updates
+     *        the parent to itself.
      *
      * @param rResultGeometries list of quadrature point geometries.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
      * @param rIntegrationPoints list of provided integration points.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints) override
+    {
+        mpNurbsSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
+
+        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
+            rResultGeometries(i)->SetGeometryParent(this);
+        }
+    }
+
+    /* @brief calls function of undelying nurbs surface,
+     *        which itself is not implented and thus is calling the
+     *        geometry base class and updates the parent to itself.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
      * @param NumberOfShapeFunctionDerivatives the number of evaluated
      *        derivatives of shape functions at the quadrature point geometries.
      *
@@ -353,6 +461,10 @@ public:
     {
         mpNurbsSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives);
+
+        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
+            rResultGeometries(i)->SetGeometryParent(this);
+        }
     }
 
     ///@}

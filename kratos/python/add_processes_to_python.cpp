@@ -28,6 +28,7 @@
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_neighbours_for_entities_process.h"
 #include "processes/find_global_nodal_elemental_neighbours_process.h"
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/node_erase_process.h" // TODO: To be removed
@@ -143,6 +144,16 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<const DataCommunicator&, ModelPart&>())
     .def("ClearNeighbours",&FindGlobalNodalNeighboursProcess::ClearNeighbours)
     .def("GetNeighbourIds",&FindGlobalNodalNeighboursProcess::GetNeighbourIds)
+    ;
+
+    typedef FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType> FindGlobalNodalNeighboursForConditionsProcess;
+    py::class_<FindGlobalNodalNeighboursForConditionsProcess, FindGlobalNodalNeighboursForConditionsProcess::Pointer, Process>
+        (m,"FindGlobalNodalNeighboursForConditionsProcess")
+    .def(py::init([](const DataCommunicator& rDataComm, ModelPart& rModelPart) {
+        return std::unique_ptr<FindGlobalNodalNeighboursForConditionsProcess>(new FindGlobalNodalNeighboursForConditionsProcess(rDataComm, rModelPart, NEIGHBOUR_CONDITION_NODES));
+    }))
+    .def("ClearNeighbours",&FindGlobalNodalNeighboursForConditionsProcess::ClearNeighbours)
+    .def("GetNeighbourIds",&FindGlobalNodalNeighboursForConditionsProcess::GetNeighbourIds)
     ;
 
     py::class_<FindGlobalNodalElementalNeighboursProcess, FindGlobalNodalElementalNeighboursProcess::Pointer, Process>
@@ -348,14 +359,20 @@ void  AddProcessesToPython(pybind11::module& m)
     // Discontinuous distance computation methods
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&, const Flags>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<2>)
+        .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
+        .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)
         ;
 
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<3>, CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&, const Flags>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<3>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<3>)
+        .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
+        .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)
         ;
 
     // Continuous distance computation methods
