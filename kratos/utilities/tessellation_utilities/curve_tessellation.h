@@ -124,7 +124,35 @@ public:
             NumberOfGuessesPerInterval,
             this_interval,
             KnotSpanIntervals,
-            Tolerance);
+            Tolerance,
+            false);
+    }
+
+    void Tessellate(
+        const GeometryType& rGeometry,
+        const double Tolerance,
+        const int NumberOfGuessesPerInterval,
+        bool ToSurfaceParameter)
+    {
+        std::vector<double> span_intervals;
+        rGeometry.Spans(span_intervals, 0);
+
+        NurbsInterval this_interval(
+            span_intervals[0], span_intervals[span_intervals.size() - 1]);
+
+        std::vector<NurbsInterval> KnotSpanIntervals(span_intervals.size() - 1);
+
+        for (IndexType i = 0; i < span_intervals.size() - 1; ++i) {
+            KnotSpanIntervals[i] = NurbsInterval(span_intervals[i], span_intervals[i + 1]);
+        }
+
+        mTesselation = ComputeTessellation(
+            rGeometry,
+            NumberOfGuessesPerInterval,
+            this_interval,
+            KnotSpanIntervals,
+            Tolerance,
+            ToSurfaceParameter);
     }
 
     /* INTERFACE FOR ALL GEOMETRIES
@@ -142,7 +170,8 @@ public:
         const double End,
         const std::vector<double>& rSpanIntervals,
         const double Tolerance,
-        const int NumberOfGuessesPerInterval = 1)
+        const int NumberOfGuessesPerInterval = 1,
+        bool ToSurfaceParameter = false)
     {
         NurbsInterval this_interval(Start, End);
 
@@ -157,7 +186,8 @@ public:
             NumberOfGuessesPerInterval,
             this_interval,
             KnotSpanIntervals,
-            Tolerance);
+            Tolerance,
+            ToSurfaceParameter);
     }
 
     /**
@@ -175,14 +205,14 @@ public:
         const int PolynomialDegree,
         const NurbsInterval DomainInterval,
         const std::vector<NurbsInterval>& rKnotSpanIntervals,
-        const double Tolerance
+        const double Tolerance,
+        bool ToSurfaceParameter = false
         )
     {
         TessellationType sample_points;
         TessellationType points;
 
         typename GeometryType::CoordinatesArrayType point;
-        typename GeometryType::CoordinatesArrayType result;
 
         // compute sample points
 
@@ -197,7 +227,8 @@ public:
             typename GeometryType::CoordinatesArrayType t0;
             t0[0] = span.GetT0();
 
-            point = rGeometry.GlobalCoordinates(result, t0);
+            ComputeGlobalCoordinates(
+                point, t0, rGeometry, ToSurfaceParameter);
 
             sample_points.emplace_back(t, point);
         }
@@ -205,7 +236,8 @@ public:
         typename GeometryType::CoordinatesArrayType t_at_normalized;
         t_at_normalized[0] = DomainInterval.GetParameterAtNormalized(1.0);
 
-        point = rGeometry.GlobalCoordinates(result, t_at_normalized);
+        ComputeGlobalCoordinates(
+            point, t_at_normalized, rGeometry, ToSurfaceParameter);
 
         sample_points.emplace_back(1.0, point);
 
@@ -248,8 +280,8 @@ public:
 
                     t_at_normalized[0] = DomainInterval.GetParameterAtNormalized(t);
 
-                    point = rGeometry.GlobalCoordinates(
-                        result, t_at_normalized);
+                    ComputeGlobalCoordinates(
+                        point, t_at_normalized, rGeometry, ToSurfaceParameter);
 
                     const double distance = DistanceToLine(point, point_a,
                         point_b);
@@ -271,6 +303,21 @@ public:
         return points;
     }
 
+    static void ComputeGlobalCoordinates(
+        CoordinatesArrayType& rGlobalCoordinates,
+        const CoordinatesArrayType& crLocaCoordinates,
+        const GeometryType& rGeometry,
+        bool to_surface_parameter = false
+    )
+    {
+        if (!to_surface_parameter) {
+            rGeometry.GlobalCoordinates(
+                rGlobalCoordinates, crLocaCoordinates);
+            return;
+        }
+        rGlobalCoordinates = crLocaCoordinates;
+        rGeometry.Calculate(PARAMETER_2D_COORDINATES, rGlobalCoordinates);
+    }
 
     /* @brief This method returns polygon of this curve with equal curve segments.
         * @param pGeometry Pointer to the geometry

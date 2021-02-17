@@ -139,6 +139,21 @@ public:
     }
 
     ///@}
+    ///@name Set / Calculate access
+    ///@{
+
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput
+        ) const override
+    {
+        if (rVariable == PARAMETER_2D_COORDINATES) {
+            array_1d<double, 3>& local_parameter = rOutput;
+            mpNurbsCurve->GlobalCoordinates(rOutput, local_parameter);
+        }
+    }
+
+    ///@}
     ///@name Mathematical Informations
     ///@{
 
