@@ -104,7 +104,7 @@ public:
     /**
      * @brief This method clears the assignation of the conditions
      */
-    void ClearValueAssign();
+    void Clear() override;
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
