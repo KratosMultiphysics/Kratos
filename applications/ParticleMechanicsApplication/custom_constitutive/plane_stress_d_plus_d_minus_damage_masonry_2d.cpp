@@ -477,9 +477,6 @@ int DamageDPlusDMinusMasonry2DLaw::Check(
 	if( !rMaterialProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER) )
 		KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BIAXIAL_COMPRESSION_MULTIPLIER", "");
 
-	if( !rMaterialProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER) )
-		KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BIAXIAL_COMPRESSION_MULTIPLIER", "");
-
 	if( !rMaterialProperties.Has(STRAIN_RATE_FACTOR_C1_TENSION) )
 		KRATOS_THROW_ERROR(std::logic_error, "Missing variable: STRAIN_RATE_FACTOR_C1_TENSION", "");
 
