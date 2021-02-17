@@ -47,40 +47,10 @@ namespace MPMSearchElementUtility
 
     inline bool CheckIsInside(const GeometryType& rGeom, array_1d<double, 3>& LocalCoords, const array_1d<double, 3>& Coords, const double Tolerance, const bool IsCalcLocalCoords = true)
     {
-        bool is_inside = true;
-        if (rGeom.Dimension() == 2)
-        {
-            is_inside = true;
-            // Do walk around method
-            Vector cross_products(rGeom.PointsNumber());
-            for (size_t i = 0; i < rGeom.PointsNumber(); ++i)
-            {
-                if (rGeom.Points()[i].Coordinates()[2] != 0.0) {
-                    return rGeom.IsInside(Coords, LocalCoords, Tolerance);
-                    break;
-                }
-                cross_products[i] = CrossProductDet2D(Coords - rGeom.Points()[i].Coordinates(),
-                    rGeom.Points()[(i + 1) % rGeom.PointsNumber()].Coordinates() - rGeom.Points()[i].Coordinates());
-            }
-            for (size_t i = 1; i < cross_products.size(); ++i)
-            {
-                if (cross_products[i] * cross_products[0] < -std::abs(Tolerance))
-                {
-                    is_inside = false;
-                    break;
-                }
-            }
 
-        }
-        else return rGeom.IsInside(Coords, LocalCoords, Tolerance);
+        // TODO some optimisation for simple 2D shapes.
 
-        if (is_inside) {
-            if (IsCalcLocalCoords) return rGeom.IsInside(Coords, LocalCoords, Tolerance);
-            else return true;
-        }
-
-
-        return false;
+        return rGeom.IsInside(Coords, LocalCoords, Tolerance);
     }
 
     inline void ConstructNeighbourRelations(GeometryType& rGeom, const ModelPart& rBackgroundGridModelPart)

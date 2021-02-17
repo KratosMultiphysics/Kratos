@@ -620,8 +620,7 @@ private:
             block_for_each(r_model_part.MasterSlaveConstraints(), [&i_eigenvalue, &rEigenvectors](const MasterSlaveConstraint& r_master_slave_constraint){
                 const auto& r_slave_dofs_vector = r_master_slave_constraint.GetSlaveDofsVector();
                 for (const auto& r_slave_dof: r_slave_dofs_vector){
-                    #pragma omp atomic
-                    rEigenvectors(i_eigenvalue, r_slave_dof->EquationId()) *= 0.0;
+                    AtomicMult(rEigenvectors(i_eigenvalue, r_slave_dof->EquationId()), 0.0);
                 }
             });
 

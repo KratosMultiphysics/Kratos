@@ -221,8 +221,8 @@ public:
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the index.
     *        Possible indices are:
-    *        SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
-    * @param Index: SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
+    *        SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @param Index: SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
     GeometryPointer pGetGeometryPart(const IndexType Index) override
@@ -236,8 +236,8 @@ public:
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the index.
     *        Possible indices are:
-    *        SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
-    * @param Index: SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
+    *        SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @param Index: SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
     const GeometryPointer pGetGeometryPart(const IndexType Index) const override
@@ -260,10 +260,7 @@ public:
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX || Index == CURVE_ON_SURFACE_INDEX)
-            return true;
-
-        return false;
+        return (Index == SURFACE_INDEX || Index == CURVE_ON_SURFACE_INDEX);
     }
 
     ///@}
