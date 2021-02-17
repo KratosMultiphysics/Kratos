@@ -11,6 +11,8 @@ if have_conv_diff:
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 from KratosMultiphysics.FluidDynamicsApplication.read_distance_from_file import DistanceImportUtility
+#TODO: IMPROVE THIS
+from KratosMultiphysics.FluidDynamicsApplication.apply_mass_local_conservation_process import ApplyLocalMassConservationCheckProcess
 
 def CreateSolver(model, custom_settings):
     return NavierStokesTwoFluidsSolver(model, custom_settings)
@@ -179,6 +181,25 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
+        #TODO: THINK ABOUT HOW TO PROPERLY CONSTRUCT THIS
+        mass_settings = KratosMultiphysics.Parameters( """
+        {
+            "model_part_name"                    : "FluidModelPart.FluidParts_Boundary-Fluid",
+            "mass_correction_settings"           : {
+                "echo_level" : 1
+            },
+            "write_to_log_file"                      : true,
+            "log_file_name"                      : "mass_conservation.log",
+            "convector_settings"                 : {},
+            "check_volume_loss_at_the_end"       : false,
+            "min_dt_factor"                      : 1e-5,
+            "max_dt_factor"                      : 1.0,
+            "correct_backwards"                  : true,
+            "maximum_iterations"                 : 5
+        }""" )
+        self.mass_conservation_process = ApplyLocalMassConservationCheckProcess(self.model, mass_settings)
+        self.mass_conservation_process.ExecuteBeforeSolutionLoop()
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
@@ -197,6 +218,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self._GetLevelSetConvectionProcess().Execute()
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
+
+            #TODO: THINK IF WE KEEP THIS IN HERE OR AT THE END OF THE STEP
+            # Apply mass conservation process
+            self.mass_conservation_process.Execute()
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set mass correction is performed.")
 
             # Recompute the distance field according to the new level-set position
             if (self._reinitialization_type == "variational"):

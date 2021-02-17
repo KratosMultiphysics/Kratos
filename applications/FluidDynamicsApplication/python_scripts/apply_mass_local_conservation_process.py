@@ -99,9 +99,9 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
 
         first_lines_string = self.mass_conservation_utility.CalculateInitialVolume()
 
-        if ( self._write_to_log and self._is_printing_rank ):
-            with open(self._my_log_file, "w") as logFile:
-                 logFile.write( first_lines_string )
+        # if ( self._write_to_log and self._is_printing_rank ):
+        #     with open(self._my_log_file, "w") as logFile:
+        #          logFile.write( first_lines_string )
 
         KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Initialization finished (initial volumes calculated).")
 
@@ -109,165 +109,75 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
         self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
-        self.forward_convection= self._set_levelset_convection_process()
+        # Save current distance in case we do not improve
         KratosMultiphysics.VariableUtils().SaveScalarVar(
             KratosMultiphysics.DISTANCE,
             KratosFluid.AUX_DISTANCE,
             self._fluid_model_part.Nodes)
+
+        # Calculate negative volume and error
         self.mass_conservation_utility.ComputeBalancedVolume()
         initial_volume_error = self.mass_conservation_utility.GetVolumeError()
-        # print("initial_volume_error: ", initial_volume_error)
-        Flow_interface_corrected=self._CalculateFlowIntoAir()
-        initial_error_tol = 1.0e-12
-        if abs(initial_volume_error) > initial_error_tol:
-            if not self._correct_backwards and initial_volume_error > 0.0:
-                KratosMultiphysics.Logger.PrintInfo("Mass gained, but volume is not being corrected backwards in local corrector.")
-                return
 
-            # flow_into_air = self.mass_conservation_utility.OrthogonalFlowIntoAir()
-            prev_dt = self._fluid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-            # dt_max = prev_dt*self._max_dt_factor if initial_volume_error < 0.0 else -prev_dt*self._max_dt_factor
-            dt=self.mass_conservation_utility.ComputeTimeStepForConvection(Flow_interface_corrected)
-            print("lo que sale",dt)
-            # dt_sign=self.mass_conservation_utility.ComputeTimeStepForConvectionSign(Flow_interface_corrected)
-            # print("dt_max sin truco: ", dt)
-            # print("flow_into_air", flow_into_air)
-            # if flow_into_air < 0.0:
-            #     dt_max = -dt_max
+        # Calculate interface flow rate
+        # Flow_interface_corrected=self._CalculateFlowIntoAir()
 
-
-            # if flow_into_air <0.0:
-            #     dt=-dt
-
-            # dt_for_nextstep=dt+ prev_dt
-            print("dt for convection: ", dt)
-            # self.mass_conservation_utility.RestoreDistanceValues(KratosFluid.AUX_DISTANCE)
-            # self._set_new_waterlevel_surface(dt,elementId)
-            self._ConvectAuxiliaryDistance( dt)
-            self.mass_conservation_utility.ReCheckTheMassConservation()
-            new_volume_error = self.mass_conservation_utility.GetVolumeError()
-
-            print("new_volume_error: ", new_volume_error)
-
-            # if dt_max > 0.0:
-            #     print("dt_max is positive")
-            #     dt_low = 0.0
-            #     dt_high = dt_max
-            #     volume_error_low = initial_volume_error
-            #     volume_error_high = new_volume_error
-            # else:
-            #     print("dt_max is negative")
-            #     dt_low = dt_max
-            #     dt_high = 0.0
-            #     volume_error_low = new_volume_error
-            #     volume_error_high = initial_volume_error
-            # self.iteration_is_on_min_side = abs(volume_error_high) > abs(volume_error_low)
-            # self.old_iteration_was_on_min_side = not self.iteration_is_on_min_side
-            # self.gamma = 1.0
-            
-
-
-            # if dt > 0.0:
-            #     print("dt is positive")
-            #     dt_low = 0.0
-            #     dt_high = dt
-            #     volume_error_low = initial_volume_error
-            #     volume_error_high = new_volume_error
-            # else:
-            #     print("dt is negative")
-            #     dt_low = dt
-            #     dt_high = 0.0
-            #     volume_error_low = new_volume_error
-            #     volume_error_high = initial_volume_error
-            # self.iteration_is_on_min_side = abs(volume_error_high) > abs(volume_error_low)
-            # self.old_iteration_was_on_min_side = not self.iteration_is_on_min_side
-            # self.gamma = 1.0
-
-
-
-            # KratosMultiphysics.Logger.PrintInfo("volume error low", volume_error_low)
-            # KratosMultiphysics.Logger.PrintInfo("volume error high", volume_error_high)
-
-            
-            # if volume_error_low*volume_error_high > 0.0:
-            #     if abs(volume_error_low) < abs(volume_error_high):
-            #         self.mass_conservation_utility.RestoreDistanceValues(KratosFluid.AUX_DISTANCE)
-            #     KratosMultiphysics.Logger.PrintInfo("Volume cannot be corrected, moving to global corrector")
-            #     return
-
-            iterations = 0
-
-            # while iterations < self._maximum_iterations:
-            #     # self.mass_conservation_utility.RestoreDistanceValues(KratosFluid.AUX_DISTANCE)
-            #     # dt = self._PredictNewDt(dt_low, dt_high, volume_error_low, volume_error_high)
-            #     dt=self._ComputeTimeStepForConvection()
-            #     print("nuevo delt segun ux", dt)
-            #     # self._set_new_waterlevel_surface(dt,elementId)
-            #     self._ConvectAuxiliaryDistance(dt)
-            #     self.mass_conservation_utility.ReCheckTheMassConservation()
-            #     new_volume_error = self.mass_conservation_utility.GetVolumeError()
-            #     print("HOLA")
-            #     print("Iteration: {} Error: {}".format(iterations, new_volume_error))
-            #     self.old_iteration_was_on_min_side = self.iteration_is_on_min_side
-            #     if new_volume_error*volume_error_low > 0.0:
-            #         volume_error_low = new_volume_error
-            #         dt_low = dt
-            #         self.iteration_is_on_min_side = True
-            #     else:
-            #         volume_error_high = new_volume_error
-            #         dt_high = dt
-            #         self.iteration_is_on_min_side = False
-            #     if self.old_iteration_was_on_min_side is self.iteration_is_on_min_side:
-            #         self.gamma *= 0.5
-            #     else:
-            #         self.gamma = 1.0
-            #     iterations += 1
-            tol_error=1e-14
-            if new_volume_error*initial_volume_error>0:
-                if abs(new_volume_error) -
-                <abs(initial_volume_error) >0:
-                    print("error",abs(new_volume_error) -abs( initial_volume_error))
-                    self.mass_conservation_utility.RestoreDistanceValues(KratosFluid.AUX_DISTANCE)
-                    KratosMultiphysics.Logger.PrintInfo("Volume cannot be corrected, error value increase after iteration")
-                    return 
+        tol_error = 1.0e-12
+        print("initial_volume_error: ",initial_volume_error)
+        old_volume_error = initial_volume_error
+        if abs(initial_volume_error) > tol_error:
             iterations = 0
             while iterations < self._maximum_iterations:
-                initial_volume_error=new_volume_error
-                node_value=[380]
-                dt=self.mass_conservation_utility.ComputeTimeStepForConvection(Flow_interface_corrected)
-                # dt_sign=self.mass_conservation_utility.ComputeTimeStepForConvectionSign(Flow_interface_corrected)
-                for node in self._fluid_model_part.Nodes:
-                    
-                    if node.Id in elementId:
-                        Distance_previus=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                        
-                        KratosMultiphysics.Logger.PrintInfo(Distance_previus,"Distancia phi+1")
-                        
-                
-                self._ConvectAuxiliaryDistance(dt)
-                for node in self._fluid_model_part.Nodes:
-                    
-                    if node.Id in elementId:
-                        
-                        Distance_previus=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                        
-                        KratosMultiphysics.Logger.PrintInfo(Distance_previus,"Distancia phi+1+deltat*")
-                        
-                
+                Flow_interface_corrected = self._CalculateFlowIntoAir()
+                dt_star = self.mass_conservation_utility.ComputeTimeStepForConvection(Flow_interface_corrected)
+                if abs(dt_star) < 1.0e-12:
+                    return
+
+                # dt_for_nextstep=dt+ prev_dt
+                # self.mass_conservation_utility.RestoreDistanceValues(KratosFluid.AUX_DISTANCE)
+                # self._set_new_waterlevel_surface(dt,elementId)
+                self._ConvectAuxiliaryDistance(dt_star)
                 self.mass_conservation_utility.ReCheckTheMassConservation()
                 new_volume_error = self.mass_conservation_utility.GetVolumeError()
-                
-                if abs(new_volume_error) < tol_error:
-                    break 
-       
-                iterations += 1
-        self.mass_conservation_utility.CalculateWaterVolume()
-        self.ExecuteFinalizeSolutionStepWriting()
-    
+                print("it. {} new_volume_error: {}".format(iterations,new_volume_error))
+
+
+                ###TEST
+                factor = 0.5
+                new_dt = dt_star
+                while ((new_volume_error * old_volume_error < 0.0) or (abs(new_volume_error > abs(old_volume_error)))):
+                    # Revert the changes in the level set
+                    for phi_prev_it, node in zip(self.phi_prev_it_vect, self._fluid_model_part.Nodes):
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, phi_prev_it)
+
+                    new_dt *= factor
+                    self._ConvectAuxiliaryDistance(new_dt)
+                    self.mass_conservation_utility.ReCheckTheMassConservation()
+                    new_volume_error = self.mass_conservation_utility.GetVolumeError()
+                    print("Inner iteration vol err. {}".format(new_volume_error))
+                old_volume_error = new_volume_error
+                ###TEST
+
+
+                if (abs(new_volume_error) < tol_error):
+                    break
+                else:
+                    iterations += 1
+                # if abs(new_volume_error) > abs(initial_volume_error):
+                #     self.mass_conservation_utility.RestoreDistanceValues(KratosFluid.AUX_DISTANCE)
+                #     KratosMultiphysics.Logger.PrintInfo("Volume cannot be corrected, error value increases after iteration")
+                #     return
+                # elif (abs(new_volume_error) < tol_error):
+                #     break
+                # else:
+                #     iterations += 1
+
+        # self.ExecuteFinalizeSolutionStepWriting()
+
     def _CalculateFlowIntoAir(self):
         flow_orthogonal=self.mass_conservation_utility.OrthogonalFlowIntoAir()
         return flow_orthogonal
-        
+
     # def _ComputeTimeStepForConvection(self,Flow_interface_corrected):
     #     """ REMARK: The pseudo time step dt has no meaning as a physical time step and is NOT accounted as such.
     #         Instead, it as purely used for an artificial convection that helps to conserve the mass.
@@ -284,6 +194,17 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
             The time step considered for this artificial "forward convection" is dt.
             The previous distance field is saved in an auxiliary variable
         """
+        i = 0
+        phi_old_vect = KratosMultiphysics.Vector(self._fluid_model_part.NumberOfNodes())
+        self.phi_prev_it_vect = KratosMultiphysics.Vector(self._fluid_model_part.NumberOfNodes())
+        for node in self._fluid_model_part.Nodes:
+            phi_now = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
+            phi_old = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE, 1)
+            phi_old_vect[i] = phi_old
+            self.phi_prev_it_vect[i] = phi_now
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 1, phi_now)
+            i += 1
+
         prev_dt = self._fluid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         revert_velocity = False
         if dt < 0.0:
@@ -296,6 +217,28 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
         if revert_velocity:
             self.mass_conservation_utility.RevertVelocityDirection()
         self._fluid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = prev_dt
+
+        for phi_old, node in zip(phi_old_vect, self._fluid_model_part.Nodes):
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 1, phi_old)
+
+
+    # def _ConvectAuxiliaryDistance(self, dt):
+    #     """ The distance field is artificially convected to extrapolate the interface motion into the future.
+    #         The time step considered for this artificial "forward convection" is dt.
+    #         The previous distance field is saved in an auxiliary variable
+    #     """
+    #     prev_dt = self._fluid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+    #     revert_velocity = False
+    #     if dt < 0.0:
+    #         dt *= -1.0
+    #         revert_velocity = True
+    #     self._fluid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = dt
+    #     if revert_velocity:
+    #         self.mass_conservation_utility.RevertVelocityDirection()
+    #     self.forward_convection_process.Execute()
+    #     if revert_velocity:
+    #         self.mass_conservation_utility.RevertVelocityDirection()
+    #     self._fluid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = prev_dt
 
 
     def _PredictNewDt(self, dt_low, dt_high, volume_error_low, volume_error_high):
@@ -324,7 +267,7 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                 self.settings["convector_settings"]["max_substeps"].GetInt())
 
         return level_set_convection_process
-    
+
     def _set_new_waterlevel_surface(self,dt,elementId):
         prev_dt = self._fluid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         print("lastdt",prev_dt)
@@ -333,7 +276,7 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
             DISTANCE_NODE_n_1=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             DISTANCE_NODE_n=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1)
             Delta_Distance= DISTANCE_NODE_n_1-DISTANCE_NODE_n
-            
+
             corrector_factor=(dt/prev_dt)*Delta_Distance
             new_distance=DISTANCE_NODE_n_1 + corrector_factor
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,new_distance)
@@ -347,20 +290,3 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                 print("dt*",dt)
                 print("corrector_factor",corrector_factor)
                 print("La nueva distancia es phi n+1 corregida",new_distance)
-                
-               
-
-               
-            
-                
-        
-        
-
-        
-
-
-
-
-
- 
-      
