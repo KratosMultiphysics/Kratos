@@ -551,7 +551,8 @@ public:
      * @return integration points.
      **/
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         const SizeType points_in_u = PolynomialDegreeU() + 1;
         const SizeType points_in_v = PolynomialDegreeV() + 1;
