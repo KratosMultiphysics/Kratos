@@ -101,16 +101,14 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ExecuteInitialize
         // Initialize values
         ResetValues();
 
-        if(number_of_entities != 0) {
-            IndexPartition<std::size_t>(number_of_entities).for_each([&](std::size_t index){
-                auto it_entity = r_entities_array.begin() + index;
-                const auto& r_weights = mWeightExtrapolation[index];
-                double& r_value = GetValue(*it_entity, *mpVariable);
-                for (auto& r_weight : r_weights) {
-                    r_value += r_weight.second * r_var_database.GetValue(r_weight.first, time);
-                }
-            });
-        }
+        IndexPartition<std::size_t>(number_of_entities).for_each([&](std::size_t index){
+            auto it_entity = r_entities_array.begin() + index;
+            const auto& r_weights = mWeightExtrapolation[index];
+            double& r_value = GetValue(*it_entity, *mpVariable);
+            for (auto& r_weight : r_weights) {
+                r_value += r_weight.second * r_var_database.GetValue(r_weight.first, time);
+            }
+        });
     }
 
     KRATOS_CATCH("");
