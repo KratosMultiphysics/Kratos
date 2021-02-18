@@ -816,7 +816,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 		const double s_k    = s_r + (s_p - s_r) * c1;
 		const double e_0    = s_0 / young_modulus;
 		const double e_i 	= s_p / young_modulus;
-		const double alpha  = 2.0 * (e_p - s_p / young_modulus);
+		const double alpha  = std::max(0.0,2.0 * (e_p - s_p / young_modulus));
 		double e_j    		= e_p + alpha * c2;
 		double e_k   		= e_j + alpha * (1.0 - c2);
 		double e_r    		= (e_k - e_j) / (s_p - s_k) * (s_p - s_r) + e_j;
@@ -836,6 +836,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 			ss << "Characteristic Length = " << data.CharacteristicLength <<std::endl;
 			ss << "Input Gc/lch = " << specific_fracture_energy << std::endl;
 			ss << "To avoid constitutive snap-back, FRACTURE_ENERGY_COMPRESSION should be at least = " << bezier_energy_1 << std::endl;
+			ss << "Strain rate  = " << mStrainRate << std::endl;
 			std::cout << ss.str();
 			exit(-1);
 			}
