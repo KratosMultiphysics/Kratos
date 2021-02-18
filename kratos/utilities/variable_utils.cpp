@@ -182,36 +182,6 @@ void VariableUtils::UpdateCurrentPosition(
     KRATOS_CATCH("");
 }
 
-void VariableUtils::AuxiliaryInitializeValue(double &rValue)
-{
-    rValue = 0.0;
-}
-
-void VariableUtils::AuxiliaryInitializeValue(array_1d<double, 3> &rValue)
-{
-    rValue = ZeroVector(3);
-}
-
-void VariableUtils::AuxiliaryAtomicAdd(
-    const double &rPrivateValue,
-    double &rSumValue)
-{
-#pragma omp atomic
-        rSumValue += rPrivateValue;
-}
-
-void VariableUtils::AuxiliaryAtomicAdd(
-    const array_1d<double, 3> &rPrivateValue,
-    array_1d<double, 3> &rSumValue)
-{
-#pragma omp atomic
-        rSumValue[0] += rPrivateValue[0];
-#pragma omp atomic
-        rSumValue[1] += rPrivateValue[1];
-#pragma omp atomic
-        rSumValue[2] += rPrivateValue[2];
-}
-
 template <>
 KRATOS_API(KRATOS_CORE) ModelPart::NodesContainerType& VariableUtils::GetContainer<ModelPart::NodesContainerType>(ModelPart& rModelPart)
 {
