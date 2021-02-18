@@ -66,6 +66,7 @@
 #include "custom_constitutive/johnson_cook_thermal_plastic_3D_law.hpp"
 #include "custom_constitutive/johnson_cook_thermal_plastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/johnson_cook_thermal_plastic_axisym_2D_law.hpp"
+#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 
 namespace Kratos{
 namespace Python{
@@ -214,6 +215,12 @@ namespace Python{
         (m, "JohnsonCookThermalPlastic2DAxisymLaw")
         .def(py::init<>())
         ;
+
+        // d+/d- damage
+        py::class_< DamageDPlusDMinusMasonry2DLaw, typename DamageDPlusDMinusMasonry2DLaw::Pointer, ConstitutiveLaw >
+            (m, "DamageDPlusDMinusMasonry2DLaw")
+            .def(py::init<>())
+            ;
     }
 }  // namespace Python.
 }  // namespace Kratos.

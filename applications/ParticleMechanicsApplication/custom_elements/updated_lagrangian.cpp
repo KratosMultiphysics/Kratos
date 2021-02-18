@@ -546,7 +546,7 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
     // use element provided strain incremented from velocity gradient
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
 
     // Compute explicit element kinematics, strain is incremented here.
@@ -1027,6 +1027,7 @@ void UpdatedLagrangian::InitializeMaterial()
     {
         mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
+        GetGeometry().SetValue(MP_VOLUME, mMP.volume);
         mConstitutiveLawVector->InitializeMaterial(
             GetProperties(), GetGeometry(), N);
 
@@ -1551,7 +1552,9 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
     }
     else if (rVariable == MP_HARDENING_RATIO || rVariable == MP_EQUIVALENT_STRESS ||
         rVariable == MP_EQUIVALENT_PLASTIC_STRAIN || rVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE ||
-        rVariable == MP_TEMPERATURE || rVariable == MP_DAMAGE || rVariable == EQ_STRAIN_RATE) {
+        rVariable == MP_TEMPERATURE || rVariable == MP_DAMAGE || rVariable == EQ_STRAIN_RATE ||
+        rVariable == DAMAGE_COMPRESSION || rVariable == EQ_STRAIN_RATE ||
+        rVariable == DAMAGE_TENSION) {
         rValues[0] = mConstitutiveLawVector->GetValue(rVariable, rValues[0]);
     }
     else
@@ -1703,6 +1706,8 @@ int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo ) const
     KRATOS_TRY
 
     Element::Check(rCurrentProcessInfo);
+    //KRATOS_ERROR_IF(this->Id() < 1) << "Element found with Id " << this->Id() << std::endl;
+    //KRATOS_ERROR_IF(mMP.volume <= 0.0) << "Element " << this->Id() << " has non-positive size " << mMP.volume << std::endl;
 
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
