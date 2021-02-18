@@ -78,6 +78,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAnd
     mNSafety     = rParameters["benchmark_parameters"]["n_safety"].GetDouble();
     mReynoldsNumber = rParameters["benchmark_parameters"]["n_reynolds"].GetDouble();
     mDamKohlerNumber = rParameters["benchmark_parameters"]["n_dam"].GetDouble();
+    mInitialConditions = rParameters["benchmark_parameters"]["use_initial_conditions"].GetBool();
 
     double &r_nu = mViscosity;
 
@@ -157,7 +158,10 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::ExecuteInitializ
 
 void TransientSpatialDependantPorositySolutionBodyForceProcess::ExecuteBeforeSolutionLoop()
 {
-    this->SetInitialBodyForceAndPorosityField();
+    if (mInitialConditions == true)
+    {
+        this->SetInitialBodyForceAndPorosityField();
+    }
 }
 
 void TransientSpatialDependantPorositySolutionBodyForceProcess::ExecuteInitializeSolutionStep()
@@ -210,10 +214,6 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
 
         double& r_u1 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_X);
         double& r_u2 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_Y);
-
-        it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = mViscosity * rho;
-
-        it_node->FastGetSolutionStepValue(VISCOSITY) = mViscosity;
 
         Matrix& permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
 
@@ -338,7 +338,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
 
         it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
         it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
-        }
+    }
 
 }
 
@@ -499,29 +499,42 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
         const double press_grad1 = 0.0;
         const double press_grad2 = 0.0;
 
-        r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + sigma(0,0) * r_u1 + sigma(0,1) * r_u2;
+        r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1;
 
-        r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + sigma(1,0)*r_u1 + sigma(1,1) * r_u2;
+        r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2;
 
         r_mass_source = r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22);
 
-        if (mrModelPart.GetProcessInfo()[STEP] == 1 || mrModelPart.GetProcessInfo()[STEP] == 2)
-        {
-            it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
-            it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
-            it_node->FastGetSolutionStepValue(PRESSURE) = 0.0;
-            it_node->Fix(VELOCITY_X);
-            it_node->Fix(VELOCITY_Y);
-            it_node->Fix(PRESSURE);
+
+        if (mInitialConditions == true){
+            if (mrModelPart.GetProcessInfo()[STEP] == 1 || mrModelPart.GetProcessInfo()[STEP] == 2)
+            {
+                it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
+                it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
+                it_node->FastGetSolutionStepValue(PRESSURE) = 0.0;
+                it_node->Fix(VELOCITY_X);
+                it_node->Fix(VELOCITY_Y);
+                it_node->Fix(PRESSURE);
+            }
+            else if (mrModelPart.GetProcessInfo()[STEP] == 3)
+            {
+                it_node->Free(VELOCITY_X);
+                it_node->Free(VELOCITY_Y);
+                it_node->Free(PRESSURE);
+            }
         }
-        else if (mrModelPart.GetProcessInfo()[STEP] == 3)
-        {
-            it_node->Free(VELOCITY_X);
-            it_node->Free(VELOCITY_Y);
-            it_node->Free(PRESSURE);
+        else if(mInitialConditions == false && mrModelPart.GetProcessInfo()[STEP] == 1){
+            it_node->FastGetSolutionStepValue(FLUID_FRACTION, 1) = 1.0;
         }
     }
 
+}
+
+void TransientSpatialDependantPorositySolutionBodyForceProcess::SetFluidProperties()
+{
+    (mrModelPart.pGetProperties(0))->SetValue(DENSITY, mDensity);
+    (mrModelPart.pGetProperties(0))->SetValue(DYNAMIC_VISCOSITY, mViscosity * mDensity);
+    (mrModelPart.pGetProperties(0))->SetValue(VISCOSITY, mViscosity);
 }
 
 bool TransientSpatialDependantPorositySolutionBodyForceProcess::IsInsideEllipticalSupport(

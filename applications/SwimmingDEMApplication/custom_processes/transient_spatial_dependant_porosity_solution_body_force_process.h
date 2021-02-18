@@ -100,6 +100,7 @@ public:
     double                                             mX2Origin;
     double                                       mReynoldsNumber;
     double                                      mDamKohlerNumber;
+    bool                                      mInitialConditions;
     ///@}
 
     ///@name Operators
@@ -135,6 +136,8 @@ public:
     void SetInitialBodyForceAndPorosityField();
 
     void SetBodyForceAndPorosityField();
+
+    void SetFluidProperties();
 
     bool IsInsideEllipticalSupport(
         const double x1,
