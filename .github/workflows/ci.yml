@@ -59,9 +59,9 @@ jobs:
           export CXX=clang++-9
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
           if [ ${{ matrix.build-type }} = FullDebug ]; then
-            export KRATOS_CMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++11"
-          else
             export KRATOS_CMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++17"
+          else
+            export KRATOS_CMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++11"
           fi
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_4_1/"
         else
