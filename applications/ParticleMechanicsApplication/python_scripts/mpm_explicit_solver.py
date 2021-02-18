@@ -28,7 +28,7 @@ class MPMExplicitSolver(MPMSolver):
             "stress_update" : "usf",
             "is_fix_explicit_mp_on_grid_edge" : false,
             "is_pqmpm"      : false,
-            "is_make_normal_mp_if_pqmpm_fails" : true,
+            "is_make_normal_mp_if_pqmpm_fails" : false,
             "pqmpm_subpoint_min_volume_fraction" : 0.0
         }""")
         this_defaults.AddMissingParameters(super(MPMExplicitSolver, cls).GetDefaultParameters())
