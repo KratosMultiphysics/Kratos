@@ -68,15 +68,7 @@ public:
     TransientSpatialDependantPorositySolutionBodyForceProcess();
     /// Constructor.
     TransientSpatialDependantPorositySolutionBodyForceProcess(
-        ModelPart& rModelPart,
-        const double Density,
-        const double Viscosity,
-        const double DeltaAlpha,
-        const double Length,
-        const double SqueezeAmplitude,
-        const double NSafety,
-        const double X1Origin,
-        const double X2Origin);
+        ModelPart& rModelPart);
 
     /// Constructor with Kratos parameters.
     TransientSpatialDependantPorositySolutionBodyForceProcess(
@@ -96,6 +88,8 @@ public:
     ModelPart&                                       mrModelPart;
     double                                              mDensity;
     double                                            mViscosity;
+    double                                         mPermeability;
+    double                                                mUchar;
     double                                           mDeltaAlpha;
     double                                               mLength;
     double                                   mMaxSqueezeFraction;
@@ -104,6 +98,8 @@ public:
     double                                              mNSafety;
     double                                             mX1Origin;
     double                                             mX2Origin;
+    double                                       mReynoldsNumber;
+    double                                      mDamKohlerNumber;
     ///@}
 
     ///@name Operators
@@ -126,6 +122,15 @@ public:
     void CheckDefaultsAndProcessSettings(Parameters &rParameters);
 
     const Parameters GetDefaultParameters() const override;
+
+    void CalculateKinematicViscosity(
+        double &rReynoldsNumber,
+        double &viscosity);
+
+    void CalculatePermeability(
+        double &rDamKohlerNumber,
+        double &dynamic_viscosity,
+        double &permeability);
 
     void SetInitialBodyForceAndPorosityField();
 
