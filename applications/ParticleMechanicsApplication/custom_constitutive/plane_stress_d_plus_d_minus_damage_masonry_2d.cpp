@@ -226,7 +226,7 @@ bool DamageDPlusDMinusMasonry2DLaw::ValidateInput(
 /***********************************************************************************/
 DamageDPlusDMinusMasonry2DLaw::StrainMeasure DamageDPlusDMinusMasonry2DLaw::GetStrainMeasure()
 {
-	return ConstitutiveLaw::StrainMeasure_Almansi;
+	return ConstitutiveLaw::StrainMeasure_Velocity_Gradient;
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -430,7 +430,7 @@ void DamageDPlusDMinusMasonry2DLaw::GetLawFeatures(
 	rFeatures.mOptions.Set( ISOTROPIC );
 
 	//Set strain measure required by the consitutive law
-	rFeatures.mStrainMeasures.push_back(StrainMeasure_Almansi);
+	rFeatures.mStrainMeasures.push_back(StrainMeasure_Velocity_Gradient);
 
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
