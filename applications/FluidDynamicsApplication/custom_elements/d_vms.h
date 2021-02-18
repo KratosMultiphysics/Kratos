@@ -304,7 +304,7 @@ protected:
 
     // Implementation details of DVMS /////////////////////////////////////////
 
-    void AddMassStabilization(
+    virtual void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix);
 

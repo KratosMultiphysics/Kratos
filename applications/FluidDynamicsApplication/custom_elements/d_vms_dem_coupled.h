@@ -233,13 +233,13 @@ protected:
 
     void AddMassStabilization(
         TElementData& rData,
-        MatrixType& rMassMatrix);
+        MatrixType& rMassMatrix) override;
 
     void CalculateStabilizationParameters(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
         BoundedMatrix<double,Dim,Dim> &TauOne,
-        double &TauTwo);
+        double &TauTwo) const;
 
     virtual void MassProjTerm(
         const TElementData& rData,

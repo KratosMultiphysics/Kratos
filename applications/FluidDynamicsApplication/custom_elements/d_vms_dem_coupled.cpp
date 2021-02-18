@@ -181,7 +181,6 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
 
     const array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
-
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
     this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two);
@@ -195,9 +194,10 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
 
     // These two should be zero unless we are using OSS
-    double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     const array_1d<double,3> MomentumProj = this->GetAtCoordinate(rData.MomentumProjection,rData.N);
     const double MassProj = this->GetAtCoordinate(rData.MassProjection,rData.N);
+
+    double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
     const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
@@ -287,7 +287,6 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
             // vh * TauOne/Dt * f (from vh*d(uss)/dt
             double VI = tau_one(d,d) * density * rData.N[i] / dt * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
             double AF = tau_one(d,d) * AGradN[i] * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
-
             double RSigmaF = 0.0;
             for (unsigned int e = 0; e < Dim; ++e){
                 RSigmaF += tau_one(d,d) * sigma(d,e) * rData.N[i] * (body_force[e] - MomentumProj[e] + OldUssTerm[e]);
@@ -297,7 +296,6 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
             // OSS pressure subscale projection
             double DPhi = rData.DN_DX(i,d) * tau_two * (mass_source - fluid_fraction_rate - MassProj);
             rLocalRHS[row+d] += rData.Weight * (VF - VI + AF + DPhi + RSigmaF);
-
         }
         double Q = rData.N[i] * (mass_source - fluid_fraction_rate);
         rLocalRHS[row+Dim] += rData.Weight * (QAlphaF + Q); // Grad(q) * TauOne * (Density * BodyForce)
@@ -370,7 +368,7 @@ void DVMSDEMCoupled<TElementData>::AddMassStabilization(
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     double W = rData.Weight * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
-    sigma *=viscosity;
+    sigma *= viscosity;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -402,7 +400,7 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     const TElementData& rData,
     const array_1d<double,3> &Velocity,
     BoundedMatrix<double,Dim,Dim> &TauOne,
-    double &TauTwo)
+    double &TauTwo) const
 {
     const double h = rData.ElementSize;
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
@@ -421,6 +419,7 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     double velocity_norm = Velocity[0]*Velocity[0];
+
     for (unsigned int d = 1; d < Dim; d++)
         velocity_norm += Velocity[d]*Velocity[d];
     velocity_norm = std::sqrt(velocity_norm);
