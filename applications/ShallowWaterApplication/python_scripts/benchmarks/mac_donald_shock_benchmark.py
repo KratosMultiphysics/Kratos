@@ -37,6 +37,7 @@ class MacDonaldShockBenchmark(BaseBenchmarkProcess):
 
         The base class validates the settings and sets the model_part, the variables and the benchmark_settings
         """
+
         super().__init__(model, settings)
 
         self.n = self.benchmark_settings["manning"].GetDouble()
