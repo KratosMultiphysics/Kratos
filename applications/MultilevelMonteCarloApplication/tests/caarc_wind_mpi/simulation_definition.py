@@ -67,7 +67,7 @@ class SimulationScenario(FluidDynamicsAnalysisMC):
                         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, velocity)
             self.IsVelocityFieldPerturbed = True
         else:
-            print("[SCREENING] perturbing the domain:", "No")
+            KratosMultiphysics.Logger.PrintInfo("[SCREENING] perturbing the domain:", "No")
 
     def ComputeNeighbourElements(self):
         """
@@ -96,7 +96,7 @@ class SimulationScenario(FluidDynamicsAnalysisMC):
                 }""")
             self.power_sums_process_mapping = KratosMultiphysics.MultilevelMonteCarloApplication.PowerSumsStatistics(self.mapping_reference_model.GetModelPart(self.interest_model_part),power_sums_parameters)
             self.power_sums_process_mapping.ExecuteInitialize()
-            print("[SCREENING] number nodes of submodelpart + drag force x:",self.mapping_reference_model.GetModelPart(self.interest_model_part).NumberOfNodes()+1) # +1 is for drag force x
+            KratosMultiphysics.Logger.PrintInfo("[SCREENING] number nodes of submodelpart + drag force x:",self.mapping_reference_model.GetModelPart(self.interest_model_part).NumberOfNodes()+1) # +1 is for drag force x
         else:
             power_sums_parameters = KratosMultiphysics.Parameters("""{
                 "reference_variable_name": "PRESSURE"
