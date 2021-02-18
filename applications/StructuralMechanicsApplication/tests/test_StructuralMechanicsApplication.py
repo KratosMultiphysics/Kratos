@@ -200,6 +200,7 @@ from structural_mechanics_test_factory import TensileTestStructuralTest as TTens
 # Serial-Parallel Tests
 from structural_mechanics_test_factory import SerialParallelRuleOfMixturesCubeDamageTest as TSerialParallelRuleOfMixturesCubeDamageTest
 from structural_mechanics_test_factory import AnisotropyTest as TAnisotropyTest
+from structural_mechanics_test_factory import InitialStateElasticityTest as TInitialStateElasticityTest
 
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
@@ -276,6 +277,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TSimpleSmallDeformationPlasticityVMTest('test_execution'))
     nightSuite.addTest(TSerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
     nightSuite.addTest(TAnisotropyTest('test_execution'))
+    nightSuite.addTest(TInitialStateElasticityTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityDPTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityTTest('test_execution'))
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityMCTest('test_execution'))
