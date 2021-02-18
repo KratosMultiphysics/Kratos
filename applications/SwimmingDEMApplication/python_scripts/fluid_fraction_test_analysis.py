@@ -45,6 +45,15 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
                                                 self._GetDEMAnalysis()._GetSolver(),
                                                 self.vars_man)
 
+    def SetEmbeddedTools(self):
+        pass
+
+    def ComputePostProcessResults(self):
+        pass
+
+    def GetDerivativeRecoveryStrategy(self):
+        pass
+
     def FinalizeSolutionStep(self):
         # printing if required
         if self._GetSolver().CannotIgnoreFluidNow():
@@ -63,6 +72,9 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         self.projector_post_process.WriteData(self.error_model_part, self.velocity_error_projected, self.pressure_error_projected)
 
     def TransferBodyForceFromDisperseToFluid(self):
+        pass
+
+    def GetVolumeDebugTool(self):
         pass
 
 if __name__ == "__main__":

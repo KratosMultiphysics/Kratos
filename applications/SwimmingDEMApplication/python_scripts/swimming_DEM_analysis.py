@@ -14,6 +14,8 @@ import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_gid_output as swimming_DEM_gid_output
 import KratosMultiphysics.SwimmingDEMApplication.embedded as embedded
 import KratosMultiphysics.SwimmingDEMApplication.variables_management as variables_management
+import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer
+
 
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
@@ -305,7 +307,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         # creating a debug tool
         self.dem_volume_tool = self.GetVolumeDebugTool()
 
-        #self.SetEmbeddedTools()
+        self.SetEmbeddedTools()
 
         Say('Initialization Complete\n')
 
@@ -378,12 +380,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.FillHistoryForcePrecalculatedVectors()
 
-        import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer
-
-        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
-            self.project_parameters,
-            self.fluid_model_part,
-            self.custom_functions_tool)
+        self.GetDerivativeRecoveryStrategy()
 
         self.PerformZeroStepInitializations()
 
@@ -523,6 +520,12 @@ class SwimmingDEMAnalysis(AnalysisStage):
             self._GetFluidAnalysis().RunSingleTimeStep()
         else:
             Say("Skipping solving system...\n")
+
+    def GetDerivativeRecoveryStrategy(self):
+        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
+            self.project_parameters,
+            self.fluid_model_part,
+            self.custom_functions_tool)
 
     def PerformZeroStepInitializations(self):
         pass
