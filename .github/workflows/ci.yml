@@ -177,5 +177,5 @@ jobs:
 
     - name: Build
       run: |
-        cp .github/workflows/temp_centos_configure.sh temp_centos_configure.sh
-        bash temp_centos_configure.sh
+        cp .github/workflows/centos_configure.sh centos_configure.sh
+        bash centos_configure.sh
