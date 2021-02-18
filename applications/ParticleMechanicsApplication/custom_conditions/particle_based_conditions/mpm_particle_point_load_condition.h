@@ -218,6 +218,8 @@ private:
 
     array_1d<double, 3> m_point_load;
 
+    Node<3>* pNodePointLoad;
+
     ///@}
     ///@name Private Operators
     ///@{

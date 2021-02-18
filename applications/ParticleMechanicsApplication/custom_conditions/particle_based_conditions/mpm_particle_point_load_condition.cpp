@@ -174,9 +174,12 @@ namespace Kratos
                 }
             }
         }
-
+  
         // Update the Material Point Condition Position
         m_xg += delta_xg ;
+
+        auto pNodePointLoad = GetValue(MPC_NODE);
+        pNodePointLoad->SetInitialPosition(m_xg[0],m_xg[1],m_xg[2]);
     }
 
     void MPMParticlePointLoadCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
