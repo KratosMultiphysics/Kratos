@@ -1535,6 +1535,9 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
     else if (rVariable == MP_VOLUME) {
         rValues[0] = mMP.volume;
     }
+    else if (rVariable == MP_RADIUS) {
+        rValues[0] = std::sqrt(mMP.volume / GetProperties()[THICKNESS] / Globals::Pi);
+    }
     else if (rVariable == MP_POTENTIAL_ENERGY) {
         rValues[0] = MPMEnergyCalculationUtility::CalculatePotentialEnergy(*this);
     }
