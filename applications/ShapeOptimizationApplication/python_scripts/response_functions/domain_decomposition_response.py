@@ -92,7 +92,9 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
             cad_model_part_io = KM.CadJsonInput(file_name)
             cad_model_part_io.ReadModelPart(self.cad_model_part)
 
-            
+            cad_geo = self.cad_model_part.Geometries[2]
+            print("##################  ",cad_geo.Center())
+            adsafsdf
 
             ### TODO: Get the trimming curve
         else:
