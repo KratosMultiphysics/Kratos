@@ -50,9 +50,13 @@ template<bool THistorical>
 void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndVolume() {
 
     // Auxiliar containers
-    Matrix DN_DX, J0, InvJ0;
-    Vector N, values;
-    double detJ0 = 0.0;
+    struct tls_type
+    {
+        Matrix DN_DX, J0, InvJ0;
+        Vector N, values;
+        double detJ0 = 0.0;
+    };
+    tls_type TLS = tls_type();
 
     // First element iterator
     const auto it_element_begin = mrModelPart.ElementsBegin();
@@ -64,14 +68,14 @@ void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndV
     const auto& r_first_element_geometry = it_element_begin->GetGeometry();
     const std::size_t number_of_nodes_first_element = r_first_element_geometry.PointsNumber();
     const std::size_t local_space_dimension_first_element = r_first_element_geometry.LocalSpaceDimension();
-    if (DN_DX.size1() != number_of_nodes_first_element || DN_DX.size2() != dimension)
-        DN_DX.resize(number_of_nodes_first_element, dimension);
-    if (N.size() != number_of_nodes_first_element)
-        N.resize(number_of_nodes_first_element);
-    if (values.size() != number_of_nodes_first_element)
-        values.resize(number_of_nodes_first_element);
-    if (J0.size1() != dimension || J0.size2() != local_space_dimension_first_element)
-        J0.resize(dimension, local_space_dimension_first_element);
+    if (TLS.DN_DX.size1() != number_of_nodes_first_element || TLS.DN_DX.size2() != dimension)
+        TLS.DN_DX.resize(number_of_nodes_first_element, dimension);
+    if (TLS.N.size() != number_of_nodes_first_element)
+        TLS.N.resize(number_of_nodes_first_element);
+    if (TLS.values.size() != number_of_nodes_first_element)
+        TLS.values.resize(number_of_nodes_first_element);
+    if (TLS.J0.size1() != dimension || TLS.J0.size2() != local_space_dimension_first_element)
+        TLS.J0.resize(dimension, local_space_dimension_first_element);
 
     // Variable retriever
     Kratos::unique_ptr<AuxiliarVariableVectorRetriever> p_variable_retriever;
@@ -80,20 +84,6 @@ void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndV
     } else {
         p_variable_retriever = Kratos::make_unique<VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsHistoricalVariable>>();
     }
-
-    struct tls_type
-    {
-        Matrix DN_DX, J0, InvJ0;
-        Vector N, values;
-        double detJ0 = 0.0;
-    };
-    tls_type TLS = tls_type();
-    TLS.DN_DX = DN_DX;
-    TLS.J0 =J0;
-    TLS.InvJ0 = InvJ0;
-    TLS.N = N;
-    TLS.values = values;
-    TLS.detJ0 = detJ0;
 
     // Iterate over the elements
     block_for_each(mrModelPart.Elements(), TLS, [&](Element& rElem, tls_type& rTLS){
