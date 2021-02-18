@@ -35,14 +35,9 @@ void FindNodalHProcess<THistorical>::Execute()
     }
 
     // Initialize NODAL_H values
-
-    //Using Parallel Utilities
     IndexPartition<std::size_t>(mrModelPart.Nodes().size()).for_each([&](std::size_t index){
         SetInitialValue(mrModelPart.NodesBegin() + index);
     });
-
-    //Or Using Variable_utils
-    //VariableUtils().SetVariable(NODAL_H, std::numeric_limits<double>::max(), mrModelPart.Nodes());
 
     // Calculate the NODAL_H values
     for(IndexType i=0; i < mrModelPart.Elements().size(); ++i) {
