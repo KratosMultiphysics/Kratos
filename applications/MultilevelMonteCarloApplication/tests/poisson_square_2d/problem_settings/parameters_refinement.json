@@ -1,5 +1,5 @@
 {
-	"hessian_metric": {
+	"metric": {
 		"hessian_strategy_parameters" :{
 			"metric_variable"                 : ["TEMPERATURE"],
 			"estimate_interpolation_error"    : false,
@@ -15,10 +15,10 @@
 			"boundary_layer_max_distance"      : 10.0,
 			"interpolation"                    : "Linear"
 		}
-  },
-  "refinement_mmg" : {
-	  "initialize_entities" : false,
-	  "save_external_files" : false,
-	  "echo_level"          : 0
+	},
+	"remeshing" : {
+		"initialize_entities" : false,
+		"save_external_files" : false,
+		"echo_level"          : 0
 	}
 }
