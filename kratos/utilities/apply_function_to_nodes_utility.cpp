@@ -60,18 +60,35 @@ std::vector<double> ApplyFunctionToNodesUtility::ReturnFunction(const double t)
     // The vector containing the values
     std::vector<double> values(mrNodes.size());
 
+    // The vector containing the indexes
+    std::vector<std::size_t> indexes(mrNodes.size());
+    IndexPartition<std::size_t>(indexes.size()).for_each(
+        [&](std::size_t i) {
+            indexes[i] = i;
+        }
+    );
+
+    // Get function
+    auto& r_function = *mpFunction;
+
     if(!mpFunction->UseLocalSystem()) {
-        for (std::size_t k = 0; k < mrNodes.size(); k++) {
-            auto it_node = it_node_begin + k;
-            const double value = mpFunction->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
-            values[k] = value;
-        }
+        block_for_each(
+            indexes,r_function,
+            [&it_node_begin,&t,&values](std::size_t& k, GenericFunctionUtility& rFunction) {
+                auto it_node = it_node_begin + k;
+                const double value = rFunction.CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
+                values[k] = value;
+            }
+        );
     } else {
-        for (std::size_t k = 0; k < mrNodes.size(); k++) {
-            auto it_node = it_node_begin + k;
-            const double value = mpFunction->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
-            values[k] = value;
-        }
+        block_for_each(
+            indexes,r_function,
+            [&it_node_begin,&t,&values](std::size_t& k, GenericFunctionUtility& rFunction) {
+                auto it_node = it_node_begin + k;
+                const double value = rFunction.RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
+                values[k] = value;
+            }
+        );
     }
 
     return values;
