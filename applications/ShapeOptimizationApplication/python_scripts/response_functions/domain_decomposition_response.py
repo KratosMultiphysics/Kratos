@@ -18,11 +18,6 @@ try:
 except ModuleNotFoundError:
     print("DomainDecompositionResponse requires StructuralMechanicsApplication. Make sure this is compiled.")
 
-try:
-    import KratosMultiphysics.IgaApplication as IgaApplication
-except ModuleNotFoundError:
-    print("DomainDecompositionResponse requires IgaApplication. Make sure this is compiled.")
-
 from .import cad_dd_utilities as cad_util
 
 def _GetModelPart(model, mp_name, dimension):
@@ -48,6 +43,7 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
 
     def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
+        print(response_settings)
 
         response_settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
@@ -66,6 +62,8 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
         self.value = None
 
         self.gradient = {}
+
+        self.updates = None
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -99,9 +97,9 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
         self.gradient = {} # node 1 [u,v] node2 [u, v] .... in paremetric space
 
     def CalculateValue(self):
-        Logger.PrintInfo("\n> Starting primal analysis for response", self.identifier)
 
         if not self.primal_analysis_done:
+            Logger.PrintInfo("\n> Starting primal analysis for response", self.identifier)
             startTime = timer.time()
             self.primal_analysis._GetSolver().Predict()
             self.primal_analysis._GetSolver().SolveSolutionStep()
@@ -121,23 +119,23 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
 
         startTime = timer.time()
 
-        for i, node in enumerate(self.model_part.Nodes):
-            gradient = [0.0,0.0,0.0] ## Calculate finite differences here !!
-            self.gradient[node.Id] = gradient
+        self.gradient[21] = [0.0,0.0,0.0]
 
         Logger.PrintInfo("> Time needed for calculating gradients = ", round(timer.time() - startTime,2), "s")
 
     def GetValue(self):
         return self.value
 
-    def GetNodalGradient(self, variable):
+    def GetGradient(self):
         if not self.gradient:
             raise RuntimeError("Gradient was not calculated")
-        if variable != KM.SHAPE_SENSITIVITY:
-            raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         return self.gradient
 
+    def SetUpdates(self, updates):
+        self.updates = updates
+
     def FinalizeSolutionStep(self):
+        # Here update the u and v values.
         pass
 
     def Finalize(self):
