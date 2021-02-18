@@ -31,7 +31,7 @@ namespace Kratos
 
         //first of all the neighbour nodes and elements array are initialized to the guessed size
         //and empties the old entries
-        VariableUtils().SetVariable(NEIGHBOUR_ELEMENTS, GlobalPointersVector< Element >(), rNodes);
+        VariableUtils().SetNonHistoricalVariable(NEIGHBOUR_ELEMENTS, GlobalPointersVector< Element >(), rNodes);
 
         //compute the complete list of local neighbours
         for(auto& relem : mr_model_part.Elements())
