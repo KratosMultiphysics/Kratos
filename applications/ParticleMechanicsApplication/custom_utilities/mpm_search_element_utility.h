@@ -49,6 +49,13 @@ namespace MPMSearchElementUtility
     {
 
         // TODO some optimisation for simple 2D shapes.
+        Node<3> low, high;
+        rGeom.BoundingBox(low, high);
+        const SizeType geom_dim = rGeom.Dimension();
+        for (size_t dim = 0; dim < geom_dim; ++dim)
+        {
+            if (Coords[dim] < low[dim] || Coords[dim] > high[dim]) return false;
+        }
 
         return rGeom.IsInside(Coords, LocalCoords, Tolerance);
     }

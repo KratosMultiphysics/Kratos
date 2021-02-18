@@ -76,6 +76,7 @@ namespace Kratos
         std::vector<array_1d<double, 3>> master_domain_points(std::pow(2.0, working_dim));
         CreateBoundingBoxPoints(master_domain_points, rCoordinates, side_half_length, working_dim);
 
+        /*
         if (rCoordinates[1] - side_half_length < 1e-6)
         {
             CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
@@ -84,6 +85,7 @@ namespace Kratos
                 rParentGeom);
             return;
         }
+        */
 
         // Initially check if the bounding box volume scalar is less than the element volume scalar
         if (mp_volume_vec[0] <= rParentGeom.DomainSize()) {
@@ -704,17 +706,15 @@ namespace Kratos
     }
 
 
-    bool PQMPMPartitionUtilities::IntersectionCheckWithBoundingBox(const GeometryType& rGeom, const array_1d<double, 3>& rCoord, const double SideHalfLength)
+    bool PQMPMPartitionUtilities::IntersectionCheckWithBoundingBox(const GeometryType& rGeom, const array_1d<double, 3>& rCoord, const Point& rPointLow,
+        const Point& rPointHigh)
     {
-        const double z_coord = (rGeom.WorkingSpaceDimension() == 3) ? SideHalfLength : 0.0;
-        const Point point_low(rCoord[0] - SideHalfLength, rCoord[1] - SideHalfLength, rCoord[2] - z_coord);
-        const Point point_high(rCoord[0] + SideHalfLength, rCoord[1] + SideHalfLength, rCoord[2] + z_coord);
+        // Get bounding box of background cell
         NodeType ele_point_low, ele_point_high;
-
-        const double dimension_45_degree_factor = (rGeom.WorkingSpaceDimension() == 3) ? 1.7321 : 1.414214;
-        double center_to_center = norm_2(rGeom.Center() - rCoord);
         rGeom.BoundingBox(ele_point_low, ele_point_high);
-        double maximum_contact_range = dimension_45_degree_factor * SideHalfLength +
+
+        double center_to_center = norm_2(rGeom.Center() - rCoord);
+        double maximum_contact_range = 1.01*norm_2(rPointHigh- rPointLow) +
             norm_2(ele_point_high - ele_point_low);
         if (center_to_center <= maximum_contact_range) return true;
         return false;
@@ -749,8 +749,8 @@ namespace Kratos
 
                 if (check_geom) {
                     // check if this background grid and the MP domain overlap
-                    if (IntersectionCheckWithBoundingBox(*geometry_neighbours[i], rCoordinates, SideHalfLength)) {
-                        if (geometry_neighbours[i]->HasIntersection(rPointLow, rPointHigh)) {
+                    if (IntersectionCheckWithBoundingBox(*geometry_neighbours[i], rCoordinates, rPointLow, rPointHigh)) {
+                        //if (geometry_neighbours[i]->HasIntersection(rPointLow, rPointHigh)) {
                             // add to container and then search its neighbours
                             rIntersectedGeometries.push_back(geometry_neighbours[i].get());
 
@@ -759,13 +759,16 @@ namespace Kratos
                                 RecursionCount,
                                 rCoordinates, SideHalfLength,
                                 MaxRecursions);
-                        }
+                        //}
                     }
                 }
             }
         }
-        else KRATOS_INFO("RecursivePQMPMNeighbourSearch:: ") <<
-            "Recursion count of " << MaxRecursions << " exceeded\n" << std::endl;
+        else {
+            KRATOS_INFO("RecursivePQMPMNeighbourSearch:: ") <<
+                "Recursion count of " << MaxRecursions << " exceeded\n" << std::endl;
+            KRATOS_ERROR << "ERROR";
+        }
     }
 
 
