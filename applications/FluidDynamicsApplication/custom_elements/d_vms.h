@@ -317,18 +317,18 @@ protected:
         double &TauTwo,
         double &TauP) const;
 
-    void SubscaleVelocity(
+    virtual void SubscaleVelocity(
         const TElementData& rData,
         array_1d<double,3>& rVelocitySubscale) const override;
 
-    void SubscalePressure(
+    virtual void SubscalePressure(
         const TElementData& rData,
         double &rPressureSubscale) const override;
 
     array_1d<double,3> FullConvectiveVelocity(
         const TElementData& rData) const;
 
-    void UpdateSubscaleVelocityPrediction(
+    virtual void UpdateSubscaleVelocityPrediction(
         const TElementData& rData);
     ///@}
     ///@name Protected  Access

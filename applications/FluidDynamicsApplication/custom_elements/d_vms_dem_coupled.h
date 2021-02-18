@@ -241,7 +241,18 @@ protected:
         BoundedMatrix<double,Dim,Dim> &TauOne,
         double &TauTwo) const;
 
-    virtual void MassProjTerm(
+    void SubscaleVelocity(
+        const TElementData& rData,
+        array_1d<double,3>& rVelocitySubscale) const override;
+
+    void SubscalePressure(
+        const TElementData& rData,
+        double& rPressureSubscale) const override;
+
+    void UpdateSubscaleVelocityPrediction(
+        const TElementData& rData) override;
+
+    void MassProjTerm(
         const TElementData& rData,
         double& rMassRHS) const override;
 
