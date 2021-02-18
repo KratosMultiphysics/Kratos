@@ -245,8 +245,9 @@ protected:
             }
 
             //computing the inverse permutation
-            #pragma omp parallel for
-            for(int i = 0; i < n; ++i) invperm[perm[i]] = i;
+            IndexPartition<std::size_t>(n).for_each([&] (std::size_t Index){
+                invperm[perm[Index]] = Index;
+            });
 
         }
     };
