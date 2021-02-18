@@ -178,8 +178,6 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
     // Calling initialize first (initialize Octree)
     ExecuteInitialize();
 
-    OtreeCellVectorType leaves;
-
     // Iterate over elements
     if (mOptions.Is(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS)) {
         auto& r_elements_array = mrModelPartIntersected.Elements();
@@ -187,10 +185,10 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
 
         const auto it_elements_begin = r_elements_array.begin();
 
-        IndexPartition<std::size_t>(number_of_elements).for_each(leaves ,[&](std::size_t index, OtreeCellVectorType& local_leaves){
+        IndexPartition<std::size_t>(number_of_elements).for_each(OtreeCellVectorType() ,[&](std::size_t index, OtreeCellVectorType& rLocalLeaves){
             auto it_elem = it_elements_begin + index;
-            leaves.clear();
-            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_elem.base()), local_leaves);
+            rLocalLeaves.clear();
+            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_elem.base()), rLocalLeaves);
         });
     }
 
@@ -201,10 +199,10 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
 
         const auto it_conditions_begin = r_conditions_array.begin();
 
-        IndexPartition<std::size_t>(number_of_conditions).for_each(leaves, [&](std::size_t index, OtreeCellVectorType& local_leaves){
+        IndexPartition<std::size_t>(number_of_conditions).for_each(OtreeCellVectorType(), [&](std::size_t index, OtreeCellVectorType& rLocalLeaves){
             auto it_cond = it_conditions_begin + index;
-            leaves.clear();
-            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), local_leaves);
+            rLocalLeaves.clear();
+            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), rLocalLeaves);
         });
     }
 }
