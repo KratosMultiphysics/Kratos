@@ -50,13 +50,13 @@ template<bool THistorical>
 void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndVolume() {
 
     // Auxiliar containers
-    struct tls_type
+    struct TLSType
     {
         Matrix DN_DX, J0, InvJ0;
         Vector N, values;
         double detJ0 = 0.0;
     };
-    tls_type TLS = tls_type();
+    TLSType tls;
 
     // First element iterator
     const auto it_element_begin = mrModelPart.ElementsBegin();
@@ -68,14 +68,14 @@ void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndV
     const auto& r_first_element_geometry = it_element_begin->GetGeometry();
     const std::size_t number_of_nodes_first_element = r_first_element_geometry.PointsNumber();
     const std::size_t local_space_dimension_first_element = r_first_element_geometry.LocalSpaceDimension();
-    if (TLS.DN_DX.size1() != number_of_nodes_first_element || TLS.DN_DX.size2() != dimension)
-        TLS.DN_DX.resize(number_of_nodes_first_element, dimension);
-    if (TLS.N.size() != number_of_nodes_first_element)
-        TLS.N.resize(number_of_nodes_first_element);
-    if (TLS.values.size() != number_of_nodes_first_element)
-        TLS.values.resize(number_of_nodes_first_element);
-    if (TLS.J0.size1() != dimension || TLS.J0.size2() != local_space_dimension_first_element)
-        TLS.J0.resize(dimension, local_space_dimension_first_element);
+    if (tls.DN_DX.size1() != number_of_nodes_first_element || tls.DN_DX.size2() != dimension)
+        tls.DN_DX.resize(number_of_nodes_first_element, dimension);
+    if (tls.N.size() != number_of_nodes_first_element)
+        tls.N.resize(number_of_nodes_first_element);
+    if (tls.values.size() != number_of_nodes_first_element)
+        tls.values.resize(number_of_nodes_first_element);
+    if (tls.J0.size1() != dimension || tls.J0.size2() != local_space_dimension_first_element)
+        tls.J0.resize(dimension, local_space_dimension_first_element);
 
     // Variable retriever
     Kratos::unique_ptr<AuxiliarVariableVectorRetriever> p_variable_retriever;
@@ -86,17 +86,17 @@ void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndV
     }
 
     // Iterate over the elements
-    block_for_each(mrModelPart.Elements(), TLS, [&](Element& rElem, tls_type& rTLS){
+    block_for_each(mrModelPart.Elements(), tls, [&](Element& rElem, TLSType& rTls){
         auto& r_geometry = rElem.GetGeometry();
 
         // Current geometry information
         const std::size_t number_of_nodes = r_geometry.PointsNumber();
 
         // Resize if needed
-        if (rTLS.N.size() != number_of_nodes)
-            rTLS.N.resize(number_of_nodes);
-        if (rTLS.values.size() != number_of_nodes)
-            rTLS.values.resize(number_of_nodes);
+        if (rTls.N.size() != number_of_nodes)
+            rTls.N.resize(number_of_nodes);
+        if (rTls.values.size() != number_of_nodes)
+            rTls.values.resize(number_of_nodes);
 
         // The integration points
         const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
@@ -104,7 +104,7 @@ void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndV
         const std::size_t number_of_integration_points = r_integration_points.size();
 
         // Fill vector
-        p_variable_retriever->GetVariableVector(r_geometry, *mpOriginVariable, rTLS.values);
+        p_variable_retriever->GetVariableVector(r_geometry, *mpOriginVariable, rTls.values);
 
         // The containers of the shape functions and the local gradients
         const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method);
@@ -112,26 +112,26 @@ void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndV
 
         for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
             // Getting the shape functions
-            noalias(rTLS.N) = row(rNcontainer, point_number);
+            noalias(rTls.N) = row(rNcontainer, point_number);
 
             // Getting the jacobians and local gradients
-            GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], rTLS.J0);
-            MathUtils<double>::GeneralizedInvertMatrix(rTLS.J0, rTLS.InvJ0, rTLS.detJ0);
+            GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], rTls.J0);
+            MathUtils<double>::GeneralizedInvertMatrix(rTls.J0, rTls.InvJ0, rTls.detJ0);
             const Matrix& rDN_De = rDN_DeContainer[point_number];
-            GeometryUtils::ShapeFunctionsGradients(rDN_De, rTLS.InvJ0, rTLS.DN_DX);
+            GeometryUtils::ShapeFunctionsGradients(rDN_De, rTls.InvJ0, rTls.DN_DX);
 
-            const Vector grad = prod(trans(rTLS.DN_DX), rTLS.values);
-            const double gauss_point_volume = r_integration_points[point_number].Weight() * (rTLS.detJ0);
+            const Vector grad = prod(trans(rTls.DN_DX), rTls.values);
+            const double gauss_point_volume = r_integration_points[point_number].Weight() * (rTls.detJ0);
 
             for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
                 array_1d<double, 3>& r_gradient = GetGradient(r_geometry, i_node);
                 for(std::size_t k=0; k<dimension; ++k) {
-                    AtomicAdd(r_gradient[k], (rTLS.N)[i_node] * gauss_point_volume*grad[k] );
+                    AtomicAdd(r_gradient[k], (rTls.N)[i_node] * gauss_point_volume*grad[k] );
                 }
 
                 double& vol = r_geometry[i_node].GetValue(*mpAreaVariable);
 
-                AtomicAdd(vol, (rTLS.N)[i_node] * gauss_point_volume );
+                AtomicAdd(vol, (rTls.N)[i_node] * gauss_point_volume );
             }
         }
     });

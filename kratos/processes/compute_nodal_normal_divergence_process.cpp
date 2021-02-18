@@ -27,7 +27,7 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
     ClearDivergence();
 
     // Auxiliary containers
-    struct tls_type
+    struct TLSType
     {
         Matrix J0, InvJ0, DN_DX;
     };
@@ -50,7 +50,7 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
     }
 
     // Iterate over the elements
-    block_for_each(mrModelPart.Elements(), tls_type(), [&](Element& rElem, tls_type& rTLS){
+    block_for_each(mrModelPart.Elements(), TLSType(), [&](Element& rElem, TLSType& rTls){
         auto& r_geometry = rElem.GetGeometry();
 
         // Current geometry information
@@ -71,16 +71,16 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
 
             // Getting the jacobians and local shape functions gradient
             double detJ0;
-            GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], rTLS.J0);
-            MathUtils<double>::GeneralizedInvertMatrix(rTLS.J0, rTLS.InvJ0, detJ0);
+            GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], rTls.J0);
+            MathUtils<double>::GeneralizedInvertMatrix(rTls.J0, rTls.InvJ0, detJ0);
             const Matrix& rDN_De = rDN_DeContainer[point_number];
-            GeometryUtils::ShapeFunctionsGradients(rDN_De, rTLS.InvJ0, rTLS.DN_DX);
+            GeometryUtils::ShapeFunctionsGradients(rDN_De, rTls.InvJ0, rTls.DN_DX);
 
             double divergence = 0.0;
             for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
                 const auto& vector_field = get_vector_field(r_geometry[i_node], *mpOriginVariable);
 
-                divergence += inner_prod( row(rTLS.DN_DX, i_node), vector_field );
+                divergence += inner_prod( row(rTls.DN_DX, i_node), vector_field );
             }
 
             const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
