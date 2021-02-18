@@ -151,8 +151,6 @@ void SpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyForceAndPor
     // BodyForce and Porosity fields at time 0.0
     for (auto it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); it_node++){
 
-
-
         const double x1 = it_node->X();
         const double x2 = it_node->Y();
 

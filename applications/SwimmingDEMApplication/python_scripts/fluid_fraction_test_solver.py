@@ -64,15 +64,11 @@ class FluidFractionTestSolver(BaseSolver):
         self.UpdateALEMeshMovement(self.time)
 
         # Solving the fluid part
-        Say('Solving Fluid... (', self.fluid_solver.main_model_part.NumberOfElements(0), 'elements )\n')
         self.solve_system = not self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool() and not self.stationarity
         if self.CannotIgnoreFluidNow():
             self.SolveFluidSolutionStep()
-        else:
-            Say("Skipping solving system for the fluid phase...\n")
 
         # Solving the disperse-phase component
-        Say('Solving DEM... (', self.dem_solver.spheres_model_part.NumberOfElements(0), 'elements )')
         self.SolveDEM()
 
         return True
