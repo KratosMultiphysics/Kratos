@@ -1008,38 +1008,104 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
     }
 }
 
-void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix,
+void MembraneElement::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-    auto& r_geom = GetGeometry();
+    KRATOS_TRY;
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_dofs = dimension*number_of_nodes;
+    rMassMatrix = ZeroMatrix(number_dofs,number_dofs);
 
-    // LUMPED MASS MATRIX
-    SizeType number_of_nodes = r_geom.size();
-    SizeType mat_size = number_of_nodes * 3;
-
-    if (rMassMatrix.size1() != mat_size) {
-        rMassMatrix.resize(mat_size, mat_size, false);
+    if (number_of_nodes == 3){
+        // consistent mass matrix for triangular element can be easily pre-computed
+        const BoundedMatrix<double, 3, 3> fill_matrix = mReferenceArea*(IdentityMatrix(3)/12.0);
+        for (SizeType i=0; i<3; ++i){
+            for (SizeType j=0; j<3; ++j){
+                    project(rMassMatrix, range((i*3),((i+1)*3)),range((j*3),((j+1)*3))) += fill_matrix;
+                }
+        }
+        for (SizeType i=0; i<number_dofs; ++i) rMassMatrix(i,i) *= 2.0;
     }
+    else {
+        const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
 
-    noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method);
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);
+        const Matrix& rNcontainer = r_geom.ShapeFunctionsValues(integration_method);
+        array_1d<Vector,2> reference_covariant_base_vectors;
 
-    const double total_mass = mReferenceArea * GetProperties()[THICKNESS] *
-        StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+        double detJ = 0.0;
 
-    Vector lump_fact =  ZeroVector(number_of_nodes);
-    r_geom.LumpingFactors(lump_fact);
 
-    for (SizeType i = 0; i < number_of_nodes; ++i) {
-        const double temp = lump_fact[i] * total_mass;
 
-        for (SizeType j = 0; j < 3; ++j)
-        {
-            const SizeType index = i * 3 + j;
-            rMassMatrix(index, index) = temp;
+        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+
+            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+            CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
+            JacobiDeterminante(detJ,reference_covariant_base_vectors);
+
+            const double integration_weight = r_integration_points[point_number].Weight();
+            const Vector& rN = row(rNcontainer,point_number);
+
+
+            for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+                    const SizeType index_i = i * dimension;
+
+                    for ( IndexType j = 0; j < number_of_nodes; ++j ) {
+                        const SizeType index_j = j * dimension;
+                        const double NiNj_weight = rN[i] * rN[j] * integration_weight * detJ;
+
+                        for ( IndexType k = 0; k < dimension; ++k )
+                            rMassMatrix( index_i + k, index_j + k ) += NiNj_weight;
+                    }
+                }
         }
     }
 
+    rMassMatrix *= GetProperties()[THICKNESS]*StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+    KRATOS_CATCH("");
+}
+
+void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if (StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo)) {
+        auto& r_geom = GetGeometry();
+
+        // LUMPED MASS MATRIX
+        SizeType number_of_nodes = r_geom.size();
+        SizeType mat_size = number_of_nodes * 3;
+
+        if (rMassMatrix.size1() != mat_size) {
+            rMassMatrix.resize(mat_size, mat_size, false);
+        }
+
+        noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
+
+        const double total_mass = mReferenceArea * GetProperties()[THICKNESS] *
+            StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+
+        Vector lump_fact =  ZeroVector(number_of_nodes);
+        r_geom.LumpingFactors(lump_fact);
+
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            const double temp = lump_fact[i] * total_mass;
+
+            for (SizeType j = 0; j < 3; ++j)
+            {
+                const SizeType index = i * 3 + j;
+                rMassMatrix(index, index) = temp;
+            }
+        }
+    }
+    else {
+        // CONSISTENT MASS MATRIX
+        CalculateConsistentMassMatrix(rMassMatrix,rCurrentProcessInfo);
+    }
     KRATOS_CATCH("")
 }
 
