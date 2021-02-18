@@ -1423,42 +1423,6 @@ private:
     ///@{
 
     /**
-     * @brief Auxiliary double initialize method
-     * Auxiliary method to initialize a double value
-     * @param rValue Variable to initialize
-     */
-    void AuxiliaryInitializeValue(double &rValue);
-
-    /**
-     * @brief Auxiliary array initialize method
-     * Auxiliary method to initialize an array value
-     * @param rValue Variable to initialize
-     */
-    void AuxiliaryInitializeValue(array_1d<double,3> &rValue);
-
-    /**
-     * @brief Auxiliary scalar reduce method
-     * Auxiliary method to perform the reduction of a scalar value
-     * @param rPrivateValue Private variable to reduce
-     * @param rSumValue Variable to save the reduction
-     */
-    void AuxiliaryAtomicAdd(
-        const double &rPrivateValue,
-        double &rSumValue
-        );
-
-    /**
-     * @brief Auxiliary array reduce method
-     * Auxiliary method to perform the reduction of an array value
-     * @param rPrivateValue Private variable to reduce
-     * @param rSumValue Variable to save the reduction
-     */
-    void AuxiliaryAtomicAdd(
-        const array_1d<double,3> &rPrivateValue,
-        array_1d<double,3> &rSumValue
-        );
-
-    /**
      * @brief This is auxiliar method to check the keys
      * @return True if all the keys are OK
      */
