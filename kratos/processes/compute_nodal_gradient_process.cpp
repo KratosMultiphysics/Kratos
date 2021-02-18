@@ -74,11 +74,11 @@ void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndV
         J0.resize(dimension, local_space_dimension_first_element);
 
     // Variable retriever
-    AuxiliarVariableVectorRetriever* p_variable_retriever = nullptr;
+    Kratos::unique_ptr<AuxiliarVariableVectorRetriever> p_variable_retriever;
     if (mNonHistoricalVariable) {
-        p_variable_retriever = new VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsNonHistoricalVariable>();
+        p_variable_retriever = Kratos::make_unique<VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsNonHistoricalVariable>>();
     } else {
-        p_variable_retriever = new VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsHistoricalVariable>();
+        p_variable_retriever = Kratos::make_unique<VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsHistoricalVariable>>();
     }
 
     struct tls_type
@@ -145,8 +145,6 @@ void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndV
             }
         }
     });
-
-    delete p_variable_retriever;
 
 }
 
