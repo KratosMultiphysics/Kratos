@@ -23,6 +23,8 @@ try:
 except ModuleNotFoundError:
     print("DomainDecompositionResponse requires IgaApplication. Make sure this is compiled.")
 
+from .import cad_dd_utilities as cad_util
+
 def _GetModelPart(model, mp_name, dimension):
     if not model.HasModelPart(mp_name):
         model_part = model.CreateModelPart(mp_name, 2)
@@ -85,17 +87,7 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
         self.primal_analysis.Initialize()
         if self.response_settings["cad_model_import_settings"]["input_type"].GetString() == "json":
             file_name = self.response_settings["cad_model_import_settings"]["input_filename"].GetString()
-            mp_name = self.response_settings["cad_model_part_name"].GetString()
-            dimension = self.response_settings["domain_size"].GetInt()
-            self.cad_model_part = _GetModelPart(self.model, mp_name, dimension)
-            ### Here import the cad model from the file.
-            cad_model_part_io = KM.CadJsonInput(file_name)
-            cad_model_part_io.ReadModelPart(self.cad_model_part)
-
-            cad_geo = self.cad_model_part.Geometries[2]
-            print("##################  ",cad_geo.Center())
-            adsafsdf
-
+            self.cad_geom = cad_util.GetNurbsGeometry(file_name)
             ### TODO: Get the trimming curve
         else:
             RuntimeError("Cad Geometry can only be imported from JSON file. https://github.com/orbingol/rw3dm can be helpful.")
@@ -104,7 +96,7 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
         self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
         self.primal_analysis.InitializeSolutionStep()
         self.value = None
-        self.gradient = {}
+        self.gradient = {} # node 1 [u,v] node2 [u, v] .... in paremetric space
 
     def CalculateValue(self):
         Logger.PrintInfo("\n> Starting primal analysis for response", self.identifier)
@@ -128,9 +120,6 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
         Logger.PrintInfo("\n> Starting gradient calculation for response", self.identifier)
 
         startTime = timer.time()
-
-        if not self.directions or not self.signed_distances:
-            self._CalculateDistances()
 
         for i, node in enumerate(self.model_part.Nodes):
             gradient = [0.0,0.0,0.0] ## Calculate finite differences here !!
