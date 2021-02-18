@@ -332,27 +332,30 @@ protected:
     void GetPhiElemental(
         LocalSystemVectorType& rPhiElemental,
         const std::size_t BasisIndex,
-        const Element& rElement,
-        const TElementDofPointersVectorType& rElementDofList,        
+        const Element& rElement,       
         const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY
 
+        // Get element DOF list
+        TElementDofPointersVectorType r_element_dof_list;
+        rElement.GetDofList(r_element_dof_list, rCurrentProcessInfo);
+
         // Get elemental and nodal DOFs size
-        const std::size_t element_dofs_size = rElementDofList.size();
+        const std::size_t element_dofs_size = r_element_dof_list.size();
         const std::size_t nodal_dof_size = element_dofs_size/rElement.GetGeometry().size();
         
         // Get PhiElemental
         if (rPhiElemental.size() != element_dofs_size)
-            rPhiElemental.resize(element_dofs_size);
+            rPhiElemental.resize(element_dofs_size, false);
         for(std::size_t i_node = 0; i_node < rElement.GetGeometry().size(); ++i_node)
         {
             const auto& r_node = rElement.GetGeometry()[i_node];
             const auto& r_phi_nodal = r_node.GetValue(ROM_BASIS);
             for (std::size_t i_dof = 0; i_dof < nodal_dof_size; ++i_dof)
             {
-                const auto& rp_dof = rElementDofList[i_node*nodal_dof_size+i_dof];
+                const auto& rp_dof = r_element_dof_list[i_node*nodal_dof_size+i_dof];
                 rPhiElemental[i_node*nodal_dof_size+i_dof] = r_phi_nodal(rCurrentProcessInfo[MAP_PHI].at(rp_dof->GetVariable().Key()), BasisIndex);
             }
         }

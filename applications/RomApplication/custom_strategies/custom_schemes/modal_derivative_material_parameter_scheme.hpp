@@ -155,41 +155,33 @@ public:
     {
         KRATOS_TRY
 
-        // Derivative of basis_i
-        const auto basis_i = rCurrentProcessInfo[BASIS_I];
-
-        // Get element DOF list
+        // Get element DOF list and resize rRHS_Contribution
         TElementDofPointersVectorType r_element_dof_list;
         rElement.GetDofList(r_element_dof_list, rCurrentProcessInfo);
         const std::size_t element_dofs_size = r_element_dof_list.size();
 
-        // Get PhiElemental
-        LocalSystemVectorType phi_elemental(element_dofs_size);
-        this->GetPhiElemental(phi_elemental, basis_i, rElement, r_element_dof_list, rCurrentProcessInfo);
-
-        // Compute element LHS derivative
-        Matrix element_matrix_derivative(element_dofs_size, element_dofs_size);
-        
-        switch (mDerivativeParameter) {
-            case DerivativeParameter::Density:
-                // Compute element matrix
-                rElement.CalculateMassMatrix(element_matrix_derivative, rCurrentProcessInfo);
-                // Linear dependency
-                element_matrix_derivative *= (-rCurrentProcessInfo[EIGENVALUE_VECTOR][basis_i]/rElement.GetProperties()(DENSITY));
-                break;
-            case DerivativeParameter::Poisson_Ratio:
-                this->FiniteDifferencingWithMaterialParameter(rElement, POISSON_RATIO, element_matrix_derivative, rCurrentProcessInfo);
-                break;
-            case DerivativeParameter::Young_Modulus:
-                this->FiniteDifferencingWithMaterialParameter(rElement, YOUNG_MODULUS, element_matrix_derivative, rCurrentProcessInfo);
-                break;
-        }       
-
-        // Compute RHS contribution
+        // Initialize rRHS_contribution
         if (rRHS_Contribution.size() != element_dofs_size)
-            rRHS_Contribution.resize(element_dofs_size);
+            rRHS_Contribution.resize(element_dofs_size, false);
         rRHS_Contribution.clear();
-        noalias(rRHS_Contribution) -= prod(element_matrix_derivative, phi_elemental);
+
+        switch(rCurrentProcessInfo[BUILD_LEVEL])
+        {
+        case 3:
+            // Basis derivative RHS
+            CalculateModalDerivativeRHSContribution(rElement, rRHS_Contribution, rCurrentProcessInfo);
+            break;
+        case 4:
+            // Adjoint eigenvalue derivative RHS
+            CalculateAdjointRHSContribution(rElement, rRHS_Contribution, rCurrentProcessInfo);
+            break;
+        case 5:
+            // Adjoint sensitivity contribution
+            CalculateAdjointSensitivityContribution(rElement, rRHS_Contribution, rCurrentProcessInfo);
+            break;
+        default:
+            KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
+        }
 
         rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
@@ -226,108 +218,426 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    void FiniteDifferencingWithMaterialParameter(
-        Element& rElement, 
-        const Variable<double>& rDerivativeParameter, 
-        Matrix& rElementMatrixDerivative, 
-        const ProcessInfo& rCurrentProcessInfo)
+    /**
+     * @brief This function calculates the partial RHS contribution for mode shape derivatives
+     * @param rElement The element to compute
+     * @param RHS_Contribution The RHS vector contribution
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateModalDerivativeRHSContribution(
+        Element& rElement,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo
+    )
     {
         KRATOS_TRY
-        
-        switch (BaseType::mFiniteDifferenceType) {
-            case BaseType::FiniteDifferenceType::Forward:
-                this->ForwardDifferencingWithMaterialParameter(rElement, rDerivativeParameter, rElementMatrixDerivative, rCurrentProcessInfo);
-                break;
-            case BaseType::FiniteDifferenceType::Central:
-                this->CentralDifferencingWithMaterialParameter(rElement, rDerivativeParameter, rElementMatrixDerivative, rCurrentProcessInfo);
-                break;
+
+        // Derivative of basis_i
+        const std::size_t basis_i = rCurrentProcessInfo[BASIS_I];
+
+        // Get element DOF list
+        const std::size_t element_dofs_size = rRHS_Contribution.size();
+
+        // Get PhiElemental
+        LocalSystemVectorType phi_elemental;
+        this->GetPhiElemental(phi_elemental, basis_i, rElement, rCurrentProcessInfo);
+
+        // Compute element matrix derivative
+        LocalSystemMatrixType element_matrix_derivative(element_dofs_size, element_dofs_size);
+        switch (mDerivativeParameter)
+        {
+        case DerivativeParameter::Density:
+            // Linear dependency
+            rElement.CalculateMassMatrix(element_matrix_derivative, rCurrentProcessInfo);
+            element_matrix_derivative *= (-rCurrentProcessInfo[EIGENVALUE_VECTOR][basis_i] / rElement.GetProperties()(DENSITY));
+            break;
+        case DerivativeParameter::Poisson_Ratio:
+            this->FiniteDifferencingWithMaterialParameter_LHS(rElement, POISSON_RATIO, element_matrix_derivative, rCurrentProcessInfo);
+            break;
+        case DerivativeParameter::Young_Modulus:
+            this->FiniteDifferencingWithMaterialParameter_LHS(rElement, YOUNG_MODULUS, element_matrix_derivative, rCurrentProcessInfo);
+            break;
         }
-        
+
+        // Compute RHS contribution
+        noalias(rRHS_Contribution) -= prod(element_matrix_derivative, phi_elemental);
+
         KRATOS_CATCH("")
     }
 
-    void ForwardDifferencingWithMaterialParameter(
+    /**
+     * @brief This function calculates the adjoint RHS contribution
+     * @param rElement The element to compute
+     * @param RHS_Contribution The RHS vector contribution
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateAdjointRHSContribution(
+        Element& rElement,
+        LocalSystemVectorType& rAdjointRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        KRATOS_TRY
+
+        // Lock element nodes for OMP parallelism
+        this->LockElementNodes(rElement);
+
+        // Derivative of basis_i
+        const std::size_t basis_i = rCurrentProcessInfo[BASIS_I];
+
+        // Get element DOF list
+        TElementDofPointersVectorType r_element_dof_list;
+        rElement.GetDofList(r_element_dof_list, rCurrentProcessInfo);
+
+        // Get PhiElemental
+        LocalSystemVectorType phi_elemental;
+        this->GetPhiElemental(phi_elemental, basis_i, rElement, rCurrentProcessInfo);
+
+        // Neutral state
+        LocalSystemMatrixType element_LHS_initial;
+        rElement.CalculateLeftHandSide(element_LHS_initial, rCurrentProcessInfo);
+
+        // Initialize element matrices
+        LocalSystemMatrixType element_LHS_p_perturbed;
+        LocalSystemMatrixType element_LHS_derivative;
+        
+        // Loop over element DOFs
+        std::size_t dof_idx = 0;
+        for (auto& dof_i : r_element_dof_list)
+        {
+            // Positive perturbation
+            // Initialize element internal quantities
+            rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+            dof_i->GetSolutionStepValue() += BaseType::mFiniteDifferenceStepSize;            
+            // Some elements use current coordinates
+            if (dof_i->GetVariable().GetSourceVariable() == DISPLACEMENT)
+            {
+                // auto& node_i = std::find_if(rElement.GetGeometry().begin(), 
+                //                   rElement.GetGeometry().end(), 
+                //                   [&dof_i](const auto& rNode )
+                //     {
+                //         return (rNode->GetId() == dof_i->GetId());
+                //     }
+                // );
+
+                // node_i.Coordinates()[dof_i->GetVariable().GetComponentIndex()] += BaseType::mFiniteDifferenceStepSize;
+
+                for (auto& node_i : rElement.GetGeometry())
+                {
+                    if (dof_i->GetId() == node_i.GetId())
+                    {
+                        node_i.Coordinates()[dof_i->GetVariable().GetComponentIndex()] += BaseType::mFiniteDifferenceStepSize;
+                        break;
+                    }
+                }
+            }
+            // Finalize element internal quantities
+            rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+            // Calculate perturbed LHS
+            rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
+
+            // Reset perturbation
+            // Initialize element internal quantities
+            rElement.InitializeNonLinearIteration(rCurrentProcessInfo);            
+            dof_i->GetSolutionStepValue() -= BaseType::mFiniteDifferenceStepSize;
+            // Some elements use current coordinates
+            if (dof_i->GetVariable().GetSourceVariable() == DISPLACEMENT)
+            {
+                for (auto& node_i : rElement.GetGeometry())
+                {
+                    if (dof_i->GetId() == node_i.GetId())
+                    {
+                        node_i.Coordinates()[dof_i->GetVariable().GetComponentIndex()] -= BaseType::mFiniteDifferenceStepSize;
+                        break;
+                    }
+                }
+            }
+            // Finalize element internal quantities
+            rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+            
+            // Calculate element LHS derivative
+            element_LHS_derivative = (element_LHS_p_perturbed - element_LHS_initial) / (BaseType::mFiniteDifferenceStepSize);
+            
+            // Calculate element DOF adjoint RHS contribution
+            rAdjointRHS_Contribution[dof_idx] = -inner_prod(prod(element_LHS_derivative, phi_elemental), phi_elemental);
+            
+            dof_idx++;
+
+        }
+
+        this->UnlockElementNodes(rElement);
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This function calculates the adjoint sensitivity contribution
+     * @param rElement The element to compute
+     * @param RHS_Contribution The RHS vector contribution
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateAdjointSensitivityContribution(
+        Element& rElement,
+        LocalSystemVectorType& rAdjointSensitivityContribution,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        KRATOS_TRY
+
+        // Compute element LHS derivative
+        switch (mDerivativeParameter)
+        {
+        case DerivativeParameter::Density:
+            this->FiniteDifferencingWithMaterialParameter_RHS(rElement, DENSITY, rAdjointSensitivityContribution, rCurrentProcessInfo);
+            break;
+        case DerivativeParameter::Poisson_Ratio:
+            this->FiniteDifferencingWithMaterialParameter_RHS(rElement, POISSON_RATIO, rAdjointSensitivityContribution, rCurrentProcessInfo);
+            break;
+        case DerivativeParameter::Young_Modulus:
+            this->FiniteDifferencingWithMaterialParameter_RHS(rElement, YOUNG_MODULUS, rAdjointSensitivityContribution, rCurrentProcessInfo);
+            break;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This function performs finite differencing on the element RHS wrt material parameter
+     * @param rElement The element to compute
+     * @param rDerivativeParameter The derivative parameter
+     * @param rElementRHSDerivative The element RHS derivative
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void FiniteDifferencingWithMaterialParameter_RHS(
         Element& rElement, 
         const Variable<double>& rDerivativeParameter, 
-        Matrix& rElementMatrixDerivative, 
+        LocalSystemVectorType& rElementRHSDerivative,
         const ProcessInfo& rCurrentProcessInfo)
     {
+        KRATOS_TRY
 
+        // Compute element RHS derivative
+        switch (BaseType::mFiniteDifferenceType)
+        {
+        case BaseType::FiniteDifferenceType::Forward:
+            this->ForwardDifferencingWithMaterialParameter_RHS(rElement, rDerivativeParameter, rElementRHSDerivative, rCurrentProcessInfo);
+            break;
+        case BaseType::FiniteDifferenceType::Central:
+            this->CentralDifferencingWithMaterialParameter_RHS(rElement, rDerivativeParameter, rElementRHSDerivative, rCurrentProcessInfo);
+            break;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This function performs forward differencing on the element RHS wrt material parameter
+     * @param rElement The element to compute
+     * @param rDerivativeParameter The derivative parameter
+     * @param rElementRHSDerivative The element RHS derivative
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void ForwardDifferencingWithMaterialParameter_RHS(
+        Element& rElement, 
+        const Variable<double>& rDerivativeParameter, 
+        LocalSystemVectorType& rElementRHSDerivative, 
+        const ProcessInfo& rCurrentProcessInfo)
+    {
         KRATOS_TRY
 
         if ( rElement.GetProperties().Has(rDerivativeParameter) )
         {
-            LocalSystemMatrixType element_matrix_initial;
-            LocalSystemMatrixType element_matrix_p_perturbed;
+            // Compute initial RHS
+            LocalSystemVectorType element_RHS_initial;
+            rElement.CalculateRightHandSide(element_RHS_initial, rCurrentProcessInfo);
 
-            // Compute initial matrix
-            rElement.CalculateLeftHandSide(element_matrix_initial, rCurrentProcessInfo);
-            
             // Save property pointer
             Properties::Pointer p_global_properties = rElement.pGetProperties();
             const double initial_property_value = p_global_properties->GetValue(rDerivativeParameter);
-            const double property_value_step_size = initial_property_value*BaseType::mFiniteDifferenceStepSize;
+            const double property_value_step_size = initial_property_value * BaseType::mFiniteDifferenceStepSize;
 
             // Create new property and assign it to the element
             Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
             rElement.SetProperties(p_local_property);
-            
+
             // Positive perturbation
-            // perturb the variable
+            LocalSystemVectorType element_RHS_p_perturbed;
             p_local_property->SetValue(rDerivativeParameter, (initial_property_value + property_value_step_size));
-            // Compute element matrix after perturbation
-            rElement.CalculateLeftHandSide(element_matrix_p_perturbed, rCurrentProcessInfo);
-            
-            // Give element original properties back
+            rElement.CalculateRightHandSide(element_RHS_p_perturbed, rCurrentProcessInfo);
+
+            // Reset perturbationby giving original properties back
             rElement.SetProperties(p_global_properties);
 
-            // Compute element matrix derivative
-            noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix_initial) / property_value_step_size;
+            // Compute element RHS derivative
+            noalias(rElementRHSDerivative) = -(element_RHS_p_perturbed - element_RHS_initial) / property_value_step_size;
+
         }
 
         KRATOS_CATCH("")
     }
 
-    void CentralDifferencingWithMaterialParameter(
+    /**
+     * @brief This function performs central differencing on the element RHS wrt material parameter
+     * @param rElement The element to compute
+     * @param rDerivativeParameter The derivative parameter
+     * @param rElementRHSDerivative The element RHS derivative
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CentralDifferencingWithMaterialParameter_RHS(
         Element& rElement, 
         const Variable<double>& rDerivativeParameter, 
-        Matrix& rElementMatrixDerivative, 
+        LocalSystemVectorType& rElementRHSDerivative, 
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
         if ( rElement.GetProperties().Has(rDerivativeParameter) )
         {
-
-            LocalSystemMatrixType element_matrix_p_perturbed;
-            LocalSystemMatrixType element_matrix_n_perturbed;
-
             // Save property pointer
             Properties::Pointer p_global_properties = rElement.pGetProperties();
             const double initial_property_value = p_global_properties->GetValue(rDerivativeParameter);
             const double property_value_step_size = initial_property_value*BaseType::mFiniteDifferenceStepSize;
-
+            
             // Create new property and assign it to the element
             Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
             rElement.SetProperties(p_local_property);
-            
+
             // Positive perturbation
-            // perturb the variable
+            LocalSystemVectorType element_RHS_p_perturbed;
             p_local_property->SetValue(rDerivativeParameter, (initial_property_value + property_value_step_size));
-            // Compute element matrix after perturbation
-            rElement.CalculateLeftHandSide(element_matrix_p_perturbed, rCurrentProcessInfo);
+            rElement.CalculateRightHandSide(element_RHS_p_perturbed, rCurrentProcessInfo);
 
             // Negative perturbation
-            // perturb the variable
+            LocalSystemVectorType element_RHS_m_perturbed;
             p_local_property->SetValue(rDerivativeParameter, (initial_property_value - property_value_step_size));
-            // Compute element matrix after perturbation
-            rElement.CalculateLeftHandSide(element_matrix_n_perturbed, rCurrentProcessInfo);
+            rElement.CalculateRightHandSide(element_RHS_m_perturbed, rCurrentProcessInfo);
 
-            // Give element original properties back
+            // Reset perturbationby giving original properties back
+            rElement.SetProperties(p_global_properties);
+
+            // Compute element RHS derivative
+            noalias(rElementRHSDerivative) = -(element_RHS_p_perturbed - element_RHS_m_perturbed) / (2.0*property_value_step_size);
+
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This function performs finite differencing on the element LHS wrt material parameter
+     * @param rElement The element to compute
+     * @param rDerivativeParameter The derivative parameter
+     * @param rElementLHSDerivative The element LHS derivative
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void FiniteDifferencingWithMaterialParameter_LHS(
+        Element& rElement, 
+        const Variable<double>& rDerivativeParameter, 
+        LocalSystemMatrixType& rElementLHSDerivative, 
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        switch (BaseType::mFiniteDifferenceType)
+        {
+        case BaseType::FiniteDifferenceType::Forward:
+            this->ForwardDifferencingWithMaterialParameter_LHS(rElement, rDerivativeParameter, rElementLHSDerivative, rCurrentProcessInfo);
+            break;
+        case BaseType::FiniteDifferenceType::Central:
+            this->CentralDifferencingWithMaterialParameter_LHS(rElement, rDerivativeParameter, rElementLHSDerivative, rCurrentProcessInfo);
+            break;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This function performs forward differencing on the element LHS wrt material parameter
+     * @param rElement The element to compute
+     * @param rDerivativeParameter The derivative parameter
+     * @param rElementLHSDerivative The element LHS derivative
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void ForwardDifferencingWithMaterialParameter_LHS(
+        Element& rElement, 
+        const Variable<double>& rDerivativeParameter, 
+        LocalSystemMatrixType& rElementLHSDerivative, 
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+
+        KRATOS_TRY
+
+        if ( rElement.GetProperties().Has(rDerivativeParameter) )
+        {
+            // Neutral state
+            LocalSystemMatrixType element_LHS_initial;
+            rElement.CalculateLeftHandSide(element_LHS_initial, rCurrentProcessInfo);
+            
+            // Save property pointer
+            Properties::Pointer p_global_properties = rElement.pGetProperties();
+            const double initial_property_value = p_global_properties->GetValue(rDerivativeParameter);
+            const double property_value_step_size = initial_property_value*BaseType::mFiniteDifferenceStepSize;
+
+            // Create new property and assign it to the element
+            Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+            rElement.SetProperties(p_local_property);
+            
+            // Positive perturbation
+            LocalSystemMatrixType element_LHS_p_perturbed;
+            p_local_property->SetValue(rDerivativeParameter, (initial_property_value + property_value_step_size));
+            rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
+            
+            // Reset perturbationby giving original properties back
             rElement.SetProperties(p_global_properties);
 
             // Compute element matrix derivative
-            noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix_n_perturbed) / (2.0*property_value_step_size);
+            noalias(rElementLHSDerivative) = (element_LHS_p_perturbed - element_LHS_initial) / property_value_step_size;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This function performs central differencing on the element LHS wrt material parameter
+     * @param rElement The element to compute
+     * @param rDerivativeParameter The derivative parameter
+     * @param rElementLHSDerivative The element LHS derivative
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CentralDifferencingWithMaterialParameter_LHS(
+        Element& rElement, 
+        const Variable<double>& rDerivativeParameter, 
+        LocalSystemMatrixType& rElementLHSDerivative, 
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        if ( rElement.GetProperties().Has(rDerivativeParameter) )
+        {
+            // Save property pointer
+            Properties::Pointer p_global_properties = rElement.pGetProperties();
+            const double initial_property_value = p_global_properties->GetValue(rDerivativeParameter);
+            const double property_value_step_size = initial_property_value*BaseType::mFiniteDifferenceStepSize;
+
+            // Create new property and assign it to the element
+            Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+            rElement.SetProperties(p_local_property);
+            
+            // Positive perturbation
+            LocalSystemMatrixType element_LHS_p_perturbed;
+            p_local_property->SetValue(rDerivativeParameter, (initial_property_value + property_value_step_size));
+            rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
+
+            // Negative perturbation
+            LocalSystemMatrixType element_LHS_n_perturbed;
+            p_local_property->SetValue(rDerivativeParameter, (initial_property_value - property_value_step_size));
+            rElement.CalculateLeftHandSide(element_LHS_n_perturbed, rCurrentProcessInfo);
+
+            // Reset perturbationby giving original properties back
+            rElement.SetProperties(p_global_properties);
+
+            // Compute element matrix derivative
+            noalias(rElementLHSDerivative) = (element_LHS_p_perturbed - element_LHS_n_perturbed) / (2.0*property_value_step_size);
         }
 
         KRATOS_CATCH("")

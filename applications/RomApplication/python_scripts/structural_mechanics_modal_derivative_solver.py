@@ -8,6 +8,7 @@ import KratosMultiphysics.RomApplication as RomApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 # Other imports
+import json
 
 def CreateSolver(model, custom_settings):
     return ModalDerivativeSolver(model, custom_settings)
@@ -34,6 +35,7 @@ class ModalDerivativeSolver(MechanicalSolver):
             "finite_difference_type"        : "forward",
             "finite_difference_step_size"   : 1e-3,
             "compute_basis_derivatives"     : true,
+            "adjoint_solution"              : false,
             "mass_orthonormalize"           : false,
             "rom_parameters_filename"       : "RomParameters.json",
             "rom_settings"                  :
@@ -104,6 +106,12 @@ class ModalDerivativeSolver(MechanicalSolver):
                 err_msg += " " + der_type
             raise Exception(err_msg)
 
+        rom_parameters_filename = self.settings["rom_parameters_filename"].GetString()
+        with open(rom_parameters_filename, "r") as rom_parameters_file:
+            rom_parameters = json.load(rom_parameters_file)
+            nodal_unknowns = rom_parameters["rom_settings"]["nodal_unknowns"]
+            self.settings["rom_settings"]["nodal_unknowns"].SetStringArray(nodal_unknowns)
+            
         # Create strategy
         return RomApplication.ModalDerivativeStrategy(computing_model_part,
                                                           modal_derivative_scheme,
