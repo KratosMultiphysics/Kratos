@@ -471,12 +471,11 @@ protected:
     {
         const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
         const auto &r_int_elems_model_part = (mrBaseModelPart.GetModel()).GetModelPart(mAuxModelPartName);
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(r_int_elems_model_part.NumberOfNodes()); ++i_node) {
-            const auto it_node = r_int_elems_model_part.NodesBegin() + i_node;
-            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(it_node->Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable, mBufferPosition);
-            r_emb_nod_val = it_node->FastGetSolutionStepValue(rUnknownVariable);
-        }
+
+        block_for_each(r_int_elems_model_part.Nodes(), [&](Node<3>& rNode){
+            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(rNode.Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable, mBufferPosition);
+            r_emb_nod_val = rNode.FastGetSolutionStepValue(rUnknownVariable);
+        });
     }
 
     inline void AddIntersectedElementsVariables(ModelPart &rModelPart) const

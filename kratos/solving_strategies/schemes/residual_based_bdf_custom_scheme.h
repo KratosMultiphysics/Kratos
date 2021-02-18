@@ -242,9 +242,8 @@ public:
         // Auxiliar fixed value
         bool fixed = false;
 
-        #pragma omp parallel for private(fixed)
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+        IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t Index){
+            auto it_node = it_node_begin + Index;
 
             std::size_t counter = 0;
             for (auto p_var : mDoubleVariable) {
@@ -270,7 +269,7 @@ public:
 
                 counter++;
             }
-        }
+        });
 
         KRATOS_CATCH("ResidualBasedBDFCustomScheme.InitializeSolutionStep");
     }
@@ -306,9 +305,8 @@ public:
         // Getting first node iterator
         const auto it_node_begin = rModelPart.Nodes().begin();
 
-        #pragma omp parallel for
-        for(int i = 0;  i< num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+        IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t Index){
+            auto it_node = it_node_begin + Index;
 
             std::size_t counter = 0;
             for (auto p_var : mDoubleVariable) {
@@ -324,7 +322,7 @@ public:
             // Updating time derivatives
             UpdateFirstDerivative(it_node);
             UpdateSecondDerivative(it_node);
-        }
+        });
 
         KRATOS_CATCH( "" );
     }
