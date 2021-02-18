@@ -19,6 +19,11 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
+add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
+add_app ${KRATOS_APP_DIR}/MappingApplication;
+add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/MeshingApplication;
+
 # Clean
 clear
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
