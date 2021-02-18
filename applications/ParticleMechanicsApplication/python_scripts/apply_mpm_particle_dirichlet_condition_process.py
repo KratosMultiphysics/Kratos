@@ -95,7 +95,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 self.value[i] = settings["value"][i].GetDouble()
             else:
                 self.function_string = settings["value"][i].GetString()
-                self.aux_function[i] = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
+                self.aux_function[i] = KratosMultiphysics.GenericFunctionUtility(self.function_string, settings["local_axes"])
 
         self.modulus = settings["modulus"].GetDouble()
 
