@@ -207,9 +207,9 @@ namespace Kratos
             std::vector<int> invperm(graph_csr.size1());
             CuthillMcKee<false>().get<CompressedMatrix>(graph_csr,invperm);
 
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
-                (mrModelPart.NodesBegin() + i)->SetId(invperm[i]+1);
+            IndexPartition<std::size_t>(mrModelPart.Nodes().size()).for_each([&](std::size_t Index){
+                (mrModelPart.NodesBegin() + Index)->SetId(invperm[Index]+1);
+            });
 
             //reorder
             mrModelPart.Nodes().Sort();
@@ -222,23 +222,23 @@ namespace Kratos
             // Expects element ids are ordered 1 ... Elements().size().
             std::vector<std::size_t> element_ids(mrModelPart.NumberOfElements());
             std::vector<std::size_t> node_ids(mrModelPart.NumberOfElements());
-            #pragma omp parallel for
-            for(int i=0; i < static_cast<int>(element_ids.size()); ++i)
-            {
-                auto it = mrModelPart.ElementsBegin() + i;
-                element_ids.at(it->Id() - 1) = it->Id();
-                std::size_t node_id = it->GetGeometry()[0].Id();
-                for (const auto& r_node : it->GetGeometry().Points())
+
+            block_for_each(mrModelPart.Elements(), [&](Element& rElem){
+                element_ids.at(rElem.Id() - 1) = rElem.Id();
+                std::size_t node_id = rElem.GetGeometry()[0].Id();
+                for (const auto& r_node : rElem.GetGeometry().Points())
                     node_id = std::min(node_id, r_node.Id());
-                node_ids.at(it->Id() - 1) = node_id;
-            }
+                node_ids.at(rElem.Id() - 1) = node_id;
+            });
+
             std::stable_sort(element_ids.begin(), element_ids.end(),
                       [&node_ids](const std::size_t& i, const std::size_t& j) {
                           return node_ids[i - 1] < node_ids[j - 1];
                       });
-            #pragma omp parallel for
-            for(int i=0; i < static_cast<int>(element_ids.size()); ++i)
-                (mrModelPart.ElementsBegin() + element_ids[i] - 1)->SetId(i + 1);
+
+            IndexPartition<std::size_t>(element_ids.size()).for_each([&](std::size_t Index){
+                (mrModelPart.ElementsBegin() + element_ids[Index] - 1)->SetId(Index + 1);
+            });
             mrModelPart.Elements().Sort();
         }
 
