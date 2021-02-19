@@ -236,7 +236,6 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
 {
     // The list of nodes
     auto& r_nodes_array = mrModelPart.Nodes();
-    //const auto it_node_begin = r_nodes_array.begin();
 
     // Remove average variable
     block_for_each(r_nodes_array, [&](Node<3>& rNode){
@@ -292,40 +291,41 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     auto it_elem_begin = r_elements_array.begin();
 
     // Some definitions
-    Vector vector_J, N;
+    struct TLSType
+    {
+        Vector vector_J, N;
+    };
 
     // Fill the average value
-    #pragma omp parallel for private(vector_J, N)
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-        auto it_elem = it_elem_begin + i;
+    block_for_each(r_elements_array, TLSType(), [&](Element& rElem, TLSType& rTls){
         // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
         // NOTE: Is active by default
-        const bool element_is_active = it_elem->IsDefined(ACTIVE) ? it_elem->Is(ACTIVE) : true;
+        const bool element_is_active = rElem.IsDefined(ACTIVE) ? rElem.Is(ACTIVE) : true;
         if (element_is_active) {
             // The geometry of the element
-            auto& r_this_geometry = it_elem->GetGeometry();
+            auto& r_this_geometry = rElem.GetGeometry();
 
             // Auxiliar values
-            const GeometryData::IntegrationMethod this_integration_method = it_elem->GetIntegrationMethod();
+            const GeometryData::IntegrationMethod this_integration_method = rElem.GetIntegrationMethod();
             const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
             const SizeType integration_points_number = integration_points.size();
             const SizeType number_of_nodes = r_this_geometry.size();
 
             // The jacobian of the geometry
-            vector_J = r_this_geometry.DeterminantOfJacobian(vector_J , this_integration_method );
+            rTls.vector_J = r_this_geometry.DeterminantOfJacobian(rTls.vector_J , this_integration_method );
             for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                 const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
-                if (N.size() != number_of_nodes )
-                    N.resize(number_of_nodes);
-                r_this_geometry.ShapeFunctionsValues( N, r_local_coordinates );
-                const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
+                if (rTls.N.size() != number_of_nodes )
+                    rTls.N.resize(number_of_nodes);
+                r_this_geometry.ShapeFunctionsValues( rTls.N, r_local_coordinates );
+                const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * rTls.vector_J[i_gauss_point] : 1.0;
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     #pragma omp atomic
-                    r_this_geometry[i_node].GetValue(*mpAverageVariable) += std::abs(N[i_node]) * area_coeff;
+                    r_this_geometry[i_node].GetValue(*mpAverageVariable) += std::abs(rTls.N[i_node]) * area_coeff;
                 }
             }
         }
-    }
+    });
 
     mrModelPart.GetCommunicator().AssembleNonHistoricalData(*mpAverageVariable);
 
