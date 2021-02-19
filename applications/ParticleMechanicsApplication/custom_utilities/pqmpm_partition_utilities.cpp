@@ -123,7 +123,7 @@ namespace Kratos
 
             // Transfer local data to containers
             if (sub_point_volume / mp_volume_vec[0] > pqmpm_min_fraction) {
-                if (std::abs(sub_point_volume - mp_volume_vec[0]) < Tolerance) {
+                if (i == 0 && std::abs(sub_point_volume / mp_volume_vec[0] - 1.0) < Tolerance) {
                     CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                         pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
                         rParentGeom);
