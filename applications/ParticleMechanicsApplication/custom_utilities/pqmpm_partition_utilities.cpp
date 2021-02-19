@@ -111,7 +111,7 @@ namespace Kratos
         intersected_geometries.push_back(&rParentGeom);
         RecursivePQMPMNeighbourSearch(rBackgroundGridModelPart,
             intersected_geometries, point_low, point_high, recursion_count,
-            rCoordinates, side_half_length);
+            rCoordinates);
         for (size_t i = 0; i < intersected_geometries.size(); ++i)
             number_of_nodes += intersected_geometries[i]->PointsNumber();
 
@@ -144,7 +144,7 @@ namespace Kratos
 
             // Transfer local data to containers
             if (sub_point_volume / mp_volume_vec[0] > pqmpm_min_fraction) {
-                if (std::abs(sub_point_volume / mp_volume_vec[0] - 1.0) < Tolerance) {
+                if (i == 0 && std::abs(sub_point_volume / mp_volume_vec[0] - 1.0) < Tolerance) {
                     CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                         pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
                         rParentGeom);
@@ -733,7 +733,6 @@ namespace Kratos
         const Point& rPointHigh,
         IndexType& RecursionCount,
         const array_1d<double, 3>& rCoordinates,
-        const double SideHalfLength,
         const SizeType MaxRecursions)
     {
         RecursionCount += 1;
@@ -763,7 +762,7 @@ namespace Kratos
                             RecursivePQMPMNeighbourSearch(rBackgroundGridModelPart,
                                 rIntersectedGeometries, rPointLow, rPointHigh,
                                 RecursionCount,
-                                rCoordinates, SideHalfLength,
+                                rCoordinates,
                                 MaxRecursions);
                         }
                     }
