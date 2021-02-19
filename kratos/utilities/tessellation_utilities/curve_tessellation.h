@@ -27,6 +27,8 @@
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
 
+#include "includes/variables.h"
+
 namespace Kratos {
 
 template <class TContainerPointType>
