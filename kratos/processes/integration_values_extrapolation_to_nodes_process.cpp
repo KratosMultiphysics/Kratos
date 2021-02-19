@@ -368,39 +368,36 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
 
     // The list of nodes
     auto& r_nodes_array = mrModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
 
     // Initialize values
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
+    block_for_each(r_nodes_array, [&](Node<3>& rNode){
 
         // We initialize the doubles values
         for ( const auto p_var : mDoubleVariable) {
-            if (mExtrapolateNonHistorical) it_node->SetValue(*p_var, 0.0);
-            else it_node->FastGetSolutionStepValue(*p_var) = 0.0;
+            if (mExtrapolateNonHistorical) rNode.SetValue(*p_var, 0.0);
+            else rNode.FastGetSolutionStepValue(*p_var) = 0.0;
         }
 
         // We initialize the arrays values
         for ( const auto p_var : mArrayVariable) {
-            if (mExtrapolateNonHistorical) it_node->SetValue(*p_var, zero_array);
-            else it_node->FastGetSolutionStepValue(*p_var) = zero_array;
+            if (mExtrapolateNonHistorical) rNode.SetValue(*p_var, zero_array);
+            else rNode.FastGetSolutionStepValue(*p_var) = zero_array;
         }
 
         // We initialize the vectors values
         for ( const auto p_var : mVectorVariable) {
             const Vector zero_vector = ZeroVector(mSizeVectors[p_var]);
-            if (mExtrapolateNonHistorical) it_node->SetValue(*p_var, zero_vector);
-            else it_node->FastGetSolutionStepValue(*p_var) = zero_vector;
+            if (mExtrapolateNonHistorical) rNode.SetValue(*p_var, zero_vector);
+            else rNode.FastGetSolutionStepValue(*p_var) = zero_vector;
         }
 
         // We initialize the matrix values
         for ( const auto p_var : mMatrixVariable) {
             const Matrix zero_matrix = ZeroMatrix(mSizeMatrixes[p_var].first, mSizeMatrixes[p_var].second);
-            if (mExtrapolateNonHistorical) it_node->SetValue(*p_var, zero_matrix);
-            else it_node->FastGetSolutionStepValue(*p_var) = zero_matrix;
+            if (mExtrapolateNonHistorical) rNode.SetValue(*p_var, zero_matrix);
+            else rNode.FastGetSolutionStepValue(*p_var) = zero_matrix;
         }
-    }
+    });
 }
 
 }  // namespace Kratos.
