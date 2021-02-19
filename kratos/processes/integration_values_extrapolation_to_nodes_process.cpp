@@ -320,8 +320,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
                 r_this_geometry.ShapeFunctionsValues( rTls.N, r_local_coordinates );
                 const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * rTls.vector_J[i_gauss_point] : 1.0;
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    #pragma omp atomic
-                    r_this_geometry[i_node].GetValue(*mpAverageVariable) += std::abs(rTls.N[i_node]) * area_coeff;
+                    AtomicAdd(r_this_geometry[i_node].GetValue(*mpAverageVariable), std::abs(rTls.N[i_node]) * area_coeff);
                 }
             }
         }
