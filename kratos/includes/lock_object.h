@@ -31,8 +31,10 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// This class defines stores a lock and gives interface to it.
-  /** The class makes a tiny wrapper over the ahared memory locking mechanisms
+  /// This class defines and stores a lock and gives an interface to it.
+  /** The class makes a tiny wrapper over shared memory locking mechanisms
+   * it is compliant with C++ Lockable
+   * see https://en.cppreference.com/w/cpp/named_req/Lockable
   */
   class LockObject
     {
@@ -84,7 +86,7 @@ namespace Kratos
       ///@name Access
       ///@{
 
-		inline void SetLock() const
+		inline void lock() const
 		{
 			//does nothing if openMP is not present
 #ifdef KRATOS_SMP_OPENMP
@@ -92,12 +94,27 @@ namespace Kratos
 #endif
 		}
 
-		inline void UnSetLock() const
+		KRATOS_DEPRECATED_MESSAGE("Please use lock() instead")
+    inline void SetLock() const
+		{
+			// calling lock for backward compatibility
+      lock();
+
+		}
+
+		inline void unlock() const
 		{
 			//does nothing if openMP is not present
 #ifdef KRATOS_SMP_OPENMP
 			omp_unset_lock(&mLock);
 #endif
+		}
+
+		KRATOS_DEPRECATED_MESSAGE("Please use unlock() instead")
+    inline void UnSetLock() const
+		{
+			// calling unlock for backward compatibility
+      unlock();
 		}
 
     inline bool try_lock() const
