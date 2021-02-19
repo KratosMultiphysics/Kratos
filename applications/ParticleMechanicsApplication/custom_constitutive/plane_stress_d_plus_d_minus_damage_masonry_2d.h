@@ -445,6 +445,7 @@ protected:
 	// Misc
 	double InitialCharacteristicLength = 0.0;
 	double mStrainRate = 0.0;
+	array_1d<double, 3> element_center;
 
 	// for IMPLEX Integration
 	double CurrentDeltaTime  = 0.0;					// at time step n + 1

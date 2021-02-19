@@ -260,6 +260,8 @@ void DamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
 		this->ComputeCharacteristicLength(rElementGeometry, rMaterialProperties,
 			InitialCharacteristicLength);
 
+		element_center = rElementGeometry.GetGeometryParent(0).Center(); // for debugging - delete
+
 		// Begin IMPLEX Integration - Only if switched on
 		if (rMaterialProperties[INTEGRATION_IMPLEX] != 0){
 			PreviousThresholdTension 		= ThresholdTension;
@@ -756,7 +758,8 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	double& rDamage)
 {
 	if(internal_variable <= data.YieldStressTension) {
-		rDamage = 0.0;
+		//rDamage = 0.0;
+		// Disabled to maintain current damage level!
 	}
 	else {
 		const double characteristic_length 		= 	data.CharacteristicLength;
@@ -797,7 +800,8 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 	double& rDamage)
 {
 	if(internal_variable <= data.DamageOnsetStressCompression){
-		rDamage = 0.0;
+		//rDamage = 0.0;
+		// Disabled to maintain current damage level!
 	}
 	else {
 		// extract material parameters
@@ -822,29 +826,34 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 		double e_r    		= (e_k - e_j) / (s_p - s_k) * (s_p - s_r) + e_j;
 		double e_u    		= e_r * c3;
 
-		// regularization
-		double bezier_fracture_energy, bezier_energy_1;
-		this->ComputeBezierEnergy(bezier_fracture_energy, bezier_energy_1,
-									s_p, s_k, s_r, e_p, e_j, e_k, e_r, e_u);
-
-		const double stretcher 	= (specific_fracture_energy - bezier_energy_1) /
-									(bezier_fracture_energy - bezier_energy_1) - 1.0;
-
-		if(stretcher <= -1.0){
-			std::stringstream ss;
-			ss << "FRACTURE_ENERGY_COMPRESSION is too low" << std::endl;
-			ss << "Characteristic Length = " << data.CharacteristicLength <<std::endl;
-			ss << "Input Gc/lch = " << specific_fracture_energy << std::endl;
-			ss << "To avoid constitutive snap-back, FRACTURE_ENERGY_COMPRESSION should be at least = " << bezier_energy_1 << std::endl;
-			ss << "Strain rate  = " << mStrainRate << std::endl;
-			std::cout << ss.str();
-			exit(-1);
-			}
-
-		this->ApplyBezierStretcherToStrains(stretcher, e_p, e_j, e_k, e_r, e_u);
-
 		// current abscissa
 		const double strain_like_counterpart = internal_variable / young_modulus;
+
+		if (strain_like_counterpart > e_p)
+		{
+			// regularization - only if we are past the peak!
+			double bezier_fracture_energy, bezier_energy_1;
+			this->ComputeBezierEnergy(bezier_fracture_energy, bezier_energy_1,
+				s_p, s_k, s_r, e_p, e_j, e_k, e_r, e_u);
+
+			const double stretcher = (specific_fracture_energy - bezier_energy_1) /
+				(bezier_fracture_energy - bezier_energy_1) - 1.0;
+
+			if (stretcher <= -1.0) {
+				std::stringstream ss;
+				ss << "FRACTURE_ENERGY_COMPRESSION is too low" << std::endl;
+				ss << "Characteristic Length = " << data.CharacteristicLength << std::endl;
+				ss << "Input Gc/lch = " << specific_fracture_energy << std::endl;
+				ss << "To avoid constitutive snap-back, FRACTURE_ENERGY_COMPRESSION should be at least = " << bezier_energy_1 << std::endl;
+				ss << "Strain rate  = " << mStrainRate << std::endl;
+				ss << "MP initial position = " << element_center << std::endl;
+				std::cout << ss.str();
+				exit(-1);
+			}
+
+			this->ApplyBezierStretcherToStrains(stretcher, e_p, e_j, e_k, e_r, e_u);
+		}
+
 
 		// compute damage
 		double damage_variable = internal_variable;
@@ -1131,7 +1140,7 @@ const double DamageDPlusDMinusMasonry2DLaw::GetDIF(const Properties& rProps,
 
 	double dif = c_1 * std::pow(mStrainRate, c_2);
 	dif = std::max(1.0, dif);
-
+	dif = 1.0;
 	return dif;
 }
 
