@@ -141,29 +141,22 @@ namespace Kratos
         void ReorderAndOptimizeModelPartProcess::ActualizeSubModelPart(ModelPart& subpart)
         {
             //make a parallel clone of all the nodes
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(subpart.Nodes().size()); ++i)
-            {
-                Node<3>::Pointer& pnode = *(subpart.NodesBegin() + i).base();
+            IndexPartition<std::size_t>(subpart.Nodes().size()).for_each([&](std::size_t Index){
+                Node<3>::Pointer& pnode = *(subpart.NodesBegin() + Index).base();
                 pnode = mrModelPart.Nodes()(pnode->Id());
-            }
+            });
             subpart.Nodes().Sort();
 
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(subpart.Elements().size()); ++i)
-            {
-                Element::Pointer& pelem = *(subpart.ElementsBegin() + i).base();
+            IndexPartition<std::size_t>(subpart.Elements().size()).for_each([&](std::size_t Index){
+                Element::Pointer& pelem = *(subpart.ElementsBegin() + Index).base();
                 pelem = mrModelPart.Elements()(pelem->Id());
-
-            }
+            });
             subpart.Elements().Sort();
 
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(subpart.Conditions().size()); ++i)
-            {
-                Condition::Pointer& pcond = *(subpart.ConditionsBegin() + i).base();
+            IndexPartition<std::size_t>(subpart.Conditions().size()).for_each([&](std::size_t Index){
+                Condition::Pointer& pcond = *(subpart.ConditionsBegin() + Index).base();
                 pcond = mrModelPart.Conditions()(pcond->Id());
-            }
+            });
 
              //actualize pointers within submodelparts
             for(auto& part : subpart.SubModelParts())
