@@ -430,6 +430,8 @@ public:
         const TDataType Tolerance = ZeroTolerance
         )
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() != rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
+
         const SizeType size = rInputMatrix.size2();
 
         if(size == 1) {
@@ -531,6 +533,8 @@ public:
     {
         KRATOS_TRY;
 
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() != rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
+
         if(rInvertedMatrix.size1() != 2 || rInvertedMatrix.size2() != 2) {
             rInvertedMatrix.resize(2,2,false);
         }
@@ -561,6 +565,8 @@ public:
         )
     {
         KRATOS_TRY;
+
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() != rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
 
         if(rInvertedMatrix.size1() != 3 || rInvertedMatrix.size2() != 3) {
             rInvertedMatrix.resize(3,3,false);
@@ -605,6 +611,8 @@ public:
         )
     {
         KRATOS_TRY;
+
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() != rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
 
         if (rInvertedMatrix.size1() != 4 || rInvertedMatrix.size2() != 4) {
             rInvertedMatrix.resize(4, 4, false);
