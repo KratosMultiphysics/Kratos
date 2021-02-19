@@ -97,7 +97,9 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
     def  ExecuteBeforeSolutionLoop(self):
         self.forward_convection_process = self._set_levelset_convection_process()
 
+        self.theoreticalVolume=self.mass_conservation_utility.CalculateWaterVolume()
         first_lines_string = self.mass_conservation_utility.CalculateInitialVolume()
+
 
         # if ( self._write_to_log and self._is_printing_rank ):
         #     with open(self._my_log_file, "w") as logFile:
@@ -114,39 +116,49 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
             KratosMultiphysics.DISTANCE,
             KratosFluid.AUX_DISTANCE,
             self._fluid_model_part.Nodes)
-
-        #Calculate de initial Volume error with the time step of the simulation
-        dt_old = self._fluid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        Flow_interface_corrected_old=self._CalculateFlowIntoAir()
+            
+        # for node in self._fluid_model_part.Nodes:
+        #     if node.Id in elementId:
+        #         veloc=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+        #         print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        #         print(veloc)
+        
         self.mass_conservation_utility.ComputeBalancedVolume()
         initial_volume_error = self.mass_conservation_utility.GetVolumeError()
+        Flow_interface_corrected_old=self._CalculateFlowIntoAir()
+        # print("2222222222222222222222222222222222222222222222____FLOW_____22222222222222222222222222222222222222222222222222")
+        # print(Flow_interface_corrected_old)
+        #Calculate de initial Volume error with the time step of the simulation
+        dt_old = self._fluid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         # We change the initial error to old error in order to initialize mass conservation iteration
         print("initial_volume_error: ",initial_volume_error)
         old_volume_error = initial_volume_error
         
         # Volume error tolerance in order to correct mass
-        tol_error = 1.0e-12
-        
-      
-
-
+        user_error_volume_tolerance=1/100000
+        tol_error = self.theoreticalVolume*user_error_volume_tolerance
+        # tol_error=0.001
+        print(tol_error)
         # mass conservation  correction 
         if abs(initial_volume_error) > tol_error:
             iterations = 0
-
+            print("we are correcting")
+            if Flow_interface_corrected_old == 0 :
+                return
             while iterations < self._maximum_iterations:
                 # Computing optimal time step regarding to dt=error/q. This approach is going to follow if both error ( old and new) are in the same side
-                Flow_interface_corrected_new = self._CalculateFlowIntoAir()
-                dt_new = self.mass_conservation_utility.ComputeTimeStepForConvection(Flow_interface_corrected_new)    
+                
+            
+                dt_new = self.mass_conservation_utility.ComputeTimeStepForConvection(Flow_interface_corrected_old)    
                 self._ConvectAuxiliaryDistance(dt_new)
                 self.mass_conservation_utility.ReCheckTheMassConservation()
                 new_volume_error = self.mass_conservation_utility.GetVolumeError()
+                Flow_interface_corrected_new = self._CalculateFlowIntoAir()
                 if abs(dt_new) < 1.0e-12:
                     return
                 # If between both error the sign is different, we are going through the root ( none error ), the false rule method is going to consider as a correction approach
                 print("it. {} new_volume_error: {}".format(iterations,new_volume_error))
-                while new_volume_error * old_volume_error < 0.0:
-                    #Different cases comparing with sloping 
+                if new_volume_error * old_volume_error < 0.0:
                     slope=(new_volume_error-old_volume_error)/(dt_new-dt_old)
                     if Flow_interface_corrected_new*Flow_interface_corrected_old > 0:
                         if Flow_interface_corrected_new>0:
@@ -158,20 +170,22 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                         else:
                             if dt_new > dt_old:
                                 slope*=-1
-                    
-
-                    dt_rule=(-initial_volume_error)/slope + dt_new                
+                    dt_rule=(-new_volume_error)/slope + dt_new                
                     dt_old=dt_new
                     dt_new=dt_rule
                     dt_super_old=dt_old
                     if dt_new*dt_old>0:
                         dt_old=dt_super_old
-
+                    old_volume_error=new_volume_error
+                    self._ConvectAuxiliaryDistance(dt_new)
+                    self.mass_conservation_utility.ReCheckTheMassConservation()
+                    new_volume_error = self.mass_conservation_utility.GetVolumeError()
+                    Flow_interface_corrected_old=Flow_interface_corrected_new
+                    Flow_interface_corrected_new=self._CalculateFlowIntoAir()
                 if abs(new_volume_error) > abs(initial_volume_error):
                     self.mass_conservation_utility.RestoreDistanceValues(KratosFluid.AUX_DISTANCE)
                     KratosMultiphysics.Logger.PrintInfo("Volume cannot be corrected, error value increases after iteration")
                     return
-
                 if (abs(new_volume_error) < tol_error):
                     break
                 else:
@@ -216,49 +230,49 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
 
 
 
-        # ADDING NEW THINGS 
-        # self.mass_conservation_utility.ReCheckTheMassConservation()
-        if  dt_max > 0:
-            dt_low = 0.0
-            dt_high = dt_max
-            volume_error_low = initial_volume_error
-            volume_error_high = new_volume_error
-        else:
-            dt_low = dt_max
-            dt_high = 0.0
-            volume_error_low = new_volume_error
-            volume_error_high = initial_volume_error
-        # self.iteration_is_on_min_side = abs(volume_error_high) > abs(volume_error_low)
-        # self.old_iteration_was_on_min_side = not self.iteration_is_on_min_side
-        # self.gamma = 1.0
+        # # ADDING NEW THINGS 
+        # # self.mass_conservation_utility.ReCheckTheMassConservation()
+        # if  dt_max > 0:
+        #     dt_low = 0.0
+        #     dt_high = dt_max
+        #     volume_error_low = initial_volume_error
+        #     volume_error_high = new_volume_error
+        # else:
+        #     dt_low = dt_max
+        #     dt_high = 0.0
+        #     volume_error_low = new_volume_error
+        #     volume_error_high = initial_volume_error
+        # # self.iteration_is_on_min_side = abs(volume_error_high) > abs(volume_error_low)
+        # # self.old_iteration_was_on_min_side = not self.iteration_is_on_min_side
+        # # self.gamma = 1.0
 
 
-        if volume_error_low*volume_error_high > 0.0:
-            if abs(volume_error_low) < abs(volume_error_high):
-                self.mass_conservation_utility.RestoreDistanceValues(KratosFluid.AUX_DISTANCE)
-            KratosMultiphysics.Logger.PrintInfo("Volume cannot be corrected, moving to global corrector")
-            return
+        # if volume_error_low*volume_error_high > 0.0:
+        #     if abs(volume_error_low) < abs(volume_error_high):
+        #         self.mass_conservation_utility.RestoreDistanceValues(KratosFluid.AUX_DISTANCE)
+        #     KratosMultiphysics.Logger.PrintInfo("Volume cannot be corrected, moving to global corrector")
+        #     return
 
-        # iterations = 0
+        # # iterations = 0
 
-        while iterations < self._maximum_iterations:
-            # self.mass_conservation_utility.RestoreDistanceValues(KratosFluid.AUX_DISTANCE)
-            dt = self._PredictNewDt(dt_low, dt_high, volume_error_low, volume_error_high)
-            self._ConvectAuxiliaryDistance(dt)
-            self.mass_conservation_utility.ReCheckTheMassConservation()
-            new_volume_error = self.mass_conservation_utility.GetVolumeError()
-            self.old_iteration_was_on_min_side = self.iteration_is_on_min_side
-            if new_volume_error*volume_error_low > 0.0:
-                volume_error_low = new_volume_error
-                dt_low = dt  
-            else:
-                volume_error_high = new_volume_error
-                dt_high = dt
+        # while iterations < self._maximum_iterations:
+        #     # self.mass_conservation_utility.RestoreDistanceValues(KratosFluid.AUX_DISTANCE)
+        #     dt = self._PredictNewDt(dt_low, dt_high, volume_error_low, volume_error_high)
+        #     self._ConvectAuxiliaryDistance(dt)
+        #     self.mass_conservation_utility.ReCheckTheMassConservation()
+        #     new_volume_error = self.mass_conservation_utility.GetVolumeError()
+        #     self.old_iteration_was_on_min_side = self.iteration_is_on_min_side
+        #     if new_volume_error*volume_error_low > 0.0:
+        #         volume_error_low = new_volume_error
+        #         dt_low = dt  
+        #     else:
+        #         volume_error_high = new_volume_error
+        #         dt_high = dt
                 
 
 
                 
-            iterations += 1
+        #     iterations += 1
 
 
 
@@ -278,6 +292,7 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
        
 
     def _CalculateFlowIntoAir(self):
+        print("entra")
         flow_orthogonal=self.mass_conservation_utility.OrthogonalFlowIntoAir()
         return flow_orthogonal
 

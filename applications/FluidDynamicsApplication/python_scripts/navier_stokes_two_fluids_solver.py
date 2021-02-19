@@ -12,8 +12,8 @@ if have_conv_diff:
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 from KratosMultiphysics.FluidDynamicsApplication.read_distance_from_file import DistanceImportUtility
 #TODO: IMPROVE THIS
+#from KratosMultiphysics.FluidDynamicsApplication.apply_mass_local_conservation_process_withflow import ApplyLocalMassConservationCheckProcessWithFlow
 from KratosMultiphysics.FluidDynamicsApplication.apply_mass_local_conservation_process import ApplyLocalMassConservationCheckProcess
-
 def CreateSolver(model, custom_settings):
     return NavierStokesTwoFluidsSolver(model, custom_settings)
 
@@ -195,8 +195,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "min_dt_factor"                      : 1e-5,
             "max_dt_factor"                      : 1.0,
             "correct_backwards"                  : true,
-            "maximum_iterations"                 : 5
+            "maximum_iterations"                 : 70
         }""" )
+        #self.mass_conservation_process = ApplyLocalMassConservationCheckProcessWithFlow(self.model, mass_settings)
         self.mass_conservation_process = ApplyLocalMassConservationCheckProcess(self.model, mass_settings)
         self.mass_conservation_process.ExecuteBeforeSolutionLoop()
 

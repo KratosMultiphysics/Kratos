@@ -103,7 +103,7 @@ std::string MassConservationUtility::ComputeBalancedVolume(){
     mQNet0 = net_inflow_inlet + net_inflow_outlet;
     mDeltaTheoreticalNegativeVolume += current_dt * mQNet0;
 
-    mTheoreticalNegativeVolume= mInitialNegativeVolume + mDeltaTheoreticalNegativeVolume;
+    mTheoreticalNegativeVolume = mInitialNegativeVolume + mDeltaTheoreticalNegativeVolume;
 
     mVolumeError = neg_vol - mTheoreticalNegativeVolume;
 
@@ -181,7 +181,7 @@ std::string MassConservationUtility::ComputeBalancedVolume(){
 
 double MassConservationUtility::ComputeTimeStepForConvection(double& rOrthogonalFlow)
 {
-    const double limit_factor = 1.0;
+    const double limit_factor = 0.8;
     const double current_dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
     KRATOS_WATCH(mVolumeError)
@@ -225,14 +225,14 @@ double MassConservationUtility::ComputeTimeStepForConvection(double& rOrthogonal
         mFluidVolumeConservation = FluidVolumeConservation::EXACT_VOLUME;
     }
 
-    KRATOS_WATCH(time_step_for_convection)
+   
 
     const double limit_dt = limit_factor * current_dt;
     if (std::abs(time_step_for_convection) > limit_dt){
         time_step_for_convection = (time_step_for_convection < 0.0) ? -limit_dt : limit_dt;
     }
-
-   
+    
+    KRATOS_WATCH(time_step_for_convection)
 
     return time_step_for_convection;
 }
@@ -375,6 +375,7 @@ void MassConservationUtility::ComputeVolumesAndInterface(double& rNegativeVolume
 
 double MassConservationUtility::OrthogonalFlowIntoAir()
 {
+    KRATOS_WATCH("HOLA")
     double outflow = 0.0;
     #pragma omp parallel for reduction(+: outflow)
     for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
@@ -387,7 +388,10 @@ double MassConservationUtility::OrthogonalFlowIntoAir()
         unsigned int pt_count_pos = 0;
         unsigned int pt_count_neg = 0;
         const bool geom_is_cut = IsGeometryCut(r_geom, pt_count_neg, pt_count_pos);
+        // KRATOS_WATCH(pt_count_neg)
+        // KRATOS_WATCH(pt_count_pos)
         if (geom_is_cut){
+            // KRATOS_WATCH("IS INTERSECTED")
             // element is cut by the surface (splitting)
             Vector w_gauss_interface(3, 0.0);
 
@@ -429,12 +433,16 @@ double MassConservationUtility::OrthogonalFlowIntoAir()
                         - r_geom[n_node].FastGetSolutionStepValue(MESH_VELOCITY));
                 }
 
+                // KRATOS_WATCH(interpolated_velocity)
+                // KRATOS_WATCH(r_normal)
                 const double r_orthogonal_flow = inner_prod( r_normal, interpolated_velocity );
+                // KRATOS_WATCH(r_orthogonal_flow)
                 outflow += r_weight * r_orthogonal_flow;
             }
         }
     }
     const double global_outflow = mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(outflow);
+    // KRATOS_WATCH(global_outflow)
     return global_outflow;
 }
 
