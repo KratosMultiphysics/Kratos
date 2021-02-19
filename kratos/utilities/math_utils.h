@@ -651,40 +651,37 @@ public:
      */
     static inline TDataType Det(const MatrixType& rA)
     {
-        TDataType Det;
-
-        if (rA.size1() == 2) {
-            Det = Det2(rA);
-        } else if (rA.size1() == 3) {
-            Det = Det3(rA);
-        } else if (rA.size1() == 4) {
-            Det = Det4(rA);
-        } else {
+        switch (rA.size1()) {
+            case 2:
+                return  Det2(rA);
+            case 3:
+                return Det3(rA);
+            case 4:
+                return  Det4(rA);
+            default:
+                TDataType det = 1.0;
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            Matrix temp(rA);
-            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
-            Det = lu_factorization.determinant();
+                Matrix temp(rA);
+                AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
+                det = lu_factorization.determinant();
 #else
-            using namespace boost::numeric::ublas;
-            typedef permutation_matrix<SizeType> pmatrix;
-            Matrix Aux(rA);
-            pmatrix pm(Aux.size1());
-            bool singular = lu_factorize(Aux,pm);
+                using namespace boost::numeric::ublas;
+                typedef permutation_matrix<SizeType> pmatrix;
+                Matrix Aux(rA);
+                pmatrix pm(Aux.size1());
+                bool singular = lu_factorize(Aux,pm);
 
-            if (singular) {
-                return 0.0;
-            }
+                if (singular) {
+                    return 0.0;
+                }
 
-            Det = 1.0;
-
-            for (IndexType i = 0; i < Aux.size1();++i) {
-                IndexType ki = pm[i] == i ? 0 : 1;
-                Det *= std::pow(-1.0, ki) * Aux(i,i);
-            }
+                for (IndexType i = 0; i < Aux.size1();++i) {
+                    IndexType ki = pm[i] == i ? 0 : 1;
+                    det *= std::pow(-1.0, ki) * Aux(i,i);
+                }
 #endif // ifdef KRATOS_USE_AMATRIX
+                return det;
        }
-
-        return Det;
     }
 
     /**
