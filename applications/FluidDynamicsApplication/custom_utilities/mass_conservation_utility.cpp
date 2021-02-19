@@ -232,7 +232,7 @@ double MassConservationUtility::ComputeTimeStepForConvection(double& rOrthogonal
         time_step_for_convection = (time_step_for_convection < 0.0) ? -limit_dt : limit_dt;
     }
 
-    KRATOS_WATCH(time_step_for_convection)
+   
 
     return time_step_for_convection;
 }
