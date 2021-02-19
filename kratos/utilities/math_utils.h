@@ -707,69 +707,6 @@ public:
     }
 
     /**
-     * @brief Calculates the determinant of a matrix of dimension 2x2 (no check performed on matrix size)
-     * @param rA Is the input matrix
-     * @return The determinant of the 2x2 matrix
-     */
-    static inline TDataType Det2(const MatrixType& rA)
-    {
-        return (rA(0,0)*rA(1,1)-rA(0,1)*rA(1,0));
-    }
-
-    /**
-     * @brief Calculates the determinant of a matrix of dimension 3*3 (no check performed on matrix size)
-     * @param rA Is the input matrix
-     * @return The determinant of the 3x3 matrix
-     */
-    static inline TDataType Det3(const MatrixType& rA)
-    {
-        // Calculating the algebraic complements to the first line
-        const double a = rA(1,1)*rA(2,2) - rA(1,2)*rA(2,1);
-        const double b = rA(1,0)*rA(2,2) - rA(1,2)*rA(2,0);
-        const double c = rA(1,0)*rA(2,1) - rA(1,1)*rA(2,0);
-
-        return rA(0,0)*a - rA(0,1)*b + rA(0,2)*c;
-    }
-
-    /**
-     * @brief Calculates the determinant of a matrix of dimension 4*4 (no check performed on matrix size)
-     * @param rA Is the input matrix
-     * @return The determinant of the 4x4 matrix
-     */
-    static inline TDataType Det4(const MatrixType& rA)
-    {
-        const double Det = rA(0,1)*rA(1,3)*rA(2,2)*rA(3,0)-rA(0,1)*rA(1,2)*rA(2,3)*rA(3,0)-rA(0,0)*rA(1,3)*rA(2,2)*rA(3,1)+rA(0,0)*rA(1,2)*rA(2,3)*rA(3,1)
-                          -rA(0,1)*rA(1,3)*rA(2,0)*rA(3,2)+rA(0,0)*rA(1,3)*rA(2,1)*rA(3,2)+rA(0,1)*rA(1,0)*rA(2,3)*rA(3,2)-rA(0,0)*rA(1,1)*rA(2,3)*rA(3,2)+rA(0,3)*(rA(1,2)*rA(2,1)*rA(3,0)-rA(1,1)*rA(2,2)*rA(3,0)-rA(1,2)*rA(2,0)*rA(3,1)+rA(1,0)*rA(2,2)*rA(3,1)+rA(1,1)*rA(2,0)*rA(3,2)
-                          -rA(1,0)*rA(2,1)*rA(3,2))+(rA(0,1)*rA(1,2)*rA(2,0)-rA(0,0)*rA(1,2)*rA(2,1)-rA(0,1)*rA(1,0)*rA(2,2)+rA(0,0)*rA(1,1)*rA(2,2))*rA(3,3)+rA(0,2)*(-(rA(1,3)*rA(2,1)*rA(3,0))+rA(1,1)*rA(2,3)*rA(3,0)+rA(1,3)*rA(2,0)*rA(3,1)-rA(1,0)*rA(2,3)*rA(3,1)-rA(1,1)*rA(2,0)*rA(3,3)+rA(1,0)*rA(2,1)*rA(3,3));
-        return Det;
-    }
-
-    /**
-     * @brief Calculates the determinant of a matrix of dimension 2x2 (in this case for a bounded matrix)
-     * @param rA Is the input matrix
-     * @return The determinant of the matrix
-     */
-    static inline TDataType Det(const BoundedMatrix<double,2,2>& rA)
-    {
-        return (rA(0,0)*rA(1,1)-rA(0,1)*rA(1,0));
-    }
-
-    /**
-     * @brief Calculates the determinant of a matrix of dimension 3x3 (in this case for a bounded matrix)
-     * @param rA Is the input matrix
-     * @return The determinant of the matrix
-     */
-    static inline TDataType Det(const BoundedMatrix<double,3,3>& rA)
-    {
-        // Calculating the algebraic complements to the first line
-        const double a = rA(1,1)*rA(2,2) - rA(1,2)*rA(2,1);
-        const double b = rA(1,0)*rA(2,2) - rA(1,2)*rA(2,0);
-        const double c = rA(1,0)*rA(2,1) - rA(1,1)*rA(2,0);
-
-        return rA(0,0)*a - rA(0,1)*b + rA(0,2)*c;
-    }
-
-    /**
      * @brief Performs the dot product of two vectors of dimension 3
      * @details No check performed on vector sizes
      * @param a First input vector
