@@ -64,41 +64,33 @@ namespace Kratos
             pnode = pnode->Clone();
         });
 
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i)
-            {
-                Element::Pointer& pelem = *(mrModelPart.Elements().ptr_begin() + i);
+        block_for_each(mrModelPart.Elements(), [&](Element& rElem){
+            Geometry<Node<3>>::PointsArrayType tmp;
+            const auto& geom = rElem.GetGeometry();
+            tmp.reserve(geom.size());
+            for(unsigned int k=0; k<geom.size(); ++k)
+                tmp.push_back( mrModelPart.Nodes()(geom[k].Id()) );
 
-                Geometry<Node<3>>::PointsArrayType tmp;
-                const auto& geom = pelem->GetGeometry();
-                tmp.reserve(geom.size());
-                for(unsigned int k=0; k<geom.size(); ++k)
-                    tmp.push_back( mrModelPart.Nodes()(geom[k].Id()) );
+            auto paux = rElem.Create(rElem.Id(), tmp, rElem.pGetProperties());
 
-                auto paux = pelem->Create(pelem->Id(), tmp, pelem->pGetProperties());
+            paux->Data() = rElem.Data();
 
-                paux->Data() = pelem->Data();
+            rElem = (*paux);
+        });
 
-                pelem = paux;
-            }
+        block_for_each(mrModelPart.Conditions(), [&](Condition& rCond){
+            Geometry<Node<3>>::PointsArrayType tmp;
+            const auto& geom = rCond.GetGeometry();
+            tmp.reserve(geom.size());
+            for(unsigned int k=0; k<geom.size(); ++k)
+                tmp.push_back( mrModelPart.Nodes()(geom[k].Id()));
 
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Conditions().size()); ++i)
-            {
-                Condition::Pointer& pcond = *(mrModelPart.Conditions().ptr_begin() + i);
+            auto paux = rCond.Create(rCond.Id(), tmp, rCond.pGetProperties());
 
-                Geometry<Node<3>>::PointsArrayType tmp;
-                const auto& geom = pcond->GetGeometry();
-                tmp.reserve(geom.size());
-                for(unsigned int k=0; k<geom.size(); ++k)
-                    tmp.push_back( mrModelPart.Nodes()(geom[k].Id()));
+            paux->Data() = rCond.Data();
 
-                auto paux = pcond->Create(pcond->Id(), tmp, pcond->pGetProperties());
-
-                paux->Data() = pcond->Data();
-
-                pcond = paux;
-            }
+            rCond = (*paux);
+        });
 
             //actualize pointers within submodelparts
             for(auto& subpart : mrModelPart.SubModelParts())
