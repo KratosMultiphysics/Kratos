@@ -79,14 +79,14 @@ namespace Kratos
          * Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 4x4 matrix
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsDetMat, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsDet, KratosCoreFastSuite)
         {
             constexpr double tolerance = 1e-6;
 
             BoundedMatrix<double, 1, 1> mat11 = ZeroMatrix(1, 1);
             mat11(0,0) = 1.0;
 
-            double det = MathUtils<double>::DetMat(mat11);
+            double det = MathUtils<double>::Det(mat11);
 
             KRATOS_CHECK_NEAR(det, 1.0, tolerance);
 
@@ -94,7 +94,7 @@ namespace Kratos
             mat22(0,0) = 1.0;
             mat22(1,1) = 1.0;
 
-            det = MathUtils<double>::DetMat(mat22);
+            det = MathUtils<double>::Det(mat22);
 
             KRATOS_CHECK_NEAR(det, 1.0, tolerance);
 
@@ -103,7 +103,7 @@ namespace Kratos
             mat33(1,1) = 1.0;
             mat33(2,2) = 1.0;
 
-            det = MathUtils<double>::DetMat(mat33);
+            det = MathUtils<double>::Det(mat33);
 
             KRATOS_CHECK_NEAR(det, 1.0, tolerance);
 
@@ -113,7 +113,7 @@ namespace Kratos
             mat44(2,2) = 1.0;
             mat44(3,3) = 1.0;
 
-            det = MathUtils<double>::DetMat(mat44);
+            det = MathUtils<double>::Det(mat44);
 
             KRATOS_CHECK_NEAR(det, 1.0, tolerance);
         }
