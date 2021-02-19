@@ -34,6 +34,8 @@ namespace Kratos
         ///@name Type Definitions
         ///@{
 
+        typedef std::size_t IndexType;
+        typedef std::size_t SizeType;
 
         typedef IntegrationPoint<3> IntegrationPointType;
         typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
@@ -186,16 +188,15 @@ namespace Kratos
             double weight, minweight, d1, d2;
             Diagonal diagonal, newdiagonal;
             std::list<Diagonal> diagonals;
-            bool ret = true;
 
-            int n = polygon.size();
+            IndexType n = polygon.size();
             std::vector< ClipperLib::IntPoint > const& points = polygon;
             matrix<DPState> dpstates(n, n);
 
             //init states and visibility
-            for (unsigned int i = 0; i < (n - 1); i++) {
+            for (IndexType i = 0; i < (n - 1); i++) {
                 p1 = BrepTrimmingUtilities::IsConvex(points[i], factor);
-                for (unsigned int j = i + 1; j < n; j++) {
+                for (IndexType j = i + 1; j < n; j++) {
                     dpstates(j, i).visible = true;
                     dpstates(j, i).weight = 0;
                     dpstates(j, i).bestvertex = -1;
@@ -221,7 +222,7 @@ namespace Kratos
                             continue;
                         }
 
-                        for (unsigned int k = 0; k < n; k++) {
+                        for (IndexType k = 0; k < n; k++) {
                             p3 = BrepTrimmingUtilities::IsConvex(points[k], factor);
                             if (k == (n - 1)) p4 = BrepTrimmingUtilities::IsConvex(points[0], factor);
                             else p4 = BrepTrimmingUtilities::IsConvex(points[k + 1], factor);
@@ -238,12 +239,12 @@ namespace Kratos
             dpstates(n - 1, 0).weight = 0;
             dpstates(n - 1, 0).bestvertex = -1;
 
-            for (unsigned int gap = 2; gap < n; gap++) {
-                for (unsigned int i = 0; i < (n - gap); i++) {
-                    int j = i + gap;
+            for (IndexType gap = 2; gap < n; gap++) {
+                for (IndexType i = 0; i < (n - gap); i++) {
+                    IndexType j = i + gap;
                     if (!dpstates(j, i).visible) continue;
                     bestvertex = -1;
-                    for (unsigned int k = (i + 1); k < j; k++) {
+                    for (IndexType k = (i + 1); k < j; k++) {
                         if (!dpstates(k, i).visible) continue;
                         if (!dpstates(j, k).visible) continue;
 
@@ -278,7 +279,6 @@ namespace Kratos
 
                 bestvertex = dpstates(diagonal.index2, diagonal.index1).bestvertex;
                 if (bestvertex == -1) {
-                    ret = false;
                     break;
                 }
                 Matrix triangle(3, 2);
