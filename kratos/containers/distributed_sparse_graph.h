@@ -16,6 +16,7 @@
 
 // System includes
 #include <iostream>
+#include <mutex>
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
 #include "includes/parallel_environment.h"
@@ -166,9 +167,8 @@ public:
         }
         else{
             IndexType owner = GetRowNumbering().OwnerRank(RowIndex);
-            mNonLocalLocks[owner].lock();
+            const std::lock_guard<LockObject> scope_lock(mNonLocalLocks[owner]);
             mNonLocalGraphs[owner].AddEntry(GetRowNumbering().RemoteLocalId(RowIndex,owner), ColIndex);
-            mNonLocalLocks[owner].unlock();
         }
     }
 
