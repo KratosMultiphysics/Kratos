@@ -12,7 +12,8 @@
                             "DENSITY" :  7850 ,
                             "CROSS_AREA": 0.01,
                             "RAYLEIGH_ALPHA": 471.88,
-                            "RAYLEIGH_BETA": 5.1e-6
+                            "RAYLEIGH_BETA": 5.1e-6,
+                            "COMPUTE_LUMPED_MASS_MATRIX" : true
                     },
                     "Tables": {}
             }

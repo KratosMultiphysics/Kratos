@@ -166,6 +166,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,700.0)
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.RAYLEIGH_ALPHA,0.03)
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.RAYLEIGH_BETA,0.02)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,True)
 
         constitutive_law = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
 
@@ -340,6 +341,7 @@ class StaticPatchTestMembrane(BasePatchTestMembrane):
         sub_constitutive_law = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
         mp.GetProperties()[2].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,sub_constitutive_law)
         mp.GetProperties()[1].AddSubProperties(mp.GetProperties()[2])
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,True)
 
 
         # create nodes

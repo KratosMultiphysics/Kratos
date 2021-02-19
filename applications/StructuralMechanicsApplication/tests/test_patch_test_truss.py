@@ -61,6 +61,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,0)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.RAYLEIGH_ALPHA,0)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.RAYLEIGH_BETA,0)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,True)
 
         g = [0,0,0]
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
@@ -73,6 +74,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.HARDENING_MODULUS_1D,H)
         g = [0,0,0]
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,True)
 
     def _apply_BCs(self,mp,which_dof):
         if (which_dof == 'xyz'):

@@ -23,6 +23,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "utilities/integration_utilities.h"
 #include "utilities/atomic_utilities.h"
 
 namespace Kratos
