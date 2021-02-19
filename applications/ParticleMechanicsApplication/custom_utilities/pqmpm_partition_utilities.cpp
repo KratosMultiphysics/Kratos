@@ -90,7 +90,7 @@ namespace Kratos
         intersected_geometries.push_back(&rParentGeom);
         RecursivePQMPMNeighbourSearch(rBackgroundGridModelPart,
             intersected_geometries, point_low, point_high, recursion_count,
-            rCoordinates, side_half_length);
+            rCoordinates);
         for (size_t i = 0; i < intersected_geometries.size(); ++i)
             number_of_nodes += intersected_geometries[i]->PointsNumber();
 
@@ -665,19 +665,17 @@ namespace Kratos
     }
 
 
-    bool PQMPMPartitionUtilities::IntersectionCheckWithBoundingBox(const GeometryType& rGeom, const array_1d<double, 3>& rCoord, const double SideHalfLength)
+    bool PQMPMPartitionUtilities::IntersectionCheckWithBoundingBox(const GeometryType& rGeom, const array_1d<double, 3>& rCoord, 
+                                                                   const Point& rPointLow, const Point& rPointHigh)
     {
-        const double z_coord = (rGeom.WorkingSpaceDimension() == 3) ? SideHalfLength : 0.0;
-        const Point point_low(rCoord[0] - SideHalfLength, rCoord[1] - SideHalfLength, rCoord[2] - z_coord);
-        const Point point_high(rCoord[0] + SideHalfLength, rCoord[1] + SideHalfLength, rCoord[2] + z_coord);
+        // Get bounding box of background cell
         NodeType ele_point_low, ele_point_high;
-
-        const double dimension_45_degree_factor = (rGeom.WorkingSpaceDimension() == 3) ? 1.7321 : 1.414214;
-        double center_to_center = norm_2(rGeom.Center() - rCoord);
         rGeom.BoundingBox(ele_point_low, ele_point_high);
-        double maximum_contact_range = dimension_45_degree_factor * SideHalfLength +
+
+        double center_to_center = norm_2(rGeom.Center() - rCoord);
+        double maximum_contact_range = 0.5*norm_2(rPointHigh- rPointLow) +
             norm_2(ele_point_high - ele_point_low);
-        if (center_to_center <= maximum_contact_range) return true;
+        if (center_to_center < maximum_contact_range) return true;
         return false;
     }
 
@@ -688,7 +686,6 @@ namespace Kratos
         const Point& rPointHigh,
         IndexType& RecursionCount,
         const array_1d<double, 3>& rCoordinates,
-        const double SideHalfLength,
         const SizeType MaxRecursions)
     {
         RecursionCount += 1;
@@ -710,7 +707,7 @@ namespace Kratos
 
                 if (check_geom) {
                     // check if this background grid and the MP domain overlap
-                    if (IntersectionCheckWithBoundingBox(*geometry_neighbours[i], rCoordinates, SideHalfLength)) {
+                    if (IntersectionCheckWithBoundingBox(*geometry_neighbours[i], rCoordinates, rPointLow, rPointHigh)) {
                         if (geometry_neighbours[i]->HasIntersection(rPointLow, rPointHigh)) {
                             // add to container and then search its neighbours
                             rIntersectedGeometries.push_back(geometry_neighbours[i].get());
@@ -718,7 +715,7 @@ namespace Kratos
                             RecursivePQMPMNeighbourSearch(rBackgroundGridModelPart,
                                 rIntersectedGeometries, rPointLow, rPointHigh,
                                 RecursionCount,
-                                rCoordinates, SideHalfLength,
+                                rCoordinates,
                                 MaxRecursions);
                         }
                     }
