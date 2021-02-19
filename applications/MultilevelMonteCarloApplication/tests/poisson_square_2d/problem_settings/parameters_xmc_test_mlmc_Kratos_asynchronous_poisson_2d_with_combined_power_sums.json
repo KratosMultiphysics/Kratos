@@ -57,6 +57,7 @@
     },
     "solverWrapperInputDictionary": {
         "adaptiveRefinementJumpToFinestLevel": false,
+        "analysisStage": "applications.MultilevelMonteCarloApplication.tests.poisson_square_2d.simulation_definition.SimulationScenario",
         "asynchronous": true,
         "fakeRandomVariable": [0.25],
         "index": [],
@@ -64,7 +65,6 @@
         "numberContributionsPerInstance": 1,
         "parameters": null,
         "printToFile": false,
-        "problemId": "poisson_square_2d",
         "projectParametersPath": "poisson_square_2d/problem_settings/parameters_finer.json",
         "refinementParametersPath": "poisson_square_2d/problem_settings/parameters_refinement.json",
         "refinementStrategy": "stochastic_adaptive_refinement",

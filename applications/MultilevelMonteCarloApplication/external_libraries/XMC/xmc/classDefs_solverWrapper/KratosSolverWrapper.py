@@ -2,18 +2,19 @@
 import math
 import pickle
 import warnings
+import numpy as np
 
 # Import Kratos
 import KratosMultiphysics
 from KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities import AdaptiveRefinement
 from KratosMultiphysics.MultilevelMonteCarloApplication.tools import ParametersWrapper
-from simulation_definition import SimulationScenario
 
 # Import XMC
 import xmc.solverWrapper as sw
 import xmc.classDefs_solverWrapper.methodDefs_KratosSolverWrapper.solve as mds
 import xmc.classDefs_solverWrapper.methodDefs_KratosSolverWrapper.mpi_solve as mpi_mds
 import xmc.classDefs_solverWrapper.methodDefs_KratosSolverWrapper.utilities as mdu
+from xmc.tools import dynamicImport
 
 # Import distributed environment
 from xmc.distributedEnvironmentFramework import *
@@ -23,7 +24,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
     Solver wrapper class managing Kratos Multiphysics (Kratos) solver.
 
     Attributes:
-    - analysis: Kratos analysis stage. The analysis stage class default name is SimulationScenario. The default file name is simulation_scenario.
+    - analysis: Kratos analysis stage. The analysis stage class default name is SimulationScenario. The default file name is simulation_scenario. It is imported with the "analysisStage" key. By default an example analysis stage is called.
     - adaptive_refinement_jump_to_finest_level: boolean. Used in multilevel algorithms when "stochastic_adaptive_refinement" strategy is selected. If true, intermediate refinement indices are skipped. Set by adaptiveRefinementJumpToFinestLevel key.
     - asynchronous: boolean. If true, the asynchronous algorithm should be run. If false, the standard synchronous algorithms should be run. Set by asynchronous key.
     - different_tasks: boolean. Used in multilevel algorithms when "stochastic_adaptive_refinement" strategy is selected. If true, different indices are run all together in the same task. If false, each index is run in a different task. Set by not TaskAllAtOnce key.
@@ -49,7 +50,11 @@ class KratosSolverWrapper(sw.SolverWrapper):
     # TODO: are both outputBatchSize and outputBatchSize needed? Probably not.
     def __init__(self,**keywordArgs):
         super().__init__(**keywordArgs)
-        self.analysis = SimulationScenario
+        self.analysis = dynamicImport(keywordArgs.get(
+            "analysisStage",
+            ("xmc.classDefs_solverWrapper.methodDefs_KratosSolverWrapper"
+            ".simulation_definition.SimulationScenario")
+        ))
         self.adaptive_refinement_jump_to_finest_level = keywordArgs.get("adaptiveRefinementJumpToFinestLevel",False)
         self.asynchronous = keywordArgs.get("asynchronous",False)
         self.different_tasks = not keywordArgs.get("taskAllAtOnce",True)
@@ -125,8 +130,14 @@ class KratosSolverWrapper(sw.SolverWrapper):
 
         if all([component>=0 for component in self.solverWrapperIndex]):
             aux_qoi_array = []
+            # loop over contributions (by default only one)
             for contribution_counter in range (0,self.number_contributions_per_instance):
                 self.current_local_contribution = contribution_counter
+                # if multiple ensembles, append a seed to the random variable list
+                # for example, this seed is used to generate different initial conditions
+                if self.number_contributions_per_instance > 1:
+                    random_variable.append(int(np.random.uniform(0,429496729)))
+                # solve
                 if (self.refinement_strategy == "stochastic_adaptive_refinement"):
                     qoi,time_for_qoi = self.executeInstanceStochasticAdaptiveRefinement(random_variable)
                 elif (self.refinement_strategy == "deterministic_adaptive_refinement"):
@@ -142,9 +153,9 @@ class KratosSolverWrapper(sw.SolverWrapper):
             if self.number_contributions_per_instance > 1:
                 unm = mdu.UnfolderManager(self._numberOfOutputs(),self.outputBatchSize)
                 if (self._numberOfOutputs() == self.outputBatchSize):
-                    qoi_list = [unm.PostprocessContributionsPerInstance(aux_qoi_array,self.qoi_estimator)]
+                    qoi_list = [unm.PostprocessContributionsPerInstance_Task(aux_qoi_array,self.qoi_estimator)]
                 elif (self._numberOfOutputs() > self.outputBatchSize):
-                    qoi_list = unm.PostprocessContributionsPerInstance(aux_qoi_array,self.qoi_estimator)
+                    qoi_list = unm.PostprocessContributionsPerInstance_Task(aux_qoi_array,self.qoi_estimator)
                 else:
                     raise Exception("_numberOfOutputs() returns a value smaller than self.outputBatchSize. Set outputBatchSize smaller or equal to the number of scalar outputs.")
                 delete_object(unm)
