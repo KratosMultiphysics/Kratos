@@ -113,6 +113,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
         self.SetRefinementParameters()
         self.SerializeRefinementParameters()
         self.SerializeModelParameters()
+        print(self.__class__.__name__, ": Model and parameters serialized correctly.")
 
 
     def solve(self,random_variable):
@@ -357,7 +358,6 @@ class KratosSolverWrapper(sw.SolverWrapper):
             raise Exception ("Specify refinement_strategy: stochastic_adaptive_refinement or deterministic_adaptive_refinement or reading_from_file")
         self.is_project_parameters_pickled = True
         self.is_model_pickled = True
-        print("\n","#"*50," SERIALIZATION MODEL AND PROJECT PARAMETERS COMPLETED ","#"*50,"\n")
 
 
     def SerializeSerialModel(self, parameters):
@@ -384,6 +384,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
         pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
         return pickled_model
 
+
     def SerializeModelParametersStochasticAdaptiveRefinement(self):
         """
         Method serializing and pickling the Kratos Model and the Kratos Parameters of the problem. It builds self.pickled_model and self.pickled_project_parameters. To be called if the selected refinement strategy is stochastic_adaptive_refinement.
@@ -396,15 +397,17 @@ class KratosSolverWrapper(sw.SolverWrapper):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         # create wrapper instance to modify current project parameters
         self.wrapper = ParametersWrapper(parameters)
-        # serialize parmeters (to avoid adding new data dependent on the application)
-        parameters = self.wrapper.SetModelImportSettingsInputType("use_input_model_part")
-        serialized_project_parameters = KratosMultiphysics.MpiSerializer()
-        serialized_project_parameters.Save("ParametersSerialization",parameters)
-        self.serialized_project_parameters.append(serialized_project_parameters)
+        # serialize and pickle parmeters to serialize the model in MPI
+        # after serializing the model, we remove the materials from the pickled parameters
+        # this is required to read the materials only once
+        self.wrapper.SetModelImportSettingsInputType("use_input_model_part")
+        serialized_project_parameters_tmp = KratosMultiphysics.MpiSerializer()
+        serialized_project_parameters_tmp.Save("ParametersSerialization",parameters)
+        pickled_project_parameters_tmp = pickle.dumps(serialized_project_parameters_tmp, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
         # reset to read the model part
-        parameters = self.wrapper.SetModelImportSettingsInputType("mdpa")
-        pickled_project_parameters = pickle.dumps(serialized_project_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+        self.wrapper.SetModelImportSettingsInputType("mdpa")
 
+        # pickle and eventually serialize model
         if self.is_mpi:
             if not parameters["problem_data"]["parallel_type"].GetString()=="MPI":
                 raise(Exception("XMC is set in MPI but Kratos is not!"))
@@ -414,13 +417,25 @@ class KratosSolverWrapper(sw.SolverWrapper):
             # however, since pickled_project_parameters is the same across levels, the same model part is considered
             current_index = self.solverWrapperIndex[0]
             pickled_model = mpi_mds.SerializeMPIModel_Wrapper( \
-                pickled_project_parameters, self.wrapper.GetModelPartName(), self.fake_sample_to_serialize, self.analysis, current_index=current_index)
+                pickled_project_parameters_tmp, self.wrapper.GetModelPartName(), self.fake_sample_to_serialize, self.analysis, current_index=current_index)
         else:
             if parameters["problem_data"]["parallel_type"].GetString()=="MPI":
                 raise(Exception("Kratos is set in MPI but XMC is not!"))
             pickled_model = self.SerializeSerialModel(parameters)
-
+        # append to attribute
         self.pickled_model.append(pickled_model)
+
+        # remove temporary objects created for MPI serialization
+        del(serialized_project_parameters_tmp) ; del(pickled_project_parameters_tmp)
+        # remove materials filename from Kratos settings and revert model part type
+        self.wrapper.SetModelImportSettingsInputType("use_input_model_part")
+        self.wrapper.SetMaterialsFilename("")
+        # serialize and pickle Kratos project parameters
+        serialized_project_parameters = KratosMultiphysics.MpiSerializer()
+        serialized_project_parameters.Save("ParametersSerialization",parameters)
+        pickled_project_parameters = pickle.dumps(serialized_project_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+        # append to attributes
+        self.serialized_project_parameters.append(serialized_project_parameters)
         self.pickled_project_parameters.append(pickled_project_parameters)
 
 
@@ -487,16 +502,20 @@ class KratosSolverWrapper(sw.SolverWrapper):
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
             # create wrapper instance to modify current project parameters
             self.wrapper = ParametersWrapper(parameters)
-            # serialize parmeters (to avoid adding new data dependent on the application)
-            parameters = self.wrapper.SetModelImportSettingsInputType("use_input_model_part")
+            # serialize and pickle parmeters to serialize the model in MPI
+            # it is not required to remove the materials, since the Kratos variable
+            # IS_RESTARTED is set to True
+            self.wrapper.SetModelImportSettingsInputType("use_input_model_part")
             serialized_project_parameters = KratosMultiphysics.MpiSerializer()
             serialized_project_parameters.Save("ParametersSerialization",parameters)
+            # append to attributes
             self.serialized_project_parameters.append(serialized_project_parameters)
-            # reset to read the model part
-            parameters = self.wrapper.SetModelImportSettingsInputType("mdpa")
             pickled_project_parameters = pickle.dumps(serialized_project_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
             self.pickled_project_parameters.append(pickled_project_parameters)
+            # reset to read the model part
+            self.wrapper.SetModelImportSettingsInputType("mdpa")
 
+            # pickle and eventually serialize model
             if self.is_mpi:
                 if not parameters["problem_data"]["parallel_type"].GetString()=="MPI":
                     raise(Exception("XMC is set in MPI but Kratos is not!"))
@@ -511,7 +530,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
                 if parameters["problem_data"]["parallel_type"].GetString()=="MPI":
                     raise(Exception("Kratos is set in MPI but XMC is not!"))
                 pickled_model = self.SerializeSerialModel(parameters)
-
+            # append to attribute
             self.pickled_model.append(pickled_model)
             if self.is_mpi:
                 self.pickled_mapping_reference_model.append(pickled_mapping_reference_model)
@@ -541,7 +560,6 @@ class KratosSolverWrapper(sw.SolverWrapper):
         self.pickled_custom_remesh_refinement_parameters = pickled_remesh_refinement_parameters
         self.is_custom_settings_metric_refinement_pickled = True
         self.is_custom_settings_remesh_refinement_pickled = True
-        print("\n","#"*50," SERIALIZATION REFINEMENT PARAMETERS COMPLETED ","#"*50,"\n")
 
 
     ####################################################################################################
