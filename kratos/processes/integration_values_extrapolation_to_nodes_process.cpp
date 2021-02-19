@@ -143,8 +143,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                         double& aux_value = (mExtrapolateNonHistorical) ? r_this_geometry[i_node].GetValue(*p_var) : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
-                        #pragma omp atomic
-                        aux_value += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        AtomicAdd(aux_value, node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point]);
                     }
                 }
             }
@@ -191,8 +190,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                         const Matrix& aux_sol = node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
                         for (IndexType i_comp = 0; i_comp < aux_sol.size1(); ++i_comp) {
                             for (IndexType j_comp = 0; j_comp < aux_sol.size2(); ++j_comp) {
-                                #pragma omp atomic
-                                aux_value(i_comp, j_comp) += aux_sol(i_comp, j_comp);
+                                AtomicAdd(aux_value(i_comp, j_comp), aux_sol(i_comp, j_comp));
                             }
                         }
                     }
