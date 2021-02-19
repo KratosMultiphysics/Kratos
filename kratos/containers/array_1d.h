@@ -102,14 +102,14 @@ public:
     array_1d ():
         vector_expression<self_type> ()
     {
-        std::fill(data().begin(), data().end(), value_type());
+        // intentionally does not initialize the contents for performance reasons
     }
 
     explicit BOOST_UBLAS_INLINE
     array_1d (size_type array_size):
         vector_expression<self_type> ()
     {
-        std::fill(data().begin(), data().end(), value_type());
+        // intentionally does not initialize the contents for performance reasons
     }
 
     explicit BOOST_UBLAS_INLINE
@@ -119,7 +119,7 @@ public:
         KRATOS_DEBUG_ERROR_IF(array_size>N) << "Given size is greater than the size of the array!" << std::endl;
 
         std::fill(data().begin(), data().begin() + array_size, v);
-        std::fill(data().begin()+array_size, data().end(), value_type()); // default initialize the remaining entries
+        // intentionally does not initialize the remaining entries for performance reasons
     }
 
     explicit BOOST_UBLAS_INLINE
@@ -129,7 +129,7 @@ public:
         KRATOS_DEBUG_ERROR_IF(rInitList.size()>N) << "Size of list greater than the size of the array!" << std::endl;
 
         std::copy(rInitList.begin(), rInitList.end(), data().begin()); // copy content of initializer list
-        std::fill(data().begin()+rInitList.size(), data().end(), value_type()); // if initializer list is shorter than array, default initialize the remaining entries
+        // intentionally does not initialize the remaining entries for performance reasons
     }
 
     BOOST_UBLAS_INLINE
