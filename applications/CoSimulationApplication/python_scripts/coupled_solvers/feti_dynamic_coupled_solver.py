@@ -61,7 +61,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         solver_delta_time = self._solver_delta_times[solver_name]
         # the following only works if timesteps are multiple of each other
         time_error = (self.departing_time % solver_delta_time)
-        if time_error < 1E-12 or abs(time_error - solver_delta_time) < 1E-12:
+        if time_error < 1E-9 or abs(time_error - solver_delta_time) < 1E-9:
             return True
         else:
             return False
