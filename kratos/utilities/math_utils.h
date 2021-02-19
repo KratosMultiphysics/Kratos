@@ -430,7 +430,7 @@ public:
         const TDataType Tolerance = ZeroTolerance
         )
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() != rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() == rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
 
         const SizeType size = rInputMatrix.size2();
 
@@ -533,7 +533,7 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() != rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() == rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
 
         if(rInvertedMatrix.size1() != 2 || rInvertedMatrix.size2() != 2) {
             rInvertedMatrix.resize(2,2,false);
@@ -566,7 +566,7 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() != rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() == rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
 
         if(rInvertedMatrix.size1() != 3 || rInvertedMatrix.size2() != 3) {
             rInvertedMatrix.resize(3,3,false);
@@ -612,7 +612,7 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() != rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() == rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
 
         if (rInvertedMatrix.size1() != 4 || rInvertedMatrix.size2() != 4) {
             rInvertedMatrix.resize(4, 4, false);
@@ -660,7 +660,7 @@ public:
     template<class TMatrixType>
     static inline TDataType Det2(const TMatrixType& rA)
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() != rA.size2()) << "Matrix provided is non-square" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() == rA.size2()) << "Matrix provided is non-square" << std::endl;
 
         return (rA(0,0)*rA(1,1)-rA(0,1)*rA(1,0));
     }
@@ -673,7 +673,7 @@ public:
     template<class TMatrixType>
     static inline TDataType Det3(const TMatrixType& rA)
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() != rA.size2()) << "Matrix provided is non-square" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() == rA.size2()) << "Matrix provided is non-square" << std::endl;
 
         // Calculating the algebraic complements to the first line
         const double a = rA(1,1)*rA(2,2) - rA(1,2)*rA(2,1);
@@ -691,7 +691,7 @@ public:
     template<class TMatrixType>
     static inline TDataType Det4(const TMatrixType& rA)
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() != rA.size2()) << "Matrix provided is non-square" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() == rA.size2()) << "Matrix provided is non-square" << std::endl;
 
         const double det = rA(0,1)*rA(1,3)*rA(2,2)*rA(3,0)-rA(0,1)*rA(1,2)*rA(2,3)*rA(3,0)-rA(0,0)*rA(1,3)*rA(2,2)*rA(3,1)+rA(0,0)*rA(1,2)*rA(2,3)*rA(3,1)
                           -rA(0,1)*rA(1,3)*rA(2,0)*rA(3,2)+rA(0,0)*rA(1,3)*rA(2,1)*rA(3,2)+rA(0,1)*rA(1,0)*rA(2,3)*rA(3,2)-rA(0,0)*rA(1,1)*rA(2,3)*rA(3,2)+rA(0,3)*(rA(1,2)*rA(2,1)*rA(3,0)-rA(1,1)*rA(2,2)*rA(3,0)-rA(1,2)*rA(2,0)*rA(3,1)+rA(1,0)*rA(2,2)*rA(3,1)+rA(1,1)*rA(2,0)*rA(3,2)
@@ -708,7 +708,7 @@ public:
     template<class TMatrixType>
     static inline TDataType Det(const TMatrixType& rA)
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() != rA.size2()) << "Matrix provided is non-square" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() == rA.size2()) << "Matrix provided is non-square" << std::endl;
 
         switch (rA.size1()) {
             case 2:
