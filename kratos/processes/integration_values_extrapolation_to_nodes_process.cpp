@@ -236,13 +236,11 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
 {
     // The list of nodes
     auto& r_nodes_array = mrModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
+    //const auto it_node_begin = r_nodes_array.begin();
 
     // Remove average variable
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-        auto& data = it_node->Data();
+    block_for_each(r_nodes_array, [&](Node<3>& rNode){
+        auto& data = rNode.Data();
         data.Erase(*mpAverageVariable);
 
         // We erase the doubles values
@@ -264,7 +262,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
         for ( const auto p_var : mMatrixVariable) {
             if (mExtrapolateNonHistorical) data.Erase(*p_var);
         }
-    }
+    });
 }
 
 /***********************************************************************************/
