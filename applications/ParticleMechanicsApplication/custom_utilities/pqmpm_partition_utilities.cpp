@@ -62,6 +62,25 @@ namespace Kratos
             }
         }
 
+        // No need to split MP's with no stresses if we are using explicit USL
+        if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_EXPLICIT)) {
+            if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_EXPLICIT)) {
+                if (rBackgroundGridModelPart.GetProcessInfo().GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 1) {
+                    std::vector<Vector> cauchy(1);
+                    rMasterMaterialPoint.CalculateOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, cauchy, rBackgroundGridModelPart.GetProcessInfo());
+                    if (norm_2(cauchy[0]) < 1e-3)
+                    {
+                        CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                            pQuadraturePointGeometry, rLocalCoords,
+                            rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                            rParentGeom);
+                        return;
+                    }
+                }
+            }
+        }
+
+
         const SizeType working_dim = rParentGeom.WorkingSpaceDimension();
         const double pqmpm_min_fraction = (rBackgroundGridModelPart.GetProcessInfo().Has(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION))
             ? std::max(rBackgroundGridModelPart.GetProcessInfo()[PQMPM_SUBPOINT_MIN_VOLUME_FRACTION], std::numeric_limits<double>::epsilon())
