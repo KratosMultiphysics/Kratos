@@ -70,7 +70,7 @@ public:
 
     virtual void PrintOutput()
     {
-
+        KRATOS_ERROR << "Calling the base OutputProcess class GetDefaultParameters. Please implement the GetDefaultParameters in your derived OutputProcess class." << std::endl;
     }
 
     ///@}
