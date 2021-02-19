@@ -758,8 +758,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	double& rDamage)
 {
 	if(internal_variable <= data.YieldStressTension) {
-		//rDamage = 0.0;
-		// Disabled to maintain current damage level!
+		rDamage = 0.0;
 	}
 	else {
 		const double characteristic_length 		= 	data.CharacteristicLength;
@@ -786,7 +785,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 							std::exp(damage_parameter *
 							(1.0 - internal_variable / initial_internal_variable));
 
-		const double internal_variable_min = 1.0e-2 * yield_tension;
+		const double internal_variable_min = 1.0e-3 * yield_tension;
 		if((1.0 - rDamage) * internal_variable < internal_variable_min){
 			rDamage = 1.0- internal_variable_min / internal_variable;
 		}
@@ -800,8 +799,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 	double& rDamage)
 {
 	if(internal_variable <= data.DamageOnsetStressCompression){
-		//rDamage = 0.0;
-		// Disabled to maintain current damage level!
+		rDamage = 0.0;
 	}
 	else {
 		// extract material parameters
@@ -976,6 +974,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 	// damage update
 	if (props[INTEGRATION_IMPLEX] != 0){ //IMPLEX Integration
 		// time factor
+		KRATOS_ERROR << "HIT IMPLEX!\n";
 		double time_factor = 0.0;
 		if(PreviousDeltaTime > 0.0) time_factor = data.DeltaTime / PreviousDeltaTime;
 		CurrentDeltaTime = data.DeltaTime;
@@ -1018,7 +1017,6 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 	// calculation of stress tensor
 	noalias(PredictiveStressVector)  = (1.0 - DamageParameterTension)     * data.EffectiveTensionStressVector;
 	noalias(PredictiveStressVector) += (1.0 - DamageParameterCompression) * data.EffectiveCompressionStressVector;
-
 
 }
 /***********************************************************************************/
