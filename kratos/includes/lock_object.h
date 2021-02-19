@@ -100,6 +100,14 @@ namespace Kratos
 #endif
 		}
 
+    inline bool try_lock() const
+    {
+#ifdef KRATOS_SMP_OPENMP
+      return omp_test_lock(&mLock);
+#endif
+      return true;
+    }
+
       ///@}
 
     private:
