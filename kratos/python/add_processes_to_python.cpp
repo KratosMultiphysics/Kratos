@@ -20,6 +20,7 @@
 #include "includes/kratos_parameters.h"
 
 #include "processes/process.h"
+#include "processes/output_process.h"
 #include "python/add_processes_to_python.h"
 #include "processes/calculate_embedded_nodal_variable_from_skin_process.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
@@ -138,6 +139,13 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("Clear",&Process::Clear)
     .def("GetDefaultParameters",&Process::GetDefaultParameters)
     .def("__str__", PrintObject<Process>)
+    ;
+
+    py::class_<OutputProcess, OutputProcess::Pointer, Process>
+        (m,"OutputProcess")
+    .def(py::init<>())
+    .def("IsOutputStep",&OutputProcess::IsOutputStep)
+    .def("PrintOutput",&OutputProcess::PrintOutput)
     ;
 
     py::class_<FindGlobalNodalNeighboursProcess, FindGlobalNodalNeighboursProcess::Pointer, Process>
