@@ -37,11 +37,7 @@ class ModalDerivativeSolver(MechanicalSolver):
             "compute_basis_derivatives"     : true,
             "adjoint_solution"              : false,
             "mass_orthonormalize"           : false,
-            "rom_parameters_filename"       : "RomParameters.json",
-            "rom_settings"                  :
-            {
-                "nodal_unknowns" : []
-            }
+            "rom_parameters_filename"       : "RomParameters.json"
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
@@ -110,6 +106,8 @@ class ModalDerivativeSolver(MechanicalSolver):
         with open(rom_parameters_filename, "r") as rom_parameters_file:
             rom_parameters = json.load(rom_parameters_file)
             nodal_unknowns = rom_parameters["rom_settings"]["nodal_unknowns"]
+            self.settings.AddEmptyValue("rom_settings")
+            self.settings["rom_settings"].AddEmptyValue("nodal_unknowns")
             self.settings["rom_settings"]["nodal_unknowns"].SetStringArray(nodal_unknowns)
             
         # Create strategy
