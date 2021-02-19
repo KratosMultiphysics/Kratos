@@ -751,19 +751,15 @@ public:
     template<class TMatrixType>
     static inline TDataType GeneralizedDet(const TMatrixType& rA)
     {
-        TDataType determinant;
-
         if (rA.size1() == rA.size2()) {
-            determinant = Det(rA);
+            return Det(rA);
         } else if (rA.size1() < rA.size2()) { // Right determinant
             const Matrix AAT = prod( rA, trans(rA) );
-            determinant = std::sqrt(Det(AAT));
+            return std::sqrt(Det(AAT));
         } else { // Left determinant
             const Matrix ATA = prod( trans(rA), rA );
-            determinant = std::sqrt(Det(ATA));
+            return std::sqrt(Det(ATA));
         }
-
-        return determinant;
     }
 
     /**
