@@ -99,7 +99,6 @@ namespace Kratos
 		{
 			// calling lock for backward compatibility
       lock();
-
 		}
 
 		inline void unlock() const

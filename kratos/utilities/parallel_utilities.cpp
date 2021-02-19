@@ -110,13 +110,13 @@ int& ParallelUtilities::GetNumberOfThreads()
 {
     if (!mspNumThreads) {
         LockObject lock;
-        lock.SetLock();
+        lock.lock();
         if (!mspNumThreads) {
             static int num_threads;
             num_threads = InitializeNumberOfThreads();
             mspNumThreads = &num_threads;
         }
-        lock.UnSetLock();
+        lock.unlock();
     }
 
     return *mspNumThreads;

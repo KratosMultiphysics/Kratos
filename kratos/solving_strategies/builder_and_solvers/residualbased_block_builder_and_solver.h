@@ -1418,9 +1418,9 @@ protected:
 
                 // Merging all the temporal indexes
                 for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
-                    lock_array[i].SetLock();
+                    lock_array[i].lock();
                     indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
-                    lock_array[i].UnSetLock();
+                    lock_array[i].unlock();
                 }
             }
 
@@ -1591,10 +1591,10 @@ protected:
             typename ElementsContainerType::iterator i_element = el_begin + iii;
             pScheme->EquationId(*i_element, ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++) {
-                lock_array[ids[i]].SetLock();
+                lock_array[ids[i]].lock();
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
-                lock_array[ids[i]].UnSetLock();
+                lock_array[ids[i]].unlock();
             }
         }
 
@@ -1603,37 +1603,37 @@ protected:
             typename ConditionsArrayType::iterator i_condition = cond_begin + iii;
             pScheme->EquationId(*i_condition, ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++) {
-                lock_array[ids[i]].SetLock();
+                lock_array[ids[i]].lock();
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
-                lock_array[ids[i]].UnSetLock();
+                lock_array[ids[i]].unlock();
             }
         }
-             
+
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             Element::EquationIdVectorType master_ids(3, 0);
             Element::EquationIdVectorType slave_ids(3, 0);
-            
+
             const int nmasterSlaveConstraints = rModelPart.MasterSlaveConstraints().size();
             const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
-            
+
             #pragma omp parallel for firstprivate(nmasterSlaveConstraints, slave_ids, master_ids)
             for (int iii = 0; iii<nmasterSlaveConstraints; ++iii) {
                 auto i_const = const_begin + iii;
                 i_const->EquationIdVector(slave_ids, master_ids, CurrentProcessInfo);
-                
+
                 for (std::size_t i = 0; i < slave_ids.size(); i++) {
-                    lock_array[slave_ids[i]].SetLock();
+                    lock_array[slave_ids[i]].lock();
                     auto& row_indices = indices[slave_ids[i]];
                     row_indices.insert(slave_ids[i]);
-                    lock_array[slave_ids[i]].UnSetLock();
+                    lock_array[slave_ids[i]].unlock();
                 }
 
                 for (std::size_t i = 0; i < master_ids.size(); i++) {
-                    lock_array[master_ids[i]].SetLock();
+                    lock_array[master_ids[i]].lock();
                     auto& row_indices = indices[master_ids[i]];
                     row_indices.insert(master_ids[i]);
-                    lock_array[master_ids[i]].UnSetLock();
+                    lock_array[master_ids[i]].unlock();
                 }
             }
         }
