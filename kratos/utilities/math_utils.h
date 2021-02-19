@@ -191,6 +191,7 @@ public:
      * @return DetA: The determinant of the matrix
      */
     template<class TMatrixType>
+    KRATOS_DEPRECATED_MESSAGE("Please use Det() instead")
     static inline TDataType DetMat(const TMatrixType& rInputMatrix)
     {
         static_assert(std::is_same<typename TMatrixType::value_type, TDataType>::value, "Bad value type.");
@@ -476,10 +477,10 @@ public:
        } else { // Bounded-matrix case
             const SizeType size1 = rInputMatrix.size1();
             const SizeType size2 = rInputMatrix.size2();
-            
+
             Matrix A(rInputMatrix);
             Matrix invA(rInvertedMatrix);
-            
+
  #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
             rInputMatrixDet = lu_factorization.determinant();
@@ -501,12 +502,12 @@ public:
                 rInputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
  #endif // ifdef KRATOS_USE_AMATRIX
-            
+
             for (IndexType i = 0; i < size1;++i) {
                 for (IndexType j = 0; j < size2;++j) {
                     rInvertedMatrix(i,j) = invA(i,j);
                 }
-            } 
+            }
        }
 
        // Checking condition number
