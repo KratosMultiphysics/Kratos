@@ -100,9 +100,9 @@ double& DamageDPlusDMinusMasonry2DLaw::GetValue(
 {
 	rValue = 0.0;
 	if(rThisVariable == DAMAGE_TENSION)
-		rValue = DamageParameterTension;
+		rValue = DamageParameterTensionOld;
 	else if(rThisVariable == DAMAGE_COMPRESSION)
-		rValue = DamageParameterCompression;
+		rValue = DamageParameterCompressionOld;
 	else if(rThisVariable == UNIAXIAL_STRESS_TENSION)
 		rValue = UniaxialStressTension;
 	else if(rThisVariable == UNIAXIAL_STRESS_COMPRESSION)
@@ -417,7 +417,9 @@ void DamageDPlusDMinusMasonry2DLaw::ResetMaterial(
 	ThresholdCompression 		= 0.0;
 	CurrentThresholdCompression = 0.0;
 	DamageParameterTension 		= 0.0;
+	DamageParameterTensionOld = 0.0;
 	DamageParameterCompression 	= 0.0;
+	DamageParameterCompressionOld 	= 0.0;
 	InitialCharacteristicLength = 0.0;
 	InitializeDamageLaw 		= false;
 }
@@ -758,7 +760,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	double& rDamage)
 {
 	if(internal_variable <= data.YieldStressTension) {
-		rDamage = 0.0;
+		rDamage = DamageParameterTensionOld;
 	}
 	else {
 		const double characteristic_length 		= 	data.CharacteristicLength;
@@ -785,10 +787,13 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 							std::exp(damage_parameter *
 							(1.0 - internal_variable / initial_internal_variable));
 
-		const double internal_variable_min = 1.0e-3 * yield_tension;
-		if((1.0 - rDamage) * internal_variable < internal_variable_min){
-			rDamage = 1.0- internal_variable_min / internal_variable;
-		}
+		if (rDamage > 0.99) rDamage = 1.0;
+		//const double internal_variable_min = 1.0e-3 * yield_tension;
+		//if((1.0 - rDamage) * internal_variable < internal_variable_min){
+		//	rDamage = 1.0- internal_variable_min / internal_variable;
+		//}
+		if (rDamage < DamageParameterTensionOld) rDamage = DamageParameterTensionOld;
+		else DamageParameterTensionOld = rDamage;
 	}
 }
 /***********************************************************************************/
@@ -799,7 +804,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 	double& rDamage)
 {
 	if(internal_variable <= data.DamageOnsetStressCompression){
-		rDamage = 0.0;
+		rDamage = DamageParameterCompressionOld;
 	}
 	else {
 		// extract material parameters
@@ -868,6 +873,13 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 			damage_variable = s_r;
 		}
 		rDamage = 1.0 - damage_variable / internal_variable;
+
+		if (strain_like_counterpart > e_p)
+		{
+			if (rDamage > 0.99) rDamage = 1.0;
+			if (rDamage < DamageParameterCompressionOld) rDamage = DamageParameterCompressionOld;
+			else DamageParameterCompressionOld = rDamage;
+		}
 	}
 }
 /***********************************************************************************/

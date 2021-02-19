@@ -440,6 +440,7 @@ protected:
 
 	// Damage Parameters & Uniaxial Stresses
 	double DamageParameterTension = 0.0;			double DamageParameterCompression = 0.0;
+	double DamageParameterTensionOld = 0.0;			double DamageParameterCompressionOld = 0.0;
 	double UniaxialStressTension  = 0.0;			double UniaxialStressCompression  = 0.0;
 
 	// Misc
