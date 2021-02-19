@@ -660,6 +660,8 @@ public:
     template<class TMatrixType>
     static inline TDataType Det2(const TMatrixType& rA)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() != rA.size2()) << "Matrix provided is non-square" << std::endl;
+
         return (rA(0,0)*rA(1,1)-rA(0,1)*rA(1,0));
     }
 
@@ -671,6 +673,8 @@ public:
     template<class TMatrixType>
     static inline TDataType Det3(const TMatrixType& rA)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() != rA.size2()) << "Matrix provided is non-square" << std::endl;
+
         // Calculating the algebraic complements to the first line
         const double a = rA(1,1)*rA(2,2) - rA(1,2)*rA(2,1);
         const double b = rA(1,0)*rA(2,2) - rA(1,2)*rA(2,0);
@@ -687,20 +691,25 @@ public:
     template<class TMatrixType>
     static inline TDataType Det4(const TMatrixType& rA)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() != rA.size2()) << "Matrix provided is non-square" << std::endl;
+
         const double det = rA(0,1)*rA(1,3)*rA(2,2)*rA(3,0)-rA(0,1)*rA(1,2)*rA(2,3)*rA(3,0)-rA(0,0)*rA(1,3)*rA(2,2)*rA(3,1)+rA(0,0)*rA(1,2)*rA(2,3)*rA(3,1)
                           -rA(0,1)*rA(1,3)*rA(2,0)*rA(3,2)+rA(0,0)*rA(1,3)*rA(2,1)*rA(3,2)+rA(0,1)*rA(1,0)*rA(2,3)*rA(3,2)-rA(0,0)*rA(1,1)*rA(2,3)*rA(3,2)+rA(0,3)*(rA(1,2)*rA(2,1)*rA(3,0)-rA(1,1)*rA(2,2)*rA(3,0)-rA(1,2)*rA(2,0)*rA(3,1)+rA(1,0)*rA(2,2)*rA(3,1)+rA(1,1)*rA(2,0)*rA(3,2)
                           -rA(1,0)*rA(2,1)*rA(3,2))+(rA(0,1)*rA(1,2)*rA(2,0)-rA(0,0)*rA(1,2)*rA(2,1)-rA(0,1)*rA(1,0)*rA(2,2)+rA(0,0)*rA(1,1)*rA(2,2))*rA(3,3)+rA(0,2)*(-(rA(1,3)*rA(2,1)*rA(3,0))+rA(1,1)*rA(2,3)*rA(3,0)+rA(1,3)*rA(2,0)*rA(3,1)-rA(1,0)*rA(2,3)*rA(3,1)-rA(1,1)*rA(2,0)*rA(3,3)+rA(1,0)*rA(2,1)*rA(3,3));
         return det;
     }
 
+public:
     /**
      * @brief Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
      * @param rA Is the input matrix
-     * @return The determinant of the 2x2 matrix
+     * @return The determinant of any size matrix
      */
     template<class TMatrixType>
     static inline TDataType Det(const TMatrixType& rA)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() != rA.size2()) << "Matrix provided is non-square" << std::endl;
+
         switch (rA.size1()) {
             case 2:
                 return Det2(rA);
