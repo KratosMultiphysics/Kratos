@@ -144,7 +144,7 @@ namespace Kratos
 
             // Transfer local data to containers
             if (sub_point_volume / mp_volume_vec[0] > pqmpm_min_fraction) {
-                if (std::abs(sub_point_volume - mp_volume_vec[0]) < Tolerance) {
+                if (std::abs(sub_point_volume / mp_volume_vec[0] - 1.0) < Tolerance) {
                     CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                         pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
                         rParentGeom);
@@ -167,6 +167,12 @@ namespace Kratos
             }
         }
         if (active_subpoint_index == 1) {
+            if (std::abs(ips[0].Weight() - 1.0) > Tolerance)
+            {
+                KRATOS_INFO("MPMSearchElementUtility")
+                    << "Boost intersection did not cover the whole single geometry\n";
+                KRATOS_ERROR << "ERROR";
+            }
             CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                 pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
                 rParentGeom);
@@ -517,8 +523,8 @@ namespace Kratos
     {
         KRATOS_TRY
 
-            // make boost polygon of current background element geometry
-            Boost2DPolygonType polygon_grid = Create2DPolygonFromGeometryFast(rGridElement);
+        // make boost polygon of current background element geometry
+        Boost2DPolygonType polygon_grid = Create2DPolygonFromGeometryFast(rGridElement);
 
         // make boost polygon of bounding box
         Boost2DPolygonType polygon_box = Create2DPolygonBoundingSquareFromPointsFast(rMasterDomainPoints);
@@ -714,9 +720,9 @@ namespace Kratos
         rGeom.BoundingBox(ele_point_low, ele_point_high);
 
         double center_to_center = norm_2(rGeom.Center() - rCoord);
-        double maximum_contact_range = 1.01*norm_2(rPointHigh- rPointLow) +
+        double maximum_contact_range = 0.5*norm_2(rPointHigh- rPointLow) +
             norm_2(ele_point_high - ele_point_low);
-        if (center_to_center <= maximum_contact_range) return true;
+        if (center_to_center < maximum_contact_range) return true;
         return false;
     }
 
@@ -750,7 +756,7 @@ namespace Kratos
                 if (check_geom) {
                     // check if this background grid and the MP domain overlap
                     if (IntersectionCheckWithBoundingBox(*geometry_neighbours[i], rCoordinates, rPointLow, rPointHigh)) {
-                        //if (geometry_neighbours[i]->HasIntersection(rPointLow, rPointHigh)) {
+                        if (geometry_neighbours[i]->HasIntersection(rPointLow, rPointHigh)) {
                             // add to container and then search its neighbours
                             rIntersectedGeometries.push_back(geometry_neighbours[i].get());
 
@@ -759,7 +765,7 @@ namespace Kratos
                                 RecursionCount,
                                 rCoordinates, SideHalfLength,
                                 MaxRecursions);
-                        //}
+                        }
                     }
                 }
             }
