@@ -645,19 +645,61 @@ public:
     }
 
     /**
+     * @brief Calculates the determinant of a matrix of dimension 2x2 (no check performed on matrix size)
+     * @param rA Is the input matrix
+     * @return The determinant of the 2x2 matrix
+     */
+    template<class TMatrixType>
+    static inline TDataType Det2(const TMatrixType& rA)
+    {
+        return (rA(0,0)*rA(1,1)-rA(0,1)*rA(1,0));
+    }
+
+    /**
+     * @brief Calculates the determinant of a matrix of dimension 3*3 (no check performed on matrix size)
+     * @param rA Is the input matrix
+     * @return The determinant of the 3x3 matrix
+     */
+    template<class TMatrixType>
+    static inline TDataType Det3(const TMatrixType& rA)
+    {
+        // Calculating the algebraic complements to the first line
+        const double a = rA(1,1)*rA(2,2) - rA(1,2)*rA(2,1);
+        const double b = rA(1,0)*rA(2,2) - rA(1,2)*rA(2,0);
+        const double c = rA(1,0)*rA(2,1) - rA(1,1)*rA(2,0);
+
+        return rA(0,0)*a - rA(0,1)*b + rA(0,2)*c;
+    }
+
+    /**
+     * @brief Calculates the determinant of a matrix of dimension 4*4 (no check performed on matrix size)
+     * @param rA Is the input matrix
+     * @return The determinant of the 4x4 matrix
+     */
+    template<class TMatrixType>
+    static inline TDataType Det4(const TMatrixType& rA)
+    {
+        const double det = rA(0,1)*rA(1,3)*rA(2,2)*rA(3,0)-rA(0,1)*rA(1,2)*rA(2,3)*rA(3,0)-rA(0,0)*rA(1,3)*rA(2,2)*rA(3,1)+rA(0,0)*rA(1,2)*rA(2,3)*rA(3,1)
+                          -rA(0,1)*rA(1,3)*rA(2,0)*rA(3,2)+rA(0,0)*rA(1,3)*rA(2,1)*rA(3,2)+rA(0,1)*rA(1,0)*rA(2,3)*rA(3,2)-rA(0,0)*rA(1,1)*rA(2,3)*rA(3,2)+rA(0,3)*(rA(1,2)*rA(2,1)*rA(3,0)-rA(1,1)*rA(2,2)*rA(3,0)-rA(1,2)*rA(2,0)*rA(3,1)+rA(1,0)*rA(2,2)*rA(3,1)+rA(1,1)*rA(2,0)*rA(3,2)
+                          -rA(1,0)*rA(2,1)*rA(3,2))+(rA(0,1)*rA(1,2)*rA(2,0)-rA(0,0)*rA(1,2)*rA(2,1)-rA(0,1)*rA(1,0)*rA(2,2)+rA(0,0)*rA(1,1)*rA(2,2))*rA(3,3)+rA(0,2)*(-(rA(1,3)*rA(2,1)*rA(3,0))+rA(1,1)*rA(2,3)*rA(3,0)+rA(1,3)*rA(2,0)*rA(3,1)-rA(1,0)*rA(2,3)*rA(3,1)-rA(1,1)*rA(2,0)*rA(3,3)+rA(1,0)*rA(2,1)*rA(3,3));
+        return det;
+    }
+
+    /**
      * @brief Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
      * @param rA Is the input matrix
      * @return The determinant of the 2x2 matrix
      */
-    static inline TDataType Det(const MatrixType& rA)
+    template<class TMatrixType>
+    static inline TDataType Det(const TMatrixType& rA)
     {
         switch (rA.size1()) {
             case 2:
-                return  Det2(rA);
+                return Det2(rA);
             case 3:
                 return Det3(rA);
             case 4:
-                return  Det4(rA);
+                return Det4(rA);
             default:
                 TDataType det = 1.0;
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
@@ -689,7 +731,8 @@ public:
      * @param rA Is the input matrix
      * @return The determinant of the 2x2 matrix
      */
-    static inline TDataType GeneralizedDet(const MatrixType& rA)
+    template<class TMatrixType>
+    static inline TDataType GeneralizedDet(const TMatrixType& rA)
     {
         TDataType determinant;
 
