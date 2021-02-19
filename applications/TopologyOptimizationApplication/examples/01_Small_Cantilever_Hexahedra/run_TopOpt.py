@@ -61,8 +61,34 @@ gid_output = GiDOutputProcess(computing_model_part,
                               output_settings)
 
 gid_output.ExecuteInitialize()
+solver.Initialize()
+for process in list_of_processes:
+    process.ExecuteBeforeSolutionLoop()
+gid_output.ExecuteBeforeSolutionLoop()
 
+""" # Solve the problem
+linear_solver = km.SkylineLUFactorizationSolver()
+builder_and_solver = km.ResidualBasedBlockBuilderAndSolver(linear_solver)
+scheme = km.ResidualBasedIncrementalUpdateStaticScheme()
+compute_reactions = True
+reform_step_dofs = True
+calculate_norm_dx = False
+move_mesh_flag = True
 
+strategy = km.ResidualBasedLinearStrategy(
+    model_part,
+    scheme,
+    builder_and_solver,
+    compute_reactions,
+    reform_step_dofs,
+    calculate_norm_dx,
+    move_mesh_flag)
+
+strategy.Solve() """
+
+for process in list_of_processes:
+    process.ExecuteInitializeSolutionStep()
+gid_output.ExecuteInitializeSolutionStep()       
 # Solve the problem
 linear_solver = km.SkylineLUFactorizationSolver()
 builder_and_solver = km.ResidualBasedBlockBuilderAndSolver(linear_solver)
@@ -82,13 +108,17 @@ strategy = km.ResidualBasedLinearStrategy(
     move_mesh_flag)
 
 strategy.Solve()
-
-process.ExecuteInitialize()
-process.ExecuteBeforeSolutionLoop()
-process.ExecuteInitializeSolutionStep()
-gid_output.PrintOutput()
-process.ExecuteFinalizeSolutionStep()
-gid_output.ExecuteFinalize()
+for process in list_of_processes:
+    process.ExecuteFinalizeSolutionStep()
+gid_output.ExecuteFinalizeSolutionStep()
+for process in list_of_processes:
+    process.ExecuteFinalizeSolutionStep()
+for process in list_of_processes:
+    process.ExecuteBeforeOutputStep()
+if(gid_output.IsOutputStep()):
+    gid_output.PrintOutput()
+for process in list_of_processes:
+    process.ExecuteAfterOutputStep()
 
 response_analyzer = kto.StructureResponseFunctionUtilities(model_part)
 linear_solver = km.python_linear_solver_factory.ConstructSolver(ProjectParameters["solver_settings"]["linear_solver_settings"])
