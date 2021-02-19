@@ -86,7 +86,7 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "OutputProcess";
     }
