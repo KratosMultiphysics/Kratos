@@ -31,6 +31,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "utilities/variable_utils.h"
+#include "utilities/auxiliar_model_part_utilities.h"
 
 namespace Kratos
 {
@@ -198,13 +199,12 @@ public:
         const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
 
         // Save current level set value and current and previous step velocity values
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
-            const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-            mVelocity[i_node] = it_node->FastGetSolutionStepValue(VELOCITY);
-            mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(VELOCITY,1);
-            mOldDistance[i_node] = it_node->FastGetSolutionStepValue(mrLevelSetVar,1);
-        }
+        IndexPartition<std::size_t>(mpDistanceModelPart->NumberOfNodes()).for_each([&](std::size_t Index){
+            const auto it_node = mpDistanceModelPart->NodesBegin() + Index;
+            mVelocity[Index] = it_node->FastGetSolutionStepValue(VELOCITY);
+            mVelocityOld[Index] = it_node->FastGetSolutionStepValue(VELOCITY,1);
+            mOldDistance[Index] = it_node->FastGetSolutionStepValue(mrLevelSetVar,1);
+        });
 
         const double dt = previous_delta_time / static_cast<double>(n_substep);
         rCurrentProcessInfo.SetValue(DELTA_TIME, dt);
@@ -225,17 +225,16 @@ public:
             const double Nnew_before = 1.0 - Nold_before;
 
             // Emulate clone time step by copying the new distance onto the old one
-            #pragma omp parallel for
-            for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
-                auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+            IndexPartition<std::size_t>(mpDistanceModelPart->NumberOfNodes()).for_each([&](std::size_t Index){
+                auto it_node = mpDistanceModelPart->NodesBegin() + Index;
 
-                const array_1d<double,3>& v = mVelocity[i_node];
-                const array_1d<double,3>& v_old = mVelocityOld[i_node];
+                const array_1d<double,3>& v = mVelocity[Index];
+                const array_1d<double,3>& v_old = mVelocityOld[Index];
 
                 it_node->FastGetSolutionStepValue(VELOCITY) = Nold * v_old + Nnew * v;
                 it_node->FastGetSolutionStepValue(VELOCITY, 1) = Nold_before * v_old + Nnew_before * v;
                 it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
-            }
+            });
 
             mpSolvingStrategy->Solve();
         }
@@ -245,13 +244,12 @@ public:
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(r_previous_var);
 
         // Reset the velocities and levelset values to the one saved before the solution process
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
-            auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(VELOCITY) = mVelocity[i_node];
-            it_node->FastGetSolutionStepValue(VELOCITY,1) = mVelocityOld[i_node];
-            it_node->FastGetSolutionStepValue(mrLevelSetVar,1) = mOldDistance[i_node];
-        }
+        IndexPartition<std::size_t>(mpDistanceModelPart->NumberOfNodes()).for_each([&](std::size_t Index){
+            auto it_node = mpDistanceModelPart->NodesBegin() + Index;
+            it_node->FastGetSolutionStepValue(VELOCITY) = mVelocity[Index];
+            it_node->FastGetSolutionStepValue(VELOCITY,1) = mVelocityOld[Index];
+            it_node->FastGetSolutionStepValue(mrLevelSetVar,1) = mOldDistance[Index];
+        });
 
         KRATOS_CATCH("")
     }
