@@ -81,10 +81,12 @@ public:
     CalculateDistanceToBoundaryProcess(
         ModelPart& rComputingModelPart,
         ModelPart& rBoundaryModelPart,
-        Parameters& rParameters) :
+        Parameters ThisParameters = Parameters()) :
             Process(),
             mrModelPart(rComputingModelPart)
     {
+        ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+        mWarningDistanceTreshold = ThisParameters["warning_distance_treshold"].GetDouble();
         FindApproximatingGeometry(mpBoundary, rBoundaryModelPart);
     }
 
@@ -100,6 +102,9 @@ public:
     ///@name Operations
     ///@{
 
+    void ExecuteBeforeSolutionLoop() override;
+
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -148,6 +153,7 @@ private:
 
     ModelPart& mrModelPart;
     GeometryType::Pointer mpBoundary;
+    double mWarningDistanceTreshold;
 
     ///@}
     ///@name Member Variables

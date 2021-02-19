@@ -17,6 +17,7 @@
 
 
 // Project includes
+#include "includes/variables.h"
 #include "includes/model_part.h"
 #include "geometries/line_2d_2.h"
 #include "utilities/parallel_utilities.h"
@@ -65,12 +66,35 @@ void CalculateDistanceToBoundaryProcess::FindApproximatingGeometry(
         return (GeometricalProjectionUtilities::FastProjectOnLine2D(line_b, rNode, projected));
     });
 
+    double distance;
     if (distance_a < distance_b) {
+        distance = distance_a;
         pEntity = Kratos::make_shared<Line2D2<Point>>(line_a);
     } else {
+        distance = distance_b;
         pEntity = Kratos::make_shared<Line2D2<Point>>(line_b);
     }
+    distance /= rModelPart.NumberOfNodes();
+    KRATOS_WARNING_IF(Info(), distance > mWarningDistanceTreshold) << "The average distance from the line to the interpolated boundary is greater than " << std::to_string(mWarningDistanceTreshold) << std::endl;
 }
 
+void CalculateDistanceToBoundaryProcess::ExecuteBeforeSolutionLoop()
+{
+    block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+        Point projected;
+        double& r_distance = rNode.FastGetSolutionStepValue(DISTANCE);
+        const auto projection = GeometricalProjectionUtilities::FastProjectOnLine2D(*mpBoundary, rNode, projected);
+        r_distance = std::min(r_distance, projection);
+    });
+}
+
+const Parameters CalculateDistanceToBoundaryProcess::GetDefaultParameters() const
+{
+    auto default_parameters = Parameters(R"(
+    {
+        "warning_distance_treshold" : 10
+    })");
+    return default_parameters;
+}
 
 }  // namespace Kratos.
