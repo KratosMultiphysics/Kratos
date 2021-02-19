@@ -156,10 +156,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                         array_1d<double, 3>& aux_value = (mExtrapolateNonHistorical) ? r_this_geometry[i_node].GetValue(*p_var) : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
                         const array_1d<double, 3>& aux_sol = node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
-                        for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
-                            #pragma omp atomic
-                            aux_value[i_comp] += aux_sol[i_comp];
-                        }
+                        AtomicAddVector(aux_value, aux_sol);
                     }
                 }
             }
@@ -173,8 +170,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                         Vector& aux_value = (mExtrapolateNonHistorical) ? r_this_geometry[i_node].GetValue(*p_var) : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
                         const Vector& aux_sol = node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
                         for (IndexType i_comp = 0; i_comp < aux_sol.size(); ++i_comp) {
-                            #pragma omp atomic
-                            aux_value[i_comp] += aux_sol[i_comp];
+                            AtomicAdd(aux_value[i_comp], aux_sol[i_comp]);
                         }
                     }
                 }
