@@ -1705,9 +1705,9 @@ int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    Element::Check(rCurrentProcessInfo);
-    //KRATOS_ERROR_IF(this->Id() < 1) << "Element found with Id " << this->Id() << std::endl;
-    //KRATOS_ERROR_IF(mMP.volume <= 0.0) << "Element " << this->Id() << " has non-positive size " << mMP.volume << std::endl;
+    //Element::Check(rCurrentProcessInfo);
+    KRATOS_ERROR_IF(this->Id() < 1) << "Element found with Id " << this->Id() << std::endl;
+    KRATOS_ERROR_IF(mMP.volume <= 0.0) << "Element " << this->Id() << " has non-positive size " << mMP.volume << std::endl;
 
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
