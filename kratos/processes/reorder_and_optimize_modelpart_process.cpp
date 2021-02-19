@@ -18,6 +18,7 @@
 
 // Project includes
 #include "processes/reorder_and_optimize_modelpart_process.h"
+#include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
@@ -37,35 +38,31 @@ namespace Kratos
 
 
 	void ReorderAndOptimizeModelPartProcess::Execute()
-        {
-            KRATOS_TRY
-
-
+    {
+        KRATOS_TRY
         //reorder nodes,#include "spaces/ublas_space.h"elements and conditions so that their Id start in 1 and is consecutive
-#pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
-                (mrModelPart.NodesBegin() + i)->SetId(i+1);
-            mrModelPart.Nodes().Sort();
+        IndexPartition<std::size_t>(mrModelPart.Nodes().size()).for_each([&](std::size_t Index){
+            (mrModelPart.NodesBegin() + Index)->SetId(Index+1);
+        });
+        mrModelPart.Nodes().Sort();
 
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i)
-                (mrModelPart.ElementsBegin() + i)->SetId(i+1);
-            mrModelPart.Elements().Sort();
+        IndexPartition<std::size_t>(mrModelPart.Elements().size()).for_each([&](std::size_t Index){
+            (mrModelPart.ElementsBegin() + Index)->SetId(Index+1);
+        });
+        mrModelPart.Elements().Sort();
 
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Conditions().size()); ++i)
-                (mrModelPart.ConditionsBegin() + i)->SetId(i+1);
-            mrModelPart.Conditions().Sort();
+        IndexPartition<std::size_t>(mrModelPart.Conditions().size()).for_each([&](std::size_t Index){
+            (mrModelPart.ConditionsBegin() + Index)->SetId(Index+1);
+        });
+        mrModelPart.Conditions().Sort();
 
-            OptimizeOrdering();
+        OptimizeOrdering();
 
-            //make a parallel clone of all the nodes
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
-            {
-                Node<3>::Pointer& pnode = *(mrModelPart.Nodes().ptr_begin() + i);
-                pnode = pnode->Clone();
-            }
+        //make a parallel clone of all the nodes
+        IndexPartition<std::size_t>(mrModelPart.Nodes().size()).for_each([&](std::size_t Index){
+            Node<3>::Pointer& pnode = *(mrModelPart.Nodes().ptr_begin() + Index);
+            pnode = pnode->Clone();
+        });
 
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i)
