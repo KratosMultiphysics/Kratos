@@ -94,26 +94,12 @@ namespace Kratos
 #endif
 		}
 
-		KRATOS_DEPRECATED_MESSAGE("Please use lock() instead")
-    inline void SetLock() const
-		{
-			// calling lock for backward compatibility
-      lock();
-		}
-
 		inline void unlock() const
 		{
 			//does nothing if openMP is not present
 #ifdef KRATOS_SMP_OPENMP
 			omp_unset_lock(&mLock);
 #endif
-		}
-
-		KRATOS_DEPRECATED_MESSAGE("Please use unlock() instead")
-    inline void UnSetLock() const
-		{
-			// calling unlock for backward compatibility
-      unlock();
 		}
 
     inline bool try_lock() const
