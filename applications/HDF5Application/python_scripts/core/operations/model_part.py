@@ -181,7 +181,7 @@ class NodalSolutionStepDataOutput(VariableIO):
 
     def __call__(self, model_part, hdf5_file):
         KratosHDF5.HDF5NodalSolutionStepDataIO(
-            self.GetSettings(model_part).Get(), hdf5_file).WriteNodalResults(model_part.Nodes, 0)
+            self.GetSettings(model_part).Get(), hdf5_file).WriteNodalResults(model_part, 0)
 
 
 class NodalSolutionStepDataInput(VariableIO):
@@ -194,7 +194,7 @@ class NodalSolutionStepDataInput(VariableIO):
         nodal_io = KratosHDF5.HDF5NodalSolutionStepDataIO(
             self.GetSettings(model_part).Get(), hdf5_file)
         nodal_io.ReadNodalResults(
-            model_part.Nodes, model_part.GetCommunicator(), 0)
+            model_part, 0)
 
 
 class NodalDataValueOutput(VariableIO):
@@ -264,7 +264,7 @@ class PrimalBossakOutput(VariableIO):
         primal_io = KratosHDF5.HDF5NodalSolutionStepBossakIO(
             self.GetSettings(model_part).Get(), hdf5_file)
         primal_io.SetAlphaBossak(self.alpha_bossak)
-        primal_io.WriteNodalResults(model_part.Nodes)
+        primal_io.WriteNodalResults(model_part)
 
 
 class PrimalBossakInput(VariableIO):
@@ -280,7 +280,7 @@ class PrimalBossakInput(VariableIO):
         primal_io = KratosHDF5.HDF5NodalSolutionStepBossakIO(
             self.GetSettings(model_part).Get(), hdf5_file)
         primal_io.ReadNodalResults(
-            model_part.Nodes, model_part.GetCommunicator())
+            model_part)
 
 
 class MoveMesh:
