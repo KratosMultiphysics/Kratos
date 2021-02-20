@@ -206,6 +206,37 @@ class RansFormulation:
 
         return False
 
+    def GetElementNames(self):
+        """Returns list of element names used in this formulation
+
+        This method returns element names used in this formulation and
+        child formulations
+
+        Returns:
+            list: a string list containing all the element names
+        """
+        element_names_list = []
+        for formulation in self.__list_of_formulations:
+            element_names_list.extend(formulation.GetElementNames())
+
+        return element_names_list
+
+    def GetConditionNames(self):
+        """Returns list of condition names used in this formulation
+
+        This method returns condition names used in this formulation and
+        child formulations
+
+        Returns:
+            list: a string list containing all the condition names
+        """
+
+        condition_names_list = []
+        for formulation in self.__list_of_formulations:
+            condition_names_list.extend(formulation.GetConditionNames())
+
+        return condition_names_list
+
     def GetMoveMeshFlag(self):
         """Returns move mesh flag
 

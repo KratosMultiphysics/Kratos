@@ -175,6 +175,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
 
         process_info = model_part.ProcessInfo
         bossak_alpha = process_info[Kratos.BOSSAK_ALPHA]
+        wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
 
         settings = self.GetParameters()
 
@@ -301,8 +302,17 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             raise Exception(msg)
 
     def GetStrategy(self):
-        return self.solver
+        if (hasattr(self, "solver")):
+            return self.solver
+        else:
+            return None
 
     def ElementHasNodalProperties(self):
         return self.flow_solver_formulation.element_has_nodal_properties
+
+    def GetElementNames(self):
+        return [self.flow_solver_formulation.element_name]
+
+    def GetConditionNames(self):
+        return [self.condition_name]
 
