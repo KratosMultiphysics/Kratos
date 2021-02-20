@@ -362,10 +362,10 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_nodal_solution_step_data_io = self._get_nodal_solution_step_data_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
-            hdf5_nodal_solution_step_data_io.WriteNodalResults(write_model_part.Nodes, 0)
+            hdf5_nodal_solution_step_data_io.WriteNodalResults(write_model_part, 0)
             read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
-            hdf5_nodal_solution_step_data_io.ReadNodalResults(read_model_part.Nodes, read_model_part.GetCommunicator(), 0)
+            hdf5_nodal_solution_step_data_io.ReadNodalResults(read_model_part, 0)
 
             assert_variables_list = [DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z,
                                      VELOCITY_X, VELOCITY_Y, VELOCITY_Z,

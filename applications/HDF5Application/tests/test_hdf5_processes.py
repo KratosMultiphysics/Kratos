@@ -126,7 +126,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5NodalSolutionStepDataIO.return_value.WriteNodalResults.call_count, 2)
         self.HDF5NodalSolutionStepDataIO.return_value.WriteNodalResults.assert_called_with(
-            self.model_part.Nodes, 0)
+            self.model_part, 0)
         self.assertEqual(self.HDF5NodalDataValueIO.call_count, 2)
         self.assertEqual(
             self.HDF5NodalDataValueIO.call_args[0][0]['prefix'].GetString(), '/ResultsData')
@@ -261,7 +261,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5NodalSolutionStepBossakIO.return_value.WriteNodalResults.call_count, 3)
         self.HDF5NodalSolutionStepBossakIO.return_value.WriteNodalResults.assert_called_with(
-            self.model_part.Nodes)
+            self.model_part)
 
     def test_InitializationFromHDF5Process(self):
         settings = KratosMultiphysics.Parameters('''
@@ -286,7 +286,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5NodalSolutionStepDataIO.return_value.ReadNodalResults.call_count, 1)
         self.HDF5NodalSolutionStepDataIO.return_value.ReadNodalResults.assert_called_with(
-            self.model_part.Nodes, self.model_part.GetCommunicator(), 0)
+            self.model_part, 0)
         self.assertEqual(
             self.HDF5NodalDataValueIO.return_value.ReadNodalResults.call_count, 1)
         self.HDF5NodalDataValueIO.return_value.ReadNodalResults.assert_called_with(
@@ -334,7 +334,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5NodalSolutionStepDataIO.return_value.ReadNodalResults.call_count, 2)
         self.HDF5NodalSolutionStepDataIO.return_value.ReadNodalResults.assert_called_with(
-            self.model_part.Nodes, self.model_part.GetCommunicator(), 0)
+            self.model_part, 0)
         self.assertEqual(
             self.HDF5NodalDataValueIO.return_value.ReadNodalResults.call_count, 2)
         self.HDF5NodalDataValueIO.return_value.ReadNodalResults.assert_called_with(
