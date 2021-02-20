@@ -17,6 +17,7 @@
 // Project includes
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "custom_utilities/meshing_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -46,10 +47,9 @@ void BlockThresholdSizeElements(
     // Iterating over the elements
     ElementsArrayType& r_elements_array = rModelPart.Elements();
     const auto it_elem_begin= r_elements_array.begin();
-    const int number_of_elements = static_cast<int>(r_elements_array.size());
 
-    #pragma omp parallel for
-    for (int i = 0; i < number_of_elements; ++i) {
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each(
+        [&it_elem_begin,&minimal_size,&maximal_size](std::size_t i) {
         auto it_elem = it_elem_begin + i;
 
         if (it_elem->IsNot(BLOCKED)) {
@@ -61,7 +61,7 @@ void BlockThresholdSizeElements(
                 it_elem->Set(BLOCKED, true);
             }
         }
-    }
+    });
 }
 
 /***********************************************************************************/
@@ -72,13 +72,12 @@ void ComputeElementsSize(ModelPart& rModelPart)
     // Iterating over the elements
     ElementsArrayType& r_elements_array = rModelPart.Elements();
     const auto it_elem_begin= r_elements_array.begin();
-    const int number_of_elements = static_cast<int>(r_elements_array.size());
 
-    #pragma omp parallel for
-    for (int i = 0; i < number_of_elements; ++i) {
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each(
+        [&it_elem_begin](std::size_t i) {
         auto it_elem = it_elem_begin + i;
         ComputeElementSize(it_elem);
-    }
+    });
 }
 
 /***********************************************************************************/
