@@ -19,20 +19,24 @@
 // External includes
 
 // Project includes
-#include "process.h"
+#include "processes/process.h"
 
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * @class OutputProcess
+ * @ingroup KratosCore
+ * @brief The base class for output processes
+ * @details The different output processes must be derived from here
+ * @author Philipp Bucher
+ */
 class OutputProcess : public Process
 {
 public:
