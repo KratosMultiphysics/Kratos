@@ -54,6 +54,10 @@ def Factory(settings, Model):
         [
             "CheckScalarBoundsProcess",
             RansCheckScalarBoundsProcess
+        ],
+        [
+            "ComputeReactionsProcess",
+            KratosRANS.RansComputeReactionsProcess
         ]
     ]
 

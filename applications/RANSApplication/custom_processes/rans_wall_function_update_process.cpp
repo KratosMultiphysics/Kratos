@@ -59,11 +59,22 @@ int RansWallFunctionUpdateProcess::Check()
 {
     KRATOS_TRY
 
-    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(VELOCITY))
         << "VELOCITY is not found in nodal solution step variables list of "
         << mModelPartName << ".";
+
+    block_for_each(r_model_part.Conditions(), [&](const ModelPart::ConditionType& rCondition) {
+        KRATOS_ERROR_IF_NOT(rCondition.Has(GAUSS_RANS_Y_PLUS))
+            << "GAUSS_RANS_Y_PLUS is not found in condition data value container [ Condition.Id() = "
+            << rCondition.Id() << " ].\n";
+
+        const std::size_t number_of_gauss_points = rCondition.GetGeometry().IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2);
+        KRATOS_ERROR_IF(rCondition.GetValue(GAUSS_RANS_Y_PLUS).size() != number_of_gauss_points)
+            << "GAUSS_RANS_Y_PLUS is not properly initialized. [ GAUSS_RANS_Y_PLUS.size() = " << rCondition.GetValue(GAUSS_RANS_Y_PLUS).size()
+            << ", required size = " << number_of_gauss_points << " ].\n";
+    });
 
     return 0;
 
