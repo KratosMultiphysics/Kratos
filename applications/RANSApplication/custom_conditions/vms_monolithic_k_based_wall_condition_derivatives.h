@@ -72,6 +72,10 @@ public:
 
     static GeometryData::IntegrationMethod GetIntegrationMethod();
 
+    static void InitializeCondition(
+        Condition& rCondition,
+        const ProcessInfo& rProcessInfo);
+
     ///@}
     ///@name Class Declarations
     ///@{
@@ -170,8 +174,8 @@ public:
         ///@{
 
         Data(
-            const Condition& rCondition,
-            const Element& rParentElement,
+            Condition& rCondition,
+            Element& rParentElement,
             const ProcessInfo& rProcessInfo);
 
         ///@}
@@ -184,12 +188,15 @@ public:
             const int Step = 0);
 
         ///@}
+
     private:
         ///@name Private Members
         ///@{
 
-        const Condition& mrCondition;
-        const Element& mrParentElement;
+        Condition& mrCondition;
+        Element& mrParentElement;
+
+        IndexType mGaussIntegrationPointIndex;
 
         /// Primal data
 

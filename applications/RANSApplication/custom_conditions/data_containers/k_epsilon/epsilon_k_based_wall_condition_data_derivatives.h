@@ -273,6 +273,10 @@ public:
 
         static const std::string GetName() { return "KEpsilonEpsilonKBasedWallConditionAdjointData"; }
 
+        static void InitializeCondition(
+            Condition& rCondition,
+            const ProcessInfo& rProcessInfo) {}
+
         ///@}
         ///@name Operations
         ///@{

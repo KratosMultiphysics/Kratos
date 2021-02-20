@@ -72,9 +72,9 @@ void EpsilonKBasedWallConditionDataDerivatives<TDim>::Data::Check(
         << "NORMAL_SHAPE_DERIVATIVE is not found in condition [ Condition.Id() = " << rCondition.Id()
         << " ].\n";
 
-        KRATOS_ERROR_IF_NOT(r_geometry.Has(DISTANCE))
-        << "DISTANCE is not found in condition [ Condition.Id() = " << rCondition.Id()
-        << " ].\n";
+    KRATOS_ERROR_IF_NOT(r_geometry.Has(DISTANCE))
+    << "DISTANCE is not found in condition [ Condition.Id() = " << rCondition.Id()
+    << " ].\n";
 
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const auto& r_node = r_geometry[i_node];

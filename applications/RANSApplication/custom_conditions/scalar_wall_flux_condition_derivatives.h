@@ -70,6 +70,10 @@ public:
 
     static GeometryData::IntegrationMethod GetIntegrationMethod();
 
+    static void InitializeCondition(
+        Condition& rCondition,
+        const ProcessInfo& rProcessInfo);
+
     ///@}
     ///@name Class Declarations
     ///@{

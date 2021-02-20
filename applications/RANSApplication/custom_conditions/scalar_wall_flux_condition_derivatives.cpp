@@ -49,47 +49,46 @@ void ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::Ch
 {
     KRATOS_TRY
 
-    if (RansCalculationUtilities::IsWallFunctionActive(rCondition)) {
-        TConditionDataType::Check(rCondition, rProcessInfo);
+    TConditionDataType::Check(rCondition, rProcessInfo);
 
-        KRATOS_ERROR_IF_NOT(rCondition.Has(NEIGHBOUR_ELEMENTS))
-            << "NEIGHBOUR_ELEMENTS were not found in condition "
-            << rCondition.Info() << ".\n";
+    KRATOS_ERROR_IF_NOT(rCondition.Has(NEIGHBOUR_ELEMENTS))
+        << "NEIGHBOUR_ELEMENTS were not found in condition "
+        << rCondition.Info() << ".\n";
 
-        KRATOS_ERROR_IF_NOT(rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() == 1)
-            << "More than one parent element was found for condition " << rCondition.Info()
-            << " [ number of parents = " << rCondition.GetValue(NEIGHBOUR_ELEMENTS).size()
-            << " ].\n";
+    KRATOS_ERROR_IF_NOT(rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() == 1)
+        << "More than one parent element was found for condition " << rCondition.Info()
+        << " [ number of parents = " << rCondition.GetValue(NEIGHBOUR_ELEMENTS).size()
+        << " ].\n";
 
-        KRATOS_ERROR_IF_NOT(rCondition.Has(GAUSS_RANS_Y_PLUS))
-            << "GAUSS_RANS_Y_PLUS were not found in condition "
-            << rCondition.Info() << ".\n";
+    KRATOS_ERROR_IF_NOT(rCondition.Has(GAUSS_RANS_Y_PLUS))
+        << "GAUSS_RANS_Y_PLUS were not found in condition "
+        << rCondition.Info() << ".\n";
 
-        KRATOS_ERROR_IF_NOT(rCondition.GetValue(GAUSS_RANS_Y_PLUS).size() == 2)
-            << "GAUSS_RANS_Y_PLUS were not initialized properly in condition "
-            << rCondition.Info()
-            << " [ GAUSS_RANS_Y_PLUS.size() = " << rCondition.GetValue(GAUSS_RANS_Y_PLUS).size()
-            << ", required size = " << 2 << " ].\n";
+    const IndexType number_of_gauss_points = rCondition.GetGeometry().IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    KRATOS_ERROR_IF_NOT(rCondition.GetValue(GAUSS_RANS_Y_PLUS).size() == number_of_gauss_points)
+        << "GAUSS_RANS_Y_PLUS were not initialized properly in condition "
+        << rCondition.Info()
+        << " [ GAUSS_RANS_Y_PLUS.size() = " << rCondition.GetValue(GAUSS_RANS_Y_PLUS).size()
+        << ", required size = " << number_of_gauss_points << " ].\n";
 
-        KRATOS_ERROR_IF_NOT(rProcessInfo.Has(VON_KARMAN)) << "VON_KARMAN is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(VON_KARMAN)) << "VON_KARMAN is not found in process info.\n";
 
-        const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
-        const auto& r_parent_element_properties = r_parent_element.GetProperties();
+    const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
+    const auto& r_parent_element_properties = r_parent_element.GetProperties();
 
-        KRATOS_ERROR_IF_NOT(r_parent_element_properties.Has(DENSITY))
-            << "DENSITY is not found in parent element properties. [ "
-            "Properties.Id() = "
-            << r_parent_element_properties.Id()
-            << ", ParentElement.Id() = " << r_parent_element.Id()
-            << ", Condition.Id() = " << rCondition.Id() << " ].\n";
+    KRATOS_ERROR_IF_NOT(r_parent_element_properties.Has(DENSITY))
+        << "DENSITY is not found in parent element properties. [ "
+        "Properties.Id() = "
+        << r_parent_element_properties.Id()
+        << ", ParentElement.Id() = " << r_parent_element.Id()
+        << ", Condition.Id() = " << rCondition.Id() << " ].\n";
 
-        KRATOS_ERROR_IF_NOT(r_parent_element_properties.Has(DYNAMIC_VISCOSITY))
-            << "DYNAMIC_VISCOSITY is not found in parent element properties. [ "
-            "Properties.Id() = "
-            << r_parent_element_properties.Id()
-            << ", ParentElement.Id() = " << r_parent_element.Id()
-            << ", Condition.Id() = " << rCondition.Id() << " ].\n";
-    }
+    KRATOS_ERROR_IF_NOT(r_parent_element_properties.Has(DYNAMIC_VISCOSITY))
+        << "DYNAMIC_VISCOSITY is not found in parent element properties. [ "
+        "Properties.Id() = "
+        << r_parent_element_properties.Id()
+        << ", ParentElement.Id() = " << r_parent_element.Id()
+        << ", Condition.Id() = " << rCondition.Id() << " ].\n";
 
     KRATOS_CATCH("");
 }
@@ -98,6 +97,13 @@ template <unsigned int TDim, unsigned int TNumNodes, class TConditionDataType>
 GeometryData::IntegrationMethod ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::GetIntegrationMethod()
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_2;
+}
+template <unsigned int TDim, unsigned int TNumNodes, class TConditionDataType>
+void ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::InitializeCondition(
+    Condition& rCondition,
+    const ProcessInfo& rProcessInfo)
+{
+    TConditionDataType::InitializeCondition(rCondition, rProcessInfo);
 }
 
 /***************************************************************************************************/
