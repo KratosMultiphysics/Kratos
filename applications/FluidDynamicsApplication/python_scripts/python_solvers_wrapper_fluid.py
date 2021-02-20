@@ -14,7 +14,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        if (solver_type == "Monolithic"):
+        if solver_type == "monolithic" or solver_type == "Monolithic":
             solver_module_name = "navier_stokes_solver_vmsmonolithic"
 
         elif (solver_type == "MonolithicStokes"):
@@ -43,7 +43,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
-        if (solver_type == "Monolithic"):
+        if solver_type == "monolithic" or solver_type == "Monolithic":
             solver_module_name = "trilinos_navier_stokes_solver_vmsmonolithic"
 
         elif (solver_type == "FractionalStep"):

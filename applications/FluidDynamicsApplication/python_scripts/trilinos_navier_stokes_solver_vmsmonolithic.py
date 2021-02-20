@@ -17,57 +17,6 @@ def CreateSolver(model, custom_settings):
 
 class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
-    @classmethod
-    def GetDefaultParameters(cls):
-        ## Default settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type": "trilinos_navier_stokes_solver_vmsmonolithic",
-            "model_part_name": "",
-            "domain_size": -1,
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
-            },
-            "material_import_settings": {
-                "materials_filename": ""
-            },
-            "formulation": {
-                "element_type": "vms"
-            },
-            "maximum_iterations": 10,
-            "echo_level": 0,
-            "consider_periodic_conditions": false,
-            "compute_reactions": false,
-            "analysis_type": "non_linear",
-            "reform_dofs_at_each_step": false,
-            "relative_velocity_tolerance": 1e-5,
-            "absolute_velocity_tolerance": 1e-7,
-            "relative_pressure_tolerance": 1e-5,
-            "absolute_pressure_tolerance": 1e-7,
-            "linear_solver_settings": {
-                "solver_type": "amgcl"
-            },
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts": [""],
-            "no_skin_parts":[""],
-            "time_stepping": {
-                "automatic_time_step" : false,
-                "CFL_number"          : 1,
-                "minimum_delta_time"  : 1e-4,
-                "maximum_delta_time"  : 0.01
-            },
-            "time_scheme": "bossak",
-            "alpha":-0.3,
-            "move_mesh_strategy": 0,
-            "periodic": "periodic",
-            "regularization_coef": 1000,
-            "move_mesh_flag": false
-        }""")
-
-        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverMonolithic, cls).GetDefaultParameters())
-        return default_settings
-
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass=True # To be removed eventually
         # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
