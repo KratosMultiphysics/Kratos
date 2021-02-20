@@ -166,7 +166,7 @@ namespace Kratos
         return rParameters.GetMaterialProperties()[YIELD_SHEAR];
     }
 
-    double HerschelBulkley3DLaw::GetEffectiveFlowIndex(ConstitutiveLaw::Parameters &rParameters) const
+    double HerschelBulkley3DLaw::GetFlowIndex(ConstitutiveLaw::Parameters &rParameters) const
     {
         return rParameters.GetMaterialProperties()[FLOW_INDEX];
     }
