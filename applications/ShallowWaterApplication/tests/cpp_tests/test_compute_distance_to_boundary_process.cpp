@@ -29,10 +29,8 @@ namespace Testing {
 
 typedef ModelPart::NodeType NodeType;
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToOneBoundaryProcess, ShallowWaterApplicationFastSuite)
+void InitializeAndFillModelPart(ModelPart& rModelPart)
 {
-    Model model;
-
     Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
     Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
     Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
@@ -47,9 +45,16 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToOneBoundaryProcess, ShallowWaterApp
         "condition_name":       "LineCondition"
     })");
 
+    rModelPart.AddNodalSolutionStepVariable(DISTANCE);
+    StructuredMeshGeneratorProcess(geometry, rModelPart, mesher_parameters).Execute();
+    VariableUtils().SetVariable(DISTANCE, std::numeric_limits<double>::max(), rModelPart.Nodes());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToOneBoundaryProcess, ShallowWaterApplicationFastSuite)
+{
+    Model model;
     ModelPart& r_model_part = model.CreateModelPart("model_part");
-    r_model_part.AddNodalSolutionStepVariable(DISTANCE);
-    StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
+    InitializeAndFillModelPart(r_model_part);
 
     auto& r_boundary_part = r_model_part.CreateSubModelPart("boundary");
     for (auto& r_node : r_model_part.Nodes()) {
@@ -58,7 +63,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToOneBoundaryProcess, ShallowWaterApp
         }
     }
 
-    VariableUtils().SetVariable(DISTANCE, std::numeric_limits<double>::max(), r_model_part.Nodes());
     CalculateDistanceToBoundaryProcess(r_model_part, r_boundary_part).ExecuteBeforeSolutionLoop();
 
     const double tolerance = 1e-16;
@@ -71,24 +75,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToOneBoundaryProcess, ShallowWaterApp
 KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToTwoBoundariesProcess, ShallowWaterApplicationFastSuite)
 {
     Model model;
-
-    Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-    Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.0, 0.0, 0.0);
-
-    Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
-
-    Parameters mesher_parameters(R"(
-    {
-        "number_of_divisions":  5,
-        "element_name":         "Element2D3N",
-        "condition_name":       "LineCondition"
-    })");
-
     ModelPart& r_model_part = model.CreateModelPart("model_part");
-    r_model_part.AddNodalSolutionStepVariable(DISTANCE);
-    StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
+    InitializeAndFillModelPart(r_model_part);
 
     auto& r_boundary_part_1 = r_model_part.CreateSubModelPart("boundary_1");
     for (auto& r_node : r_model_part.Nodes()) {
@@ -104,7 +92,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToTwoBoundariesProcess, ShallowWaterA
         }
     }
 
-    VariableUtils().SetVariable(DISTANCE, std::numeric_limits<double>::max(), r_model_part.Nodes());
     CalculateDistanceToBoundaryProcess(r_model_part, r_boundary_part_1).ExecuteBeforeSolutionLoop();
     CalculateDistanceToBoundaryProcess(r_model_part, r_boundary_part_2).ExecuteBeforeSolutionLoop();
 
@@ -113,6 +100,27 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToTwoBoundariesProcess, ShallowWaterA
         const double distance = std::min(1.0 - r_node.X(), 1.0 - r_node.Y());
         KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(DISTANCE), distance, tolerance);
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToWrongBoundaryProcess, ShallowWaterApplicationFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("model_part");
+    InitializeAndFillModelPart(r_model_part);
+
+    auto& r_boundary_part = r_model_part.CreateSubModelPart("boundary");
+    for (auto& r_node : r_model_part.Nodes()) {
+        if (r_node.X() >= 1.0) {
+            r_boundary_part.AddNode(&r_node);
+        }
+        if ((r_node.X() > 0.5) && (r_node.Y() >= 1.0)) {
+            r_boundary_part.AddNode(&r_node);
+        }
+    }
+
+    CalculateDistanceToBoundaryProcess process(r_model_part, r_boundary_part);
+
+    KRATOS_CHECK_NEAR(process.GetRSquared(), 0.803162, 1e-6);
 }
 
 } // namespace Testing

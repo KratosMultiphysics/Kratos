@@ -86,7 +86,7 @@ public:
             mrModelPart(rComputingModelPart)
     {
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-        mWarningDistanceTreshold = ThisParameters["warning_distance_treshold"].GetDouble();
+        mRSquaredTreshold = ThisParameters["r_squared_treshold"].GetDouble();
         FindApproximatingGeometry(mpBoundary, rBoundaryModelPart);
     }
 
@@ -102,9 +102,13 @@ public:
     ///@name Operations
     ///@{
 
+    int Check() override;
+
     void ExecuteBeforeSolutionLoop() override;
 
     const Parameters GetDefaultParameters() const override;
+
+    double GetRSquared();
 
     ///@}
     ///@name Access
@@ -124,7 +128,7 @@ public:
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "CalculateDistanceToBondaryProcess";
+        buffer << "CalculateDistanceToBoundaryProcess";
         return buffer.str();
     }
 
@@ -153,7 +157,8 @@ private:
 
     ModelPart& mrModelPart;
     GeometryType::Pointer mpBoundary;
-    double mWarningDistanceTreshold;
+    double mRSquaredTreshold;
+    double mRSquared;
 
     ///@}
     ///@name Member Variables
@@ -169,7 +174,11 @@ private:
     ///@name Private Operations
     ///@{
 
-    void FindApproximatingGeometry(GeometryType::Pointer& pEntity, const ModelPart& rModelPart);
+    void FindApproximatingGeometry(GeometryType::Pointer& pEntity, const ModelPart& rBoundaryPart);
+
+    double RSquared(const GeometryType& rLine, const ModelPart& rBoundaryPart);
+
+    double SquaredDistance(const Point& rPointA, const Point& rPointB);
 
     ///@}
     ///@name Private  Access
