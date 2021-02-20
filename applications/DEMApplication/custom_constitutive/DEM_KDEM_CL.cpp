@@ -141,7 +141,11 @@ namespace Kratos {
         const double angle_of_internal_friction_in_radians = atan(element->GetFastProperties()->GetContactInternalFricc());
         const double contact_tau_zero = element->GetFastProperties()->GetContactTauZero();
 
-        return (2.0 * contact_tau_zero * cos(angle_of_internal_friction_in_radians)) / (1.0 + sin(angle_of_internal_friction_in_radians));
+        double sigma = 2.0 * contact_tau_zero * cos(angle_of_internal_friction_in_radians) / (1.0 + sin(angle_of_internal_friction_in_radians));
+        
+        //KRATOS_WATCH(sigma)
+
+        return sigma; 
 
         KRATOS_CATCH("")
     }
