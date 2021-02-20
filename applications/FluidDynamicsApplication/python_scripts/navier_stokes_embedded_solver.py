@@ -260,6 +260,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
             "consider_periodic_conditions": false,
+            "assign_neighbour_elements_to_conditions": true,
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
@@ -270,8 +271,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
-            "assign_neighbour_elements_to_conditions": true,
-            "time_stepping"                : {
+            "time_stepping": {
                 "automatic_time_step" : true,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-2,
@@ -303,7 +303,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self.settings["fm_ale_settings"]["fm_ale_solver_settings"].ValidateAndAssignDefaults(self._get_fm_ale_solver_default_settings(mesh_movement))
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
         # TODO: DO SOMETHING IN HERE TO REMOVE THE "time_order" FROM THE DEFAULT SETTINGS BUT KEEPING THE BACKWARDS COMPATIBILITY
         super(NavierStokesEmbeddedMonolithicSolver,self).__init__(model,custom_settings)
 
