@@ -106,7 +106,8 @@ void CalculateDistanceToBoundaryProcess::ExecuteBeforeSolutionLoop()
     block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
         Point projected;
         double& r_distance = rNode.FastGetSolutionStepValue(DISTANCE);
-        const auto projection = GeometricalProjectionUtilities::FastProjectOnLine2D(*mpBoundary, rNode, projected);
+        // TODO: remove the std::abs once the GeometricalProjectionUtilities are fixed or a consensus is reached
+        const auto projection = std::abs(GeometricalProjectionUtilities::FastProjectOnLine2D(*mpBoundary, rNode, projected));
         r_distance = std::min(r_distance, projection);
     });
 }
@@ -115,6 +116,8 @@ const Parameters CalculateDistanceToBoundaryProcess::GetDefaultParameters() cons
 {
     auto default_parameters = Parameters(R"(
     {
+        "computing_model_part_name" : "PLEASE_CHOOSE_MODEL_PART_NAME",
+        "absorbing_boundaries_list" : [],
         "r_squared_treshold" : 0.99
     })");
     return default_parameters;
