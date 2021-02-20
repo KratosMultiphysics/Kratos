@@ -70,8 +70,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults2, KratosHDF5TestSuite)
             "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL"]
         })");
     HDF5::NodalSolutionStepDataIO data_io(io_params, p_test_file);
-    data_io.WriteNodalResults(r_write_model_part.Nodes());
-    data_io.ReadNodalResults(r_read_model_part.Nodes(), r_read_model_part.GetCommunicator());
+    data_io.WriteNodalResults(r_write_model_part);
+    data_io.ReadNodalResults(r_read_model_part);
     for (unsigned i = 0; i < 15; ++i)
     {
         HDF5::NodeType& r_read_node = r_read_model_part.Nodes()[i + 1];
@@ -129,8 +129,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults, KratosHDF5TestSuite)
             "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL"]
         })");
     HDF5::NodalSolutionStepDataIO data_io(io_params, p_test_file);
-    data_io.WriteNodalResults(r_write_model_part.Nodes());
-    data_io.ReadNodalResults(r_read_model_part.Nodes(), r_read_model_part.GetCommunicator());
+    data_io.WriteNodalResults(r_write_model_part);
+    data_io.ReadNodalResults(r_read_model_part);
     for (unsigned i = 0; i < 15; ++i)
     {
         HDF5::NodeType& r_read_node = r_read_model_part.Nodes()[i + 1];
