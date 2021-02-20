@@ -77,7 +77,7 @@ public:
     /// bis Hier!!!!!!!
 
     /// Counted pointer of SmallDisplacementSIMPElement
-    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementSIMPElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementSIMPElement );
     
     ///@}
     ///@name Life Cycle
@@ -89,7 +89,9 @@ public:
     SmallDisplacementSIMPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SmallDisplacementSIMPElement(SmallDisplacementSIMPElement const& rOther);
+    SmallDisplacementSIMPElement(SmallDisplacementSIMPElement const& rOther)
+       :BaseType(rOther)
+    {};
 
     /// Destructor.
     ~SmallDisplacementSIMPElement() override;
@@ -99,53 +101,78 @@ public:
     ///@{
 
     /// Assignment operator.
-    SmallDisplacementSIMPElement& operator=(SmallDisplacementSIMPElement const& rOther);
+    // SmallDisplacementSIMPElement& operator=(SmallDisplacementSIMPElement const& rOther);
 
     ///@}
     ///@name Operations
     ///@{
+       /**
+     * @brief Called to initialize the element.
+     * @warning Must be called before any calculation is done
+     */  
     /**
      * Returns the currently selected integration method
      * @return current integration method selected
      */
     /**
-     * creates a new total lagrangian updated element pointer
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
-
     Element::Pointer Create(
-    IndexType NewId,
-    GeometryType::Pointer pGeom,
-    PropertiesType::Pointer pProperties
-    ) const override;
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
     /**
-     * clones the selected element variables, creating a new one
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
+    /**
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
 
 
     // =============================================================================================================================================
     // STARTING / ENDING METHODS
     // =============================================================================================================================================
-
+    
     /// Function that gets the value on the Integration Point (For printing purposes in the output GiD)
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Function to calculate the sensitivities and the objective function
-    void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void Calculate(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    );
+
+    
 
     /// Function that overwrites the CalculateOnIntegrationPoints, to insert the X_PHYS into all Gauss Points of the given element
     /// That allows printing X_PHYS as elemental value in GiD
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetElementData(const KinematicVariables& rThisKinematicVariables, ConstitutiveLaw::Parameters& rValues, const int & rPointNumber);
 
     // =============================================================================================================================================
     // =============================================================================================================================================
@@ -161,6 +188,26 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+            /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Small Displacement Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Small Displacement Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
     ///@}
     ///@name Friends
     ///@{
@@ -180,6 +227,7 @@ protected:
     SmallDisplacementSIMPElement() : SmallDisplacement()
     {
     }
+    
 
 
     ///@}
@@ -214,18 +262,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    template<class TType>
-        void GetValueOnConstitutiveLaw(
-            const Variable<TType>& rVariable,
-            std::vector<TType>& rOutput
-            )
-        {
-            const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
-
-            for ( IndexType point_number = 0; point_number <integration_points.size(); ++point_number ) {
-                mConstitutiveLawVector[point_number]->GetValue( rVariable,rOutput[point_number]);
-            }
-        }
 
     ///@}
     ///@name Private  Access

@@ -8,36 +8,42 @@ import os
 import OptimizationParameters as opt_parameters
 from importlib import import_module
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.TopologyOptimizationApplication import topology_optimizer_factory
 
-parameter_file = open("ProjectParameters.json",'r')
+
+parameter_file = open("/home/philipp/opt/kratosDev/applications/TopologyOptimizationApplication/examples/01_Small_Cantilever_Hexahedra/ProjectParameters.json",'r')
 ProjectParameters = km.Parameters(parameter_file.read())
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
-model = km.Model()
-main_model_part = model.CreateModelPart("Structure")
-main_model_part.ProcessInfo.SetValue(km.DOMAIN_SIZE, 3)
+current_model = km.Model()
+dimension = 2
+model_part = current_model.CreateModelPart("Structure")
 solver_module = ProjectParameters["solver_settings"]["solver_type"].GetString()
+#mod = 'KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_static_solver'
 mod = 'KratosMultiphysics.TopologyOptimizationApplication.topology_optimization_simp_static_solver'
-solver = import_module(mod).CreateSolver(model, ProjectParameters["solver_settings"])
+solver = import_module(mod).CreateSolver(current_model, ProjectParameters["solver_settings"])
 solver.AddVariables()
 solver.ImportModelPart()
 solver.AddDofs()
-""" for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
-    part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-    if( main_model_part.HasSubModelPart(part_name) ):
-        Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
- """
+model_part.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 200.0e9)
+model_part.GetProperties()[1].SetValue(km.POISSON_RATIO, 0.4)
+model_part.GetProperties()[1].SetValue(km.DENSITY, 1.0)
+
+cons_law = ksm.LinearElastic3DLaw()
+model_part.GetProperties()[1].SetValue(km.CONSTITUTIVE_LAW, cons_law)
+
 if(echo_level>1):
-    print(main_model_part)
-    for properties in main_model_part.Properties:
+    print(model_part)
+    for properties in model_part.Properties:
         print(properties)
 
 #obtain the list of the processes to be applied (the process order of execution is important)
-list_of_processes  = process_factory.KratosProcessFactory(model).ConstructListOfProcesses( ProjectParameters["processes"]["constraints_process_list"] )
-list_of_processes += process_factory.KratosProcessFactory(model).ConstructListOfProcesses( ProjectParameters["processes"]["loads_process_list"] )
+list_of_processes  = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( ProjectParameters["processes"]["constraints_process_list"] )
+list_of_processes += process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( ProjectParameters["processes"]["loads_process_list"] )
 if(ProjectParameters.Has("problem_process_list")):
-    list_of_processes += process_factory.KratosProcessFactory(model).ConstructListOfProcesses( ProjectParameters["processes"]["problem_process_list"] )
+    list_of_processes += process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( ProjectParameters["processes"]["problem_process_list"] )
 if(ProjectParameters.Has("output_process_list")):
-    list_of_processes += process_factory.KratosProcessFactory(model).ConstructListOfProcesses( ProjectParameters["processes"]["output_process_list"] )
+    list_of_processes += process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( ProjectParameters["processes"]["output_process_list"] )
             
 if(echo_level>1):
     for process in list_of_processes:
@@ -65,8 +71,28 @@ gid_output.ExecuteBeforeSolutionLoop()
 def solve_structure(opt_itr):    
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
-    gid_output.ExecuteInitializeSolutionStep()       
-    solver.Solve()
+    gid_output.ExecuteInitializeSolutionStep() 
+
+    #solve problem
+    linear_solver = km.SkylineLUFactorizationSolver()
+    builder_and_solver = km.ResidualBasedBlockBuilderAndSolver(linear_solver)
+    scheme = km.ResidualBasedIncrementalUpdateStaticScheme()
+    compute_reactions = True
+    reform_step_dofs = True
+    calculate_norm_dx = False
+    move_mesh_flag = True
+
+    strategy = km.ResidualBasedLinearStrategy(
+        model_part,
+        scheme,
+        builder_and_solver,
+        compute_reactions,
+        reform_step_dofs,
+        calculate_norm_dx,
+        move_mesh_flag)
+
+    strategy.Solve()
+
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
     gid_output.ExecuteFinalizeSolutionStep()
@@ -87,9 +113,9 @@ def FinalizeKSMProcess():
     
 def Analyzer(controls, response, opt_itr):
     # Create object to analyze structure response functions if required
-    response_analyzer = StructureResponseFunctionUtilities(main_model_part)
-    linear_solver = kls.linear_solver_factory.ConstructSolver(ProjectParameters["solver_settings"]["linear_solver_settings"])
-    sensitivity_solver = StructureAdjointSensitivityStrategy(main_model_part, linear_solver,ProjectParameters["problem_data"]["domain_size"].GetInt())
+    response_analyzer = kto.StructureResponseFunctionUtilities(model_part)
+    linear_solver = km.python_linear_solver_factory.ConstructSolver(ProjectParameters["solver_settings"]["linear_solver_settings"])
+    sensitivity_solver = kto.StructureAdjointSensitivityStrategy(model_part, linear_solver,ProjectParameters["solver_settings"]["domain_size"].GetInt())
     # Compute objective function value Call the Solid Mechanics Application to compute objective function value
     if(controls["strain_energy"]["calc_func"]):
         # Compute structure solution to get displacement field u
@@ -108,6 +134,6 @@ def Analyzer(controls, response, opt_itr):
         sensitivity_solver.ComputeVolumeFractionSensitivities()
 
 # optimization
-optimizer = kto.topology_optimizer_factory.ConstructOptimizer(main_model_part, opt_parameters, Analyzer)
+optimizer = kto.topology_optimizer_factory.ConstructOptimizer(model_part, opt_parameters, Analyzer)
 optimizer.optimize()
 FinalizeKSMProcess()
