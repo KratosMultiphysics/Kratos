@@ -27,16 +27,17 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.processes = []
-        model_part = model[settings["computing_model_part_name"].GetString()]
+        self.model_part = model[settings["computing_model_part_name"].GetString()]
         boundaries_names = settings["absorbing_boundaries_list"].GetStringArray()
         for name in boundaries_names:
-            boundary_part = model_part.GetSubModelPart(name)
-            self.processes.append(SW.CalculateDistanceToBoundaryProcess(model_part, boundary_part, settings))
+            boundary_part = self.model_part.GetSubModelPart(name)
+            self.processes.append(SW.CalculateDistanceToBoundaryProcess(self.model_part, boundary_part, settings))
 
-        KM.VariableUtils().SetVariable(KM.DISTANCE, 1e+38, model_part.Nodes)
+        for process in self.processes:
+            process.Check()
 
-    # TODO: Move the execution order: first perform the check and then generate the approximating line
-    # TODO: check if there are more active processes calculating the distances
+    def ExecuteInitialize(self):
+        KM.VariableUtils().SetVariable(KM.DISTANCE, 1e+38, self.model_part.Nodes)
 
     def ExecuteBeforeSolutionLoop(self):
         for process in self.processes:
