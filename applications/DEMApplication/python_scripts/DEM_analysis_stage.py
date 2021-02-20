@@ -339,9 +339,10 @@ class DEMAnalysisStage(AnalysisStage):
         self.projected_homogenization_vars += [VOLUME_SOLID_FRACTION]
         self.projected_homogenization_vars += [MASS_SOLID_FRACTION]
         self.projected_homogenization_vars += [VELOCITY_PROJECTED]
-        self.projected_homogenization_vars += [TIME_AVERAGED_ARRAY_3]
         self.projected_homogenization_vars += [NODAL_AREA]
         self.time_filtered_vars = []
+        self.time_filtered_vars += [TIME_AVERAGED_ARRAY_3]
+        self.time_filtered_vars += [TIME_AVERAGED_DOUBLE]
 
         for var in self.projected_homogenization_vars:
             self.homogenization_model_part.AddNodalSolutionStepVariable(var)

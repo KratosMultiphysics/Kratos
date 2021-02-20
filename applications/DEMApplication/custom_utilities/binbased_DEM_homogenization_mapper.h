@@ -117,11 +117,11 @@ BinBasedDEMHomogenizationMapper(Parameters& rParameters)
 {
     Parameters default_parameters( R"(
         {
-            "homogenization_type": "constant"
+            "FilterType": "Linear"
         }  )" );
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
-    mHomogenizationType = mHomogenizationTypeStringToEnumMap[rParameters["homogenization_type"].GetString()];
+    mHomogenizationType = mHomogenizationTypeStringToEnumMap[rParameters["FilterType"].GetString()];
 
     mVariables = VariablesContainer();
 }
@@ -278,12 +278,12 @@ class VariablesContainer
 	}
 };
 
-enum HomogenizationType {constant, linear, filtered};
+enum HomogenizationType {Constant, Linear, Filtered};
 inline static std::map<std::string, HomogenizationType> CreateMap(){
   static std::map<std::string, HomogenizationType> m;
-  m["constant"] = constant;
-  m["linear"] = linear;
-  m["filtered"] = filtered;
+  m["Constant"] = Constant;
+  m["Linear"] = Linear;
+  m["Filtered"] = Filtered;
   return m;
 }
 bool mMustCalculateMaxNodalArea;

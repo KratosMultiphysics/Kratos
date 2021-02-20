@@ -158,7 +158,7 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::DistributeDimensionalC
     const Vector& N,
     ParticleType& particle)
 {
-    if (mHomogenizationType == constant){
+    if (mHomogenizationType == Constant){
         CalculateNodalHomogenizationPartWithConstantWeighing(p_elem, N, particle);
     }
 
@@ -254,16 +254,16 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::Distribute(
     Node<3>::Pointer p_node,
     const VariableData *r_destination_variable)
 {
-    if (mHomogenizationType == constant){
+    if (mHomogenizationType == Constant){
 
-        if (*r_destination_variable == PARTICLE_VEL_FILTERED){
+        if (*r_destination_variable == VELOCITY_PROJECTED){
             TransferWithConstantWeighing(p_elem, N, p_node, VELOCITY_PROJECTED, VELOCITY);
         }
     }
 
     else{
 
-        if (*r_destination_variable == PARTICLE_VEL_FILTERED){
+        if (*r_destination_variable == VELOCITY_PROJECTED){
             TransferWithLinearWeighing(p_elem, N, p_node, VELOCITY_PROJECTED, VELOCITY);
         }
     }

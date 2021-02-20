@@ -405,6 +405,7 @@ class Procedures(object):
         cluster_model_part = all_model_parts.Get('ClusterPart')
         dem_inlet_model_part = all_model_parts.Get('DEMInletPart')
         rigid_face_model_part = all_model_parts.Get('RigidFacePart')
+        homogenization_model_part = all_model_parts.Get('HomogenizationModelPart')
 
         self.solver = weakref.proxy(solver)
         self.translational_scheme = weakref.proxy(translational_scheme)
@@ -422,6 +423,7 @@ class Procedures(object):
         self.AddCommonVariables(rigid_face_model_part, DEM_parameters)
         self.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
         self.AddMpiVariables(rigid_face_model_part)
+        self.AddHomogenizationVariables(homogenization_model_part, DEM_parameters)
 
     @classmethod
     def AddCommonVariables(self, model_part, DEM_parameters):
@@ -591,6 +593,12 @@ class Procedures(object):
 
     def AddMpiVariables(self, model_part):
         pass
+
+    def AddHomogenizationVariables(self, model_part, DEM_parameters):
+
+        model_part.AddNodalSolutionStepVariable(VELOCITY_PROJECTED)
+        model_part.AddNodalSolutionStepVariable(VOLUME_SOLID_FRACTION)
+
 
     def SetInitialNodalValues(self, spheres_model_part, cluster_model_part, dem_inlet_model_part, rigid_face_model_part):
         pass
@@ -1355,6 +1363,7 @@ class DEMIo(object):
         self.rigid_body_variables = []
         self.contact_variables = []
         self.multifilelists = []
+        self.homogenization_variables = [VELOCITY_PROJECTED]
 
         # Reading Post options from DEM_parameters
         self.PostDisplacement = self.DEM_parameters["PostDisplacement"].GetBool()
@@ -1813,6 +1822,10 @@ class DEMIo(object):
             for variable in self.contact_variables:
                 self.gid_io.PrintOnGaussPoints(variable, export_model_part, time)
 
+    def PrintHomogenizationVariables(self, export_model_part, time):
+        for variable in self.homogenization_variables:
+            self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
+
     def PrintResults(self, all_model_parts, creator_destructor, dem_fem_search, time, bounding_box_time_limits):
 
         #TODO: move these definitions to the constructor! (__init__) moved!
@@ -1843,6 +1856,8 @@ class DEMIo(object):
         self.PrintingRigidBodyVariables(self.rigid_face_model_part, time)
         self.PrintingClusterVariables(self.cluster_model_part, time)
         self.PrintingContactElementsVariables(self.contact_model_part, time)
+        self.PrintHomogenizationVariables(self.homogenization_model_part, time)
+
 
         self.RemoveElementsAndNodes()
 

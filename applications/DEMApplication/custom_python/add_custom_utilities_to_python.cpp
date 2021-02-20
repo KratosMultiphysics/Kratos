@@ -375,6 +375,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         //.def("ComputePostProcessResults", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::ComputePostProcessResults)
         .def("AddHomogenizationCouplingVariable", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::AddHomogenizationCouplingVariable<double>)
         .def("AddHomogenizationCouplingVariable", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::AddHomogenizationCouplingVariable<array_1d<double, 3>>)
+        .def("AddHomogenizationVariableToBeTimeFiltered", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::AddHomogenizationVariableToBeTimeFiltered<double>)
+	    .def("AddHomogenizationVariableToBeTimeFiltered", &BinBasedDEMHomogenizationMapper <2,SphericParticle> ::AddHomogenizationVariableToBeTimeFiltered<array_1d<double, 3>>)
+
         ;
     py::class_<BinBasedDEMHomogenizationMapper <3, SphericParticle> > (m, "BinBasedDEMHomogenizationMapper3D")
 	    .def(py::init<Parameters&>())

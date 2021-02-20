@@ -18,16 +18,12 @@ class ProjectionModule:
         self.particles_model_part = balls_model_part
         self.project_parameters = project_parameters
         self.dimension = domain_size
-        #TODO: 
-        self.homogenization_type = project_parameters["homogenization_utility_settings"]["homogenization_type"].GetString()
-        #self.shape_factor = self.project_parameters["homogenization"]["shape_factor"].GetDouble()
-        #self.meso_scale_length = self.project_parameters["homogenization"]["meso_scale_length"].GetDouble()
-        #self.averaging_time_interval = self.project_parameters["homogenization"]["averaging_time_interval"].GetInt()
+        self.homogenization_type = project_parameters["FilterType"].GetString()
         self.averaging_time_interval = 1
 
         # Create projector_parameters
         self.projector_parameters = Parameters("{}")
-        self.projector_parameters.AddValue("homogenization_type", project_parameters["homogenization_utility_settings"]["homogenization_type"])
+        self.projector_parameters.AddValue("FilterType", project_parameters["FilterType"])
         if self.dimension == 3:
             self.projector = DEM.BinBasedDEMHomogenizationMapper3D(self.projector_parameters)
             self.bin_of_objects_homogenization = Kratos.BinBasedFastPointLocator3D(homogenization_model_part)
@@ -60,7 +56,7 @@ class ProjectionModule:
 
     def ProjectFromParticles(self, recalculate_neigh = True):
 
-        if self.homogenization_type != "filtered":
+        if self.homogenization_type != "Filtered":
             self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.homogenization_model_part, self.bin_of_objects_homogenization)
 
         else:
