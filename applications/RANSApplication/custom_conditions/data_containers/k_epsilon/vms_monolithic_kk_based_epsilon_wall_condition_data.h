@@ -61,6 +61,10 @@ public:
 
     static std::vector<const Variable<double>*> GetDofVariablesList();
 
+    static void InitializeCondition(
+        Condition& rCondition,
+        const ProcessInfo& rProcessInfo);
+
     ///@}
     ///@name Classes
     ///@{

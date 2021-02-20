@@ -198,7 +198,9 @@ Condition::Pointer TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, T
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 int TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    TAdjointConditionData::Check(*this, rCurrentProcessInfo);
+     if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+        TAdjointConditionData::Check(*this, rCurrentProcessInfo);
+     }
     return 0.0;
 }
 
@@ -324,6 +326,10 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 {
     KRATOS_TRY;
 
+    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+        TAdjointConditionData::InitializeCondition(*this, rCurrentProcessInfo);
+    }
+
     KRATOS_CATCH("");
 }
 
@@ -380,7 +386,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     rRightHandSideVector.clear();
 
     if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-        const auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
+        auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
         AddFluidResidualsContributions(rRightHandSideVector, r_parent_element, rCurrentProcessInfo);
         AddTurbulenceResidualsContributions(rRightHandSideVector, r_parent_element, rCurrentProcessInfo);
     }
@@ -399,7 +405,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     rLeftHandSideMatrix.clear();
 
     if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-        const auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
+        auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
         AddFluidFirstDerivatives(rLeftHandSideMatrix, r_parent_element, rCurrentProcessInfo);
         AddTurbulenceFirstDerivatives(rLeftHandSideMatrix, r_parent_element, rCurrentProcessInfo);
     }
@@ -448,7 +454,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     KRATOS_TRY
 
     if (rSensitivityVariable == SHAPE_SENSITIVITY) {
-        const auto& r_parent_elemnet = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
+        auto& r_parent_elemnet = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
         const IndexType coords_size = TDim * r_parent_elemnet.GetGeometry().PointsNumber();
 
         if (rOutput.size1() != coords_size || rOutput.size2() != TConditionLocalSize) {
@@ -496,7 +502,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddFluidResidualsContributions(
     Vector& rOutput,
-    const Element& rParentElement,
+    Element& rParentElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -530,7 +536,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddFluidFirstDerivatives(
     MatrixType& rOutput,
-    const Element& rParentElement,
+    Element& rParentElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -581,7 +587,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddFluidShapeDerivatives(
     Matrix& rOutput,
-    const Element& rParentElement,
+    Element& rParentElement,
     const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -633,7 +639,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddTurbulenceResidualsContributions(
     Vector& rOutput,
-    const Element& rParentElement,
+    Element& rParentElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& integration_method = TurbulenceModelEquation2Data::TResidualsDerivatives::GetIntegrationMethod();
@@ -666,7 +672,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddTurbulenceFirstDerivatives(
     MatrixType& rOutput,
-    const Element& rParentElement,
+    Element& rParentElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -725,7 +731,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddTurbulenceShapeDerivatives(
     Matrix& rOutput,
-    const Element& rParentElement,
+    Element& rParentElement,
     const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
     const ProcessInfo& rCurrentProcessInfo)
 {

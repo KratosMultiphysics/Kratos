@@ -50,66 +50,68 @@ void VMSMonolithicKBasedWallConditionDerivatives<TDim, TNumNodes>::Check(
 {
     KRATOS_TRY
 
-    if (RansCalculationUtilities::IsWallFunctionActive(rCondition)) {
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(TURBULENCE_RANS_C_MU))
+        << "TURBULENCE_RANS_C_MU is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(VON_KARMAN))
+        << "VON_KARMAN is not found in process info.\n";
 
-        KRATOS_ERROR_IF_NOT(rProcessInfo.Has(TURBULENCE_RANS_C_MU))
-            << "TURBULENCE_RANS_C_MU is not found in process info.\n";
-        KRATOS_ERROR_IF_NOT(rProcessInfo.Has(VON_KARMAN))
-            << "VON_KARMAN is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCondition.Has(NEIGHBOUR_ELEMENTS))
+        << "NEIGHBOUR_ELEMENTS is not found for condition. [ Condition.Id() = "
+        << rCondition.Id() << " ].\n";
+    KRATOS_ERROR_IF(rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() != 1)
+        << "There can be only one parent element for the condition in "
+        "NEIGHBOUR_ELEMENTS variable. [ Condition.Id() = "
+        << rCondition.Id() << ", NEIGHBOUR_ELEMENTS.size() = "
+        << rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() << " ].\n";
 
-        KRATOS_ERROR_IF_NOT(rCondition.Has(NEIGHBOUR_ELEMENTS))
-            << "NEIGHBOUR_ELEMENTS is not found for condition. [ Condition.Id() = "
-            << rCondition.Id() << " ].\n";
-        KRATOS_ERROR_IF(rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() != 1)
-            << "There can be only one parent element for the condition in "
-            "NEIGHBOUR_ELEMENTS variable. [ Condition.Id() = "
-            << rCondition.Id() << ", NEIGHBOUR_ELEMENTS.size() = "
-            << rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() << " ].\n";
+    const auto& r_element_properties =
+        rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
+    KRATOS_ERROR_IF_NOT(r_element_properties.Has(DENSITY))
+        << "DENSITY is not found in parent element properties. [ "
+        "Condition.Id() = "
+        << rCondition.Id()
+        << ", Properties.Id() = " << r_element_properties.Id() << " ].\n";
+    KRATOS_ERROR_IF_NOT(r_element_properties.Has(DYNAMIC_VISCOSITY))
+        << "DYNAMIC_VISCOSITY is not found in parent element properties. [ "
+        "Condition.Id() = "
+        << rCondition.Id()
+        << ", Properties.Id() = " << r_element_properties.Id() << " ].\n";
 
-        const auto& r_element_properties =
-            rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
-        KRATOS_ERROR_IF_NOT(r_element_properties.Has(DENSITY))
-            << "DENSITY is not found in parent element properties. [ "
-            "Condition.Id() = "
-            << rCondition.Id()
-            << ", Properties.Id() = " << r_element_properties.Id() << " ].\n";
-        KRATOS_ERROR_IF_NOT(r_element_properties.Has(DYNAMIC_VISCOSITY))
-            << "DYNAMIC_VISCOSITY is not found in parent element properties. [ "
-            "Condition.Id() = "
-            << rCondition.Id()
-            << ", Properties.Id() = " << r_element_properties.Id() << " ].\n";
+    const auto& r_condition_properties = rCondition.GetProperties();
+    KRATOS_ERROR_IF_NOT(r_condition_properties.Has(WALL_SMOOTHNESS_BETA))
+        << "WALL_SMOOTHNESS_BETA is not found in condition properties. [ "
+        "Condition.Id() = "
+        << rCondition.Id()
+        << ", Properties.Id() = " << r_condition_properties.Id() << " ].\n";
+    KRATOS_ERROR_IF_NOT(r_condition_properties.Has(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT))
+        << "RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT is not found in condition properties. [ "
+        "Condition.Id() = "
+        << rCondition.Id()
+        << ", Properties.Id() = " << r_condition_properties.Id() << " ].\n";
 
-        const auto& r_condition_properties = rCondition.GetProperties();
-        KRATOS_ERROR_IF_NOT(r_condition_properties.Has(WALL_SMOOTHNESS_BETA))
-            << "WALL_SMOOTHNESS_BETA is not found in condition properties. [ "
-            "Condition.Id() = "
-            << rCondition.Id()
-            << ", Properties.Id() = " << r_condition_properties.Id() << " ].\n";
-        KRATOS_ERROR_IF_NOT(r_condition_properties.Has(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT))
-            << "RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT is not found in condition properties. [ "
-            "Condition.Id() = "
-            << rCondition.Id()
-            << ", Properties.Id() = " << r_condition_properties.Id() << " ].\n";
+    KRATOS_ERROR_IF_NOT(rCondition.Has(NORMAL))
+        << "NORMAL is not found in condition. [ Condition.Id() = " << rCondition.Id()
+        << " ].\n";
 
-        KRATOS_ERROR_IF_NOT(rCondition.Has(NORMAL))
-            << "NORMAL is not found in condition. [ Condition.Id() = " << rCondition.Id()
-            << " ].\n";
+    KRATOS_ERROR_IF(norm_2(rCondition.GetValue(NORMAL)) == 0.0)
+        << "NORMAL is not properly defined for condition. [ Condition.Id() = "
+        << rCondition.Id() << " ].\n";
 
-        KRATOS_ERROR_IF(norm_2(rCondition.GetValue(NORMAL)) == 0.0)
-            << "NORMAL is not properly defined for condition. [ Condition.Id() = "
-            << rCondition.Id() << " ].\n";
+    KRATOS_ERROR_IF_NOT(rCondition.Has(NORMAL_SHAPE_DERIVATIVE))
+        << "NORMAL_SHAPE_DERIVATIVE is not found in condition. [ "
+        "Condition.Id() = "
+        << rCondition.Id() << " ].\n";
 
-        KRATOS_ERROR_IF_NOT(rCondition.Has(NORMAL_SHAPE_DERIVATIVE))
-            << "NORMAL_SHAPE_DERIVATIVE is not found in condition. [ "
-            "Condition.Id() = "
-            << rCondition.Id() << " ].\n";
+    KRATOS_ERROR_IF_NOT(rCondition.Has(DISTANCE))
+        << "DISTANCE is not found in condition. [ "
+        "Condition.Id() = "
+        << rCondition.Id() << " ].\n";
 
-        const auto& r_geometry = rCondition.GetGeometry();
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
-            const auto& r_node = r_geometry[i_node];
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
-        }
+    const auto& r_geometry = rCondition.GetGeometry();
+    for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
+        const auto& r_node = r_geometry[i_node];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
     }
 
     KRATOS_CATCH("");
@@ -121,19 +123,35 @@ GeometryData::IntegrationMethod VMSMonolithicKBasedWallConditionDerivatives<TDim
     return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void VMSMonolithicKBasedWallConditionDerivatives<TDim, TNumNodes>::InitializeCondition(
+    Condition& rCondition,
+    const ProcessInfo& rProcessInfo)
+{
+    const double wall_height = RansCalculationUtilities::CalculateWallHeight(rCondition, rCondition.GetValue(NORMAL));
+    rCondition.SetValue(DISTANCE, wall_height);
+
+    const IndexType number_of_gauss_points = rCondition.GetGeometry().IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    if (!rCondition.Has(GAUSS_RANS_Y_PLUS) || rCondition.GetValue(GAUSS_RANS_Y_PLUS).size() != number_of_gauss_points) {
+        rCondition.SetValue(GAUSS_RANS_Y_PLUS, Vector(number_of_gauss_points));
+    }
+}
+
 /***************************************************************************************************/
 /********************************************** Data ***********************************************/
 /***************************************************************************************************/
 
 template <unsigned int TDim, unsigned int TNumNodes>
 VMSMonolithicKBasedWallConditionDerivatives<TDim, TNumNodes>::Data::Data(
-    const Condition& rCondition,
-    const Element& rParentElement,
+    Condition& rCondition,
+    Element& rParentElement,
     const ProcessInfo& rProcessInfo)
     : mrCondition(rCondition),
       mrParentElement(rParentElement)
 {
     KRATOS_TRY
+
+    mGaussIntegrationPointIndex = 0;
 
     mCmu = rProcessInfo[TURBULENCE_RANS_C_MU];
     mKappa = rProcessInfo[VON_KARMAN];
@@ -176,6 +194,9 @@ void VMSMonolithicKBasedWallConditionDerivatives<TDim, TNumNodes>::Data::Calcula
     RansCalculationUtilities::CalculateYPlusAndUtau(
         mYPlus, mUTau, mWallVelocityMagnitude, mWallHeight, mKinematicViscosity, mKappa, mBeta);
     mYPlus = std::max(mYPlus, mYPlusLimit);
+
+    double& y_plus = mrCondition.GetValue(GAUSS_RANS_Y_PLUS)[mGaussIntegrationPointIndex++];
+    y_plus = mYPlus;
 
     mTkeBasedUTau = mCmu25 * std::sqrt(std::max(mTurbulentKineticEnergy, 0.0));
     mUBasedUTau = mWallVelocityMagnitude / (mInvKappa * std::log(mYPlus) + mBeta);

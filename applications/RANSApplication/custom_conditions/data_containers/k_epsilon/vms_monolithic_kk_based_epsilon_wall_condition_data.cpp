@@ -73,6 +73,19 @@ void VMSMonolithicKBasedEpsilonKBasedWallConditionData<TDim, TNumNodes>::Check(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+void VMSMonolithicKBasedEpsilonKBasedWallConditionData<TDim, TNumNodes>::InitializeCondition(
+    Condition& rCondition,
+    const ProcessInfo& rProcessInfo)
+{
+    KRATOS_TRY
+
+    Fluid::TResidualsDerivatives::InitializeCondition(rCondition, rProcessInfo);
+    TurbulenceModelEquation2::TResidualsDerivatives::InitializeCondition(rCondition, rProcessInfo);
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<const Variable<double>*> VMSMonolithicKBasedEpsilonKBasedWallConditionData<TDim, TNumNodes>::GetDofVariablesList()
 {
     return GetDofsList<TDim>();
