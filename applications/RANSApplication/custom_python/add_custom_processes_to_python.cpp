@@ -34,6 +34,7 @@
 #include "custom_processes/rans_clip_scalar_variable_process.h"
 #include "custom_processes/rans_line_output_process.h"
 #include "custom_processes/rans_nut_nodal_update_process.h"
+#include "custom_processes/rans_compute_reactions_process.h"
 
 // Include base h
 #include "custom_python/add_custom_processes_to_python.h"
@@ -86,6 +87,10 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<RansWallDistanceCalculationProcess, RansWallDistanceCalculationProcess::Pointer, RansFormulationProcess>(m, "RansWallDistanceCalculationProcess")
         .def(py::init<Model&, Parameters&>());
+
+    py::class_<RansComputeReactionsProcess, RansComputeReactionsProcess::Pointer, RansFormulationProcess>(m, "RansComputeReactionsProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const int>());
 
 }
 } // namespace Python
