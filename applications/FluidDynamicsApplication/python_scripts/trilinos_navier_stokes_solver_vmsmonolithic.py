@@ -18,27 +18,8 @@ def CreateSolver(model, custom_settings):
 class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
-        # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
-        custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
-        super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).__init__(model,custom_settings)
-
-        # Set up the auxiliary class with the formulation settings
-        self._SetFormulation()
-
-        scheme_type = self.settings["time_scheme"].GetString()
-        if scheme_type == "bossak":
-            self.min_buffer_size = 2
-        elif scheme_type == "bdf2":
-            self.min_buffer_size = 3
-        elif scheme_type == "steady":
-            self.min_buffer_size = 1
-            self._SetUpSteadySimulation()
-        else:
-            msg  = "Unknown time_scheme option found in project parameters:\n"
-            msg += "\"" + scheme_type + "\"\n"
-            msg += "Accepted values are \"bossak\", \"bdf2\" or \"steady\".\n"
-            raise Exception(msg)
+        # Call the serial base class constructor
+        super().__init__(model,custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of TrilinosNavierStokesSolverMonolithic finished.")
 
