@@ -17,24 +17,10 @@ def CreateSolver(model, custom_settings):
 class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep):
 
     def __init__(self, model, custom_settings):
-        #TODO: CHECK IF WE CAN CALL THE BASE SERIAL SOLVER
-        self._validate_settings_in_baseclass=True # To be removed eventually
-        #TODO: WE SHOULD BE CAPABLE NOW TO CALL THE BASE SERIAL CONSTRUCTOR
-        # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
-        super(NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)
-
-        self.element_name = "FractionalStep"
-        self.condition_name = "WallCondition"
-        self.min_buffer_size = 3
-        self.element_has_nodal_properties = True
-
-        self.compute_reactions = self.settings["compute_reactions"].GetBool()
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
+        # Call the serial base class constructor
+        super().__init__(model,custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Construction of TrilinosNavierStokesSolverFractionalStep solver finished.")
-
 
     def AddVariables(self):
         ## Add variables from the base class

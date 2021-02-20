@@ -89,7 +89,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         return default_settings
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)
 
         if custom_settings["formulation"]["element_type"].GetString() != "FractionalStep":
