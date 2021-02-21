@@ -4041,56 +4041,57 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     }
 
     /* Nodes */
-    #pragma omp parallel for firstprivate(nodes_colors)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+    auto& r_this = *this;
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(nodes_colors,
+        [&it_node_begin,&r_this,&Framework](std::size_t i, ColorsMapType& nodes_colors) {
         auto it_node = it_node_begin + i;
 
         const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
         if (!old_entity) {
             const array_1d<double, 3>& r_coordinates = Framework == FrameworkEulerLagrange::LAGRANGIAN ? it_node->GetInitialPosition() : it_node->Coordinates();
-            SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[it_node->Id()], it_node->Id());
+            r_this.SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[it_node->Id()], it_node->Id());
 
             bool blocked = false;
             if (it_node->IsDefined(BLOCKED))
                 blocked = it_node->Is(BLOCKED);
             if (blocked)
-                BlockNode(it_node->Id());
+                r_this.BlockNode(it_node->Id());
         }
-    }
+    });
 
     /* Conditions */
-    #pragma omp parallel for firstprivate(cond_colors)
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
+    IndexPartition<std::size_t>(r_conditions_array.size()).for_each(cond_colors,
+        [&it_cond_begin,&r_this](std::size_t i, ColorsMapType& cond_colors) {
         auto it_cond = it_cond_begin + i;
 
         const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], it_cond->Id());
+            r_this.SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], it_cond->Id());
 
             bool blocked = false;
             if (it_cond->IsDefined(BLOCKED))
                 blocked = it_cond->Is(BLOCKED);
             if (blocked)
-                BlockCondition(it_cond->Id());
+                r_this.BlockCondition(it_cond->Id());
         }
-    }
+    });
 
     /* Elements */
-    #pragma omp parallel for firstprivate(elem_colors)
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each(elem_colors,
+        [&it_elem_begin,&r_this](std::size_t i, ColorsMapType& elem_colors) {
         auto it_elem = it_elem_begin + i;
 
         const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], it_elem->Id());
+            r_this.SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], it_elem->Id());
 
             bool blocked = false;
             if (it_elem->IsDefined(BLOCKED))
                 blocked = it_elem->Is(BLOCKED);
             if (blocked)
-                BlockElement(it_elem->Id());
+                r_this.BlockElement(it_elem->Id());
         }
-    }
+    });
 
     // Create auxiliar colors maps
     for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
