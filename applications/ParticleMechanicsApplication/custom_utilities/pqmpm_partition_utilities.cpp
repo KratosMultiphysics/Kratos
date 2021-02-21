@@ -63,6 +63,7 @@ namespace Kratos
         }
 
         // No need to split MP's with no stresses if we are using explicit USL
+        /*
         if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_EXPLICIT)) {
             if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_EXPLICIT)) {
                 if (rBackgroundGridModelPart.GetProcessInfo().GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 1) {
@@ -79,6 +80,7 @@ namespace Kratos
                 }
             }
         }
+        */
 
 
         const SizeType working_dim = rParentGeom.WorkingSpaceDimension();
@@ -566,12 +568,12 @@ namespace Kratos
                 rSubPointCoord[1] += centroid_result.get<1>();
             }
         }
-        else
-        {
-            KRATOS_INFO("MPMSearchElementUtility::Determine2DSubPoint - ")
-                << "BOOST INTERSECTION FAILED ALTHOUGH KRATOS INTERSECTION WORKED\n";
-            KRATOS_ERROR << "ERROR";
-        }
+        //else
+        //{
+        //    KRATOS_INFO("MPMSearchElementUtility::Determine2DSubPoint - ")
+        //        << "BOOST INTERSECTION FAILED ALTHOUGH KRATOS INTERSECTION WORKED\n";
+        //    KRATOS_ERROR << "ERROR";
+        //}
 
         rSubPointCoord /= double(polygon_result_container.size());
 
@@ -740,7 +742,7 @@ namespace Kratos
 
         double center_to_center = norm_2(rGeom.Center() - rCoord);
         double maximum_contact_range = 0.5*norm_2(rPointHigh- rPointLow) +
-            norm_2(ele_point_high - ele_point_low);
+            0.75*norm_2(ele_point_high - ele_point_low);
         if (center_to_center < maximum_contact_range) return true;
         return false;
     }
@@ -774,7 +776,7 @@ namespace Kratos
                 if (check_geom) {
                     // check if this background grid and the MP domain overlap
                     if (IntersectionCheckWithBoundingBox(*geometry_neighbours[i], rCoordinates, rPointLow, rPointHigh)) {
-                        if (geometry_neighbours[i]->HasIntersection(rPointLow, rPointHigh)) {
+                        //if (geometry_neighbours[i]->HasIntersection(rPointLow, rPointHigh)) {
                             // add to container and then search its neighbours
                             rIntersectedGeometries.push_back(geometry_neighbours[i].get());
 
@@ -783,7 +785,7 @@ namespace Kratos
                                 RecursionCount,
                                 rCoordinates,
                                 MaxRecursions);
-                        }
+                        //}
                     }
                 }
             }
