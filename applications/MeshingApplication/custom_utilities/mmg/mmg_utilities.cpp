@@ -3824,13 +3824,13 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     }
 
     // Set flag on nodes
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [&it_node_begin,&remeshed_nodes](std::size_t i) {
         auto it_node = it_node_begin + i;
         if (remeshed_nodes.find(it_node->Id()) == remeshed_nodes.end()) {
             it_node->Set(OLD_ENTITY, true);
         }
-    }
+    });
 
     mmg_mesh_info.NumberOfNodes = remeshed_nodes.size();
     SetMeshSize(mmg_mesh_info);
@@ -4220,8 +4220,9 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
 
     // In case of considering metric tensor
     if (mUsingMetricTensor) {
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto& r_this = *this;
+        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+            [&it_node_begin,&r_tensor_variable,&r_this](std::size_t i) {
             auto it_node = it_node_begin + i;
 
             const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
@@ -4232,12 +4233,13 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
                 const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
 
                 // We set the metric
-                SetMetricTensor(r_metric, it_node->Id());
+                r_this.SetMetricTensor(r_metric, it_node->Id());
             }
-        }
+        });
     } else {
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto& r_this = *this;
+        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+            [&it_node_begin,&r_tensor_variable,&r_this](std::size_t i) {
             auto it_node = it_node_begin + i;
 
             const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
@@ -4248,9 +4250,9 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
                 const double metric = it_node->GetValue(METRIC_SCALAR);
 
                 // We set the metric
-                SetMetricScalar(metric, it_node->Id());
+                r_this.SetMetricScalar(metric, it_node->Id());
             }
-        }
+        });
     }
 
     KRATOS_CATCH("");
@@ -4271,8 +4273,9 @@ void MmgUtilities<TMMGLibrary>::GenerateDisplacementDataFromModelPart(ModelPart&
     // Set size of the solution
     SetDispSizeVector(r_nodes_array.size());
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+    auto& r_this = *this;
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [&it_node_begin,&r_this](std::size_t i) {
         auto it_node = it_node_begin + i;
 
         const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
@@ -4281,9 +4284,9 @@ void MmgUtilities<TMMGLibrary>::GenerateDisplacementDataFromModelPart(ModelPart&
             const array_1d<double, 3>& r_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
             // We set the displacement
-            SetDisplacementVector(r_displacement, it_node->Id());
+            r_this.SetDisplacementVector(r_displacement, it_node->Id());
         }
-    }
+    });
 
     KRATOS_CATCH("");
 }
