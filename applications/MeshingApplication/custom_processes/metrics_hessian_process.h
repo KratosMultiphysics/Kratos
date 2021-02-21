@@ -284,7 +284,7 @@ private:
      * @param rAuxiliarHessianComputationVariables Struct containing several variables
      */
     template<SizeType TDim>
-    array_1d<double, 3 * (TDim - 1)> ComputeHessianMetricTensor(
+    static array_1d<double, 3 * (TDim - 1)> ComputeHessianMetricTensor(
         const Vector& rHessian,
         const AuxiliarHessianComputationVariables& rAuxiliarHessianComputationVariables
         );
@@ -335,7 +335,7 @@ private:
      * @param BoundLayer The boundary layer limit
      * @param rInterpolation The type of interpolation
      */
-    double CalculateAnisotropicRatio(
+    static double CalculateAnisotropicRatio(
         const double Distance,
         const double AnisotropicRatio,
         const double BoundLayer,

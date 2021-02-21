@@ -410,7 +410,6 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
 
     // Iterate in the nodes
     NodesArrayType& r_nodes_array = mrModelPart.Nodes();
-    const int num_nodes = static_cast<int>(r_nodes_array.size());
     const auto it_node_begin = r_nodes_array.begin();
 
     // Tensor variable definition
@@ -427,8 +426,9 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
     KRATOS_ERROR_IF(mpRatioReferenceVariable == NULL) << "Variable reference is not defined" << std::endl;
     const auto& r_reference_var = *mpRatioReferenceVariable;
 
-    #pragma omp parallel for firstprivate(aux_variables)
-    for(int i = 0; i < num_nodes; ++i) {
+    const auto interpolation = mInterpolation;
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(aux_variables,
+        [&it_node_begin,&minimal_size,&maximal_size,&enforce_current,&anisotropy_remeshing,&enforce_anisotropy_relative_variable,&hmin_over_hmax_anisotropic_ratio,&boundary_layer_max_distance,&interpolation,&r_reference_var,&r_tensor_variable](std::size_t i, AuxiliarHessianComputationVariables& aux_variables) {
         auto it_node = it_node_begin + i;
 
         const Vector& r_hessian = it_node->GetValue(AUXILIAR_HESSIAN);
@@ -443,7 +443,7 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
 
         if (it_node->SolutionStepsDataHas(r_reference_var) && anisotropy_remeshing && enforce_anisotropy_relative_variable) {
             const double ratio_reference = it_node->FastGetSolutionStepValue(r_reference_var);
-            aux_variables.mAnisotropicRatio = CalculateAnisotropicRatio(ratio_reference, hmin_over_hmax_anisotropic_ratio, boundary_layer_max_distance, mInterpolation);
+            aux_variables.mAnisotropicRatio = CalculateAnisotropicRatio(ratio_reference, hmin_over_hmax_anisotropic_ratio, boundary_layer_max_distance, interpolation);
         }
 
         // For postprocess pourposes
@@ -462,7 +462,7 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
         } else {
             noalias(r_metric) = ComputeHessianMetricTensor<TDim>(r_hessian, aux_variables);
         }
-    }
+    });
 }
 
 /***********************************************************************************/
