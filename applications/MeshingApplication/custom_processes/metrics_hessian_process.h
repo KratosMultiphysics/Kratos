@@ -18,7 +18,6 @@
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
