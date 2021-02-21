@@ -188,7 +188,6 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
 {
     // Iterate in the elements
     ElementsArrayType& r_elements_array = mrModelPart.Elements();
-    const int num_elements = static_cast<int>(r_elements_array.size());
     const auto it_element_begin = r_elements_array.begin();
 
     // Geometry information
@@ -227,11 +226,15 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     gradient_process.Execute();
 
     // Auxiliar containers
-    Matrix DN_DX, J0;
-    Vector N;
+    struct fe_containers
+    {
+        Matrix DN_DX, J0, InvJ0;
+        Vector N;
+        double detJ0;
+    };
 
-    #pragma omp parallel for firstprivate(DN_DX,  N, J0)
-    for(int i_elem = 0; i_elem < num_elements; ++i_elem) {
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each(fe_containers(),
+        [&it_element_begin,&dimension](std::size_t i_elem, fe_containers& fe) {
         auto it_elem = it_element_begin + i_elem;
         auto& r_geometry = it_elem->GetGeometry();
 
@@ -240,12 +243,12 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
         const std::size_t number_of_nodes = r_geometry.PointsNumber();
 
         // Resize if needed
-        if (DN_DX.size1() != number_of_nodes || DN_DX.size2() != dimension)
-            DN_DX.resize(number_of_nodes, dimension);
-        if (N.size() != number_of_nodes)
-            N.resize(number_of_nodes);
-        if (J0.size1() != dimension || J0.size2() != local_space_dimension)
-            J0.resize(dimension, local_space_dimension);
+        if (fe.DN_DX.size1() != number_of_nodes || fe.DN_DX.size2() != dimension)
+            fe.DN_DX.resize(number_of_nodes, dimension);
+        if (fe.N.size() != number_of_nodes)
+            fe.N.resize(number_of_nodes);
+        if (fe.J0.size1() != dimension || fe.J0.size2() != local_space_dimension)
+            fe.J0.resize(dimension, local_space_dimension);
 
         // The integration points
         const auto& integration_method = r_geometry.GetDefaultIntegrationMethod();
@@ -260,17 +263,15 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
         if (dimension == 2) {
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 // Getting the shape functions
-                noalias(N) = row(rNcontainer, point_number);
+                noalias(fe.N) = row(rNcontainer, point_number);
 
                 // Getting the jacobians and local gradients
-                GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
-                double detJ0;
-                Matrix InvJ0;
-                MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
+                GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], fe.J0);
+                MathUtils<double>::GeneralizedInvertMatrix(fe.J0, fe.InvJ0, fe.detJ0);
                 const Matrix& rDN_De = rDN_DeContainer[point_number];
-                GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
+                GeometryUtils::ShapeFunctionsGradients(rDN_De, fe.InvJ0, fe.DN_DX);
 
-                const double gauss_point_volume = integration_points[point_number].Weight() * detJ0;
+                const double gauss_point_volume = integration_points[point_number].Weight() * fe.detJ0;
 
                 Matrix values(number_of_nodes, 2);
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
@@ -279,30 +280,28 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                         values(i_node, i_dim) = aux_grad[i_dim];
                 }
 
-                const BoundedMatrix<double,2, 2>& hessian = prod(trans(DN_DX), values);
+                const BoundedMatrix<double,2, 2>& hessian = prod(trans(fe.DN_DX), values);
                 const array_1d<double, 3>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 2, 2>, array_1d<double, 3>>(hessian);
 
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     auto& aux_hessian = r_geometry[i_node].GetValue(AUXILIAR_HESSIAN);
                     for(IndexType k = 0; k < 3; ++k) {
-                        AtomicAdd(aux_hessian[k], N[i_node] * gauss_point_volume * hessian_cond[k]);
+                        AtomicAdd(aux_hessian[k], fe.N[i_node] * gauss_point_volume * hessian_cond[k]);
                     }
                 }
             }
         } else { // 3D case
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 // Getting the shape functions
-                noalias(N) = row(rNcontainer, point_number);
+                noalias(fe.N) = row(rNcontainer, point_number);
 
                 // Getting the jacobians and local gradients
-                GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
-                double detJ0;
-                Matrix InvJ0;
-                MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
+                GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], fe.J0);
+                MathUtils<double>::GeneralizedInvertMatrix(fe.J0, fe.InvJ0, fe.detJ0);
                 const Matrix& rDN_De = rDN_DeContainer[point_number];
-                GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
+                GeometryUtils::ShapeFunctionsGradients(rDN_De, fe.InvJ0, fe.DN_DX);
 
-                const double gauss_point_volume = integration_points[point_number].Weight() * detJ0;
+                const double gauss_point_volume = integration_points[point_number].Weight() * fe.detJ0;
 
                 Matrix values(number_of_nodes, 3);
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
@@ -311,18 +310,18 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                         values(i_node, i_dim) = aux_grad[i_dim];
                 }
 
-                const BoundedMatrix<double, 3, 3> hessian = prod(trans(DN_DX), values);
+                const BoundedMatrix<double, 3, 3> hessian = prod(trans(fe.DN_DX), values);
                 const array_1d<double, 6>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 3, 3>, array_1d<double, 6>>(hessian);
 
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     auto& aux_hessian = r_geometry[i_node].GetValue(AUXILIAR_HESSIAN);
                     for(IndexType k = 0; k < 6; ++k) {
-                        AtomicAdd(aux_hessian[k], N[i_node] * gauss_point_volume * hessian_cond[k]);
+                        AtomicAdd(aux_hessian[k], fe.N[i_node] * gauss_point_volume * hessian_cond[k]);
                     }
                 }
             }
         }
-    }
+    });
 
     mrModelPart.GetCommunicator().AssembleNonHistoricalData(AUXILIAR_HESSIAN);
 
