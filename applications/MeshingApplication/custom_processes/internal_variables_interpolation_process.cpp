@@ -415,13 +415,13 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
     // Iterate in the elements to ponderate the values
     ElementsArrayType& r_elements_array = mrOriginMainModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
-    int num_elements = static_cast<int>(r_elements_array.size());
 
     const ProcessInfo& r_origin_process_info = mrOriginMainModelPart.GetProcessInfo();
 
     /* Elements */
-    #pragma omp parallel for firstprivate(this_integration_method)
-    for (int i = 0; i < num_elements; ++i) {
+    const auto& r_variables = mInternalVariableList; 
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each(this_integration_method,
+        [&it_elem_begin, &r_origin_process_info, &r_variables](std::size_t i, GeometryData::IntegrationMethod& this_integration_method) {
         auto it_elem = it_elem_begin + i;
 
         const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
@@ -464,7 +464,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
                 ConstitutiveLaw::Pointer p_origin_cl = constitutive_law_vector[i_gauss_point];
 
                 // We interpolate and add the variable
-                for (auto& variable_name : mInternalVariableList) {
+                for (auto& variable_name : r_variables) {
                     if (KratosComponents<DoubleVarType>::Has(variable_name)) {
                         const DoubleVarType& r_variable = KratosComponents<DoubleVarType>::Get(variable_name);
                         if (p_origin_cl->Has(r_variable)) {
@@ -500,7 +500,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
             }
 
             // We divide by the total weight
-            for (auto& variable_name : mInternalVariableList) {
+            for (auto& variable_name : r_variables) {
                 if (KratosComponents<DoubleVarType>::Has(variable_name)) {
                     const DoubleVarType& r_variable = KratosComponents<DoubleVarType>::Get(variable_name);
                     PonderateVariable(r_this_geometry, r_variable, total_weight);
@@ -518,7 +518,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
                 }
             }
         }
-    }
+    });
 
     // We interpolate to the new nodes
     if (mDimension == 2) {
@@ -529,7 +529,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
     // Finally we interpolate to the new GP
     ElementsArrayType& r_elements_array_destination = mrDestinationMainModelPart.Elements();
-    num_elements = static_cast<int>(r_elements_array_destination.size());
+    int num_elements = static_cast<int>(r_elements_array_destination.size());
 
     const ProcessInfo& r_destination_process_info = mrOriginMainModelPart.GetProcessInfo();
 
@@ -644,6 +644,260 @@ const Parameters InternalVariablesInterpolationProcess::GetDefaultParameters() c
     })" );
 
     return default_parameters;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnConstitutiveLaw<double>(
+    GeometryType& rThisGeometry,
+    const Variable<double>& rThisVar,
+    const Vector& N,
+    ConstitutiveLaw::Pointer& pConstitutiveLaw,
+    const double Weight
+    )
+{
+    double origin_value;
+    origin_value = pConstitutiveLaw->GetValue(rThisVar, origin_value);
+
+    // We sum all the contributions
+    for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+        AtomicAdd(rThisGeometry[i_node].GetValue(rThisVar), N[i_node] * origin_value * Weight);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnConstitutiveLaw<array_1d<double, 3>>(
+    GeometryType& rThisGeometry,
+    const Variable<array_1d<double, 3>>& rThisVar,
+    const Vector& N,
+    ConstitutiveLaw::Pointer& pConstitutiveLaw,
+    const double Weight
+    )
+{
+    array_1d<double, 3> origin_value;
+    origin_value = pConstitutiveLaw->GetValue(rThisVar, origin_value);
+
+    // We sum all the contributions
+    for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+        AtomicAddVector(rThisGeometry[i_node].GetValue(rThisVar), N[i_node] * origin_value * Weight);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnConstitutiveLaw<Vector>(
+    GeometryType& rThisGeometry,
+    const Variable<Vector>& rThisVar,
+    const Vector& N,
+    ConstitutiveLaw::Pointer& pConstitutiveLaw,
+    const double Weight
+    )
+{
+    Vector origin_value;
+    origin_value = pConstitutiveLaw->GetValue(rThisVar, origin_value);
+
+    // We sum all the contributions
+    for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+        AtomicAddVector(rThisGeometry[i_node].GetValue(rThisVar), N[i_node] * origin_value * Weight);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnConstitutiveLaw<Matrix>(
+    GeometryType& rThisGeometry,
+    const Variable<Matrix>& rThisVar,
+    const Vector& N,
+    ConstitutiveLaw::Pointer& pConstitutiveLaw,
+    const double Weight
+    )
+{
+    Matrix origin_value;
+    origin_value = pConstitutiveLaw->GetValue(rThisVar, origin_value);
+
+    // We sum all the contributions
+    for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+        AtomicAddMatrix(rThisGeometry[i_node].GetValue(rThisVar), N[i_node] * origin_value * Weight);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
+    GeometryType& rThisGeometry,
+    const Variable<double>& rThisVar,
+    const Vector& N,
+    ElementsArrayType::iterator itElemOrigin,
+    const IndexType GaussPointId,
+    const double Weight,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    std::vector<double> origin_values;
+    itElemOrigin->CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
+
+    // We sum all the contributions
+    for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+        AtomicAdd(rThisGeometry[i_node].GetValue(rThisVar), N[i_node] * origin_values[GaussPointId] * Weight);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
+    GeometryType& rThisGeometry,
+    const Variable<array_1d<double, 3>>& rThisVar,
+    const Vector& N,
+    ElementsArrayType::iterator itElemOrigin,
+    const IndexType GaussPointId,
+    const double Weight,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    std::vector<array_1d<double, 3>> origin_values;
+    itElemOrigin->CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
+
+    // We sum all the contributions
+    for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+        AtomicAddVector(rThisGeometry[i_node].GetValue(rThisVar), N[i_node] * origin_values[GaussPointId] * Weight);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
+    GeometryType& rThisGeometry,
+    const Variable<Vector>& rThisVar,
+    const Vector& N,
+    ElementsArrayType::iterator itElemOrigin,
+    const IndexType GaussPointId,
+    const double Weight,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    std::vector<Vector> origin_values;
+    itElemOrigin->CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
+
+    // We sum all the contributions
+    for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+        AtomicAddVector(rThisGeometry[i_node].GetValue(rThisVar), N[i_node] * origin_values[GaussPointId] * Weight);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
+    GeometryType& rThisGeometry,
+    const Variable<Matrix>& rThisVar,
+    const Vector& N,
+    ElementsArrayType::iterator itElemOrigin,
+    const IndexType GaussPointId,
+    const double Weight,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    std::vector<Matrix> origin_values;
+    itElemOrigin->CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
+
+    // We sum all the contributions
+    for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+        AtomicAddMatrix(rThisGeometry[i_node].GetValue(rThisVar), N[i_node] * origin_values[GaussPointId] * Weight);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void InternalVariablesInterpolationProcess::PonderateVariable(
+    GeometryType& rThisGeometry,
+    const Variable<double>& rThisVar,
+    const double TotalWeight
+    )
+{
+    for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+        AtomicDiv(rThisGeometry[i_node].GetValue(rThisVar), TotalWeight);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void InternalVariablesInterpolationProcess::PonderateVariable(
+    GeometryType& rThisGeometry,
+    const Variable<array_1d<double, 3>>& rThisVar,
+    const double TotalWeight
+    )
+{
+    array_1d<double, 3> aux;
+    for (std::size_t i = 0; i < 3; ++i) {
+        aux[i] = TotalWeight;
+    }
+    for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+        AtomicDivVector(rThisGeometry[i_node].GetValue(rThisVar), aux);
+    }
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void InternalVariablesInterpolationProcess::PonderateVariable(
+    GeometryType& rThisGeometry,
+    const Variable<Vector>& rThisVar,
+    const double TotalWeight
+    )
+{
+    Vector aux(rThisGeometry[0].GetValue(rThisVar).size());
+    for (std::size_t i = 0; i < aux.size(); ++i) {
+        aux[i] = TotalWeight;
+    }
+    for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+        AtomicDivVector(rThisGeometry[i_node].GetValue(rThisVar), aux);
+    }
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void InternalVariablesInterpolationProcess::PonderateVariable(
+    GeometryType& rThisGeometry,
+    const Variable<Matrix>& rThisVar,
+    const double TotalWeight
+    )
+{
+    const std::size_t size_1 = rThisGeometry[0].GetValue(rThisVar).size1();
+    const std::size_t size_2 = rThisGeometry[0].GetValue(rThisVar).size2();
+    Matrix aux(size_1, size_2);
+    for (std::size_t i = 0; i < size_1; ++i) {
+        for (std::size_t j = 0; j < size_2; ++j) {
+            aux(i, j) = TotalWeight;
+        }
+    }
+    for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+        AtomicDivMatrix(rThisGeometry[i_node].GetValue(rThisVar), aux);
+    }
 }
 
 }  // namespace Kratos.
