@@ -33,7 +33,8 @@ namespace Kratos
  * collection of utilities for atomic updates of simple types. (essentially mimics the omp atomic)
  */
 
-/** @param target variable being atomically updated by doing target += value
+/** 
+ * @param target variable being atomically updated by doing target += value
  * @param value value being added
  */
 template<class TDataType>
@@ -43,7 +44,8 @@ inline void AtomicAdd(TDataType& target, const TDataType& value)
     target += value;
 }
 
-/** @param target variable being atomically updated by doing target += value
+/** 
+ * @param target variable being atomically updated by doing target += value
  * @param value value being added
  * Specialization for array_1d<double,3>
  * Note that the update is not really atomic, but rather is done component by component
@@ -55,7 +57,8 @@ inline void AtomicAdd(array_1d<double,3>& target, const array_1d<double,3>& valu
     AtomicAdd(target[2], value[2]);
 }
 
-/** @param target vector variable being atomically updated by doing target += value
+/** 
+ * @param target vector variable being atomically updated by doing target += value
  * @param value vector value being added
  * Note that the update is not really atomic, but rather is done component by component
  */
@@ -64,12 +67,30 @@ inline void AtomicAddVector(TVectorType1& target, const TVectorType2& value)
 {
     KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicAddVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
 
-    for(unsigned int i=0; i<target.size(); ++i) {
+    for(std::size_t i=0; i<target.size(); ++i) {
        AtomicAdd(target[i], value[i]);
     }
 }
 
-/** @param target vector variable being atomically updated by doing target -= value
+/** 
+ * @param target matrix variable being atomically updated by doing target -= value
+ * @param value matrix value being subtracted
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+template<class TMatrixType1, class TMatrixType2>
+inline void AtomicAddMatrix(TMatrixType1& target, const TMatrixType2& value)
+{
+    KRATOS_DEBUG_ERROR_IF(target.size1() != value.size1() || target.size2() != value.size2()) << "matrix size mismatch in matrix AtomicAddMatrix- Sizes are: " << target.size1() << "x" << target.size2() << " for target and " << value.size1() << "x" << value.size2() << " for value " << std::endl;
+
+    for(std::size_t i=0; i<target.size1(); ++i) {
+        for(std::size_t j=0; j<target.size2(); ++j) {
+            AtomicAdd(target(i,j), value(i,j));
+        }
+    }
+}
+
+/** 
+ * @param target vector variable being atomically updated by doing target -= value
  * @param value vector value being subtracted
  */
 template<class TDataType>
@@ -79,7 +100,8 @@ inline void AtomicSub(TDataType& target, const TDataType& value)
     target -= value;
 }
 
-/** @param target variable being atomically updated by doing target -= value
+/** 
+ * @param target variable being atomically updated by doing target -= value
  * @param value value being subtracted
  * Specialization for array_1d<double,3>
  * Note that the update is not really atomic, but rather is done component by component
@@ -91,7 +113,8 @@ inline void AtomicSub(array_1d<double,3>& target, const array_1d<double,3>& valu
     AtomicSub(target[2], value[2]);
 }
 
-/** @param target vector variable being atomically updated by doing target -= value
+/** 
+ * @param target vector variable being atomically updated by doing target -= value
  * @param value vector value being subtracted
  * Note that the update is not really atomic, but rather is done component by component
  */
@@ -99,8 +122,25 @@ template<class TVectorType1, class TVectorType2>
 inline void AtomicSubVector(TVectorType1& target, const TVectorType2& value) {
     KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicSubVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
 
-    for(unsigned int i=0; i<target.size(); ++i) {
+    for(std::size_t i=0; i<target.size(); ++i) {
        AtomicSub(target[i], value[i]);
+    }
+}
+
+/** 
+ * @param target matrix variable being atomically updated by doing target -= value
+ * @param value matrix value being subtracted
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+template<class TMatrixType1, class TMatrixType2>
+inline void AtomicSubMatrix(TMatrixType1& target, const TMatrixType2& value)
+{
+    KRATOS_DEBUG_ERROR_IF(target.size1() != value.size1() || target.size2() != value.size2()) << "matrix size mismatch in matrix AtomicSubMatrix- Sizes are: " << target.size1() << "x" << target.size2() << " for target and " << value.size1() << "x" << value.size2() << " for value " << std::endl;
+
+    for(std::size_t i=0; i<target.size1(); ++i) {
+        for(std::size_t j=0; j<target.size2(); ++j) {
+            AtomicSub(target(i,j), value(i,j));
+        }
     }
 }
 
@@ -140,6 +180,23 @@ inline void AtomicMultVector(TVectorType1& target, const TVectorType2& value)
     }
 }
 
+/** 
+ * @param target matrix variable being atomically updated by doing target *= value
+ * @param value matrix value being multiplied
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+template<class TMatrixType1, class TMatrixType2>
+inline void AtomicMultMatrix(TMatrixType1& target, const TMatrixType2& value)
+{
+    KRATOS_DEBUG_ERROR_IF(target.size1() != value.size1() || target.size2() != value.size2()) << "matrix size mismatch in matrix AtomicMultMatrix- Sizes are: " << target.size1() << "x" << target.size2() << " for target and " << value.size1() << "x" << value.size2() << " for value " << std::endl;
+
+    for(std::size_t i=0; i<target.size1(); ++i) {
+        for(std::size_t j=0; j<target.size2(); ++j) {
+            AtomicMult(target(i,j), value(i,j));
+        }
+    }
+}
+
 /** @param target vector variable being atomically updated by doing target *= 1.0/value
  * @param value vector value being divided
  */
@@ -172,6 +229,23 @@ inline void AtomicDivVector(TVectorType1& target, const TVectorType2& value)
 
     for(std::size_t i=0; i<target.size(); ++i) {
        AtomicDiv(target[i], value[i]);
+    }
+}
+
+/** 
+ * @param target matrix variable being atomically updated by doing target *= 1.0/value
+ * @param value matrix value being divided
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+template<class TMatrixType1, class TMatrixType2>
+inline void AtomicDivMatrix(TMatrixType1& target, const TMatrixType2& value)
+{
+    KRATOS_DEBUG_ERROR_IF(target.size1() != value.size1() || target.size2() != value.size2()) << "matrix size mismatch in matrix AtomicDivMatrix- Sizes are: " << target.size1() << "x" << target.size2() << " for target and " << value.size1() << "x" << value.size2() << " for value " << std::endl;
+
+    for(std::size_t i=0; i<target.size1(); ++i) {
+        for(std::size_t j=0; j<target.size2(); ++j) {
+            AtomicDiv(target(i,j), value(i,j));
+        }
     }
 }
     
