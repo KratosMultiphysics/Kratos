@@ -135,11 +135,46 @@ inline void AtomicMultVector(TVectorType1& target, const TVectorType2& value)
 {
     KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicMultVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
 
-    for(unsigned int i=0; i<target.size(); ++i) {
+    for(std::size_t i=0; i<target.size(); ++i) {
        AtomicMult(target[i], value[i]);
     }
 }
 
+/** @param target vector variable being atomically updated by doing target *= 1.0/value
+ * @param value vector value being divided
+ */
+template<class TDataType>
+inline void AtomicDiv(TDataType& target, const TDataType& value)
+{
+    AtomicMult(target, 1.0/value);
+}
+
+/** @param target variable being atomically updated by doing target *= 1.0/value
+ * @param value value being divided
+ * Specialization for array_1d<double,3>
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+inline void AtomicDiv(array_1d<double,3>& target, const array_1d<double,3>& value)
+{
+    AtomicDiv(target[0], value[0]);
+    AtomicDiv(target[1], value[1]);
+    AtomicDiv(target[2], value[2]);
+}
+
+/** @param target vector variable being atomically updated by doing target *= 1.0/value
+ * @param value vector value being divided
+ * Note that the update is not really atomic, but rather is done component by component
+ */
+template<class TVectorType1, class TVectorType2>
+inline void AtomicDivVector(TVectorType1& target, const TVectorType2& value)
+{
+    KRATOS_DEBUG_ERROR_IF(target.size() != value.size()) << "vector size mismatch in vector AtomicDivVector- Sizes are: " << target.size() << " for target and " << value.size() << " for value " << std::endl;
+
+    for(std::size_t i=0; i<target.size(); ++i) {
+       AtomicDiv(target[i], value[i]);
+    }
+}
+    
 }  // namespace Kratos.
 
 #endif // KRATOS_ATOMIC_UTILITIES_H_INCLUDED  defined
