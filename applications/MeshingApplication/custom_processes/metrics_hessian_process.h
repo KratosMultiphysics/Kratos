@@ -263,7 +263,7 @@ private:
     ModelPart& mrModelPart;                                           /// The model part to compute
 
     bool mNonHistoricalVariable = false;                              /// If the variable is non-historical
-    const Variable<double>* mrOriginVariable;                         /// The scalar variable list to compute
+    const Variable<double>* mpOriginVariable;                         /// The scalar variable list to compute
     const Variable<double>* mpRatioReferenceVariable;                 /// Variable used to compute the anisotropic ratio
 
     Parameters mThisParameters;                                       /// Here configurations are stored

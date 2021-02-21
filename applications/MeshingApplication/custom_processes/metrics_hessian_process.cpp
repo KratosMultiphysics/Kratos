@@ -15,6 +15,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/parallel_utilities.h"
 #include "custom_utilities/metrics_math_utils.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "custom_processes/metrics_hessian_process.h"
@@ -38,7 +39,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
 
     // We push the list of double variables
     if (KratosComponents<Variable<double>>::Has(r_metric_variable_name)) {
-        mrOriginVariable = &KratosComponents<Variable<double>>::Get(r_metric_variable_name);
+        mpOriginVariable = &KratosComponents<Variable<double>>::Get(r_metric_variable_name);
     } else {
         KRATOS_ERROR << "Only components and doubles are allowed as variables" << std::endl;
     }
@@ -52,7 +53,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     Variable<double>& rVariable,
     Parameters ThisParameters
     ) : mrModelPart(rThisModelPart),
-        mrOriginVariable(&rVariable)
+        mpOriginVariable(&rVariable)
 {
     // TODO: Remove this warning in the future
     KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
@@ -75,9 +76,9 @@ void ComputeHessianSolMetricProcess::Execute()
         // Some checks
         NodesArrayType& r_nodes_array = mrModelPart.Nodes();
         if (!mNonHistoricalVariable) {
-            VariableUtils().CheckVariableExists(*mrOriginVariable, r_nodes_array);
+            VariableUtils().CheckVariableExists(*mpOriginVariable, r_nodes_array);
         } else {
-            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariable)) << "Variable " << mrOriginVariable->Name() << " not defined on non-historial database" << std::endl;
+            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mpOriginVariable)) << "Variable " << mpOriginVariable->Name() << " not defined on non-historial database" << std::endl;
         }
 
         // Checking NODAL_H
@@ -199,7 +200,6 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
 
     // Iterate in the nodes
     NodesArrayType& r_nodes_array = mrModelPart.Nodes();
-    const int num_nodes = static_cast<int>(r_nodes_array.size());
 
     // We get the normalization factor
     const Normalization normalization_method = ConvertNormalization(mThisParameters["normalization_method"].GetString());
@@ -207,18 +207,20 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     const double normalization_alpha = mThisParameters["normalization_alpha"].GetDouble();
 
     // Initialize auxiliar variables
-    const auto& it_nodes_begin = r_nodes_array.begin();
-    #pragma omp parallel for
-    for(int i_node = 0; i_node < num_nodes; ++i_node) {
+    const auto it_nodes_begin = r_nodes_array.begin();
+    const auto& r_origin_variable = *mpOriginVariable;
+    const auto non_historical_variable = mNonHistoricalVariable;
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [&it_nodes_begin,&r_origin_variable,&non_historical_variable,&aux_zero_hessian,&aux_zero_vector,&normalization_factor](std::size_t i_node) {
         auto it_node = it_nodes_begin + i_node;
         it_node->SetValue(NODAL_AREA, 0.0);
         it_node->SetValue(AUXILIAR_HESSIAN, aux_zero_hessian);
         it_node->SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
 
         // Saving auxiliar value
-        const double value = mNonHistoricalVariable ? it_node->GetValue(*mrOriginVariable) : it_node->FastGetSolutionStepValue(*mrOriginVariable);
+        const double value = non_historical_variable ? it_node->GetValue(r_origin_variable) : it_node->FastGetSolutionStepValue(r_origin_variable);
         it_node->SetValue(NODAL_MAUX, value * normalization_factor);
-    }
+    });
 
     // Compute auxiliar gradient
     auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mrModelPart, NODAL_MAUX, AUXILIAR_GRADIENT, NODAL_AREA, true);
@@ -326,34 +328,34 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
 
     // We normalize the value of the NODAL_AREA
     if (normalization_method == Normalization::VALUE) {
-        #pragma omp parallel for
-        for(int i_node = 0; i_node < num_nodes; ++i_node) {
+        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [&it_nodes_begin](std::size_t i_node) {
             auto it_node = it_nodes_begin + i_node;
             const double factor = it_node->GetValue(NODAL_MAUX);
             if (factor > std::numeric_limits<double>::epsilon()) {
                 it_node->GetValue(NODAL_AREA) *= factor;
             }
-        }
+        });
     } else if (normalization_method == Normalization::NORM_GRADIENT) {
-        #pragma omp parallel for
-        for(int i_node = 0; i_node < num_nodes; ++i_node) {
+        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [&it_nodes_begin,&normalization_alpha](std::size_t i_node) {
             auto it_node = it_nodes_begin + i_node;
             const double factor = norm_2(it_node->GetValue(AUXILIAR_GRADIENT)) * it_node->GetValue(NODAL_H) + normalization_alpha * it_node->GetValue(NODAL_MAUX);
             if (factor > std::numeric_limits<double>::epsilon()) {
                 it_node->GetValue(NODAL_AREA) *= factor;
             }
-        }
+        });
     }
 
     // We average considering the NODAL_AREA
-    #pragma omp parallel for
-    for(int i_node = 0; i_node < num_nodes; ++i_node) {
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [&it_nodes_begin](std::size_t i_node) {
         auto it_node = it_nodes_begin + i_node;
         const double nodal_area = it_node->GetValue(NODAL_AREA);
         if (nodal_area > std::numeric_limits<double>::epsilon()) {
             it_node->GetValue(AUXILIAR_HESSIAN) /= nodal_area;
         }
-    }
+    });
 }
 
 /***********************************************************************************/
