@@ -759,9 +759,10 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	double internal_variable,
 	double& rDamage)
 {
-	if(internal_variable <= data.YieldStressTension) {
+	if (internal_variable <= data.YieldStressTension) {
 		rDamage = DamageParameterTensionOld;
 	}
+	else if (DamageParameterTensionOld > 0.99) rDamage = DamageParameterTensionOld;
 	else {
 		const double characteristic_length 		= 	data.CharacteristicLength;
 		const double young_modulus   			= 	data.YoungModulus;
@@ -806,6 +807,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 	if(internal_variable <= data.DamageOnsetStressCompression){
 		rDamage = DamageParameterCompressionOld;
 	}
+	else if (DamageParameterCompressionOld > 0.99) rDamage = DamageParameterCompressionOld;
 	else {
 		// extract material parameters
 		const double young_modulus  = data.YoungModulus;
