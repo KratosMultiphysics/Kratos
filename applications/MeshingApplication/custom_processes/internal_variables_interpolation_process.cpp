@@ -529,14 +529,15 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
     // Finally we interpolate to the new GP
     ElementsArrayType& r_elements_array_destination = mrDestinationMainModelPart.Elements();
-    int num_elements = static_cast<int>(r_elements_array_destination.size());
+    const auto it_elem_begin_destination = r_elements_array_destination.begin();
 
+    // The destination process info
     const ProcessInfo& r_destination_process_info = mrOriginMainModelPart.GetProcessInfo();
 
     /* Elements */
-    #pragma omp parallel for firstprivate(this_integration_method)
-    for(int i = 0; i < num_elements; ++i) {
-        auto it_elem = r_elements_array_destination.begin() + i;
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each(this_integration_method,
+        [&it_elem_begin_destination, &r_destination_process_info, &r_variables](std::size_t i, GeometryData::IntegrationMethod& this_integration_method) {
+        auto it_elem = it_elem_begin_destination + i;
 
         const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
         if (!old_entity) { // We don't interpolate from preserved meshes
@@ -568,7 +569,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
                 // The destination CL
                 ConstitutiveLaw::Pointer p_destination_cl = constitutive_law_vector[i_gauss_point];
 
-                for (auto& variable_name : mInternalVariableList) {
+                for (auto& variable_name : r_variables) {
                     if (KratosComponents<DoubleVarType>::Has(variable_name)) {
                         const DoubleVarType& r_variable = KratosComponents<DoubleVarType>::Get(variable_name);
                         if (p_destination_cl->Has(r_variable)) {
@@ -603,7 +604,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
                 }
             }
         }
-    }
+    });
 }
 
 /***********************************************************************************/
