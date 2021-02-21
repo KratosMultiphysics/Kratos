@@ -23,6 +23,7 @@
 #include "custom_processes/internal_variables_interpolation_process.h"
 // Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
+#include "utilities/parallel_utilities.h"
 // Include the spatial containers needed for search
 #include "spatial_containers/spatial_containers.h" // kd-tree
 #include "includes/gid_io.h"
@@ -138,13 +139,13 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
         // Remove not marked
         auto& r_conditions_array = mrThisModelPart.Conditions();
         const auto it_cond_begin = r_conditions_array.begin();
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+        IndexPartition<std::size_t>(r_conditions_array.size()).for_each(
+        [&it_cond_begin](std::size_t i) {
             auto it_cond = it_cond_begin + i;
             if (it_cond->IsNot(MARKER)) {
                 it_cond->Set(TO_ERASE, true);
             }
-        }
+        });
         mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE); // In theory with RemoveConditions is enough
 
         // Setting to erare on the auxiliar model part
@@ -329,11 +330,11 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
         NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
         const auto it_node_begin = r_nodes_array.begin();
 
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+            [&it_node_begin](std::size_t i) {
             auto it_node = it_node_begin + i;
             noalias(it_node->GetInitialPosition().Coordinates()) = it_node->Coordinates();
-        }
+        });
     }
 
     // Actually generate mesh data
@@ -398,8 +399,9 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataDistance()
     double isosurface_value = 0.0;
 
     // We iterate over the nodes
-    #pragma omp parallel for firstprivate(isosurface_value)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+    auto& r_mmg_utilities = mMmgUtilities;
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(isosurface_value,
+        [&it_node_begin,&r_mmg_utilities,&r_scalar_variable,&r_isosurface_variable_name,&nonhistorical_variable](std::size_t i, double& isosurface_value) {
         auto it_node = it_node_begin + i;
 
         const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
@@ -417,9 +419,9 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataDistance()
             }
 
             // We set the isosurface variable
-            mMmgUtilities.SetMetricScalar(isosurface_value, i + 1);
+            r_mmg_utilities.SetMetricScalar(isosurface_value, i + 1);
         }
-    }
+    });
 
     KRATOS_CATCH("");
 }
@@ -512,45 +514,45 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     auto& r_nodes_array = mrThisModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [&it_node_begin](std::size_t i) {
         auto it_node = it_node_begin + i;
 
         const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
         if (!old_entity) {
             it_node->Set(TO_ERASE, true);
         }
-    }
+    });
     r_old_model_part.AddNodes( mrThisModelPart.NodesBegin(), mrThisModelPart.NodesEnd() );
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 
     auto& r_conditions_array = mrThisModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+    IndexPartition<std::size_t>(r_conditions_array.size()).for_each(
+        [&it_cond_begin](std::size_t i) {
         auto it_cond = it_cond_begin + i;
 
         const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
         if (!old_entity) {
             it_cond->Set(TO_ERASE, true);
         }
-    }
+    });
     r_old_model_part.AddConditions( mrThisModelPart.ConditionsBegin(), mrThisModelPart.ConditionsEnd() );
     mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 
     auto& r_elements_array = mrThisModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each(
+        [&it_elem_begin](std::size_t i) {
         auto it_elem = it_elem_begin + i;
 
         const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
         if (!old_entity) {
             it_elem->Set(TO_ERASE, true);
         }
-    }
+    });
     r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
@@ -601,12 +603,13 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     /* Unmoving the original mesh to be able to interpolate */
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
         NodesArrayType& r_old_nodes_array = r_old_model_part.Nodes();
+        const auto it_old_node_begin = r_old_nodes_array.begin();
 
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_old_nodes_array.size()); ++i) {
-            auto it_node = r_old_nodes_array.begin() + i;
+        IndexPartition<std::size_t>(r_old_nodes_array.size()).for_each(
+        [&it_old_node_begin](std::size_t i) {
+            auto it_node = it_old_node_begin + i;
             noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-        }
+        });
     }
 
     // We create an auxiliar mesh for debugging purposes
@@ -644,13 +647,13 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
             r_nodes_array = mrThisModelPart.Nodes();
             const auto it_node_begin = r_nodes_array.begin();
 
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+            [&it_node_begin,&step](std::size_t i) {
                 auto it_node = it_node_begin + i;
 
                 noalias(it_node->Coordinates())  = it_node->GetInitialPosition().Coordinates();
                 noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT, step);
-            }
+            });
         } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
             /* We reset the displacement (the API already moved the mesh) */
             const SizeType buffer_size = mrThisModelPart.GetBufferSize();
@@ -659,14 +662,14 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
             const array_1d<double, 3> zero_vector = ZeroVector(3);
 
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+            [&it_node_begin,&zero_vector,&buffer_size](std::size_t i) {
                 auto it_node = it_node_begin + i;
 
                 for (IndexType i_buffer = 0; i_buffer < buffer_size; ++i_buffer) {
                     noalias(it_node->FastGetSolutionStepValue(DISPLACEMENT, i_buffer)) = zero_vector;
                 }
-            }
+            });
         }
 
         /* We interpolate the internal variables */
@@ -712,16 +715,18 @@ void MmgProcess<TMMGLibrary>::InitializeElementsAndConditions()
     // Iterate over conditions
     auto& r_conditions_array = mrThisModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)
+    IndexPartition<std::size_t>(r_conditions_array.size()).for_each(
+        [&it_cond_begin,&r_process_info](std::size_t i) {
         (it_cond_begin + i)->Initialize(r_process_info);
+    });
 
     // Iterate over elements
     auto& r_elements_array = mrThisModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i)
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each(
+        [&it_elem_begin,&r_process_info](std::size_t i) {
         (it_elem_begin + i)->Initialize(r_process_info);
+    });
 
     KRATOS_CATCH("");
 }
@@ -906,14 +911,12 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
     // Now we iterate over the elements to create a connectivity map
     ModelPart& r_auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
     ElementsArrayType& r_elements_array = r_auxiliar_model_part.Elements();
-    const SizeType num_elements = r_elements_array.size();
     const auto it_elem_begin = r_elements_array.begin();
 
     /* Compute normal */
     // We iterate over nodes
     auto& r_nodes_array = r_auxiliar_model_part.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
-    const SizeType num_nodes = r_nodes_array.size();
 
     // Reset NORMAL
     VariableUtils().SetNonHistoricalVariableToZero(NORMAL, r_nodes_array);
@@ -921,15 +924,15 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
     // Declare auxiliar coordinates
     GeometryType::CoordinatesArrayType aux_coords;
 
-    #pragma omp parallel for firstprivate(aux_coords)
-    for(int i = 0; i < static_cast<int>(num_elements); ++i) {
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each(aux_coords,
+        [&it_elem_begin](std::size_t i, GeometryType::CoordinatesArrayType& aux_coords) {
         auto it_elem = it_elem_begin + i;
         const GeometryType& r_geometry = it_elem->GetGeometry();
 
         // Set elemition normal
         r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
         it_elem->SetValue(NORMAL, r_geometry.UnitNormal(aux_coords));
-    }
+    });
 
     // Adding the normal contribution of each node
     for(Element& r_elem : r_elements_array) {
@@ -942,8 +945,8 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
         }
     }
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(num_nodes); ++i) {
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
+        [&it_node_begin](std::size_t i) {
         auto it_node = it_node_begin + i;
 
         array_1d<double, 3>& r_normal = it_node->GetValue(NORMAL);
@@ -951,9 +954,10 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
 
         if (norm_normal > std::numeric_limits<double>::epsilon()) r_normal /= norm_normal;
         else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
-    }
+    });
 
     // Iterate over nodes
+    const SizeType num_nodes = r_nodes_array.size();
     for(IndexType i = 0; i < num_nodes; ++i){
         const auto it_node = it_node_begin + i;
 
@@ -974,6 +978,7 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
     // Iterate over elements
     GeometryType::PointsArrayType element_nodes(6);
     auto& r_pnodes_vector = element_nodes.GetContainer();
+    const SizeType num_elements = r_elements_array.size();
     for(IndexType i = 0; i < num_elements; ++i){
         const auto it_elem = it_elem_begin + i;
 
@@ -1103,11 +1108,11 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
     auto& r_elements_array_1 = r_auxiliar_model_part.Elements();
     const auto it_elem_begin_1 = r_elements_array_1.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_elements_array_1.size()); ++i) {
+    IndexPartition<std::size_t>(r_elements_array_1.size()).for_each(
+        [&it_elem_begin_1,&p_prop_1](std::size_t i) {
         auto it_elem = it_elem_begin_1 + i;
         it_elem->SetProperties(p_prop_1);
-    }
+    });
     // Old model part
     FastTransferBetweenModelPartsProcess transfer_process_old = FastTransferBetweenModelPartsProcess(r_copy_old_model_part, rOldModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
     transfer_process_current.Set(MODIFIED); // We replicate, not transfer
@@ -1117,11 +1122,11 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
     auto& r_elements_array_2 = r_copy_old_model_part.Elements();
     const auto it_elem_begin_2 = r_elements_array_2.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_elements_array_2.size()); ++i) {
+    IndexPartition<std::size_t>(r_elements_array_2.size()).for_each(
+        [&it_elem_begin_2,&p_prop_2](std::size_t i) {
         auto it_elem = it_elem_begin_2 + i;
         it_elem->SetProperties(p_prop_2);
-    }
+    });
 
     // Reorder ids to ensure be consecuent
     auto& r_auxiliar_nodes_array = r_auxiliar_model_part.Nodes();
@@ -1191,16 +1196,16 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     const auto it_elem_begin = r_elements_array.begin();
 
     // Saving the nodes that belong to an element
-    #pragma omp parallel for
-    for(int i_elem = 0; i_elem < static_cast<int>(r_elements_array.size()); ++i_elem ){
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each(
+        [&it_elem_begin](std::size_t i_elem) {
 
         const auto it_elem = it_elem_begin + i_elem;
         auto& r_geom = it_elem->GetGeometry();
 
-        for (IndexType i = 0; i < r_geom.size(); ++i){
-            r_geom[i].Set(TO_ERASE, false);
+        for (IndexType i_node = 0; i_node < r_geom.size(); ++i_node){
+            r_geom[i_node].Set(TO_ERASE, false);
         }
-    }
+    });
 
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
     const SizeType final_num = mrThisModelPart.Nodes().size();
