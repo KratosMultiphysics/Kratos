@@ -1197,8 +1197,7 @@ void MembraneElement::AddExplicitContribution(
         Vector current_nodal_velocities = ZeroVector(local_size);
         GetFirstDerivativesVector(current_nodal_velocities);
         Matrix damping_matrix;
-        ProcessInfo temp_process_information; // cant pass const ProcessInfo
-        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        CalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
 
