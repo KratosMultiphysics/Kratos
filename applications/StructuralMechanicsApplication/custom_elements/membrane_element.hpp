@@ -127,7 +127,7 @@ namespace Kratos
       const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
-      const ProcessInfo& rCurrentProcessInfo);
+      const ProcessInfo& rCurrentProcessInfo) const;
 
     void CalculateLumpedMassVector(
       VectorType& rMassVector,
@@ -159,7 +159,7 @@ namespace Kratos
      * @param Configuration Reference/Current
      */
     void CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration);
+     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration) const;
 
       /**
      * @brief Calculates the covariant metric
@@ -211,7 +211,7 @@ namespace Kratos
      * @param rDetJacobi The determinant of the Jacobian
      * @param rReferenceBaseVectors Reference base vectors
      */
-    void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors);
+    void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors) const;
 
 
       /**

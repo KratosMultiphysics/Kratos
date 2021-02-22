@@ -405,7 +405,7 @@ void MembraneElement::Derivative2StrainGreenLagrange(Vector& rStrain,
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
-void MembraneElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors)
+void MembraneElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors) const
 {
     Vector3 g3 = ZeroVector(3);
     MathUtils<double>::CrossProduct(g3, rReferenceBaseVectors[0], rReferenceBaseVectors[1]);
@@ -459,7 +459,7 @@ void MembraneElement::DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBas
 }
 
 void MembraneElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration)
+     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration) const
 {
     // pass/call this ShapeFunctionsLocalGradients[pnt]
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -1010,14 +1010,13 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
 }
 
 void MembraneElement::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType number_dofs = dimension*number_of_nodes;
-    rMassMatrix = ZeroMatrix(number_dofs,number_dofs);
 
     if (number_of_nodes == 3){
         // consistent mass matrix for triangular element can be easily pre-computed
@@ -1075,11 +1074,11 @@ void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix,
     KRATOS_TRY;
 
     if (StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo)) {
-        auto& r_geom = GetGeometry();
+        const auto& r_geom = GetGeometry();
 
         // LUMPED MASS MATRIX
-        SizeType number_of_nodes = r_geom.size();
-        SizeType mat_size = number_of_nodes * 3;
+        const SizeType number_of_nodes = r_geom.size();
+        const SizeType mat_size = number_of_nodes * 3;
 
         if (rMassMatrix.size1() != mat_size) {
             rMassMatrix.resize(mat_size, mat_size, false);

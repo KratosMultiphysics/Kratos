@@ -166,7 +166,7 @@ void TrussElement3D2N::CalculateMassMatrix(
 }
 
 void TrussElement3D2N::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     const double A = GetProperties()[CROSS_AREA];
