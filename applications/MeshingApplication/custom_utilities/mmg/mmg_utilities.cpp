@@ -3894,7 +3894,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             ++counter_not_remesh;
         }
     }
-    
+
     /* Elements */
     counter_to_remesh = 0;
     counter_to_remesh = block_for_each<SumReduction<IndexType>>(
@@ -4252,7 +4252,7 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
     } else {
         auto& r_this = *this;
         IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-            [&it_node_begin,&r_tensor_variable,&r_this](std::size_t i) {
+            [&it_node_begin,&r_this](std::size_t i) {
             auto it_node = it_node_begin + i;
 
             const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
