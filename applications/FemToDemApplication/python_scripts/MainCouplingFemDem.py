@@ -154,6 +154,11 @@ class MainCoupledFemDem_Solution:
         else:
             self.CreateInitialSkin = self.FEM_Solution.ProjectParameters["create_initial_skin"].GetBool()
 
+        if self.FEM_Solution.ProjectParameters.Has("do_stabilization_solve") == False:
+            self.do_stabilization_solve = False
+        else:
+            self.do_stabilization_solve = self.FEM_Solution.ProjectParameters["do_stabilization_solve"].GetBool()
+
         if self.CreateInitialSkin:
             self.ComputeSkinSubModelPart()
             if self.DEMFEM_contact:
@@ -163,7 +168,7 @@ class MainCoupledFemDem_Solution:
         # Initialize the coupled post process
         if not self.is_slave:
             self.InitializePostProcess()
-        
+
         self.FindNeighboursIfNecessary()
 
 #============================================================================================================================
@@ -482,7 +487,7 @@ class MainCoupledFemDem_Solution:
                 self.ExpandWetNodes()
                 KratosFemDem.UpdatePressureVolumeProcess(self.FEM_Solution.main_model_part).Execute()
                 self.ExpandWetNodes()
-            
+
             self.UpdateDEMVariables()
 
             dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
@@ -510,6 +515,11 @@ class MainCoupledFemDem_Solution:
             utils.SetNonHistoricalVariable(KratosFemDem.GENERATE_DEM, False, elements)
 
             self.ExtrapolatePressureLoad()
+
+            if self.do_stabilization_solve:
+                self.FEM_Solution.KratosPrintInfo("FEM-DEM:: Stabilization Calculation after removing FE...")
+                self.FEM_Solution.solver.Solve()
+                self.ExecuteAfterGeneratingDEM()
 
 
 #RemoveIsolatedFiniteElements============================================================================================================================
