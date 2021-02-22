@@ -151,11 +151,13 @@ namespace Kratos
         IndexType active_node_index = 0;
         IndexType active_subpoint_index = 0;
         IntegrationPoint<3> trial_subpoint;
+        array_1d<double, 3> local_coordinates;
 
         // Loop over all intersected grid elements and make subpoints in each
         for (size_t i = 0; i < intersected_geometries.size(); ++i) {
             Matrix DN_De(intersected_geometries[i]->PointsNumber(), working_dim);
             Vector N(intersected_geometries[i]->PointsNumber());
+            sub_point_volume = 0.0;
 
             if (working_dim == 2) {
                 Determine2DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
@@ -172,19 +174,24 @@ namespace Kratos
                     return;
                 }
                 else {
-                    trial_subpoint = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume_vec[0],
-                        *intersected_geometries[i], N, DN_De);
-                    ips[active_subpoint_index] = trial_subpoint;
-                    DN_De_vector[active_subpoint_index] = DN_De;
-                    for (size_t j = 0; j < N.size(); ++j) {
-                        N_matrix(active_subpoint_index, active_node_index) = N[j];
-                        nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
 
-                        active_node_index += 1;
+                    if ((*intersected_geometries[i]).IsInside(sub_point_position, local_coordinates, Tolerance))
+                    {
+                        (*intersected_geometries[i]).ShapeFunctionsValues(N, local_coordinates);
+                        (*intersected_geometries[i]).ShapeFunctionsLocalGradients(DN_De, local_coordinates);
+                        trial_subpoint = IntegrationPoint<3>(local_coordinates, sub_point_volume / mp_volume_vec[0]);
+
+                        ips[active_subpoint_index] = trial_subpoint;
+                        DN_De_vector[active_subpoint_index] = DN_De;
+                        for (size_t j = 0; j < N.size(); ++j) {
+                            N_matrix(active_subpoint_index, active_node_index) = N[j];
+                            nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
+
+                            active_node_index += 1;
+                        }
+                        active_subpoint_index += 1;
                     }
-                    active_subpoint_index += 1;
                 }
-
             }
         }
         if (active_subpoint_index == 1) {
@@ -740,9 +747,9 @@ namespace Kratos
         NodeType ele_point_low, ele_point_high;
         rGeom.BoundingBox(ele_point_low, ele_point_high);
 
-        double center_to_center = norm_2(rGeom.Center() - rCoord);
+        double center_to_center = norm_2(0.5* ele_point_low + 0.5* ele_point_high - rCoord);
         double maximum_contact_range = 0.5*norm_2(rPointHigh- rPointLow) +
-            0.75*norm_2(ele_point_high - ele_point_low);
+            0.51*norm_2(ele_point_high - ele_point_low);
         if (center_to_center < maximum_contact_range) return true;
         return false;
     }
