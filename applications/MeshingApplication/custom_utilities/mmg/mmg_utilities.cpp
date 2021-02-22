@@ -27,6 +27,7 @@
 #include "meshing_application_variables.h"
 #include "containers/model.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+#include "utilities/reduction_utilities.h"
 #include "custom_utilities/mmg/mmg_utilities.h"
 
 // NOTE: The following contains the license of the MMG library
@@ -3836,16 +3837,19 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     SetMeshSize(mmg_mesh_info);
 
     // We reorder the ids to avoid conflicts with the rest (using as reference the OLD_ENTITY)
+    /* Nodes */
     IndexType counter_to_remesh = 0;
-    #pragma omp parallel for reduction(+: counter_to_remesh)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-
-        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+    counter_to_remesh = block_for_each<SumReduction<double>>(
+    r_nodes_array,
+    [](Node<3>& r_node){
+        const bool old_entity = r_node.IsDefined(OLD_ENTITY) ? r_node.Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            ++counter_to_remesh;
+            return 1;
+        } else {
+            return 0;
         }
-    }
+    });
+
     // RESETING THE ID OF THE NODES (important for non consecutive meshes)
     IndexType counter_remesh = 1;
     IndexType counter_not_remesh = counter_to_remesh + 1;
@@ -3861,16 +3865,20 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             ++counter_not_remesh;
         }
     }
-    counter_to_remesh = 0;
-    #pragma omp parallel for reduction(+: counter_to_remesh)
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = it_cond_begin + i;
 
-        const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
+    /* Conditions */
+    counter_to_remesh = 0;
+    counter_to_remesh = block_for_each<SumReduction<double>>(
+    r_conditions_array,
+    [](Condition& r_cond){
+        const bool old_entity = r_cond.IsDefined(OLD_ENTITY) ? r_cond.Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            ++counter_to_remesh;
+            return 1;
+        } else {
+            return 0;
         }
-    }
+    });
+
     // RESETING THE ID OF THE CONDITIONS (important for non consecutive meshes)
     counter_remesh = 1;
     counter_not_remesh = counter_to_remesh + 1;
@@ -3886,16 +3894,20 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             ++counter_not_remesh;
         }
     }
+    
+    /* Elements */
     counter_to_remesh = 0;
-    #pragma omp parallel for reduction(+: counter_to_remesh)
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-        auto it_elem = it_elem_begin + i;
-
-        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
+    counter_to_remesh = block_for_each<SumReduction<double>>(
+    r_elements_array,
+    [](Element& r_elem){
+        const bool old_entity = r_elem.IsDefined(OLD_ENTITY) ? r_elem.Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            ++counter_to_remesh;
+            return 1;
+        } else {
+            return 0;
         }
-    }
+    });
+
     // RESETING THE ID OF THE ELEMENTS (important for non consecutive meshes)
     counter_remesh = 1;
     counter_not_remesh = counter_to_remesh + 1;
