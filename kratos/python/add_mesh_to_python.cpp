@@ -22,6 +22,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/properties.h"
+#include "includes/mdpa_parser.h"
 #include "python/add_mesh_to_python.h"
 #include "python/containers_interface.h"
 
@@ -668,6 +669,10 @@ void  AddMeshToPython(pybind11::module& m)
     .def("HasCondition", &MeshType::HasCondition)
     .def("__str__", PrintObject<MeshType>)
     ;
+
+    py::class_<MdpaReader, MdpaReader::Pointer>(m,"MpdaParser")
+    .def(py::init<>())
+    .def("ParseMdpa", &MdpaReader::Read);
 }
 }  // namespace Python.
 } // Namespace Kratos
