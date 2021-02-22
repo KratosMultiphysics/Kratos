@@ -10,15 +10,12 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#ifndef CO_SIM_IO_INTERNALS_H_INCLUDED
-#define CO_SIM_IO_INTERNALS_H_INCLUDED
+#ifndef CO_SIM_IO_DATA_CONTAINER_INCLUDED
+#define CO_SIM_IO_DATA_CONTAINER_INCLUDED
 
 // System includes
-#include <iostream>
-#include <sstream>
-#include <fstream>
 #include <vector>
-#include <string>
+#include <ostream>
 
 // Project includes
 #include "define.hpp"
@@ -31,7 +28,11 @@ template<typename TDataType>
 class DataContainer
 {
 public:
+    DataContainer() = default;
     virtual ~DataContainer() = default;
+
+    DataContainer(const DataContainer&) = delete;
+    DataContainer& operator=(const DataContainer&) = delete;
 
     virtual std::size_t size() const = 0;
     virtual void resize(const std::size_t NewSize) = 0;
@@ -54,7 +55,6 @@ public:
         return this->data()[Index];
     }
 };
-
 
 /// output stream function
 template<typename TDataType>
@@ -98,7 +98,7 @@ public:
         : mrVector(rVector) {}
 
     std::size_t size() const override {return mrVector.size();}
-    void resize(const std::size_t NewSize) override {CO_SIM_IO_ERROR << "Using non-const member of readonly object!" << std::endl;}
+    void resize(const std::size_t NewSize) override {CO_SIM_IO_ERROR << "Resizing of readonly object is not possible!" << std::endl;}
     const TDataType* data() const override {return mrVector.data();}
     TDataType* data() override {CO_SIM_IO_ERROR << "Using non-const member of readonly object!" << std::endl; return nullptr;}
 
@@ -111,27 +111,31 @@ class DataContainerRawMemory : public DataContainer<TDataType>
 {
 public:
     explicit DataContainerRawMemory(TDataType** ppData, const std::size_t Size)
-        : mppData(ppData), mSize(Size) {}
+        : mppData(ppData), mSize(Size), mCapacity(Size) {}
 
     std::size_t size() const override {return mSize;};
     void resize(const std::size_t NewSize) override
     {
-        if (NewSize > mSize) { // only increase the capacity if too small => same behavior as std::vector
-            if(mSize != 0) // Maybe is not null neigther allocated: double *data. Pooyan.
-                free(*mppData); // this is ok according to the standard, no matter if it is null or allocated //also check if using "std::"
-
-            *mppData = (TDataType *)malloc((NewSize)*sizeof(TDataType)); // TODO maybe use realloc? //also check if using "std::"
-            CO_SIM_IO_ERROR_IF_NOT(*mppData) << "Memory reallocation failed";
-        }
         mSize = NewSize;
+        if (NewSize > mCapacity) { // only increase the capacity if too small => same behavior as std::vector
+            if (mCapacity == 0) {
+                *mppData = nullptr; // initial allocation if not done outside
+            }
+            mCapacity = std::max(mCapacity*2, NewSize); // increase size beyond what is necessary to avoid frequent reallocations (like std::vector does)
 
+            *mppData = (TDataType *)realloc(*mppData, (mCapacity)*sizeof(TDataType));
+
+            CO_SIM_IO_ERROR_IF_NOT(*mppData) << "Memory reallocation failed!";
+        }
     };
+
     const TDataType* data() const override {return *mppData;}
     TDataType* data() override {return *mppData;}
 
 private:
     TDataType** mppData;
     std::size_t mSize;
+    std::size_t mCapacity;
 };
 
 template<typename TDataType>
@@ -142,7 +146,7 @@ public:
         : mpData(pData), mSize(Size) {}
 
     std::size_t size() const override {return mSize;};
-    void resize(const std::size_t NewSize) override {CO_SIM_IO_ERROR << "Using non-const member of readonly object!" << std::endl;};
+    void resize(const std::size_t NewSize) override {CO_SIM_IO_ERROR << "Resizing of readonly object is not possible!" << std::endl;};
     const TDataType* data() const override {return mpData;}
     TDataType* data() override {CO_SIM_IO_ERROR << "Using non-const member of readonly object!" << std::endl; return nullptr;}
 
@@ -151,33 +155,7 @@ private:
     const std::size_t mSize;
 };
 
-inline void AddMissingSettings(const SettingsType& rDefaultSettings, SettingsType& rSettings)
-{
-    for (const auto& r_setting : rDefaultSettings) {
-        if (rSettings.count(r_setting.first) == 0) {
-            rSettings[r_setting.first] = r_setting.second;
-        }
-    }
-}
-
-inline SettingsType ReadSettingsFile(const std::string& rSettingsFileName)
-{
-    std::ifstream settings_file(rSettingsFileName);
-
-    if (!settings_file.good()) {
-        CO_SIM_IO_INFO("CoSimIO") << "Input file \"" << rSettingsFileName << "\" could not be read, using default configuration" << std::endl;
-        return SettingsType();
-    }
-
-    SettingsType settings;
-    std::string current_line;
-    while (std::getline(settings_file, current_line)) {
-        // TODO implement this
-    }
-    return settings;
-}
-
 } // namespace Internals
 } // namespace CoSimIO
 
-#endif // CO_SIM_IO_INTERNALS_H_INCLUDED
+#endif // CO_SIM_IO_DATA_CONTAINER_INCLUDED
