@@ -195,7 +195,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "min_dt_factor"                      : 1e-5,
             "max_dt_factor"                      : 1.0,
             "correct_backwards"                  : true,
-            "maximum_iterations"                 : 70
+            "maximum_iterations"                 : 1
         }""" )
         #self.mass_conservation_process = ApplyLocalMassConservationCheckProcessWithFlow(self.model, mass_settings)
         self.mass_conservation_process = ApplyLocalMassConservationCheckProcess(self.model, mass_settings)

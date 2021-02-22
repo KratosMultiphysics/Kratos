@@ -170,80 +170,112 @@ std::string MassConservationUtility::ComputeBalancedVolume(){
 //     return time_step_for_convection;
 // }
 
+double MassConservationUtility::ComputeTimeStepForConvection(double &rOrthogonalFlow)
+    {
+        const double limit_factor = 0.8;
+        const double current_dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
+        KRATOS_WATCH(mVolumeError)
+        KRATOS_WATCH(rOrthogonalFlow)
 
+        const double tol = 1e-14;
+        double time_step_for_convection = 0.0;
+        if ( mVolumeError < 0.0 ){
 
+            
+            mFluidVolumeConservation = FluidVolumeConservation::VOLUME_LOST;
+            
+            
+                
+            time_step_for_convection = -std::abs(mVolumeError / rOrthogonalFlow);
 
+ 
+                
+            
+        }
+        else if ( mVolumeError > 0.0) {
+            
+            mFluidVolumeConservation = FluidVolumeConservation::VOLUME_GAINED;
+            
+           
+            time_step_for_convection = std::abs(mVolumeError / rOrthogonalFlow);
+              
+                
+            }
+        
+        else {
+            // case: Exactly the correct volume of water is present
+            mFluidVolumeConservation = FluidVolumeConservation::EXACT_VOLUME;
+        }
 
+        // const double limit_dt = limit_factor * current_dt;
+        // if (std::abs(time_step_for_convection) > limit_dt){
+        //     time_step_for_convection = (time_step_for_convection < 0.0) ? -limit_dt : limit_dt;
+        // }
 
+        KRATOS_WATCH(time_step_for_convection)
 
+        return time_step_for_convection;
+    }
 
+    // double MassConservationUtility::ComputeTimeStepForConvection(double& rOrthogonalFlow)
+    // {
+    //     const double limit_factor = 0.8;
+    //     const double current_dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
-double MassConservationUtility::ComputeTimeStepForConvection(double& rOrthogonalFlow)
+    //     KRATOS_WATCH(mVolumeError)
+    //     KRATOS_WATCH(rOrthogonalFlow)
+
+    //     const double tol = 1e-14;
+    //     double time_step_for_convection = 0.0;
+    //     if ( mVolumeError < 0.0 ){
+
+    //         KRATOS_WATCH("We're negative volume")
+    //         // case: water volume was lost by mistake
+    //         mFluidVolumeConservation = FluidVolumeConservation::VOLUME_LOST;
+    //         // checking if flow is sufficient (avoid division by 0)
+    //         if (std::abs(rOrthogonalFlow) > tol) {
+    //             // If negative orthogonal flow (from air to water) negative delta time to go "backwards" and loose mass
+    //             if (rOrthogonalFlow < 0.0) {
+    //                 time_step_for_convection = -std::abs(mVolumeError / rOrthogonalFlow);
+    //             // If positive orthogonal flow (from water to air) positive delta time to go "frontwards" and earn mass
+    //             } else {
+    //                 time_step_for_convection = std::abs(mVolumeError / rOrthogonalFlow);
+    //             }
+    //         }
+    //     }
+    //     else if ( mVolumeError > 0.0) {
+    //         KRATOS_WATCH("We're positive volume")
+    //         // case: water volume was gained by mistake
+    //         mFluidVolumeConservation = FluidVolumeConservation::VOLUME_GAINED;
+    //         // checking if flow is sufficient (avoid division by 0)
+    //         if ( std::abs(rOrthogonalFlow) > tol ){
+    //             // If negative orthogonal flow (from air to water) positive delta time to go "backwards" and loose mass
+    //             if (rOrthogonalFlow < 0.0) {
+    //                 time_step_for_convection = std::abs(mVolumeError / rOrthogonalFlow);
+    //             // If positive orthogonal flow (from water to air) negative delta time to go "frontwards" and earn mass
+    //             } else {
+    //                 time_step_for_convection = -std::abs(mVolumeError / rOrthogonalFlow);
+    //             }
+    //         }
+    //     }
+    //     else {
+    //         // case: Exactly the correct volume of water is present
+    //         mFluidVolumeConservation = FluidVolumeConservation::EXACT_VOLUME;
+    //     }
+
+    //     const double limit_dt = limit_factor * current_dt;
+    //     if (std::abs(time_step_for_convection) > limit_dt){
+    //         time_step_for_convection = (time_step_for_convection < 0.0) ? -limit_dt : limit_dt;
+    //     }
+
+    //     KRATOS_WATCH(time_step_for_convection)
+
+    //     return time_step_for_convection;
+    // }
+
+    void MassConservationUtility::RestoreDistanceValues(const Variable<double> &rAuxDistVar)
 {
-    const double limit_factor = 0.8;
-    const double current_dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
-
-    KRATOS_WATCH(mVolumeError)
-    KRATOS_WATCH(rOrthogonalFlow)
-
-    const double tol = 1e-14;
-    double time_step_for_convection = 0.0;
-    if ( mVolumeError < 0.0 ){
-
-        KRATOS_WATCH("We're negative volume")
-        // case: water volume was lost by mistake
-        mFluidVolumeConservation = FluidVolumeConservation::VOLUME_LOST;
-        // checking if flow is sufficient (avoid division by 0)
-        if (std::abs(rOrthogonalFlow) > tol) {
-            // If negative orthogonal flow (from air to water) negative delta time to go "backwards" and loose mass
-            if (rOrthogonalFlow < 0.0) {
-                time_step_for_convection = -std::abs(mVolumeError / rOrthogonalFlow);
-            // If positive orthogonal flow (from water to air) positive delta time to go "frontwards" and earn mass
-            } else {
-                time_step_for_convection = std::abs(mVolumeError / rOrthogonalFlow);
-            }
-        }
-    }
-    else if ( mVolumeError > 0.0) {
-        KRATOS_WATCH("We're positive volume")
-        // case: water volume was gained by mistake
-        mFluidVolumeConservation = FluidVolumeConservation::VOLUME_GAINED;
-        // checking if flow is sufficient (avoid division by 0)
-        if ( std::abs(rOrthogonalFlow) > tol ){
-            // If negative orthogonal flow (from air to water) positive delta time to go "backwards" and loose mass
-            if (rOrthogonalFlow < 0.0) {
-                time_step_for_convection = std::abs(mVolumeError / rOrthogonalFlow);
-            // If positive orthogonal flow (from water to air) negative delta time to go "frontwards" and earn mass
-            } else {
-                time_step_for_convection = -std::abs(mVolumeError / rOrthogonalFlow);
-            }
-        }
-    }
-    else {
-        // case: Exactly the correct volume of water is present
-        mFluidVolumeConservation = FluidVolumeConservation::EXACT_VOLUME;
-    }
-
-   
-
-    const double limit_dt = limit_factor * current_dt;
-    if (std::abs(time_step_for_convection) > limit_dt){
-        time_step_for_convection = (time_step_for_convection < 0.0) ? -limit_dt : limit_dt;
-    }
-    
-    KRATOS_WATCH(time_step_for_convection)
-
-    return time_step_for_convection;
-}
-
-
-
-
-
-
-
-void MassConservationUtility::RestoreDistanceValues( const Variable<double>& rAuxDistVar ){
 
     const int number_nodes = mrModelPart.NumberOfNodes();
 
@@ -253,8 +285,6 @@ void MassConservationUtility::RestoreDistanceValues( const Variable<double>& rAu
         it_node->GetSolutionStepValue(DISTANCE) = it_node->GetValue(rAuxDistVar);
     }
 }
-
-
 
 void MassConservationUtility::ReCheckTheMassConservation(){
     double neg_vol = 0.0;
