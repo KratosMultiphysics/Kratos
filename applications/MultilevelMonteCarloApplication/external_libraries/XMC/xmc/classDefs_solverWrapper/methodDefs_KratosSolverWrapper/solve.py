@@ -456,17 +456,29 @@ def executeInstanceReadingFromFileAuxLev5_Task(pickled_model,pickled_project_par
     ############################################# ZeroTask #############################################
 
 @ExaquteTask(returns=2)
-def returnZeroQoiAndTime_Task(number_scalar, number_vector, size_vector):
-    if number_scalar > 0:
-        qoi_scalar = [0.0 for _ in range(number_scalar)]
-    if number_vector > 0:
-        qoi_vector = [[0.0 for _ in range(size_vector)] for _ in range(number_vector)]
-    if number_scalar > 0 and number_vector > 0:
-        qoi = qoi_scalar + qoi_vector
-    elif number_scalar > 0:
-        qoi = qoi_scalar
-    elif number_vector > 0:
-        qoi = qoi_vector
+def returnZeroQoiAndTime_Task(estimators, size_vector):
+    """
+    Auxiliary method returning zero values quantities of interest and zero value computational cost.
+    It is called by multi-level methods as level "-1".
+
+    Inputs:
+    - estimators: list of strings. Each string is the moment estimator corresponding to the specific quantity of interest.
+    - size_vector: length of multi moment estimators. Namely, the field dimension of each multi quantity of interest.
+
+    Outputs:
+    - qoi: list containing null moment estimators in the required order.
+    - time_for_qoi: null time to solution.
+    """
+    qoi = []
+    for estimator in estimators:
+        if estimator == "xmc.momentEstimator.MomentEstimator" or estimator == "xmc.momentEstimator.CombinedMomentEstimator":
+            qoi.append(0.0)
+        elif estimator == "xmc.momentEstimator.MultiMomentEstimator" or estimator == "xmc.momentEstimator.MultiCombinedMomentEstimator":
+            qoi.append([0.0 for _ in range(size_vector)])
+        else:
+            err_msg =  "The moment estimator {} passed to the KratosSolverWrapper is not supported.\n".format(estimator)
+            err_msg += "Available options are: \"MomentEstimator\", \"CombinedMomentEstimator\", \"MultiMomentEstimator\" and  \"MultiCombinedMomentEstimator.\""
+            raise Exception(err_msg)
     time_for_qoi = 0.0
     return qoi,time_for_qoi
 
@@ -508,6 +520,17 @@ def ExecuteInstanceDeterministicAdaptiveRefinementAux_Functionality(pickled_mode
     current_project_parameters = KratosMultiphysics.Parameters()
     serialized_project_parameters.Load("ParametersSerialization",current_project_parameters)
     del(serialized_project_parameters)
+
+    # Set IS_RESTARTED flag to True, STEP to zero and TIME to 0,
+    # since the model has already been initialized and eventually run.
+    # The model we run is coming from
+    # level 0: directly from serialization, where Initialize() method is called
+    # level > 0: from ExecuteInstanceStochasticAdaptiveRefinementAux_Functionality(),
+    # where the model is run and then returned as an output.
+    model_part_name = current_project_parameters["solver_settings"]["model_part_name"].GetString()
+    current_model.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
+    current_model.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
+    current_model.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED, True)
 
     # constructor analysis stage
     simulation = current_analysis_stage(current_model,current_project_parameters,random_variable)

@@ -73,7 +73,9 @@
                     "model_parts_recv" : {
                         "Fluid.NoSlip2D_FSI"    : "Interface_1_coupling",
                         "Fluid2.Outlet2D_Outlet" : "Interface_2_Outlet"
-                    }
+                    },
+                    "export_data"      : ["Interface_1_disp", "Interface_2_rot"],
+                    "import_data"      : ["Interface_1_force", "Interface_inlet_velocity"]
                 },
                 "io_settings" : {
                     "type" : "empire_io"
