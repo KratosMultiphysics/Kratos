@@ -69,7 +69,7 @@ public:
         : BaseType(pResponseFunction)
     {
         // Allocate auxiliary memory.
-        const int number_of_threads = OpenMPUtils::GetNumThreads();
+        const int number_of_threads = ParallelUtilities::GetNumThreads();
         mAuxMatrices.resize(number_of_threads);
     }
 
