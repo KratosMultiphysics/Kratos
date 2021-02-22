@@ -517,6 +517,7 @@ class MainCoupledFemDem_Solution:
             self.ExtrapolatePressureLoad()
 
             if self.do_stabilization_solve:
+                self.FEM_Solution.KratosPrintInfo("FEM-DEM:: Stabilization Calculation after removing FE...")
                 self.FEM_Solution.solver.Solve()
                 self.ExecuteAfterGeneratingDEM()
 
