@@ -32,6 +32,10 @@
 #define CO_SIM_IO_ERROR_IF_NOT  KRATOS_ERROR_IF_NOT
 #include "custom_external_libraries/co_sim_io/co_sim_io.hpp"
 
+#include "custom_external_libraries/co_sim_io/python/connection_status_to_python.hpp"
+#include "custom_external_libraries/co_sim_io/python/info_to_python.hpp"
+#include "custom_external_libraries/co_sim_io/python/version_to_python.hpp"
+
 namespace Kratos {
 namespace Python {
 
@@ -44,122 +48,119 @@ namespace CoSimIO_Wrappers { // helpers namespace
 // defining the static members
 struct DataBuffers {
     static std::vector<double> vector_doubles;
-    static std::vector<int> vector_connectivities;
-    static std::vector<int> vector_types;
 };
 
 // declaring the static members
 std::vector<double> DataBuffers::vector_doubles;
-std::vector<int> DataBuffers::vector_connectivities;
-std::vector<int> DataBuffers::vector_types;
 
 
 void ExportMesh(
     CoSimIO::Info& rInfo,
     const ModelPart& rModelPart)
 {
-    // extract information from ModelPart
-    const int num_nodes = rModelPart.NumberOfNodes();
-    const int num_elems = rModelPart.NumberOfElements();
+    // // extract information from ModelPart
+    // const int num_nodes = rModelPart.NumberOfNodes();
+    // const int num_elems = rModelPart.NumberOfElements();
 
-    DataBuffers::vector_doubles.resize(num_nodes*3);
-    DataBuffers::vector_types.resize(num_elems);
-    DataBuffers::vector_connectivities.clear();
+    // DataBuffers::vector_doubles.resize(num_nodes*3);
+    // DataBuffers::vector_types.resize(num_elems);
+    // DataBuffers::vector_connectivities.clear();
 
-    std::size_t node_counter = 0;
-    for (const auto& r_node : rModelPart.Nodes()) {
-        const auto& r_coords = r_node.GetInitialPosition(); // TODO or current coords?
-        DataBuffers::vector_doubles[node_counter++] = r_coords[0];
-        DataBuffers::vector_doubles[node_counter++] = r_coords[1];
-        DataBuffers::vector_doubles[node_counter++] = r_coords[2];
-    }
+    // std::size_t node_counter = 0;
+    // for (const auto& r_node : rModelPart.Nodes()) {
+    //     const auto& r_coords = r_node.GetInitialPosition(); // TODO or current coords?
+    //     DataBuffers::vector_doubles[node_counter++] = r_coords[0];
+    //     DataBuffers::vector_doubles[node_counter++] = r_coords[1];
+    //     DataBuffers::vector_doubles[node_counter++] = r_coords[2];
+    // }
 
-    // NOTE: See https://vtk.org/wp-content/uploads/2015/04/file-formats.pdf
-    const std::map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
-        { GeometryData::KratosGeometryType::Kratos_Point2D,          1 },
-        { GeometryData::KratosGeometryType::Kratos_Point3D,          1 },
-        { GeometryData::KratosGeometryType::Kratos_Line2D2,          3 },
-        { GeometryData::KratosGeometryType::Kratos_Line3D2,          3 },
-        { GeometryData::KratosGeometryType::Kratos_Triangle2D3,      5 },
-        { GeometryData::KratosGeometryType::Kratos_Triangle3D3,      5 },
-        { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
-        { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, 9 },
-        { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    10 },
-        { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     12 }
-    };
+    // // NOTE: See https://vtk.org/wp-content/uploads/2015/04/file-formats.pdf
+    // const std::map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
+    //     { GeometryData::KratosGeometryType::Kratos_Point2D,          1 },
+    //     { GeometryData::KratosGeometryType::Kratos_Point3D,          1 },
+    //     { GeometryData::KratosGeometryType::Kratos_Line2D2,          3 },
+    //     { GeometryData::KratosGeometryType::Kratos_Line3D2,          3 },
+    //     { GeometryData::KratosGeometryType::Kratos_Triangle2D3,      5 },
+    //     { GeometryData::KratosGeometryType::Kratos_Triangle3D3,      5 },
+    //     { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
+    //     { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, 9 },
+    //     { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    10 },
+    //     { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     12 }
+    // };
 
-    std::size_t elem_counter = 0;
-    int connectivities_offset = std::numeric_limits<int>::max(); //in paraview the connectivities start from 0, hence we have to check beforehand what is the connectivities offset
-    for (const auto& r_elem : rModelPart.Elements()) {
-        const auto& r_geom = r_elem.GetGeometry();
-        DataBuffers::vector_types[elem_counter++] = geo_type_vtk_cell_type_map.at(r_geom.GetGeometryType()); // TODO add check
+    // std::size_t elem_counter = 0;
+    // int connectivities_offset = std::numeric_limits<int>::max(); //in paraview the connectivities start from 0, hence we have to check beforehand what is the connectivities offset
+    // for (const auto& r_elem : rModelPart.Elements()) {
+    //     const auto& r_geom = r_elem.GetGeometry();
+    //     DataBuffers::vector_types[elem_counter++] = geo_type_vtk_cell_type_map.at(r_geom.GetGeometryType()); // TODO add check
 
-        for (const auto& r_node : r_geom) {
-            const int current_id = r_node.Id();
-            DataBuffers::vector_connectivities.push_back(current_id);
-            connectivities_offset = std::min(connectivities_offset, current_id);
-        }
-    }
+    //     for (const auto& r_node : r_geom) {
+    //         const int current_id = r_node.Id();
+    //         DataBuffers::vector_connectivities.push_back(current_id);
+    //         connectivities_offset = std::min(connectivities_offset, current_id);
+    //     }
+    // }
 
-    if (connectivities_offset != 0) {
-        for(auto& r_connectivity : DataBuffers::vector_connectivities) {
-            r_connectivity -= connectivities_offset;
-        }
-    }
+    // if (connectivities_offset != 0) {
+    //     for(auto& r_connectivity : DataBuffers::vector_connectivities) {
+    //         r_connectivity -= connectivities_offset;
+    //     }
+    // }
 
-    CoSimIO::ExportMesh(
-        rInfo,
-        DataBuffers::vector_doubles,
-        DataBuffers::vector_connectivities,
-        DataBuffers::vector_types);
+    // CoSimIO::ExportMesh(
+    //     rInfo,
+    //     DataBuffers::vector_doubles,
+    //     DataBuffers::vector_connectivities,
+    //     DataBuffers::vector_types);
 }
 
 void ImportMesh(
     CoSimIO::Info& rInfo,
     ModelPart& rModelPart)
 {
-    CoSimIO::ImportMesh(
-        rInfo,
-        DataBuffers::vector_doubles,
-        DataBuffers::vector_connectivities,
-        DataBuffers::vector_types);
+    CoSimIO::ModelPart imported_model_part("imported");
+    // CoSimIO::ImportMesh(
+    //     rInfo,
+    //     DataBuffers::vector_doubles,
+    //     DataBuffers::vector_connectivities,
+    //     DataBuffers::vector_types);
 
-    // fill ModelPart from received Mesh
-    KRATOS_ERROR_IF(rModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
-    KRATOS_ERROR_IF(rModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
-    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
+    // // fill ModelPart from received Mesh
+    // KRATOS_ERROR_IF(rModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
+    // KRATOS_ERROR_IF(rModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
+    // KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
 
-    const std::unordered_map<int, std::pair<int, std::string>> vtk_type_map = {
-        // {1 , "Element3D1N"}, // does not yet exist
-        {3 ,  {2, "Element2D2N"} }, // line
-        {5 ,  {3, "Element2D3N"} }, // triangle
-        {9 ,  {4, "Element2D4N"} }, // quad
-        {10 , {4, "Element3D4N"} }, // tetra
-        {12 , {8, "Element3D8N"} }  // hexa
-    };
+    // const std::unordered_map<int, std::pair<int, std::string>> vtk_type_map = {
+    //     // {1 , "Element3D1N"}, // does not yet exist
+    //     {3 ,  {2, "Element2D2N"} }, // line
+    //     {5 ,  {3, "Element2D3N"} }, // triangle
+    //     {9 ,  {4, "Element2D4N"} }, // quad
+    //     {10 , {4, "Element3D4N"} }, // tetra
+    //     {12 , {8, "Element3D8N"} }  // hexa
+    // };
 
-    // fill ModelPart with received entities // TODO do this in OMP and add only after creation!
+    // // fill ModelPart with received entities // TODO do this in OMP and add only after creation!
 
-    for (std::size_t i=0; i<DataBuffers::vector_doubles.size()/3; ++i) {
-        rModelPart.CreateNewNode(
-            i, // TODO check this, this will create nodes with Id=0
-            DataBuffers::vector_doubles[i*3],
-            DataBuffers::vector_doubles[i*3+1],
-            DataBuffers::vector_doubles[i*3+2]);
-    }
+    // for (std::size_t i=0; i<DataBuffers::vector_doubles.size()/3; ++i) {
+    //     rModelPart.CreateNewNode(
+    //         i, // TODO check this, this will create nodes with Id=0
+    //         DataBuffers::vector_doubles[i*3],
+    //         DataBuffers::vector_doubles[i*3+1],
+    //         DataBuffers::vector_doubles[i*3+2]);
+    // }
 
-    auto p_props = rModelPart.CreateNewProperties(0);
+    // auto p_props = rModelPart.CreateNewProperties(0);
 
-    int counter=0;
-    for (std::size_t i=0; i<DataBuffers::vector_types.size(); ++i) {
-        const auto& vtk_type_info = vtk_type_map.at(DataBuffers::vector_types[i]); // TODO add check
-        const int num_nodes_elem = vtk_type_info.first;
-        std::vector<ModelPart::IndexType> elem_node_ids(num_nodes_elem);
-        for (int j=0; j<num_nodes_elem; ++j) {
-            elem_node_ids[j] = DataBuffers::vector_connectivities[counter++];
-        }
-        rModelPart.CreateNewElement(vtk_type_info.second, i+1, elem_node_ids, p_props);
-    }
+    // int counter=0;
+    // for (std::size_t i=0; i<DataBuffers::vector_types.size(); ++i) {
+    //     const auto& vtk_type_info = vtk_type_map.at(DataBuffers::vector_types[i]); // TODO add check
+    //     const int num_nodes_elem = vtk_type_info.first;
+    //     std::vector<ModelPart::IndexType> elem_node_ids(num_nodes_elem);
+    //     for (int j=0; j<num_nodes_elem; ++j) {
+    //         elem_node_ids[j] = DataBuffers::vector_connectivities[counter++];
+    //     }
+    //     rModelPart.CreateNewElement(vtk_type_info.second, i+1, elem_node_ids, p_props);
+    // }
 }
 
 void ImportDataSizeCheck(const std::size_t ExpectedSize, const std::size_t ImportedSize)
@@ -269,29 +270,12 @@ void  AddCoSimIOToPython(pybind11::module& m)
 
     auto m_co_sim_io = m.def_submodule("CoSimIO");
 
-    py::class_<CoSimIO::Info>(m_co_sim_io,"Info")
-        .def(py::init<>())
-        .def("Has",       &CoSimIO::Info::Has)
-        .def("GetInt",    &CoSimIO::Info::Get<int>)
-        .def("GetDouble", &CoSimIO::Info::Get<double>)
-        .def("GetBool",   &CoSimIO::Info::Get<bool>)
-        .def("GetString", &CoSimIO::Info::Get<std::string>)
-        .def("SetInt",    &CoSimIO::Info::Set<int>)
-        .def("SetDouble", &CoSimIO::Info::Set<double>)
-        .def("SetBool",   &CoSimIO::Info::Set<bool>)
-        .def("SetString", &CoSimIO::Info::Set<std::string>)
-        .def("Erase",     &CoSimIO::Info::Erase)
-        .def("Clear",     &CoSimIO::Info::Clear)
-        .def("Size",      &CoSimIO::Info::Size)
-        .def("__str__",   PrintObject<CoSimIO::Info>);
-        ;
+    AddCoSimIOInfoToPython(m_co_sim_io);
+    AddCoSimIOConnectionStatusToPython(m_co_sim_io);
+    AddCoSimIOVersionToPython(m_co_sim_io);
 
-    m_co_sim_io.def("Connect", &CoSimIO::Connect);
+    m_co_sim_io.def("Connect",    &CoSimIO::Connect);
     m_co_sim_io.def("Disconnect", &CoSimIO::Disconnect);
-
-    m_co_sim_io.def("IsConverged", &CoSimIO::IsConverged);
-
-    m_co_sim_io.def("SendControlSignal", CoSimIO::Internals::SendControlSignal);
 
     m_co_sim_io.def("ImportMesh", CoSimIO_Wrappers::ImportMesh);
     m_co_sim_io.def("ExportMesh", CoSimIO_Wrappers::ExportMesh);
@@ -306,9 +290,6 @@ void  AddCoSimIOToPython(pybind11::module& m)
 
     m_co_sim_io.def("InfoFromParameters", CoSimIO_Wrappers::InfoFromParameters);
 
-    // // m_co_sim_io.def("ImportGeometry", CoSimIO_Wrappers::ImportGeometry); // This is not yet implemented in the CoSimIO
-    // // m_co_sim_io.def("ExportGeometry", CoSimIO_Wrappers::ExportGeometry); // This is not yet implemented in the CoSimIO
-
     py::enum_<DataLocation>(m_co_sim_io,"DataLocation")
         .value("NodeHistorical",    DataLocation::NodeHistorical)
         .value("NodeNonHistorical", DataLocation::NodeNonHistorical)
@@ -317,31 +298,6 @@ void  AddCoSimIOToPython(pybind11::module& m)
         .value("ModelPart",         DataLocation::ModelPart)
         ;
 
-    py::enum_<CoSimIO::ConnectionStatus>(m_co_sim_io,"ConnectionStatus")
-        .value("NotConnected",CoSimIO::ConnectionStatus::NotConnected)
-        .value("Connected",CoSimIO::ConnectionStatus::Connected)
-        .value("Disconnected", CoSimIO::ConnectionStatus::Disconnected)
-        .value("ConnectionError", CoSimIO::ConnectionStatus::ConnectionError)
-        .value("DisconnectionError", CoSimIO::ConnectionStatus::DisconnectionError)
-        ;
-
-    py::enum_<CoSimIO::ControlSignal>(m_co_sim_io,"ControlSignal")
-        .value("Dummy", CoSimIO::ControlSignal::Dummy)
-        // .value("BreakSolutionLoop", CoSimIO::ControlSignal::BreakSolutionLoop)
-        .value("ConvergenceAchieved", CoSimIO::ControlSignal::ConvergenceAchieved)
-
-    //     .value("AdvanceInTime", CoSimIO::ControlSignal::AdvanceInTime)
-    //     .value("InitializeSolutionStep", CoSimIO::ControlSignal::InitializeSolutionStep)
-    //     .value("SolveSolutionStep", CoSimIO::ControlSignal::SolveSolutionStep)
-    //     .value("FinalizeSolutionStep", CoSimIO::ControlSignal::FinalizeSolutionStep)
-
-    //     .value("ImportGeometry", CoSimIO::ControlSignal::ImportGeometry)
-    //     .value("ExportGeometry", CoSimIO::ControlSignal::ExportGeometry)
-    //     .value("ImportMesh", CoSimIO::ControlSignal::ImportMesh)
-    //     .value("ExportMesh", CoSimIO::ControlSignal::ExportMesh)
-    //     .value("ImportData", CoSimIO::ControlSignal::ImportData)
-    //     .value("ExportData", CoSimIO::ControlSignal::ExportData)
-        ;
 }
 
 }  // namespace Python.
