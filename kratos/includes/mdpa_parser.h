@@ -131,9 +131,11 @@ public:
 
     static inline void getTrimLine(std::istream &rFile, std::string &line) {
         std::getline(rFile, line);
-        ltrim(line);                // Need this for the tabs
-        rtrim(line);                // I Don't think we need this but just in case.
         trimComment(line, "//");    // Strip comments
+        ltrim(line);                // Need this for the tabs
+
+        // I Don't think we need this but just in case.
+        // rtrim(line);
     }
 
     void Read(const std::string mdpaFilename) {
@@ -236,11 +238,16 @@ public:
         std::cout << "[DEBUG] Finished Node Block" << std::endl;
     }
 
-    void FastScan(std::string& rLine, std::string& format, ...) {
-        va_list args;
-        va_start (args, format);
-        vsscanf (str, format, args);
-        va_end (args);
+    static inline void FastScan4(std::string& rLine, std::vector<int>& rData) {
+        sscanf(rLine.c_str(), "%i %i %i %i", &rData[0], &rData[1], &rData[2], &rData[3]);
+    }
+
+    static inline void FastScan5(std::string& rLine, std::vector<int>& rData) {
+        sscanf(rLine.c_str(), "%i %i %i %i %i", &rData[0], &rData[1], &rData[2], &rData[3], &rData[4]);
+    }
+
+    static inline void FastScan6(std::string& rLine, std::vector<int>& rData) {
+        sscanf(rLine.c_str(), "%i %i %i %i %i %i", &rData[0], &rData[1], &rData[2], &rData[3], &rData[4], &rData[5]);
     }
 
     void ReadElemBlock(MemoryMdpa &rMdpa, std::istream &rFile, std::string &rName) {
@@ -248,20 +255,11 @@ public:
 
         std::cout << "[DEBUG] Reading Element Block: " << rName << std::endl;
 
+        auto & elems = rMdpa.mElems[rName];
         KratosElemType const& base_elem = KratosComponents<KratosElemType>::Get(rName);
         std::size_t n_nodes = base_elem.GetGeometry().size();
 
-        std::vector<int> mElemData(2+n_nodes);
-
-        // == Fast ==
-        // std::string format_string = "%i %i ";
-
-        // for(std::size_t i = 0; i < n_nodes; i++) {
-        //     format_string += "%i ";
-        // }
-
-        // auto format_c_str = format_string.c_str();
-        // == Fast ==
+        std::vector<int> mElemData(2 + n_nodes);
 
         while(!rFile.eof()) {
             getTrimLine(rFile, line);
@@ -269,7 +267,6 @@ public:
             if(line == "End Elements")
                 break; // Block end.
 
-            // == Slowest ==
             // std::stringstream stream_line(line);
 
             // stream_line >> mElemData[0];        // Id
@@ -278,19 +275,18 @@ public:
             // for(std::size_t i = 0; i < n_nodes; i++) {
             //     stream_line >> mElemData[2+i];  // Node Id
             // }
-            // == Slowest ==
 
-            // == Fast ==
-            // for(int i = 0; i < 2+n_nodes; i++) {
-            //     sscanf(line.c_str(), "%i", &mElemData[i]);
-            // }
-            // == Fast ==
+                 if(2 + n_nodes == 4) MdpaReader::FastScan4(line, mElemData);
+            else if(2 + n_nodes == 5) MdpaReader::FastScan5(line, mElemData);
+            else if(2 + n_nodes == 6) MdpaReader::FastScan6(line, mElemData);
+            else {
+                // Failback
+                for(int i = 0; i < 2 + n_nodes; i++) {
+                    sscanf(line.c_str(), "%i", &mElemData[i]);
+                }
+            }
 
-            // == Very Fast ==
-            //sscanf(line.c_str(), format_string, &mElemData[0], &mElemData[1], &mElemData[2], &mElemData[3], &mElemData[4], &mElemData[5]);
-            // == Very Fast ==
-
-            rMdpa.mElems[rName].push_back(mElemData);
+            elems.push_back(mElemData);
         }
 
         std::cout << "[DEBUG] Finished Element Block" << std::endl;
@@ -312,13 +308,23 @@ public:
             if(line == "End Conditions")
                 break; // Block end.
 
-            std::stringstream stream_line(line);
+            // std::stringstream stream_line(line);
 
-            stream_line >> mCondData[0];        // Id
-            stream_line >> mCondData[1];        // Property Id
+            // stream_line >> mCondData[0];        // Id
+            // stream_line >> mCondData[1];        // Property Id
 
-            for(std::size_t i = 0; i < n_nodes; i++) {
-                stream_line >> mCondData[2+i];  // Node Id
+            // for(std::size_t i = 0; i < n_nodes; i++) {
+            //     stream_line >> mCondData[2+i];  // Node Id
+            // }
+
+                 if(2 + n_nodes == 4) FastScan4(line, mCondData);
+            else if(2 + n_nodes == 5) FastScan5(line, mCondData);
+            else if(2 + n_nodes == 6) FastScan6(line, mCondData);
+            else {
+                // Failback
+                for(int i = 0; i < 2 + n_nodes; i++) {
+                    sscanf(line.c_str(), "%i", &mCondData[i]);
+                }
             }
 
             rMdpa.mConds[rName].push_back(mCondData);
@@ -340,9 +346,10 @@ public:
             if(line == "End SubModelPartNodes")
                 break; // Block end.
 
-            std::stringstream stream_line(line);
+            // std::stringstream stream_line(line);
+            // stream_line >> id;
 
-            stream_line >> id;
+            sscanf(line.c_str(), "%i", &id);
 
             pSubMdpa->mNodeIds.push_back(id);
         }
@@ -363,9 +370,10 @@ public:
             if(line == "End SubModelPartElements")
                 break; // Block end.
 
-            std::stringstream stream_line(line);
+            // std::stringstream stream_line(line);
+            // stream_line >> id;
 
-            stream_line >> id;
+            sscanf(line.c_str(), "%i", &id);
 
             pSubMdpa->mElemIds.push_back(id);
         }
@@ -386,9 +394,10 @@ public:
             if(line == "End SubModelPartConditions")
                 break; // Block end.
 
-            std::stringstream stream_line(line);
+            // std::stringstream stream_line(line);
+            // stream_line >> id;
 
-            stream_line >> id;
+            sscanf(line.c_str(), "%i", &id);
 
             pSubMdpa->mCondIds.push_back(id);
         }
@@ -412,6 +421,7 @@ public:
                 break; // Block end.
 
             std::stringstream streamline(line);
+            
             // Obtain the submodelpart section
             ReadSection(streamline, line_v);
 
