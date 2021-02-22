@@ -11,19 +11,37 @@ except ModuleNotFoundError:
 
 
 def GetNurbsGeometry(json_file_name):
-    pass
+    return exchange.import_json(json_file_name+".json")[0]
 
 def GetTrimmingCurve(nurbs_surface, trim_curve_index):
-    pass
+    return nurbs_surface.trims[0][trim_curve_index]
 
-def GetTrimmingCurveControlPoints(trimming_curve):
-    pass
+def GetControlPoints(cad_geometry):
+    return cad_geometry.ctrlpts
 
 def GetPointsOnTrimmingCurve(trimming_curve, number_of_points):
     pass
 
-def AddTrimmingCurvePointsAsNodes(trimming_curve_points, model_part):
-    pass
+def GetPointCoordinatesAndDerivatives(nurbs_surface, points_on_surface, order):
+    point_coordinates = []
+    derivatives = []
+    for [u,v] in points_on_surface:
+        result = nurbs_surface.derivatives(u,v, order)
+        point_coordinates.append(result[0][0])
+        derivative = [result[1][0], result[0][1]]
+        derivatives.append(derivative)
+    return point_coordinates, derivatives
 
-def GetPointCoordinatesAndDerivatives(nurbs_surface, points_on_surface):
-    pass
+def VisualizeSurface(nurbs_surface):
+    # Import and use Matplotlib's colormaps
+    # Plot the control points grid and the evaluated surface
+    nurbs_surface.vis = VisMPL.VisSurface()
+    nurbs_surface.render(colormap=cm.cool)
+
+def VisualizeCurve(curve):
+    # Plot the control point polygon and the evaluated curve
+    curve.vis = VisMPL.VisCurve3D()
+    curve.render()
+
+def OutputCadToJson(cad_geom, file_name):
+    exchange.export_json(cad_geom, file_name+".json")
