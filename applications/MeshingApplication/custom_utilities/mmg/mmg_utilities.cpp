@@ -3839,7 +3839,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     // We reorder the ids to avoid conflicts with the rest (using as reference the OLD_ENTITY)
     /* Nodes */
     IndexType counter_to_remesh = 0;
-    counter_to_remesh = block_for_each<SumReduction<double>>(
+    counter_to_remesh = block_for_each<SumReduction<IndexType>>(
     r_nodes_array,
     [](Node<3>& r_node){
         const bool old_entity = r_node.IsDefined(OLD_ENTITY) ? r_node.Is(OLD_ENTITY) : false;
@@ -3868,7 +3868,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 
     /* Conditions */
     counter_to_remesh = 0;
-    counter_to_remesh = block_for_each<SumReduction<double>>(
+    counter_to_remesh = block_for_each<SumReduction<IndexType>>(
     r_conditions_array,
     [](Condition& r_cond){
         const bool old_entity = r_cond.IsDefined(OLD_ENTITY) ? r_cond.Is(OLD_ENTITY) : false;
@@ -3897,7 +3897,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     
     /* Elements */
     counter_to_remesh = 0;
-    counter_to_remesh = block_for_each<SumReduction<double>>(
+    counter_to_remesh = block_for_each<SumReduction<IndexType>>(
     r_elements_array,
     [](Element& r_elem){
         const bool old_entity = r_elem.IsDefined(OLD_ENTITY) ? r_elem.Is(OLD_ENTITY) : false;
