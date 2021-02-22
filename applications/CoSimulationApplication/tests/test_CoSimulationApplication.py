@@ -80,9 +80,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
     nightSuite.addTest(TestMokFSI('test_mok_fsi_mvqn'))
     nightSuite.addTest(TestMokFSI('test_mok_fsi_aitken'))
-    if os.name != "nt":
-        # currently those tests don#t work in win
-        nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestKratosCoSimIO]))
 
     nightSuite.addTests(smallSuite)
