@@ -34,6 +34,22 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
             self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 4)
 
+    def testTwoElements(self):
+        with KratosUnittest.WorkFolderScope('.', __file__):
+            node_ids = [1]
+
+            # calculate sensitivity by finite difference
+            primal_parameters = AdjointVMSSensitivity2D._ReadParameters('./AdjointVMSSensitivity2DTest/two_elements_test_parameters.json')
+            step_size = 1e-9
+            fd_sensitivities = FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis.ComputeSensitivity(
+                node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0], 'MainModelPart.Structure', SolvePrimalProblem)
+
+            # solve adjoint
+            adjoint_parameters = AdjointVMSSensitivity2D._ReadParameters('./AdjointVMSSensitivity2DTest/two_elements_test_adjoint_parameters.json')
+            adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
+
+            self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 1)
+
     def testCylinder(self):
         with KratosUnittest.WorkFolderScope('.', __file__):
             node_ids = [1968]
