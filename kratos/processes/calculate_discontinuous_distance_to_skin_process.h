@@ -27,6 +27,7 @@
 #include "includes/checks.h"
 #include "processes/process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -461,11 +462,7 @@ private:
             << "Skin model part solution step data missing variable: " << rVariable << std::endl;
 
         // Initialize embedded variable value
-        #pragma omp parallel for
-        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-            auto it_elem = mrVolumePart.ElementsBegin() + i_elem;
-            it_elem->SetValue(rEmbeddedVariable, rEmbeddedVariable.Zero());
-        }
+        VariableUtils().SetNonHistoricalVariableToZero(rEmbeddedVariable, mrVolumePart.Elements());
 
         // Compute the embedded variable value for each element
         #pragma omp parallel for schedule(dynamic)
