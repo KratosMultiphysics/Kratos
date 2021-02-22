@@ -97,7 +97,9 @@ public:
         Element::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        CalculateEntityLHSContribution(rCurrentElement, rLHS_Contribution,
+        const auto thread_id = OpenMPUtils::ThisThread();
+        auto& aux_matrix = mAuxMatrices[thread_id];
+        CalculateEntityLHSContribution(rCurrentElement, aux_matrix, rLHS_Contribution,
                                        rEquationId, rCurrentProcessInfo);
     }
 
@@ -118,8 +120,11 @@ public:
         Condition::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        CalculateEntityLHSContribution(rCurrentCondition, rLHS_Contribution,
+        const auto thread_id = OpenMPUtils::ThisThread();
+        auto& aux_matrix = mAuxMatrices[thread_id];
+        CalculateEntityLHSContribution(rCurrentCondition, aux_matrix, rLHS_Contribution,
                                        rEquationId, rCurrentProcessInfo);
+
     }
 
     ///@}
@@ -145,17 +150,18 @@ private:
         KRATOS_TRY;
 
         const auto thread_id = OpenMPUtils::ThisThread();
+        auto& residual_derivatives = mAuxMatrices[thread_id];
 
         const auto& r_const_entity_ref = rEntity;
 
         CalculateEntityLHSContribution<TEntityType>(
-            rEntity, rLHS_Contribution, rEquationId, rCurrentProcessInfo);
+            rEntity, residual_derivatives, rLHS_Contribution, rEquationId, rCurrentProcessInfo);
 
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
 
         this->mpResponseFunction->CalculateFirstDerivativesGradient(
-            rEntity, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+            rEntity, residual_derivatives, rRHS_Contribution, rCurrentProcessInfo);
 
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
@@ -172,21 +178,18 @@ private:
     template<class TEntityType>
     void CalculateEntityLHSContribution(
         TEntityType& rEntity,
-        LocalSystemMatrixType& rLHS,
+        Matrix& rEntityResidualFirstDerivatives,
+        Matrix& rEntityRotatedResidualFirstDerivatives,
         Condition::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
-        const auto thread_id = OpenMPUtils::ThisThread();
-        auto& aux_matrix = mAuxMatrices[thread_id];
-
-        const auto& r_const_entity_ref = rEntity;
-        rEntity.CalculateFirstDerivativesLHS(aux_matrix, rCurrentProcessInfo);
-        r_const_entity_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rEntity.CalculateFirstDerivativesLHS(rEntityResidualFirstDerivatives, rCurrentProcessInfo);
+        rEntity.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         FluidAdjointUtilities<TDim>::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
-            rLHS, aux_matrix, rEntity.GetGeometry());
+            rEntityRotatedResidualFirstDerivatives, rEntityResidualFirstDerivatives, rEntity.GetGeometry());
 
         KRATOS_CATCH("");
     }
