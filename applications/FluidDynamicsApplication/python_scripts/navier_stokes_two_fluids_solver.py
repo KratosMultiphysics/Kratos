@@ -232,6 +232,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 # it is needed to store level-set consistent nodal PRESSURE_GRADIENT for stabilization purpose
                 self._GetConsistentNodalPressureGradientProcess().Execute()
 
+            # Doing the mass correction here
+            # Doing the distance modification to prevent zero-cuts
+
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
 
