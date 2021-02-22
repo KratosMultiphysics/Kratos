@@ -66,7 +66,7 @@ public:
         mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
         mGammaNewmark = 0.5 - mAlphaBossak;
 
-        const int number_of_threads = OpenMPUtils::GetNumThreads();
+        const int number_of_threads = ParallelUtilities::GetNumThreads();
         mMassMatrices.resize(number_of_threads);
         mDampingMatrices.resize(number_of_threads);
         mSecondDerivativesVectors.resize(number_of_threads);
@@ -122,34 +122,6 @@ public:
     std::string Info() const override
     {
         return "VelocityBossakSensitivityBuilderScheme";
-    }
-
-    ///@}
-protected:
-    ///@name Protected Operations
-    ///@{
-
-    virtual void GetPrimalSecondDerivativesVector(
-        Vector& rValues,
-        const GeometryType& rGeometry,
-        const int Step = 0) const
-    {
-        const IndexType number_of_nodes = rGeometry.PointsNumber();
-        const IndexType local_size = number_of_nodes * TBlockSize;
-        if (rValues.size() != local_size) {
-            rValues.resize(local_size, false);
-        }
-
-        IndexType local_index = 0;
-        for (IndexType a = 0; a < number_of_nodes; ++a) {
-            const auto& r_node = rGeometry[a];
-            const auto& r_acceleration =
-                r_node.FastGetSolutionStepValue(ACCELERATION, Step);
-            for (IndexType i = 0; i < TDim; ++i) {
-                rValues[local_index++] = r_acceleration[i];
-            }
-            rValues[local_index++] = 0.0;
-        }
     }
 
     ///@}
@@ -210,7 +182,7 @@ private:
         rEntity.CalculateLocalVelocityContribution(damping_matrix, rRHS, rProcessInfo);
 
         AddDynamicsToLHS(rLHS, damping_matrix, mass_matrix);
-        AddDynamicsToRHS(rRHS, second_derivatives_vector, mass_matrix, rEntity);
+        AddDynamicsToRHS(rRHS, second_derivatives_vector, mass_matrix, rEntity, rProcessInfo);
     }
 
     void AddDynamicsToLHS(
@@ -237,12 +209,12 @@ private:
         Vector& rRHS,
         Vector& rSecondDerivativesVector,
         const Matrix& rMassMatrix,
-        const TEntityType& rEntity)
+        TEntityType& rEntity,
+        const ProcessInfo& rProcessInfo)
     {
         // adding inertia contribution
         if (rMassMatrix.size1() != 0) {
-            const auto& r_geometry = rEntity.GetGeometry();
-            this->GetPrimalSecondDerivativesVector(rSecondDerivativesVector, r_geometry);
+            rEntity.Calculate(PRIMAL_RELAXED_SECOND_DERIVATIVE_VALUES, rSecondDerivativesVector, rProcessInfo);
             noalias(rRHS) -= prod(rMassMatrix, rSecondDerivativesVector);
         }
     }

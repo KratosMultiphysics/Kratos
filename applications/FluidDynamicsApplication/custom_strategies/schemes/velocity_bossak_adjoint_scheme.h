@@ -88,7 +88,7 @@ public:
         BaseType::Initialize(rModelPart);
 
         // Allocate auxiliary memory.
-        int num_threads = OpenMPUtils::GetNumThreads();
+        int num_threads = ParallelUtilities::GetNumThreads();
         mAuxiliaryMatrix.resize(num_threads);
         mRotatedMatrix.resize(num_threads);
 
