@@ -542,6 +542,6 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateTangentTensor(ConstitutiveLa
 /***********************************************************************************/
 
 template class UnifiedFatigueLaw<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>;
-template class UnifiedFatigueLaw<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>;
+// template class UnifiedFatigueLaw<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>;
 
 } // Namespace Kratos

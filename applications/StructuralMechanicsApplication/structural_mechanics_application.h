@@ -171,6 +171,7 @@
 
 // Rules of mixtures
 #include "custom_advanced_constitutive/rule_of_mixtures_law.h"
+#include "custom_advanced_constitutive/unified_fatigue_law.h"
 
 #endif // STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 
@@ -607,6 +608,9 @@ private:
     // Plastic Damage Model
     const GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainPlasticDamageModel3DVonMisesVonMisesVonMises;
     const GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainPlasticDamageModel3DVonMisesVonMisesDruckerPrager;
+
+    // unified fatigue law
+    const UnifiedFatigueLaw<VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mUnifiedFatigueLaw3DVonMisesVonMises;
 
 
     /* Finite strain */

@@ -95,12 +95,14 @@ public:
     /**
      * @brief Default constructor.
      */
-    UnifiedFatigueLaw(){};
+    UnifiedFatigueLaw()
+    {}
 
     /**
      * @brief Destructor.
      */
-    ~UnifiedFatigueLaw() override;
+    ~UnifiedFatigueLaw() override
+    {}
 
     ///@}
     ///@name Operators
