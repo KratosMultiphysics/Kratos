@@ -78,7 +78,7 @@ namespace Kratos {
             bool& sliding,
             const ProcessInfo& r_process_info) override;
 
-        virtual void DEM_KDEM_with_damage::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+        virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                     SphericContinuumParticle* neighbor,
                                                     double equiv_young,
                                                     double distance,

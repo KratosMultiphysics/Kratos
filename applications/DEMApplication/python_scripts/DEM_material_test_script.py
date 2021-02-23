@@ -51,13 +51,13 @@ class MaterialTest():
             self.tau_rel_std_dev_table.append(0.0)
             self.sigma_ratio_table.append(0.0)
 
-        self.graph_counter = 0; self.renew_pressure = 0; self.Pressure = 0.0; self.pressure_to_apply = 0.0;
+        self.graph_counter = 0; self.renew_pressure = 0; self.Pressure = 0.0; self.pressure_to_apply = 0.0
 
         self.length_correction_factor = 1.0
 
         self.graph_frequency        = int(self.parameters["GraphExportFreq"].GetDouble()/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
         self.strain = 0.0; self.strain_bts = 0.0; self.volumetric_strain = 0.0; self.radial_strain = 0.0; self.first_time_entry = 1; self.first_time_entry_2 = 1
-        self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0;
+        self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0
 
         self.new_strain = 0.0
 
@@ -187,7 +187,7 @@ class MaterialTest():
         h = self.height
         d = self.diameter
 
-        eps = 2.0
+        eps = 4.0 #2.0
 
         surface = 2 * (3.141592 * d * d * 0.25) + (3.141592 * d * h)
 
@@ -334,7 +334,7 @@ class MaterialTest():
 
         dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
-        self.strain += -100*self.length_correction_factor*1.0*self.LoadingVelocity*dt/self.height
+        self.strain += -100*self.length_correction_factor*1.0*self.LoadingVelocity*dt/self.height # Here the 2.0 is not included, there's a 1.0! TODO
 
         if self.test_type =="BTS":
 
@@ -346,7 +346,7 @@ class MaterialTest():
                 total_force_bts += force_node_y
 
             self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.height*self.diameter)
-            self.strain_bts += -100*2*self.LoadingVelocity*dt/self.diameter
+            self.strain_bts += -100 * 2.0 * self.LoadingVelocity * dt / self.diameter # Here the 2.0 is correcty included! TODO
 
         else:
 

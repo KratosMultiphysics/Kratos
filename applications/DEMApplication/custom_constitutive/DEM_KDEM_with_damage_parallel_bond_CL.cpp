@@ -110,21 +110,6 @@ namespace Kratos {
                 time_steps,
                 r_process_info);
 
-        CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
-                                   equiv_visco_damp_coeff_tangential,
-                                   element1,
-                                   element2,
-                                   kn_el,
-                                   kt_el);
-
-        CalculateViscoDamping(LocalRelVel,
-                              ViscoDampingLocalContactForce,
-                              indentation,
-                              equiv_visco_damp_coeff_normal,
-                              equiv_visco_damp_coeff_tangential,
-                              sliding,
-                              element1->mIniNeighbourFailureId[i_neighbour_count]);
-
         CalculateTangentialForces(OldLocalElasticContactForce,
                 LocalElasticContactForce,
                 LocalElasticExtraContactForce,
@@ -143,6 +128,21 @@ namespace Kratos {
                 sliding,
                 r_process_info);
 
+        CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
+                                   equiv_visco_damp_coeff_tangential,
+                                   element1,
+                                   element2,
+                                   kn_el,
+                                   kt_el);
+
+        CalculateViscoDamping(LocalRelVel,
+                              ViscoDampingLocalContactForce,
+                              indentation,
+                              equiv_visco_damp_coeff_normal,
+                              equiv_visco_damp_coeff_tangential,
+                              sliding,
+                              element1->mIniNeighbourFailureId[i_neighbour_count]);
+
         FindMaximumValueOfNormalAndTangentialDamageComponents(element1, element2);
 
         KRATOS_CATCH("")
@@ -152,9 +152,6 @@ namespace Kratos {
                                                                                                    SphericContinuumParticle* element2) {
 
         KRATOS_TRY
-
-        //unsigned int sphere_id = 1;
-        //unsigned int neigh_sphere_id = 2;
 
         mDamageNormal = std::max(mDamageNormal, mDamageTangential);
         mDamageTangential = std::max(mDamageNormal, mDamageTangential);
@@ -209,30 +206,15 @@ namespace Kratos {
         } else {
             mDamageEnergyCoeff = 0.0;
         }
+        KRATOS_ERROR_IF(mDamageEnergyCoeff > 30.0) << "The fracture energy is too big for the provided strength of this material. Properties Id: "
+                                                   << element1->GetProperties().Id() << std::endl;
         if (mDamageEnergyCoeff < 0.0) {
             mDamageEnergyCoeff = 0.0;
-            //KRATOS_WARNING
         }
 
         double k_unload = 0.0;
         double limit_force = 0.0;
-        static bool first_time_entered = true;
-
-        /*if (mDebugPrintingOption) {
-            unsigned int sphere_id = 1;
-            unsigned int neigh_sphere_id = 2;
-            const std::string filename = "nl.txt";
-
-            if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
-
-                static std::ifstream ifile(filename.c_str());
-                if ((bool) ifile && first_time_entered) {
-                    std::remove("nl.txt");
-                    first_time_entered = false;
-                }
-            }
-        }*/
-
+ 
         if (mDamageEnergyCoeff) {
             k_unload = kn_el / mDamageEnergyCoeff;
         }
@@ -262,7 +244,7 @@ namespace Kratos {
                 if (mDamageEnergyCoeff) {
                     limit_force = initial_limit_force * (1.0 + k_unload / kn_el) * kn_updated / (kn_updated + k_unload);
                 } else {
-                    limit_force = initial_limit_force * kn_updated / kn_el;
+                    limit_force = initial_limit_force;
                 }
                 //
                 
@@ -272,14 +254,12 @@ namespace Kratos {
 
                     if (!mDamageEnergyCoeff) { // there is no damage energy left
                         failure_type = 4; // failure by traction
+                        BondedLocalElasticContactForce2 = 0.0;
+                        mDamageNormal = 1.0;
                     } else { // the material can sustain further damage, not failure yet
                         const double delta_at_undamaged_peak = initial_limit_force / kn_el;
 
-                        if (kn_updated) {
-                            delta_accumulated = current_normal_force_module / kn_updated;
-                        } else {
-                            delta_accumulated = delta_at_undamaged_peak + initial_limit_force / k_unload;
-                        }
+                        delta_accumulated = current_normal_force_module / kn_updated;
 
                         returned_by_mapping_force = initial_limit_force - k_unload * (delta_accumulated - delta_at_undamaged_peak);
 
@@ -293,6 +273,8 @@ namespace Kratos {
 
                         if (mDamageNormal > mDamageThresholdTolerance) {
                             failure_type = 4; // failure by traction
+                            BondedLocalElasticContactForce2 = 0.0;
+                            mDamageNormal = 1.0;
                         }
                     }
                 }
@@ -352,22 +334,6 @@ namespace Kratos {
         double k_unload = 0.0;
         double tau_strength = 0.0;
         double force_strength = 0.0;
-        static bool first_time_entered = true;
-
-        /*unsigned int sphere_id = 1;
-        unsigned int neigh_sphere_id = 2;
-
-        if (mDebugPrintingOption) {
-            const std::string filename = "tg.txt";
-
-            if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
-                static std::ifstream ifile(filename.c_str());
-                if ((bool) ifile && first_time_entered) {
-                    std::remove("tg.txt");
-                    first_time_entered = false;
-                }
-            }
-        }*/
 
         double OldBondedLocalElasticContactForce[2] = {0.0};
         OldBondedLocalElasticContactForce[0] = mBondedScalingFactor * OldLocalElasticContactForce[0];
@@ -400,9 +366,7 @@ namespace Kratos {
             current_tangential_force_module = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
                                                  + BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
 
-            if (kt_updated) {
-                delta_accumulated = current_tangential_force_module / kt_updated;
-            }
+            delta_accumulated = current_tangential_force_module / kt_updated;
 
             returned_by_mapping_force = current_tangential_force_module;
 
@@ -414,27 +378,25 @@ namespace Kratos {
             contact_tau = current_tangential_force_module / calculation_area;
 
             double updated_max_tau_strength = tau_zero;
-            //
-            tau_strength = tau_zero * (1.0 + k_unload / kt_el) * kt_updated / (kt_updated + k_unload);
-            force_strength = tau_strength * calculation_area;
-            //
 
             if (contact_sigma >= 0) {
-                AdjustTauStrengthAndUpdatedMaxTauStrength(tau_strength, updated_max_tau_strength, internal_friction, contact_sigma, element1, element2);
+                updated_max_tau_strength += internal_friction * contact_sigma;
+                tau_strength = updated_max_tau_strength * (1.0 + k_unload / kt_el) * kt_updated / (kt_updated + k_unload);
             }
+            
+            force_strength = tau_strength * calculation_area;
 
             if (contact_tau > tau_strength) { // damage
 
                 if (!mDamageEnergyCoeff) { // there is no damage energy left
                     failure_type = 2; // failure by shear
+                    BondedLocalElasticContactForce[0] = 0.0;
+                    BondedLocalElasticContactForce[1] = 0.0;
+                    mDamageTangential = 1.0;
                 } else { // the material can sustain further damage, not failure yet
                     const double delta_at_undamaged_peak = updated_max_tau_strength * calculation_area / kt_el;
 
-                    if (kt_updated) {
-                        delta_accumulated = current_tangential_force_module / kt_updated;
-                    } else {
-                        delta_accumulated = delta_at_undamaged_peak + updated_max_tau_strength * calculation_area / k_unload;
-                    }
+                    delta_accumulated = current_tangential_force_module / kt_updated;
 
                     returned_by_mapping_force = updated_max_tau_strength * calculation_area - k_unload * (delta_accumulated - delta_at_undamaged_peak);
 
@@ -451,13 +413,10 @@ namespace Kratos {
 
                     if (mDamageTangential > mDamageThresholdTolerance) {
                         failure_type = 2; // failure by shear
+                        BondedLocalElasticContactForce[0] = 0.0;
+                        BondedLocalElasticContactForce[1] = 0.0;
+                        mDamageTangential = 1.0;
                     }
-
-                    //
-                    if (0) {//mDamageNormal >= mDamageTangential) {
-                        mDamageTangential = mDamageNormal;
-                    }
-                    //
                 }
             }
         }
@@ -585,14 +544,6 @@ namespace Kratos {
             }
         }
 
-        KRATOS_CATCH("")
-    }
-
-    void DEM_KDEM_with_damage_parallel_bond::AdjustTauStrengthAndUpdatedMaxTauStrength(double& tau_strength, double& updated_max_tau_strength, const double internal_friction,
-                                                                                       double contact_sigma, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
-        KRATOS_TRY
-        tau_strength += (1.0 - mDamageTangential) * internal_friction * contact_sigma;
-        updated_max_tau_strength += internal_friction * contact_sigma;
         KRATOS_CATCH("")
     }
 
