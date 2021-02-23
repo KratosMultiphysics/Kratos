@@ -135,7 +135,7 @@ AxisymmetricUpdatedLagrangianElement::~AxisymmetricUpdatedLagrangianElement()
 //************************************************************************************
 
 void AxisymmetricUpdatedLagrangianElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
 
