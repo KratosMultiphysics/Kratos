@@ -19,7 +19,8 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/linear_plane_strain.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
@@ -46,47 +47,41 @@ namespace Kratos
  * @class UnifiedFatigueLaw
  * @ingroup StructuralMechanicsApplication
  * @brief This law defines a parallel rule of mixture (classic law of mixture)
- * @details The constitutive law show have defined a subproperties in order to work properly
- * This law combines parallel CL considering the following principles:
- *  - All layer have the same strain
- *  - The total stress is the addition of the strain in each layer
- *  - The constitutive tensor is the addition of the constitutive tensor of each layer
- * @author Vicente Mataix Ferrandiz
- * @author Fernando Rastellini
- * @author Alejandro Cornejo Velazquez
+ * @details This constitutive law unifies the High cycle, Ultra Low cycle and Low cicle fatigue processes
+ * by means of a plastic damage model. Source: A thermodynamically consistent plastic-damage framework for
+localized failure in quasi-brittle solids: Material model and strain
+localization analysis (Wu and Cervera https://doi.org/10.1016/j.ijsolstr.2016.03.005)
+ * @author Alejandro Cornejo
+ * @author Sergio Jimenez
  */
-template<unsigned int TDim>
+template<class TYieldSurfaceType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UnifiedFatigueLaw
-    : public ConstitutiveLaw
+    : public std::conditional<TConstLawIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:
 
     ///@name Type Definitions
     ///@{
+    /// The define the working dimension size, already defined in the integrator
+    static constexpr SizeType Dimension = TYieldSurfaceType::Dimension;
+
+    /// The define the Voigt size, already defined in the  integrator
+    static constexpr SizeType VoigtSize = TYieldSurfaceType::VoigtSize;
 
     /// The definition of the process info
     typedef ProcessInfo ProcessInfoType;
 
     /// The definition of the CL base  class
-    typedef ConstitutiveLaw    BaseType;
+    typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
     /// The definition of the size type
     typedef std::size_t        SizeType;
-
-    /// The definition of the index type
-    typedef std::size_t       IndexType;
-
-    /// The define the working dimension size, already defined in the integrator
-    static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
-
-    /// The define the Voigt size, already defined in the  integrator
-    static constexpr SizeType Dimension = TDim;
 
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
     /// Pointer definition of UnifiedFatigueLaw
-    KRATOS_CLASS_POINTER_DEFINITION( UnifiedFatigueLaw );
+    KRATOS_CLASS_POINTER_DEFINITION(UnifiedFatigueLaw);
 
     ///@name Lyfe Cycle
     ///@{
@@ -95,12 +90,6 @@ public:
      * @brief Default constructor.
      */
     UnifiedFatigueLaw();
-
-    /**
-     * @brief Constructor with values
-     * @param rCombinationFactors The list of subproperties combination factors
-     */
-    UnifiedFatigueLaw(const std::vector<double>& rCombinationFactors);
 
     /**
      * @brief Copy constructor.
@@ -126,23 +115,16 @@ public:
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
-     * @brief Creates a new constitutive law pointer
-     * @param NewParameters The configuration parameters of the new constitutive law
-     * @return a Pointer to the new constitutive law
-     */
-    ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override;
-
-    /**
-     * @brief Dimension of the law
-     * @details This is not used, so 0 is returned
-     */
-    SizeType WorkingSpaceDimension() override;
-
-    /**
-     * @brief Voigt tensor size
-     * @details This is not used, so 0 is returned
-     */
-    SizeType GetStrainSize() override;
+    * Copy constructor.
+    */
+    UnifiedFatigueLaw(const UnifiedFatigueLaw &rOther)
+        : BaseType(rOther),
+          mPlasticDissipation(rOther.mPlasticDissipation),
+          mThreshold(rOther.mThreshold),
+          mPlasticStrain(rOther.mPlasticStrain),
+          mComplianceMatrix(rOther.mComplianceMatrix)
+    {
+    }
 
     /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
@@ -435,33 +417,6 @@ public:
         array_1d<double, 6 > & rValue
         ) override;
 
-     /**
-      * @brief Is called to check whether the provided material parameters in the Properties match the requirements of current constitutive model.
-      * @param rMaterialProperties the current Properties to be validated against.
-      * @return true, if parameters are correct; false, if parameters are insufficient / faulty
-      * @note  this has to be implemented by each constitutive model. Returns false in base class since no valid implementation is contained here.
-      */
-    bool ValidateInput(const Properties& rMaterialProperties) override;
-
-    /**
-     * @brief Returns the expected strain measure of this constitutive law (by default linear strains)
-     * @return the expected strain measure
-     */
-    StrainMeasure GetStrainMeasure() override;
-
-    /**
-     * @brief Returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
-     * @return the expected stress measure
-     */
-    StressMeasure GetStressMeasure() override;
-
-    /**
-     * @brief Returns whether this constitutive model is formulated in incremental strains/stresses
-     * @note By default, all constitutive models should be formulated in total strains
-     * @return true, if formulated in incremental strains/stresses, false otherwise
-     */
-    bool IsIncremental() override;
-
     /**
      * @brief This is to be called at the very beginning of the calculation
      * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
@@ -473,66 +428,6 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues
-        ) override;
-
-    /**
-     * @brief To be called at the beginning of each solution step
-     * @details (e.g. from Element::InitializeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void InitializeSolutionStep(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief To be called at the end of each solution step
-     * @details (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief  To be called at the beginning of each step iteration
-     * @details (e.g. from Element::InitializeNonLinearIteration)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void InitializeNonLinearIteration(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief To be called at the end of each step iteration
-     * @details (e.g. from Element::FinalizeNonLinearIteration)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void FinalizeNonLinearIteration(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -608,25 +503,6 @@ public:
     void FinalizeMaterialResponseCauchy (Parameters& rValues) override;
 
     /**
-     * @brief This can be used in order to reset all internal variables of the
-     * constitutive law (e.g. if a model should be reset to its reference state)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     */
-    void ResetMaterial(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues
-        ) override;
-
-    /**
-     * @brief This function is designed to be called once to check compatibility with element
-     * @param rFeatures
-     */
-    void GetLawFeatures(Features& rFeatures) override;
-
-    /**
      * @brief This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed to catch user's errors.
      * @param rMaterialProperties
@@ -640,25 +516,13 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-    /**
-     * @brief This function computes the rotation matrix T-> E_loc = T*E_glob in order to rotate the strain
-     * or S_glob = trans(T)S_loc for the stresses
-     */
-    void CalculateRotationMatrix(
-        const Properties& rMaterialProperties,
-        BoundedMatrix<double, VoigtSize, VoigtSize>& rRotationMatrix,
-        const IndexType Layer
-    );
-
 
     /**
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
     void CalculateTangentTensor(
-        ConstitutiveLaw::Parameters& rValues,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure
-    );
+        ConstitutiveLaw::Parameters& rValues);
 
 protected:
 
@@ -688,8 +552,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
-    std::vector<double> mCombinationFactors;                 /// The vector containing the combination factors of the different layers of the material
+    double mPlasticDissipation = 0.0;
+    double mThreshold = 0.0;
+    Vector mPlasticStrain = ZeroVector(VoigtSize);
+    Matrix mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
 
     ///@}
     ///@name Private Operators
