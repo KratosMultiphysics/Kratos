@@ -30,24 +30,32 @@ namespace Kratos
 
 template< class TElementData >
 DVMSDEMCoupled<TElementData>::DVMSDEMCoupled(IndexType NewId):
-    DVMS<TElementData>(NewId)
+    DVMS<TElementData>(NewId),
+    mPredictedSubscaleVelocity(),
+    mOldSubscaleVelocity()
 {}
 
 template< class TElementData >
 DVMSDEMCoupled<TElementData>::DVMSDEMCoupled(IndexType NewId, const NodesArrayType& ThisNodes):
-    DVMS<TElementData>(NewId,ThisNodes)
+    DVMS<TElementData>(NewId,ThisNodes),
+    mPredictedSubscaleVelocity(),
+    mOldSubscaleVelocity()
 {}
 
 
 template< class TElementData >
 DVMSDEMCoupled<TElementData>::DVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry):
-    DVMS<TElementData>(NewId,pGeometry)
+    DVMS<TElementData>(NewId,pGeometry),
+    mPredictedSubscaleVelocity(),
+    mOldSubscaleVelocity()
 {}
 
 
 template< class TElementData >
 DVMSDEMCoupled<TElementData>::DVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
-    DVMS<TElementData>(NewId,pGeometry,pProperties)
+    DVMS<TElementData>(NewId,pGeometry,pProperties),
+    mPredictedSubscaleVelocity(),
+    mOldSubscaleVelocity()
 {}
 
 
@@ -80,6 +88,81 @@ Element::Pointer DVMSDEMCoupled<TElementData>::Create(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
+
+template <class TElementData>
+void DVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    // Base class does things with constitutive law here.
+    DVMS<TElementData>::Initialize(rCurrentProcessInfo);
+
+    const unsigned int number_of_gauss_points = this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+
+    // The prediction is updated before each non-linear iteration:
+    // It is not stored in a restart and can be safely initialized.
+    mPredictedSubscaleVelocity.resize(number_of_gauss_points);
+    for (unsigned int g = 0; g < number_of_gauss_points; g++)
+        mPredictedSubscaleVelocity[g] = ZeroVector(Dim);
+
+    // The old velocity may be already defined (if restarting)
+    // and we want to keep the loaded values in that case.
+    if (mOldSubscaleVelocity.size() != number_of_gauss_points)
+    {
+        mOldSubscaleVelocity.resize(number_of_gauss_points);
+        for (unsigned int g = 0; g < number_of_gauss_points; g++)
+            mOldSubscaleVelocity[g] = ZeroVector(Dim);
+    }
+
+    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
+    mSubscaleIterationError.resize(number_of_gauss_points);
+    mSubscaleIterationCount.resize(number_of_gauss_points);
+    #endif
+}
+
+template <class TElementData>
+void DVMSDEMCoupled<TElementData>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_function_derivatives;
+    this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_derivatives);
+    const unsigned int number_of_integration_points = gauss_weights.size();
+
+    TElementData data;
+    data.Initialize(*this,rCurrentProcessInfo);
+
+    for (unsigned int g = 0; g < number_of_integration_points; g++) {
+        this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
+
+        // Not doing the update "in place" because SubscaleVelocity uses mOldSubscaleVelocity
+        array_1d<double,3> UpdatedValue = ZeroVector(3);
+        this->SubscaleVelocity(data,UpdatedValue);
+        array_1d<double,Dim>& r_value = mOldSubscaleVelocity[g];
+        for (unsigned int d = 0; d < Dim; d++) {
+            r_value[d] = UpdatedValue[d];
+        }
+    }
+}
+
+template <class TElementData>
+void DVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_function_derivatives;
+    this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_derivatives);
+    const unsigned int number_of_integration_points = gauss_weights.size();
+
+    TElementData data;
+    data.Initialize(*this,rCurrentProcessInfo);
+
+    for (unsigned int g = 0; g < number_of_integration_points; g++) {
+        this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
+
+        this->UpdateSubscaleVelocityPrediction(data);
+    }
+}
 
 template< class TElementData >
 std::string DVMSDEMCoupled<TElementData>::Info() const
@@ -181,12 +264,13 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
 
     const array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
+
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
     this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two);
 
     const double dt = rData.DeltaTime;
-    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity = DVMS<TElementData>::mOldSubscaleVelocity;
+
     // small scale velocity contributions (subscale tracking)
     array_1d<double,Dim> OldUssTerm = (density/dt) * mOldSubscaleVelocity[rData.IntegrationPointIndex]; // rho * u_ss^{n-1}/dt
 
@@ -447,8 +531,6 @@ void DVMSDEMCoupled<TElementData>::SubscaleVelocity(
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
 
-    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity = DVMS<TElementData>::mOldSubscaleVelocity;
-
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim,Dim);
     double tau_two;
     this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two);
@@ -482,18 +564,6 @@ void DVMSDEMCoupled<TElementData>::SubscalePressure(
     double tau_two;
     this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two);
 
-    // Old mass residual for dynamic pressure subscale
-    // Note: Residual is defined as -Div(u) [- Projection (if OSS)]
-    double old_residual = 0.0;
-    const Geometry<Node<3>>& r_geometry = this->GetGeometry();
-    for (unsigned int a = 0; a < NumNodes; a++) {
-        const array_1d<double,3>& r_old_velocity = r_geometry[a].FastGetSolutionStepValue(VELOCITY,1);
-        double old_divergence_projection = r_geometry[a].FastGetSolutionStepValue(DIVPROJ,1);
-        for (unsigned int d = 0; d < Dim; d++) {
-            old_residual -= rData.DN_DX(a,d)*r_old_velocity[d] + rData.N[a]*old_divergence_projection;
-        }
-    }
-
     double residual = 0.0;
 
     if (rData.UseOSS != 1.0)
@@ -502,6 +572,21 @@ void DVMSDEMCoupled<TElementData>::SubscalePressure(
         this->OrthogonalMassResidual(rData,residual);
 
     rPressureSubscale = tau_two*residual;
+}
+
+template< class TElementData >
+array_1d<double,3> DVMSDEMCoupled<TElementData>::FullConvectiveVelocity(
+    const TElementData& rData) const
+{
+    array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
+    // Adding subscale term componentwise because return type is of size 3, but subscale is of size Dim
+    const array_1d<double,Dim>& r_predicted_subscale = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
+
+    for (unsigned int d = 0; d < Dim; d++) {
+        convective_velocity[d] += r_predicted_subscale[d];
+    }
+
+    return convective_velocity;
 }
 
 template< class TElementData >
@@ -514,8 +599,6 @@ void DVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
 
     const double dt = rData.DeltaTime;
     const double h = rData.ElementSize;
-
-    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity = DVMS<TElementData>::mOldSubscaleVelocity;
 
     // Elemental large-scale velocity gradient
     BoundedMatrix<double,Dim,Dim> resolved_velocity_gradient = ZeroMatrix(Dim,Dim);
@@ -549,7 +632,6 @@ void DVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
     constexpr static double subscale_prediction_velocity_tolerance = DVMS<TElementData>::mSubscalePredictionVelocityTolerance;
     constexpr static double subscale_prediction_maximum_iterations = DVMS<TElementData>::mSubscalePredictionMaxIterations;
     constexpr static double subscale_prediction_residual_tolerance = DVMS<TElementData>::mSubscalePredictionResidualTolerance;
-    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity = DVMS<TElementData>::mPredictedSubscaleVelocity;
 
     // Newton-Raphson iterations for the subscale
     unsigned int iter = 0;
@@ -639,7 +721,6 @@ template< class TElementData >
 void DVMSDEMCoupled<TElementData>::save(Serializer& rSerializer) const
 {
     typedef DVMS<TElementData> BaseElement;
-    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity = DVMS<TElementData>::mOldSubscaleVelocity;
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElement );
     rSerializer.save("mOldSubscaleVelocity",mOldSubscaleVelocity);
 }
@@ -649,7 +730,6 @@ template< class TElementData >
 void DVMSDEMCoupled<TElementData>::load(Serializer& rSerializer)
 {
     typedef DVMS<TElementData> BaseElement;
-    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity = DVMS<TElementData>::mOldSubscaleVelocity;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElement);
     rSerializer.load("mOldSubscaleVelocity",mOldSubscaleVelocity);
 }

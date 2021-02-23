@@ -171,6 +171,12 @@ public:
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -202,6 +208,10 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    // Velocity subscale history, stored at integration points
+    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
 
     ///@}
     ///@name Protected Operators
@@ -248,6 +258,9 @@ protected:
     void SubscalePressure(
         const TElementData& rData,
         double& rPressureSubscale) const override;
+
+    array_1d<double,3> FullConvectiveVelocity(
+        const TElementData& rData) const override;
 
     void UpdateSubscaleVelocityPrediction(
         const TElementData& rData) override;
