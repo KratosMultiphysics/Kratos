@@ -107,15 +107,15 @@ void AuxiliarModelPartUtilities::RemoveElementAndBelongings(
     auto& r_array_nodes = mrModelPart.Nodes(ThisIndex);
 
     block_for_each( 
-        r_array_nodes, [&IdentifierFlag]( Node<3>& r_node )
-        { r_node.Set(IdentifierFlag, true); }  
+        r_array_nodes, [&IdentifierFlag]( Node<3>& rNode )
+        { rNode.Set(IdentifierFlag, true); }  
     );
 
     block_for_each(
-        mrModelPart.Elements(ThisIndex), [&IdentifierFlag,ElementId]( ModelPart::ElementType& r_element )
+        mrModelPart.Elements(ThisIndex), [&IdentifierFlag,ElementId]( ModelPart::ElementType& rElement )
         {
-            if (r_element.Id() != ElementId)
-                for (auto& r_node : r_element.GetGeometry())
+            if (rElement.Id() != ElementId)
+                for (auto& r_node : rElement.GetGeometry())
                     r_node.Set(IdentifierFlag, false);
         }
     );
@@ -193,16 +193,16 @@ void AuxiliarModelPartUtilities::RemoveElementsAndBelongings(Flags IdentifierFla
         auto& r_array_nodes = i_mesh->Nodes();
         block_for_each(
             r_array_nodes,
-            [&IdentifierFlag](Node<3>& r_node)
-            { r_node.Set(IdentifierFlag, true); }
+            [&IdentifierFlag](Node<3>& rNode)
+            { rNode.Set(IdentifierFlag, true); }
         );
 
         block_for_each(
             i_mesh->Elements(),
             [&IdentifierFlag](Element& rElement)
             {
-                if (r_element.IsNot(IdentifierFlag))
-                    for (auto& r_node : r_element.GetGeometry())
+                if (rElement.IsNot(IdentifierFlag))
+                    for (auto& r_node : rElement.GetGeometry())
                         r_node.Set(IdentifierFlag, false);
             }
         );
@@ -243,16 +243,16 @@ void AuxiliarModelPartUtilities::RemoveConditionAndBelongings(IndexType Conditio
     auto& r_array_nodes = mrModelPart.Nodes(ThisIndex);
     block_for_each(
         r_array_nodes,
-        [&IdentifierFlag](Node<3>& r_node)
-        { r_node.Set(IdentifierFlag, true); }
+        [&IdentifierFlag](Node<3>& rNode)
+        { rNode.Set(IdentifierFlag, true); }
     );
 
     block_for_each(
         mrModelPart.Conditions(ThisIndex),
-        [&IdentifierFlag,ConditionId](ModelPart::ConditionType& r_condition)
+        [&IdentifierFlag,ConditionId](ModelPart::ConditionType& rCondition)
         {
-            if (r_condition.Id() != ConditionId)
-                for (auto& r_node : r_condition.GetGeometry())
+            if (rCondition.Id() != ConditionId)
+                for (auto& r_node : rCondition.GetGeometry())
                     r_node.Set(IdentifierFlag, false);
         }
     );
@@ -329,16 +329,16 @@ void AuxiliarModelPartUtilities::RemoveConditionsAndBelongings(Flags IdentifierF
         auto& r_array_nodes = i_mesh->Nodes();
         block_for_each(
             r_array_nodes,
-            [&IdentifierFlag](Node<3>& r_node)
-            { r_node.Set(IdentifierFlag, true); }
+            [&IdentifierFlag](Node<3>& rNode)
+            { rNode.Set(IdentifierFlag, true); }
         );
 
         block_for_each(
             i_mesh->Conditions(),
-            [&IdentifierFlag](ModelPart::ConditionType& r_condition)
+            [&IdentifierFlag](ModelPart::ConditionType& rCondition)
             {
-                if (r_condition.IsNot(IdentifierFlag))
-                    for (auto& r_node : r_condition.GetGeometry())
+                if (rCondition.IsNot(IdentifierFlag))
+                    for (auto& r_node : rCondition.GetGeometry())
                         r_node.Set(IdentifierFlag, false);
             }
         );
