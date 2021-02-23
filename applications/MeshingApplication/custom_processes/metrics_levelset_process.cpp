@@ -76,14 +76,9 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
     // Tensor variable definition
     const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" +   std::to_string(TDim) + "D");
 
-    // Setting r_metric in case not defined
+    // Setting metric in case not defined
     if (!it_node_begin->Has(r_tensor_variable)) {
-        // Declaring auxiliar vector
-        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-        [&it_node_begin,&r_tensor_variable](std::size_t i_node) {
-            auto it_node = it_node_begin + i_node;
-            it_node->SetValue(r_tensor_variable, r_tensor_variable.Zero());
-        });
+        VariableUtils().SetNonHistoricalVariableToZero(r_tensor_variable, r_nodes_array);
     }
 
     // Auxiliar variables
