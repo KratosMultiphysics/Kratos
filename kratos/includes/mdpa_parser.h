@@ -5,10 +5,13 @@
 #include <stdio.h>
 
 #include "containers/array_1d.h"
+#include "containers/model.h"
 
 #include "includes/serializer.h"
 #include "includes/element.h"
 #include "includes/condition.h"
+
+#include "includes/model_part.h"
 
 namespace Kratos {
 
@@ -53,23 +56,23 @@ class MemoryMdpa {
         };
 
         // Nodes
-        typedef array_1d<double, 3>                                 CoordType;              // ( X, Y, Z )
-        typedef std::tuple<std::size_t, CoordType>                  NodeType;               // ( Id, Coords )
-        typedef std::vector<MemoryMdpa::NodeType>                   NodeContainerType;      // [ NodeType ]
+        typedef array_1d<double, 3>                                     CoordType;              // ( X, Y, Z )
+        typedef std::tuple<std::size_t, CoordType>                      NodeType;               // ( Id, Coords )
+        typedef std::vector<MemoryMdpa::NodeType>                       NodeContainerType;      // [ NodeType ]
 
         // Elements / conditions
-        typedef std::vector<int>                                    ConnectType;            // [ Id, Porp_Id, Node1_Id, ... , NodeN_Id ]
-        typedef std::vector<ConnectType>                            ConnectVectorType;      // [ Connectivity ]
-        typedef std::unordered_map<std::string, ConnectVectorType>  EntityContainerType;    // ( Entity Name, Connectivity Vector )
+        typedef std::tuple<int, int, std::vector<ModelPart::IndexType>> ConnectType;            // ( Id, Porp_Id, [ Node1_Id, ... , NodeN_Id ] )
+        typedef std::vector<MemoryMdpa::ConnectType>                    ConnectVectorType;      // [ Connectivity ]
+        typedef std::unordered_map<std::string, ConnectVectorType>      EntityContainerType;    // ( Entity Name, Connectivity Vector )
 
         // SubModelparts
-        typedef std::vector<SubMdpa::Pointer>                       SubMdpaContainerType;   // [ SubMdpaPtr ]
+        typedef std::vector<SubMdpa::Pointer>                           SubMdpaContainerType;   // [ SubMdpaPtr ]
 
         // Data
-        typedef std::tuple<int, double>                             DataType;               // ( Id, value )
-        typedef std::tuple<int, bool, double>                       StepDataType;           // ( Id, fixity, value )
-        typedef std::unordered_map<std::string, DataType>           DataValuesType;         // [ DataType ]
-        typedef std::unordered_map<std::string, StepDataType>       StepDataValuesType;     // [ StepDataType ]
+        typedef std::tuple<int, double>                                 DataType;               // ( Id, value )
+        typedef std::tuple<int, bool, double>                           StepDataType;           // ( Id, fixity, value )
+        typedef std::unordered_map<std::string, DataType>               DataValuesType;         // [ DataType ]
+        typedef std::unordered_map<std::string, StepDataType>           StepDataValuesType;     // [ StepDataType ]
         
         // Life cycle
         MemoryMdpa() {}
@@ -238,16 +241,16 @@ public:
         std::cout << "[DEBUG] Finished Node Block" << std::endl;
     }
 
-    static inline void FastScan4(std::string& rLine, std::vector<int>& rData) {
-        sscanf(rLine.c_str(), "%i %i %i %i", &rData[0], &rData[1], &rData[2], &rData[3]);
+    static inline void FastScan4(std::string& rLine, int& rId, int& rProp, std::vector<ModelPart::IndexType>& rData) {
+        sscanf(rLine.c_str(), "%i %i %lu %lu", &rId, &rProp, &rData[0], &rData[1]);
     }
 
-    static inline void FastScan5(std::string& rLine, std::vector<int>& rData) {
-        sscanf(rLine.c_str(), "%i %i %i %i %i", &rData[0], &rData[1], &rData[2], &rData[3], &rData[4]);
+    static inline void FastScan5(std::string& rLine, int& rId, int& rProp, std::vector<ModelPart::IndexType>& rData) {
+        sscanf(rLine.c_str(), "%i %i %lu %lu %lu", &rId, &rProp, &rData[0], &rData[1], &rData[2]);
     }
 
-    static inline void FastScan6(std::string& rLine, std::vector<int>& rData) {
-        sscanf(rLine.c_str(), "%i %i %i %i %i %i", &rData[0], &rData[1], &rData[2], &rData[3], &rData[4], &rData[5]);
+    static inline void FastScan6(std::string& rLine, int& rId, int& rProp, std::vector<ModelPart::IndexType>& rData) {
+        sscanf(rLine.c_str(), "%i %i %lu %lu %lu %lu", &rId, &rProp, &rData[0], &rData[1], &rData[2], &rData[3]);
     }
 
     void ReadElemBlock(MemoryMdpa &rMdpa, std::istream &rFile, std::string &rName) {
@@ -259,7 +262,8 @@ public:
         KratosElemType const& base_elem = KratosComponents<KratosElemType>::Get(rName);
         std::size_t n_nodes = base_elem.GetGeometry().size();
 
-        std::vector<int> mElemData(2 + n_nodes);
+        int id, prop;
+        std::vector<ModelPart::IndexType> mElemData(n_nodes);
 
         while(!rFile.eof()) {
             getTrimLine(rFile, line);
@@ -276,17 +280,18 @@ public:
             //     stream_line >> mElemData[2+i];  // Node Id
             // }
 
-                 if(2 + n_nodes == 4) MdpaReader::FastScan4(line, mElemData);
-            else if(2 + n_nodes == 5) MdpaReader::FastScan5(line, mElemData);
-            else if(2 + n_nodes == 6) MdpaReader::FastScan6(line, mElemData);
+                 if(2 + n_nodes == 4) MdpaReader::FastScan4(line, id, prop, mElemData);
+            else if(2 + n_nodes == 5) MdpaReader::FastScan5(line, id, prop, mElemData);
+            else if(2 + n_nodes == 6) MdpaReader::FastScan6(line, id, prop, mElemData);
             else {
                 // Failback
-                for(int i = 0; i < 2 + n_nodes; i++) {
-                    sscanf(line.c_str(), "%i", &mElemData[i]);
+                sscanf(line.c_str(), "%i %i", &id, &prop);
+                for(std::size_t i = 0; i < n_nodes; i++) {
+                    sscanf(line.c_str(), "%lu", &mElemData[i]);
                 }
             }
 
-            elems.push_back(mElemData);
+            elems.push_back(MemoryMdpa::ConnectType(id, prop, mElemData));
         }
 
         std::cout << "[DEBUG] Finished Element Block" << std::endl;
@@ -297,10 +302,12 @@ public:
 
         std::cout << "[DEBUG] Reading Condition Block: " << rName << std::endl;
 
+        auto & conds = rMdpa.mConds[rName];
         KratosCondType const& base_cond = KratosComponents<KratosCondType>::Get(rName);
         std::size_t n_nodes = base_cond.GetGeometry().size();
 
-        std::vector<int> mCondData(2+n_nodes);
+        int id, prop;
+        std::vector<ModelPart::IndexType> mCondData(n_nodes);
 
         while(!rFile.eof()) {
             getTrimLine(rFile, line);
@@ -317,17 +324,18 @@ public:
             //     stream_line >> mCondData[2+i];  // Node Id
             // }
 
-                 if(2 + n_nodes == 4) FastScan4(line, mCondData);
-            else if(2 + n_nodes == 5) FastScan5(line, mCondData);
-            else if(2 + n_nodes == 6) FastScan6(line, mCondData);
+                 if(2 + n_nodes == 4) FastScan4(line, id, prop, mCondData);
+            else if(2 + n_nodes == 5) FastScan5(line, id, prop, mCondData);
+            else if(2 + n_nodes == 6) FastScan6(line, id, prop, mCondData);
             else {
                 // Failback
-                for(int i = 0; i < 2 + n_nodes; i++) {
-                    sscanf(line.c_str(), "%i", &mCondData[i]);
+                sscanf(line.c_str(), "%i %i", &id, &prop);
+                for(std::size_t i = 0; i < n_nodes; i++) {
+                    sscanf(line.c_str(), "%lu", &mCondData[i]);
                 }
             }
 
-            rMdpa.mConds[rName].push_back(mCondData);
+            conds.push_back(MemoryMdpa::ConnectType(id, prop, mCondData));
         }
 
         std::cout << "[DEBUG] Finished Condition Block" << std::endl;
@@ -467,38 +475,86 @@ public:
         }
 
         PrintMdpaStats(mdpa);
+        GenerateModelPart(mdpa);
     }
 
-    void PrintSubMdpa(SubMdpa::Pointer pSubMpda, std::string printPadding, int to_print) {
-        std::cout << printPadding << pSubMpda->mName << std::endl;
-        std::cout << printPadding << "-- Nodes: " << pSubMpda->mNodeIds.size() << std::endl;
-        for(std::size_t i = 0; i < std::fmin(to_print, pSubMpda->mNodeIds.size()); i++) {
-            std::cout << printPadding << "\t" << pSubMpda->mNodeIds[i] << std::endl;
-        }
-        std::cout << printPadding << "\t..." << std::endl;
-        for(std::size_t i = std::fmax(0, pSubMpda->mNodeIds.size() - to_print); i < pSubMpda->mNodeIds.size(); i++) {
-            std::cout << printPadding << "\t" << pSubMpda->mNodeIds[i] << std::endl;
+    void GenerateModelPart(const MemoryMdpa& rMdpa) {
+
+        Model model;
+        ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
+
+        model_part.AddNodalSolutionStepVariable(PRESSURE);
+        model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+        model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+        for(auto & node: rMdpa.mNodes) {
+            auto new_node = model_part.CreateNewNode(
+                std::get<0>(node),
+                std::get<1>(node)[0],
+                std::get<1>(node)[1],
+                std::get<1>(node)[2]
+            );
         }
 
-        std::cout << printPadding << "-- Elements: " << pSubMpda->mElemIds.size() << std::endl;
-        for(std::size_t i = 0; i < std::fmin(to_print, pSubMpda->mElemIds.size()); i++) {
-            std::cout << printPadding << "\t" << pSubMpda->mElemIds[i] << std::endl;
-        }
-        std::cout << printPadding << "\t..." << std::endl;
-        for(std::size_t i = std::fmax(0, pSubMpda->mElemIds.size() - to_print); i < pSubMpda->mElemIds.size(); i++) {
-            std::cout << printPadding << "\t" << pSubMpda->mElemIds[i] << std::endl;
+        for(auto & entity: rMdpa.mElems) {  
+            auto elem_name = entity.first;
+            auto elem_list = entity.second;
+
+            Properties::Pointer p_prop = Kratos::make_shared<Properties>(0);
+
+            for(auto & elem: elem_list) {
+                auto mew_elem = model_part.CreateNewElement(
+                    elem_name, std::get<0>(elem), std::get<2>(elem), p_prop
+                );
+            }
         }
 
-        std::cout << printPadding << "-- Conditions: " << pSubMpda->mCondIds.size() << std::endl;
-        for(std::size_t i = 0; i < std::fmin(to_print, pSubMpda->mCondIds.size()); i++) {
-            std::cout << printPadding << "\t" << pSubMpda->mCondIds[i] << std::endl;
-        }
-        std::cout << printPadding << "\t..." << std::endl;
-        for(std::size_t i = std::fmax(0, pSubMpda->mCondIds.size() - to_print); i < pSubMpda->mCondIds.size(); i++) {
-            std::cout << printPadding << "\t" << pSubMpda->mCondIds[i] << std::endl;
+        for(auto & entity: rMdpa.mConds) {  
+            auto cond_name = entity.first;
+            auto cond_list = entity.second;
+
+            Properties::Pointer p_prop = Kratos::make_shared<Properties>(0);
+
+            for(auto & cond: cond_list) {
+                auto new_cond = model_part.CreateNewCondition(
+                    cond_name, std::get<0>(cond), std::get<2>(cond), p_prop
+                );
+            }
         }
 
-        for(auto iter = pSubMpda->mSubMdpa.begin(); iter != pSubMpda->mSubMdpa.end(); ++iter) {
+        KRATOS_WATCH(model_part);
+    }
+
+    void PrintSubMdpa(SubMdpa::Pointer pSubMdpa, std::string printPadding, int to_print) {
+        std::cout << printPadding << pSubMdpa->mName << std::endl;
+        std::cout << printPadding << "-- Nodes: " << pSubMdpa->mNodeIds.size() << std::endl;
+        for(std::size_t i = 0; i < std::fmin(to_print, pSubMdpa->mNodeIds.size()); i++) {
+            std::cout << printPadding << "\t" << pSubMdpa->mNodeIds[i] << std::endl;
+        }
+        std::cout << printPadding << "\t..." << std::endl;
+        for(std::size_t i = std::fmax(0, pSubMdpa->mNodeIds.size() - to_print); i < pSubMdpa->mNodeIds.size(); i++) {
+            std::cout << printPadding << "\t" << pSubMdpa->mNodeIds[i] << std::endl;
+        }
+
+        std::cout << printPadding << "-- Elements: " << pSubMdpa->mElemIds.size() << std::endl;
+        for(std::size_t i = 0; i < std::fmin(to_print, pSubMdpa->mElemIds.size()); i++) {
+            std::cout << printPadding << "\t" << pSubMdpa->mElemIds[i] << std::endl;
+        }
+        std::cout << printPadding << "\t..." << std::endl;
+        for(std::size_t i = std::fmax(0, pSubMdpa->mElemIds.size() - to_print); i < pSubMdpa->mElemIds.size(); i++) {
+            std::cout << printPadding << "\t" << pSubMdpa->mElemIds[i] << std::endl;
+        }
+
+        std::cout << printPadding << "-- Conditions: " << pSubMdpa->mCondIds.size() << std::endl;
+        for(std::size_t i = 0; i < std::fmin(to_print, pSubMdpa->mCondIds.size()); i++) {
+            std::cout << printPadding << "\t" << pSubMdpa->mCondIds[i] << std::endl;
+        }
+        std::cout << printPadding << "\t..." << std::endl;
+        for(std::size_t i = std::fmax(0, pSubMdpa->mCondIds.size() - to_print); i < pSubMdpa->mCondIds.size(); i++) {
+            std::cout << printPadding << "\t" << pSubMdpa->mCondIds[i] << std::endl;
+        }
+
+        for(auto iter = pSubMdpa->mSubMdpa.begin(); iter != pSubMdpa->mSubMdpa.end(); ++iter) {
             PrintSubMdpa(*iter, printPadding+"\t", to_print);
         }
     }
@@ -509,34 +565,34 @@ public:
 
         std::cout << "-- Nodes: " << rMdpa.mNodes.size() << std::endl;
         for(std::size_t i = 0; i < std::fmin(to_print, rMdpa.mNodes.size()); i++) {
-            std::cout << "\t" << i << " " << std::get<0>(rMdpa.mNodes[i]) << " " << std::get<1>(rMdpa.mNodes[i])[0] << " " << std::get<1>(rMdpa.mNodes[i])[1] << " " << std::get<1>(rMdpa.mNodes[i])[2] << std::endl;
+            std::cout << "\t" << std::get<0>(rMdpa.mNodes[i]) << " " << std::get<1>(rMdpa.mNodes[i])[0] << " " << std::get<1>(rMdpa.mNodes[i])[1] << " " << std::get<1>(rMdpa.mNodes[i])[2] << std::endl;
         }
         std::cout << "\t..." << std::endl;
         for(std::size_t i = std::fmax(0, rMdpa.mNodes.size() - to_print); i < rMdpa.mNodes.size(); i++) {
-            std::cout << "\t" << i << " " << std::get<0>(rMdpa.mNodes[i]) << " " << std::get<1>(rMdpa.mNodes[i])[0] << " " << std::get<1>(rMdpa.mNodes[i])[1] << " " << std::get<1>(rMdpa.mNodes[i])[2] << std::endl;
+            std::cout << "\t" << std::get<0>(rMdpa.mNodes[i]) << " " << std::get<1>(rMdpa.mNodes[i])[0] << " " << std::get<1>(rMdpa.mNodes[i])[1] << " " << std::get<1>(rMdpa.mNodes[i])[2] << std::endl;
         }
 
         std::cout << "-- Elements: " << std::endl;
         for(auto iter = rMdpa.mElems.begin(); iter != rMdpa.mElems.end(); ++iter) {
             std::cout << "--- "  << iter->first << ": " << iter->second.size() << std::endl;
-            for(std::size_t i = 0; i < std::fmin(to_print, rMdpa.mNodes.size()); i++) {
-                std::cout << "\t" << i << " " << iter->second[i] << std::endl;
+            for(std::size_t i = 0; i < std::fmin(to_print,  iter->second.size()); i++) {
+                std::cout << "\t" << std::get<0>(iter->second[i]) << " " << std::get<2>(iter->second[i]) << std::endl;
             }
             std::cout << "\t..." << std::endl;
             for(std::size_t i = std::fmax(0, iter->second.size() - to_print); i < iter->second.size(); i++) {
-                std::cout << "\t" << i << " " << iter->second[i] << std::endl;
+                std::cout << "\t" << std::get<0>(iter->second[i]) << " " << std::get<2>(iter->second[i]) << std::endl;
             }
         }
 
         std::cout << "-- Conditions: " << std::endl;
         for(auto iter = rMdpa.mConds.begin(); iter != rMdpa.mConds.end(); ++iter) {
             std::cout << "--- "  << iter->first << ": " << iter->second.size() << std::endl;
-            for(std::size_t i = 0; i < std::fmin(to_print, rMdpa.mNodes.size()); i++) {
-                std::cout << "\t" << i << " " << iter->second[i] << std::endl;
+            for(std::size_t i = 0; i < std::fmin(to_print,  iter->second.size()); i++) {
+                std::cout << "\t" << std::get<0>(iter->second[i]) << " " << std::get<2>(iter->second[i]) << std::endl;
             }
             std::cout << "\t..." << std::endl;
             for(std::size_t i = std::fmax(0, iter->second.size() - to_print); i < iter->second.size(); i++) {
-                std::cout << "\t" << i << " " << iter->second[i] << std::endl;
+                std::cout << "\t" << std::get<0>(iter->second[i]) << " " << std::get<2>(iter->second[i]) << std::endl;
             }
         }
 
