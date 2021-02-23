@@ -21,7 +21,6 @@
 // External includes
 
 // Project includes
-#include "includes/serializer.h"
 #include "custom_retention/retention_law.h"
 #include "custom_retention/van_genuchten_law.h"
 #include "custom_retention/saturated_law.h"
@@ -46,42 +45,26 @@ public:
     /// Counted pointer of RetentionLawFactory
     KRATOS_CLASS_POINTER_DEFINITION( RetentionLawFactory );
 
-    ///@}
-    ///@name Lyfe Cycle
-    ///@{
-
-    /**
-     * @brief Default constructor.
-     */
-    RetentionLawFactory(){}
-
-    /**
-     * @brief Destructor.
-     */
-    ~RetentionLawFactory(){}
-
-    static RetentionLaw::Pointer Clone(const Properties& rMaterialProperties)
+    static unique_ptr<RetentionLaw> Clone(const Properties& rMaterialProperties)
      {
          if (rMaterialProperties.Has(RETENTION_LAW))
          {
             const std::string &RetentionLawName = rMaterialProperties[RETENTION_LAW];
             if (RetentionLawName == "VanGenuchtenLaw")
-                return VanGenuchtenLaw::Clone();
+                return make_unique<VanGenuchtenLaw>();
 
             if (RetentionLawName == "SaturatedLaw")
-                return SaturatedLaw::Clone();
+                return make_unique<SaturatedLaw>();
 
-            KRATOS_THROW_ERROR( std::invalid_argument, "undefined RETENTION_LAW!!", RetentionLawName )
+            KRATOS_THROW_ERROR( std::invalid_argument, "Undefined RETENTION_LAW!!", RetentionLawName )
 
             return nullptr;
          }
 
          // default is saturated law
-         return SaturatedLaw::Clone();
+         return make_unique<SaturatedLaw>();
+
      }
-
-private:
-
 
 }; // Class RetentionLawFactory
 }  // namespace Kratos.

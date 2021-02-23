@@ -83,8 +83,8 @@ public:
         /*** NOTE: Member Pointers are used only to point to a certain variable, 
          * no "new" or "malloc" can be used for this Parameters ***/
 
-        double mMeanStress;
         double mFluidPressure;
+        double mMeanStress;
         double mTemperature;
         double mVolumetricStrain;
 
@@ -99,8 +99,8 @@ public:
         Parameters()
         {
             //Initialize pointers to NULL
-            mMeanStress = 0;
             mFluidPressure = 0;
+            mMeanStress = 0;
             mTemperature = 0;
             mVolumetricStrain = 0;
             mpCurrentProcessInfo = NULL;
@@ -117,8 +117,8 @@ public:
                                                            , mpMaterialProperties(&rMaterialProperties)
                                                            , mpElementGeometry(&rElementGeometry)
         {
-            mMeanStress = 0;
             mFluidPressure = 0;
+            mMeanStress = 0;
             mTemperature = 0;
             mVolumetricStrain = 0;
         };
@@ -126,8 +126,10 @@ public:
         /**
          * Copy Constructor.
          */
-        Parameters(const Parameters &rNewParameters) : mVolumetricStrain(rNewParameters.mVolumetricStrain)
+        Parameters(const Parameters &rNewParameters) : mFluidPressure(rNewParameters.mFluidPressure)
                                                      , mMeanStress(rNewParameters.mMeanStress)
+                                                     , mTemperature(rNewParameters.mTemperature)
+                                                     , mVolumetricStrain(rNewParameters.mVolumetricStrain)
                                                      , mpCurrentProcessInfo(rNewParameters.mpCurrentProcessInfo)
                                                      , mpMaterialProperties(rNewParameters.mpMaterialProperties)
                                                      , mpElementGeometry(rNewParameters.mpElementGeometry){};
@@ -506,6 +508,10 @@ public:
      * @param rElementGeometry the geometry of the current element
      * @param rCurrentProcessInfo process info
      */
+    virtual void InitializeMaterial(const Properties& rMaterialProperties,
+                                    const GeometryType& rElementGeometry,
+                                    const Vector& rShapeFunctionsValues);
+
     virtual void Initialize(Parameters &rParameters);
 
     /**

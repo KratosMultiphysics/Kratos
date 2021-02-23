@@ -404,6 +404,15 @@ double RetentionLaw::CalculateBishopCoefficient(Parameters &rParameters)
 }
 
 //-------------------------------------------------------------------------------------------------
+void RetentionLaw::
+    InitializeMaterial(const Properties& rMaterialProperties,
+                       const GeometryType& rElementGeometry,
+                       const Vector& rShapeFunctionsValues)
+{
+    // nothing
+}
+
+//-------------------------------------------------------------------------------------------------
 void RetentionLaw::Initialize(Parameters &rParameters)
 {
     // nothing
