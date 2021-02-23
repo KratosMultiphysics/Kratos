@@ -92,10 +92,10 @@ namespace Python
     ///@{
 
     template< class TDataType >
-    void Set(
+    void Assign(
         GeometryType& dummy, const Variable<TDataType>& rVariable, TDataType Value)
     {
-        dummy.Set(rVariable, Value);
+        dummy.Assign(rVariable, Value);
     }
 
     template< class TDataType >
@@ -185,15 +185,15 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)
     .def("Volume",&GeometryType::Volume)
-    // Set
-    .def("Set", Set<bool>)
-    .def("Set", Set<int>)
-    .def("Set", Set<double>)
-    .def("Set", Set<array_1d<double, 2>>)
-    .def("Set", Set<array_1d<double, 3>>)
-    .def("Set", Set<array_1d<double, 6>>)
-    .def("Set", Set<Vector>)
-    .def("Set", Set<Matrix>)
+    // Assign
+    .def("Assign", Assign<bool>)
+    .def("Assign", Assign<int>)
+    .def("Assign", Assign<double>)
+    .def("Assign", Assign<array_1d<double, 2>>)
+    .def("Assign", Assign<array_1d<double, 3>>)
+    .def("Assign", Assign<array_1d<double, 6>>)
+    .def("Assign", Assign<Vector>)
+    .def("Assign", Assign<Matrix>)
     // Calculate
     .def("Calculate", Calculate<bool>)
     .def("Calculate", Calculate<int>)
