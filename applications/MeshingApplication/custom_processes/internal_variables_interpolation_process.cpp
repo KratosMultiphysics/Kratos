@@ -414,23 +414,21 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
     // Iterate in the elements to ponderate the values
     ElementsArrayType& r_elements_array = mrOriginMainModelPart.Elements();
-    const auto it_elem_begin = r_elements_array.begin();
 
     const ProcessInfo& r_origin_process_info = mrOriginMainModelPart.GetProcessInfo();
 
     /* Elements */
     const auto& r_variables = mInternalVariableList; 
-    IndexPartition<std::size_t>(r_elements_array.size()).for_each(this_integration_method,
-        [&it_elem_begin, &r_origin_process_info, &r_variables](std::size_t i, GeometryData::IntegrationMethod& this_integration_method) {
-        auto it_elem = it_elem_begin + i;
+    block_for_each(r_elements_array, this_integration_method,
+        [&r_origin_process_info, &r_variables](Element& rElement, GeometryData::IntegrationMethod& this_integration_method) {
 
-        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
+        const bool old_entity = rElement.IsDefined(OLD_ENTITY) ? rElement.Is(OLD_ENTITY) : false;
         if (!old_entity) { // We don't interpolate from preserved meshes
             // Getting the geometry
-            GeometryType& r_this_geometry = it_elem->GetGeometry();
+            GeometryType& r_this_geometry = rElement.GetGeometry();
 
             // Getting the integration points
-            this_integration_method = it_elem->GetIntegrationMethod();
+            this_integration_method = rElement.GetIntegrationMethod();
             const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
             const std::size_t integration_points_number = integration_points.size();
 
@@ -440,7 +438,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
             // Getting the CL
             std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-            it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_origin_process_info);
+            rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_origin_process_info);
 
             // We initialize the total weigth
             double total_weight = 0.0;
@@ -470,28 +468,28 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
                         if (p_origin_cl->Has(r_variable)) {
                             InterpolateAddVariableOnConstitutiveLaw(r_this_geometry, r_variable, N, p_origin_cl, weight);
                         } else {
-                            InterpolateAddVariableOnElement(r_this_geometry, r_variable, N, it_elem, i_gauss_point, weight, r_origin_process_info);
+                            InterpolateAddVariableOnElement(r_this_geometry, r_variable, N, rElement, i_gauss_point, weight, r_origin_process_info);
                         }
                     } else if (KratosComponents<ArrayVarType>::Has(variable_name)) {
                         const ArrayVarType& r_variable = KratosComponents<ArrayVarType>::Get(variable_name);
                         if (p_origin_cl->Has(r_variable)) {
                             InterpolateAddVariableOnConstitutiveLaw(r_this_geometry, r_variable, N, p_origin_cl, weight);
                         } else {
-                            InterpolateAddVariableOnElement(r_this_geometry, r_variable, N, it_elem, i_gauss_point, weight, r_origin_process_info);
+                            InterpolateAddVariableOnElement(r_this_geometry, r_variable, N, rElement, i_gauss_point, weight, r_origin_process_info);
                         }
                     } else if (KratosComponents<VectorVarType>::Has(variable_name)) {
                         const VectorVarType& r_variable = KratosComponents<VectorVarType>::Get(variable_name);
                         if (p_origin_cl->Has(r_variable)) {
                             InterpolateAddVariableOnConstitutiveLaw(r_this_geometry, r_variable, N, p_origin_cl, weight);
                         } else {
-                            InterpolateAddVariableOnElement(r_this_geometry, r_variable, N, it_elem, i_gauss_point, weight, r_origin_process_info);
+                            InterpolateAddVariableOnElement(r_this_geometry, r_variable, N, rElement, i_gauss_point, weight, r_origin_process_info);
                         }
                     } else if (KratosComponents<MatrixVarType>::Has(variable_name)) {
                         const MatrixVarType& r_variable = KratosComponents<MatrixVarType>::Get(variable_name);
                         if (p_origin_cl->Has(r_variable)) {
                             InterpolateAddVariableOnConstitutiveLaw(r_this_geometry, r_variable, N, p_origin_cl, weight);
                         } else {
-                            InterpolateAddVariableOnElement(r_this_geometry, r_variable, N, it_elem, i_gauss_point, weight, r_origin_process_info);
+                            InterpolateAddVariableOnElement(r_this_geometry, r_variable, N, rElement, i_gauss_point, weight, r_origin_process_info);
                         }
                     } else {
                         KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: " << variable_name << " is not registered as any type of compatible variable: DOUBLE or ARRAY_1D or VECTOR or Matrix" << std::endl;
@@ -529,29 +527,27 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
     // Finally we interpolate to the new GP
     ElementsArrayType& r_elements_array_destination = mrDestinationMainModelPart.Elements();
-    const auto it_elem_begin_destination = r_elements_array_destination.begin();
 
     // The destination process info
     const ProcessInfo& r_destination_process_info = mrOriginMainModelPart.GetProcessInfo();
 
     /* Elements */
-    IndexPartition<std::size_t>(r_elements_array.size()).for_each(this_integration_method,
-        [&it_elem_begin_destination, &r_destination_process_info, &r_variables](std::size_t i, GeometryData::IntegrationMethod& this_integration_method) {
-        auto it_elem = it_elem_begin_destination + i;
+    block_for_each(r_elements_array_destination, this_integration_method,
+        [&r_destination_process_info, &r_variables](Element& rElement, GeometryData::IntegrationMethod& this_integration_method) {
 
-        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
+        const bool old_entity = rElement.IsDefined(OLD_ENTITY) ? rElement.Is(OLD_ENTITY) : false;
         if (!old_entity) { // We don't interpolate from preserved meshes
             // Getting the geometry
-            GeometryType& r_this_geometry = it_elem->GetGeometry();
+            GeometryType& r_this_geometry = rElement.GetGeometry();
 
             // Getting the integration points
-            this_integration_method = it_elem->GetIntegrationMethod();
+            this_integration_method = rElement.GetIntegrationMethod();
             const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
             const std::size_t integration_points_number = integration_points.size();
 
             // Getting the CL
             std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
-            it_elem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector,r_destination_process_info);
+            rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector,r_destination_process_info);
 
             for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {
                 const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
@@ -575,28 +571,28 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
                         if (p_destination_cl->Has(r_variable)) {
                             SetInterpolatedValueOnConstitutiveLaw(r_this_geometry, r_variable, N, p_destination_cl, r_destination_process_info);
                         } else {
-                            SetInterpolatedValueOnElement(r_this_geometry, r_variable, N, it_elem, i_gauss_point, r_destination_process_info);
+                            SetInterpolatedValueOnElement(r_this_geometry, r_variable, N, rElement, i_gauss_point, r_destination_process_info);
                         }
                     } else if (KratosComponents<ArrayVarType>::Has(variable_name)) {
                         const ArrayVarType& r_variable = KratosComponents<ArrayVarType>::Get(variable_name);
                         if (p_destination_cl->Has(r_variable)) {
                             SetInterpolatedValueOnConstitutiveLaw(r_this_geometry, r_variable, N, p_destination_cl, r_destination_process_info);
                         } else {
-                            SetInterpolatedValueOnElement(r_this_geometry, r_variable, N, it_elem, i_gauss_point, r_destination_process_info);
+                            SetInterpolatedValueOnElement(r_this_geometry, r_variable, N, rElement, i_gauss_point, r_destination_process_info);
                         }
                     } else if (KratosComponents<VectorVarType>::Has(variable_name)) {
                         const VectorVarType& r_variable = KratosComponents<VectorVarType>::Get(variable_name);
                         if (p_destination_cl->Has(r_variable)) {
                             SetInterpolatedValueOnConstitutiveLaw(r_this_geometry, r_variable, N, p_destination_cl, r_destination_process_info);
                         } else {
-                            SetInterpolatedValueOnElement(r_this_geometry, r_variable, N, it_elem, i_gauss_point, r_destination_process_info);
+                            SetInterpolatedValueOnElement(r_this_geometry, r_variable, N, rElement, i_gauss_point, r_destination_process_info);
                         }
                     } else if (KratosComponents<MatrixVarType>::Has(variable_name)) {
                         const MatrixVarType& r_variable = KratosComponents<MatrixVarType>::Get(variable_name);
                         if (p_destination_cl->Has(r_variable)) {
                             SetInterpolatedValueOnConstitutiveLaw(r_this_geometry, r_variable, N, p_destination_cl, r_destination_process_info);
                         } else {
-                            SetInterpolatedValueOnElement(r_this_geometry, r_variable, N, it_elem, i_gauss_point, r_destination_process_info);
+                            SetInterpolatedValueOnElement(r_this_geometry, r_variable, N, rElement, i_gauss_point, r_destination_process_info);
                         }
                     } else {
                         KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: " << variable_name << " is not registered as any type of compatible variable: DOUBLE or ARRAY_1D or VECTOR or Matrix" << std::endl;
@@ -739,14 +735,14 @@ void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
     GeometryType& rThisGeometry,
     const Variable<double>& rThisVar,
     const Vector& N,
-    ElementsArrayType::iterator itElemOrigin,
+    Element& rElement,
     const IndexType GaussPointId,
     const double Weight,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
     std::vector<double> origin_values;
-    itElemOrigin->CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
+    rElement.CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
 
     // We sum all the contributions
     for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
@@ -762,14 +758,14 @@ void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
     GeometryType& rThisGeometry,
     const Variable<array_1d<double, 3>>& rThisVar,
     const Vector& N,
-    ElementsArrayType::iterator itElemOrigin,
+    Element& rElement,
     const IndexType GaussPointId,
     const double Weight,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
     std::vector<array_1d<double, 3>> origin_values;
-    itElemOrigin->CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
+    rElement.CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
 
     // We sum all the contributions
     for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
@@ -785,14 +781,14 @@ void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
     GeometryType& rThisGeometry,
     const Variable<Vector>& rThisVar,
     const Vector& N,
-    ElementsArrayType::iterator itElemOrigin,
+    Element& rElement,
     const IndexType GaussPointId,
     const double Weight,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
     std::vector<Vector> origin_values;
-    itElemOrigin->CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
+    rElement.CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
 
     // We sum all the contributions
     for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
@@ -808,14 +804,14 @@ void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
     GeometryType& rThisGeometry,
     const Variable<Matrix>& rThisVar,
     const Vector& N,
-    ElementsArrayType::iterator itElemOrigin,
+    Element& rElement,
     const IndexType GaussPointId,
     const double Weight,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
     std::vector<Matrix> origin_values;
-    itElemOrigin->CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
+    rElement.CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
 
     // We sum all the contributions
     for (std::size_t i_node = 0; i_node < rThisGeometry.size(); ++i_node) {

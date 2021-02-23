@@ -493,7 +493,7 @@ private:
      * @param rThisGeometry The geometry of the element
      * @param rThisVar The variable to transfer
      * @param N The shape function used
-     * @param itElemOrigin The origin element iterator to save on the auxiliar point
+     * @param rElement The origin element to save on the auxiliar point
      * @param GaussPointId The index of te current GaussPoint computed
      * @param Weight The integration weight
      * @param rCurrentProcessInfo The process info
@@ -503,7 +503,7 @@ private:
         GeometryType& rThisGeometry,
         const Variable<TVarType>& rThisVar,
         const Vector& N,
-        ElementsArrayType::iterator itElemOrigin,
+        Element& rElement,
         const IndexType GaussPointId,
         const double Weight,
         const ProcessInfo& rCurrentProcessInfo
@@ -526,14 +526,14 @@ private:
      * @brief This method interpolates using shape functions and the values from the elemental nodes
      * @param rThisVar The variable to transfer
      * @param N The shape function used
-     * @param pNode The pointer to teh current node
-     * @param pElement The pointer to teh current element
+     * @param rNode The current node
+     * @param pElement The pointer to the current element
      */
     template<class TVarType>
     static inline void InterpolateToNode(
         const Variable<TVarType>& rThisVar,
         const Vector& N,
-        NodeType::Pointer pNode,
+        NodeType& rNode,
         Element::Pointer pElement
         )
     {
@@ -545,7 +545,7 @@ private:
         for (std::size_t i_node = 0; i_node < number_nodes; ++i_node)
             aux_value += N[i_node] * pElement->GetGeometry()[i_node].GetValue(rThisVar);
 
-        pNode->SetValue(rThisVar, aux_value);
+        rNode.SetValue(rThisVar, aux_value);
     }
 
     /**
@@ -581,7 +581,7 @@ private:
      * @param rThisGeometry The geometry of the element
      * @param rThisVar The variable to transfer
      * @param N The shape function used
-     * @param itElemDestination The destination element iterato where to set the values
+     * @param rElement The destination element where to set the values
      * @param GaussPointId The index of te current GaussPoint computed
      * @param rCurrentProcessInfo The process info
      */
@@ -590,7 +590,7 @@ private:
         GeometryType& rThisGeometry,
         const Variable<TVarType>& rThisVar,
         const Vector& N,
-        ElementsArrayType::iterator itElemDestination,
+        Element& rElement,
         const IndexType GaussPointId,
         const ProcessInfo& rCurrentProcessInfo
         )
@@ -604,9 +604,9 @@ private:
             destination_value += N[i_node] * rThisGeometry[i_node].GetValue(rThisVar);
 
         std::vector<TVarType> values;
-        itElemDestination->CalculateOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        rElement.CalculateOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
         values[GaussPointId] = destination_value;
-        itElemDestination->SetValuesOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        rElement.SetValuesOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
 
     /**
@@ -618,35 +618,33 @@ private:
     {
         // Iterate over nodes
         NodesArrayType& r_nodes_array = mrDestinationMainModelPart.Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
 
         /* Nodes */
         const auto& r_variables = mInternalVariableList;
         const auto allocation_size = mAllocationSize;
-        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(auxiliar_search<TDim>(mrOriginMainModelPart),
-        [&it_node_begin, &r_variables, &allocation_size](std::size_t i, auxiliar_search<TDim>& aux) {
-            auto it_node = it_node_begin + i;
+        block_for_each(r_nodes_array, auxiliar_search<TDim>(mrOriginMainModelPart),
+        [&r_variables, &allocation_size](Node<3>& rNode, auxiliar_search<TDim>& aux) {
 
-            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
             if (!old_entity) {
-                const bool found = aux.point_locator.FindPointOnMeshSimplified(it_node->Coordinates(), aux.N, aux.p_element, allocation_size);
+                const bool found = aux.point_locator.FindPointOnMeshSimplified(rNode.Coordinates(), aux.N, aux.p_element, allocation_size);
 
                 if (!found) {
-                    KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" <<  "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
+                    KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING: Node "<< rNode.Id() << " not found (interpolation not posible)" <<  "\t X:"<< rNode.X() << "\t Y:"<< rNode.Y() << "\t Z:"<< rNode.Z() << std::endl;
                 } else {
                     for (auto& variable_name : r_variables) {
                         if (KratosComponents<DoubleVarType>::Has(variable_name)) {
                             const auto& r_variable = KratosComponents<DoubleVarType>::Get(variable_name);
-                            InterpolateToNode(r_variable, aux.N, (*it_node.base()), aux.p_element);
+                            InterpolateToNode(r_variable, aux.N, rNode, aux.p_element);
                         } else if (KratosComponents<ArrayVarType>::Has(variable_name)) {
                             const auto& r_variable = KratosComponents<ArrayVarType>::Get(variable_name);
-                            InterpolateToNode(r_variable, aux.N, (*it_node.base()), aux.p_element);
+                            InterpolateToNode(r_variable, aux.N, rNode, aux.p_element);
                         } else if (KratosComponents<VectorVarType>::Has(variable_name)) {
                             const auto& r_variable = KratosComponents<VectorVarType>::Get(variable_name);
-                            InterpolateToNode(r_variable, aux.N, (*it_node.base()), aux.p_element);
+                            InterpolateToNode(r_variable, aux.N, rNode, aux.p_element);
                         } else if (KratosComponents<MatrixVarType>::Has(variable_name)) {
                             const auto& r_variable = KratosComponents<MatrixVarType>::Get(variable_name);
-                            InterpolateToNode(r_variable, aux.N, (*it_node.base()), aux.p_element);
+                            InterpolateToNode(r_variable, aux.N, rNode, aux.p_element);
                         } else {
                             KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: " << variable_name << " is not registered as any type of compatible variable: DOUBLE or ARRAY_1D or VECTOR or Matrix" << std::endl;
                         }
@@ -721,7 +719,7 @@ void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
     GeometryType& rThisGeometry,
     const Variable<double>& rThisVar,
     const Vector& N,
-    ElementsArrayType::iterator itElemOrigin,
+    Element& rElement,
     const IndexType GaussPointId,
     const double Weight,
     const ProcessInfo& rCurrentProcessInfo
@@ -732,7 +730,7 @@ void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
     GeometryType& rThisGeometry,
     const Variable<array_1d<double, 3>>& rThisVar,
     const Vector& N,
-    ElementsArrayType::iterator itElemOrigin,
+    Element& rElement,
     const IndexType GaussPointId,
     const double Weight,
     const ProcessInfo& rCurrentProcessInfo
@@ -743,7 +741,7 @@ void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
     GeometryType& rThisGeometry,
     const Variable<Vector>& rThisVar,
     const Vector& N,
-    ElementsArrayType::iterator itElemOrigin,
+    Element& rElement,
     const IndexType GaussPointId,
     const double Weight,
     const ProcessInfo& rCurrentProcessInfo
@@ -754,7 +752,7 @@ void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
     GeometryType& rThisGeometry,
     const Variable<Matrix>& rThisVar,
     const Vector& N,
-    ElementsArrayType::iterator itElemOrigin,
+    Element& rElement,
     const IndexType GaussPointId,
     const double Weight,
     const ProcessInfo& rCurrentProcessInfo
