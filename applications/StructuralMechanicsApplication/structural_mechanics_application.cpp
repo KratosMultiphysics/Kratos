@@ -764,6 +764,7 @@ void KratosStructuralMechanicsApplication::Register() {
     // Custom Constitutive laws
     // Serial-Parallel Rule Of Mixtures
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SerialParallelRuleOfMixturesLaw", mSerialParallelRuleOfMixturesLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("UnifiedFatigueLaw3DVonMisesVonMises", mUnifiedFatigueLaw3DVonMisesVonMises);
 
     // Anisotropic law
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericAnisotropic3DLaw", mGenericAnisotropic3DLaw);
