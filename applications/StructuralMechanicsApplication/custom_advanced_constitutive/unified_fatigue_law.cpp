@@ -83,7 +83,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
         const double characteristic_length = 
             ConstitutiveLawUtilities<VoigtSize>::
-            CalculateCharacteristicLength(rValues.GetElementGeometry());
+            CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
         if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
             BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
@@ -99,34 +99,41 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
             Vector plastic_strain      = mPlasticStrain;
             Matrix compliance_matrix   = mComplianceMatrix;
 
-            BoundedArrayType predictive_stress_vector;
-            // S0 = Elastic stress with strain (E-Ep)
-            Vector aux_stress = ZeroVector(VoigtSize);
-            BaseType::CalculatePK2Stress(r_strain_vector - plastic_strain, aux_stress, rValues);
-            noalias(predictive_stress_vector) = aux_stress;
+            // BoundedArrayType predictive_stress_vector;
+            // // S0 = Elastic stress with strain (E-Ep)
+            // Vector aux_stress = ZeroVector(VoigtSize);
+            // BaseType::CalculatePK2Stress(r_strain_vector - plastic_strain, aux_stress, rValues);
+            // noalias(predictive_stress_vector) = aux_stress;
 
             // Initialize Plastic Parameters
             double uniaxial_stress = 0.0, plastic_denominator = 0.0;
             BoundedArrayType plastic_flow = ZeroVector(VoigtSize); // DF/DS
             BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
 
+            ////////////////////
+            Matrix inverse_C(VoigtSize, VoigtSize);
+            double aux_det_b = 0.0;
+            MathUtils<double>::InvertMatrix( compliance_matrix, inverse_C, aux_det_b);
+            r_integrated_stress_vector = prod(inverse_C, r_strain_vector - plastic_strain);
+            noalias(r_constitutive_matrix) = inverse_C;
+            ////////////////////
+
             // Elastic Matrix
-            this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
+            // this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
 
-            if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
-                noalias(r_integrated_stress_vector) = predictive_stress_vector;
-            } else { // Plastic case
+            // if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
+            //     noalias(r_integrated_stress_vector) = predictive_stress_vector;
+            // } else { // Plastic case
+
+
+            //     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            //         this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
+            //     }
+            // }
 
 
 
-
-
-
-                if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                    this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
-                }
-            }
         }
     }
 }
@@ -154,12 +161,11 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
 template<class TYieldSurfaceType>
 void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateElasticComplianceMatrix(
     Matrix& rC,
-    ConstitutiveLaw::Parameters& rValues
+    const Properties& rMaterialProperties
     )
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
+    const double E = rMaterialProperties[YOUNG_MODULUS];
+    const double NU = rMaterialProperties[POISSON_RATIO];
 
     this->CheckClearElasticMatrix(rC);
 
@@ -532,6 +538,10 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterial(
     double initial_threshold;
     TYieldSurfaceType::GetInitialUniaxialThreshold(aux_param, initial_threshold);
     mThreshold = initial_threshold;
+
+    Matrix initial_compliance(VoigtSize, VoigtSize);
+    CalculateElasticComplianceMatrix(initial_compliance, rMaterialProperties);
+    noalias(mComplianceMatrix) = initial_compliance;
 }
 
 /***********************************************************************************/

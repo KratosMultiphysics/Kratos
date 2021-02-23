@@ -86,6 +86,12 @@ public:
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
 
+    /// The definition of the Voigt array type
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+
     /// Pointer definition of UnifiedFatigueLaw
     KRATOS_CLASS_POINTER_DEFINITION(UnifiedFatigueLaw);
 
@@ -534,7 +540,7 @@ public:
      */
     void CalculateElasticComplianceMatrix(
         Matrix& rConstitutiveMatrix,
-        ConstitutiveLaw::Parameters& rValues
+        const Properties& rMaterialProperties
         );
 
 protected:
