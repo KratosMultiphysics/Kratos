@@ -54,114 +54,137 @@ struct DataBuffers {
 // declaring the static members
 std::vector<double> DataBuffers::vector_doubles;
 
+const std::map<GeometryData::KratosGeometryType, CoSimIO::ElementType> elem_type_map {
+    {GeometryData::KratosGeometryType::Kratos_Hexahedra3D20,    CoSimIO::ElementType::Hexahedra3D20   },
+    {GeometryData::KratosGeometryType::Kratos_Hexahedra3D27,    CoSimIO::ElementType::Hexahedra3D27   },
+    {GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     CoSimIO::ElementType::Hexahedra3D8     },
+    {GeometryData::KratosGeometryType::Kratos_Prism3D15,        CoSimIO::ElementType::Prism3D15   },
+    {GeometryData::KratosGeometryType::Kratos_Prism3D6,         CoSimIO::ElementType::Prism3D6     },
+    {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, CoSimIO::ElementType::Quadrilateral2D4     },
+    {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8, CoSimIO::ElementType::Quadrilateral2D8     },
+    {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9, CoSimIO::ElementType::Quadrilateral2D9     },
+    {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, CoSimIO::ElementType::Quadrilateral3D4     },
+    {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, CoSimIO::ElementType::Quadrilateral3D8     },
+    {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9, CoSimIO::ElementType::Quadrilateral3D9     },
+    {GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10,   CoSimIO::ElementType::Tetrahedra3D10     },
+    {GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    CoSimIO::ElementType::Tetrahedra3D4   },
+    {GeometryData::KratosGeometryType::Kratos_Triangle2D3,      CoSimIO::ElementType::Triangle2D3   },
+    {GeometryData::KratosGeometryType::Kratos_Triangle2D6,      CoSimIO::ElementType::Triangle2D6   },
+    {GeometryData::KratosGeometryType::Kratos_Triangle3D3,      CoSimIO::ElementType::Triangle3D3   },
+    {GeometryData::KratosGeometryType::Kratos_Triangle3D6,      CoSimIO::ElementType::Triangle3D6   },
+    {GeometryData::KratosGeometryType::Kratos_Line2D2,          CoSimIO::ElementType::Line2D2   },
+    {GeometryData::KratosGeometryType::Kratos_Line2D3,          CoSimIO::ElementType::Line2D3   },
+    {GeometryData::KratosGeometryType::Kratos_Line3D2,          CoSimIO::ElementType::Line3D2   },
+    {GeometryData::KratosGeometryType::Kratos_Line3D3,          CoSimIO::ElementType::Line3D3   },
+    {GeometryData::KratosGeometryType::Kratos_Point2D,          CoSimIO::ElementType::Point2D   },
+    {GeometryData::KratosGeometryType::Kratos_Point3D,          CoSimIO::ElementType::Point3D   }
+};
+
+const std::map<CoSimIO::ElementType, std::string> elem_name_map {
+    {CoSimIO::ElementType::Hexahedra3D20, "Element3D20N"},
+    {CoSimIO::ElementType::Hexahedra3D27, "Element3D27N"},
+    {CoSimIO::ElementType::Hexahedra3D8, "Element3D8N"},
+    {CoSimIO::ElementType::Prism3D15, "Element3D15N"},
+    {CoSimIO::ElementType::Prism3D6, "Element3D6N"},
+    {CoSimIO::ElementType::Quadrilateral2D4, "Element2D4N"},
+    {CoSimIO::ElementType::Quadrilateral2D8, "Element2D8N"},
+    {CoSimIO::ElementType::Quadrilateral2D9, "Element2D9N"},
+    {CoSimIO::ElementType::Quadrilateral3D8, "Element3D8N"},
+    {CoSimIO::ElementType::Tetrahedra3D10, "Element3D10N"},
+    {CoSimIO::ElementType::Tetrahedra3D4, "Element3D4N"},
+    {CoSimIO::ElementType::Triangle2D3, "Element2D3N"},
+    {CoSimIO::ElementType::Triangle2D6, "Element2D6N"},
+    {CoSimIO::ElementType::Triangle3D3, "Element3D3N"},
+    {CoSimIO::ElementType::Line2D2, "Element2D2N"},
+    {CoSimIO::ElementType::Line3D2, "Element3D2N"},
+    {CoSimIO::ElementType::Point2D, "Element2D1N"},
+    {CoSimIO::ElementType::Point3D, "Element3D1N"}
+};
 
 void ExportMesh(
     CoSimIO::Info& rInfo,
     const ModelPart& rModelPart)
 {
-    // // extract information from ModelPart
-    // const int num_nodes = rModelPart.NumberOfNodes();
-    // const int num_elems = rModelPart.NumberOfElements();
+    CoSimIO::ModelPart co_sim_io_model_part(rModelPart.Name());
 
-    // DataBuffers::vector_doubles.resize(num_nodes*3);
-    // DataBuffers::vector_types.resize(num_elems);
-    // DataBuffers::vector_connectivities.clear();
+    for (const auto& r_node : rModelPart.Nodes()) {
+        co_sim_io_model_part.CreateNewNode(
+            r_node.Id(),
+            // TODO: use initial or current coordinates?
+            r_node.X0(),
+            r_node.Y0(),
+            r_node.Z0()
+        );
+    };
 
-    // std::size_t node_counter = 0;
-    // for (const auto& r_node : rModelPart.Nodes()) {
-    //     const auto& r_coords = r_node.GetInitialPosition(); // TODO or current coords?
-    //     DataBuffers::vector_doubles[node_counter++] = r_coords[0];
-    //     DataBuffers::vector_doubles[node_counter++] = r_coords[1];
-    //     DataBuffers::vector_doubles[node_counter++] = r_coords[2];
-    // }
+    CoSimIO::ConnectivitiesType conn;
+    for (const auto& r_elem : rModelPart.Elements()) {
+        const auto& r_geom = r_elem.GetGeometry();
+        if (conn.size() != r_geom.PointsNumber()) {
+            conn.resize(r_geom.PointsNumber());
+        };
 
-    // // NOTE: See https://vtk.org/wp-content/uploads/2015/04/file-formats.pdf
-    // const std::map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
-    //     { GeometryData::KratosGeometryType::Kratos_Point2D,          1 },
-    //     { GeometryData::KratosGeometryType::Kratos_Point3D,          1 },
-    //     { GeometryData::KratosGeometryType::Kratos_Line2D2,          3 },
-    //     { GeometryData::KratosGeometryType::Kratos_Line3D2,          3 },
-    //     { GeometryData::KratosGeometryType::Kratos_Triangle2D3,      5 },
-    //     { GeometryData::KratosGeometryType::Kratos_Triangle3D3,      5 },
-    //     { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
-    //     { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, 9 },
-    //     { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    10 },
-    //     { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     12 }
-    // };
+        for (std::size_t i=0; i<r_geom.PointsNumber(); ++i) {
+            conn[i] = r_geom[i].Id();
+        }
 
-    // std::size_t elem_counter = 0;
-    // int connectivities_offset = std::numeric_limits<int>::max(); //in paraview the connectivities start from 0, hence we have to check beforehand what is the connectivities offset
-    // for (const auto& r_elem : rModelPart.Elements()) {
-    //     const auto& r_geom = r_elem.GetGeometry();
-    //     DataBuffers::vector_types[elem_counter++] = geo_type_vtk_cell_type_map.at(r_geom.GetGeometryType()); // TODO add check
+        co_sim_io_model_part.CreateNewElement(
+            r_elem.Id(),
+            elem_type_map.at(r_geom.GetGeometryType()),
+            conn
+        );
+    };
 
-    //     for (const auto& r_node : r_geom) {
-    //         const int current_id = r_node.Id();
-    //         DataBuffers::vector_connectivities.push_back(current_id);
-    //         connectivities_offset = std::min(connectivities_offset, current_id);
-    //     }
-    // }
-
-    // if (connectivities_offset != 0) {
-    //     for(auto& r_connectivity : DataBuffers::vector_connectivities) {
-    //         r_connectivity -= connectivities_offset;
-    //     }
-    // }
-
-    // CoSimIO::ExportMesh(
-    //     rInfo,
-    //     DataBuffers::vector_doubles,
-    //     DataBuffers::vector_connectivities,
-    //     DataBuffers::vector_types);
+    CoSimIO::ExportMesh(
+        rInfo,
+        co_sim_io_model_part);
 }
 
 void ImportMesh(
     CoSimIO::Info& rInfo,
     ModelPart& rModelPart)
 {
-    CoSimIO::ModelPart imported_model_part("imported");
-    // CoSimIO::ImportMesh(
-    //     rInfo,
-    //     DataBuffers::vector_doubles,
-    //     DataBuffers::vector_connectivities,
-    //     DataBuffers::vector_types);
+    CoSimIO::ModelPart co_sim_io_model_part(rModelPart.Name());
 
-    // // fill ModelPart from received Mesh
-    // KRATOS_ERROR_IF(rModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
-    // KRATOS_ERROR_IF(rModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
-    // KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
+    CoSimIO::ImportMesh(
+        rInfo,
+        co_sim_io_model_part);
 
-    // const std::unordered_map<int, std::pair<int, std::string>> vtk_type_map = {
-    //     // {1 , "Element3D1N"}, // does not yet exist
-    //     {3 ,  {2, "Element2D2N"} }, // line
-    //     {5 ,  {3, "Element2D3N"} }, // triangle
-    //     {9 ,  {4, "Element2D4N"} }, // quad
-    //     {10 , {4, "Element3D4N"} }, // tetra
-    //     {12 , {8, "Element3D8N"} }  // hexa
-    // };
+    // fill ModelPart from received Mesh
+    KRATOS_ERROR_IF(rModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
+    KRATOS_ERROR_IF(rModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
+    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
 
-    // // fill ModelPart with received entities // TODO do this in OMP and add only after creation!
+    // fill ModelPart with received entities
+    for (auto node_it=co_sim_io_model_part.NodesBegin(); node_it!=co_sim_io_model_part.NodesEnd(); ++node_it) {
+        rModelPart.CreateNewNode(
+            (*node_it)->Id(),
+            (*node_it)->X(),
+            (*node_it)->Y(),
+            (*node_it)->Z()
+        );
+    };
 
-    // for (std::size_t i=0; i<DataBuffers::vector_doubles.size()/3; ++i) {
-    //     rModelPart.CreateNewNode(
-    //         i, // TODO check this, this will create nodes with Id=0
-    //         DataBuffers::vector_doubles[i*3],
-    //         DataBuffers::vector_doubles[i*3+1],
-    //         DataBuffers::vector_doubles[i*3+2]);
-    // }
+    auto p_props = rModelPart.CreateNewProperties(0);
 
-    // auto p_props = rModelPart.CreateNewProperties(0);
+    std::vector<IndexType> conn;
+    for (auto elem_it=co_sim_io_model_part.ElementsBegin(); elem_it!=co_sim_io_model_part.ElementsEnd(); ++elem_it) {
+        if (conn.size() != (*elem_it)->NumberOfNodes()) {
+            conn.resize((*elem_it)->NumberOfNodes());
+        };
 
-    // int counter=0;
-    // for (std::size_t i=0; i<DataBuffers::vector_types.size(); ++i) {
-    //     const auto& vtk_type_info = vtk_type_map.at(DataBuffers::vector_types[i]); // TODO add check
-    //     const int num_nodes_elem = vtk_type_info.first;
-    //     std::vector<ModelPart::IndexType> elem_node_ids(num_nodes_elem);
-    //     for (int j=0; j<num_nodes_elem; ++j) {
-    //         elem_node_ids[j] = DataBuffers::vector_connectivities[counter++];
-    //     }
-    //     rModelPart.CreateNewElement(vtk_type_info.second, i+1, elem_node_ids, p_props);
-    // }
+        const auto nodes_begin = (*elem_it)->NodesBegin();
+        for (std::size_t i=0; i<(*elem_it)->NumberOfNodes(); ++i) {
+            conn[i] = (*(nodes_begin+i))->Id();
+        };
+
+        rModelPart.CreateNewElement(
+            elem_name_map.at((*elem_it)->Type()),
+            (*elem_it)->Id(),
+            conn,
+            p_props
+        );
+    };
 }
 
 void ImportDataSizeCheck(const std::size_t ExpectedSize, const std::size_t ImportedSize)

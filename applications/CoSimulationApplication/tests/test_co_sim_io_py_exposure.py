@@ -290,6 +290,7 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfElements(), model_part_returned.NumberOfElements())
 
         for node_orig, node_exchanged in zip(model_part.Nodes, model_part_returned.Nodes):
+            self.assertEqual(node_orig.Id, node_exchanged.Id)
             self.assertAlmostEqual(node_orig.X0, node_exchanged.X0)
             self.assertAlmostEqual(node_orig.Y0, node_exchanged.Y0)
             self.assertAlmostEqual(node_orig.Z0, node_exchanged.Z0)
@@ -297,6 +298,7 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
         for elem_orig, elem_exchanged in zip(model_part.Elements, model_part_returned.Elements):
             self.assertEqual(len(elem_orig.GetNodes()), len(elem_exchanged.GetNodes()))
             for node_orig, node_exchanged in zip(elem_orig.GetNodes(), elem_exchanged.GetNodes()):
+                self.assertEqual(node_orig.Id, node_exchanged.Id)
                 self.assertAlmostEqual(node_orig.X0, node_exchanged.X0)
                 self.assertAlmostEqual(node_orig.Y0, node_exchanged.Y0)
                 self.assertAlmostEqual(node_orig.Z0, node_exchanged.Z0)
