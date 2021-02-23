@@ -135,29 +135,33 @@ int UPwBaseElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-//void UPwBaseElement<TDim,TNumNodes>::Initialize()
 void UPwBaseElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+    // KRATOS_INFO("0-UPwBaseElement::Initialize()") << this->Id() << std::endl;
 
     const PropertiesType &Prop = this->GetProperties();
     const GeometryType &Geom = this->GetGeometry();
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
 
+    // pointer to constitutive laws
     if ( mConstitutiveLawVector.size() != NumGPoints )
         mConstitutiveLawVector.resize( NumGPoints );
 
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
     {
         mConstitutiveLawVector[i] = Prop[CONSTITUTIVE_LAW]->Clone();
-        mConstitutiveLawVector[i]->InitializeMaterial( Prop, Geom,row( Geom.ShapeFunctionsValues( this->GetIntegrationMethod() ), i ) );
+        mConstitutiveLawVector[i]->
+            InitializeMaterial( Prop,
+                                Geom,
+                                row( Geom.ShapeFunctionsValues( this->GetIntegrationMethod() ), i ) );
     }
 
     // resize mStressVector:
-    unsigned int VoigtSize = VOIGT_SIZE_3D;
-    if (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
     if ( mStressVector.size() != NumGPoints )
     {
+       unsigned int VoigtSize = VOIGT_SIZE_3D;
+       if (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
        mStressVector.resize(NumGPoints);
        for (unsigned int i=0; i < mStressVector.size(); ++i)
        {
@@ -166,9 +170,9 @@ void UPwBaseElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProce
        }
     }
 
+    // resizing and setting state variables
     if (mStateVariablesFinalized.size() != NumGPoints)
        mStateVariablesFinalized.resize(NumGPoints);
-
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
     {
         int nStateVariables = 0;
@@ -183,13 +187,31 @@ void UPwBaseElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProce
         }
     }
 
+
+    if ( mRetentionLawVector.size() != NumGPoints )
+        mRetentionLawVector.resize( NumGPoints );
+    for ( unsigned int i = 0; i < mRetentionLawVector.size(); i++ )
+    {
+        //RetentionLawFactory::Pointer pRetentionFactory;
+        mRetentionLawVector[i] = RetentionLawFactory::Clone(Prop);
+        mRetentionLawVector[i]->
+            InitializeMaterial( Prop,
+                                Geom,
+                                row( Geom.ShapeFunctionsValues( this->GetIntegrationMethod() ), i ) );
+    }
+
+    mIsInitialised = true;
+
     KRATOS_CATCH( "" )
+
+    // KRATOS_INFO("1-UPwBaseElement::Initialize()") << std::endl;
 }
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwBaseElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList,
-                                             const ProcessInfo& rCurrentProcessInfo ) const
+void UPwBaseElement<TDim,TNumNodes>::
+    GetDofList( DofsVectorType& rElementalDofList,
+                const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

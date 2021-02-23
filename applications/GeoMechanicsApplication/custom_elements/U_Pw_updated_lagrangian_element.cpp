@@ -119,7 +119,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
         this->CalculateStrain(Variables);
 
         //set gauss points variables to constitutivelaw parameters
-        this->SetElementalVariables(Variables, ConstitutiveParameters);
+        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         // Call the constitutive law to update material variables
         //Compute constitutive tensor and stresses
@@ -165,13 +165,18 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(),
                                                        this->GetProperties(),
                                                        rCurrentProcessInfo);
-    if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    // if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    // Stiffness matrix is always needed for Biot coefficient
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+
+    // create general parametes of retention law
+    RetentionLaw::Parameters RetentionParameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
     // Computing in all integrations points
     for ( IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint )
@@ -187,22 +192,22 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
                                                                 Variables.VolumeAcceleration,
                                                                 GPoint );
 
-
-
         // Cauchy strain: This needs to be investigated which strain measure should be used
         // In some references, e.g. Bathe, suggested to use Almansi strain measure
         this->CalculateStrain(Variables);
 
         //set gauss points variables to constitutivelaw parameters
-        this->SetElementalVariables(Variables, ConstitutiveParameters);
+        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         //Compute constitutive tensor and stresses
         UpdateElementalVariableStressVector(Variables, GPoint);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
         UpdateStressVector(Variables, GPoint);
 
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+
         // calculate Bulk modulus from stiffness matrix
-        const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
+        const double BulkModulus = this->CalculateBulkModulus(Variables.ConstitutiveMatrix);
         this->InitializeBiotCoefficients(Variables, BulkModulus);
 
         // Calculating weights for integration on the reference configuration
@@ -270,8 +275,8 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
-    CalculateKinematics(ElementVariables& rVariables,
-                        unsigned int GPoint)
+    CalculateKinematics(ElementVariables &rVariables,
+                        const unsigned int &GPoint)
 {
     noalias(rVariables.Np) = row(rVariables.NContainer, GPoint);
 

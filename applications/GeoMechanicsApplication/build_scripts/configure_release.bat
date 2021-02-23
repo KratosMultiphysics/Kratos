@@ -32,7 +32,6 @@ set PYTHON_EXECUTABLE=C:\Windows\py.exe
 rem Set applications to compile
 set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
-CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\GeoMechanicsApplication;
 

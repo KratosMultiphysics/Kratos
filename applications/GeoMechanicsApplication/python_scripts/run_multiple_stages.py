@@ -5,7 +5,7 @@ sys.path.append(os.path.join('..', '..', '..'))
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.GeoMechanicsApplication import *
-import geomechanics_analysis as analysis
+import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
 
 def run_stages(project_path,n_stages):

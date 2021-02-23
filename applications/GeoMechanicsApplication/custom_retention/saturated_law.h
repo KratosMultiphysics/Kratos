@@ -105,6 +105,9 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    void InitializeMaterial(const Properties& rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const Vector& rShapeFunctionsValues) override;
 
     void Initialize(Parameters &rParameters) override;
 

@@ -7,7 +7,7 @@ import sys
 sys.path.append(os.path.join('..','..','..'))
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.ExternalSolversApplication
+import KratosMultiphysics.LinearSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 

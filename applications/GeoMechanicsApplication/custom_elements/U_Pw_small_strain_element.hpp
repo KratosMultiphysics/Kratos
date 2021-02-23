@@ -44,8 +44,10 @@ public:
     /// The definition of the sizetype
     typedef std::size_t SizeType;
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
+    using UPwBaseElement<TDim,TNumNodes>::mRetentionLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
+    using UPwBaseElement<TDim,TNumNodes>::mIsInitialised;
 
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -154,6 +156,7 @@ protected:
         BoundedMatrix<double, TDim, TNumNodes*TDim> Nu;
         array_1d<double, TDim> BodyAcceleration;
         double IntegrationCoefficient;
+
         ///Constitutive Law parameters
         Vector StrainVector;
         Vector StressVector;
@@ -165,6 +168,13 @@ protected:
         Vector detJContainer;
         Matrix NContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
+
+        ///Retention Law parameters
+        double FluidPressure;
+        double DegreeOfSaturation;
+        double DerivativeOfSaturation;
+        double RelativePermeability;
+        double BishopCoefficient;
 
         // needed for updated Lagrangian:
         double detJ0;
@@ -178,84 +188,92 @@ protected:
         BoundedMatrix<double,TNumNodes,TDim> PDimMatrix;
         array_1d<double,TNumNodes*TDim> UVector;
         array_1d<double,TNumNodes> PVector;
+
     };
 
     /// Member Variables
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SaveGPStress( Matrix& rStressContainer,
-                       const Vector& StressVector,
-                       const unsigned int& VoigtSize,
-                       const unsigned int& GPoint );
+    void SaveGPStress( Matrix &rStressContainer,
+                       const Vector &StressVector,
+                       const unsigned int &GPoint );
 
-    void ExtrapolateGPValues( const Matrix& StressContainer,
-                              const unsigned int& VoigtSize );
+    void ExtrapolateGPValues( const Matrix &StressContainer,
+                              const unsigned int &VoigtSize );
 
 
     void CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,
                                            const ProcessInfo& CurrentProcessInfo ) override;
 
 
-    void CalculateAll( MatrixType& rLeftHandSideMatrix,
-                       VectorType& rRightHandSideVector,
+    void CalculateAll( MatrixType &rLeftHandSideMatrix,
+                       VectorType &rRightHandSideVector,
                        const ProcessInfo& CurrentProcessInfo,
                        const bool CalculateStiffnessMatrixFlag,
                        const bool CalculateResidualVectorFlag ) override;
 
-    void InitializeElementVariables( ElementVariables& rVariables,
-                                     const ProcessInfo& CurrentProcessInfo );
+    void InitializeElementVariables( ElementVariables &rVariables,
+                                     const ProcessInfo &CurrentProcessInfo );
 
-    void SetElementalVariables(ElementVariables& rVariables,
-                               ConstitutiveLaw::Parameters& rConstitutiveParameters);
+    void SetConstitutiveParameters(ElementVariables &rVariables,
+                                   ConstitutiveLaw::Parameters &rConstitutiveParameters);
 
-    virtual void CalculateKinematics( ElementVariables& rVariables, unsigned int PointNumber );
+    void SetRetentionParameters(const ElementVariables &rVariables,
+                                RetentionLaw::Parameters &rRetentionParameters);
 
-    void InitializeBiotCoefficients( ElementVariables& rVariables,
+    virtual void CalculateKinematics( ElementVariables &rVariables, const unsigned int &PointNumber );
+
+    void InitializeBiotCoefficients( ElementVariables &rVariables,
                                      const double &BulkModulus );
 
-    void CalculateBMatrix( Matrix& rB,
-                           const Matrix& GradNpT );
+    void CalculateBMatrix( Matrix &rB,
+                           const Matrix &GradNpT );
 
 
-    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    virtual void CalculateAndAddLHS(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
 
-    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddStiffnessMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddCouplingMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddCompressibilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddPermeabilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
 
-    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculateAndAddRHS(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
-    void CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddStiffnessForce(VectorType &rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddMixBodyForce(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
-    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables &rVariables);
 
-    void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddCompressibilityFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
-    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddPermeabilityFlow(VectorType &rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddFluidBodyFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
-    void UpdateElementalVariableStressVector(ElementVariables &rVariables, unsigned int PointNumber);
-    void UpdateElementalVariableStressVector(Vector &StressVector, unsigned int PointNumber);
-    void UpdateStressVector(const ElementVariables &rVariables, unsigned int PointNumber);
-    void UpdateStressVector(const Vector &StressVector, unsigned int PointNumber);
+    void UpdateElementalVariableStressVector(ElementVariables &rVariables, const unsigned int &PointNumber);
+    void UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber);
+    void UpdateStressVector(const ElementVariables &rVariables, const unsigned int &PointNumber);
+    void UpdateStressVector(const Vector &StressVector, const unsigned int &PointNumber);
 
     double CalculateBulkModulus(const Matrix &ConstitutiveMatrix);
 
-    virtual void CalculateCauchyAlmansiStrain( ElementVariables& rVariables );
-    virtual void CalculateCauchyGreenStrain( ElementVariables& rVariables );
-    virtual void CalculateCauchyStrain( ElementVariables& rVariables );
-    virtual void CalculateStrain( ElementVariables& rVariables );
+    virtual void CalculateCauchyAlmansiStrain( ElementVariables &rVariables );
+    virtual void CalculateCauchyGreenStrain( ElementVariables &rVariables );
+    virtual void CalculateCauchyStrain( ElementVariables &rVariables );
+    virtual void CalculateStrain( ElementVariables &rVariables );
 
-    void InitializeNodalVariables( ElementVariables& rVariables );
-    void InitializeProperties( ElementVariables& rVariables );
+    void InitializeNodalVariables( ElementVariables &rVariables );
+    void InitializeProperties( ElementVariables &rVariables );
+    double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
+
+    void CalculateRetentionResponse( ElementVariables &rVariables,
+                                     RetentionLaw::Parameters &rRetentionParameters,
+                                     const unsigned int &GPoint );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

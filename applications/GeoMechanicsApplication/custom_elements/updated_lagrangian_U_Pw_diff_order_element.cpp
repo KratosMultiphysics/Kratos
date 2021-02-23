@@ -134,7 +134,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
         this->CalculateStrain(Variables);
 
         //set gauss points variables to constitutivelaw parameters
-        this->SetElementalVariables(Variables, ConstitutiveParameters);
+        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         // Call the constitutive law to update material variables
         //Compute constitutive tensor and stresses
@@ -199,12 +199,18 @@ void UpdatedLagrangianUPwDiffOrderElement::
                                                         rCurrentProcessInfo );
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-    if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    // if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    // Stiffness matrix is always needed t
+    ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 
     //Loop over integration points
     const GeometryType::IntegrationPointsArrayType
         &IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
+
+    // create general parametes of retention law
+    RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
 
     // Computing in all integrations points
     for ( IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint )
@@ -216,12 +222,14 @@ void UpdatedLagrangianUPwDiffOrderElement::
         this->CalculateStrain(Variables);
 
         //set gauss points variables to constitutivelaw parameters
-        this->SetElementalVariables(Variables,ConstitutiveParameters);
+        this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
         //Compute constitutive tensor and stresses
         UpdateElementalVariableStressVector(Variables, GPoint);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
         UpdateStressVector(Variables, GPoint);
+
+        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         // calculate Bulk modulus from stiffness matrix
         const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
@@ -299,8 +307,8 @@ void UpdatedLagrangianUPwDiffOrderElement::
 
 //----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::
-    CalculateKinematics(ElementVariables& rVariables,
-                        unsigned int GPoint)
+    CalculateKinematics(ElementVariables &rVariables,
+                        const unsigned int &GPoint)
 {
     KRATOS_TRY
     //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateKinematics()") << std::endl;

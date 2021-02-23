@@ -7,7 +7,6 @@ sys.path.append(os.path.join('..','python_scripts'))
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.GeoMechanicsApplication import *
-#import geomechanics_analysis as analysis
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 

@@ -76,6 +76,7 @@ public:
     /// The definition of the sizetype
     typedef std::size_t SizeType;
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
+    using UPwBaseElement<TDim,TNumNodes>::mRetentionLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
     using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
@@ -299,7 +300,7 @@ protected:
      * @param PointNumber The integration point considered
      * @param rIntegrationMethod The integration method considered
      */
-    void CalculateKinematics( ElementVariables& rVariables, unsigned int PointNumber ) override;
+    void CalculateKinematics( ElementVariables& rVariables, const unsigned int &PointNumber ) override;
 
     /**
      * @brief This functions calculate the derivatives in the reference frame

@@ -125,7 +125,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         this->CalculateStrain(Variables);
 
         //set gauss points variables to constitutivelaw parameters
-        this->SetElementalVariables(Variables, ConstitutiveParameters);
+        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
@@ -178,7 +178,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         this->CalculateStrain(Variables);
 
         //set gauss points variables to constitutivelaw parameters
-        this->SetElementalVariables(Variables, ConstitutiveParameters);
+        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         // Compute ConstitutiveTensor
         UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
@@ -438,7 +438,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     const unsigned int NumGPoints = IntegrationPoints.size();
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, CurrentProcessInfo);
     if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -448,7 +448,10 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     this->InitializeElementVariables(Variables, CurrentProcessInfo);
 
     FICElementVariables FICVariables;
-    this->InitializeFICElementVariables(FICVariables,Variables.DN_DXContainer,Geom,Prop,CurrentProcessInfo);
+    this->InitializeFICElementVariables(FICVariables, Variables.DN_DXContainer, Geom, Prop, CurrentProcessInfo);
+
+    // create general parametes of retention law
+    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -460,7 +463,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         this->CalculateStrain(Variables);
 
         //set gauss points variables to constitutivelaw parameters
-        this->SetElementalVariables(Variables, ConstitutiveParameters);
+        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         GeoElementUtilities::
             CalculateNuMatrix<TDim, TNumNodes>( Variables.Nu,
@@ -479,6 +482,8 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
         UPwSmallStrainElement<TDim,TNumNodes>::UpdateStressVector(Variables, GPoint);
+
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         // set shear modulus from stiffness matrix
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);

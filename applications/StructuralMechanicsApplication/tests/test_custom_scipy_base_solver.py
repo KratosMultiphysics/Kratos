@@ -21,7 +21,7 @@ class TestCustomScipyBaseSolver(KratosUnittest.TestCase):
     # muting the output
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
-    def test_eigen_with_constraints(self):
+    def test_custom_scipy_base_solver(self):
         analysis_parameters_scipy = KratosMultiphysics.Parameters("""{
             "problem_data"    : {
                 "parallel_type" : "OpenMP",
@@ -40,7 +40,9 @@ class TestCustomScipyBaseSolver(KratosUnittest.TestCase):
                     "time_step" : 1.1
                 },
                 "rotation_dofs"            : true,
-                "block_builder"            : false
+                "builder_and_solver_settings" : {
+                    "use_block_builder" : false
+                }
             }
         }""")
 
@@ -62,13 +64,15 @@ class TestCustomScipyBaseSolver(KratosUnittest.TestCase):
                     "time_step" : 1.1
                 },
                 "rotation_dofs"            : true,
-                "block_builder"            : true,
                 "eigensolver_settings"     : {
                    "solver_type"           : "eigen_eigensystem",
                    "number_of_eigenvalues" : 5,
                    "normalize_eigenvectors": true,
                    "max_iteration"         : 10000,
                    "tolerance"             : 1e-6
+                },
+                "builder_and_solver_settings" : {
+                    "use_block_builder" : true
                 }
             }
         }""")
@@ -87,21 +91,20 @@ class TestCustomScipyBaseSolver(KratosUnittest.TestCase):
 
         self.__CompareEigenSolution(model_part_scipy, model_part_eigen)
 
-    def __CompareEigenSolution(self, model_part, model_part_with_constraints):
+    def __CompareEigenSolution(self, model_part, model_part_ref):
         eigen_val_vec = model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]
-        eigen_val_vec_with_constraints = model_part_with_constraints.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]
+        eigen_val_vec_ref = model_part_ref.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]
 
-        self.assertEqual(eigen_val_vec.Size(), eigen_val_vec_with_constraints.Size())
+        self.assertEqual(eigen_val_vec.Size(), eigen_val_vec_ref.Size())
 
-        for eig_val, eig_val_constr in zip(eigen_val_vec, eigen_val_vec_with_constraints):
+        for eig_val, eig_val_constr in zip(eigen_val_vec, eigen_val_vec_ref):
             self.assertAlmostEqual(eig_val, eig_val_constr, 6)
 
         for node in model_part.Nodes:
-            node_const = model_part_with_constraints.Nodes[node.Id] # to make sure to get the corresponding node
+            node_ref = model_part_ref.Nodes[node.Id] # to make sure to get the corresponding node
             eig_vec_mat = node[StructuralMechanicsApplication.EIGENVECTOR_MATRIX]
-            eig_vec_mat_contr = node_const[StructuralMechanicsApplication.EIGENVECTOR_MATRIX]
-
-            self.__CompareMatrix(eig_vec_mat, eig_vec_mat_contr, 8)
+            eig_vec_mat_ref = node_ref[StructuralMechanicsApplication.EIGENVECTOR_MATRIX]
+            self.__CompareMatrix(eig_vec_mat, eig_vec_mat_ref, 8)
 
     def __CompareMatrix(self, mat_1, mat_2, tol=7):
         self.assertEqual(mat_1.Size1(), mat_2.Size1())

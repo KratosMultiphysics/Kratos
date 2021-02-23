@@ -297,8 +297,8 @@ protected:
      * @param PointNumber The integration point considered
      * @param rIntegrationMethod The integration method considered
      */
-    void CalculateKinematics(ElementVariables& rThisKinematicVariables,
-                             unsigned int PointNumber) override;
+    void CalculateKinematics(ElementVariables &rThisKinematicVariables,
+                             const unsigned int &PointNumber) override;
 
     /**
      * @brief This functions calculate the derivatives in the reference frame

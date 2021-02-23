@@ -132,6 +132,11 @@ double VanGenuchtenLaw::
     const double &gn = rMaterialProperties[VAN_GENUCHTEN_GN];
 
     double relPerm = pow(effSat, gl) * pow(1.0 - pow(1.0 - pow(effSat, gn/(gn-1.0)), (gn-1.0)/gn), 2);
+
+    const double &minRelPerm = rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY];
+
+    relPerm = std::max(relPerm, minRelPerm);
+
     return relPerm;
 
     KRATOS_CATCH("")
@@ -186,10 +191,20 @@ double& VanGenuchtenLaw::CalculateValue(RetentionLaw::Parameters& rParameterValu
 //------------------------- RETENSION LAW GENERAL FEATURES ----------------------------------------
 //-------------------------------------------------------------------------------------------------
 void VanGenuchtenLaw::
+    InitializeMaterial(const Properties& rMaterialProperties,
+                       const GeometryType& rElementGeometry,
+                       const Vector& rShapeFunctionsValues)
+{
+    // nothing is needed
+}
+
+//-------------------------------------------------------------------------------------------------
+void VanGenuchtenLaw::
     Initialize(Parameters &rParameters)
 {
     // nothing is needed
 }
+
 //-------------------------------------------------------------------------------------------------
 void VanGenuchtenLaw::
     InitializeSolutionStep(Parameters &rParameters)
@@ -232,6 +247,9 @@ int VanGenuchtenLaw::Check(const Properties& rMaterialProperties,
 
     KRATOS_ERROR_IF(!(rMaterialProperties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE] > 0.0))
                     << "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE must be greater than 0 " << std::endl;
+
+    KRATOS_ERROR_IF(!(rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY] > 0.0))
+                    << "MINIMUM_RELATIVE_PERMEABILITY must be greater than 0 " << std::endl;
 
     return 0;
 }

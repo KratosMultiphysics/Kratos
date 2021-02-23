@@ -101,8 +101,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
             puts $FileVar "            \"scaling\":     false"
         }
     } else {
-        if {[GiD_AccessValue get gendata Solver_Type] eq "AMGCL"} {
-            puts $FileVar "            \"solver_type\":     \"amgcl\","
+        if {([GiD_AccessValue get gendata Solver_Type] eq "amgcl") || ([GiD_AccessValue get gendata Solver_Type] eq "amgcl_ns")} {
+            puts $FileVar "            \"solver_type\":     \"[GiD_AccessValue get gendata Solver_Type]\","
             puts $FileVar "            \"smoother_type\":   \"ilu0\","
             puts $FileVar "            \"krylov_type\":     \"gmres\","
             puts $FileVar "            \"coarsening_type\": \"aggregation\","
@@ -110,21 +110,15 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
             puts $FileVar "            \"verbosity\":       [GiD_AccessValue get gendata Verbosity],"
             puts $FileVar "            \"tolerance\":       1.0e-6,"
             puts $FileVar "            \"scaling\":         [GiD_AccessValue get gendata Scaling]"
-        } elseif {[GiD_AccessValue get gendata Solver_Type] eq "BICGSTABSolver"} {
-            puts $FileVar "            \"solver_type\":         \"bicgstab\","
+        } elseif {[GiD_AccessValue get gendata Solver_Type] eq "bicgstab"} {
+            puts $FileVar "            \"solver_type\":         \"[GiD_AccessValue get gendata Solver_Type]\","
             puts $FileVar "            \"tolerance\":           1.0e-6,"
             puts $FileVar "            \"max_iteration\":       1000,"
             puts $FileVar "            \"scaling\":             [GiD_AccessValue get gendata Scaling],"
             puts $FileVar "            \"preconditioner_type\": \"ilu0\""
-        } elseif {[GiD_AccessValue get gendata Solver_Type] eq "SkylineLUFactorizationSolver"} {
-            puts $FileVar "            \"solver_type\":   \"skyline_lu_factorization\","
-            puts $FileVar "            \"scaling\":       [GiD_AccessValue get gendata Scaling]"
-        } elseif {[GiD_AccessValue get gendata Solver_Type] eq "SuperLUSolver"} {
-            puts $FileVar "            \"solver_type\":   \"ExternalSolversApplication.super_lu\","
-            puts $FileVar "            \"scaling\":       [GiD_AccessValue get gendata Scaling]"
         } else {
-            puts $FileVar "            \"solver_type\":   \"ExternalSolversApplication.super_lu\""
-            puts $FileVar "            \"scaling\":     true"
+            puts $FileVar "            \"solver_type\":   \"[GiD_AccessValue get gendata Solver_Type]\","
+            puts $FileVar "            \"scaling\":       [GiD_AccessValue get gendata Scaling]"
         }
     }
     puts $FileVar "        \},"

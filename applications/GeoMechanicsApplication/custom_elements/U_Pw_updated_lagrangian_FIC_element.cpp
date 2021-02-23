@@ -125,7 +125,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
             this->CalculateStrain(Variables);
 
             //set gauss points variables to constitutivelaw parameters
-            this->SetElementalVariables(Variables, ConstitutiveParameters);
+            this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
             UpdateElementalVariableStressVector(Variables, GPoint);
@@ -134,7 +134,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
                 mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
                                                           mStateVariablesFinalized[GPoint] );
 
-            this->SaveGPStress(StressContainer,Variables.StressVector,Variables.StressVector.size(),GPoint);
+            this->SaveGPStress(StressContainer, Variables.StressVector, GPoint);
 
             // Update the element internal variables
             this->UpdateHistoricalDatabase(Variables, GPoint);
@@ -153,7 +153,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
             this->CalculateStrain(Variables);
 
             //set gauss points variables to constitutivelaw parameters
-            this->SetElementalVariables(Variables, ConstitutiveParameters);
+            this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
             UpdateElementalVariableStressVector(Variables, GPoint);
@@ -213,6 +213,9 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
                                         Prop,
                                         rCurrentProcessInfo);
 
+    // create general parametes of retention law
+    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
+
     // Computing in all integrations points
     for ( IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint )
     {
@@ -224,7 +227,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
         this->CalculateStrain(Variables);
 
         //set gauss points variables to constitutivelaw parameters
-        this->SetElementalVariables(Variables, ConstitutiveParameters);
+        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         //Compute Np, Nu and BodyAcceleration
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
@@ -244,6 +247,8 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
         UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
         UPwSmallStrainElement<TDim,TNumNodes>::UpdateStressVector(Variables, GPoint);
+
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         // set shear modulus from stiffness matrix
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);
@@ -322,7 +327,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
     CalculateKinematics(ElementVariables& rVariables,
-                        unsigned int GPoint)
+                        const unsigned int &GPoint)
 {
     noalias(rVariables.Np) = row(rVariables.NContainer, GPoint);
 
