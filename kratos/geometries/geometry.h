@@ -638,52 +638,52 @@ public:
     ///@name Dynamic access to internals
     ///@{
 
-    /* Set s a certain value to the geometry,
+    /* Assigns a value to the geometry,
      * according to a variable.
      * Allows dynamic interfaces with each respective geometry.
      */
 
-    /// Set with bool
-    virtual void Set(
+    /// Assign with bool
+    virtual void Assign(
         const Variable<bool>& rVariable,
         const bool Input) {}
 
-    /// Set with int
-    virtual void Set(
+    /// Assign with int
+    virtual void Assign(
         const Variable<int>& rVariable,
         const int Input) {}
 
-    /// Set with double
-    virtual void Set(
+    /// Assign with double
+    virtual void Assign(
         const Variable<double>& rVariable,
         const double Input) {}
 
-    /// Set with array_1d<double, 2>
-    virtual void Set(
+    /// Assign with array_1d<double, 2>
+    virtual void Assign(
         const Variable<array_1d<double, 2>>& rVariable,
         const array_1d<double, 2>& rInput) {}
 
-    /// Set with array_1d<double, 3>
-    virtual void Set(
+    /// Assign with array_1d<double, 3>
+    virtual void Assign(
         const Variable<array_1d<double, 3>>& rVariable,
         const array_1d<double, 3>& rInput) {}
 
-    /// Set with array_1d<double, 6>
-    virtual void Set(
+    /// Assign with array_1d<double, 6>
+    virtual void Assign(
         const Variable<array_1d<double, 6>>& rVariable,
         const array_1d<double, 6>& rInput) {}
 
-    /// Set with Vector
-    virtual void Set(
+    /// Assign with Vector
+    virtual void Assign(
         const Variable<Vector>& rVariable,
         const Vector& rInput) {}
 
-    /// Set with Matrix
-    virtual void Set(
+    /// Assign with Matrix
+    virtual void Assign(
         const Variable<Matrix>& rVariable,
         const Matrix& rInput) {}
 
-    /* Calculate either provides get or calculates a certain value,
+    /* Calculate either provides, gets or calculates a certain value,
      * according to a variable.
      */
 
