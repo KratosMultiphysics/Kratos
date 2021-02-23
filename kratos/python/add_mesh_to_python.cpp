@@ -119,20 +119,6 @@ py::list GetNodesFromCondition( Condition& dummy )
     return( nodes_list );
 }
 
-py::list GetIntegrationWeigth( Element& dummy )
-{
-    pybind11::list integration_weights_list;
-    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
-        dummy.GetIntegrationMethod() );
-    for( unsigned int i=0; i< integration_points.size(); i++ )
-    {
-        double weight = integration_points[i].Weight();
-
-        integration_weights_list.append( weight );
-    }
-    return( integration_weights_list );
-}
-
 py::list GetIntegrationPointsFromElement( Element& dummy )
 {
     pybind11::list integration_points_list;
@@ -483,7 +469,6 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
-    .def("GetIntegrationweigth", GetIntegrationWeigth)
     // CalculateOnIntegrationPoints
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsBool<Element>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, int>)
