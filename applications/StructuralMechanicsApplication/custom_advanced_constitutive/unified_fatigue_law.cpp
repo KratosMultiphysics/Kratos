@@ -133,7 +133,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
                 noalias(compliance_increment) = ZeroMatrix(VoigtSize, VoigtSize);
                 Vector aux(VoigtSize);
                 noalias(aux) = prod(inverse_C, plastic_flow);
-                const double lambda_p = F / ((inner_prod(plastic_flow, aux))  -0.5*2.0e8*inner_prod(r_integrated_stress_vector, plastic_flow));
+                const double lambda_p = F / ((inner_prod(plastic_flow, aux)));
 
                 noalias(compliance_increment) = lambda_p*(outer_prod(plastic_flow, plastic_flow)) 
                                                 / (inner_prod(plastic_flow, r_integrated_stress_vector));
@@ -145,7 +145,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
 
                 TYieldSurfaceType::CalculateEquivalentStress(r_integrated_stress_vector, r_strain_vector,
                                                             uniaxial_stress, rValues);
-                // KRATOS_WATCH(uniaxial_stress)
+                KRATOS_WATCH(uniaxial_stress)
             }
             ////////////////////
 
@@ -260,7 +260,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
                 noalias(compliance_increment) = ZeroMatrix(VoigtSize, VoigtSize);
                 Vector aux(VoigtSize);
                 noalias(aux) = prod(inverse_C, plastic_flow);
-                const double lambda_p = F / ((inner_prod(plastic_flow, aux))  -0.5*2.0e8*inner_prod(r_integrated_stress_vector, plastic_flow));
+                const double lambda_p = F / ((inner_prod(plastic_flow, aux)));
 
                 noalias(compliance_increment) = lambda_p*(outer_prod(plastic_flow, plastic_flow)) 
                                                 / (inner_prod(plastic_flow, r_integrated_stress_vector));
