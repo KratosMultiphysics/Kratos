@@ -345,6 +345,35 @@ namespace Kratos {
                 const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
                 const auto it_elem_begin = rModelPart.ElementsBegin();
 
+                // Determine contact release corrections if we need to
+                if (rCurrentProcessInfo.Has(EXPLICIT_CONTACT_RELEASE)) {
+                    if (rCurrentProcessInfo.GetValue(EXPLICIT_CONTACT_RELEASE)) {
+                        if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) != 1) KRATOS_ERROR << "CONTACT RELEASE ONLY FOR USL EXPLICIT!\n";
+
+                        std::string contact_release_mp_name = rCurrentProcessInfo.GetValue(EXPLICIT_CONTACT_RELEASE_MODEL_PART);
+
+                        if (!rModelPart.HasSubModelPart(contact_release_mp_name))
+                        {
+                            std::cout << "\n\nexplicit_contact_release_modelpart not found in " << rModelPart.FullName()
+                                << "\nAvailible submodelparts are:";
+                            auto sp_names = rModelPart.GetSubModelPartNames();
+                            for (size_t i = 0; i < sp_names.size(); ++i) std::cout << "\n\t" << sp_names[i];
+                            KRATOS_ERROR << "\n ERROR\n";
+                        }
+
+                        ModelPart& r_contact_mp = rModelPart.GetSubModelPart(contact_release_mp_name);
+
+                        // Compute modelpart normals
+                        ComputeContactReleaseModelPartNormals(r_contact_mp, mr_grid_model_part);
+
+                        // Compute body free momentum field
+                        ComputeContactReleaseModelPartMomenta(r_contact_mp);
+
+                        // Check release condition and set corrected velocity
+                        ComputeContactReleaseModelPartFinalMomenta(r_contact_mp);
+                    }
+                }
+
 
                 // map grid to MPs
                 #pragma omp parallel for
@@ -542,6 +571,304 @@ namespace Kratos {
         protected:
             /// @name Member Variables
             ModelPart& mr_grid_model_part;
+
+            void ComputeContactReleaseModelPartNormals(ModelPart& rContactMP, ModelPart& rBackgroundGrid)
+            {
+                KRATOS_TRY
+                // [Huan2011 eq9]
+
+                const ProcessInfo& process_info = rBackgroundGrid.GetProcessInfo();
+
+                // Clean normals
+                #pragma omp parallel for
+                for (int iter = 0; iter < static_cast<int>(rBackgroundGrid.Nodes().size()); ++iter) {
+                    auto i = rBackgroundGrid.NodesBegin() + iter;
+                    array_1d<double, 3 > & r_normal = (i)->FastGetSolutionStepValue(NORMAL);
+                    r_normal.clear();
+
+                    i->FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE) = false;
+                }
+
+                // Determine normals
+
+                #pragma omp parallel for
+                for (int iter = 0; iter < static_cast<int>(rContactMP.Elements().size()); ++iter) {
+                    auto rMP = rContactMP.ElementsBegin() + iter;
+                    std::vector<double> mp_mass(1);
+                    Matrix Jacobian;
+                    Matrix InvJ;
+                    double detJ;
+                    Matrix DN_DX;
+                    Matrix DN_De;
+                    array_1d<double, 3> temp;
+                    IndexType active_node_counter;
+                    rMP->CalculateOnIntegrationPoints(MP_MASS, mp_mass, process_info);
+                    auto& rGeom = rMP->GetGeometry();
+
+                    rMP->SetValue(EXPLICIT_CONTACT_RELEASE, true);
+
+                    for (size_t i = 0; i < rGeom.IntegrationPointsNumber(); ++i)
+                    {
+                        rGeom.Jacobian(Jacobian, 0);
+                        MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+                        DN_De = rGeom.ShapeFunctionLocalGradient(0);
+                        DN_DX = prod(DN_De, InvJ); // cartesian gradients
+
+                        active_node_counter = 0;
+                        double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[i].Weight() : 1.0;
+
+                        for (size_t j = 0; j < rGeom.PointsNumber(); ++j)
+                        {
+                            if (rGeom.ShapeFunctionValue(i, j) >= 0.0)
+                            {
+                                temp[0] = DN_DX(active_node_counter, 0);
+                                temp[1] = DN_DX(active_node_counter, 1);
+                                temp[2] = 0.0;
+                                temp *= mp_mass[0]* weight;
+
+                                rGeom[j].SetLock();
+                                array_1d<double, 3>& r_normal = rGeom[j].FastGetSolutionStepValue(NORMAL);
+                                r_normal += temp;
+                                rGeom[j].FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE) = true;
+                                rGeom[j].UnSetLock();
+
+                                active_node_counter += 1;
+                            }
+                        }
+                    }
+                }
+
+
+                // Normalize normals
+                #pragma omp parallel for
+                for (int iter = 0; iter < static_cast<int>(rBackgroundGrid.Nodes().size()); ++iter) {
+                    auto i = rBackgroundGrid.NodesBegin() + iter;
+                    if (i->Is(ACTIVE) && i->FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE)) {
+                        array_1d<double, 3 >& r_normal = (i)->FastGetSolutionStepValue(NORMAL);
+                        r_normal /= norm_2(r_normal);
+                    }
+                }
+
+                KRATOS_CATCH("")
+            }
+
+            void ComputeContactReleaseModelPartMomenta(ModelPart& rContactMP)
+            {
+                KRATOS_TRY
+
+                const ProcessInfo& process_info = mr_grid_model_part.GetProcessInfo();
+
+                // Clean previously stored aux momenta
+                #pragma omp parallel for
+                for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter) {
+                    auto i = mr_grid_model_part.NodesBegin() + iter;
+                    if (i->Is(ACTIVE) && i->FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE)) {
+                        array_1d<double, 3 >& r_aux_mom = (i)->FastGetSolutionStepValue(AUX_MOMENTA);
+                        array_1d<double, 3 >& r_inertia = (i)->FastGetSolutionStepValue(AUX_INERTIA);
+                        array_1d<double, 3 >& r_residual = (i)->FastGetSolutionStepValue(AUX_RESIDUAL);
+                        (i)->FastGetSolutionStepValue(AUX_MASS) = 0.0;
+
+                        r_aux_mom.clear();
+                        r_inertia.clear();
+                        r_residual.clear();
+                    }
+                }
+
+
+                // Map to aux grid.
+                #pragma omp parallel for
+                for (int iter = 0; iter < static_cast<int>(rContactMP.Elements().size()); ++iter) {
+                    auto rMP = rContactMP.ElementsBegin() + iter;
+                    // Calculating shape functions
+                    std::vector<double> mp_mass(1);
+                    std::vector<array_1d<double,3>> mp_vel(1);
+                    std::vector<array_1d<double,3>> mp_accel(1);
+                    auto& rGeom = rMP->GetGeometry();
+
+                    rMP->CalculateOnIntegrationPoints(MP_MASS, mp_mass, process_info);
+                    rMP->CalculateOnIntegrationPoints(MP_VELOCITY, mp_vel, process_info);
+                    rMP->CalculateOnIntegrationPoints(MP_ACCELERATION, mp_accel, process_info);
+                    array_1d<double, 3> nodal_momentum = ZeroVector(3);
+                    array_1d<double, 3> nodal_inertia = ZeroVector(3);
+
+                    for (unsigned int i = 0; i < rGeom.PointsNumber(); ++i)
+                    {
+                        for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p)
+                        {
+                            double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
+                            if (rGeom.ShapeFunctionValue(int_p, i) >= 0.0) // skip inactive nodes
+                            {
+                                for (unsigned int j = 0; j < rGeom.WorkingSpaceDimension(); ++j)
+                                {
+                                    nodal_momentum[j] = rGeom.ShapeFunctionValue(int_p, i) * mp_vel[0][j] *
+                                        mp_mass[0] * weight;
+                                    nodal_inertia[j] = rGeom.ShapeFunctionValue(int_p, i) * mp_accel[0][j] *
+                                        mp_mass[0] * weight;
+                                }
+
+                                rGeom[i].SetLock();
+                                rGeom[i].FastGetSolutionStepValue(AUX_MOMENTA) += nodal_momentum;
+                                rGeom[i].FastGetSolutionStepValue(AUX_INERTIA, 0) += nodal_inertia;
+                                rGeom[i].FastGetSolutionStepValue(AUX_MASS, 0) += rGeom.ShapeFunctionValue(int_p, i)
+                                    * mp_mass[0] * weight;
+                                rGeom[i].UnSetLock();
+                            }
+                        }
+                    }
+                }
+
+                // Compute aux residual
+                #pragma omp parallel for
+                for (int iter = 0; iter < static_cast<int>(rContactMP.Elements().size()); ++iter) {
+                    auto rMP = rContactMP.ElementsBegin() + iter;
+                    LocalSystemVectorType RHS_Contribution;
+                    rMP->CalculateRightHandSide(RHS_Contribution, process_info);
+
+                    auto& r_geometry = rMP->GetGeometry();
+                    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+
+                    for (size_t i = 0; i < r_geometry.PointsNumber(); ++i) {
+                        size_t index = dimension * i;
+                        r_geometry[i].SetLock();
+                        array_1d<double, 3>& r_force_residual = r_geometry[i].FastGetSolutionStepValue(AUX_RESIDUAL);
+                        for (size_t j = 0; j < dimension; ++j) {
+                            r_force_residual[j] += RHS_Contribution[index + j];
+                        }
+                        r_geometry[i].UnSetLock();
+                    }
+                }
+
+                // Update momenta
+                const SizeType dim = process_info[DOMAIN_SIZE];
+                const double delta_time = process_info[DELTA_TIME];
+                const auto it_node_begin = mr_grid_model_part.NodesBegin();
+                const IndexType DisplacementPosition = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(mr_grid_model_part.Nodes().size()); ++i) {
+                    auto it_node = it_node_begin + i;
+                    if ((it_node)->Is(ACTIVE))
+                    {
+                        if (it_node->FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE))
+                        {
+                            std::array<bool, 3> fix_displacements = { false, false, false };
+                            fix_displacements[0] = (it_node->GetDof(DISPLACEMENT_X, DisplacementPosition).IsFixed());
+                            fix_displacements[1] = (it_node->GetDof(DISPLACEMENT_Y, DisplacementPosition + 1).IsFixed());
+                            if (dim == 3)
+                                fix_displacements[2] = (it_node->GetDof(DISPLACEMENT_Z, DisplacementPosition + 2).IsFixed());
+
+                            array_1d<double, 3>& r_nodal_momenta = it_node->FastGetSolutionStepValue(AUX_MOMENTA);
+                            array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(AUX_RESIDUAL);
+
+                            for (IndexType j = 0; j < dim; ++j)
+                            {
+                                if (fix_displacements[j]) {
+                                    r_nodal_momenta[j] = 0.0;
+                                    r_current_residual[j] = 0.0;
+                                }
+                                else {
+                                    r_nodal_momenta[j] += delta_time * r_current_residual[j];
+                                }
+                            } // for DomainSize
+                        }
+                    }
+                } // for Node parallel
+                KRATOS_CATCH("")
+            }
+
+            void ComputeContactReleaseModelPartFinalMomenta(ModelPart& rContactMP)
+            {
+                KRATOS_TRY
+
+                const ProcessInfo& process_info = mr_grid_model_part.GetProcessInfo();
+                const double delta_time = process_info[DELTA_TIME];
+
+                const auto it_node_begin = mr_grid_model_part.NodesBegin();
+
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(mr_grid_model_part.Nodes().size()); ++i) {
+                    auto it_node = it_node_begin + i;
+                    if ((it_node)->Is(ACTIVE))
+                    {
+                        if (it_node->FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE))
+                        {
+                            // Compute release condition
+                            array_1d<double, 3>& r_nodal_momenta = it_node->FastGetSolutionStepValue(NODAL_MOMENTUM);
+                            array_1d<double, 3>& r_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
+                            double& mass = it_node->FastGetSolutionStepValue(NODAL_MASS);
+
+                            array_1d<double, 3>& r_aux_nodal_momenta = it_node->FastGetSolutionStepValue(AUX_MOMENTA);
+                            array_1d<double, 3>& r_aux_residual = it_node->FastGetSolutionStepValue(AUX_RESIDUAL);
+                            double aux_mass = it_node->FastGetSolutionStepValue(AUX_MASS);
+                            const array_1d<double, 3>& r_normal = it_node->FastGetSolutionStepValue(NORMAL);
+
+                            // Check if we are entirely within the contact body
+                            if (std::abs(aux_mass/ mass - 1.0) < 1e-9)
+                            {
+                                // We are entirely in the contact body - grid field and aux field are the same
+                                it_node->FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE) = false;
+                            }
+                            else
+                            {
+                                // We are on a boundary node.
+                                array_1d<double, 3> vel_diff = ZeroVector(3);
+                                if (aux_mass > 1e-9) vel_diff += r_aux_nodal_momenta / aux_mass;
+                                if (mass > 1e-9) vel_diff -= r_nodal_momenta / mass;
+
+                                double contact_constraint = inner_prod(vel_diff, r_normal);
+
+                                // Remove the effect of the contact body from the grid (decoupled grid)
+                                array_1d<double, 3> grid_body_momenta = r_nodal_momenta - r_aux_nodal_momenta;
+                                array_1d<double, 3> grid_body_residual = r_residual - r_aux_residual;
+                                const double grid_body_mass = mass - aux_mass;
+
+                                if (contact_constraint <= 0.0) // [Huan2011 eq8]
+                                {
+                                    // Contact release
+
+                                    // Contact body: nothing to do, already 'free'
+
+                                    // Grid body: set to decoupled grid
+                                    mass = grid_body_mass;
+                                    r_nodal_momenta = grid_body_momenta;
+                                    r_residual = grid_body_residual;
+
+                                    if (mass <= 0.0)
+                                    {
+                                        KRATOS_WATCH("NEGATIVE MASS MASS");
+                                        KRATOS_ERROR << "ERROR";
+                                    }
+                                }
+                                else
+                                {
+                                    // Contact
+
+                                    // Contact body:
+                                    // set normal component to coupled grid state
+                                    array_1d<double, 3> aux_momenta_correction = -1.0 * contact_constraint * aux_mass * r_normal;
+                                    r_aux_nodal_momenta += aux_momenta_correction;
+                                    r_aux_residual += (aux_momenta_correction / delta_time); // check this - maybe
+
+                                    // Grid body: set to decoupled grid with corrected normal
+                                    vel_diff.clear();
+                                    if (grid_body_mass > 1e-12) vel_diff += grid_body_momenta / grid_body_mass;
+                                    if (mass > 1e-12) vel_diff -= r_nodal_momenta / mass;
+                                    array_1d<double, 3> normal_flip = -1.0 * r_normal;
+                                    contact_constraint = inner_prod(vel_diff, normal_flip);
+
+                                    aux_momenta_correction = -1.0 * contact_constraint * grid_body_mass * normal_flip;
+
+                                    r_nodal_momenta = grid_body_momenta + aux_momenta_correction;
+                                    r_residual = grid_body_residual + (aux_momenta_correction / delta_time); // check this - maybe
+                                    mass = grid_body_mass;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                KRATOS_CATCH("")
+            }
 
         private:
     }; /* Class MPMExplicitScheme */

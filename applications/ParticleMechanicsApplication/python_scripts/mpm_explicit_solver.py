@@ -29,7 +29,9 @@ class MPMExplicitSolver(MPMSolver):
             "is_fix_explicit_mp_on_grid_edge" : false,
             "is_pqmpm"      : false,
             "is_make_normal_mp_if_pqmpm_fails" : false,
-            "pqmpm_subpoint_min_volume_fraction" : 0.0
+            "pqmpm_subpoint_min_volume_fraction" : 0.0,
+            "is_explicit_contact_release" : false,
+            "explicit_contact_release_modelpart" : "UNSPECIFIED"
         }""")
         this_defaults.AddMissingParameters(super(MPMExplicitSolver, cls).GetDefaultParameters())
         return this_defaults
@@ -43,6 +45,17 @@ class MPMExplicitSolver(MPMSolver):
         # Adding explicit variables
         grid_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
         grid_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
+
+        # Check whether we do contact release
+        is_explicit_contact_release = self.settings["is_explicit_contact_release"].GetBool()
+        if is_explicit_contact_release:
+            grid_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+            grid_model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_MOMENTA)
+            grid_model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_INERTIA)
+            grid_model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_MASS)
+            grid_model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_RESIDUAL)
+            grid_model_part.AddNodalSolutionStepVariable(KratosParticle.EXPLICIT_CONTACT_RELEASE)
+
 
         KratosMultiphysics.Logger.PrintInfo("::[MPMExplicitSolver]:: ", "Variables are all added.")
 
@@ -58,6 +71,14 @@ class MPMExplicitSolver(MPMSolver):
         # Check whether compressibility is considered
         is_compressible = self.settings["compressible"].GetBool()
         grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_COMPRESSIBLE, is_compressible)
+
+        # Check whether we do contact release
+        is_explicit_contact_release = self.settings["is_explicit_contact_release"].GetBool()
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_CONTACT_RELEASE, is_explicit_contact_release)
+        if is_explicit_contact_release:
+            model_part_string = self.settings["explicit_contact_release_modelpart"].GetString()
+            grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_CONTACT_RELEASE_MODEL_PART, model_part_string)
+
 
         # Check whether the partitioned quadrature mpm (PQMPM) is used
         is_pqmpm = self.settings["is_pqmpm"].GetBool()

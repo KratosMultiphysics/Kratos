@@ -126,6 +126,9 @@ namespace Kratos
         const SizeType number_of_nodes = rGeom.PointsNumber();
         const SizeType dimension = rGeom.WorkingSpaceDimension();
 
+        const bool is_contact_release = (rElement.Has(EXPLICIT_CONTACT_RELEASE))
+            ? rElement.GetValue(EXPLICIT_CONTACT_RELEASE)
+            : false;
 
         // False for stability (typical across research papers).
         // One may set to true to reduces energy lost from kinematic aliasing
@@ -157,17 +160,30 @@ namespace Kratos
             {
                 if (rGeom.ShapeFunctionValue(int_p, i) >= 0.0)
                 {
-                    const double nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
+                    double nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
+                    if (is_contact_release) {
+                        if (rGeom[i].FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE)) {
+                            nodal_mass = rGeom[i].FastGetSolutionStepValue(AUX_MASS);
+                        }
+                    }
+
                     if (nodal_mass > std::numeric_limits<double>::epsilon())
                     {
-                        const array_1d<double, 3>& r_nodal_momenta = rGeom[i].FastGetSolutionStepValue(NODAL_MOMENTUM);
-                        const array_1d<double, 3>& r_current_residual = rGeom[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+                        array_1d<double, 3> r_nodal_momenta = rGeom[i].FastGetSolutionStepValue(NODAL_MOMENTUM);
+                        array_1d<double, 3> r_current_residual = rGeom[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+                        if (is_contact_release){
+                            if (rGeom[i].FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE)){
+                                r_nodal_momenta = rGeom[i].FastGetSolutionStepValue(AUX_MOMENTA);
+                                r_current_residual = rGeom[i].FastGetSolutionStepValue(AUX_RESIDUAL);
+                            }
+                        }
 
                         // Applicable to central difference only, the value in VELOCITY at the moment is actually the
                         // predicted (middle) grid velocity
                         const array_1d<double, 3>& r_middle_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
 
-                        for (IndexType j = 0; j < dimension; j++)
+                        for (IndexType j = 0; j < dimension; ++j)
                         {
                             // Update MP acceleration regardless of explicit method
                             MP_Acceleration[j] += rGeom.ShapeFunctionValue(int_p, i) * r_current_residual[j] / nodal_mass * weight;
@@ -278,6 +294,10 @@ namespace Kratos
         const bool is_axisym = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
             ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC) : false;
 
+        const bool is_contact_release = (rElement.Has(EXPLICIT_CONTACT_RELEASE))
+            ? rElement.GetValue(EXPLICIT_CONTACT_RELEASE)
+            : false;
+
         std::vector<Matrix> DN_DX_vec(rGeom.IntegrationPointsNumber());
         GetCartesianDerivatives(DN_DX_vec, rGeom);
 
@@ -292,7 +312,22 @@ namespace Kratos
             {
                 if (rGeom.ShapeFunctionValue(int_p,nodeIndex) >= 0.0)
                 {
-                    const array_1d<double, 3 >& nodal_velocity = rGeom[nodeIndex].FastGetSolutionStepValue(VELOCITY);
+                    array_1d<double, 3 > nodal_velocity = rGeom[nodeIndex].FastGetSolutionStepValue(VELOCITY);
+
+                    if (is_contact_release) {
+                        if (rGeom[nodeIndex].FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE)) {
+                            const array_1d<double, 3 >& r_nodal_momenta = rGeom[nodeIndex].FastGetSolutionStepValue(AUX_MOMENTA);
+                            double nodal_mass = rGeom[nodeIndex].FastGetSolutionStepValue(AUX_MASS);
+                            nodal_velocity.clear();
+                            if (nodal_mass > std::numeric_limits<double>::epsilon())
+                            {
+                                for (size_t dim_index = 0; dim_index < dimension; dim_index++)
+                                {
+                                    nodal_velocity[dim_index] = r_nodal_momenta[dim_index] / nodal_mass;
+                                }
+                            }
+                        }
+                    }
 
                     for (IndexType i = 0; i < dimension; i++)
                     {
