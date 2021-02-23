@@ -35,7 +35,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "ConjugateHeatTransfer"):
             solver_module_name = "conjugate_heat_transfer_solver"
 
-        elif (solver_type == "TwoFluids"):
+        elif solver_type == "two_fluids" or solver_type == "TwoFluids":
             solver_module_name = "navier_stokes_two_fluids_solver"
 
         else:
@@ -52,7 +52,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "Embedded"):
             solver_module_name = "trilinos_navier_stokes_embedded_solver"
 
-        elif (solver_type == "TwoFluids"):
+        elif solver_type == "two_fluids" or solver_type == "TwoFluids":
             solver_module_name = "trilinos_navier_stokes_two_fluids_solver"
 
         else:
