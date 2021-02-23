@@ -246,6 +246,8 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(model_part.GetValue(KM.VELOCITY), KM.Vector([14.3, -333.896, 987.2]))
 
     def test_Export_Import_Mesh(self):
+        p = self.__RunPythonInSubProcess("import_export_mesh")
+
         model = KM.Model()
 
         model_part = model.CreateModelPart("for_test")
@@ -258,28 +260,30 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
             model_part.CreateNewElement("Element2D2N", i+1, [i+1, i+2], props)
 
         connection_settings = CoSimIO.Info()
-        connection_settings.SetString("connection_name", "im_exp_mesh")
+        connection_settings.SetString("my_name", "ExpImpMesh")
+        connection_settings.SetString("connect_to", "impExpMesh")
         connection_settings.SetInt("echo_level", 0)
         info = CoSimIO.Connect(connection_settings)
+        connection_name = info.GetString("connection_name")
         self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Connected)
 
         export_info = CoSimIO.Info()
-        export_info.SetString("connection_name", "im_exp_mesh")
+        export_info.SetString("connection_name", connection_name)
         export_info.SetString("identifier", "mesh_exchange_1")
         CoSimIO.ExportMesh(export_info, model_part)
 
-        RunPythonInSubProcess("import_export_mesh")
-
         import_info = CoSimIO.Info()
-        import_info.SetString("connection_name", "im_exp_mesh")
+        import_info.SetString("connection_name", connection_name)
         import_info.SetString("identifier", "mesh_exchange_2")
         CoSimIO.ImportMesh(import_info, model_part_returned)
 
         disconnect_settings = CoSimIO.Info()
-        disconnect_settings.SetString("connection_name", "im_exp_mesh")
+        disconnect_settings.SetString("connection_name", connection_name)
 
         info = CoSimIO.Disconnect(disconnect_settings)
         self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Disconnected)
+
+        self.__CheckSubProcess(p)
 
         # checking the values after disconnecting to avoid deadlock
         self.assertEqual(model_part.NumberOfNodes(), model_part_returned.NumberOfNodes())
@@ -299,29 +303,33 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
 
 
     def __ExportImportDataOnModelPart(self, model_part, var_export, var_import, data_location):
+        p = self.__RunPythonInSubProcess("import_export_data")
+
         connection_settings = CoSimIO.Info()
-        connection_settings.SetString("connection_name", "im_exp_data")
+        connection_settings.SetString("my_name", "ExpImp")
+        connection_settings.SetString("connect_to", "impExp")
         connection_settings.SetInt("echo_level", 0)
         info = CoSimIO.Connect(connection_settings)
+        connection_name = info.GetString("connection_name")
         self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Connected)
 
         export_info = CoSimIO.Info()
-        export_info.SetString("connection_name", "im_exp_data")
+        export_info.SetString("connection_name", connection_name)
         export_info.SetString("identifier", "data_exchange_1")
         CoSimIO.ExportData(export_info, model_part, var_export, data_location)
 
-        RunPythonInSubProcess("import_export_data")
-
         import_info = CoSimIO.Info()
-        import_info.SetString("connection_name", "im_exp_data")
+        import_info.SetString("connection_name", connection_name)
         import_info.SetString("identifier", "data_exchange_2")
         CoSimIO.ImportData(import_info, model_part, var_import, data_location)
 
         disconnect_settings = CoSimIO.Info()
-        disconnect_settings.SetString("connection_name", "im_exp_data")
+        disconnect_settings.SetString("connection_name", connection_name)
 
         info = CoSimIO.Disconnect(disconnect_settings)
         self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Disconnected)
+
+        self.__CheckSubProcess(p)
 
 
     def __RunPythonInSubProcess(self, script_name):
