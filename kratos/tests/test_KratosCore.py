@@ -54,7 +54,7 @@ import test_cad_json_input
 import test_compare_elements_conditions
 import test_matrix_market_interface
 import test_coordinate_transformation_utils
-import test_sensitivity_builder
+import test_sensitivity_utilities
 import test_nurbs_volume_grid_modeler
 import test_file_name_data_collector
 import test_python_function_callback_utility
@@ -136,7 +136,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_matrix_market_interface.TestMatrixMarketInterface]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilitiesCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilities2DSymmetricalSquare]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_builder.TestSensitivityBuilderTwoDimSymmetricalSquare]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_utilities.TestSensitivityUtilitiesTwoDimSymmetricalSquare]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_file_name_data_collector.TestFileNameDataCollector]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_python_function_callback_utility.TestPythonGenericFunctionUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_integration_points.TestIntegrationPoints]))
