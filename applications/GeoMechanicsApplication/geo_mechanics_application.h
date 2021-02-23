@@ -335,7 +335,6 @@ private:
     const UPwUpdatedLagrangianFICElement<3,4> mUPwUpdatedLagrangianFICElement3D4N;
     const UPwUpdatedLagrangianFICElement<3,8> mUPwUpdatedLagrangianFICElement3D8N;
 
-
     // Updated-Lagrangian different order elements
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D6N;
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D8N;
@@ -345,8 +344,8 @@ private:
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D27N;
 
     // geo structural element
-    const GeoCrBeamElement3D2N mGeoCrBeamElement3D2N;
     const GeoCrBeamElement2D2N mGeoCrBeamElement2D2N;
+    const GeoCrBeamElement3D2N mGeoCrBeamElement3D2N;
     const GeoCrBeamElementLinear2D2N mGeoCrBeamElementLinear2D2N;
     const GeoCrBeamElementLinear3D2N mGeoCrBeamElementLinear3D2N;
     const GeoTrussElement3D2N mGeoTrussElement3D2N;
