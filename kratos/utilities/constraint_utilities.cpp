@@ -42,9 +42,9 @@ void ComputeActiveDofs(
 
     // TODO: convert to block_for_each when support for looping over const objects is added
     IndexPartition<std::size_t>(rDofSet.size()).for_each(
-        [&rActiveDofs,&rDofSet](std::size_t i_dof)
+        [&rActiveDofs,&rDofSet](std::size_t iDof)
         {
-            const auto it_dof = rDofSet.begin() + i_dof;
+            const auto it_dof = rDofSet.begin() + iDof;
             if (it_dof->IsFixed())
                 rActiveDofs[it_dof->EquationId()] = 0;
         }
@@ -83,11 +83,11 @@ void ResetSlaveDofs(ModelPart& rModelPart)
             // Detect if the constraint is active or not. If the user did not make any choice the constraint
             // It is active by default
             bool constraint_is_active = true;
-            if (r_constraint.IsDefined(ACTIVE))
-                constraint_is_active = r_constraint.Is(ACTIVE);
+            if (rConstraint.IsDefined(ACTIVE))
+                constraint_is_active = rConstraint.Is(ACTIVE);
 
             if (constraint_is_active)
-                r_constraint.ResetSlaveDofs(r_current_process_info);
+                rConstraint.ResetSlaveDofs(r_current_process_info);
         }
     );
 
@@ -107,16 +107,16 @@ void ApplyConstraints(ModelPart& rModelPart)
     // Adding MPC contribution
     block_for_each(
         rModelPart.MasterSlaveConstraints(),
-        [&r_current_process_info](ModelPart::MasterSlaveConstraintType& r_constraint)
+        [&r_current_process_info](MasterSlaveConstraint& rConstraint)
         {
             // Detect if the constraint is active or not. If the user did not make any choice the constraint
             // It is active by default
             bool constraint_is_active = true;
-            if (r_constraint.IsDefined(ACTIVE))
-                constraint_is_active = r_constraint.Is(ACTIVE);
+            if (rConstraint.IsDefined(ACTIVE))
+                constraint_is_active = rConstraint.Is(ACTIVE);
 
             if (constraint_is_active) {
-                r_constraint.Apply(r_current_process_info);
+                rConstraint.Apply(r_current_process_info);
             }
         }
     );
