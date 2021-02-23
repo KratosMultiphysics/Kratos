@@ -54,6 +54,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
+set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_co_sim_io_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosCoSimulationCore)
     cotire(KratosCoSimulationApplication)
 endif(USE_COTIRE MATCHES ON)
