@@ -21,6 +21,7 @@
 #include "custom_processes/metrics_error_process.h"
 #include "custom_utilities/meshing_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -55,12 +56,7 @@ void MetricErrorProcess<TDim>::Execute()
     NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
     KRATOS_DEBUG_ERROR_IF(r_nodes_array.size() == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
     if (!r_nodes_array.begin()->Has(METRIC_SCALAR)) {
-        const auto it_node_begin = r_nodes_array.begin();
-        // We iterate over the nodes
-        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-        [&it_node_begin](std::size_t i_node) {
-            (it_node_begin + i_node)->SetValue(METRIC_SCALAR, 0.0);
-        });
+        VariableUtils().SetNonHistoricalVariableToZero(METRIC_SCALAR, r_nodes_array);
     }
 
     /******************************************************************************
