@@ -61,11 +61,15 @@ class ModalDerivativeSolver(MechanicalSolver):
                 err_msg += " " + fd_type
             raise Exception(err_msg)
 
+        adjoint_solution_flag = self.settings["adjoint_solution"].GetBool()
+
         # Create scheme
         if derivative_parameter == "modal_coordinate":
             return RomApplication.ModalDerivativeModalCoordinateScheme(self.settings)
-        else:
+        elif derivative_parameter != "modal_coordinate" and not adjoint_solution_flag:
             return RomApplication.ModalDerivativeMaterialParameterScheme(self.settings)
+        elif derivative_parameter != "modal_coordinate" and adjoint_solution_flag:
+            return RomApplication.AdjointModalDerivativeMaterialParameterScheme(self.settings)
 
     def _create_builder_and_solver(self):
 

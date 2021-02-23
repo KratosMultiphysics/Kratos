@@ -20,8 +20,8 @@
 // External includes
 
 // Project includes
-#include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
+#include "custom_python/add_custom_strategies_to_python.h"
 
 // Strategies
 #include "custom_strategies/custom_strategies/modal_derivative_strategy.hpp"
@@ -29,6 +29,7 @@
 // Schemes
 #include "custom_strategies/custom_schemes/modal_derivative_modal_coordinate_scheme.hpp"
 #include "custom_strategies/custom_schemes/modal_derivative_material_parameter_scheme.hpp"
+#include "custom_strategies/custom_schemes/adjoint_modal_derivative_material_parameter_scheme.hpp"
 
 // Builders and solvers
 #include "custom_strategies/rom_builder_and_solver.h"
@@ -60,6 +61,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom scheme types
     typedef ModalDerivativeModalCoordinateScheme< SparseSpaceType, LocalSpaceType >  ModalDerivativeModalCoordinateSchemeType;
     typedef ModalDerivativeMaterialParameterScheme< SparseSpaceType, LocalSpaceType >  ModalDerivativeMaterialParameterSchemeType;
+    typedef AdjointModalDerivativeMaterialParameterScheme< SparseSpaceType, LocalSpaceType >  AdjointModalDerivativeMaterialParameterSchemeType;
 
     // Custom builder and solvers types
     typedef ROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ROMBuilderAndSolverType;
@@ -85,6 +87,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
     // Modal Derivative Material Parameter scheme
     py::class_< ModalDerivativeMaterialParameterSchemeType,typename ModalDerivativeMaterialParameterSchemeType::Pointer, BaseSchemeType>(m,"ModalDerivativeMaterialParameterScheme")
+        .def(py::init<Parameters>())
+        ;
+    // Adjoint Modal Derivative Material Parameter scheme
+    py::class_< AdjointModalDerivativeMaterialParameterSchemeType,typename AdjointModalDerivativeMaterialParameterSchemeType::Pointer, BaseSchemeType>(m,"AdjointModalDerivativeMaterialParameterScheme")
         .def(py::init<Parameters>())
         ;
 
