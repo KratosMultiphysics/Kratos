@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -23,7 +22,8 @@ class SaveRestartProcess(KratosMultiphysics.Process):
             "restart_save_frequency"       : 0.0,
             "restart_control_type"         : "time",
             "save_restart_files_in_folder" : true,
-            "output_path"                  : ""
+            "output_path"                  : "",
+            "max_files_to_keep"            : -1
         }""")
 
         ## Overwrite the default settings with user-provided parameters

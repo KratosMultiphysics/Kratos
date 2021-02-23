@@ -154,7 +154,7 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the beginning of each solution step
@@ -183,7 +183,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     ///@}
@@ -196,7 +196,7 @@ public:
 
     void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -286,9 +286,9 @@ protected:
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                             GeneralVariables& rVariables,
-                             const double& rIntegrationWeight);
+    void CalculateAndAddKuugUP(MatrixType& rLeftHandSideMatrix,
+                               GeneralVariables& rVariables,
+                               const double& rIntegrationWeight);
 
     /**
      * Calculation of the Kup matrix
@@ -386,6 +386,7 @@ protected:
     /**
      * Calculation of the Deformation Matrix  BL
      */
+    using UpdatedLagrangian::CalculateDeformationMatrix;
     void CalculateDeformationMatrix(Matrix& rB,
                                     Matrix& rF,
                                     Matrix& rDN_DX);

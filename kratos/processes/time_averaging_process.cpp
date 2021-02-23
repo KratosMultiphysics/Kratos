@@ -374,15 +374,11 @@ void TimeAveragingProcess::CalculateTimeIntegratedNodalHistoricalQuantity(
     const std::function<void(const TDataType&, TDataType&, const double)> averaging_method =
         this->GetTimeAveragingMethod<TDataType>();
 
-    const int number_of_nodes = rNodes.size();
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        NodeType& r_node = *(rNodes.begin() + i_node);
-        const TDataType& r_temporal_value = r_node.FastGetSolutionStepValue(rVariable);
-        TDataType& r_integrated_value = r_node.GetValue(rAveragedVariable);
+    block_for_each(rNodes, [&](Node<3>& rNode){
+        const TDataType& r_temporal_value = rNode.FastGetSolutionStepValue(rVariable);
+        TDataType& r_integrated_value = rNode.GetValue(rAveragedVariable);
         averaging_method(r_temporal_value, r_integrated_value, DeltaTime);
-    }
+    });
 }
 
 template <typename TDataType, typename TContainerType>
@@ -396,14 +392,13 @@ void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalQuantity(
         this->GetTimeAveragingMethod<TDataType>();
 
     const int number_of_nodes = rContainer.size();
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        auto& r_container_element = *(rContainer.begin() + i_node);
+
+    IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t Index){
+        auto& r_container_element = *(rContainer.begin() + Index);
         const TDataType& r_temporal_value = r_container_element.GetValue(rVariable);
         TDataType& r_integrated_value = r_container_element.GetValue(rAveragedVariable);
         averaging_method(r_temporal_value, r_integrated_value, DeltaTime);
-    }
+    });
 }
 
 template <typename TDataType>
