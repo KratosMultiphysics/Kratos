@@ -29,11 +29,15 @@ namespace EMPIRE_API_Wrappers { // helpers namespace
 template<bool TIsDataField>
 void SendArray(const std::string& rName, const int sizeOfArray, const pybind11::list& signal)
 {
-    // Wrapper is needed bcs pybind cannot do the conversion to raw-ptr automatically
+    std::vector<double> vec_signal(sizeOfArray);
+    for (int i=0; i<sizeOfArray; ++i) {
+        vec_signal[i] = pybind11::cast<double>(signal[i]);
+    }
+
     if (TIsDataField) {
-        EMPIRE_API_sendDataField(rName.c_str(), sizeOfArray, signal.data());
+        EMPIRE_API_sendDataField(rName.c_str(), sizeOfArray, vec_signal.data());
     } else {
-        EMPIRE_API_sendSignal_double(rName.c_str(), sizeOfArray, signal.data());
+        EMPIRE_API_sendSignal_double(rName.c_str(), sizeOfArray, vec_signal.data());
     }
 }
 
