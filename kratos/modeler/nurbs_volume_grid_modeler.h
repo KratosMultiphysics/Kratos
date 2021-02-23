@@ -93,13 +93,12 @@ private:
      * @param PointA Lower point of bounding box.
      * @param PointB Upper point of bounding box.
      * @param Order  Polynomial degree in each direction u,v,w.
-     * @param NumElements Number of equidistant elements/knot spans in each direction u,v,w.
-     * @return Pointer to NurbsVolumeGeometry
+     * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v,w.
      * @note The CP'S are defined as nodes and added to the rModelPart.
      * @todo How to deal with node Id's..
      **/
     void CreateGrid( const Point A, const Point B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
-        SizeType NumElementsU, SizeType NumElementsV, SizeType NumElementsW );
+        SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
 
 };
 

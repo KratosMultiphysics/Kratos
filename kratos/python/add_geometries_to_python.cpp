@@ -43,7 +43,6 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 // Nurbs Geometries
-#include "modeler/nurbs_volume_grid_modeler.h"
 #include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
@@ -128,15 +127,14 @@ void  AddGeometriesToPython(pybind11::module& m)
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
         { return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives)); })
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
-        GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives, PointsArrayType rIntegrationPoints, std::vector<double>& weights)
+        GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives, std::vector<std::array<double,4>>& rIntegrationPoints)
         { 
-            IntegrationPointsArrayType array(rIntegrationPoints.size());
+            IntegrationPointsArrayType integration_points(rIntegrationPoints.size());
             for( int i = 0; i < rIntegrationPoints.size(); ++i){
-                IntegrationPoint<3> point_tmp(rIntegrationPoints[i][0],rIntegrationPoints[i][1],rIntegrationPoints[i][2],weights[i]);
-                array[i] = point_tmp;
+                IntegrationPoint<3> point_tmp(rIntegrationPoints[i][0],rIntegrationPoints[i][1],rIntegrationPoints[i][2],rIntegrationPoints[i][3]);
+                integration_points[i] = point_tmp;
             }
-            
-            return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, array)); })
+            return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_points)); })
     // Normal
     .def("Normal", [](GeometryType& self)
         { const auto& r_type = self.GetGeometryType();
@@ -260,8 +258,6 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("NumberOfControlPointsU", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsU)
         .def("NumberOfControlPointsV", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsV)
         .def("NumberOfControlPointsW", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsW)
-        .def("DeterminantOfJacobianSpecial", [](GeometryType& self, const CoordinatesArrayType& rPoint)
-        { return(self.DeterminantOfJacobian(rPoint)); })
         ;
 
     // NurbsSurfaceGeometry3D

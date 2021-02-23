@@ -18,6 +18,7 @@ namespace Kratos
 {
     ///@name Stages
     ///@{
+
     void NurbsVolumeGridModeler::SetupGeometryModel(){
         KRATOS_ERROR_IF_NOT(mParameters.Has("lower_point"))
             << "NurbsVolumeGridModeler: Missing \"lower_point\" section" << std::endl;
@@ -55,7 +56,8 @@ namespace Kratos
             mpModel->GetModelPart(mParameters["model_part_name"].GetString()) :
             mpModel->CreateModelPart(mParameters["model_part_name"].GetString()); 
 
-        mpGeometry->SetId(1);    
+        const SizeType number_of_geometries = model_part.NumberOfGeometries();
+        mpGeometry->SetId(number_of_geometries+1);    
         model_part.AddGeometry(mpGeometry);
         for( int i = 0; i < mpGeometry->size(); ++i){
             mpGeometry->pGetPoint(i)->SetSolutionStepVariablesList(model_part.pGetNodalSolutionStepVariablesList());
@@ -64,8 +66,12 @@ namespace Kratos
 
     }
 
+    ///@}
+    ///@name Private Operations
+    ///@{
+        
     void NurbsVolumeGridModeler::CreateGrid( const Point A, const Point B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
-        SizeType NumElementsU, SizeType NumElementsV, SizeType NumElementsW )
+        SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW )
     {
         KRATOS_ERROR_IF( B.X() <= A.X() || B.Y() <= A.Y() || B.Z() <= A.Z() ) << "NurbsVolumeGridModeler: "
             << "The two Points A and B must meet the following requirement: (B-A) > (0,0,0). However, (B-A)=" << B-A << std::endl;
@@ -128,36 +134,36 @@ namespace Kratos
             points, OrderU, OrderV, OrderW, knot_vector_u, knot_vector_v, knot_vector_w);
 
         // Set up knots for knot refinement according to the given number of elements in each direction.
-        double delta_knot_u = 1.0 / NumElementsU;
+        double delta_knot_u = 1.0 / NumKnotSpansU;
         double knot_u = 0.0;
-        std::vector<double> insert_knots_u(NumElementsU-1);
-        for( IndexType i = 0; i < NumElementsU-1; i++){
+        std::vector<double> insert_knots_u(NumKnotSpansU-1);
+        for( IndexType i = 0; i < NumKnotSpansU-1; i++){
             knot_u += delta_knot_u;
             insert_knots_u[i] = knot_u;
         }
 
-        double delta_knot_v = 1.0 / NumElementsV;
+        double delta_knot_v = 1.0 / NumKnotSpansV;
         double knot_v = 0.0;
-        std::vector<double> insert_knots_v(NumElementsV-1);
-        for( IndexType i = 0; i < NumElementsV-1; i++){
+        std::vector<double> insert_knots_v(NumKnotSpansV-1);
+        for( IndexType i = 0; i < NumKnotSpansV-1; i++){
             knot_v += delta_knot_v;
             insert_knots_v[i] = knot_v;
         }
 
-        double delta_knot_w = 1.0 / NumElementsW;
+        double delta_knot_w = 1.0 / NumKnotSpansW;
         double knot_w = 0.0;
-        std::vector<double> insert_knots_w(NumElementsW-1);
-        for( IndexType i = 0; i < NumElementsW-1; i++){
+        std::vector<double> insert_knots_w(NumKnotSpansW-1);
+        for( IndexType i = 0; i < NumKnotSpansW-1; i++){
             knot_w += delta_knot_w;
             insert_knots_w[i] = knot_w;
         }
 
         // Perform knot refinement.
-        if( NumElementsU > 1)
+        if( NumKnotSpansU > 1)
             mpGeometry = NurbsVolumeUtilities::KnotRefinementU(*mpGeometry, insert_knots_u);
-        if( NumElementsV > 1)
+        if( NumKnotSpansV > 1)
             mpGeometry = NurbsVolumeUtilities::KnotRefinementV(*mpGeometry, insert_knots_v);
-        if( NumElementsW > 1)
+        if( NumKnotSpansW > 1)
             mpGeometry = NurbsVolumeUtilities::KnotRefinementW(*mpGeometry, insert_knots_w);
     }
     ///@}
