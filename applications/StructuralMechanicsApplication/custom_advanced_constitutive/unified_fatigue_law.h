@@ -526,6 +526,17 @@ public:
      */
     void CalculateTangentTensor(ConstitutiveLaw::ConstitutiveLaw::Parameters& rValues);
 
+
+    /**
+     * @brief This method computes the compliance elasatic matrix
+     * (https://en.wikiversity.org/wiki/Introduction_to_Elasticity/Constitutive_relations)
+     * @param rValues The constitutive law parameters and flags
+     */
+    void CalculateElasticComplianceMatrix(
+        Matrix& rConstitutiveMatrix,
+        ConstitutiveLaw::Parameters& rValues
+        );
+
 protected:
 
     ///@name Protected static Member Variables
