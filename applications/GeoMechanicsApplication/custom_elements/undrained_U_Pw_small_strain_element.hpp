@@ -44,6 +44,7 @@ public:
     /// The definition of the sizetype
     typedef std::size_t SizeType;
     using UPwSmallStrainElement<TDim,TNumNodes>::mConstitutiveLawVector;
+    using UPwSmallStrainElement<TDim,TNumNodes>::mRetentionLawVector;
     using UPwSmallStrainElement<TDim,TNumNodes>::mStressVector;
     using UPwSmallStrainElement<TDim,TNumNodes>::mStateVariablesFinalized;
     typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;

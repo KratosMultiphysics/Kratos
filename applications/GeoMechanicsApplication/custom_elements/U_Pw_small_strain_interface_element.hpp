@@ -41,6 +41,7 @@ public:
     typedef Vector VectorType;
     typedef Matrix MatrixType;
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
+    using UPwBaseElement<TDim,TNumNodes>::mRetentionLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
 
@@ -152,6 +153,7 @@ protected:
         Matrix GradNpT;
         Matrix F;
         double detF;
+
         ///Auxiliary Variables
         BoundedMatrix<double,TDim, TNumNodes*TDim> Nu;
         BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix;
@@ -167,6 +169,13 @@ protected:
         BoundedMatrix<double,TNumNodes,TDim> PDimMatrix;
         array_1d<double,TNumNodes*TDim> UVector;
         array_1d<double,TNumNodes> PVector;
+
+        ///Retention Law parameters
+        double FluidPressure;
+        double DegreeOfSaturation;
+        double DerivativeOfSaturation;
+        double RelativePermeability;
+        double BishopCoefficient;
     };
 
     /// Member Variables
@@ -263,6 +272,19 @@ protected:
 
     template< class TValueType >
     void InterpolateOutputValues( std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues );
+
+    void SetRetentionParameters(const InterfaceElementVariables &rVariables,
+                                RetentionLaw::Parameters &rRetentionParameters);
+    double CalculateFluidPressure( const InterfaceElementVariables &rVariables, const unsigned int &PointNumber );
+    
+    double CalculateBulkModulus(const Matrix &ConstitutiveMatrix);
+
+    void InitializeBiotCoefficients( InterfaceElementVariables &rVariables,
+                                     const double &BulkModulus );
+
+    void CalculateRetentionResponse( InterfaceElementVariables& rVariables,
+                                     RetentionLaw::Parameters& rRetentionParameters,
+                                     const unsigned int &GPoint );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

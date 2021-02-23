@@ -255,10 +255,13 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     unsigned int NumGPoints = mConstitutiveLawVector.size();
     std::vector<double> JointWidthContainer(NumGPoints);
 
+    // create general parametes of retention law
+    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
+
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
     {
-        InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
+        InterfaceElementUtilities::CalculateNuMatrix(Nu, NContainer, GPoint);
 
         noalias(RelDispVector) = prod(Nu,DisplacementVector);
 
@@ -268,7 +271,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
 
-        noalias(Np) = row(NContainer,GPoint);
+        noalias(Np) = row(NContainer, GPoint);
 
         //compute constitutive tensor and/or stresses
         UpdateElementalVariableStressVector(StressVector, GPoint);
@@ -278,6 +281,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
                                                       mStateVariablesFinalized[GPoint] );
 
+        // retention law
+        mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
     }
 
     if (rCurrentProcessInfo[NODAL_SMOOTHING] == true)
@@ -546,6 +551,39 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         this->InterpolateOutputDoubles(rValues,GPValues);
     }
+    else if (rVariable == DEGREE_OF_SATURATION ||
+             rVariable == EFFECTIVE_SATURATION ||
+             rVariable == BISHOP_COEFICIENT ||
+             rVariable == DERIVATIVE_OF_SATURATION ||
+             rVariable == RELATIVE_PERMEABILITY )
+    {
+        //Defining necessary variables
+        const GeometryType& Geom = this->GetGeometry();
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+
+        ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, this->GetProperties(),rCurrentProcessInfo);
+
+        //Element variables
+        InterfaceElementVariables Variables;
+        this->InitializeElementVariables(Variables, ConstitutiveParameters, Geom, this->GetProperties(), rCurrentProcessInfo);
+
+        // create general parametes of retention law
+        RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            Variables.FluidPressure = CalculateFluidPressure(Variables, GPoint);
+            SetRetentionParameters(Variables, RetentionParameters);
+
+            if (rVariable == DEGREE_OF_SATURATION)     rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
+            if (rVariable == EFFECTIVE_SATURATION)     rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateEffectiveSaturation(RetentionParameters);
+            if (rVariable == BISHOP_COEFICIENT)        rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
+            if (rVariable == DERIVATIVE_OF_SATURATION) rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
+            if (rVariable == RELATIVE_PERMEABILITY )   rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
+        }
+    }
+
     else
     {
         //Printed on standard GiD Gauss points
@@ -771,7 +809,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
-            noalias(RelDispVector) = prod(Nu,DisplacementVector);
+            noalias(RelDispVector) = prod(Nu, DisplacementVector);
 
             noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
 
@@ -807,7 +845,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
-            noalias(RelDispVector) = prod(Nu,DisplacementVector);
+            noalias(RelDispVector) = prod(Nu, DisplacementVector);
 
             noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
 
@@ -886,7 +924,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     CalculateOnLobattoIntegrationPoints(const Variable<Matrix>& rVariable,
@@ -962,7 +999,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
-            noalias(RelDispVector) = prod(Nu,DisplacementVector);
+            noalias(RelDispVector) = prod(Nu, DisplacementVector);
 
             noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
 
@@ -979,7 +1016,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------------------
-
 template< >
 void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType& Geom)
 {
@@ -1011,7 +1047,6 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType
 }
 
 //----------------------------------------------------------------------------------------
-
 template< >
 void UPwSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType& Geom)
 {
@@ -1049,7 +1084,6 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType
 }
 
 //----------------------------------------------------------------------------------------
-
 template< >
 void UPwSmallStrainInterfaceElement<3,8>::CalculateInitialGap(const GeometryType& Geom)
 {
@@ -1128,7 +1162,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     //Element variables
     InterfaceElementVariables Variables;
-    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
+    this->InitializeElementVariables(Variables, ConstitutiveParameters, Geom, Prop, CurrentProcessInfo);
 
     //Auxiliary variables
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
@@ -1191,10 +1225,12 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
-    if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    // if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    // stiffness matrix is needed to calculate Biot coefficient
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-
 
     //Element variables
     InterfaceElementVariables Variables;
@@ -1205,6 +1241,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     const double& Transversal_Permeability = Prop[TRANSVERSAL_PERMEABILITY];
     array_1d<double,TDim> RelDispVector;
     SFGradAuxVariables SFGradAuxVars;
+
+    // create general parametes of retention law
+    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -1249,6 +1288,14 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
         UpdateStressVector(Variables, GPoint);
 
+        CalculateRetentionResponse( Variables,
+                                    RetentionParameters,
+                                    GPoint );
+
+        // calculate Bulk modulus from stiffness matrix
+        const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
+        this->InitializeBiotCoefficients(Variables, BulkModulus);
+
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
                                               detJContainer[GPoint],
@@ -1283,14 +1330,19 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         rVariables.IgnoreUndrained = Prop[IGNORE_UNDRAINED];
     }
 
-    const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
-    const double BulkModulus = Prop[YOUNG_MODULUS]/(3.0*(1.0-2.0*Prop[POISSON_RATIO]));
+
+
     rVariables.DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-    rVariables.FluidDensity = Prop[DENSITY_WATER];
-    rVariables.Density = Porosity*rVariables.FluidDensity + (1.0-Porosity)*Prop[DENSITY_SOLID];
-    rVariables.BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
-    rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
+    rVariables.FluidDensity            = Prop[DENSITY_WATER];
+    rVariables.Density                 = Porosity*rVariables.FluidDensity + (1.0-Porosity)*Prop[DENSITY_SOLID];
+
+    // VG: this is a bug
+    // const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
+    // const double BulkModulus      = Prop[YOUNG_MODULUS] / (3.0*(1.0-2.0*Prop[POISSON_RATIO]));
+    // rVariables.BiotCoefficient    = 1.0 - BulkModulus/BulkModulusSolid;
+    // rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid
+    //                                + Porosity/Prop[BULK_MODULUS_FLUID];
 
     //ProcessInfo variables
     rVariables.VelocityCoefficient = CurrentProcessInfo[VELOCITY_COEFFICIENT];
@@ -1329,6 +1381,13 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     //Auxiliary variables
     noalias(rVariables.Nu) = ZeroMatrix(TDim, TNumNodes*TDim);
     noalias(rVariables.LocalPermeabilityMatrix) = ZeroMatrix(TDim,TDim);
+
+    // Retention law
+    rVariables.FluidPressure = 0.0;
+    rVariables.DegreeOfSaturation = 1.0;
+    rVariables.DerivativeOfSaturation = 0.0;
+    rVariables.RelativePermeability = 1.0;
+    rVariables.BishopCoefficient = 1.0;
 
     KRATOS_CATCH( "" )
 }
@@ -1749,20 +1808,29 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     noalias(rVariables.UVector) = prod(rVariables.UDimMatrix,rVariables.VoigtVector);
 
-    noalias(rVariables.UPMatrix) = PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient
-                                              * outer_prod(rVariables.UVector, rVariables.Np)
-                                              * rVariables.IntegrationCoefficient;
+    noalias(rVariables.UPMatrix) =  PORE_PRESSURE_SIGN_FACTOR 
+                                  * rVariables.BiotCoefficient
+                                  * rVariables.BishopCoefficient
+                                  * outer_prod(rVariables.UVector, rVariables.Np)
+                                  * rVariables.IntegrationCoefficient;
 
     //Distribute coupling block matrix into the elemental matrix
     GeoElementUtilities::AssembleUPBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix,rVariables.UPMatrix);
 
-    noalias(rVariables.PUMatrix) = PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient*trans(rVariables.UPMatrix);
+    if (!rVariables.IgnoreUndrained)
+    {
+        const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
+        noalias(rVariables.PUMatrix) =  PORE_PRESSURE_SIGN_FACTOR 
+                                      * SaturationCoefficient
+                                      * rVariables.VelocityCoefficient
+                                      * trans(rVariables.UPMatrix);
 
-    //Distribute transposed coupling block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePUBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix,rVariables.PUMatrix);
+        //Distribute transposed coupling block matrix into the elemental matrix
+        GeoElementUtilities::AssemblePUBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix,rVariables.PUMatrix);
+    }
+
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -1773,11 +1841,12 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR * rVariables.DtPressureCoefficient
-                                               * rVariables.BiotModulusInverse
-                                               * outer_prod(rVariables.Np, rVariables.Np)
-                                               * rVariables.JointWidth
-                                               * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
+                                  * rVariables.DtPressureCoefficient
+                                  * rVariables.BiotModulusInverse
+                                  * outer_prod(rVariables.Np, rVariables.Np)
+                                  * rVariables.JointWidth
+                                  * rVariables.IntegrationCoefficient;
 
     //Distribute compressibility block matrix into the elemental matrix
     GeoElementUtilities::AssemblePBlockMatrix< TDim, TNumNodes >(rLeftHandSideMatrix, rVariables.PMatrix);
@@ -1794,23 +1863,23 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,rVariables.LocalPermeabilityMatrix);
+    noalias(rVariables.PDimMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
+                                     * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
-    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse
-                                                              * prod(rVariables.PDimMatrix, trans(rVariables.GradNpT))
-                                                              * rVariables.JointWidth
-                                                              * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PMatrix) =   rVariables.DynamicViscosityInverse
+                                  * rVariables.RelativePermeability
+                                  * prod(rVariables.PDimMatrix, trans(rVariables.GradNpT))
+                                  * rVariables.JointWidth
+                                  * rVariables.IntegrationCoefficient;
 
     //Distribute permeability block matrix into the elemental matrix
     GeoElementUtilities::AssemblePBlockMatrix< TDim, TNumNodes >(rLeftHandSideMatrix,rVariables.PMatrix);
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     CalculateAndAddRHS(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
@@ -1833,11 +1902,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     }
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
@@ -1853,30 +1920,27 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     GeoElementUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector,rVariables.UVector);
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
 
-    noalias(rVariables.UVector) = rVariables.Density * prod(trans(rVariables.Nu),rVariables.BodyAcceleration)
-                                                     * rVariables.JointWidth
-                                                     * rVariables.IntegrationCoefficient;
+    noalias(rVariables.UVector) =  rVariables.Density 
+                                 * prod(trans(rVariables.Nu),rVariables.BodyAcceleration)
+                                 * rVariables.JointWidth
+                                 * rVariables.IntegrationCoefficient;
 
     //Distribute body force block vector into elemental vector
     GeoElementUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector,rVariables.UVector);
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
@@ -1885,21 +1949,25 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),trans(rVariables.RotationMatrix));
 
-    noalias(rVariables.UVector) = prod(rVariables.UDimMatrix,rVariables.VoigtVector);
+    noalias(rVariables.UVector) = prod(rVariables.UDimMatrix, rVariables.VoigtVector);
 
-    noalias(rVariables.UPMatrix) = - PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient
-                                                               * outer_prod(rVariables.UVector, rVariables.Np)
-                                                               * rVariables.IntegrationCoefficient;
+    noalias(rVariables.UPMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
+                                   * rVariables.BiotCoefficient
+                                   * rVariables.BishopCoefficient
+                                   * outer_prod(rVariables.UVector, rVariables.Np)
+                                   * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.UVector) = prod(rVariables.UPMatrix,rVariables.PressureVector);
+    noalias(rVariables.UVector) = prod(rVariables.UPMatrix, rVariables.PressureVector);
 
     //Distribute coupling block vector 1 into elemental vector
     GeoElementUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector,rVariables.UVector);
 
     if (!rVariables.IgnoreUndrained)
     {
-        noalias(rVariables.PVector) = PORE_PRESSURE_SIGN_FACTOR * prod( trans(rVariables.UPMatrix),
-                                                                        rVariables.VelocityVector );
+        const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
+        noalias(rVariables.PVector) =  PORE_PRESSURE_SIGN_FACTOR
+                                     * SaturationCoefficient
+                                     * prod( trans(rVariables.UPMatrix), rVariables.VelocityVector );
 
         //Distribute coupling block vector 2 into elemental vector
         GeoElementUtilities::AssemblePBlockVector<TDim, TNumNodes>(rRightHandSideVector,rVariables.PVector);
@@ -1917,10 +1985,11 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotModulusInverse
-                                               * outer_prod(rVariables.Np, rVariables.Np)
-                                               * rVariables.JointWidth
-                                               * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
+                                  * rVariables.BiotModulusInverse
+                                  * outer_prod(rVariables.Np, rVariables.Np)
+                                  * rVariables.JointWidth
+                                  * rVariables.IntegrationCoefficient;
 
     noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix,rVariables.DtPressureVector);
 
@@ -1939,14 +2008,16 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,rVariables.LocalPermeabilityMatrix);
+    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
-    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse
-                                                              * prod(rVariables.PDimMatrix, trans(rVariables.GradNpT))
-                                                              * rVariables.JointWidth
-                                                              * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
+                                  * rVariables.DynamicViscosityInverse
+                                  * rVariables.RelativePermeability
+                                  * prod(rVariables.PDimMatrix, trans(rVariables.GradNpT))
+                                  * rVariables.JointWidth
+                                  * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix,rVariables.PressureVector);
+    noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix, rVariables.PressureVector);
 
     //Distribute permeability block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector<TDim, TNumNodes>(rRightHandSideVector,rVariables.PVector);
@@ -1962,19 +2033,20 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PDimMatrix) = - PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix)
-                                                                 * rVariables.JointWidth
-                                                                 * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PDimMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
+                                     * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix)
+                                     * rVariables.JointWidth
+                                     * rVariables.IntegrationCoefficient;
 
     noalias(rVariables.PVector) =  rVariables.DynamicViscosityInverse
                                  * rVariables.FluidDensity
+                                 * rVariables.RelativePermeability
                                  * prod(rVariables.PDimMatrix,rVariables.BodyAcceleration);
 
     //Distribute fluid body flow block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector<TDim, TNumNodes>(rRightHandSideVector,rVariables.PVector);
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -1982,10 +2054,106 @@ template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod
     UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         GetIntegrationMethod() const
-    {
-        /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
-        return GeometryData::GI_GAUSS_1;
-    }
+{
+    /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
+    return GeometryData::GI_GAUSS_1;
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
+    SetRetentionParameters(const InterfaceElementVariables &rVariables,
+                           RetentionLaw::Parameters &rRetentionParameters)
+{
+    KRATOS_TRY
+
+    rRetentionParameters.SetFluidPressure(rVariables.FluidPressure);
+
+    KRATOS_CATCH( "" )
+}
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+double UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
+    CalculateFluidPressure(const InterfaceElementVariables &rVariables, const unsigned int &GPoint)
+{
+    KRATOS_TRY
+
+    double FluidPressure = inner_prod(rVariables.Np, rVariables.PressureVector);
+    // for (unsigned int node = 0; node < TNumNodes; ++node)
+    // {
+    //     FluidPressure += rVariables.NContainer(GPoint, node) * rVariables.PressureVector[node];
+    // }
+
+    return FluidPressure;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
+    CalculateRetentionResponse( InterfaceElementVariables& rVariables,
+                                RetentionLaw::Parameters& rRetentionParameters,
+                                const unsigned int &GPoint )
+{
+    KRATOS_TRY
+
+    rVariables.FluidPressure = CalculateFluidPressure(rVariables, GPoint);
+    SetRetentionParameters(rVariables, rRetentionParameters);
+
+    rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);
+    rVariables.DerivativeOfSaturation = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(rRetentionParameters);
+    rVariables.RelativePermeability = mRetentionLawVector[GPoint]->CalculateRelativePermeability(rRetentionParameters);
+    rVariables.BishopCoefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(rRetentionParameters);
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+double UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
+    CalculateBulkModulus(const Matrix &ConstitutiveMatrix)
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-UPwSmallStrainElement::CalculateBulkModulus()") << std::endl;
+
+    const int IndexM = ConstitutiveMatrix.size1() - 1;
+
+    const double M = ConstitutiveMatrix(IndexM, IndexM);
+    const double G = ConstitutiveMatrix(0, 0);
+
+    const double BulkModulus = M - (4.0/3.0)*G;
+
+    // KRATOS_INFO("1-UPwSmallStrainElement::CalculateBulkModulus()") << std::endl;
+
+    return BulkModulus;
+
+    KRATOS_CATCH( "" )
+
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
+    InitializeBiotCoefficients( InterfaceElementVariables& rVariables,
+                               const double &BulkModulus )
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-UPwSmallStrainElement::InitializeBiotCoefficients()") << std::endl;
+
+    const PropertiesType& Prop = this->GetProperties();
+
+    //Properties variables
+    rVariables.BiotCoefficient = 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
+    rVariables.BiotModulusInverse =  (rVariables.BiotCoefficient - Prop[POROSITY])/Prop[BULK_MODULUS_SOLID]
+                                   + Prop[POROSITY]/Prop[BULK_MODULUS_FLUID];
+
+    rVariables.BiotModulusInverse *= rVariables.DegreeOfSaturation;
+    rVariables.BiotModulusInverse -= rVariables.DerivativeOfSaturation*Prop[POROSITY];
+
+    // KRATOS_INFO("1-UPwSmallStrainElement::InitializeBiotCoefficients()") << std::endl;
+    KRATOS_CATCH( "" )
+}
 
 //----------------------------------------------------------------------------------------------------
 template< >

@@ -22,6 +22,8 @@
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
+#include "custom_retention/retention_law.h"
+#include "custom_retention/retention_law_factory.h"
 
 // Application includes
 #include "custom_utilities/comparison_utilities.hpp"
@@ -187,12 +189,19 @@ protected:
         Vector PressureVector;
         Vector PressureDtVector;
 
+        ///Retention Law parameters
+        double FluidPressure;
+        double DegreeOfSaturation;
+        double DerivativeOfSaturation;
+        double RelativePermeability;
+        double BishopCoefficient;
+
         //Properties and processinfo variables
         bool IgnoreUndrained;
         bool ConsiderGeometricStiffness;
         double BiotCoefficient;
         double BiotModulusInverse;
-        double DynamicViscosity;
+        double DynamicViscosityInverse;
         Matrix IntrinsicPermeability;
         double NewmarkCoefficient1;
         double NewmarkCoefficient2;
@@ -201,11 +210,13 @@ protected:
     // Member Variables
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    //Geometry< Node<3> >::Pointer mpPressureGeometry;
+    std::vector<RetentionLaw::Pointer> mRetentionLawVector;
+
     GeometryType::Pointer  mpPressureGeometry;
     std::vector<Vector> mStressVector;
     std::vector<Vector> mStressVectorFinalized;
     std::vector<Vector> mStateVariablesFinalized;
+    bool mIsInitialised = false;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     virtual void CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,
@@ -225,7 +236,7 @@ protected:
 
     void InitializeBiotCoefficients( ElementVariables& rVariables, const double &BulkModulus );
 
-    virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
+    virtual void CalculateKinematics(ElementVariables& rVariables, const unsigned int &PointNumber);
 
     virtual void CalculateKinematicsOnInitialConfiguration(ElementVariables& rVariables, unsigned int PointNumber);
 
@@ -238,7 +249,8 @@ protected:
 
     void UpdateStressVector(const ElementVariables& rVariables, unsigned int PointNumber);
 
-    void SetElementalVariables(ElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters);
+    void SetConstitutiveParameters(ElementVariables& rVariables,
+                                   ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
     virtual void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, double detJ, double weight);
 
@@ -280,6 +292,15 @@ protected:
     virtual void CalculateCauchyGreenStrain( ElementVariables& rVariables );
     virtual void CalculateCauchyStrain( ElementVariables& rVariables );
     virtual void CalculateStrain( ElementVariables& rVariables );
+
+    double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
+
+    void SetRetentionParameters(const ElementVariables& rVariables,
+                                RetentionLaw::Parameters& rRetentionParameters);
+
+    void CalculateRetentionResponse( ElementVariables &rVariables,
+                                     RetentionLaw::Parameters &rRetentionParameters,
+                                     const unsigned int &GPoint );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

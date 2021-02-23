@@ -22,6 +22,8 @@
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
+#include "custom_retention/retention_law.h"
+#include "custom_retention/retention_law_factory.h"
 
 // Application includes
 #include "custom_utilities/element_utilities.hpp"
@@ -143,8 +145,11 @@ protected:
     /// Member Variables
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+    std::vector<RetentionLaw::Pointer> mRetentionLawVector;
+
     std::vector<Vector> mStressVector;
     std::vector<Vector> mStateVariablesFinalized;
+    bool mIsInitialised = false;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

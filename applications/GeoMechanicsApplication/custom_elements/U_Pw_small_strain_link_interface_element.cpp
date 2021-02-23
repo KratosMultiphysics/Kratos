@@ -374,19 +374,25 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
 
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
-    if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    // if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    // Stiffness matrix is always needed to calculate Biot coefficient
+    ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
 
     //Element variables
     InterfaceElementVariables Variables;
-    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
+    this->InitializeElementVariables(Variables, ConstitutiveParameters, Geom, Prop, CurrentProcessInfo);
 
     //Auxiliary variables
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
     array_1d<double,TDim> RelDispVector;
     SFGradAuxVariables SFGradAuxVars;
+
+    // create general parametes of retention law
+    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -425,6 +431,14 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
         UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
         UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateStressVector(Variables, GPoint);
+
+        this->CalculateRetentionResponse( Variables,
+                                          RetentionParameters,
+                                          GPoint );
+
+        // calculate Bulk modulus from stiffness matrix
+        const double BulkModulus = this->CalculateBulkModulus(Variables.ConstitutiveMatrix);
+        this->InitializeBiotCoefficients(Variables, BulkModulus);
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,

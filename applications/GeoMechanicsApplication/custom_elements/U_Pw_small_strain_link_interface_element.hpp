@@ -44,6 +44,7 @@ public:
     typedef Vector VectorType;
     typedef Matrix MatrixType;
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
+    using UPwBaseElement<TDim,TNumNodes>::mRetentionLawVector;
 
     typedef typename UPwSmallStrainInterfaceElement<TDim,TNumNodes>::SFGradAuxVariables SFGradAuxVariables;
     typedef typename UPwSmallStrainInterfaceElement<TDim,TNumNodes>::InterfaceElementVariables InterfaceElementVariables;
