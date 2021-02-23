@@ -56,7 +56,7 @@ localization analysis (Wu and Cervera https://doi.org/10.1016/j.ijsolstr.2016.03
  */
 template<class TYieldSurfaceType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UnifiedFatigueLaw
-    : public std::conditional<TConstLawIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
+    : public std::conditional<TYieldSurfaceType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:
 
@@ -80,6 +80,12 @@ public:
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
+    /// The node definition
+    typedef Node<3> NodeType;
+
+    /// The geometry definition
+    typedef Geometry<NodeType> GeometryType;
+
     /// Pointer definition of UnifiedFatigueLaw
     KRATOS_CLASS_POINTER_DEFINITION(UnifiedFatigueLaw);
 
@@ -90,11 +96,6 @@ public:
      * @brief Default constructor.
      */
     UnifiedFatigueLaw();
-
-    /**
-     * @brief Copy constructor.
-     */
-    UnifiedFatigueLaw (const UnifiedFatigueLaw& rOther);
 
     /**
      * @brief Destructor.
@@ -361,7 +362,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
     double& CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<double>& rThisVariable,
         double& rValue
         ) override;
@@ -374,7 +375,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
     Vector& CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
@@ -387,7 +388,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
      Matrix& CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
@@ -400,7 +401,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
      array_1d<double, 3 > & CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<array_1d<double, 3 > >& rVariable,
         array_1d<double, 3 > & rValue
         ) override;
@@ -412,7 +413,7 @@ public:
      * @return The value of the specified variable
      */
     array_1d<double, 6 > & CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<array_1d<double, 6 > >& rVariable,
         array_1d<double, 6 > & rValue
         ) override;

@@ -35,28 +35,17 @@ namespace Kratos
 /******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-UnifiedFatigueLaw<TDim>::UnifiedFatigueLaw()
+template<class TYieldSurfaceType>
+UnifiedFatigueLaw<TYieldSurfaceType>::UnifiedFatigueLaw()
     : ConstitutiveLaw()
-{
-}
-
-/******************************COPY CONSTRUCTOR*************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-UnifiedFatigueLaw<TDim>::UnifiedFatigueLaw(const UnifiedFatigueLaw<TDim>& rOther)
-    : ConstitutiveLaw(rOther),
-      mConstitutiveLaws(rOther.mConstitutiveLaws),
-      mCombinationFactors(rOther.mCombinationFactors)
 {
 }
 
 /********************************CLONE**********************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-ConstitutiveLaw::Pointer UnifiedFatigueLaw<TDim>::Clone() const
+template<class TYieldSurfaceType>
+ConstitutiveLaw::Pointer UnifiedFatigueLaw<TYieldSurfaceType>::Clone() const
 {
     return Kratos::make_shared<UnifiedFatigueLaw>(*this);
 }
@@ -64,8 +53,8 @@ ConstitutiveLaw::Pointer UnifiedFatigueLaw<TDim>::Clone() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-bool UnifiedFatigueLaw<TDim>::Has(const Variable<bool>& rThisVariable)
+template<class TYieldSurfaceType>
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<bool>& rThisVariable)
 {
     bool has = false;
     return has;
@@ -74,8 +63,8 @@ bool UnifiedFatigueLaw<TDim>::Has(const Variable<bool>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-bool UnifiedFatigueLaw<TDim>::Has(const Variable<int>& rThisVariable)
+template<class TYieldSurfaceType>
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<int>& rThisVariable)
 {
     bool has = false;
     return has;
@@ -84,19 +73,8 @@ bool UnifiedFatigueLaw<TDim>::Has(const Variable<int>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-bool UnifiedFatigueLaw<TDim>::Has(const Variable<double>& rThisVariable)
-{
-    // At least one layer should have the value
-    bool has = false;
-    return has;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-bool UnifiedFatigueLaw<TDim>::Has(const Variable<Vector>& rThisVariable)
+template<class TYieldSurfaceType>
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<double>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
@@ -106,8 +84,8 @@ bool UnifiedFatigueLaw<TDim>::Has(const Variable<Vector>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-bool UnifiedFatigueLaw<TDim>::Has(const Variable<Matrix>& rThisVariable)
+template<class TYieldSurfaceType>
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<Vector>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
@@ -117,8 +95,8 @@ bool UnifiedFatigueLaw<TDim>::Has(const Variable<Matrix>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-bool UnifiedFatigueLaw<TDim>::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
+template<class TYieldSurfaceType>
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<Matrix>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
@@ -128,8 +106,8 @@ bool UnifiedFatigueLaw<TDim>::Has(const Variable<array_1d<double, 3 > >& rThisVa
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-bool UnifiedFatigueLaw<TDim>::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
+template<class TYieldSurfaceType>
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
@@ -139,8 +117,19 @@ bool UnifiedFatigueLaw<TDim>::Has(const Variable<array_1d<double, 6 > >& rThisVa
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-bool& UnifiedFatigueLaw<TDim>::GetValue(
+template<class TYieldSurfaceType>
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
+{
+    // At least one layer should have the value
+    bool has = false;
+    return has;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
+bool& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
     const Variable<bool>& rThisVariable,
     bool& rValue
     )
@@ -153,8 +142,8 @@ bool& UnifiedFatigueLaw<TDim>::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-int& UnifiedFatigueLaw<TDim>::GetValue(
+template<class TYieldSurfaceType>
+int& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
     const Variable<int>& rThisVariable,
     int& rValue
     )
@@ -167,8 +156,8 @@ int& UnifiedFatigueLaw<TDim>::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-double& UnifiedFatigueLaw<TDim>::GetValue(
+template<class TYieldSurfaceType>
+double& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -181,8 +170,8 @@ double& UnifiedFatigueLaw<TDim>::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-Vector& UnifiedFatigueLaw<TDim>::GetValue(
+template<class TYieldSurfaceType>
+Vector& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue
     )
@@ -195,8 +184,8 @@ Vector& UnifiedFatigueLaw<TDim>::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-Matrix& UnifiedFatigueLaw<TDim>::GetValue(
+template<class TYieldSurfaceType>
+Matrix& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
     )
@@ -209,8 +198,8 @@ Matrix& UnifiedFatigueLaw<TDim>::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-array_1d<double, 3 >& UnifiedFatigueLaw<TDim>::GetValue(
+template<class TYieldSurfaceType>
+array_1d<double, 3 >& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
     const Variable<array_1d<double, 3 >>& rThisVariable,
     array_1d<double, 3 >& rValue
     )
@@ -223,8 +212,8 @@ array_1d<double, 3 >& UnifiedFatigueLaw<TDim>::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-array_1d<double, 6 >& UnifiedFatigueLaw<TDim>::GetValue(
+template<class TYieldSurfaceType>
+array_1d<double, 6 >& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
     const Variable<array_1d<double, 6 >>& rThisVariable,
     array_1d<double, 6 >& rValue
     )
@@ -237,8 +226,8 @@ array_1d<double, 6 >& UnifiedFatigueLaw<TDim>::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::SetValue(
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
     const Variable<bool>& rThisVariable,
     const bool& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -249,8 +238,8 @@ void UnifiedFatigueLaw<TDim>::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::SetValue(
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
     const Variable<int>& rThisVariable,
     const int& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -261,8 +250,8 @@ void UnifiedFatigueLaw<TDim>::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::SetValue(
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
     const Variable<double>& rThisVariable,
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -273,8 +262,8 @@ void UnifiedFatigueLaw<TDim>::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::SetValue(
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
     const Variable<Vector>& rThisVariable,
     const Vector& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -285,8 +274,8 @@ void UnifiedFatigueLaw<TDim>::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::SetValue(
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
     const Variable<Matrix>& rThisVariable,
     const Matrix& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -297,8 +286,8 @@ void UnifiedFatigueLaw<TDim>::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::SetValue(
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
     const Variable<array_1d<double, 3 >>& rThisVariable,
     const array_1d<double, 3 >& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -309,8 +298,8 @@ void UnifiedFatigueLaw<TDim>::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::SetValue(
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
     const Variable<array_1d<double, 6 >>& rThisVariable,
     const array_1d<double, 6 >& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -322,8 +311,8 @@ void UnifiedFatigueLaw<TDim>::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-double& UnifiedFatigueLaw<TDim>::CalculateValue(
+template<class TYieldSurfaceType>
+double& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue
@@ -335,8 +324,8 @@ double& UnifiedFatigueLaw<TDim>::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-Vector& UnifiedFatigueLaw<TDim>::CalculateValue(
+template<class TYieldSurfaceType>
+Vector& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValue
@@ -348,8 +337,8 @@ Vector& UnifiedFatigueLaw<TDim>::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-Matrix& UnifiedFatigueLaw<TDim>::CalculateValue(
+template<class TYieldSurfaceType>
+Matrix& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
@@ -360,9 +349,9 @@ Matrix& UnifiedFatigueLaw<TDim>::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-array_1d<double, 3 >& UnifiedFatigueLaw<TDim>::CalculateValue(
-    Parameters& rParameterValues,
+template<class TYieldSurfaceType>
+array_1d<double, 3 >& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<array_1d<double, 3 >>& rThisVariable,
     array_1d<double, 3 >& rValue
     )
@@ -373,9 +362,9 @@ array_1d<double, 3 >& UnifiedFatigueLaw<TDim>::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-array_1d<double, 6 >& UnifiedFatigueLaw<TDim>::CalculateValue(
-    Parameters& rParameterValues,
+template<class TYieldSurfaceType>
+array_1d<double, 6 >& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<array_1d<double, 6 >>& rThisVariable,
     array_1d<double, 6 >& rValue
     )
@@ -386,8 +375,8 @@ array_1d<double, 6 >& UnifiedFatigueLaw<TDim>::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-bool UnifiedFatigueLaw<TDim>::ValidateInput(const Properties& rMaterialProperties)
+template<class TYieldSurfaceType>
+bool UnifiedFatigueLaw<TYieldSurfaceType>::ValidateInput(const Properties& rMaterialProperties)
 {
     // We check it layer by layer
     bool valid_input = true;
@@ -397,8 +386,8 @@ bool UnifiedFatigueLaw<TDim>::ValidateInput(const Properties& rMaterialPropertie
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::InitializeMaterial(
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -417,8 +406,8 @@ void UnifiedFatigueLaw<TDim>::InitializeMaterial(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues)
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -426,8 +415,8 @@ void UnifiedFatigueLaw<TDim>::CalculateMaterialResponsePK1 (ConstitutiveLaw::Par
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void  UnifiedFatigueLaw<TDim>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template<class TYieldSurfaceType>
+void  UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -435,8 +424,8 @@ void  UnifiedFatigueLaw<TDim>::CalculateMaterialResponsePK2(ConstitutiveLaw::Par
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -444,8 +433,8 @@ void UnifiedFatigueLaw<TDim>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues)
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues)
 {
 
 
@@ -456,17 +445,8 @@ void UnifiedFatigueLaw<TDim>::CalculateMaterialResponseCauchy (ConstitutiveLaw::
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::InitializeMaterialResponsePK1(Parameters& rValues)
-{
-    InitializeMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::InitializeMaterialResponsePK2(Parameters& rValues)
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponsePK1(Parameters& rValues)
 {
     InitializeMaterialResponseCauchy(rValues);
 }
@@ -474,8 +454,8 @@ void UnifiedFatigueLaw<TDim>::InitializeMaterialResponsePK2(Parameters& rValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::InitializeMaterialResponseKirchhoff(Parameters& rValues)
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponsePK2(Parameters& rValues)
 {
     InitializeMaterialResponseCauchy(rValues);
 }
@@ -483,43 +463,52 @@ void UnifiedFatigueLaw<TDim>::InitializeMaterialResponseKirchhoff(Parameters& rV
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::InitializeMaterialResponseCauchy(Parameters& rValues)
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponseKirchhoff(Parameters& rValues)
+{
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponseCauchy(Parameters& rValues)
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::FinalizeMaterialResponsePK1(Parameters& rValues)
-{
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-template<unsigned int TDim>
-/***********************************************************************************/
-/***********************************************************************************/
-
-void UnifiedFatigueLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rValues)
-{
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     FinalizeMaterialResponseCauchy(rValues);
 }
 
+template<class TYieldSurfaceType>
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponsePK2(Parameters& rValues)
+{
+    FinalizeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+{
+    FinalizeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
 
 
@@ -533,8 +522,8 @@ void UnifiedFatigueLaw<TDim>::FinalizeMaterialResponseCauchy(Parameters& rValues
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-int UnifiedFatigueLaw<TDim>::Check(
+template<class TYieldSurfaceType>
+int UnifiedFatigueLaw<TYieldSurfaceType>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
@@ -549,8 +538,8 @@ int UnifiedFatigueLaw<TDim>::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-void UnifiedFatigueLaw<TDim>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure)
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
