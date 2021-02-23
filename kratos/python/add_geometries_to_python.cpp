@@ -130,7 +130,7 @@ void  AddGeometriesToPython(pybind11::module& m)
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives, std::vector<std::array<double,4>>& rIntegrationPoints)
         { 
             IntegrationPointsArrayType integration_points(rIntegrationPoints.size());
-            for( int i = 0; i < rIntegrationPoints.size(); ++i){
+            for( IndexType i = 0; i < rIntegrationPoints.size(); ++i){
                 IntegrationPoint<3> point_tmp(rIntegrationPoints[i][0],rIntegrationPoints[i][1],rIntegrationPoints[i][2],rIntegrationPoints[i][3]);
                 integration_points[i] = point_tmp;
             }
