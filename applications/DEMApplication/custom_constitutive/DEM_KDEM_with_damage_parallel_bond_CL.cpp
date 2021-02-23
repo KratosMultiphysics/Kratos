@@ -381,8 +381,8 @@ namespace Kratos {
 
             if (contact_sigma >= 0) {
                 updated_max_tau_strength += internal_friction * contact_sigma;
-                tau_strength = updated_max_tau_strength * (1.0 + k_unload / kt_el) * kt_updated / (kt_updated + k_unload);
             }
+            tau_strength = updated_max_tau_strength * (1.0 + k_unload / kt_el) * kt_updated / (kt_updated + k_unload);
             
             force_strength = tau_strength * calculation_area;
 
