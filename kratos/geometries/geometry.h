@@ -706,16 +706,15 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param pGeometry Pointer to an existing geometry
+     * @param rGeometry Reference to an existing geometry
      * @return Pointer to the new geometry
      */
     virtual Pointer Create(
-        Pointer pGeometry
+        const GeometryType& rGeometry
     ) const
     {
         // Create geometry
-        KRATOS_DEBUG_ERROR_IF(pGeometry == nullptr) << "Null pointer for geometry provided" << std::endl;
-        auto p_geom = this->Create(0, pGeometry);
+        auto p_geom = this->Create(0, rGeometry);
 
         // Generate Id
         IndexType id = reinterpret_cast<IndexType>(p_geom.get());
@@ -735,31 +734,31 @@ public:
     /**
      * @brief Creates a new geometry pointer
      * @param NewGeometryId the ID of the new geometry
-     * @param  pGeometry Pointer to an existing geometry
+     * @param rGeometry Reference to an existing geometry
      * @return Pointer to the new geometry
      */
     virtual Pointer Create(
         const IndexType NewGeometryId,
-        Pointer pGeometry
+        const GeometryType& rGeometry
     ) const
     {
-        auto p_geometry = Pointer( new Geometry( NewGeometryId, pGeometry->Points(), mpGeometryData));
-        p_geometry->SetData(pGeometry->GetData());
+        auto p_geometry = Pointer( new Geometry( NewGeometryId, rGeometry.Points(), mpGeometryData));
+        p_geometry->SetData(rGeometry.GetData());
         return p_geometry;
     }
 
     /**
      * @brief Creates a new geometry pointer
      * @param rNewGeometryName the name of the new geometry
-     * @param pGeometry Pointer to an existing geometry
+     * @param rGeometry Reference to an existing geometry
      * @return Pointer to the new geometry
      */
     virtual Pointer Create(
         const std::string& rNewGeometryName,
-        Pointer pGeometry
+        const GeometryType& rGeometry
         ) const
     {
-        auto p_geom = this->Create(0, pGeometry);
+        auto p_geom = this->Create(0, rGeometry);
         p_geom->SetId(rNewGeometryName);
         return p_geom;
     }

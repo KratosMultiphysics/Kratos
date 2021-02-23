@@ -350,16 +350,16 @@ public:
     /**
      * @brief Creates a new geometry pointer
      * @param NewGeometryId the ID of the new geometry
-     * @param pGeometry Pointer to an existing geometry
+     * @param rGeometry reference to an existing geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
         const IndexType NewGeometryId,
-        typename BaseType::Pointer pGeometry
+        const BaseType& rGeometry
         ) const override
     {
-        auto p_geometry = typename BaseType::Pointer( new Quadrilateral3D8( NewGeometryId, pGeometry->Points() ) );
-        p_geometry->SetData(pGeometry->GetData());
+        auto p_geometry = typename BaseType::Pointer( new Quadrilateral3D8( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
         return p_geometry;
     }
     
