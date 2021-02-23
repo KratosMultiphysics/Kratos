@@ -63,6 +63,9 @@ Organizations contributing to Kratos:
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
 </br><p>Altair Engineering</p>
 
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/Deltares_logo.png" width="128">
+</br><p>Deltares</p>
+
 # Our Users
 Some users of the technologies developed in Kratos are:
 
@@ -77,10 +80,6 @@ Some users of the technologies developed in Kratos are:
 <span>
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/onera_logo.png" width="128">
 <p>ONERA, The French Aerospace Lab<br>Applied Aerodynamics Department</p>
-</span>
-<span>
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/Deltares_logo.png" width="128">
-<p>Deltares</p>
 </span>
 
 

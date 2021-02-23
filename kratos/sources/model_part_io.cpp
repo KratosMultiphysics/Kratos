@@ -1411,7 +1411,7 @@ NodeType temp_node;
 
     //make this to construct the nodes "in parallel" - the idea is that first touch is being done in parallel but the reading is actually sequential
     const int nnodes = read_coordinates.size();
-    const int nthreads = OpenMPUtils::GetNumThreads();
+    const int nthreads = ParallelUtilities::GetNumThreads();
     std::vector<int> partition;
     OpenMPUtils::DivideInPartitions(nnodes, nthreads, partition);
 
