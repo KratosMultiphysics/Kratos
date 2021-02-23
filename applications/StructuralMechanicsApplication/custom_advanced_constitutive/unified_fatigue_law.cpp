@@ -42,6 +42,38 @@ ConstitutiveLaw::Pointer UnifiedFatigueLaw<TYieldSurfaceType>::Clone() const
     return Kratos::make_shared<UnifiedFatigueLaw>(*this);
 }
 
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+
+
+
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+
+
+
+
+
+
+
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -436,20 +468,6 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseKirchhoff(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-
-
-
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
 void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponsePK1(
     ConstitutiveLaw::Parameters& rValues
     )
@@ -522,22 +540,6 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseKirchhoff(
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-
-
-
-
-
-
-
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
