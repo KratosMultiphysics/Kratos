@@ -145,8 +145,10 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
 
                 TYieldSurfaceType::CalculateEquivalentStress(r_integrated_stress_vector, r_strain_vector,
                                                             uniaxial_stress, rValues);
-                KRATOS_WATCH(uniaxial_stress)
+                // KRATOS_WATCH(uniaxial_stress)
+                // mUniaxialStress = uniaxial_stress;
             }
+            mUniaxialStress = uniaxial_stress;
             ////////////////////
 
             // Elastic Matrix
@@ -158,9 +160,9 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
             // } else { // Plastic case
 
 
-            //     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            //         this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
-            //     }
+                if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+                    this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
+                }
             // }
 
 
@@ -358,8 +360,10 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
     const Variable<double>& rThisVariable
     )
 {
-    // At least one layer should have the value
     bool has = false;
+    // At least one layer should have the value
+    if (rThisVariable == UNIAXIAL_STRESS) 
+        has = true;
     return has;
 }
 
@@ -452,8 +456,10 @@ double& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
     double& rValue
     )
 {
-    // We combine the values of the layers
     rValue = 0.0;
+    if (rThisVariable == UNIAXIAL_STRESS) 
+        rValue = mUniaxialStress;
+
     return rValue;
 }
 
