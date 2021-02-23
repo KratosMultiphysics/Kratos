@@ -47,7 +47,7 @@ NurbsVolumeGeometryPointerType GenerateVolume(IndexType Direction) {
     for( auto i : z_direction){
         for( auto j : y_direction) {
             for( auto k : x_direction) {
-                points.push_back(NodeType::Pointer(new NodeType(id, k, j, i)));
+                points.push_back(Kratos::make_intrusive<NodeType>(id, k, j, i));
                 id++;
             }
         }
