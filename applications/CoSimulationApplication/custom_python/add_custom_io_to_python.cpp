@@ -27,7 +27,7 @@ namespace Python {
 namespace EMPIRE_API_Wrappers { // helpers namespace
 
 template<bool TIsDataField>
-void SendArray(const std::string& rName, const int sizeOfArray, const std::vector<double>& signal)
+void SendArray(const std::string& rName, const int sizeOfArray, const pybind11::list& signal)
 {
     // Wrapper is needed bcs pybind cannot do the conversion to raw-ptr automatically
     if (TIsDataField) {
@@ -38,7 +38,7 @@ void SendArray(const std::string& rName, const int sizeOfArray, const std::vecto
 }
 
 template<bool TIsDataField>
-void ReceiveArray(const std::string& rName, const int sizeOfArray, pybind11::list signal)
+void ReceiveArray(const std::string& rName, const int sizeOfArray, pybind11::list& signal)
 {
     KRATOS_ERROR_IF(static_cast<int>(signal.size()) != sizeOfArray) << "The size of the list has to be specified before, expected size of " << sizeOfArray << ", current size: " << signal.size() << std::endl;
 
