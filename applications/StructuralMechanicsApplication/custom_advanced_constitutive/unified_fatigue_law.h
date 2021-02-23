@@ -95,7 +95,7 @@ public:
     /**
      * @brief Default constructor.
      */
-    UnifiedFatigueLaw();
+    UnifiedFatigueLaw(){};
 
     /**
      * @brief Destructor.
@@ -435,73 +435,73 @@ public:
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK1 (Parameters& rValues) override;
+    void CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters& rValues) override;
+    void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters& rValues) override;
+    void CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters& rValues) override;
+    void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK1 (Parameters& rValues) override;
+    void InitializeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK2 (Parameters& rValues) override;
+    void InitializeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponseKirchhoff (Parameters& rValues) override;
+    void InitializeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void InitializeMaterialResponseCauchy (Parameters& rValues) override;
+    void InitializeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK1 (Parameters& rValues) override;
+    void FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK2 (Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseKirchhoff (Parameters& rValues) override;
+    void FinalizeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseCauchy (Parameters& rValues) override;
+    void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief This function is designed to be called once to perform all the checks needed
@@ -522,8 +522,7 @@ public:
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
-    void CalculateTangentTensor(
-        ConstitutiveLaw::Parameters& rValues);
+    void CalculateTangentTensor(ConstitutiveLaw::ConstitutiveLaw::Parameters& rValues);
 
 protected:
 
@@ -577,18 +576,22 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void save(Serializer &rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-        rSerializer.save("ConstitutiveLaws", mConstitutiveLaws);
-        rSerializer.save("CombinationFactors", mCombinationFactors);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.save("PlasticDissipation", mPlasticDissipation);
+        rSerializer.save("Threshold", mThreshold);
+        rSerializer.save("PlasticStrain", mPlasticStrain);
+        rSerializer.save("ComplianceMatrix", mComplianceMatrix);
     }
 
-    void load(Serializer& rSerializer) override
+    void load(Serializer &rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
-        rSerializer.load("ConstitutiveLaws", mConstitutiveLaws);
-        rSerializer.load("CombinationFactors", mCombinationFactors);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.load("PlasticDissipation", mPlasticDissipation);
+        rSerializer.load("Threshold", mThreshold);
+        rSerializer.load("PlasticStrain", mPlasticStrain);
+        rSerializer.load("ComplianceMatrix", mComplianceMatrix);
     }
 
 

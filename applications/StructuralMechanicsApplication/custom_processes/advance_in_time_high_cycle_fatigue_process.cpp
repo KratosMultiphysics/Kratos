@@ -101,7 +101,7 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclePeriodPerIntegrationPoint(bool& 
 
         // Check if the HCF CL is being used. Otherwise there is no reason for entering into the advance in time strategy
         std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
-        r_elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
+        r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
 
         const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
 
@@ -245,7 +245,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(double Increment)
 
         // Check if the HCF CL is being used. Otherwise there is no reason for entering into the advance in time strategy
         std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
-        r_elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_process_info);
+        r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_process_info);
 
         const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
 
