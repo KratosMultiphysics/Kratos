@@ -51,7 +51,7 @@ namespace Kratos
 
 /**
  * @class SparseMatrixMultiplicationUtility
- * @ingroup ContactStructuralMechanicsApplication
+ * @ingroup KratosCore
  * @brief An utility to multiply sparse matrix in Ublas
  * @details Taken and adapted for ublas from external_libraries/amgcl/detail/spgemm.hpp by Denis Demidov <dennis.demidov@gmail.com>
  * @todo Remove as soon as we do not depend of Ublas anymore...

@@ -8,7 +8,7 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                  const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
 
@@ -31,9 +31,7 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateLocalSystem(Mat
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
 
     const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
     unsigned int LocalIndex = 0;
@@ -51,9 +49,7 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::EquationIdVector(Equatio
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
     const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
 
     if (rElementalDofList.size() != LocalSize)
@@ -70,7 +66,7 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::GetDofList(DofsVectorTyp
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -140,7 +136,7 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::AddConsistentMassMatrixC
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int LocalSize = TDim * TNumNodes;
 
@@ -179,7 +175,7 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateMassMatrix(Matr
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
+void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateRHS(VectorType& F, const ProcessInfo& rCurrentProcessInfo)
 {
     // Get the element's geometric parameters
     double Area;

@@ -31,22 +31,16 @@ namespace Kratos
 
 
     template< class TBaseElement >
-    void ThermalSphericParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_info){
+    void ThermalSphericParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_info) {
         TBaseElement::Initialize(r_process_info);
-         // We can put here UpdateTemperatureDependentRadius()
+
         mSpecificHeat = GetProperties()[SPECIFIC_HEAT];
         mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY];
-        //mPreviousTemperature = 250;	// initial temperature in the first time step
-        //SetTemperature(mPreviousTemperature);// initial temperature in the first time step
-        if (GetGeometry()[0].Coordinates()[1] > 2){ GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)    = 200.0; }
-        else{ GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)    = 0.0;}
     }
 
     template< class TBaseElement >
-    void ThermalSphericParticle<TBaseElement>::InitializeSolutionStep(const ProcessInfo& r_process_info)
-    {
+    void ThermalSphericParticle<TBaseElement>::InitializeSolutionStep(const ProcessInfo& r_process_info) {
             TBaseElement::InitializeSolutionStep(r_process_info);
-            //UpdateTemperatureDependentRadius(r_process_info);
     }
 
     template< class TBaseElement >
@@ -55,6 +49,8 @@ namespace Kratos
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::SetTemperature(const double temperature){GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)=temperature;}
 
+    template< class TBaseElement >
+    const double& ThermalSphericParticle<TBaseElement>::GetAmbientTemperature(){return GetGeometry()[0].FastGetSolutionStepValue(AMBIENT_TEMPERATURE);}
 
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::ComputeContactArea(const double rmin, double indentation, double& calculation_area) {
@@ -65,10 +61,6 @@ namespace Kratos
     void ThermalSphericParticle<TBaseElement>::ComputeConductiveHeatFlux(const ProcessInfo& r_process_info) {
         KRATOS_TRY
         mConductiveHeatFlux = 0.0 ;
-
-//        if (GetGeometry()[0].Coordinates()[1] < 0.02){   //0.15
-//        mTemperature    = 0.0;
-//            }
 
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
             if(mNeighbourElements[i] == NULL) continue;
@@ -122,7 +114,7 @@ namespace Kratos
 //            double inv_distance = 1/distance;
 //            //double inv_distance = 1/(GetRadius()+other_radius);
 //
-//            mConvectiveHeatFlux = - convective_heat_transfer_coefficient * boundary_particle_surface_area * (mTemperature - ambient_temperature);
+//            mConvectiveHeatFlux = - convective_heat_transfer_coefficient * boundary_particle_surface_area * (temperature - ambient_temperature);
 //
 //        }       //for each neighbor
 //        }
@@ -158,20 +150,15 @@ namespace Kratos
     }
 
     template< class TBaseElement >
-    void ThermalSphericParticle<TBaseElement>::UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info)
-    {
-        double temperature = GetTemperature();
-        double radius = GetRadius();
+    void ThermalSphericParticle<TBaseElement>::UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info) {
         double thermal_alpha = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
-        const int RT = 293; // room temperature // is there already a variable for RT?
-        double relative_temp = temperature - RT; // temp in Kelvin
-        double updated_radius = radius * (1 + thermal_alpha*relative_temp);
+        double relative_temp = GetTemperature() - GetAmbientTemperature(); // temp in Kelvin
+        double updated_radius = GetRadius() * (1 + thermal_alpha * relative_temp);
         SetRadius(updated_radius);
     }
 
     template< class TBaseElement >
-    void ThermalSphericParticle<TBaseElement>::UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, ThermalSphericParticle<TBaseElement>* element2)
-    {
+    void ThermalSphericParticle<TBaseElement>::UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, ThermalSphericParticle<TBaseElement>* element2) {
 //        thermalRelVel = 0;
 //        double temperature = GetTemperature();
 //        double other_temperature = element2->GetTemperature();
