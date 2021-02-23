@@ -1,6 +1,5 @@
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import os
 
 try:
     import numpy
