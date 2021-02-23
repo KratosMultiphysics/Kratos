@@ -32,19 +32,19 @@ namespace Kratos
 {
 /***********************************************************************************/
 /***********************************************************************************/
-DamageDPlusDMinusMasonry2DLaw::DamageDPlusDMinusMasonry2DLaw()
+MPMDamageDPlusDMinusMasonry2DLaw::MPMDamageDPlusDMinusMasonry2DLaw()
 	: ConstitutiveLaw()
 {
 }
 /***********************************************************************************/
 /***********************************************************************************/
-ConstitutiveLaw::Pointer DamageDPlusDMinusMasonry2DLaw::Clone() const
+ConstitutiveLaw::Pointer MPMDamageDPlusDMinusMasonry2DLaw::Clone() const
 {
-	return ConstitutiveLaw::Pointer( new DamageDPlusDMinusMasonry2DLaw() );
+	return ConstitutiveLaw::Pointer( new MPMDamageDPlusDMinusMasonry2DLaw() );
 }
 /***********************************************************************************/
 /***********************************************************************************/
-bool DamageDPlusDMinusMasonry2DLaw::Has(
+bool MPMDamageDPlusDMinusMasonry2DLaw::Has(
 	const Variable<double>& rThisVariable)
 {
 	if(rThisVariable == DAMAGE_TENSION)
@@ -64,7 +64,7 @@ bool DamageDPlusDMinusMasonry2DLaw::Has(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool DamageDPlusDMinusMasonry2DLaw::Has(
+bool MPMDamageDPlusDMinusMasonry2DLaw::Has(
 	const Variable<Vector>& rThisVariable)
 {
 	if(rThisVariable == INTERNAL_VARIABLES)
@@ -73,28 +73,28 @@ bool DamageDPlusDMinusMasonry2DLaw::Has(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-bool DamageDPlusDMinusMasonry2DLaw::Has(
+bool MPMDamageDPlusDMinusMasonry2DLaw::Has(
 	const Variable<Matrix>& rThisVariable)
 {
 	return false;
 }
 /***********************************************************************************/
 /***********************************************************************************/
-bool DamageDPlusDMinusMasonry2DLaw::Has(
+bool MPMDamageDPlusDMinusMasonry2DLaw::Has(
 	const Variable<array_1d<double, 3 > >& rThisVariable)
 {
 	return false;
 }
 /***********************************************************************************/
 /***********************************************************************************/
-bool DamageDPlusDMinusMasonry2DLaw::Has(
+bool MPMDamageDPlusDMinusMasonry2DLaw::Has(
 	const Variable<array_1d<double, 6 > >& rThisVariable)
 {
 	return false;
 }
 /***********************************************************************************/
 /***********************************************************************************/
-double& DamageDPlusDMinusMasonry2DLaw::GetValue(
+double& MPMDamageDPlusDMinusMasonry2DLaw::GetValue(
 	const Variable<double>& rThisVariable,
 	double& rValue)
 {
@@ -117,7 +117,7 @@ double& DamageDPlusDMinusMasonry2DLaw::GetValue(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-Vector& DamageDPlusDMinusMasonry2DLaw::GetValue(
+Vector& MPMDamageDPlusDMinusMasonry2DLaw::GetValue(
 	const Variable<Vector>& rThisVariable,
 	Vector& rValue)
 {
@@ -125,7 +125,7 @@ Vector& DamageDPlusDMinusMasonry2DLaw::GetValue(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-Matrix& DamageDPlusDMinusMasonry2DLaw::GetValue(
+Matrix& MPMDamageDPlusDMinusMasonry2DLaw::GetValue(
 	const Variable<Matrix>& rThisVariable,
 	Matrix& rValue)
 {
@@ -133,7 +133,7 @@ Matrix& DamageDPlusDMinusMasonry2DLaw::GetValue(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-array_1d<double, 3 > & DamageDPlusDMinusMasonry2DLaw::GetValue(
+array_1d<double, 3 > & MPMDamageDPlusDMinusMasonry2DLaw::GetValue(
 	const Variable<array_1d<double, 3 > >& rVariable,
 	array_1d<double, 3 > & rValue)
 {
@@ -141,7 +141,7 @@ array_1d<double, 3 > & DamageDPlusDMinusMasonry2DLaw::GetValue(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-array_1d<double, 6 > & DamageDPlusDMinusMasonry2DLaw::GetValue(
+array_1d<double, 6 > & MPMDamageDPlusDMinusMasonry2DLaw::GetValue(
 	const Variable<array_1d<double, 6 > >& rVariable,
 	array_1d<double, 6 > & rValue)
 {
@@ -149,7 +149,7 @@ array_1d<double, 6 > & DamageDPlusDMinusMasonry2DLaw::GetValue(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::SetValue(
+void MPMDamageDPlusDMinusMasonry2DLaw::SetValue(
 	const Variable<double>& rVariable,
 	const double& rValue,
 	const ProcessInfo& rCurrentProcessInfo)
@@ -169,7 +169,7 @@ void DamageDPlusDMinusMasonry2DLaw::SetValue(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::SetValue(
+void MPMDamageDPlusDMinusMasonry2DLaw::SetValue(
 	const Variable<Vector >& rVariable,
 	const Vector& rValue,
 	const ProcessInfo& rCurrentProcessInfo)
@@ -177,7 +177,7 @@ void DamageDPlusDMinusMasonry2DLaw::SetValue(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::SetValue(
+void MPMDamageDPlusDMinusMasonry2DLaw::SetValue(
 	const Variable<Matrix >& rVariable,
 	const Matrix& rValue,
 	const ProcessInfo& rCurrentProcessInfo)
@@ -185,7 +185,7 @@ void DamageDPlusDMinusMasonry2DLaw::SetValue(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::SetValue(
+void MPMDamageDPlusDMinusMasonry2DLaw::SetValue(
 	const Variable<array_1d<double, 3 > >& rVariable,
 	const array_1d<double, 3 > & rValue,
 	const ProcessInfo& rCurrentProcessInfo)
@@ -193,7 +193,7 @@ void DamageDPlusDMinusMasonry2DLaw::SetValue(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::SetValue(
+void MPMDamageDPlusDMinusMasonry2DLaw::SetValue(
 	const Variable<array_1d<double, 6 > >& rVariable,
 	const array_1d<double, 6 > & rValue,
 	const ProcessInfo& rCurrentProcessInfo)
@@ -201,7 +201,7 @@ void DamageDPlusDMinusMasonry2DLaw::SetValue(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-bool DamageDPlusDMinusMasonry2DLaw::ValidateInput(
+bool MPMDamageDPlusDMinusMasonry2DLaw::ValidateInput(
 	const Properties& rMaterialProperties)
 {
 	if( !rMaterialProperties.Has(YOUNG_MODULUS) ) 					return false;
@@ -224,25 +224,25 @@ bool DamageDPlusDMinusMasonry2DLaw::ValidateInput(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-DamageDPlusDMinusMasonry2DLaw::StrainMeasure DamageDPlusDMinusMasonry2DLaw::GetStrainMeasure()
+MPMDamageDPlusDMinusMasonry2DLaw::StrainMeasure MPMDamageDPlusDMinusMasonry2DLaw::GetStrainMeasure()
 {
 	return ConstitutiveLaw::StrainMeasure_Velocity_Gradient;
 }
 /***********************************************************************************/
 /***********************************************************************************/
-DamageDPlusDMinusMasonry2DLaw::StressMeasure DamageDPlusDMinusMasonry2DLaw::GetStressMeasure()
+MPMDamageDPlusDMinusMasonry2DLaw::StressMeasure MPMDamageDPlusDMinusMasonry2DLaw::GetStressMeasure()
 {
 	return ConstitutiveLaw::StressMeasure_Cauchy;
 }
 /***********************************************************************************/
 /***********************************************************************************/
-bool DamageDPlusDMinusMasonry2DLaw::IsIncremental()
+bool MPMDamageDPlusDMinusMasonry2DLaw::IsIncremental()
 {
 	return false;
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
+void MPMDamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
 	const Properties& rMaterialProperties,
 	const GeometryType& rElementGeometry,
 	const Vector& rShapeFunctionsValues)
@@ -276,13 +276,13 @@ void DamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::InitializeMaterialResponsePK2 (
+void MPMDamageDPlusDMinusMasonry2DLaw::InitializeMaterialResponsePK2 (
 	Parameters& rValues)
 {
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::InitializeSolutionStep(
+void MPMDamageDPlusDMinusMasonry2DLaw::InitializeSolutionStep(
 	const Properties& rMaterialProperties,
 	const GeometryType& rElementGeometry,
 	const Vector& rShapeFunctionsValues,
@@ -291,7 +291,7 @@ void DamageDPlusDMinusMasonry2DLaw::InitializeSolutionStep(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::FinalizeSolutionStep(
+void MPMDamageDPlusDMinusMasonry2DLaw::FinalizeSolutionStep(
 	const Properties& rMaterialProperties,
 	const GeometryType& rElementGeometry,
 	const Vector& rShapeFunctionsValues,
@@ -315,28 +315,28 @@ void DamageDPlusDMinusMasonry2DLaw::FinalizeSolutionStep(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponsePK1 (
+void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponsePK1 (
 	Parameters& rValues)
 {
 	CalculateMaterialResponseCauchy(rValues);
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponsePK2 (
+void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponsePK2 (
 	Parameters& rValues)
 {
 	CalculateMaterialResponseCauchy(rValues);
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseKirchhoff (
+void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseKirchhoff (
 	Parameters& rValues)
 {
 	CalculateMaterialResponseCauchy(rValues);
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
+void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	Parameters& rValues)
 {
 	const ProcessInfo&  pinfo = rValues.GetProcessInfo();
@@ -380,34 +380,34 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::FinalizeMaterialResponsePK1 (
+void MPMDamageDPlusDMinusMasonry2DLaw::FinalizeMaterialResponsePK1 (
 	Parameters& rValues)
 {
 	FinalizeMaterialResponseCauchy(rValues);
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::FinalizeMaterialResponsePK2 (
+void MPMDamageDPlusDMinusMasonry2DLaw::FinalizeMaterialResponsePK2 (
 	Parameters& rValues)
 {
 	FinalizeMaterialResponseCauchy(rValues);
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::FinalizeMaterialResponseKirchhoff (
+void MPMDamageDPlusDMinusMasonry2DLaw::FinalizeMaterialResponseKirchhoff (
 	Parameters& rValues)
 {
 	FinalizeMaterialResponseCauchy(rValues);
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::FinalizeMaterialResponseCauchy (
+void MPMDamageDPlusDMinusMasonry2DLaw::FinalizeMaterialResponseCauchy (
 	Parameters& rValues)
 {
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::ResetMaterial(
+void MPMDamageDPlusDMinusMasonry2DLaw::ResetMaterial(
 	const Properties& rMaterialProperties,
 	const GeometryType& rElementGeometry,
 	const Vector& rShapeFunctionsValues)
@@ -425,7 +425,7 @@ void DamageDPlusDMinusMasonry2DLaw::ResetMaterial(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::GetLawFeatures(
+void MPMDamageDPlusDMinusMasonry2DLaw::GetLawFeatures(
 	Features& rFeatures)
 {
 	//Set the type of law
@@ -444,7 +444,7 @@ void DamageDPlusDMinusMasonry2DLaw::GetLawFeatures(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-int DamageDPlusDMinusMasonry2DLaw::Check(
+int MPMDamageDPlusDMinusMasonry2DLaw::Check(
 	const Properties& rMaterialProperties,
 	const GeometryType& rElementGeometry,
 	const ProcessInfo& rCurrentProcessInfo)
@@ -506,7 +506,7 @@ int DamageDPlusDMinusMasonry2DLaw::Check(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponse(const Vector& StrainVector,
+void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponse(const Vector& StrainVector,
 	const Matrix& DeformationGradient,
 	Vector& StressVector,
 	Matrix& AlgorithmicTangent,
@@ -518,11 +518,11 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponse(const Vector& Stra
 	int CalculateTangent,
 	bool SaveInternalVariables)
 {
-	KRATOS_ERROR << "Hit DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponse\n";
+	KRATOS_ERROR << "Hit MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponse\n";
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::InitializeCalculationData(
+void MPMDamageDPlusDMinusMasonry2DLaw::InitializeCalculationData(
 	const Properties& props,
 	const GeometryType& geom,
 	const ProcessInfo& pinfo,
@@ -570,7 +570,7 @@ void DamageDPlusDMinusMasonry2DLaw::InitializeCalculationData(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CalculateElasticityMatrix(
+void MPMDamageDPlusDMinusMasonry2DLaw::CalculateElasticityMatrix(
 	CalculationData& data)
 {
 	if(data.ElasticityMatrix.size1() != 3 || data.ElasticityMatrix.size2() != 3)
@@ -586,7 +586,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateElasticityMatrix(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::TensionCompressionSplit(
+void MPMDamageDPlusDMinusMasonry2DLaw::TensionCompressionSplit(
 	CalculationData& data)
 {
 	const array_1d<double,3>& effective_stress_vector 		= data.EffectiveStressVector;
@@ -601,7 +601,7 @@ void DamageDPlusDMinusMasonry2DLaw::TensionCompressionSplit(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::ConstructProjectionTensors(
+void MPMDamageDPlusDMinusMasonry2DLaw::ConstructProjectionTensors(
 	CalculationData& data)
 {
 	Matrix& projection_tensor_tension 	  = data.ProjectionTensorTension;
@@ -700,7 +700,7 @@ Theory from: 	"An Energy-Equivalent d+/d- Damage Model with
 
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressTension(CalculationData& data, double& UniaxialStressTension)
+void MPMDamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressTension(CalculationData& data, double& UniaxialStressTension)
 {
 	UniaxialStressTension = 0.0;
 	if(data.PrincipalStressVector(0) > 0.0){
@@ -731,7 +731,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressTension(Calculation
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressCompression(CalculationData& data, double& UniaxialStressCompression)
+void MPMDamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressCompression(CalculationData& data, double& UniaxialStressCompression)
 {
 	UniaxialStressCompression = 0.0;
 	if(data.PrincipalStressVector(1) < 0.0){
@@ -754,7 +754,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressCompression(Calcula
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
+void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	CalculationData& data,
 	double internal_variable,
 	double& rDamage)
@@ -799,7 +799,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
+void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 	CalculationData& data,
 	double internal_variable,
 	double& rDamage)
@@ -886,7 +886,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::ComputeBezierEnergy(double& rBezierEnergy, double& rBezierEnergy1,
+void MPMDamageDPlusDMinusMasonry2DLaw::ComputeBezierEnergy(double& rBezierEnergy, double& rBezierEnergy1,
 								double s_p, double s_k, double s_r,
 								double e_p, double e_j, double e_k, double e_r, double e_u)
 {
@@ -897,7 +897,7 @@ void DamageDPlusDMinusMasonry2DLaw::ComputeBezierEnergy(double& rBezierEnergy, d
 }
 /***********************************************************************************/
 /***********************************************************************************/
-double DamageDPlusDMinusMasonry2DLaw::EvaluateBezierArea(
+double MPMDamageDPlusDMinusMasonry2DLaw::EvaluateBezierArea(
 	double x1,double x2,double x3,double y1,double y2,double y3)
 {
 	double bezier_area = 	x2 * y1 / 3.0 +
@@ -910,7 +910,7 @@ double DamageDPlusDMinusMasonry2DLaw::EvaluateBezierArea(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::ApplyBezierStretcherToStrains(
+void MPMDamageDPlusDMinusMasonry2DLaw::ApplyBezierStretcherToStrains(
 	double stretcher, double e_p, double& e_j, double& e_k, double& e_r, double& e_u)
 {
 	e_j += (e_j - e_p) * stretcher;
@@ -920,7 +920,7 @@ void DamageDPlusDMinusMasonry2DLaw::ApplyBezierStretcherToStrains(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::EvaluateBezierCurve(
+void MPMDamageDPlusDMinusMasonry2DLaw::EvaluateBezierCurve(
 	double& rDamageParameter, double xi,
 	double x1, double x2, double x3,
 	double y1, double y2, double y3)
@@ -945,7 +945,7 @@ void DamageDPlusDMinusMasonry2DLaw::EvaluateBezierCurve(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::ComputeCharacteristicLength(
+void MPMDamageDPlusDMinusMasonry2DLaw::ComputeCharacteristicLength(
     const GeometryType& geom,
 	const Properties& rMaterialProperties,
     double& rCharacteristicLength)
@@ -960,7 +960,7 @@ void DamageDPlusDMinusMasonry2DLaw::ComputeCharacteristicLength(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
+void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 	const Vector& StrainVector,
 	Vector& PredictiveStressVector,
 	CalculationData& data,
@@ -1035,7 +1035,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CheckDamageLoadingUnloading(
+void MPMDamageDPlusDMinusMasonry2DLaw::CheckDamageLoadingUnloading(
 	bool& is_damaging_tension,
 	bool& is_damaging_compression)
 {
@@ -1053,7 +1053,7 @@ void DamageDPlusDMinusMasonry2DLaw::CheckDamageLoadingUnloading(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CalculateTangentTensor(
+void MPMDamageDPlusDMinusMasonry2DLaw::CalculateTangentTensor(
 	Parameters& rValues,
 	Vector StrainVector,
 	Vector PredictiveStressVector,
@@ -1103,7 +1103,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateTangentTensor(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::CalculateSecantTensor(
+void MPMDamageDPlusDMinusMasonry2DLaw::CalculateSecantTensor(
 	Parameters& rValues,
 	CalculationData& data)
 {
@@ -1118,7 +1118,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateSecantTensor(
 	noalias(constitutive_matrix) = prod(DamageMatrix, data.ElasticityMatrix);
 }
 
-const double DamageDPlusDMinusMasonry2DLaw::GetDIF(const Properties& rProps,
+const double MPMDamageDPlusDMinusMasonry2DLaw::GetDIF(const Properties& rProps,
 	const int dif_case)
 {
 	// Power strain rate laws to match Cusa2011 (tension compression)

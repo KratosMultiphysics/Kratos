@@ -217,8 +217,8 @@ namespace Python{
         ;
 
         // d+/d- damage
-        py::class_< DamageDPlusDMinusMasonry2DLaw, typename DamageDPlusDMinusMasonry2DLaw::Pointer, ConstitutiveLaw >
-            (m, "DamageDPlusDMinusMasonry2DLaw")
+        py::class_< MPMDamageDPlusDMinusMasonry2DLaw, typename MPMDamageDPlusDMinusMasonry2DLaw::Pointer, ConstitutiveLaw >
+            (m, "MPMDamageDPlusDMinusMasonry2DLaw")
             .def(py::init<>())
             ;
     }

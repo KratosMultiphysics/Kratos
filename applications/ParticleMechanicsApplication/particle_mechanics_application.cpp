@@ -299,7 +299,7 @@ namespace Kratos
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DPlaneStrainLaw", mJohnsonCookThermalPlastic2DPlaneStrainLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DAxisymLaw", mJohnsonCookThermalPlastic2DAxisymLaw);
         // CL: d+/d- damage
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("DamageDPlusDMinusMasonry2DLaw", mDamageDPlusDMinusMasonry2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("MPMDamageDPlusDMinusMasonry2DLaw", mMPMDamageDPlusDMinusMasonry2DLaw);
 
         //Register Flow Rules
         Serializer::Register("MCPlasticFlowRule", mMCPlasticFlowRule);

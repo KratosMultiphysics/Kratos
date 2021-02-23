@@ -301,7 +301,7 @@ private:
     const HenckyBorjaCamClayPlasticPlaneStrain2DLaw         mHenckyBorjaCamClayPlasticPlaneStrain2DLaw;
     const HenckyBorjaCamClayPlasticAxisym2DLaw              mHenckyBorjaCamClayPlasticAxisym2DLaw;
     // CL: d+/d- damage
-    const DamageDPlusDMinusMasonry2DLaw                    mDamageDPlusDMinusMasonry2DLaw;
+    const MPMDamageDPlusDMinusMasonry2DLaw                  mMPMDamageDPlusDMinusMasonry2DLaw;
 
     // Flow Rules
     const MCPlasticFlowRule                         mMCPlasticFlowRule;

@@ -24,15 +24,15 @@
 namespace Kratos
 {
 /**
-* @class DamageDPlusDMinusMasonry2DLaw
+* @class MPMDamageDPlusDMinusMasonry2DLaw
 * @ingroup StructuralMechanicsApplication
 */
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) DamageDPlusDMinusMasonry2DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMDamageDPlusDMinusMasonry2DLaw
 	: public ConstitutiveLaw
 {
 public:
 
-	KRATOS_CLASS_POINTER_DEFINITION(DamageDPlusDMinusMasonry2DLaw);
+	KRATOS_CLASS_POINTER_DEFINITION(MPMDamageDPlusDMinusMasonry2DLaw);
 
 	///@name Type Definitions
 	///@{
@@ -51,12 +51,12 @@ public:
 	/**
 	* Default Constructor.
 	*/
-	DamageDPlusDMinusMasonry2DLaw();
+	MPMDamageDPlusDMinusMasonry2DLaw();
 
 	/**
 	* Destructor.
 	*/
-	~DamageDPlusDMinusMasonry2DLaw() override
+	~MPMDamageDPlusDMinusMasonry2DLaw() override
 	{
 	}
 
@@ -731,7 +731,7 @@ private:
 
 	///@}
 
-}; // Class DamageDPlusDMinusMasonry2DLaw
+}; // Class MPMDamageDPlusDMinusMasonry2DLaw
 
 } // namespace Kratos
 #endif // KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED  defined
