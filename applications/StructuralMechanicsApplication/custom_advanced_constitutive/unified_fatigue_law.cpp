@@ -46,7 +46,9 @@ ConstitutiveLaw::Pointer UnifiedFatigueLaw<TYieldSurfaceType>::Clone() const
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<bool>& rThisVariable)
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+    const Variable<bool>& rThisVariable
+    )
 {
     bool has = false;
     return has;
@@ -56,7 +58,9 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<bool>& rThisVariab
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<int>& rThisVariable)
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+    const Variable<int>& rThisVariable
+    )
 {
     bool has = false;
     return has;
@@ -66,18 +70,9 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<int>& rThisVariabl
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<double>& rThisVariable)
-{
-    // At least one layer should have the value
-    bool has = false;
-    return has;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<Vector>& rThisVariable)
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+    const Variable<double>& rThisVariable
+    )
 {
     // At least one layer should have the value
     bool has = false;
@@ -88,7 +83,9 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<Vector>& rThisVari
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<Matrix>& rThisVariable)
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+    const Variable<Vector>& rThisVariable
+    )
 {
     // At least one layer should have the value
     bool has = false;
@@ -99,7 +96,9 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<Matrix>& rThisVari
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+    const Variable<Matrix>& rThisVariable
+    )
 {
     // At least one layer should have the value
     bool has = false;
@@ -110,7 +109,22 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<array_1d<double, 3
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+    const Variable<array_1d<double, 3 > >& rThisVariable
+    )
+{
+    // At least one layer should have the value
+    bool has = false;
+    return has;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
+bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+    const Variable<array_1d<double, 6 > >& rThisVariable
+    )
 {
     // At least one layer should have the value
     bool has = false;
@@ -376,7 +390,8 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterial(
 {
     // We construct the CL parameters
     ProcessInfo dummy_process_info;
-    ConstitutiveLaw::Parameters aux_param(rElementGeometry, rMaterialProperties, dummy_process_info);
+    ConstitutiveLaw::Parameters aux_param(rElementGeometry, rMaterialProperties, 
+                                          dummy_process_info);
 
     // We call the integrator
     double initial_threshold;
@@ -388,7 +403,9 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterial(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponsePK1(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -397,7 +414,9 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponsePK1(Constitu
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void  UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void  UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -406,7 +425,9 @@ void  UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponsePK2(Constit
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseKirchhoff(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -415,7 +436,9 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseKirchhoff(Co
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues)
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
 
 
@@ -427,16 +450,9 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy (Cons
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
-{
-    InitializeMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponsePK1(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     InitializeMaterialResponseCauchy(rValues);
 }
@@ -445,7 +461,9 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponsePK2(Constit
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     InitializeMaterialResponseCauchy(rValues);
 }
@@ -454,7 +472,20 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponseKirchhoff(C
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponseKirchhoff(
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
 }
 
@@ -462,34 +493,42 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponseCauchy(Cons
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
-{
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-template<class TYieldSurfaceType>
-/***********************************************************************************/
-/***********************************************************************************/
-
-void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-{
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponsePK1(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     FinalizeMaterialResponseCauchy(rValues);
 }
 
+template<class TYieldSurfaceType>
+/***********************************************************************************/
+/***********************************************************************************/
+
+void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    FinalizeMaterialResponseCauchy(rValues);
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseKirchhoff(
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    FinalizeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
 
 
@@ -520,7 +559,9 @@ int UnifiedFatigueLaw<TYieldSurfaceType>::Check(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateTangentTensor(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
