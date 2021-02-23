@@ -120,6 +120,8 @@ namespace MPMParticleGeneratorUtility
                     else {
                         std::string warning_msg = "PARTICLES_PER_ELEMENT is not specified in Properties, ";
                         warning_msg += "1 Particle per element is assumed.";
+                        warning_msg += "\nSubmodelpart = ";
+                        warning_msg += submodelpart.Name();
                         KRATOS_WARNING("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                         particles_per_element = 1;
                     }

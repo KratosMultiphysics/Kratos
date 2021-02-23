@@ -363,6 +363,8 @@ namespace Kratos {
 
                         ModelPart& r_contact_mp = rModelPart.GetSubModelPart(contact_release_mp_name);
 
+                        CleanAndDetermineAuxMassContactReleaseModelPart(r_contact_mp);
+
                         // Compute modelpart normals
                         ComputeContactReleaseModelPartNormals(r_contact_mp, mr_grid_model_part);
 
@@ -572,6 +574,63 @@ namespace Kratos {
             /// @name Member Variables
             ModelPart& mr_grid_model_part;
 
+            void CleanAndDetermineAuxMassContactReleaseModelPart(ModelPart& rContactMP)
+            {
+                KRATOS_TRY
+
+                // Clean aux mass
+                #pragma omp parallel for
+                for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter) {
+                    auto i = mr_grid_model_part.NodesBegin() + iter;
+                    i->FastGetSolutionStepValue(AUX_MASS) = 0.0;
+                    i->FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE) = false;
+                }
+
+                // Determine aux mass and set all to active
+                const ProcessInfo& process_info = mr_grid_model_part.GetProcessInfo();
+                #pragma omp parallel for
+                for (int iter = 0; iter < static_cast<int>(rContactMP.Elements().size()); ++iter) {
+                    auto rMP = rContactMP.ElementsBegin() + iter;
+                    // Calculating shape functions
+                    std::vector<double> mp_mass(1);
+                    auto& rGeom = rMP->GetGeometry();
+
+                    rMP->CalculateOnIntegrationPoints(MP_MASS, mp_mass, process_info);
+
+                    for (unsigned int i = 0; i < rGeom.PointsNumber(); ++i) {
+                        for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p) {
+                            double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
+                            if (rGeom.ShapeFunctionValue(int_p, i) >= 0.0) {
+                                rGeom[i].SetLock();
+                                rGeom[i].FastGetSolutionStepValue(AUX_MASS, 0) += rGeom.ShapeFunctionValue(int_p, i)* mp_mass[0] * weight;
+                                rGeom[i].FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE) = true;
+                                rGeom[i].UnSetLock();
+                            }
+                        }
+                    }
+                }
+
+                // Filter out non-boundary contact nodes
+                #pragma omp parallel for
+                for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter) {
+                    auto i = mr_grid_model_part.NodesBegin() + iter;
+                    if (i->FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE))
+                    {
+                        double aux_mass = i->FastGetSolutionStepValue(AUX_MASS);
+                        double mass = i->FastGetSolutionStepValue(NODAL_MASS);
+                        // Check if we are entirely within the contact body
+                        if (std::abs(aux_mass / mass - 1.0) < 1e-9) {
+                            i->FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE) = false;
+                        }
+                    }
+
+                }
+
+
+
+                KRATOS_CATCH("")
+            }
+
             void ComputeContactReleaseModelPartNormals(ModelPart& rContactMP, ModelPart& rBackgroundGrid)
             {
                 KRATOS_TRY
@@ -585,12 +644,9 @@ namespace Kratos {
                     auto i = rBackgroundGrid.NodesBegin() + iter;
                     array_1d<double, 3 > & r_normal = (i)->FastGetSolutionStepValue(NORMAL);
                     r_normal.clear();
-
-                    i->FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE) = false;
                 }
 
                 // Determine normals
-
                 #pragma omp parallel for
                 for (int iter = 0; iter < static_cast<int>(rContactMP.Elements().size()); ++iter) {
                     auto rMP = rContactMP.ElementsBegin() + iter;
@@ -621,16 +677,19 @@ namespace Kratos {
                         {
                             if (rGeom.ShapeFunctionValue(i, j) >= 0.0)
                             {
-                                temp[0] = DN_DX(active_node_counter, 0);
-                                temp[1] = DN_DX(active_node_counter, 1);
-                                temp[2] = 0.0;
-                                temp *= mp_mass[0]* weight;
+                                if (rGeom[j].FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE) = true)
+                                {
+                                    temp[0] = DN_DX(active_node_counter, 0);
+                                    temp[1] = DN_DX(active_node_counter, 1);
+                                    temp[2] = 0.0;
+                                    temp *= mp_mass[0] * weight;
 
-                                rGeom[j].SetLock();
-                                array_1d<double, 3>& r_normal = rGeom[j].FastGetSolutionStepValue(NORMAL);
-                                r_normal += temp;
-                                rGeom[j].FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE) = true;
-                                rGeom[j].UnSetLock();
+                                    rGeom[j].SetLock();
+                                    array_1d<double, 3>& r_normal = rGeom[j].FastGetSolutionStepValue(NORMAL);
+                                    r_normal += temp;
+                                    rGeom[j].FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE) = true;
+                                    rGeom[j].UnSetLock();
+                                }
 
                                 active_node_counter += 1;
                             }
@@ -666,7 +725,6 @@ namespace Kratos {
                         array_1d<double, 3 >& r_aux_mom = (i)->FastGetSolutionStepValue(AUX_MOMENTA);
                         array_1d<double, 3 >& r_inertia = (i)->FastGetSolutionStepValue(AUX_INERTIA);
                         array_1d<double, 3 >& r_residual = (i)->FastGetSolutionStepValue(AUX_RESIDUAL);
-                        (i)->FastGetSolutionStepValue(AUX_MASS) = 0.0;
 
                         r_aux_mom.clear();
                         r_inertia.clear();
@@ -693,25 +751,26 @@ namespace Kratos {
 
                     for (unsigned int i = 0; i < rGeom.PointsNumber(); ++i)
                     {
-                        for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p)
+                        if (rGeom[i].FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE))
                         {
-                            double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
-                            if (rGeom.ShapeFunctionValue(int_p, i) >= 0.0) // skip inactive nodes
+                            for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p)
                             {
-                                for (unsigned int j = 0; j < rGeom.WorkingSpaceDimension(); ++j)
+                                double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
+                                if (rGeom.ShapeFunctionValue(int_p, i) >= 0.0) // skip inactive nodes
                                 {
-                                    nodal_momentum[j] = rGeom.ShapeFunctionValue(int_p, i) * mp_vel[0][j] *
-                                        mp_mass[0] * weight;
-                                    nodal_inertia[j] = rGeom.ShapeFunctionValue(int_p, i) * mp_accel[0][j] *
-                                        mp_mass[0] * weight;
-                                }
+                                    for (unsigned int j = 0; j < rGeom.WorkingSpaceDimension(); ++j)
+                                    {
+                                        nodal_momentum[j] = rGeom.ShapeFunctionValue(int_p, i) * mp_vel[0][j] *
+                                            mp_mass[0] * weight;
+                                        nodal_inertia[j] = rGeom.ShapeFunctionValue(int_p, i) * mp_accel[0][j] *
+                                            mp_mass[0] * weight;
+                                    }
 
-                                rGeom[i].SetLock();
-                                rGeom[i].FastGetSolutionStepValue(AUX_MOMENTA) += nodal_momentum;
-                                rGeom[i].FastGetSolutionStepValue(AUX_INERTIA, 0) += nodal_inertia;
-                                rGeom[i].FastGetSolutionStepValue(AUX_MASS, 0) += rGeom.ShapeFunctionValue(int_p, i)
-                                    * mp_mass[0] * weight;
-                                rGeom[i].UnSetLock();
+                                    rGeom[i].SetLock();
+                                    rGeom[i].FastGetSolutionStepValue(AUX_MOMENTA) += nodal_momentum;
+                                    rGeom[i].FastGetSolutionStepValue(AUX_INERTIA, 0) += nodal_inertia;
+                                    rGeom[i].UnSetLock();
+                                }
                             }
                         }
                     }
@@ -728,13 +787,16 @@ namespace Kratos {
                     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
                     for (size_t i = 0; i < r_geometry.PointsNumber(); ++i) {
-                        size_t index = dimension * i;
-                        r_geometry[i].SetLock();
-                        array_1d<double, 3>& r_force_residual = r_geometry[i].FastGetSolutionStepValue(AUX_RESIDUAL);
-                        for (size_t j = 0; j < dimension; ++j) {
-                            r_force_residual[j] += RHS_Contribution[index + j];
+                        if (r_geometry[i].FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE))
+                        {
+                            size_t index = dimension * i;
+                            r_geometry[i].SetLock();
+                            array_1d<double, 3>& r_force_residual = r_geometry[i].FastGetSolutionStepValue(AUX_RESIDUAL);
+                            for (size_t j = 0; j < dimension; ++j) {
+                                r_force_residual[j] += RHS_Contribution[index + j];
+                            }
+                            r_geometry[i].UnSetLock();
                         }
-                        r_geometry[i].UnSetLock();
                     }
                 }
 
@@ -802,26 +864,23 @@ namespace Kratos {
                             double aux_mass = it_node->FastGetSolutionStepValue(AUX_MASS);
                             const array_1d<double, 3>& r_normal = it_node->FastGetSolutionStepValue(NORMAL);
 
-                            // Check if we are entirely within the contact body
-                            if (std::abs(aux_mass/ mass - 1.0) < 1e-9)
-                            {
-                                // We are entirely in the contact body - grid field and aux field are the same
+                            // We are on a boundary node.
+                            array_1d<double, 3> vel_diff = ZeroVector(3);
+                            if (aux_mass > 1e-12) vel_diff += r_aux_nodal_momenta / aux_mass;
+                            if (mass > 1e-12) vel_diff -= r_nodal_momenta / mass;
+
+                            double contact_constraint = inner_prod(vel_diff, r_normal);
+
+                            // Remove the effect of the contact body from the grid (decoupled grid)
+                            array_1d<double, 3> grid_body_momenta = r_nodal_momenta - r_aux_nodal_momenta;
+                            array_1d<double, 3> grid_body_residual = r_residual - r_aux_residual;
+                            const double grid_body_mass = mass - aux_mass;
+
+                            if (std::abs(aux_mass / mass - 1.0) < 1e-9) {
                                 it_node->FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE) = false;
                             }
                             else
                             {
-                                // We are on a boundary node.
-                                array_1d<double, 3> vel_diff = ZeroVector(3);
-                                if (aux_mass > 1e-9) vel_diff += r_aux_nodal_momenta / aux_mass;
-                                if (mass > 1e-9) vel_diff -= r_nodal_momenta / mass;
-
-                                double contact_constraint = inner_prod(vel_diff, r_normal);
-
-                                // Remove the effect of the contact body from the grid (decoupled grid)
-                                array_1d<double, 3> grid_body_momenta = r_nodal_momenta - r_aux_nodal_momenta;
-                                array_1d<double, 3> grid_body_residual = r_residual - r_aux_residual;
-                                const double grid_body_mass = mass - aux_mass;
-
                                 if (contact_constraint <= 0.0) // [Huan2011 eq8]
                                 {
                                     // Contact release
@@ -863,6 +922,8 @@ namespace Kratos {
                                     mass = grid_body_mass;
                                 }
                             }
+
+
                         }
                     }
                 }
