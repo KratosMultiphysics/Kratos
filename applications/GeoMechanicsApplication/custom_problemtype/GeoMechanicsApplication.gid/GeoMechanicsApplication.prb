@@ -120,9 +120,9 @@ QUESTION: Block_Builder#CB#(true,false)
 VALUE: true
 QUESTION: Reset_Displacements#CB#(true,false)
 VALUE: true
-QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
-VALUE: BICGSTABSolver
-HELP: OpenMP solvers: SkylineLUFactorizationSolver (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.
+QUESTION: Solver_Type#CB#(amgcl,amgcl_ns,bicgstab,cg,deflated_cg,monotonicity_preserving,scaling,skyline_lu_factorization,sparse_cg,sparse_lu,sparse_qr,tfqmr)
+VALUE: bicgstab
+HELP: OpenMP solvers: SkylineLUFactorization (Direct), Sparse_LU (Direct), BICGSTAB (Iter.) and AMGCL (Iter.).
 QUESTION: Scaling#CB#(true,false)
 VALUE: true
 QUESTION: Verbosity
