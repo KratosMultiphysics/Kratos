@@ -68,11 +68,6 @@ class TestXMCAlgorithm(unittest.TestCase):
         for parametersPath in parametersList:
             with open(parametersPath, "r") as parameter_file:
                 parameters = json.load(parameter_file)
-            # add path of the problem folder to python path
-            problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
-            sys.path.append(
-                os.path.join(problem_id)
-            )
             # SolverWrapper
             parameters["solverWrapperInputDictionary"]["qoiEstimator"] = parameters["monteCarloIndexInputDictionary"]["qoiEstimator"]
             # SampleGenerator
@@ -175,11 +170,6 @@ class TestXMCAlgorithm(unittest.TestCase):
         for parametersPath in parametersList:
             with open(parametersPath, "r") as parameter_file:
                 parameters = json.load(parameter_file)
-            # add path of the problem folder to python path
-            problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
-            sys.path.append(
-                os.path.join(problem_id)
-            )
             # SolverWrapper
             parameters["solverWrapperInputDictionary"]["qoiEstimator"] = parameters["monteCarloIndexInputDictionary"]["qoiEstimator"]
             # SampleGenerator
