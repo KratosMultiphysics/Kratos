@@ -50,7 +50,6 @@ namespace Kratos
         : Element( NewId, pGeometry, pProperties )
         , mResidualType( TheResidualType )
     {
-
     }
 
     //******************************COPY CONSTRUCTOR**************************************//
@@ -357,6 +356,47 @@ namespace Kratos
         KRATOS_CATCH( "Problem in the Check in the TestElement" )
     }
 
+
+    //************************************************************************************//
+    //************************************************************************************//
+
+    void TestElement::CalculateOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const SizeType integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != integration_points_number) {
+            rValues.resize(integration_points_number);
+        }
+        for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
+            rValues[point_number] = mConstitutiveLawVector[point_number];
+        }
+    }
+}
+
+    //************************************************************************************//
+    //************************************************************************************//
+
+    void TestElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+    {
+        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+        //Constitutive Law initialisation
+        if ( mConstitutiveLawVector.size() != integration_points.size() )
+            mConstitutiveLawVector.resize( integration_points.size() );
+
+        const GeometryType& r_geometry = GetGeometry();
+        const Properties& r_properties = GetProperties();
+        const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[point_number]->InitializeMaterial( r_properties, r_geometry, row(N_values , point_number ));
+        }
+    }
 
     //************************************************************************************//
     //************************************************************************************//

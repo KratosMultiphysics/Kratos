@@ -110,7 +110,7 @@ class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
             self.__CompareMatrix(eig_vec_mat, eig_vec_mat_contr, 10) # Note: this might me too strict depending on the eigenvalue solver (works fine with eigen_eigensystem in compination with the eigen sparse-lu)
 
     def __CompareEigenSolutionMasterSlave(self, model_part_with_constraints):
-        
+
         num_nodes = model_part_with_constraints.NumberOfNodes()
 
         master_node_id = int(num_nodes/2)
@@ -172,6 +172,7 @@ def SetupSystem(model_part, use_constraints):
     props[StructuralMechanicsApplication.TORSIONAL_INERTIA] = 0.00001
     props[StructuralMechanicsApplication.I22] = 0.00002
     props[StructuralMechanicsApplication.I33] = 0.00001
+    props[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
 
     for i_elem, connectivity in enumerate(element_connectivities):
         model_part.CreateNewElement("CrLinearBeamElement3D2N", i_elem+1, connectivity, props)
