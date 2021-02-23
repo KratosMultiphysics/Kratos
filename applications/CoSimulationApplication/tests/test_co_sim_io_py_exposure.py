@@ -62,31 +62,34 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
         p = self.__RunPythonInSubProcess("import_export_data")
 
         connection_settings = CoSimIO.Info()
-        connection_settings.SetString("connection_name", "im_exp_data")
+        connection_settings.SetString("my_name", "ExpImp")
+        connection_settings.SetString("connect_to", "impExp")
         connection_settings.SetInt("echo_level", 0)
         info = CoSimIO.Connect(connection_settings)
+        connection_name = info.GetString("connection_name")
         self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Connected)
 
-        values = [1.0, 2.5, 3.3, -9.4]
+        values = CoSimIO.DoubleVector([1.0, 2.5, 3.3, -9.4])
 
         export_info = CoSimIO.Info()
-        export_info.SetString("connection_name", "im_exp_data")
+        export_info.SetString("connection_name", connection_name)
         export_info.SetString("identifier", "data_exchange_1")
         CoSimIO.ExportData(export_info, values)
 
         import_info = CoSimIO.Info()
-        import_info.SetString("connection_name", "im_exp_data")
+        import_info.SetString("connection_name", connection_name)
         import_info.SetString("identifier", "data_exchange_2")
-        imported_values = CoSimIO.ImportData(import_info)
+        imported_values = CoSimIO.DoubleVector()
+        CoSimIO.ImportData(import_info, imported_values)
 
         disconnect_settings = CoSimIO.Info()
-        disconnect_settings.SetString("connection_name", "im_exp_data")
+        disconnect_settings.SetString("connection_name", connection_name)
 
         info = CoSimIO.Disconnect(disconnect_settings)
         self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Disconnected)
 
         # checking the values after disconnecting to avoid deadlock
-        self.assertVectorAlmostEqual(KM.Vector(values), KM.Vector(imported_values))
+        self.assertVectorAlmostEqual(values, imported_values)
 
         self.__CheckSubProcess(p)
 
