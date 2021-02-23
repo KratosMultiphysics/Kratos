@@ -34,6 +34,7 @@
 
 #include "custom_external_libraries/co_sim_io/python/connection_status_to_python.hpp"
 #include "custom_external_libraries/co_sim_io/python/info_to_python.hpp"
+#include "custom_external_libraries/co_sim_io/python/vector_to_python.hpp"
 #include "custom_external_libraries/co_sim_io/python/version_to_python.hpp"
 
 namespace Kratos {
@@ -224,14 +225,13 @@ void ImportData_ModelPart_Vector(
     KRATOS_CATCH("")
 }
 
-std::vector<double> ImportData_RawValues(
-    CoSimIO::Info& rInfo)
+void ImportData_RawValues(
+    CoSimIO::Info& rInfo,
+    std::vector<double>& rValues)
 {
     KRATOS_TRY
 
-    CoSimIO::ImportData(rInfo, DataBuffers::vector_doubles);
-
-    return DataBuffers::vector_doubles;
+    CoSimIO::ImportData(rInfo, rValues);
 
     KRATOS_CATCH("")
 }
@@ -272,6 +272,7 @@ void  AddCoSimIOToPython(pybind11::module& m)
 
     AddCoSimIOInfoToPython(m_co_sim_io);
     AddCoSimIOConnectionStatusToPython(m_co_sim_io);
+    AddCoSimIOVectorToPython(m_co_sim_io);
     AddCoSimIOVersionToPython(m_co_sim_io);
 
     m_co_sim_io.def("Connect",    &CoSimIO::Connect);
