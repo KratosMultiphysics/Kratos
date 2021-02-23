@@ -4,7 +4,6 @@ import time as timer
 import os
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro

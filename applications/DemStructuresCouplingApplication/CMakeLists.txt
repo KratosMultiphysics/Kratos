@@ -39,7 +39,7 @@ set_target_properties(KratosDemStructuresCouplingCore PROPERTIES COMPILE_DEFINIT
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosDemStructuresCouplingApplication MODULE THIN_LTO ${KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosDemStructuresCouplingApplication PUBLIC KratosDemStructuresCouplingCore)
+target_link_libraries(KratosDemStructuresCouplingApplication PUBLIC KratosDemStructuresCouplingCore KratosPoromechanicsCore)
 set_target_properties(KratosDemStructuresCouplingApplication PROPERTIES PREFIX "")
 
 

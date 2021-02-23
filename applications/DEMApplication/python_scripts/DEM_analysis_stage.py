@@ -454,13 +454,16 @@ class DEMAnalysisStage(AnalysisStage):
         self.all_model_parts.ComputeMaxIds()
 
     def RunAnalytics(self, time, is_time_to_print=True):
+        is_there_any_ghost_wall = False
         for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
             self.MakeAnalyticsMeasurements()
-            if is_time_to_print:
-                self.FaceAnalyzerClass.CreateNewFile()
-                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-                    self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
-                self.FaceAnalyzerClass.RemoveOldFile()
+            is_there_any_ghost_wall = True
+
+        if is_time_to_print and is_there_any_ghost_wall:
+            self.FaceAnalyzerClass.CreateNewFile() #TODO: this is not working, the static method is accessing a member variable!!!
+            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
+            self.FaceAnalyzerClass.RemoveOldFile()
 
     def IsTimeToPrintPostProcess(self):
         return self.do_print_results_option and self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._GetSolver().dt
@@ -495,7 +498,6 @@ class DEMAnalysisStage(AnalysisStage):
             self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION] = self.DEM_parameters["ImposeZStrainIn2DOption"].GetBool()
             if not self.DEM_parameters["ImposeZStrainIn2DWithControlModule"].GetBool():
                 if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
-                    t = self.time
                     self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
 
 
@@ -681,7 +683,7 @@ class DEMAnalysisStage(AnalysisStage):
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
-        stepinfo = self.report.StepiReport(timer, self.time, self.step)
+        stepinfo = self.report.StepiReport(timer, self.time, self.spheres_model_part.ProcessInfo[TIME_STEPS])
         if stepinfo:
             self.KratosPrintInfo(stepinfo)
 
