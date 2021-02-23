@@ -33,7 +33,6 @@ export BOOST_ROOT=${BOOST_ROOT:-"/home/vahid/Dropbox/Libraries/C++/boost/boost_1
 # Set applications to compile
 export KRATOS_APPLICATIONS=
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication
-add_app ${KRATOS_APP_DIR}/ExternalSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication
 
