@@ -32,6 +32,20 @@ def GetPointCoordinatesAndDerivatives(nurbs_surface, points_on_surface, order):
         derivatives.append(derivative)
     return point_coordinates, derivatives
 
+def MakeModelPart(nurbs_surface, points_on_surface, model_part):
+    id = model_part.NumberOfNodes()
+    for [u,v] in points_on_surface:
+        if(u>1.0): u = 1.0
+        if(u<0.0): u = 0.0
+
+        if(v>1.0): v = 1.0
+        if(v<0.0): v = 0.0
+        #print("############ u : ", u, " v : ", v)
+        result = nurbs_surface.derivatives(u,v, 0)
+        point_coordinates = result[0][0]
+        model_part.CreateNewNode(id, point_coordinates[0], point_coordinates[1], point_coordinates[2])
+        id = id+1
+
 def VisualizeSurface(nurbs_surface):
     # Import and use Matplotlib's colormaps
     # Plot the control points grid and the evaluated surface
