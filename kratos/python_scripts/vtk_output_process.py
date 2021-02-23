@@ -8,9 +8,9 @@ def Factory(settings, model):
     return VtkOutputProcess(model, settings["Parameters"])
 
 
-class VtkOutputProcess(KratosMultiphysics.Process):
+class VtkOutputProcess(KratosMultiphysics.OutputProcess):
     def __init__(self, model, settings):
-        KratosMultiphysics.Process.__init__(self)
+        super().__init__()
 
         model_part_name = settings["model_part_name"].GetString()
         self.model_part = model[model_part_name]
