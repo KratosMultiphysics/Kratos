@@ -701,7 +701,7 @@ public:
 
 public:
     /**
-     * @brief Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
+     * @brief Calculates the determinant of a matrix of a square matrix of any size (no check performed on release mode)
      * @param rA Is the input matrix
      * @return The determinant of any size matrix
      */
