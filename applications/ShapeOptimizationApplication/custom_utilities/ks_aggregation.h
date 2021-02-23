@@ -30,6 +30,8 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "utilities/binbased_fast_point_locator.h"
+#include "input_output/vtk_output.h"
 
 
 namespace Kratos
@@ -77,6 +79,8 @@ public:
     KreisselmeierSteinhauserAggregationUtility( ModelPart& modelPart )
         : mrModelPart( modelPart )
     {
+        mpPointLocator = Kratos::make_unique<BinBasedFastPointLocator<3>>(mrModelPart);
+        mpPointLocator->UpdateSearchDatabase();
     }
 
     /// Destructor.
@@ -193,6 +197,7 @@ private:
 
     // Initialized by class constructor
     ModelPart& mrModelPart;
+    BinBasedFastPointLocator<3>::UniquePointer mpPointLocator;
 
     ///@}
     ///@name Private Operators
@@ -206,13 +211,41 @@ private:
     {
         double value = 0.0;
         const auto& r_process_info = rModelPart.GetProcessInfo();
-        // GetGeometry().IntegrationPoints(mIntegrationMethod).size()
-        for (auto& r_elem : rModelPart.Elements())
+        double max_mean = 0.0;
+        std::vector<double> mean_stresses_vector;
+        const int max_results = 10000;
+        Vector weights;
+        typename BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
+        typename BinBasedFastPointLocator<3>::ResultIteratorType result_begin =
+            results.begin();
+
+        mean_stresses_vector.reserve((rModelPart.NumberOfElements()));
+        for (auto& r_node : rModelPart.Nodes())
         {
-            const int num_gps = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
-            std::vector<double> tmp_stress_vector(num_gps);
-            r_elem.CalculateOnIntegrationPoints(rVariable, tmp_stress_vector, r_process_info);          
+            Element::Pointer r_host_element;
+            bool is_found = false;
+            is_found = mpPointLocator->FindPointOnMesh(r_node.Coordinates(), weights,
+                                                r_host_element, result_begin, max_results, 1e-1);
+            if(is_found){
+                const int num_gps = r_host_element->GetGeometry().IntegrationPoints(r_host_element->GetIntegrationMethod()).size();
+                std::vector<double> stress_vector(num_gps);
+                r_host_element->CalculateOnIntegrationPoints(rVariable, stress_vector, r_process_info);
+                double mean = 0.0;
+                for(const auto stress : stress_vector){
+                    mean+=stress;
+                }
+                mean = mean/stress_vector.size();
+                if(mean > max_mean)
+                    max_mean = mean;
+                mean_stresses_vector.push_back(mean);
+            }
+            else {
+                KRATOS_WARNING("KreisselmeierSteinhauserAggregationUtility")<<"Node "<< r_node <<" not found !"<<std::endl;
+            }
         }
+        for (const auto mean : mean_stresses_vector)
+            value += std::exp(rho * (mean/max_mean));
+        value /= rho;
         return value;
     }
 
