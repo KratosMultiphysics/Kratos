@@ -3838,7 +3838,6 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 
     // We reorder the ids to avoid conflicts with the rest (using as reference the OLD_ENTITY)
     /* Nodes */
-    IndexType counter_to_remesh = 0;
     IndexType counter_to_remesh = block_for_each<SumReduction<IndexType>>(
     r_nodes_array,
     [](Node<3>& r_node){
