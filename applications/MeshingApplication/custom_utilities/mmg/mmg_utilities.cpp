@@ -3867,7 +3867,6 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     }
 
     /* Conditions */
-    counter_to_remesh = 0;
     counter_to_remesh = block_for_each<SumReduction<IndexType>>(
     r_conditions_array,
     [](Condition& r_cond){
