@@ -32,6 +32,7 @@
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
+#include "custom_utilities/ks_aggregation.h"
 
 // ==============================================================================
 
@@ -102,6 +103,20 @@ inline void AssembleMatrixForVariableList(
         variables_vector[i] = (rVariables[i]).cast<Variable<OptimizationUtilities::array_3d>*>();
     }
     return utils.AssembleMatrix(rMatrix, variables_vector);
+}
+
+inline double CalculateValueKSAggregationDefault(
+    KreisselmeierSteinhauserAggregationUtility& utils,
+    const Variable<double>& rVariable, const double rho)
+{
+    return utils.CalculateValue(rVariable, rho);
+}
+
+inline double CalculateValueKSAggregationWithModelpart(
+    KreisselmeierSteinhauserAggregationUtility& utils,
+    const ModelPart& rModelPart, const Variable<double>& rVariable, const double rho)
+{
+    return utils.CalculateValue(rModelPart, rVariable, rho);
 }
 
 // ==============================================================================
@@ -222,6 +237,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<SearchBasedFunctions >(m, "SearchBasedFunctions")
         .def(py::init<ModelPart&>())
         .def("FlagNodesInRadius", &SearchBasedFunctions::FlagNodesInRadius)
+        ;
+
+    // ========================================================================
+    // KreisselmeierSteinhauserAggregationUtility
+    // ========================================================================
+    py::class_<KreisselmeierSteinhauserAggregationUtility >(m, "KreisselmeierSteinhauserAggregationUtility")
+        .def(py::init<ModelPart&>())
+        .def("CalculateValue", &CalculateValueKSAggregationDefault)
+        .def("CalculateValue", &CalculateValueKSAggregationWithModelpart)
         ;
 
 }

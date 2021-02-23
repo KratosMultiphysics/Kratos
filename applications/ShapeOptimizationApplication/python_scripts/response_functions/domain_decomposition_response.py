@@ -65,6 +65,8 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
 
         self.updates = None
 
+        self.sa_object = None # Stress Aggregation
+
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
@@ -100,7 +102,6 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
         self.gradient = {} # node 1 [u,v] node2 [u, v] .... in paremetric space
 
     def CalculateValue(self):
-
         if not self.primal_analysis_done:
             Logger.PrintInfo("\n> Starting primal analysis for response. This will be done only once.", self.identifier)
             startTime = timer.time()
@@ -148,6 +149,8 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
         ctrlpts = cad_util.GetControlPoints(self.trimming_curve)
         for i, ctrlpt in enumerate(ctrlpts):
             ctrlpts[i] = [x + y for x, y in zip(ctrlpt, self.updates[i])]
+
+            # u and v should be with in [0,1]
             if(ctrlpts[i][0] > 1):
                 ctrlpts[i][0] = 1
             if(ctrlpts[i][0] < 0):
