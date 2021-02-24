@@ -76,7 +76,7 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
     const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" +   std::to_string(TDim) + "D");
 
     // Setting metric in case not defined
-    if (!it_node_begin->Has(r_tensor_variable)) {
+    if (!r_nodes_array.begin()->Has(r_tensor_variable)) {
         VariableUtils().SetNonHistoricalVariableToZero(r_tensor_variable, r_nodes_array);
     }
 
