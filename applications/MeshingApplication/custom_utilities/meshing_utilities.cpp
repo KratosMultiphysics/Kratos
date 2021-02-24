@@ -45,20 +45,18 @@ void BlockThresholdSizeElements(
     ComputeElementsSize(rModelPart);
 
     // Iterating over the elements
-    ElementsArrayType& r_elements_array = rModelPart.Elements();
-    const auto it_elem_begin= r_elements_array.begin();
+    auto& r_elements_array = rModelPart.Elements();
 
-    IndexPartition<std::size_t>(r_elements_array.size()).for_each(
-        [&it_elem_begin,&minimal_size,&maximal_size](std::size_t i) {
-        auto it_elem = it_elem_begin + i;
+    block_for_each(r_elements_array,
+        [&minimal_size,&maximal_size](Element& rElement) {
 
-        if (it_elem->IsNot(BLOCKED)) {
+        if (rElement.IsNot(BLOCKED)) {
             // Getting ELEMENT_H
-            const double element_h = it_elem->GetValue(ELEMENT_H);
+            const double element_h = rElement.GetValue(ELEMENT_H);
 
             // Blocking elements in the threshold sizes
             if (element_h <= minimal_size || element_h >= maximal_size) {
-                it_elem->Set(BLOCKED, true);
+                rElement.Set(BLOCKED, true);
             }
         }
     });
@@ -70,31 +68,29 @@ void BlockThresholdSizeElements(
 void ComputeElementsSize(ModelPart& rModelPart)
 {
     // Iterating over the elements
-    ElementsArrayType& r_elements_array = rModelPart.Elements();
-    const auto it_elem_begin= r_elements_array.begin();
+    auto& r_elements_array = rModelPart.Elements();
 
-    IndexPartition<std::size_t>(r_elements_array.size()).for_each(
-        [&it_elem_begin](std::size_t i) {
-        auto it_elem = it_elem_begin + i;
-        ComputeElementSize(it_elem);
+    block_for_each(r_elements_array,
+        [&](Element& rElement) {
+        ComputeElementSize(rElement);
     });
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ComputeElementSize(ElementItType itElement)
+void ComputeElementSize(Element& rElement)
 {
-    auto& this_geometry = itElement->GetGeometry();
+    auto& this_geometry = rElement.GetGeometry();
 
     // Here we compute the element size. This process is designed for triangles and tetrahedra, so we only specify for this geometries. Otherwise we take the length (and we throw a warning)
     if (this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3){ // Triangular elements
-        itElement->SetValue(ELEMENT_H, 2.0 * this_geometry.Circumradius());
+        rElement.SetValue(ELEMENT_H, 2.0 * this_geometry.Circumradius());
     } else if(this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4){ // Tetrahedral elements
-        itElement->SetValue(ELEMENT_H,std::pow(12.0 * this_geometry.Volume()/std::sqrt(2.0), 1.0/3.0));
+        rElement.SetValue(ELEMENT_H,std::pow(12.0 * this_geometry.Volume()/std::sqrt(2.0), 1.0/3.0));
     } else { // In any othe case just considers the length of the element
         KRATOS_WARNING("MetricErrorProcess") << "This process is designed for tetrahedra (3D) and triangles (2D). Error expected" << std::endl;
-        itElement->SetValue(ELEMENT_H, this_geometry.Length());
+        rElement.SetValue(ELEMENT_H, this_geometry.Length());
     }
 }
 
