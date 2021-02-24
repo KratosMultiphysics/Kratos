@@ -176,7 +176,7 @@ void GenericFunctionUtility::InitializeParser()
         double& pi = mNameSpace["pi"];
 
         /* Store variable names and pointers. */
-        te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"a", &X}, {"b", &Y}, {"c", &Z}, {"pi", &pi}};
+        const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"a", &X}, {"b", &Y}, {"c", &Z}, {"pi", &pi}};
 
         /* Compile the expression with variables. */
         mpTinyExpr = te_compile(mFunctionBody.c_str(), vars, 8, &err);
