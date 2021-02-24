@@ -5,3 +5,7 @@ application = KratosStructuralMechanicsApplication()
 application_name = "KratosStructuralMechanicsApplication"
 
 _ImportApplication(application, application_name)
+
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    # if available import the advanced constitutive laws
+    import KratosMultiphysics.ConstitutiveLawsApplication
