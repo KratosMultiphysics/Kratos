@@ -253,6 +253,11 @@ public:
         Matrix& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Input and output
     ///@{
