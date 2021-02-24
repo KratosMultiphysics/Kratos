@@ -250,6 +250,8 @@ public:
             rCurrentProcessInfo, true, true);
     }
 
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
+
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id
@@ -257,8 +259,8 @@ public:
     */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo
-    ) const override;
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     /**
     * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
@@ -267,14 +269,14 @@ public:
     */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo
-    ) const override;
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     ///@}
     ///@name Base Class Operations
     ///@{
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+    void Initialize() override;
 
     void GetValuesVector(
         Vector& rValues,
@@ -288,6 +290,12 @@ public:
         Vector& rValues,
         int Step) const override;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
     ///@}
     ///@name Check
     ///@{
@@ -299,7 +307,7 @@ public:
     * or that no common error is found.
     * @param rCurrentProcessInfo
     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
@@ -415,6 +423,26 @@ private:
         const SecondVariations& rSecondVariationsStrain,
         const Vector& rSD,
         const double IntegrationWeight);
+
+    /**
+     * @brief This method gets a value directly in the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @tparam TType The type considered
+     */
+    template<class TType>
+    void GetValueOnConstitutiveLaw(
+        const Variable<TType>& rVariable,
+        std::vector<TType>& rOutput
+        )
+    {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            mConstitutiveLawVector[point_number]->GetValue(rVariable, rOutput[point_number]);
+        }
+    }
 
     ///@}
     ///@name Geometrical Functions
