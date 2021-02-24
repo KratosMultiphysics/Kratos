@@ -26,6 +26,7 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
 
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 #include "utilities/quadrature_points_utility.h"
 
 #include "integration/integration_point_utilities.h"
@@ -135,17 +136,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator
     NurbsSurfaceGeometry& operator=(const NurbsSurfaceGeometry& rOther)
     {
         BaseType::operator=(rOther);
@@ -157,17 +148,7 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator with different point type
     template<class TOtherContainerPointType>
     NurbsSurfaceGeometry& operator=(
         NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
@@ -248,13 +229,13 @@ public:
     ///@name Get and Set functions
     ///@{
 
-    /* @return returns the polynomial degree 'p' in u direction. */
+    /// @return returns the polynomial degree 'p' in u direction.
     SizeType PolynomialDegreeU() const
     {
         return mPolynomialDegreeU;
     }
 
-    /* @return returns the polynomial degree 'p' in u direction. */
+    /// @return returns the polynomial degree 'p' in u direction.
     SizeType PolynomialDegreeV() const
     {
         return mPolynomialDegreeV;
@@ -276,15 +257,13 @@ public:
         return mKnotsV;
     }
 
-    /* @return Gives the size of the knot vector in u-direction.
-    */
+    /// @return Gives the size of the knot vector in u-direction.
     SizeType NumberOfKnotsU() const
     {
         return mKnotsU.size();
     }
 
-    /* @return Gives the size of the knot vector in v-direction.
-    */
+    /// @return Gives the size of the knot vector in v-direction.
     SizeType NumberOfKnotsV() const
     {
         return mKnotsV.size();
@@ -343,7 +322,7 @@ public:
      * @param return vector of span intervals.
      * @param index of direction: 0: U; 1: V.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const override
     {
         rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
 
@@ -481,7 +460,8 @@ public:
      * @param return integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         const SizeType points_in_u = PolynomialDegreeU() + 1;
         const SizeType points_in_v = PolynomialDegreeV() + 1;
@@ -610,6 +590,46 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+    * @brief Projects a certain point on the geometry, or finds
+    *        the closest point, depending on the provided
+    *        initial guess. The external point does not necessary
+    *        lay on the geometry.
+    *        It shall deal as the interface to the mathematical
+    *        projection function e.g. the Newton-Raphson.
+    *        Thus, the breaking criteria does not necessarily mean
+    *        that it found a point on the surface, if it is really
+    *        the closest if or not. It shows only if the breaking
+    *        criteria, defined by the tolerance is reached.
+    *
+    *        This function requires an initial guess, provided by
+    *        rProjectedPointLocalCoordinates.
+    *        This function can be a very costly operation.
+    *
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointGlobalCoordinates the location of the
+    *        projection in global coordinates.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    *        The variable is as initial guess!
+    * @param Tolerance accepted of orthogonal error to projection.
+    * @return It is chosen to take an int as output parameter to
+    *         keep more possibilities within the interface.
+    *         0 -> failed
+    *         1 -> converged
+    */
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return (int) ProjectionNurbsGeometryUtilities::NewtonRaphsonSurface(rProjectedPointLocalCoordinates,
+            rPointGlobalCoordinates, rProjectedPointGlobalCoordinates, (*this));
+    }
 
     /** This method maps from dimension space to working space.
     * @param rResult array_1d<double, 3> with the coordinates in working space

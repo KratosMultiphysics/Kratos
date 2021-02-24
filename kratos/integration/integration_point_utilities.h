@@ -31,6 +31,7 @@ public:
     ///@{
 
     static const std::vector<std::vector<std::array<double, 2>>> s_gauss_legendre;
+    static const std::vector<std::vector<std::array<double, 3>>> s_gauss_triangle;
 
     ///@}
 public:
@@ -62,6 +63,11 @@ public:
         typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
         SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,
         double U0, double U1, double V0, double V1, double W0, double W1);
+
+    static void IntegrationPointsTriangle2D(
+        typename IntegrationPointsArrayType::iterator & rIntegrationPointsBegin,
+        SizeType PointsInU,
+        double U0, double U1, double U2, double V0, double V1, double V2);
 
     ///@}
 };

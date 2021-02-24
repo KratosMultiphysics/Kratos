@@ -26,6 +26,7 @@
 
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 
 namespace Kratos
 {
@@ -53,6 +54,7 @@ public:
 
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
+    typedef typename GeometryType::Pointer GeometryPointer;
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
@@ -72,6 +74,9 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
+    static constexpr IndexType SURFACE_INDEX = -1;
+    static constexpr IndexType CURVE_ON_SURFACE_INDEX = -3;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -85,6 +90,7 @@ public:
         , mpCurveOnSurface(
             Kratos::make_shared<NurbsCurveOnSurfaceType>(
                 pSurface, pCurve))
+        , mCurveNurbsInterval(pCurve->DomainInterval())
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -110,6 +116,7 @@ public:
         bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpCurveOnSurface(pNurbsCurveOnSurface)
+        , mCurveNurbsInterval(pNurbsCurveOnSurface->DomainInterval())
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -120,8 +127,8 @@ public:
         NurbsInterval CurveNurbsInterval,
         bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mCurveNurbsInterval(CurveNurbsInterval)
         , mpCurveOnSurface(pNurbsCurveOnSurface)
+        , mCurveNurbsInterval(CurveNurbsInterval)
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -162,17 +169,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator
     BrepCurveOnSurface& operator=( const BrepCurveOnSurface& rOther )
     {
         BaseType::operator=( rOther );
@@ -182,17 +179,7 @@ public:
         return *this;
     }
 
-    /**
-     * Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator with different point type
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
     BrepCurveOnSurface& operator=( BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
@@ -210,6 +197,70 @@ public:
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new BrepCurveOnSurface( ThisPoints ) );
+    }
+
+    ///@}
+    ///@name Access to Geometry Parts
+    ///@{
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the index.
+    *        Possible indices are:
+    *        SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @param Index: SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    GeometryPointer pGetGeometryPart(const IndexType Index) override
+    {
+        const auto& const_this = *this;
+        return std::const_pointer_cast<GeometryType>(
+            const_this.pGetGeometryPart(Index));
+    }
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the index.
+    *        Possible indices are:
+    *        SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @param Index: SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
+    {
+        if (Index == SURFACE_INDEX)
+            return mpCurveOnSurface->pGetGeometryPart(SURFACE_INDEX);
+
+        if (Index == CURVE_ON_SURFACE_INDEX)
+            return mpCurveOnSurface;
+
+        KRATOS_ERROR << "Index " << Index << " not existing in BrepCurveOnSurface: "
+            << this->Id() << std::endl;
+    }
+
+    /**
+    * @brief This function is used to check if the index is either
+    *        SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @param Index of the geometry part.
+    * @return true if SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
+    */
+    bool HasGeometryPart(const IndexType Index) const override
+    {
+        return (Index == SURFACE_INDEX || Index == CURVE_ON_SURFACE_INDEX);
+    }
+
+    ///@}
+    ///@name Set / Calculate access
+    ///@{
+
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput
+        ) const override
+    {
+        if (rVariable == PARAMETER_2D_COORDINATES) {
+            mpCurveOnSurface->Calculate(rVariable, rOutput);
+        }
     }
 
     ///@}
@@ -235,6 +286,12 @@ public:
     bool HasSameCurveDirection()
     {
         return mSameCurveDirection;
+    }
+
+    /// Returns the const NurbsCurveOnSurface::Pointer of this brep.
+    const NurbsInterval DomainInterval() const
+    {
+        return mCurveNurbsInterval;
     }
 
     /// Returns the NurbsCurveOnSurface::Pointer of this brep.
@@ -264,15 +321,20 @@ public:
      * @param vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
-        mpCurveOnSurface->Spans(rSpans, DirectionIndex,
-            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
+        mpCurveOnSurface->Spans(rSpans);
     }
 
     ///@}
     ///@name Geometrical Operations
     ///@{
+
+    /// Provides the center of the underlying curve on surface
+    Point Center() const override
+    {
+        return mpCurveOnSurface->Center();
+    }
 
     /*
     * @brief This method maps from dimension space to working space.
@@ -289,21 +351,87 @@ public:
         return mpCurveOnSurface->GlobalCoordinates(rResult, rLocalCoordinates);
     }
 
-    /**
-    * Returns whether given arbitrary point is inside the Geometry and the respective
-    * local point for the given global point
-    * @param rPoint The point to be checked if is inside o note in global coordinates
-    * @param rResult The local coordinates of the point
-    * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
-    * @return True if the point is inside, false otherwise
-    */
-    bool IsInside(
-        const CoordinatesArrayType& rPoint,
-        CoordinatesArrayType& rResult,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const override
+    /* @brief This method maps from dimension space to working space and computes the
+     *        number of derivatives at the dimension parameter.
+     * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
+     * @param LocalCoordinates The local coordinates in dimension space
+     * @param Derivative Number of computed derivatives
+     * @return std::vector<array_1d<double, 3>> with the coordinates in working space
+     * @see PointLocalCoordinates
+     */
+    void GlobalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rLocalCoordinates,
+        const SizeType DerivativeOrder) const override
     {
-        KRATOS_ERROR << "IsInside is not yet implemented within the BrepCurveOnSurface";
+        return mpCurveOnSurface->GlobalSpaceDerivatives(
+            rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
+    }
+
+    ///@}
+    ///@name IsInside
+    ///@{
+
+    /// returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const double min_parameter = mCurveNurbsInterval.MinParameter();
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        }
+
+        const double max_parameter = mCurveNurbsInterval.MaxParameter();
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    /* Returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+     * and sets it to the closest border */
+    int SetInsideLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return mCurveNurbsInterval.IsInside(rPointLocalCoordinates[0]);
+    }
+
+    ///@}
+    ///@name Projection
+    ///@{
+
+    /* Makes projection of rPointGlobalCoordinates to
+     * the closest point rProjectedPointGlobalCoordinates on the curve,
+     * with local coordinates rProjectedPointLocalCoordinates.
+     *
+     * Condiders limits of this BrepCurveOnSurface as borders.
+     *
+     * @param Tolerance is the breaking criteria.
+     * @return 1 -> projection succeeded
+     *         0 -> projection failed
+     */
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const bool success = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+            rProjectedPointLocalCoordinates,
+            rPointGlobalCoordinates,
+            rProjectedPointGlobalCoordinates,
+            *this,
+            20, Tolerance);
+
+        return (success)
+            ? 1
+            : 0;
     }
 
     ///@}
@@ -314,7 +442,8 @@ public:
     double Length() const override
     {
         IntegrationPointsArrayType integration_points;
-        CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info;
+        CreateIntegrationPoints(integration_points, integration_info);
 
         double length = 0.0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
@@ -328,14 +457,23 @@ public:
     ///@name Integration Points
     ///@{
 
-    /* Creates integration points on the nurbs surface of this geometry.
+    /* Creates integration points on the nurbs surface of this geometry
+     * with the domain limits of this brep curve on surface.
      * @param return integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints,
-            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
+        std::vector<double> spans;
+        if (!rIntegrationInfo.HasSpansInDirection(0)) {
+            std::vector<double> spans;
+            Spans(spans);
+            rIntegrationInfo.SetSpans(spans, 0);
+        }
+
+        mpCurveOnSurface->CreateIntegrationPoints(
+            rIntegrationPoints, rIntegrationInfo);
     }
 
     ///@}
@@ -355,10 +493,11 @@ public:
      */
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives) override
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints) override
     {
         mpCurveOnSurface->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives);
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);

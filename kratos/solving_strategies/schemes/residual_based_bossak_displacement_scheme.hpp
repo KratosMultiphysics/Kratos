@@ -216,26 +216,18 @@ public:
         mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
-        const auto it_node_begin = rModelPart.Nodes().begin();
+        block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [&](Node<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
+            noalias(rDeltaDisplacementTLS) = rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-        #pragma omp parallel for
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+            array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& r_previous_velocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
 
-            array_1d<double, 3 > delta_displacement;
+            array_1d<double, 3>& r_current_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION);
+            const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
 
-            noalias(delta_displacement) = it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-            array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double, 3>& r_previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
-
-            array_1d<double, 3>& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
-            const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-
-            UpdateVelocity(r_current_velocity, delta_displacement, r_previous_velocity, r_previous_acceleration);
-            UpdateAcceleration(r_current_acceleration, delta_displacement, r_previous_velocity, r_previous_acceleration);
-        }
+            UpdateVelocity(r_current_velocity, rDeltaDisplacementTLS, r_previous_velocity, r_previous_acceleration);
+            UpdateAcceleration(r_current_acceleration, rDeltaDisplacementTLS, r_previous_velocity, r_previous_acceleration);
+        });
 
         KRATOS_CATCH( "" );
     }
@@ -264,7 +256,6 @@ public:
         const double delta_time = r_current_process_info[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
         const auto it_node_begin = rModelPart.Nodes().begin();
 
         // Getting position
@@ -284,50 +275,54 @@ public:
         const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
         const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
 
-        #pragma omp parallel for private(delta_displacement, predicted)
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+        typedef std::tuple<array_1d<double,3>, std::array<bool,3>> TLSContainerType;
+        TLSContainerType aux_TLS = std::make_tuple(delta_displacement, predicted);
 
-            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim)
-                predicted[i_dim] = false;
+        block_for_each(rModelPart.Nodes(), aux_TLS, [&](Node<3>& rNode, TLSContainerType& rAuxTLS){
+            auto& r_delta_displacement = std::get<0>(rAuxTLS);
+            auto& r_predicted = std::get<1>(rAuxTLS);
+
+            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                r_predicted[i_dim] = false;
+            }
 
             // Predicting: NewDisplacement = r_previous_displacement + r_previous_velocity * delta_time;
-            const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-            const array_1d<double, 3>& r_previous_velocity     = it_node->FastGetSolutionStepValue(VELOCITY,     1);
-            const array_1d<double, 3>& r_previous_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            array_1d<double, 3>& r_current_acceleration        = it_node->FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double, 3>& r_current_velocity            = it_node->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& r_current_displacement        = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
+            const array_1d<double, 3>& r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
+            const array_1d<double, 3>& r_previous_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3>& r_current_acceleration        = rNode.FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3>& r_current_velocity            = rNode.FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3>& r_current_displacement        = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
             if (accelpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
-                        delta_displacement[i_dim] = (r_current_acceleration[i_dim] + mBossak.c3 * r_previous_acceleration[i_dim] +  mBossak.c2 * r_previous_velocity[i_dim])/mBossak.c0;
-                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + delta_displacement[i_dim];
-                        predicted[i_dim] = true;
+                    if (rNode.GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
+                        r_delta_displacement[i_dim] = (r_current_acceleration[i_dim] + mBossak.c3 * r_previous_acceleration[i_dim] +  mBossak.c2 * r_previous_velocity[i_dim])/mBossak.c0;
+                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + r_delta_displacement[i_dim];
+                        r_predicted[i_dim] = true;
                     }
                 }
             }
             if (velpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !predicted[i_dim]) {
-                        delta_displacement[i_dim] = (r_current_velocity[i_dim] + mBossak.c4 * r_previous_velocity[i_dim] + mBossak.c5 * r_previous_acceleration[i_dim])/mBossak.c1;
-                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + delta_displacement[i_dim];
-                        predicted[i_dim] = true;
+                    if (rNode.GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !r_predicted[i_dim]) {
+                        r_delta_displacement[i_dim] = (r_current_velocity[i_dim] + mBossak.c4 * r_previous_velocity[i_dim] + mBossak.c5 * r_previous_acceleration[i_dim])/mBossak.c1;
+                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + r_delta_displacement[i_dim];
+                        r_predicted[i_dim] = true;
                     }
                 }
             }
             for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                if (!it_node->GetDof(*disp_components[i_dim], disppos + i_dim).IsFixed() && !predicted[i_dim]) {
+                if (!rNode.GetDof(*disp_components[i_dim], disppos + i_dim).IsFixed() && !r_predicted[i_dim]) {
                     r_current_displacement[i_dim] = r_previous_displacement[i_dim] + delta_time * r_previous_velocity[i_dim] + 0.5 * std::pow(delta_time, 2) * r_previous_acceleration[i_dim];
                 }
             }
 
             // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
-            noalias(delta_displacement) = r_current_displacement - r_previous_displacement;
-            UpdateVelocity(r_current_velocity, delta_displacement, r_previous_velocity, r_previous_acceleration);
-            UpdateAcceleration(r_current_acceleration, delta_displacement, r_previous_velocity, r_previous_acceleration);
-        }
+            noalias(r_delta_displacement) = r_current_displacement - r_previous_displacement;
+            UpdateVelocity(r_current_velocity, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
+            UpdateAcceleration(r_current_acceleration, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
+        });
 
         KRATOS_CATCH( "" );
     }
@@ -364,7 +359,6 @@ public:
         mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
 
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
         const auto it_node_begin = rModelPart.Nodes().begin();
 
         // Getting dimension
@@ -380,29 +374,27 @@ public:
         const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
         const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
 
-        #pragma omp parallel for private(fixed)
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
-
-            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim)
-                fixed[i_dim] = false;
+        block_for_each(rModelPart.Nodes(), fixed, [&](Node<3>& rNode, std::array<bool,3>& rFixedTLS){
+            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                rFixedTLS[i_dim] = false;
+            }
 
             if (accelpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
-                        it_node->Fix(*disp_components[i_dim]);
-                        fixed[i_dim] = true;
+                    if (rNode.GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
+                        rNode.Fix(*disp_components[i_dim]);
+                        rFixedTLS[i_dim] = true;
                     }
                 }
             }
             if (velpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !fixed[i_dim]) {
-                        it_node->Fix(*disp_components[i_dim]);
+                    if (rNode.GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !rFixedTLS[i_dim]) {
+                        rNode.Fix(*disp_components[i_dim]);
                     }
                 }
             }
-        }
+        });
 
         KRATOS_CATCH( "" );
     }
@@ -765,7 +757,7 @@ private:
         CalculateBossakCoefficients();
 
         // Allocate auxiliary memory
-        const std::size_t num_threads = OpenMPUtils::GetNumThreads();
+        const std::size_t num_threads = ParallelUtilities::GetNumThreads();
 
         mVector.v.resize(num_threads);
         mVector.a.resize(num_threads);

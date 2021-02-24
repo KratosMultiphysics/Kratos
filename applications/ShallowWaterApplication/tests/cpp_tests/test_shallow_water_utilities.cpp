@@ -43,8 +43,9 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowWaterUtilitiesComputeVelocity, ShallowWaterAppl
 
     Parameters mesher_parameters(R"(
     {
-        "number_of_divisions":   8,
-        "element_name":     "Element2D3N"
+        "number_of_divisions":  8,
+        "element_name":         "Element2D3N",
+        "condition_name":       "LineCondition"
     })");
 
     ModelPart& r_model_part = model.CreateModelPart("model_part");

@@ -26,6 +26,9 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
 #include "utilities/curve_axis_intersection.h"
+#include "integration/integration_info.h"
+
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 
 namespace Kratos {
 
@@ -38,6 +41,9 @@ public:
 
     typedef typename TSurfaceContainerPointType::value_type NodeType;
     typedef typename TCurveContainerPointType::value_type CurveNodeType;
+
+    typedef Geometry<NodeType> GeometryType;
+    typedef typename GeometryType::Pointer GeometryPointer;
 
     typedef Geometry<NodeType> BaseType;
 
@@ -56,6 +62,8 @@ public:
     using BaseType::CreateQuadraturePointGeometries;
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
+
+    static constexpr IndexType SURFACE_INDEX = -1;
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
@@ -103,17 +111,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator
     NurbsCurveOnSurfaceGeometry& operator=(const NurbsCurveOnSurfaceGeometry& rOther)
     {
         BaseType::operator=(rOther);
@@ -122,17 +120,7 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator with different point type
     template<class TOtherCurveContainerPointType, class TOtherSurfaceContainerPointType>
     NurbsCurveOnSurfaceGeometry& operator=(
         NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TOtherCurveContainerPointType, TOtherSurfaceContainerPointType> const & rOther)
@@ -156,6 +144,68 @@ public:
     }
 
     ///@}
+    ///@name Access to Geometry Parts
+    ///@{
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the trim index.
+    *        Possible indices are:
+    *        SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
+    * @param Index: SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    GeometryPointer pGetGeometryPart(const IndexType Index) override
+    {
+        const auto& const_this = *this;
+        return std::const_pointer_cast<GeometryType>(
+            const_this.pGetGeometryPart(Index));
+    }
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the trim index.
+    *        Possible indices are:
+    *        SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
+    * @param Index: SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
+    {
+        if (Index == SURFACE_INDEX)
+            return mpNurbsSurface;
+
+        KRATOS_ERROR << "Index " << Index << " not existing in NurbsCurveOnSurface: "
+            << this->Id() << std::endl;
+    }
+
+    /**
+    * @brief This function is used to check if the index is
+    *        SURFACE_INDEX.
+    * @param Index of the geometry part.
+    * @return true if SURFACE_INDEX.
+    */
+    bool HasGeometryPart(const IndexType Index) const override
+    {
+        return Index == SURFACE_INDEX;
+    }
+
+    ///@}
+    ///@name Set / Calculate access
+    ///@{
+
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput
+        ) const override
+    {
+        if (rVariable == PARAMETER_2D_COORDINATES) {
+            array_1d<double, 3>& local_parameter = rOutput;
+            mpNurbsCurve->GlobalCoordinates(rOutput, local_parameter);
+        }
+    }
+
+    ///@}
     ///@name Mathematical Informations
     ///@{
 
@@ -175,33 +225,78 @@ public:
         return mpNurbsCurve->PointsNumberInDirection(LocalDirectionIndex);
     }
 
+    /* @brief Provides the nurbs boundaries of the NURBS/B-Spline curve.
+     * @return domain interval.
+     */
+    NurbsInterval DomainInterval() const
+    {
+        return mpNurbsCurve->DomainInterval();
+    }
+
     /* @brief Provides intersections of the nurbs curve with the knots of the surface,
      *         using the interval of this curve.
      * @param vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
-    {
-        auto interval = mpNurbsCurve->DomainInterval();
-        this->Spans(rSpans, interval.GetT0(), interval.GetT1());
-    }
-
-    /* @brief  Provides intersections of the nurbs curve with the knots of the surface.
-     * @return vector of interval limitations.
-     */
-    void Spans(std::vector<double>& rSpans,
-        double Start, double End) const
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
         std::vector<double> surface_spans_u;
         std::vector<double> surface_spans_v;
         mpNurbsSurface->Spans(surface_spans_u, 0);
         mpNurbsSurface->Spans(surface_spans_v, 1);
 
-        CurveAxisIntersection<2, CurveNodeType>::ComputeAxisIntersection(
-            rSpans,
-            *(mpNurbsCurve.get()), Start, End,
+        // compute axis intersection with external limits
+        CurveAxisIntersection<CurveNodeType>::ComputeAxisIntersection(
+            rSpans, *(mpNurbsCurve.get()),
+            mpNurbsCurve->DomainInterval().GetT0(), mpNurbsCurve->DomainInterval().GetT1(),
             surface_spans_u, surface_spans_v,
             1e-6);
+    }
+
+    ///@}
+    ///@name IsInside
+    ///@{
+
+    /// returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return mpNurbsCurve->IsInsideLocalSpace(rPointLocalCoordinates, Tolerance);
+    }
+
+    /* Returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+     * and sets it to the closest border */
+    int SetInsideLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return mpNurbsCurve->SetInsideLocalSpace(rPointLocalCoordinates, Tolerance);
+    }
+
+    ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const bool success = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+            rProjectedPointLocalCoordinates,
+            rPointGlobalCoordinates,
+            rProjectedPointGlobalCoordinates,
+            *this,
+            20, Tolerance);
+
+        return (success)
+            ? 1
+            : 0;
     }
 
     ///@}
@@ -212,7 +307,8 @@ public:
     double Length() const override
     {
         IntegrationPointsArrayType integration_points;
-        CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info;
+        CreateIntegrationPoints(integration_points, integration_info);
 
         double length = 0.0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
@@ -244,15 +340,23 @@ public:
      * @param result integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        mpNurbsSurface->PolynomialDegreeU();
-
-        const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
-            + mpNurbsSurface->PolynomialDegreeV() + 1;
+        const SizeType points_per_span = (rIntegrationInfo.NumberOfIntegrationPointsPerSpan() != 0)
+            ? rIntegrationInfo.NumberOfIntegrationPointsPerSpan()
+            : mpNurbsSurface->PolynomialDegreeU() + mpNurbsSurface->PolynomialDegreeV() + 1;
 
         std::vector<double> spans;
-        Spans(spans);
+        if (rIntegrationInfo.HasSpansInDirection(0)) {
+            spans = rIntegrationInfo.GetSpans(0);
+            if (spans.size() < 1) {
+                this->Spans(spans);
+            }
+        }
+        else {
+            this->Spans(spans);
+        }
 
         mpNurbsCurve->CreateIntegrationPoints(
             rIntegrationPoints, spans, points_per_span);
@@ -266,13 +370,13 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         double StartParameter, double EndParameter) const
     {
-        mpNurbsSurface->PolynomialDegreeU();
-
         const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
             + mpNurbsSurface->PolynomialDegreeV() + 1;
 
-        std::vector<double> spans;
-        Spans(spans, StartParameter, EndParameter);
+        std::vector<double> spans(2);
+        spans[0] = StartParameter;
+        spans[1] = EndParameter;
+        Spans(spans);
 
         mpNurbsCurve->CreateIntegrationPoints(
             rIntegrationPoints, spans, points_per_span);
@@ -368,13 +472,19 @@ public:
 
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(
                 data_container, nonzero_control_points,
-                global_space_derivatives[1][0], global_space_derivatives[1][1]);
+                global_space_derivatives[1][0], global_space_derivatives[1][1], this);
         }
     }
 
     ///@}
     ///@name Operation within Global Space
     ///@{
+
+    /// Provides the center of the underlying surface
+    Point Center() const override
+    {
+        return mpNurbsSurface->Center();
+    }
 
     /*
     * @brief This method maps from dimension space to working space.

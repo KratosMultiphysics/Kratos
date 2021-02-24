@@ -31,6 +31,7 @@
 #include "containers/data_value_container.h"
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
+#include "integration/integration_info.h"
 
 namespace Kratos
 {
@@ -1791,6 +1792,28 @@ public:
         return 0;
     }
 
+    /* @brief Checks if given point in local space coordinates of this geometry
+     *        is inside the geometry boundaries and resets it within its borders
+     * @param rPointLocalCoordinates the point on the geometry,
+     *        which shall be checked if it lays within
+     *        the boundaries and is also the return value.
+     * @param Tolerance the tolerance to the boundary.
+     * @return -1 -> failed
+     *          0 -> outside
+     *          1 -> inside
+     *          2 -> on the boundary
+     */
+    virtual int SetInsideLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const
+    {
+        KRATOS_ERROR << "Calling SetInsideLocalSpace from base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+        return 0;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -2050,6 +2073,22 @@ public:
 //  }
 
     ///@}
+    ///@name Spans
+    ///@{
+
+    /* @brief Provides spans of geometry in a certain direction.
+     * @param resulting vector of span intervals.
+     * @param index of chosen direction, for curves always 0.
+     */
+    virtual void Spans(std::vector<double>& rSpans,
+        IndexType DirectionIndex = 0) const
+    {
+        KRATOS_ERROR <<
+            "Calling Spans of geometry base class. Please check derived definitions. "
+            << *this << std::endl;
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -2110,11 +2149,15 @@ public:
      * @return integration points.
      */
     virtual void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const
     {
-        KRATOS_ERROR << "Calling CreateIntegrationPoints from geometry base class."
-            << " Please check the definition of derived class. "
-            << *this << std::endl;
+        if (rIntegrationInfo.GetIntegrationMethod() == IntegrationMethod::NumberOfIntegrationMethods) {
+            rIntegrationPoints = IntegrationPoints(mpGeometryData->DefaultIntegrationMethod());
+        }
+        else {
+            rIntegrationPoints = IntegrationPoints(rIntegrationInfo.GetIntegrationMethod());
+        }
     }
 
     ///@}
@@ -2153,10 +2196,11 @@ public:
      */
     virtual void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives)
+        IndexType NumberOfShapeFunctionDerivatives,
+        IntegrationInfo& rIntegrationInfo)
     {
         IntegrationPointsArrayType IntegrationPoints;
-        CreateIntegrationPoints(IntegrationPoints);
+        CreateIntegrationPoints(IntegrationPoints, rIntegrationInfo);
 
         this->CreateQuadraturePointGeometries(
             rResultGeometries,

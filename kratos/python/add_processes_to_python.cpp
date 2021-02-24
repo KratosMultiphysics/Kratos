@@ -64,6 +64,7 @@
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
 #include "processes/time_averaging_process.h"
 #include "processes/from_json_check_result_process.h"
+#include "processes/set_initial_state_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -316,6 +317,19 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, Parameters>())
     ;
 
+    py::class_<SetInitialStateProcess<3>, SetInitialStateProcess<3>::Pointer, Process>(m,"SetInitialStateProcess3D")
+            .def(py::init<ModelPart&>())
+            .def(py::init<ModelPart&, const Vector&, const Vector&, const Matrix&>())
+            .def(py::init<ModelPart&, const Vector&, const int>())
+            .def(py::init<ModelPart&, const Matrix&>())
+    ;
+    py::class_<SetInitialStateProcess<2>, SetInitialStateProcess<2>::Pointer, Process>(m,"SetInitialStateProcess2D")
+            .def(py::init<ModelPart&>())
+            .def(py::init<ModelPart&, const Vector&, const Vector&, const Matrix&>())
+            .def(py::init<ModelPart&, const Vector&, const int>())
+            .def(py::init<ModelPart&, const Matrix&>())
+    ;
+
     /* Historical */
     py::class_<ComputeNodalGradientProcess< ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"ComputeNodalGradientProcess")
     .def(py::init<ModelPart&, Parameters>())
@@ -363,6 +377,7 @@ void  AddProcessesToPython(pybind11::module& m)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<2>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
+        .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)
         ;
 
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<3>, CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
@@ -371,6 +386,7 @@ void  AddProcessesToPython(pybind11::module& m)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<3>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<3>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
+        .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)
         ;
 
     // Continuous distance computation methods

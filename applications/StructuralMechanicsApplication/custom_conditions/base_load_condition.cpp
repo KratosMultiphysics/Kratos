@@ -18,6 +18,7 @@
 #include "custom_conditions/base_load_condition.h"
 #include "includes/variables.h"
 #include "includes/checks.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -360,8 +361,7 @@ void BaseLoadCondition::AddExplicitContribution(
 
             array_1d<double, 3 >& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for(SizeType j=0; j<dimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHS[index + j];
+                AtomicAdd(r_force_residual[j], rRHS[index + j]);
             }
         }
     }
