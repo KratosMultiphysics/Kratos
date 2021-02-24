@@ -155,42 +155,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    // /**
-    //  * @brief It initializes a non-linear iteration (for an individual condition)
-    //  * @warning Must be defined in derived classes
-    //  * @param pCurrentElement The element to compute
-    //  * @param rCurrentProcessInfo The current process info instance
-    //  */
-    // void InitializeNonLinearIteration(
-    //     Element::Pointer pCurrentElement,
-    //     ProcessInfo& rCurrentProcessInfo
-    //     ) override
-    // {
-    //     KRATOS_TRY
-
-    //     (pCurrentElement)->InitializeNonLinearIteration(rCurrentProcessInfo);
-
-    //     KRATOS_CATCH("")
-    // }
-
-    // /**
-    //  * @brief It initializes a non-linear iteration (for an individual condition)
-    //  * @warning Must be defined in derived classes
-    //  * @param rCurrentCondition The condition to compute
-    //  * @param rCurrentProcessInfo The current process info instance
-    //  */
-    // void InitializeNonLinearIteration(
-    //     Condition::Pointer pCurrentCondition,
-    //     ProcessInfo& rCurrentProcessInfo
-    //     ) override
-    // {
-    //     KRATOS_TRY
-
-    //     (pCurrentCondition)->InitializeNonLinearIteration(rCurrentProcessInfo);
-
-    //     KRATOS_CATCH("")
-    // }
-
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
      * @param rCondition The condition to compute

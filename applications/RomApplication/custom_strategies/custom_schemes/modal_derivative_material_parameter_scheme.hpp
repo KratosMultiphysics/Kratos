@@ -245,9 +245,6 @@ protected:
             break;
         }
 
-        // KRATOS_WATCH(rElement.Id())
-        // KRATOS_WATCH(element_matrix_derivative)
-        // KRATOS_WATCH(phi_elemental)
         // Compute RHS contribution
         noalias(rRHS_Contribution) -= prod(element_matrix_derivative, phi_elemental);
 
