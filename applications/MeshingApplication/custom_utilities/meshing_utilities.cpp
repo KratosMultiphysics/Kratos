@@ -45,9 +45,7 @@ void BlockThresholdSizeElements(
     ComputeElementsSize(rModelPart);
 
     // Iterating over the elements
-    auto& r_elements_array = rModelPart.Elements();
-
-    block_for_each(r_elements_array,
+    block_for_each(rModelPart.Elements(),
         [&minimal_size,&maximal_size](Element& rElement) {
 
         if (rElement.IsNot(BLOCKED)) {
@@ -68,9 +66,7 @@ void BlockThresholdSizeElements(
 void ComputeElementsSize(ModelPart& rModelPart)
 {
     // Iterating over the elements
-    auto& r_elements_array = rModelPart.Elements();
-
-    block_for_each(r_elements_array,
+    block_for_each(rModelPart.Elements(),
         [&](Element& rElement) {
         ComputeElementSize(rElement);
     });
