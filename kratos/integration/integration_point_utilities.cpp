@@ -125,7 +125,7 @@ namespace Kratos
 
             (*rIntegrationPointsBegin)[0] = U0 * a + U1 * integration_point_list[i][0] + U2 * integration_point_list[i][1];
             (*rIntegrationPointsBegin)[1] = V0 * a + V1 * integration_point_list[i][0] + V2 * integration_point_list[i][1];
-            (*rIntegrationPointsBegin).Weight() = 0.5 * area * integration_point_list[i][2];
+            (*rIntegrationPointsBegin).Weight() = area * integration_point_list[i][2];
 
             rIntegrationPointsBegin++;
         }
