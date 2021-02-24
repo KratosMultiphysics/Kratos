@@ -31,8 +31,9 @@
 *                                                                              *
 *******************************************************************************/
 
-#ifndef clipper_hpp
-#define clipper_hpp
+#if !defined(KRATOS_CLIPPER_UTILITIES)
+#define KRATOS_CLIPPER_UTILITIES
+
 
 #define CLIPPER_VERSION "6.4.2"
 
@@ -58,6 +59,7 @@
 #include <ostream>
 #include <functional>
 #include <queue>
+
 
 namespace ClipperLib {
 
@@ -172,6 +174,8 @@ namespace ClipperLib {
 
     bool Orientation(const Path& poly);
     double Area(const Path& poly);
+    //double Area(const OutPt* op);
+    //double Area(const OutRec& outRec);
     int PointInPolygon(const IntPoint& pt, const Path& path);
 
     void SimplifyPolygon(const Path& in_poly, Paths& out_polys, PolyFillType fillType = pftEvenOdd);
@@ -400,7 +404,6 @@ namespace ClipperLib {
     //------------------------------------------------------------------------------
 
 } //ClipperLib namespace
-
 #endif //clipper_hpp
 
 
