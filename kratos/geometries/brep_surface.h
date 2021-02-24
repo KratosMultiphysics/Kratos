@@ -426,9 +426,10 @@ public:
 
             BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints<BrepCurveOnSurfaceLoopArrayType, PointType>(
                 rIntegrationPoints,
-                mOuterLoopArray,
-                mInnerLoopArray,
+                mOuterLoopArray, mInnerLoopArray,
                 spans_u, spans_v,
+                mpNurbsSurface->PolynomialDegree(0) + 1,
+                mpNurbsSurface->PolynomialDegree(1) + 1,
                 rIntegrationInfo);
         }
     }
