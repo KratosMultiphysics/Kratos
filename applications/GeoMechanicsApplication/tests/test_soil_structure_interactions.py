@@ -60,6 +60,10 @@ class KratosGeoMechanicsSoilStructureInteractionTests(KratosUnittest.TestCase):
         # check if displacement in soil at both sides of truss is equal
         self.assertAlmostEqual(displacements[6][0], displacements[8][0])
 
-
 if __name__ == '__main__':
-    KratosUnittest.runTests(KratosGeoMechanicsSoilStructureInteractionTests())
+    suites = KratosUnittest.KratosSuites
+    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsSoilStructureInteractionTests]))
+    allSuite = suites['all']
+    allSuite.addTests(smallSuite)
+    KratosUnittest.runTests(suites)

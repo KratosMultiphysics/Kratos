@@ -50,6 +50,7 @@ public:
                 "first_reference_coordinate":           [0.0,1.0,0.0],
                 "second_reference_coordinate":          [1.0,0.5,0.0],
                 "specific_weight" : 10000.0,
+                "pressure_tension_cut_off" : 0.0,
                 "table" : [0,1]
             }  )" );
 
@@ -93,6 +94,10 @@ public:
                 /(mSecondReferenceCoordinate[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]);
 
         mSpecificWeight = rParameters["specific_weight"].GetDouble();
+        if (rParameters.Has("pressure_tension_cut_off"))
+          mPressureTensionCutOff = rParameters["pressure_tension_cut_off"].GetDouble();
+        else
+          mPressureTensionCutOff = 0.0;
 
         KRATOS_CATCH("");
     }
@@ -150,13 +155,13 @@ public:
                 double distance = hight - Coordinates[mGravityDirection];
                 const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance ;
 
-                if ((- PORE_PRESSURE_SIGN_FACTOR * pressure) > 0.0)
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff)
                 {
                     it->FastGetSolutionStepValue(var) = pressure;
                 }
                 else
                 {
-                    it->FastGetSolutionStepValue(var) = 0.0;
+                    it->FastGetSolutionStepValue(var) = mPressureTensionCutOff;
                 }
             }
         }
@@ -199,6 +204,7 @@ protected:
     double mSlope;
     double mMinHorizontalCoordinate;
     double mMaxHorizontalCoordinate;
+    double mPressureTensionCutOff;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

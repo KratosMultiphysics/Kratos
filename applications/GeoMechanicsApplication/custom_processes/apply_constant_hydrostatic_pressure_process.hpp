@@ -48,6 +48,7 @@ public:
                 "gravity_direction" : 2,
                 "reference_coordinate" : 0.0,
                 "specific_weight" : 10000.0,
+                "pressure_tension_cut_off" : 0.0,
                 "table" : 1
             }  )" );
 
@@ -65,6 +66,11 @@ public:
         mgravity_direction = rParameters["gravity_direction"].GetInt();
         mreference_coordinate = rParameters["reference_coordinate"].GetDouble();
         mSpecificWeight = rParameters["specific_weight"].GetDouble();
+
+        if (rParameters.Has("pressure_tension_cut_off"))
+          mPressureTensionCutOff = rParameters["pressure_tension_cut_off"].GetDouble();
+        else
+          mPressureTensionCutOff = 0.0;
 
         KRATOS_CATCH("");
     }
@@ -109,13 +115,13 @@ public:
 
                 const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight*( mreference_coordinate - Coordinates[mgravity_direction] );
 
-                if ((- PORE_PRESSURE_SIGN_FACTOR * pressure) > 0.0)
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff)
                 {
                     it->FastGetSolutionStepValue(var) = pressure;
                 }
                 else
                 {
-                    it->FastGetSolutionStepValue(var) = 0.0;
+                    it->FastGetSolutionStepValue(var) = mPressureTensionCutOff;
                 }
             }
         }
@@ -152,6 +158,7 @@ protected:
     unsigned int mgravity_direction;
     double mreference_coordinate;
     double mSpecificWeight;
+    double mPressureTensionCutOff;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

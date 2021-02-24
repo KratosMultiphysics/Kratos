@@ -279,3 +279,11 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         if n_dim >= 3:
             for z_displacement in z_displacements:
                 self.assertAlmostEqual(0.0, z_displacement)
+
+if __name__ == '__main__':
+    suites = KratosUnittest.KratosSuites
+    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsWaterPressureTests]))
+    allSuite = suites['all']
+    allSuite.addTests(smallSuite)
+    KratosUnittest.runTests(suites)

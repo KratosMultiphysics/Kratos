@@ -138,6 +138,7 @@
             "fluid_pressure_type": "Hydrostatic",
             "gravity_direction":    1,
             "reference_coordinate": 2,
+            "pressure_tension_cut_off":      0.0,
             "specific_weight":      10000.0
         }
     }],

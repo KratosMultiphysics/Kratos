@@ -172,3 +172,11 @@ class KratosGeoMechanicsExcavationTests(KratosUnittest.TestCase):
 
     def testNightlySecondExample(self):
         self.assertEqual(True, True)
+
+if __name__ == '__main__':
+    suites = KratosUnittest.KratosSuites
+    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsExcavationTests]))
+    allSuite = suites['all']
+    allSuite.addTests(smallSuite)
+    KratosUnittest.runTests(suites)

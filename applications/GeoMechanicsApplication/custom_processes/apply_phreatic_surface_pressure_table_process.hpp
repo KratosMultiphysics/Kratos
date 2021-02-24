@@ -97,13 +97,13 @@ public:
                 distance += deltaH;
                 const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance ;
 
-                if ((- PORE_PRESSURE_SIGN_FACTOR * pressure) > 0.0)
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff)
                 {
                     it->FastGetSolutionStepValue(var) = pressure;
                 }
                 else
                 {
-                    it->FastGetSolutionStepValue(var) = 0.0;
+                    it->FastGetSolutionStepValue(var) = mPressureTensionCutOff;
                 }
             }
         }
