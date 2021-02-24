@@ -1,5 +1,6 @@
 # Application dependent names and paths
 from KratosMultiphysics import _ImportApplication
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosStructuralMechanicsApplication import *
 application = KratosStructuralMechanicsApplication()
 application_name = "KratosStructuralMechanicsApplication"
