@@ -575,7 +575,6 @@ private:
     double mThreshold = 0.0;
     Vector mPlasticStrain = ZeroVector(VoigtSize);
     Matrix mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
-    double mUniaxialStress = 0.0;
 
     ///@}
     ///@name Private Operators

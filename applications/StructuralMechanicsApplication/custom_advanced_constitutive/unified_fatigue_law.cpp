@@ -142,13 +142,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
                 MathUtils<double>::InvertMatrix(compliance_matrix, inverse_C, aux_det_b);
                 r_integrated_stress_vector = prod(inverse_C, r_strain_vector - plastic_strain);
                 noalias(r_constitutive_matrix) = inverse_C;
-
-                TYieldSurfaceType::CalculateEquivalentStress(r_integrated_stress_vector, r_strain_vector,
-                                                            uniaxial_stress, rValues);
-                // KRATOS_WATCH(uniaxial_stress)
-                // mUniaxialStress = uniaxial_stress;
             }
-            mUniaxialStress = uniaxial_stress;
             ////////////////////
 
             // Elastic Matrix
@@ -274,7 +268,6 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
                 noalias(r_constitutive_matrix) = inverse_C;
             }
             ////////////////////
-
             // Elastic Matrix
             // this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
@@ -361,9 +354,6 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
     )
 {
     bool has = false;
-    // At least one layer should have the value
-    if (rThisVariable == UNIAXIAL_STRESS)
-        has = true;
     return has;
 }
 
@@ -457,9 +447,6 @@ double& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
     )
 {
     rValue = 0.0;
-    if (rThisVariable == UNIAXIAL_STRESS)
-        rValue = mUniaxialStress;
-
     return rValue;
 }
 
@@ -614,6 +601,29 @@ double& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
     double& rValue
     )
 {
+    if (rThisVariable == UNIAXIAL_STRESS) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
+        // Calculate the stress vector
+        CalculateMaterialResponseCauchy(rParameterValues);
+        const Vector& r_stress_vector = rParameterValues.GetStressVector();
+        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+
+        BoundedArrayType aux_stress_vector = r_stress_vector;
+        TYieldSurfaceType::CalculateEquivalentStress( aux_stress_vector, r_strain_vector, rValue, rParameterValues);
+
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+    }
     return rValue;
 }
 
