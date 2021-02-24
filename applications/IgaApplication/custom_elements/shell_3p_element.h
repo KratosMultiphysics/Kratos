@@ -250,6 +250,8 @@ public:
             rCurrentProcessInfo, true, true);
     }
 
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
+
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id
@@ -483,6 +485,26 @@ private:
         std::vector<Matrix>& rDQ_Dalpha_init,
         std::vector<Matrix>& rDTransCartToCov_Dalpha_init,
         const Matrix& rHessian) const;
+
+    /**
+     * @brief This method gets a value directly from the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained at the integration points
+     * @tparam TType The variable type
+     */
+    template<class TType>
+    void GetValueOnConstitutiveLaw(
+        const Variable<TType>& rVariable,
+        std::vector<TType>& rOutput
+        )
+    {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            mConstitutiveLawVector[point_number]->GetValue(rVariable, rOutput[point_number]);
+        }
+    }
 
     ///@}
     ///@name Geometrical Functions
