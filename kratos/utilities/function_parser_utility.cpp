@@ -172,7 +172,6 @@ void GenericFunctionUtility::InitializeParser()
 
         /* Compile the expression with variables. */
         mpTinyExpr = te_compile(mFunctionBody.c_str(), vars, 8, &err);
-
     }
 }
 
