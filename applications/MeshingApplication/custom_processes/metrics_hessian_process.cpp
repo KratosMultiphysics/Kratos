@@ -205,16 +205,14 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     const double normalization_alpha = mThisParameters["normalization_alpha"].GetDouble();
 
     // Initialize auxiliar variables
-    const auto& r_origin_variable = *mpOriginVariable;
-    const auto non_historical_variable = mNonHistoricalVariable;
     block_for_each(r_nodes_array,
-        [&r_origin_variable,&non_historical_variable,&aux_zero_hessian,&aux_zero_vector,&normalization_factor](NodeType& rNode) {
+        [this,&aux_zero_hessian,&aux_zero_vector,&normalization_factor](NodeType& rNode) {
         rNode.SetValue(NODAL_AREA, 0.0);
         rNode.SetValue(AUXILIAR_HESSIAN, aux_zero_hessian);
         rNode.SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
 
         // Saving auxiliar value
-        const double value = non_historical_variable ? rNode.GetValue(r_origin_variable) : rNode.FastGetSolutionStepValue(r_origin_variable);
+        const double value = mNonHistoricalVariable ? rNode.GetValue(*(mpOriginVariable)) : rNode.FastGetSolutionStepValue(*(mpOriginVariable));
         rNode.SetValue(NODAL_MAUX, value * normalization_factor);
     });
 
@@ -419,9 +417,8 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
     KRATOS_ERROR_IF(mpRatioReferenceVariable == NULL) << "Variable reference is not defined" << std::endl;
     const auto& r_reference_var = *mpRatioReferenceVariable;
 
-    const auto interpolation = mInterpolation;
     block_for_each(r_nodes_array, aux_variables,
-        [&minimal_size,&maximal_size,&enforce_current,&anisotropy_remeshing,&enforce_anisotropy_relative_variable,&hmin_over_hmax_anisotropic_ratio,&boundary_layer_max_distance,&interpolation,&r_reference_var,&r_tensor_variable](NodeType& rNode, AuxiliarHessianComputationVariables& aux_variables) {
+        [&minimal_size,&maximal_size,&enforce_current,&anisotropy_remeshing,&enforce_anisotropy_relative_variable,&hmin_over_hmax_anisotropic_ratio,&boundary_layer_max_distance,this,&r_reference_var,&r_tensor_variable](NodeType& rNode, AuxiliarHessianComputationVariables& aux_variables) {
 
         const Vector& r_hessian = rNode.GetValue(AUXILIAR_HESSIAN);
 
@@ -435,7 +432,7 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
 
         if (rNode.SolutionStepsDataHas(r_reference_var) && anisotropy_remeshing && enforce_anisotropy_relative_variable) {
             const double ratio_reference = rNode.FastGetSolutionStepValue(r_reference_var);
-            aux_variables.mAnisotropicRatio = CalculateAnisotropicRatio(ratio_reference, hmin_over_hmax_anisotropic_ratio, boundary_layer_max_distance, interpolation);
+            aux_variables.mAnisotropicRatio = CalculateAnisotropicRatio(ratio_reference, hmin_over_hmax_anisotropic_ratio, boundary_layer_max_distance, mInterpolation);
         }
 
         // For postprocess pourposes

@@ -80,16 +80,10 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
         VariableUtils().SetNonHistoricalVariableToZero(r_tensor_variable, r_nodes_array);
     }
 
-    // Auxiliar variables
-    const auto& r_variable_gradient = mVariableGradient;
-    const auto enforce_current = mEnforceCurrent;
-    const auto min_size = mMinSize;
-    const auto size_boundary_layer = mSizeBoundLayer;
-
     block_for_each(r_nodes_array,
-        [this,&r_tensor_variable,&r_variable_gradient,&r_ani_reference_var,&r_size_reference_var,&enforce_current,&min_size,&size_boundary_layer](NodeType& rNode) {
+        [this,&r_tensor_variable,&r_ani_reference_var,&r_size_reference_var](NodeType& rNode) {
 
-        array_1d<double, 3>& r_gradient_value = rNode.FastGetSolutionStepValue(r_variable_gradient);
+        array_1d<double, 3>& r_gradient_value = rNode.FastGetSolutionStepValue(mVariableGradient);
 
         // Isotropic by default
         double ratio = 1.0;
@@ -99,15 +93,15 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
         }
 
         // MinSize by default
-        double element_size = min_size;
+        double element_size = mMinSize;
         const double nodal_h = rNode.GetValue(NODAL_H);
         if (rNode.SolutionStepsDataHas(r_size_reference_var)) {
             const double size_reference = rNode.FastGetSolutionStepValue(r_size_reference_var);
             element_size = CalculateElementSize(size_reference, nodal_h);
-            if (((element_size > nodal_h) && enforce_current) || (std::abs(size_reference) > size_boundary_layer))
+            if (((element_size > nodal_h) && mEnforceCurrent) || (std::abs(size_reference) > mSizeBoundLayer))
                 element_size = nodal_h;
         } else {
-            if (((element_size > nodal_h) && enforce_current))
+            if (((element_size > nodal_h) && mEnforceCurrent))
                 element_size = nodal_h;
         }
 
