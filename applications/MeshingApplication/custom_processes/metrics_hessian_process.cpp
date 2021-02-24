@@ -188,7 +188,6 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
 {
     // Iterate in the elements
     ElementsArrayType& r_elements_array = mrModelPart.Elements();
-    const auto it_element_begin = r_elements_array.begin();
 
     // Geometry information
     const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -206,19 +205,17 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     const double normalization_alpha = mThisParameters["normalization_alpha"].GetDouble();
 
     // Initialize auxiliar variables
-    const auto it_nodes_begin = r_nodes_array.begin();
     const auto& r_origin_variable = *mpOriginVariable;
     const auto non_historical_variable = mNonHistoricalVariable;
-    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-        [&it_nodes_begin,&r_origin_variable,&non_historical_variable,&aux_zero_hessian,&aux_zero_vector,&normalization_factor](std::size_t i_node) {
-        auto it_node = it_nodes_begin + i_node;
-        it_node->SetValue(NODAL_AREA, 0.0);
-        it_node->SetValue(AUXILIAR_HESSIAN, aux_zero_hessian);
-        it_node->SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
+    block_for_each(r_nodes_array,
+        [&r_origin_variable,&non_historical_variable,&aux_zero_hessian,&aux_zero_vector,&normalization_factor](NodeType& rNode) {
+        rNode.SetValue(NODAL_AREA, 0.0);
+        rNode.SetValue(AUXILIAR_HESSIAN, aux_zero_hessian);
+        rNode.SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
 
         // Saving auxiliar value
-        const double value = non_historical_variable ? it_node->GetValue(r_origin_variable) : it_node->FastGetSolutionStepValue(r_origin_variable);
-        it_node->SetValue(NODAL_MAUX, value * normalization_factor);
+        const double value = non_historical_variable ? rNode.GetValue(r_origin_variable) : rNode.FastGetSolutionStepValue(r_origin_variable);
+        rNode.SetValue(NODAL_MAUX, value * normalization_factor);
     });
 
     // Compute auxiliar gradient
@@ -233,10 +230,9 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
         double detJ0;
     };
 
-    IndexPartition<std::size_t>(r_elements_array.size()).for_each(fe_containers(),
-        [&it_element_begin,&dimension](std::size_t i_elem, fe_containers& fe) {
-        auto it_elem = it_element_begin + i_elem;
-        auto& r_geometry = it_elem->GetGeometry();
+    block_for_each(r_elements_array, fe_containers(),
+        [&dimension](Element& rElement, fe_containers& fe) {
+        auto& r_geometry = rElement.GetGeometry();
 
         // Current geometry information
         const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
@@ -327,32 +323,29 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
 
     // We normalize the value of the NODAL_AREA
     if (normalization_method == Normalization::VALUE) {
-        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-        [&it_nodes_begin](std::size_t i_node) {
-            auto it_node = it_nodes_begin + i_node;
-            const double factor = it_node->GetValue(NODAL_MAUX);
+        block_for_each(r_nodes_array,
+        [&](NodeType& rNode) {
+            const double factor = rNode.GetValue(NODAL_MAUX);
             if (factor > std::numeric_limits<double>::epsilon()) {
-                it_node->GetValue(NODAL_AREA) *= factor;
+                rNode.GetValue(NODAL_AREA) *= factor;
             }
         });
     } else if (normalization_method == Normalization::NORM_GRADIENT) {
-        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-        [&it_nodes_begin,&normalization_alpha](std::size_t i_node) {
-            auto it_node = it_nodes_begin + i_node;
-            const double factor = norm_2(it_node->GetValue(AUXILIAR_GRADIENT)) * it_node->GetValue(NODAL_H) + normalization_alpha * it_node->GetValue(NODAL_MAUX);
+        block_for_each(r_nodes_array,
+        [&normalization_alpha](NodeType& rNode) {
+            const double factor = norm_2(rNode.GetValue(AUXILIAR_GRADIENT)) * rNode.GetValue(NODAL_H) + normalization_alpha * rNode.GetValue(NODAL_MAUX);
             if (factor > std::numeric_limits<double>::epsilon()) {
-                it_node->GetValue(NODAL_AREA) *= factor;
+                rNode.GetValue(NODAL_AREA) *= factor;
             }
         });
     }
 
     // We average considering the NODAL_AREA
-    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-        [&it_nodes_begin](std::size_t i_node) {
-        auto it_node = it_nodes_begin + i_node;
-        const double nodal_area = it_node->GetValue(NODAL_AREA);
+    block_for_each(r_nodes_array,
+        [&](NodeType& rNode) {
+        const double nodal_area = rNode.GetValue(NODAL_AREA);
         if (nodal_area > std::numeric_limits<double>::epsilon()) {
-            it_node->GetValue(AUXILIAR_HESSIAN) /= nodal_area;
+            rNode.GetValue(AUXILIAR_HESSIAN) /= nodal_area;
         }
     });
 }
@@ -427,13 +420,12 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
     const auto& r_reference_var = *mpRatioReferenceVariable;
 
     const auto interpolation = mInterpolation;
-    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(aux_variables,
-        [&it_node_begin,&minimal_size,&maximal_size,&enforce_current,&anisotropy_remeshing,&enforce_anisotropy_relative_variable,&hmin_over_hmax_anisotropic_ratio,&boundary_layer_max_distance,&interpolation,&r_reference_var,&r_tensor_variable](std::size_t i, AuxiliarHessianComputationVariables& aux_variables) {
-        auto it_node = it_node_begin + i;
+    block_for_each(r_nodes_array, aux_variables,
+        [&minimal_size,&maximal_size,&enforce_current,&anisotropy_remeshing,&enforce_anisotropy_relative_variable,&hmin_over_hmax_anisotropic_ratio,&boundary_layer_max_distance,&interpolation,&r_reference_var,&r_tensor_variable](NodeType& rNode, AuxiliarHessianComputationVariables& aux_variables) {
 
-        const Vector& r_hessian = it_node->GetValue(AUXILIAR_HESSIAN);
+        const Vector& r_hessian = rNode.GetValue(AUXILIAR_HESSIAN);
 
-        aux_variables.mNodalH = it_node->GetValue(NODAL_H);
+        aux_variables.mNodalH = rNode.GetValue(NODAL_H);
 
         aux_variables.mElementMinSize = ((minimal_size < aux_variables.mNodalH) && enforce_current) ? aux_variables.mNodalH : minimal_size;
         aux_variables.mElementMaxSize = ((maximal_size > aux_variables.mNodalH) && enforce_current) ? aux_variables.mNodalH : maximal_size;
@@ -441,21 +433,21 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
         // Isotropic by default
         aux_variables.mAnisotropicRatio = 1.0;
 
-        if (it_node->SolutionStepsDataHas(r_reference_var) && anisotropy_remeshing && enforce_anisotropy_relative_variable) {
-            const double ratio_reference = it_node->FastGetSolutionStepValue(r_reference_var);
+        if (rNode.SolutionStepsDataHas(r_reference_var) && anisotropy_remeshing && enforce_anisotropy_relative_variable) {
+            const double ratio_reference = rNode.FastGetSolutionStepValue(r_reference_var);
             aux_variables.mAnisotropicRatio = CalculateAnisotropicRatio(ratio_reference, hmin_over_hmax_anisotropic_ratio, boundary_layer_max_distance, interpolation);
         }
 
         // For postprocess pourposes
-        it_node->SetValue(ANISOTROPIC_RATIO, aux_variables.mAnisotropicRatio);
+        rNode.SetValue(ANISOTROPIC_RATIO, aux_variables.mAnisotropicRatio);
 
         // We compute the metric
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(TDim) + "D  not defined for node " << it_node->Id() << std::endl;
-        TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+        KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(TDim) + "D  not defined for node " << rNode.Id() << std::endl;
+        TensorArrayType& r_metric = rNode.GetValue(r_tensor_variable);
 
         const double norm_metric = norm_2(r_metric);
         if (norm_metric > 0.0) { // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
-            const TensorArrayType& r_old_metric = it_node->GetValue(r_tensor_variable);
+            const TensorArrayType& r_old_metric = rNode.GetValue(r_tensor_variable);
             const TensorArrayType new_metric = ComputeHessianMetricTensor<TDim>(r_hessian, aux_variables);
 
             noalias(r_metric) = MetricsMathUtils<TDim>::IntersectMetrics(r_old_metric, new_metric);
