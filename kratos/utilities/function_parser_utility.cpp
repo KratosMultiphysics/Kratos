@@ -17,7 +17,6 @@
 #include "tinyexpr/tinyexpr/tinyexpr.h"
 
 // Project includes
-#include "includes/global_variables.h"
 #include "utilities/function_parser_utility.h"
 #include "utilities/string_utilities.h"
 
@@ -44,7 +43,6 @@ GenericFunctionUtility::GenericFunctionUtility(
     mNameSpace.insert(std::pair<std::string, double>("X", 0.0));
     mNameSpace.insert(std::pair<std::string, double>("Y", 0.0));
     mNameSpace.insert(std::pair<std::string, double>("Z", 0.0));
-    mNameSpace.insert(std::pair<std::string, double>("pi", Globals::Pi));
 
     // Initialize parser classes
     InitializeParser();
@@ -173,13 +171,12 @@ void GenericFunctionUtility::InitializeParser()
         double& X = mNameSpace["X"];
         double& Y = mNameSpace["Y"];
         double& Z = mNameSpace["Z"];
-        double& pi = mNameSpace["pi"];
 
         /* Store variable names and pointers. */
-        const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"a", &X}, {"b", &Y}, {"c", &Z}, {"pi", &pi}};
+        const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"a", &X}, {"b", &Y}, {"c", &Z}};
 
         /* Compile the expression with variables. */
-        mpTinyExpr = te_compile(mFunctionBody.c_str(), vars, 8, &err);
+        mpTinyExpr = te_compile(mFunctionBody.c_str(), vars, 7, &err);
     }
 }
 
