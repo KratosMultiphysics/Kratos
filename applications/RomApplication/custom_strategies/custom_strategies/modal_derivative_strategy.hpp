@@ -1003,6 +1003,9 @@ public:
     {
         KRATOS_TRY
 
+        auto& r_model_part = BaseType::GetModelPart();
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(r_model_part);
+
         if ( mDerivativeType == DerivativeType::Dynamic && mDerivativeParameterType == DerivativeParameterType::ModalCoordinate )
         {   // Dynamic modal parameter derivatives
             return this->SolveSolutionStepDynamicModalCoordinateDerivatives();
@@ -1021,6 +1024,8 @@ public:
         }
         else
             return false;
+
+        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(r_model_part);
 
         KRATOS_CATCH("")
     }

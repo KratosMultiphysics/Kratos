@@ -108,7 +108,7 @@ public:
     /**
      * @brief This function calculates the geometric part of the total stiffness matrix
      */
-    BoundedMatrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry() const;
+    BoundedMatrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry();
 
     /**
      * @brief This function calculates the element stiffness w.r.t. deformation modes
@@ -128,7 +128,7 @@ public:
     /**
      * @brief This function calculates the internal element forces
      */
-    BoundedVector<double,msLocalSize> CalculateElementForces() const;
+    BoundedVector<double,msLocalSize> CalculateElementForces();
 
     /**
      * @brief This function calculates the initial transformation matrix to globalize/localize vectors and/or matrices
@@ -139,7 +139,7 @@ public:
     /**
      * @brief This function updates constantly the transformation matrix
      */
-    BoundedMatrix<double,msDimension,msDimension> UpdateRotationMatrixLocal(Vector& Bisectrix, Vector& VectorDifference) const;
+    BoundedMatrix<double,msDimension,msDimension> UpdateRotationMatrixLocal(Vector& Bisectrix, Vector& VectorDifference);
 
     void SaveQuaternionParameters();
 
@@ -151,7 +151,7 @@ public:
     void ConstCalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) const;
+        const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
@@ -163,11 +163,11 @@ public:
 
     void ConstCalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) const;
+        const ProcessInfo& rCurrentProcessInfo);
 
     void ConstCalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) const;
+        const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
@@ -282,33 +282,33 @@ public:
     /**
      * @brief This function calculates the symmetric deformation modes
      */
-    Vector CalculateSymmetricDeformationMode() const;
+    Vector CalculateSymmetricDeformationMode();
 
     /**
      * @brief This function calculates the antisymmetric deformation modes
      */
-    Vector CalculateAntiSymmetricDeformationMode() const;
+    Vector CalculateAntiSymmetricDeformationMode();
 
     /**
      * @brief This function calculates the local nodal forces
      * @param Bisectrix The bisectrix between the local axis1 from the last iter. step and the updated axis 1
      * @param VectorDifference The vector differences of the quaternions
      */
-    Vector CalculateLocalNodalForces() const;
+    Vector CalculateLocalNodalForces();
 
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    Vector CalculateGlobalNodalForces() const;
+    Vector CalculateGlobalNodalForces();
 
-    Vector GetIncrementDeformation() const;
+    Vector GetIncrementDeformation();
 
-    BoundedMatrix<double, msElementSize, msElementSize> GetTransformationMatrixGlobal() const;
+    BoundedMatrix<double, msElementSize, msElementSize> GetTransformationMatrixGlobal() ;
 
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void UpdateQuaternionParameters(double& rScalNodeA,double& rScalNodeB,
-         Vector& rVecNodeA,Vector& rVecNodeB) const;
+         Vector& rVecNodeA,Vector& rVecNodeB);
 
 private:
 

@@ -132,30 +132,6 @@ public:
     ///@{
 
     /**
-     * @brief unction to be called when it is needed to initialize an iteration. It is designed to be called at the beginning of each non linear iteration
-     * @note Take care: the elemental function with the same name is NOT called here.
-     * @warning Must be defined in derived classes
-     * @details The function is called in the builder for memory efficiency
-     * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
-     */
-    void InitializeNonLinIteration(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
-        ) override
-    {
-        KRATOS_TRY
-
-        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
-
-        KRATOS_CATCH("")
-    }
-
-    /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
      * @param rCondition The condition to compute
      * @param RHS_Contribution The RHS vector contribution

@@ -292,7 +292,6 @@ protected:
 
         // Get PhiElemental
         LocalSystemVectorType phi_elemental;
-        // this->GetPhiElemental(phi_elemental, basis_i, rElement, rCurrentProcessInfo);
         this->GetPhiElemental(phi_elemental, basis_i, rElement, rCurrentProcessInfo);
 
         // Initialize element matrices
@@ -304,50 +303,54 @@ protected:
         element_LHS_derivative.resize(num_element_dofs,num_element_dofs,false);
 
         // Loop over element nodes
-        const std::size_t number_of_nodes = rElement.GetGeometry().size();
+        const std::size_t num_element_nodes = rElement.GetGeometry().size();
         auto& r_element_nodes = rElement.GetGeometry();
-        const std::size_t nodal_dof_size = num_element_dofs/number_of_nodes;        
-        for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node)
+        const std::size_t num_nodal_dofs = num_element_dofs/num_element_nodes;
+        std::size_t dof_component_index;
+        for (std::size_t i_node = 0; i_node < num_element_nodes; ++i_node)
         {
             auto& r_node = r_element_nodes[i_node];
+            
             // Loop over nodal dofs
-            for (std::size_t i_dof = 0; i_dof < nodal_dof_size; ++i_dof)
+            for (std::size_t i_dof = 0; i_dof < num_nodal_dofs; ++i_dof)
             {
-                auto& rp_dof = r_element_dof_list[i_node*nodal_dof_size+i_dof];
-                const std::size_t component_index = rp_dof->GetVariable().GetComponentIndex();
-
+                auto& rp_dof = r_element_dof_list[i_node*num_nodal_dofs+i_dof];
+                
                 if (rp_dof->IsFree())
                 {
-
-                    rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+                    dof_component_index = rp_dof->GetVariable().GetComponentIndex();
+                    
+                    // Positive perturbation
+                    // rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                     rp_dof->GetSolutionStepValue() += BaseType::mFiniteDifferenceStepSize;
                     if (rp_dof->GetVariable().GetSourceVariable() == DISPLACEMENT)
-                        r_node.Coordinates()[component_index] = r_node.GetInitialPosition()[component_index] + rp_dof->GetSolutionStepValue();
-                    rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
-
+                        r_node.Coordinates()[dof_component_index] = r_node.GetInitialPosition()[dof_component_index] + rp_dof->GetSolutionStepValue();
+                    // rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
                     element_LHS_p_perturbed.clear();
                     rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
                     
-                    rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+                    // Negative perturbation
+                    // rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                     rp_dof->GetSolutionStepValue() -= 2.0*BaseType::mFiniteDifferenceStepSize;
                     if (rp_dof->GetVariable().GetSourceVariable() == DISPLACEMENT)
-                        r_node.Coordinates()[component_index] = r_node.GetInitialPosition()[component_index] + rp_dof->GetSolutionStepValue();
-                    rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
-
+                        r_node.Coordinates()[dof_component_index] = r_node.GetInitialPosition()[dof_component_index] + rp_dof->GetSolutionStepValue();
+                    // rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
                     element_LHS_m_perturbed.clear();
                     rElement.CalculateLeftHandSide(element_LHS_m_perturbed, rCurrentProcessInfo);
                     
-                    rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+                    // Reset Perturbation
+                    // rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                     rp_dof->GetSolutionStepValue() += BaseType::mFiniteDifferenceStepSize;
                     if (rp_dof->GetVariable().GetSourceVariable() == DISPLACEMENT)
-                        r_node.Coordinates()[component_index] = r_node.GetInitialPosition()[component_index] + rp_dof->GetSolutionStepValue();
-                    rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
-
+                        r_node.Coordinates()[dof_component_index] = r_node.GetInitialPosition()[dof_component_index] + rp_dof->GetSolutionStepValue();
+                    // rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+                    
+                    // Compute LHS derivative
                     element_LHS_derivative.clear();
                     noalias(element_LHS_derivative) = ((element_LHS_p_perturbed - element_LHS_m_perturbed) / (2.0*BaseType::mFiniteDifferenceStepSize));
-               
-                    rAdjointRHS_Contribution[i_node*nodal_dof_size+i_dof] = -inner_prod(prod(element_LHS_derivative, phi_elemental), phi_elemental);
                     
+                    // Compute adjoint RHS contribution
+                    rAdjointRHS_Contribution[i_node*num_nodal_dofs+i_dof] = -inner_prod(prod(element_LHS_derivative, phi_elemental), phi_elemental);
                 }
 
             }
