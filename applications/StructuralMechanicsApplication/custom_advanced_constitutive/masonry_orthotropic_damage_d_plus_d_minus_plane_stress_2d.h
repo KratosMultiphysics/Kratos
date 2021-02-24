@@ -93,11 +93,16 @@ namespace Kratos
             double BezierControllerC2;
             double BezierControllerC3;
 
+            double YieldStressShear;
+            double YieldStressShearMinus;
+
             double CharacteristicLength;
 
             DirectionalMaterialProperties(
                 double CharacteristicLength,
                 double E, double nu, double G,
+                double YieldStressShear,
+                double YieldStressShearMinus,
                 double YieldStressTension,
                 double FractureEnergyTension,
                 double ElasticLimitStressCompression,
@@ -110,6 +115,8 @@ namespace Kratos
                 double BezierControllerC3 = 1.5)
                 : CharacteristicLength(CharacteristicLength),
                 E(E), nu(nu), G(G),
+                YieldStressShear(YieldStressShear),
+                YieldStressShearMinus(YieldStressShearMinus),
                 YieldStressTension(YieldStressTension),
                 FractureEnergyTension(FractureEnergyTension),
                 ElasticLimitStressCompression(ElasticLimitStressCompression),
@@ -120,6 +127,25 @@ namespace Kratos
                 BezierControllerC1(BezierControllerC1),
                 BezierControllerC2(BezierControllerC2),
                 BezierControllerC3(BezierControllerC3)
+            {
+            }
+
+            DirectionalMaterialProperties(
+                const DirectionalMaterialProperties& rOther)
+                : CharacteristicLength(rOther.CharacteristicLength),
+                E(rOther.E), nu(rOther.nu), G(rOther.G),
+                YieldStressShear(rOther.YieldStressShear),
+                YieldStressShearMinus(rOther.YieldStressShearMinus),
+                YieldStressTension(rOther.YieldStressTension),
+                FractureEnergyTension(rOther.FractureEnergyTension),
+                ElasticLimitStressCompression(rOther.ElasticLimitStressCompression),
+                YieldStressCompression(rOther.YieldStressCompression),
+                YieldStrainCompression(rOther.YieldStrainCompression),
+                ResidualStressCompression(rOther.ResidualStressCompression),
+                FractureEnergyCompression(rOther.FractureEnergyCompression),
+                BezierControllerC1(rOther.BezierControllerC1),
+                BezierControllerC2(rOther.BezierControllerC2),
+                BezierControllerC3(rOther.BezierControllerC3)
             {
             }
         };
@@ -350,10 +376,11 @@ namespace Kratos
             const DirectionalMaterialProperties& rMaterialProperties2,
             TransformationMatrices& rTransformationMatrices);
 
-        void AssembleTransformationMatrixEnergyEquivalent(
+        void CalculateProjectedFractureEnergyTension(
             const DirectionalMaterialProperties& rMaterialProperties1,
             const DirectionalMaterialProperties& rMaterialProperties2,
-            TransformationMatrices& rTransformationMatrices);
+            double AngleToDamage,
+            DirectionalMaterialProperties& rProjectedProperties);
 
         /**
         * @brief Splits the Effective Stress Vector into a positive (tension) and negative (compression) part
@@ -383,7 +410,14 @@ namespace Kratos
             const CalculationData& data,
             const DirectionalMaterialProperties& rMaterialProperties,
             const array_1d<double, 3> rEffectiveStressVector,
+            const array_1d<double, 2> rPrincipalStressVector,
             double& UniaxialStressTension) const;
+
+        void CalculateProjectedFractureEnergyCompression(
+            const DirectionalMaterialProperties& rMaterialProperties1,
+            const DirectionalMaterialProperties& rMaterialProperties2,
+            double AngleToDamage,
+            DirectionalMaterialProperties& rProjectedProperties);
 
         /**
         * @brief This method computes the equivalent stress in Compression
@@ -394,6 +428,7 @@ namespace Kratos
             const CalculationData& data,
             const DirectionalMaterialProperties& rMaterialProperties,
             const array_1d<double, 3> rEffectiveStressVector,
+            const array_1d<double, 2> rPrincipalStressVector,
             double& UniaxialStressCompression) const;
 
         /**
@@ -518,6 +553,13 @@ namespace Kratos
             const GeometryType & geom,
             int DirectionIndex);
 
+
+        /* Calculates the angle between the local coordinate and
+        *  the principal stress, which is considered as the damage angle.
+        */
+        double CalculateDamageAngle(
+            const array_1d<double, 3>& rStressVector);
+
         /**
         * @brief This method computes the internal material response strain to stress by applying cl
         * @param strain_vector        The strain vector
@@ -525,7 +567,6 @@ namespace Kratos
         *         CalculationData    Calculation Data for the CL
         */
         void CalculateMaterialResponseInternal(
-            const Vector& rStrainVectorIsotropic,
             Vector& rPredictiveStressVector,
             CalculationData& data,
             int IntegrationImplex);
@@ -549,6 +590,7 @@ namespace Kratos
         */
         void CalculateTangentTensor(
             Parameters& rValues,
+            const Matrix& rElasticityMatrix,
             const array_1d<double, 3>& rStrainVector,
             const array_1d<double, 3>& PredictiveStressVector,
             CalculationData& data,
