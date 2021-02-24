@@ -61,3 +61,11 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name))
         simulation = test_helper.run_kratos(file_path)
         pass
+
+if __name__ == '__main__':
+    suites = KratosUnittest.KratosSuites
+    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsDynamicsTests]))
+    allSuite = suites['all']
+    allSuite.addTests(smallSuite)
+    KratosUnittest.runTests(suites)

@@ -126,4 +126,9 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], -eps * node[0], places=5)
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(KratosGeoMechanicsResetDisplacementTests())
+    suites = KratosUnittest.KratosSuites
+    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsResetDisplacementTests]))
+    allSuite = suites['all']
+    allSuite.addTests(smallSuite)
+    KratosUnittest.runTests(suites)

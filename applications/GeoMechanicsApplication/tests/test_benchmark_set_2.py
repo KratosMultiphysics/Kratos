@@ -129,3 +129,11 @@ class KratosGeoMechanicsBenchmarkSet2(KratosUnittest.TestCase):
         #
         # max_y_total_stress_plaxis = -674
         # min_y_total_stress_plaxis = -432068
+
+if __name__ == '__main__':
+    suites = KratosUnittest.KratosSuites
+    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsBenchmarkSet2]))
+    allSuite = suites['all']
+    allSuite.addTests(smallSuite)
+    KratosUnittest.runTests(suites)

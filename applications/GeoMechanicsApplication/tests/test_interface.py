@@ -128,4 +128,9 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         self.assertGreater(max_x_disp_beam, 1e8 * max_x_disp_soil)
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(KratosGeoMechanicsInterfaceTests())
+    suites = KratosUnittest.KratosSuites
+    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsInterfaceTests]))
+    allSuite = suites['all']
+    allSuite.addTests(smallSuite)
+    KratosUnittest.runTests(suites)
