@@ -27,7 +27,7 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
 
         if self.settings["formulation"].Has("surface_tension"):
             self.settings["formulation"]["surface_tension"].SetBool(False)
-            self.main_model_part.ProcessInfo.SetValue(KratosCFD.SURFACE_TENSION, False)
+            self.main_model_part.ProcessInfo.SetValue(KratosFluid.SURFACE_TENSION, False)
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Surface tension is not implemented in MPI yet. Deactivating it.")
 
         if not self._reinitialization_type == None:
@@ -35,9 +35,10 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
                 self._reinitialization_type == "variational"
                 KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Only variational redistancing is implemented in MPI. Switching to it.")
 
-        if self._distance_smoothing:
-            self._distance_smoothing = False
-            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Distance smoothing is not implemented in MPI yet. Deactivating it.")
+        if not self._distance_smoothing == None:
+            if self._distance_smoothing:
+                self._distance_smoothing = False
+                KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Distance smoothing is not implemented in MPI yet. Deactivating it.")
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Construction of NavierStokesMPITwoFluidsSolver finished.")
 
