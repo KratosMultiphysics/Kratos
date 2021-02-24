@@ -64,7 +64,23 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
                 "dynamic_tau": 1.0
             },
             "bfecc_convection" : false,
-            "bfecc_number_substeps" : 10
+            "bfecc_number_substeps" : 10,
+            "mass_conservation_correction_settings": {
+                "mass_conservation_check"                : false,
+                "perform_corrections"                    : true,
+                "correction_frequency_in_time_steps"     : 20,
+                "write_to_log_file"                      : true,
+                "log_file_name"                          : "mass_conservation.log"
+            },
+            "distance_modification_settings": {
+                "apply_distance_modification"            : true
+                "distance_threshold"                     : 0.01,
+                "continuous_distance"                    : true,
+                "check_at_each_time_step"                : false,
+                "avoid_almost_empty_elements"            : true,
+                "deactivate_full_negative_elements"      : true,
+                "recover_original_distance_at_each_step" : false
+            }
         }""")
 
         default_settings.AddMissingParameters(super(NavierStokesMPITwoFluidsSolver, cls).GetDefaultParameters())

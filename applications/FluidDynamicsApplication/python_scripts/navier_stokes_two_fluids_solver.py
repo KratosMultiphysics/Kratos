@@ -73,7 +73,23 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "bfecc_number_substeps" : 10,
             "distance_reinitialization" : "variational",
             "distance_smoothing" : false,
-            "distance_smoothing_coefficient" : 1.0
+            "distance_smoothing_coefficient" : 1.0,
+            "mass_conservation_correction_settings": {
+                "mass_conservation_check"                : false,
+                "perform_corrections"                    : true,
+                "correction_frequency_in_time_steps"     : 20,
+                "write_to_log_file"                      : true,
+                "log_file_name"                          : "mass_conservation.log"
+            },
+            "distance_modification_settings": {
+                "apply_distance_modification"            : true
+                "distance_threshold"                     : 0.01,
+                "continuous_distance"                    : true,
+                "check_at_each_time_step"                : false,
+                "avoid_almost_empty_elements"            : true,
+                "deactivate_full_negative_elements"      : true,
+                "recover_original_distance_at_each_step" : false
+            }
         }""")
 
         default_settings.AddMissingParameters(super(NavierStokesTwoFluidsSolver, cls).GetDefaultParameters())
@@ -179,6 +195,17 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
+        if self.settings["mass_conservation_correction_settings"]["mass_conservation_check"].GetBool():
+            # Mass conservation check and correction process
+            mass_conservation_first_lines_string = self._GetMassConservationCorrectionProcess().Initialize()
+
+            # Writing first line in mass conservation check log file
+            if ( self._mass_conservation_write_to_log and self._mass_conservation_is_printing_rank ):
+                with open(self._mass_conservation_log_file, "w") as mass_conservation_logFile:
+                    mass_conservation_logFile.write( mass_conservation_first_lines_string )
+
+            KratosMultiphysics.Logger.PrintInfo("MassConservationCheckProcess","Initialization finished (initial volumes calculated).")
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
@@ -232,7 +259,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 # it is needed to store level-set consistent nodal PRESSURE_GRADIENT for stabilization purpose
                 self._GetConsistentNodalPressureGradientProcess().Execute()
 
-            # Doing the mass correction here
+            if self.settings["mass_conservation_correction_settings"]["mass_conservation_check"].GetBool():
+                # Mass conservation check and correction process
+                mass_conservation_log_line_string = self._GetMassConservationCorrectionProcess().ExecuteInTimeStep()
+
+                # Writing log line in mass conservation check log file
+                if ( self._mass_conservation_write_to_log and self._mass_conservation_is_printing_rank ):
+                    with open(self._mass_conservation_log_file, "a+") as mass_conservation_logFile:
+                        mass_conservation_logFile.write( mass_conservation_log_line_string )
+
             # Doing the distance modification to prevent zero-cuts
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
@@ -359,6 +394,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._consistent_nodal_pressure_gradient_process = self._CreateConsistentNodalPressureGradientProcess()
         return self._consistent_nodal_pressure_gradient_process
 
+    def _GetMassConservationCorrectionProcess(self):
+        if not hasattr(self, '_mass_conservation_correction_process'):
+            self._mass_conservation_correction_process = self._CreateMassConservationCorrectionProcess()
+        return self._mass_conservation_correction_process
+
     def __CreateAccelerationLimitationUtility(self):
         maximum_multiple_of_g_acceleration_allowed = 5.0
         acceleration_limitation_utility = KratosCFD.AccelerationLimitationUtilities(
@@ -470,3 +510,27 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self.main_model_part)
 
         return consistent_nodal_pressure_gradient_process
+
+    def _CreateMassConservationCorrectionProcess(self):
+        self._mass_conservation_write_to_log = self.settings["mass_conservation_correction_settings"]["write_to_log_file"].GetBool()
+        self._mass_conservation_log_file = settings["mass_conservation_correction_settings"]["log_file_name"].GetString()
+        mass_conservation_correction = self.settings["mass_conservation_correction_settings"]["perform_corrections"].GetBool()
+        mass_conservation_frequency = settings["mass_conservation_correction_settings"]["correction_frequency_in_time_steps"].GetInt()
+
+        self._mass_conservation_is_printing_rank = ( self.main_model_part.GetCommunicator().MyPID() == 0 )
+
+        mass_conservation_correction_process = KratosFluid.MassConservationCheckProcess(
+            self.main_model_part,
+            mass_conservation_correction,
+            mass_conservation_frequency,
+            self._mass_conservation_write_to_log,
+            self._mass_conservation_log_file)
+
+        KratosMultiphysics.Logger.PrintInfo("MassConservationCheckProcess","Construction finished.")
+
+        return mass_conservation_correction_process
+
+    def _CreateDistanceModificationProcess(self):
+
+
+        return distance_modification_process
