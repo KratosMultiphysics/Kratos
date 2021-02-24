@@ -26,6 +26,7 @@
 #include "custom_processes/compute_embedded_lift_process.h"
 #include "custom_processes/define_embedded_wake_process.h"
 #include "custom_processes/compute_nodal_value_process.h"
+#include "custom_processes/find_cut_skin_entities_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -77,6 +78,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<ComputeNodalValueProcess, ComputeNodalValueProcess::Pointer, Process>
         (m,"ComputeNodalValueProcess")
         .def(py::init<ModelPart&, const std::vector<std::string>&>())
+    ;
+
+    py::class_<FindCutSkinEntitiesProcess, FindCutSkinEntitiesProcess::Pointer, Process>
+        (m,"FindCutSkinEntitiesProcess")
+        .def(py::init<ModelPart&, ModelPart&, const array_1d<double, 3>&, const array_1d<double, 3>&>())
     ;
 }
 
