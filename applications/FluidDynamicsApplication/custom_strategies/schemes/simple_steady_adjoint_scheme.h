@@ -59,6 +59,8 @@ public:
 
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
+    using AdjointSlipUtilities = typename FluidAdjointUtilities<TDim>::template SlipUtilities<TBlockSize>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -71,6 +73,8 @@ public:
         // Allocate auxiliary memory.
         const int number_of_threads = ParallelUtilities::GetNumThreads();
         mAuxMatrices.resize(number_of_threads);
+
+        KRATOS_INFO(this->Info()) << this->Info() << " created [ Dimensionality = " << TDim << ", BlockSize = " << TBlockSize << " ].\n";
     }
 
     /// Destructor.
@@ -97,8 +101,8 @@ public:
         Element::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const auto thread_id = OpenMPUtils::ThisThread();
-        auto& aux_matrix = mAuxMatrices[thread_id];
+        const int thread_id = OpenMPUtils::ThisThread();
+        Matrix& aux_matrix = mAuxMatrices[thread_id];
         CalculateEntityLHSContribution(rCurrentElement, aux_matrix, rLHS_Contribution,
                                        rEquationId, rCurrentProcessInfo);
     }
@@ -120,11 +124,21 @@ public:
         Condition::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const auto thread_id = OpenMPUtils::ThisThread();
-        auto& aux_matrix = mAuxMatrices[thread_id];
+        const int thread_id = OpenMPUtils::ThisThread();
+        Matrix& aux_matrix = mAuxMatrices[thread_id];
         CalculateEntityLHSContribution(rCurrentCondition, aux_matrix, rLHS_Contribution,
                                        rEquationId, rCurrentProcessInfo);
 
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "SimpleSteadyAdjointScheme";
     }
 
     ///@}
@@ -149,10 +163,8 @@ private:
     {
         KRATOS_TRY;
 
-        const auto thread_id = OpenMPUtils::ThisThread();
-        auto& residual_derivatives = mAuxMatrices[thread_id];
-
-        const auto& r_const_entity_ref = rEntity;
+        const int thread_id = OpenMPUtils::ThisThread();
+        Matrix& residual_derivatives = mAuxMatrices[thread_id];
 
         CalculateEntityLHSContribution<TEntityType>(
             rEntity, residual_derivatives, rLHS_Contribution, rEquationId, rCurrentProcessInfo);
@@ -168,7 +180,7 @@ private:
         // Calculate system contributions in residual form.
         if (rLHS_Contribution.size1() != 0) {
             auto& adjoint_values = this->mAdjointValues[thread_id];
-            r_const_entity_ref.GetValuesVector(adjoint_values);
+            rEntity.GetValuesVector(adjoint_values);
             noalias(rRHS_Contribution) -= prod(rLHS_Contribution, adjoint_values);
         }
 
@@ -188,7 +200,7 @@ private:
         rEntity.CalculateFirstDerivativesLHS(rEntityResidualFirstDerivatives, rCurrentProcessInfo);
         rEntity.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        FluidAdjointUtilities<TDim>::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
+        AdjointSlipUtilities::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
             rEntityRotatedResidualFirstDerivatives, rEntityResidualFirstDerivatives, rEntity.GetGeometry());
 
         KRATOS_CATCH("");
