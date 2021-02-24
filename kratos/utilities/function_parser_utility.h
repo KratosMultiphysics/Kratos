@@ -24,7 +24,7 @@
 #include "includes/kratos_parameters.h"
 
 // Forward declaration to reduce compilation time
-class te_expr;
+struct te_expr;
 
 namespace Kratos
 {
