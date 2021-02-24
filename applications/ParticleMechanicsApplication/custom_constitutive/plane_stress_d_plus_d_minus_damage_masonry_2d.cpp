@@ -1152,7 +1152,6 @@ const double MPMDamageDPlusDMinusMasonry2DLaw::GetDIF(const Properties& rProps,
 
 	double dif = c_1 * std::pow(mStrainRate, c_2);
 	dif = std::max(1.0, dif);
-	dif = 1.0;
 	return dif;
 }
 
