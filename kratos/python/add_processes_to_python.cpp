@@ -20,6 +20,7 @@
 #include "includes/kratos_parameters.h"
 
 #include "processes/process.h"
+#include "processes/output_process.h"
 #include "python/add_processes_to_python.h"
 #include "processes/calculate_embedded_nodal_variable_from_skin_process.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
@@ -64,6 +65,7 @@
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
 #include "processes/time_averaging_process.h"
 #include "processes/from_json_check_result_process.h"
+#include "processes/set_initial_state_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -137,6 +139,13 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("Clear",&Process::Clear)
     .def("GetDefaultParameters",&Process::GetDefaultParameters)
     .def("__str__", PrintObject<Process>)
+    ;
+
+    py::class_<OutputProcess, OutputProcess::Pointer, Process>
+        (m,"OutputProcess")
+    .def(py::init<>())
+    .def("IsOutputStep",&OutputProcess::IsOutputStep)
+    .def("PrintOutput",&OutputProcess::PrintOutput)
     ;
 
     py::class_<FindGlobalNodalNeighboursProcess, FindGlobalNodalNeighboursProcess::Pointer, Process>
@@ -314,6 +323,19 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<ReplaceElementsAndConditionsProcess, ReplaceElementsAndConditionsProcess::Pointer, Process>(m,"ReplaceElementsAndConditionsProcess")
             .def(py::init<ModelPart&, Parameters>())
+    ;
+
+    py::class_<SetInitialStateProcess<3>, SetInitialStateProcess<3>::Pointer, Process>(m,"SetInitialStateProcess3D")
+            .def(py::init<ModelPart&>())
+            .def(py::init<ModelPart&, const Vector&, const Vector&, const Matrix&>())
+            .def(py::init<ModelPart&, const Vector&, const int>())
+            .def(py::init<ModelPart&, const Matrix&>())
+    ;
+    py::class_<SetInitialStateProcess<2>, SetInitialStateProcess<2>::Pointer, Process>(m,"SetInitialStateProcess2D")
+            .def(py::init<ModelPart&>())
+            .def(py::init<ModelPart&, const Vector&, const Vector&, const Matrix&>())
+            .def(py::init<ModelPart&, const Vector&, const int>())
+            .def(py::init<ModelPart&, const Matrix&>())
     ;
 
     /* Historical */

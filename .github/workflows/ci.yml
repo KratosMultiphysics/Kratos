@@ -53,11 +53,16 @@ jobs:
           export CC=/usr/lib/ccache/gcc
           export CXX=/usr/lib/ccache/g++
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
-          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wall -Wno-deprecated-declarations -Wignored-qualifiers"
+          export KRATOS_CMAKE_CXX_FLAGS="-std=c++11 -Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
           export CXX=clang++-9
-          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wall -Wno-deprecated-declarations"
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
+          if [ ${{ matrix.build-type }} = FullDebug ]; then
+            export KRATOS_CMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++17"
+          else
+            export KRATOS_CMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++11"
+          fi
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_4_1/"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
@@ -157,25 +162,25 @@ jobs:
         python kratos/python_scripts/run_tests.py -l small -c python
 
 
-  # centos:
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     KRATOS_BUILD_TYPE: Custom
+  centos:
+    runs-on: ubuntu-latest
+    env:
+      KRATOS_BUILD_TYPE: Custom
 
-  #   container:
-  #     image: kratosmultiphysics/kratos-image-ci-centos7-python35:latest
-  #     options: --user 1001
-  #     env:
-  #       FC: gfortran-7
+    container:
+      image: kratosmultiphysics/kratos-image-ci-centos7-python35:latest
+      options: --user 1001
+      env:
+        FC: gfortran-7
 
-  #   steps:
-  #   - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
-  #     env:
-  #       GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+    steps:
+    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-  #   - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-  #   - name: Build
-  #     run: |
-  #       cp .github/workflows/temp_centos_configure.sh temp_centos_configure.sh
-  #       bash temp_centos_configure.sh
+    - name: Build
+      run: |
+        cp .github/workflows/temp_centos_configure.sh temp_centos_configure.sh
+        bash temp_centos_configure.sh
