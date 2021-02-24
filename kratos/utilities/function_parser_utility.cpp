@@ -27,8 +27,15 @@ namespace Kratos
 GenericFunctionUtility::GenericFunctionUtility(
     const std::string& rFunctionBody,
     Parameters LocalSystem
-    ) : mFunctionBody(StringUtilities::ReplaceAllSubstrings(rFunctionBody, "**", "^")) // Correcting function from python style to tinyexpr
+    ) : mOriginalFunctionBody(rFunctionBody),
+        mFunctionBody(rFunctionBody)
 {
+    // Correcting function from python style to tinyexpr
+    std::unordered_map<std::string,std::string> aux_replace_letters({{"**","^"},{"X","a"},{"Y","b"},{"Z","c"}});
+    for (auto& r_pair : aux_replace_letters) {
+        mFunctionBody = StringUtilities::ReplaceAllSubstrings(mFunctionBody, r_pair.first, r_pair.second);
+    }
+
     // Defining namespace
     mNameSpace.insert(std::pair<std::string, double>("x", 0.0));
     mNameSpace.insert(std::pair<std::string, double>("y", 0.0));
@@ -57,12 +64,12 @@ GenericFunctionUtility::GenericFunctionUtility(
     }
 
     // Check if it depends on space
-    if (mFunctionBody.find(std::string("x")) == std::string::npos &&
-        mFunctionBody.find(std::string("y")) == std::string::npos &&
-        mFunctionBody.find(std::string("z")) == std::string::npos &&
-        mFunctionBody.find(std::string("X")) == std::string::npos &&
-        mFunctionBody.find(std::string("Y")) == std::string::npos &&
-        mFunctionBody.find(std::string("Z")) == std::string::npos) {
+    if (mOriginalFunctionBody.find(std::string("x")) == std::string::npos &&
+        mOriginalFunctionBody.find(std::string("y")) == std::string::npos &&
+        mOriginalFunctionBody.find(std::string("z")) == std::string::npos &&
+        mOriginalFunctionBody.find(std::string("X")) == std::string::npos &&
+        mOriginalFunctionBody.find(std::string("Y")) == std::string::npos &&
+        mOriginalFunctionBody.find(std::string("Z")) == std::string::npos) {
         mDependsOnSpace = false;
     }
 }
@@ -72,6 +79,7 @@ GenericFunctionUtility::GenericFunctionUtility(
 
 GenericFunctionUtility::GenericFunctionUtility(GenericFunctionUtility const& rOther)
     : mNameSpace(rOther.mNameSpace),
+      mOriginalFunctionBody(rOther.mOriginalFunctionBody),
       mFunctionBody(rOther.mFunctionBody),
       mDependsOnSpace(rOther.mDependsOnSpace),
       mUseLocalSystem(rOther.mUseLocalSystem),
@@ -95,7 +103,7 @@ GenericFunctionUtility::~GenericFunctionUtility()
 
 std::string GenericFunctionUtility::FunctionBody()
 {
-    return StringUtilities::ReplaceAllSubstrings(mFunctionBody, "^", "**");
+    return mOriginalFunctionBody;
 }
 
 /***********************************************************************************/
@@ -168,7 +176,7 @@ void GenericFunctionUtility::InitializeParser()
         double& pi = mNameSpace["pi"];
 
         /* Store variable names and pointers. */
-        te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"X", &X}, {"Y", &Y}, {"Z", &Z}, {"pi", &pi}};
+        te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"a", &X}, {"b", &Y}, {"c", &Z}, {"pi", &pi}};
 
         /* Compile the expression with variables. */
         mpTinyExpr = te_compile(mFunctionBody.c_str(), vars, 8, &err);
