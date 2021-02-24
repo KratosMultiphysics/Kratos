@@ -87,7 +87,7 @@ public:
     typedef Geometry<NodeType> GeometryType;
 
     /// The definition of the Voigt array type
-    typedef array_1d<double, VoigtSize> BoundedArrayType;
+    typedef array_1d<double, VoigtSize> BoundedVectorType;
 
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
@@ -574,8 +574,8 @@ private:
     double mPlasticDissipation = 0.0;
     double mDamageDissipation  = 0.0;
     double mThreshold          = 0.0;
-    Vector mPlasticStrain = ZeroVector(VoigtSize);
-    Matrix mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
+    BoundedVectorType mPlasticStrain = ZeroVector(VoigtSize);
+    BoundedMatrixType mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
 
     ///@}
     ///@name Private Operators

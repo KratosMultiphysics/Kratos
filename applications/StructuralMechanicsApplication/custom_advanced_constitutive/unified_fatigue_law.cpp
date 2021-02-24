@@ -54,119 +54,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    // Auxiliar values
-    const Flags& r_constitutive_law_options = rValues.GetOptions();
 
-    // We get the strain vector
-    Vector& r_strain_vector = rValues.GetStrainVector();
-
-    // We get the constitutive tensor
-    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-
-    const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
-    const bool first_computation = (r_current_process_info[NL_ITERATION_NUMBER] == 1
-                                   && r_current_process_info[STEP] == 1) ? true : false;
-
-    if (first_computation) {
-        if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ) ) {
-            BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
-        }
-        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
-            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            Vector& r_stress_vector = rValues.GetStressVector();
-            if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
-                noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
-            } else {
-                BaseType::CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
-            }
-        }
-    } else { // We check for plasticity
-        // Integrate Stress plasticity
-        Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        const double characteristic_length =
-            ConstitutiveLawUtilities<VoigtSize>::
-            CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
-
-        if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-            BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
-        }
-
-        // We compute the stress or the constitutive matrix
-        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
-            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-
-            // We get some variables
-            double threshold           = mThreshold;
-            double plastic_dissipation = mPlasticDissipation;
-            Vector plastic_strain      = mPlasticStrain;
-            Matrix compliance_matrix   = mComplianceMatrix;
-
-            // BoundedArrayType predictive_stress_vector;
-            // // S0 = Elastic stress with strain (E-Ep)
-            // Vector aux_stress = ZeroVector(VoigtSize);
-            // BaseType::CalculatePK2Stress(r_strain_vector - plastic_strain, aux_stress, rValues);
-            // noalias(predictive_stress_vector) = aux_stress;
-
-            // Initialize Plastic Parameters
-            double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-            BoundedArrayType plastic_flow = ZeroVector(VoigtSize); // DF/DS
-            BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
-
-            ////////////////////
-            Matrix inverse_C(VoigtSize, VoigtSize);
-            double aux_det_b = 0.0;
-            MathUtils<double>::InvertMatrix(compliance_matrix, inverse_C, aux_det_b);
-            r_integrated_stress_vector = prod(inverse_C, r_strain_vector - plastic_strain);
-            noalias(r_constitutive_matrix) = inverse_C;
-
-
-            TYieldSurfaceType::CalculateEquivalentStress(r_integrated_stress_vector, r_strain_vector,
-                                                        uniaxial_stress, rValues);
-            const double F = uniaxial_stress - mThreshold;
-            if (F > machine_tolerance) {
-                double J2;
-                array_1d<double, VoigtSize> deviator = ZeroVector(6);
-                const double I1 = r_integrated_stress_vector[0] + r_integrated_stress_vector[1]
-                                  + r_integrated_stress_vector[2];
-                ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(r_integrated_stress_vector, I1, deviator, J2);
-                TYieldSurfaceType::CalculateYieldSurfaceDerivative(r_integrated_stress_vector, deviator, J2, plastic_flow, rValues);
-
-                Matrix compliance_increment(VoigtSize, VoigtSize);
-                noalias(compliance_increment) = ZeroMatrix(VoigtSize, VoigtSize);
-                Vector aux(VoigtSize);
-                noalias(aux) = prod(inverse_C, plastic_flow);
-                const double slope = -0.5 * (std::pow(2e8, 2.0) / (threshold));
-                const double lambda_p = F / ((inner_prod(plastic_flow, aux)) + inner_prod(plastic_flow,r_integrated_stress_vector)*slope);
-
-                noalias(compliance_increment) = lambda_p*(outer_prod(plastic_flow, plastic_flow))
-                                                / (inner_prod(plastic_flow, r_integrated_stress_vector));
-
-                compliance_matrix += compliance_increment;
-                MathUtils<double>::InvertMatrix(compliance_matrix, inverse_C, aux_det_b);
-                r_integrated_stress_vector = prod(inverse_C, r_strain_vector - plastic_strain);
-                noalias(r_constitutive_matrix) = inverse_C;
-            }
-            ////////////////////
-
-            // Elastic Matrix
-            // this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
-
-
-            // if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
-            //     noalias(r_integrated_stress_vector) = predictive_stress_vector;
-            // } else { // Plastic case
-
-
-                if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                    this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
-                }
-            // }
-
-
-
-        }
-    }
 }
 
 /***********************************************************************************/
@@ -177,135 +65,6 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-
-    // Auxiliar values
-    const Flags& r_constitutive_law_options = rValues.GetOptions();
-
-    // We get the strain vector
-    Vector& r_strain_vector = rValues.GetStrainVector();
-
-    // We get the constitutive tensor
-    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-
-    const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
-    const bool first_computation = (r_current_process_info[NL_ITERATION_NUMBER] == 1
-                                   && r_current_process_info[STEP] == 1) ? true : false;
-
-    if (first_computation) {
-        if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ) ) {
-            BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
-        }
-        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
-            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            Vector& r_stress_vector = rValues.GetStressVector();
-            if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
-                noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
-            } else {
-                BaseType::CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
-            }
-        }
-    } else { // We check for plasticity
-        // Integrate Stress plasticity
-        Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        const double characteristic_length =
-            ConstitutiveLawUtilities<VoigtSize>::
-            CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
-
-        if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-            BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
-        }
-
-        // We compute the stress or the constitutive matrix
-        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
-            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-
-            // We get some variables
-            double threshold           = mThreshold;
-            double plastic_dissipation = mPlasticDissipation;
-            Vector plastic_strain      = mPlasticStrain;
-            Matrix compliance_matrix   = mComplianceMatrix;
-
-            // BoundedArrayType predictive_stress_vector;
-            // // S0 = Elastic stress with strain (E-Ep)
-            // Vector aux_stress = ZeroVector(VoigtSize);
-            // BaseType::CalculatePK2Stress(r_strain_vector - plastic_strain, aux_stress, rValues);
-            // noalias(predictive_stress_vector) = aux_stress;
-
-            // Initialize Plastic Parameters
-            double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-            BoundedArrayType plastic_flow = ZeroVector(VoigtSize); // DF/DS
-            BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
-
-            ////////////////////
-            Matrix inverse_C(VoigtSize, VoigtSize);
-            double aux_det_b = 0.0;
-            MathUtils<double>::InvertMatrix(compliance_matrix, inverse_C, aux_det_b);
-            r_integrated_stress_vector = prod(inverse_C, r_strain_vector - plastic_strain);
-            noalias(r_constitutive_matrix) = inverse_C;
-
-
-            TYieldSurfaceType::CalculateEquivalentStress(r_integrated_stress_vector, r_strain_vector,
-                                                        uniaxial_stress, rValues);
-            const double F = uniaxial_stress - mThreshold;
-            if (F > machine_tolerance) {
-                double J2;
-                array_1d<double, VoigtSize> deviator = ZeroVector(6);
-                const double I1 = r_integrated_stress_vector[0] + r_integrated_stress_vector[1]
-                                  + r_integrated_stress_vector[2];
-                ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(r_integrated_stress_vector, I1, deviator, J2);
-                TYieldSurfaceType::CalculateYieldSurfaceDerivative(r_integrated_stress_vector, deviator, J2, plastic_flow, rValues);
-
-                Matrix compliance_increment(VoigtSize, VoigtSize);
-                noalias(compliance_increment) = ZeroMatrix(VoigtSize, VoigtSize);
-                Vector aux(VoigtSize);
-                noalias(aux) = prod(inverse_C, plastic_flow);
-                const double frac_energy = rValues.GetMaterialProperties()[FRACTURE_ENERGY];
-
-                const double slope = -0.5 * (std::pow(2e8, 2.0) / (threshold));
-                const double lambda_p = F / ((inner_prod(plastic_flow, aux)) + inner_prod(plastic_flow,r_integrated_stress_vector)*slope* characteristic_length / frac_energy);
-
-
-
-                noalias(compliance_increment) = lambda_p*(outer_prod(plastic_flow, plastic_flow))
-                                                / (inner_prod(plastic_flow, r_integrated_stress_vector));
-
-                compliance_matrix += compliance_increment;
-                noalias(mComplianceMatrix) = compliance_matrix;
-                MathUtils<double>::InvertMatrix(compliance_matrix, inverse_C, aux_det_b);
-                r_integrated_stress_vector = prod(inverse_C, r_strain_vector - plastic_strain);
-                noalias(r_constitutive_matrix) = inverse_C;
-
-                // ----------------------------------------------------------------------- DISSIPATION
-                const double damage_diss_increment = 0.5 *  inner_prod(r_integrated_stress_vector, prod(compliance_increment, r_integrated_stress_vector)) * characteristic_length / frac_energy;
-                if (damage_diss_increment > machine_tolerance)
-                    mDamageDissipation += damage_diss_increment;
-                double initial_threshold;
-                TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
-                mThreshold = initial_threshold * std::sqrt(1.0 - mDamageDissipation);
-            }
-            ////////////////////
-            // Elastic Matrix
-            // this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
-
-
-            // if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
-            //     noalias(r_integrated_stress_vector) = predictive_stress_vector;
-            // } else { // Plastic case
-
-
-            //     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            //         this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
-            //     }
-            // }
-
-
-
-        }
-    }
-
-
-
 
 
 }
@@ -472,7 +231,7 @@ double& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
 {
     rValue = 0.0;
     if (rThisVariable == PLASTIC_DISSIPATION) {
-        rValue = mDamageDissipation;
+        rValue = mDamageDissipation + mPlasticDissipation;
     } else if (rThisVariable == THRESHOLD) {
         rValue = mThreshold;
     }
@@ -647,12 +406,14 @@ double& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
         const Vector& r_stress_vector = rParameterValues.GetStressVector();
         const Vector& r_strain_vector = rParameterValues.GetStrainVector();
 
-        BoundedArrayType aux_stress_vector = r_stress_vector;
+        BoundedVectorType aux_stress_vector = r_stress_vector;
         TYieldSurfaceType::CalculateEquivalentStress( aux_stress_vector, r_strain_vector, rValue, rParameterValues);
 
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+    } else {
+        BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }
     return rValue;
 }
@@ -667,7 +428,7 @@ Vector& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
     Vector& rValue
     )
 {
-    return rValue;
+    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -680,7 +441,7 @@ Matrix& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
     Matrix& rValue
     )
 {
-    return rValue;
+    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -692,6 +453,7 @@ array_1d<double, 3 >& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
     array_1d<double, 3 >& rValue
     )
 {
+    // return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     return rValue;
 }
 
@@ -705,6 +467,7 @@ array_1d<double, 6 >& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
     array_1d<double, 6 >& rValue
     )
 {
+    // BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     return rValue;
 }
 
