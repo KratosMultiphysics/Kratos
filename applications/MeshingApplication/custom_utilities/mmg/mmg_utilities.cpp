@@ -3825,11 +3825,10 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     }
 
     // Set flag on nodes
-    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-        [&it_node_begin,&remeshed_nodes](std::size_t i) {
-        auto it_node = it_node_begin + i;
-        if (remeshed_nodes.find(it_node->Id()) == remeshed_nodes.end()) {
-            it_node->Set(OLD_ENTITY, true);
+    block_for_each(r_nodes_array,
+        [&remeshed_nodes](NodeType& rNode) {
+        if (remeshed_nodes.find(rNode.Id()) == remeshed_nodes.end()) {
+            rNode.Set(OLD_ENTITY, true);
         }
     });
 
@@ -4051,54 +4050,51 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 
     /* Nodes */
     auto& r_this = *this;
-    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(nodes_colors,
-        [&it_node_begin,&r_this,&Framework](std::size_t i, ColorsMapType& nodes_colors) {
-        auto it_node = it_node_begin + i;
+    block_for_each(r_nodes_array, nodes_colors,
+        [&r_this,&Framework](NodeType& rNode, ColorsMapType& nodes_colors) {
 
-        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            const array_1d<double, 3>& r_coordinates = Framework == FrameworkEulerLagrange::LAGRANGIAN ? it_node->GetInitialPosition() : it_node->Coordinates();
-            r_this.SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[it_node->Id()], it_node->Id());
+            const array_1d<double, 3>& r_coordinates = Framework == FrameworkEulerLagrange::LAGRANGIAN ? rNode.GetInitialPosition() : rNode.Coordinates();
+            r_this.SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[rNode.Id()], rNode.Id());
 
             bool blocked = false;
-            if (it_node->IsDefined(BLOCKED))
-                blocked = it_node->Is(BLOCKED);
+            if (rNode.IsDefined(BLOCKED))
+                blocked = rNode.Is(BLOCKED);
             if (blocked)
-                r_this.BlockNode(it_node->Id());
+                r_this.BlockNode(rNode.Id());
         }
     });
 
     /* Conditions */
-    IndexPartition<std::size_t>(r_conditions_array.size()).for_each(cond_colors,
-        [&it_cond_begin,&r_this](std::size_t i, ColorsMapType& cond_colors) {
-        auto it_cond = it_cond_begin + i;
+    block_for_each(r_conditions_array, cond_colors,
+        [&r_this](Condition& rCondition, ColorsMapType& cond_colors) {
 
-        const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
+        const bool old_entity = rCondition.IsDefined(OLD_ENTITY) ? rCondition.Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            r_this.SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], it_cond->Id());
+            r_this.SetConditions(rCondition.GetGeometry(), cond_colors[rCondition.Id()], rCondition.Id());
 
             bool blocked = false;
-            if (it_cond->IsDefined(BLOCKED))
-                blocked = it_cond->Is(BLOCKED);
+            if (rCondition.IsDefined(BLOCKED))
+                blocked = rCondition.Is(BLOCKED);
             if (blocked)
-                r_this.BlockCondition(it_cond->Id());
+                r_this.BlockCondition(rCondition.Id());
         }
     });
 
     /* Elements */
-    IndexPartition<std::size_t>(r_elements_array.size()).for_each(elem_colors,
-        [&it_elem_begin,&r_this](std::size_t i, ColorsMapType& elem_colors) {
-        auto it_elem = it_elem_begin + i;
+    block_for_each(r_elements_array, elem_colors,
+        [&r_this](Element& rElement, ColorsMapType& elem_colors) {
 
-        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
+        const bool old_entity = rElement.IsDefined(OLD_ENTITY) ? rElement.Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            r_this.SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], it_elem->Id());
+            r_this.SetElements(rElement.GetGeometry(), elem_colors[rElement.Id()], rElement.Id());
 
             bool blocked = false;
-            if (it_elem->IsDefined(BLOCKED))
-                blocked = it_elem->Is(BLOCKED);
+            if (rElement.IsDefined(BLOCKED))
+                blocked = rElement.Is(BLOCKED);
             if (blocked)
-                r_this.BlockElement(it_elem->Id());
+                r_this.BlockElement(rElement.Id());
         }
     });
 
@@ -4216,12 +4212,11 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
 
     // Iterate in the nodes
     auto& r_nodes_array = rModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
 
     // Set size of the solution
     /* In case of considering metric tensor */
     const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension)+"D");
-    mUsingMetricTensor = it_node_begin->Has(r_tensor_variable);
+    mUsingMetricTensor = r_nodes_array.begin()->Has(r_tensor_variable);
     if (mUsingMetricTensor) {
         SetSolSizeTensor(r_nodes_array.size());
     } else {
@@ -4231,36 +4226,30 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
     // In case of considering metric tensor
     if (mUsingMetricTensor) {
         auto& r_this = *this;
-        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-            [&it_node_begin,&r_tensor_variable,&r_this](std::size_t i) {
-            auto it_node = it_node_begin + i;
-
-            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        block_for_each(r_nodes_array,[&r_tensor_variable,&r_this](NodeType& rNode) {
+            const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
             if (!old_entity) {
-                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
+                KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << rNode.Id() << std::endl;
 
                 // We get the metric
-                const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+                const TensorArrayType& r_metric = rNode.GetValue(r_tensor_variable);
 
                 // We set the metric
-                r_this.SetMetricTensor(r_metric, it_node->Id());
+                r_this.SetMetricTensor(r_metric, rNode.Id());
             }
         });
     } else {
         auto& r_this = *this;
-        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-            [&it_node_begin,&r_this](std::size_t i) {
-            auto it_node = it_node_begin + i;
-
-            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        block_for_each(r_nodes_array,[&r_this](NodeType& rNode) {
+            const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
             if (!old_entity) {
-                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(METRIC_SCALAR)) << "METRIC_SCALAR not defined for node " << it_node->Id() << std::endl;
+                KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(METRIC_SCALAR)) << "METRIC_SCALAR not defined for node " << rNode.Id() << std::endl;
 
                 // We get the metric
-                const double metric = it_node->GetValue(METRIC_SCALAR);
+                const double metric = rNode.GetValue(METRIC_SCALAR);
 
                 // We set the metric
-                r_this.SetMetricScalar(metric, it_node->Id());
+                r_this.SetMetricScalar(metric, rNode.Id());
             }
         });
     }
@@ -4278,23 +4267,21 @@ void MmgUtilities<TMMGLibrary>::GenerateDisplacementDataFromModelPart(ModelPart&
 
     // Iterate in the nodes
     auto& r_nodes_array = rModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
 
     // Set size of the solution
     SetDispSizeVector(r_nodes_array.size());
 
     auto& r_this = *this;
-    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-        [&it_node_begin,&r_this](std::size_t i) {
-        auto it_node = it_node_begin + i;
+    block_for_each(r_nodes_array,
+        [&r_this](NodeType& rNode) {
 
-        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
         if (!old_entity) {
             // We get the displacement
-            const array_1d<double, 3>& r_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3>& r_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
             // We set the displacement
-            r_this.SetDisplacementVector(r_displacement, it_node->Id());
+            r_this.SetDisplacementVector(r_displacement, rNode.Id());
         }
     });
 
