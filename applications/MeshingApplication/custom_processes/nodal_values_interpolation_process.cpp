@@ -326,18 +326,16 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
 {
     // Sum all the nodes normals
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
 
-    IndexPartition<std::size_t>(r_conditions_array.size()).for_each(
-        [&it_cond_begin](std::size_t i_cond) {
-        auto it_cond = it_cond_begin + i_cond;
-        GeometryType& this_geometry = it_cond->GetGeometry();
+    block_for_each(r_conditions_array,
+        [&](Condition& rCond) {
+        GeometryType& this_geometry = rCond.GetGeometry();
 
         // Aux coordinates
         CoordinatesArrayType aux_coords;
         aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
 
-        it_cond->SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
+        rCond.SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
 
         const SizeType number_nodes = this_geometry.PointsNumber();
 
@@ -354,16 +352,13 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
 
     // Iterate over nodes
     NodesArrayType& r_nodes_array = rModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-        [&it_node_begin](std::size_t i) {
-            auto it_node = it_node_begin + i;
-
-            array_1d<double, 3>& r_normal = it_node->GetValue(NORMAL);
+    block_for_each(r_nodes_array,
+        [&](NodeType& rNode) {
+            array_1d<double, 3>& r_normal = rNode.GetValue(NORMAL);
             const double norm_normal = norm_2(r_normal);
 
             if (norm_normal > std::numeric_limits<double>::epsilon()) r_normal /= norm_normal;
-            else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
+            else KRATOS_ERROR_IF(rNode.Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << rNode.Id() << std::endl;
         }
     );
 }
