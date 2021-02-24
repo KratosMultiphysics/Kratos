@@ -25,10 +25,10 @@ HELP: Units in IS: N/m2
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2.0e3
+VALUE: 2650
 HELP: Units in IS: Kg/m3
 QUESTION: Fluid_Density
-VALUE: 1.0e3
+VALUE: 1000
 HELP: Units in IS: Kg/m3
 QUESTION: Porosity
 VALUE: 0.3
@@ -572,10 +572,10 @@ HELP: Units in IS: N/m2
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2.0e3
+VALUE: 2650
 HELP: Units in IS: Kg/m3
 QUESTION: Fluid_Density
-VALUE: 1.0e3
+VALUE: 1000
 HELP: Units in IS: Kg/m3
 QUESTION: Porosity
 VALUE: 0.3
@@ -1115,10 +1115,10 @@ HELP: Units in IS: N/m2
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2.0e3
+VALUE: 2650
 HELP: Units in IS: Kg/m3
 QUESTION: Fluid_Density
-VALUE: 1.0e3
+VALUE: 1000
 HELP: Units in IS: Kg/m3
 QUESTION: Porosity
 VALUE: 0.3
@@ -1659,7 +1659,7 @@ HELP: Units in IS: N/m2
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2.0e3
+VALUE: 2650
 HELP: Units in IS: Kg/m3
 QUESTION: Porosity
 VALUE: 0.0
@@ -2286,10 +2286,10 @@ HELP: It defines the normal stiffness in contact cases. Units in IS: N/m2
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2.0e3
+VALUE: 2650
 HELP: Units in IS: Kg/m3
 QUESTION: Fluid_Density
-VALUE: 1.0e3
+VALUE: 1000
 HELP: Units in IS: Kg/m3
 QUESTION: Porosity
 VALUE: 0.3
@@ -2792,10 +2792,10 @@ HELP: It defines the normal stiffness in contact cases. Units in IS: N/m2
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2.0e3
+VALUE: 2650
 HELP: Units in IS: Kg/m3
 QUESTION: Fluid_Density
-VALUE: 1.0e3
+VALUE: 1000
 HELP: Units in IS: Kg/m3
 QUESTION: Porosity
 VALUE: 0.3
@@ -3298,10 +3298,10 @@ HELP: It defines the normal stiffness in contact cases. Units in IS: N/m2
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2.0e3
+VALUE: 2650
 HELP: Units in IS: Kg/m3
 QUESTION: Fluid_Density
-VALUE: 1.0e3
+VALUE: 1000
 HELP: Units in IS: Kg/m3
 QUESTION: Porosity
 VALUE: 0.3
@@ -3894,11 +3894,11 @@ CONDMESHTYPE: over nodes
 GROUPALLOW: points lines surfaces volumes
 QUESTION: Pressure_Distribution#CB#(Uniform,Hydrostatic,Phreatic_Line,Phreatic_Surface,Interpolate_Line)
 VALUE: Uniform
-DEPENDENCIES: (Uniform,         RESTORE,Pressure_Value,#CURRENT#, HIDE,   Gravity_Direction,#CURRENT#, HIDE,   Reference_Coordinate,#CURRENT#, HIDE,   Specific_Weight,#CURRENT#, HIDE,   Out_Of_Plane_Direction,#CURRENT#, HIDE,   First_Reference_Coordinate,#CURRENT#, HIDE,   Second_Reference_Coordinate,#CURRENT#, HIDE,   Third_Reference_Coordinate,#CURRENT#,HIDE,   X_1,#CURRENT#,HIDE,   Y_1,#CURRENT#,HIDE,   Z_1,#CURRENT#,HIDE,   X_2,#CURRENT#,HIDE,   Y_2,#CURRENT#,HIDE,   Z_2,#CURRENT#,HIDE,   X_3,#CURRENT#,HIDE,   Y_3,#CURRENT#,HIDE,   Z_3,#CURRENT#, HIDE,Imposed_Pressure_Second_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Second,#CURRENT#, HIDE,Imposed_Pressure_Third_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Third,#CURRENT#)
-DEPENDENCIES: (Hydrostatic,     HIDE,   Pressure_Value,#CURRENT#, RESTORE,Gravity_Direction,#CURRENT#, RESTORE,Reference_Coordinate,#CURRENT#, RESTORE,Specific_Weight,#CURRENT#, HIDE,   Out_Of_Plane_Direction,#CURRENT#, HIDE,   First_Reference_Coordinate,#CURRENT#, HIDE,   Second_Reference_Coordinate,#CURRENT#, HIDE,   Third_Reference_Coordinate,#CURRENT#,HIDE,   X_1,#CURRENT#,HIDE,   Y_1,#CURRENT#,HIDE,   Z_1,#CURRENT#,HIDE,   X_2,#CURRENT#,HIDE,   Y_2,#CURRENT#,HIDE,   Z_2,#CURRENT#,HIDE,   X_3,#CURRENT#,HIDE,   Y_3,#CURRENT#,HIDE,   Z_3,#CURRENT#, HIDE,Imposed_Pressure_Second_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Second,#CURRENT#, HIDE,Imposed_Pressure_Third_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Third,#CURRENT#)
-DEPENDENCIES: (Phreatic_Line,   HIDE,   Pressure_Value,#CURRENT#, RESTORE,Gravity_Direction,#CURRENT#, HIDE,   Reference_Coordinate,#CURRENT#, RESTORE,Specific_Weight,#CURRENT#, RESTORE,Out_Of_Plane_Direction,#CURRENT#, RESTORE,First_Reference_Coordinate,#CURRENT#, RESTORE,Second_Reference_Coordinate,#CURRENT#, HIDE,   Third_Reference_Coordinate,#CURRENT#,RESTORE,X_1,#CURRENT#,RESTORE,Y_1,#CURRENT#,RESTORE,Z_1,#CURRENT#,RESTORE,X_2,#CURRENT#,RESTORE,Y_2,#CURRENT#,RESTORE,Z_2,#CURRENT#,HIDE,   X_3,#CURRENT#,HIDE,   Y_3,#CURRENT#,HIDE,   Z_3,#CURRENT#, RESTORE,Imposed_Pressure_Second_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Second,#CURRENT#, HIDE,Imposed_Pressure_Third_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Third,#CURRENT#)
-DEPENDENCIES: (Phreatic_Surface,HIDE,   Pressure_Value,#CURRENT#, RESTORE,Gravity_Direction,#CURRENT#, HIDE,   Reference_Coordinate,#CURRENT#, RESTORE,Specific_Weight,#CURRENT#, HIDE,   Out_Of_Plane_Direction,#CURRENT#, RESTORE,First_Reference_Coordinate,#CURRENT#, RESTORE,Second_Reference_Coordinate,#CURRENT#, RESTORE,Third_Reference_Coordinate,#CURRENT#,RESTORE,X_1,#CURRENT#,RESTORE,Y_1,#CURRENT#,RESTORE,Z_1,#CURRENT#,RESTORE,X_2,#CURRENT#,RESTORE,Y_2,#CURRENT#,RESTORE,Z_2,#CURRENT#,RESTORE,X_3,#CURRENT#,RESTORE,Y_3,#CURRENT#,RESTORE,Z_3,#CURRENT#, RESTORE,Imposed_Pressure_Second_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Second,#CURRENT#, RESTORE,Imposed_Pressure_Third_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Third,#CURRENT#)
-DEPENDENCIES: (Interpolate_Line,HIDE,   Pressure_Value,#CURRENT#, RESTORE,Gravity_Direction,#CURRENT#, HIDE,   Reference_Coordinate,#CURRENT#, HIDE,   Specific_Weight,#CURRENT#, RESTORE,Out_Of_Plane_Direction,#CURRENT#, HIDE,   First_Reference_Coordinate,#CURRENT#, HIDE,   Second_Reference_Coordinate,#CURRENT#, HIDE,   Third_Reference_Coordinate,#CURRENT#,HIDE,   X_1,#CURRENT#,HIDE,   Y_1,#CURRENT#,HIDE,   Z_1,#CURRENT#,HIDE,   X_2,#CURRENT#,HIDE,   Y_2,#CURRENT#,HIDE,   Z_2,#CURRENT#,HIDE,   X_3,#CURRENT#,HIDE,   Y_3,#CURRENT#,HIDE,   Z_3,#CURRENT#, HIDE,Imposed_Pressure_Second_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Second,#CURRENT#, HIDE,Imposed_Pressure_Third_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Third,#CURRENT#)
+DEPENDENCIES: (Uniform,         RESTORE,Pressure_Value,#CURRENT#, HIDE,   Gravity_Direction,#CURRENT#, HIDE,   Reference_Coordinate,#CURRENT#, HIDE,   Specific_Weight,#CURRENT#, HIDE,   Pressure_Tension_Cut_off,#CURRENT#, HIDE,   Out_Of_Plane_Direction,#CURRENT#, HIDE,   First_Reference_Coordinate,#CURRENT#, HIDE,   Second_Reference_Coordinate,#CURRENT#, HIDE,   Third_Reference_Coordinate,#CURRENT#,HIDE,   X_1,#CURRENT#,HIDE,   Y_1,#CURRENT#,HIDE,   Z_1,#CURRENT#,HIDE,   X_2,#CURRENT#,HIDE,   Y_2,#CURRENT#,HIDE,   Z_2,#CURRENT#,HIDE,   X_3,#CURRENT#,HIDE,   Y_3,#CURRENT#,HIDE,   Z_3,#CURRENT#, HIDE,Imposed_Pressure_Second_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Second,#CURRENT#, HIDE,Imposed_Pressure_Third_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Third,#CURRENT#)
+DEPENDENCIES: (Hydrostatic,     HIDE,   Pressure_Value,#CURRENT#, RESTORE,Gravity_Direction,#CURRENT#, RESTORE,Reference_Coordinate,#CURRENT#, RESTORE,Specific_Weight,#CURRENT#, RESTORE,Pressure_Tension_Cut_off,#CURRENT#, HIDE,   Out_Of_Plane_Direction,#CURRENT#, HIDE,   First_Reference_Coordinate,#CURRENT#, HIDE,   Second_Reference_Coordinate,#CURRENT#, HIDE,   Third_Reference_Coordinate,#CURRENT#,HIDE,   X_1,#CURRENT#,HIDE,   Y_1,#CURRENT#,HIDE,   Z_1,#CURRENT#,HIDE,   X_2,#CURRENT#,HIDE,   Y_2,#CURRENT#,HIDE,   Z_2,#CURRENT#,HIDE,   X_3,#CURRENT#,HIDE,   Y_3,#CURRENT#,HIDE,   Z_3,#CURRENT#, HIDE,Imposed_Pressure_Second_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Second,#CURRENT#, HIDE,Imposed_Pressure_Third_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Third,#CURRENT#)
+DEPENDENCIES: (Phreatic_Line,   HIDE,   Pressure_Value,#CURRENT#, RESTORE,Gravity_Direction,#CURRENT#, HIDE,   Reference_Coordinate,#CURRENT#, RESTORE,Specific_Weight,#CURRENT#, RESTORE,Pressure_Tension_Cut_off,#CURRENT#, RESTORE,Out_Of_Plane_Direction,#CURRENT#, RESTORE,First_Reference_Coordinate,#CURRENT#, RESTORE,Second_Reference_Coordinate,#CURRENT#, HIDE,   Third_Reference_Coordinate,#CURRENT#,RESTORE,X_1,#CURRENT#,RESTORE,Y_1,#CURRENT#,RESTORE,Z_1,#CURRENT#,RESTORE,X_2,#CURRENT#,RESTORE,Y_2,#CURRENT#,RESTORE,Z_2,#CURRENT#,HIDE,   X_3,#CURRENT#,HIDE,   Y_3,#CURRENT#,HIDE,   Z_3,#CURRENT#, RESTORE,Imposed_Pressure_Second_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Second,#CURRENT#, HIDE,Imposed_Pressure_Third_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Third,#CURRENT#)
+DEPENDENCIES: (Phreatic_Surface,HIDE,   Pressure_Value,#CURRENT#, RESTORE,Gravity_Direction,#CURRENT#, HIDE,   Reference_Coordinate,#CURRENT#, RESTORE,Specific_Weight,#CURRENT#, RESTORE,Pressure_Tension_Cut_off,#CURRENT#, HIDE,   Out_Of_Plane_Direction,#CURRENT#, RESTORE,First_Reference_Coordinate,#CURRENT#, RESTORE,Second_Reference_Coordinate,#CURRENT#, RESTORE,Third_Reference_Coordinate,#CURRENT#,RESTORE,X_1,#CURRENT#,RESTORE,Y_1,#CURRENT#,RESTORE,Z_1,#CURRENT#,RESTORE,X_2,#CURRENT#,RESTORE,Y_2,#CURRENT#,RESTORE,Z_2,#CURRENT#,RESTORE,X_3,#CURRENT#,RESTORE,Y_3,#CURRENT#,RESTORE,Z_3,#CURRENT#, RESTORE,Imposed_Pressure_Second_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Second,#CURRENT#, RESTORE,Imposed_Pressure_Third_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Third,#CURRENT#)
+DEPENDENCIES: (Interpolate_Line,HIDE,   Pressure_Value,#CURRENT#, RESTORE,Gravity_Direction,#CURRENT#, HIDE,   Reference_Coordinate,#CURRENT#, HIDE,   Specific_Weight,#CURRENT#, RESTORE,Pressure_Tension_Cut_off,#CURRENT#, RESTORE,Out_Of_Plane_Direction,#CURRENT#, HIDE,   First_Reference_Coordinate,#CURRENT#, HIDE,   Second_Reference_Coordinate,#CURRENT#, HIDE,   Third_Reference_Coordinate,#CURRENT#,HIDE,   X_1,#CURRENT#,HIDE,   Y_1,#CURRENT#,HIDE,   Z_1,#CURRENT#,HIDE,   X_2,#CURRENT#,HIDE,   Y_2,#CURRENT#,HIDE,   Z_2,#CURRENT#,HIDE,   X_3,#CURRENT#,HIDE,   Y_3,#CURRENT#,HIDE,   Z_3,#CURRENT#, HIDE,Imposed_Pressure_Second_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Second,#CURRENT#, HIDE,Imposed_Pressure_Third_Point,#CURRENT#, HIDE,Fluid_Pressure_Table_Third,#CURRENT#)
 
 QUESTION: Pressure_Value
 VALUE: 0.0
@@ -3911,6 +3911,10 @@ HELP: Coordinate of the chosen direction at which pressure is 0.0
 QUESTION: Specific_Weight
 VALUE: 10000.0
 HELP: Units in IS: N/m3
+
+QUESTION: Pressure_Tension_Cut_off
+VALUE: 0.0
+HELP: Units in IS: N/m3. This is the maximum pressure (suction) allowed.
 
 QUESTION: Out_Of_Plane_Direction#CB#(X,Y,Z)
 VALUE: Z
@@ -3958,7 +3962,7 @@ VALUE: 0.0
 HELP: Units in IS: m
 
 QUESTION: Fixed#CB#(true,false)
-VALUE: true
+VALUE: false
 HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
 DEPENDENCIES: (false,HIDE,Imposed_Pressure,Constant,HIDE,Imposed_Pressure_Second_Point,Constant,HIDE,Imposed_Pressure_Third_Point,Constant)
 DEPENDENCIES: (true,RESTORE,Imposed_Pressure,#CURRENT#)

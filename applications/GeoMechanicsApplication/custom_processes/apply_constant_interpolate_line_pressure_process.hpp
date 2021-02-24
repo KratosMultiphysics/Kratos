@@ -47,6 +47,7 @@ public:
                 "is_fixed": false,
                 "gravity_direction": 1,
                 "out_of_plane_direction": 2,
+                "pressure_tension_cut_off" : 0.0,
                 "table" : 1
             }  )" );
 
@@ -73,6 +74,11 @@ public:
         mHorizontalDirection = 0;
         for (unsigned int i=0; i<N_DIM_3D; ++i)
            if (i!=mGravityDirection && i!=mOutOfPlaneDirection) mHorizontalDirection = i;
+
+        if (rParameters.Has("pressure_tension_cut_off"))
+          mPressureTensionCutOff = rParameters["pressure_tension_cut_off"].GetDouble();
+        else
+          mPressureTensionCutOff = 0.0;
 
         KRATOS_CATCH("");
     }
@@ -113,13 +119,13 @@ public:
 
                 double pressure= CalculatePressure(it);
 
-                if ((- PORE_PRESSURE_SIGN_FACTOR * pressure) > 0.0)
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff)
                 {
                     it->FastGetSolutionStepValue(var) = pressure;
                 }
                 else
                 {
-                    it->FastGetSolutionStepValue(var) = 0.0;
+                    it->FastGetSolutionStepValue(var) = mPressureTensionCutOff;
                 }
             }
         }
@@ -157,6 +163,7 @@ protected:
     unsigned int mOutOfPlaneDirection;
     unsigned int mHorizontalDirection;
     std::vector< ModelPart::NodesContainerType::iterator> iterBoundaryNodes;
+    double mPressureTensionCutOff;
 
     double CalculatePressure(const ModelPart::NodesContainerType::iterator &it)
     {

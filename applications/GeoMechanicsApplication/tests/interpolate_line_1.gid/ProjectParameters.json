@@ -131,6 +131,7 @@
             "table":                0,
             "fluid_pressure_type": "Uniform",
             "gravity_direction":    1,
+            "pressure_tension_cut_off":      0.0,
             "specific_weight":      10000.0
         }
     },{
@@ -145,6 +146,7 @@
             "table":                0,
             "fluid_pressure_type": "Uniform",
             "gravity_direction":    1,
+            "pressure_tension_cut_off":      0.0,
             "specific_weight":      10000.0
         }
     },{
@@ -159,7 +161,8 @@
             "table":                0,
             "fluid_pressure_type": "Interpolate_Line",
             "gravity_direction":    1,
-			"out_of_plane_direction": 2,
+            "out_of_plane_direction": 2,
+            "pressure_tension_cut_off":      0.0,
             "specific_weight":      10000.0
         }
     }],

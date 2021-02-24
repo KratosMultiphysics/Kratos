@@ -89,7 +89,7 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
                 puts $MyFileVar "        \"Parameters\":    \{"
                 puts $MyFileVar "            \"model_part_name\":      \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
                 puts $MyFileVar "            \"variable_name\":        \"$VarName\","
-                puts $MyFileVar "            \"is_fixed\":             [lindex [lindex $Groups $i] 21],"
+                puts $MyFileVar "            \"is_fixed\":             [lindex [lindex $Groups $i] 22],"
                 puts $MyFileVar "            \"fluid_pressure_type\": \"[lindex [lindex $Groups $i] 3]\","
 
                 if {[lindex [lindex $Groups $i] 5] eq "Y"} {
@@ -109,23 +109,24 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
                       puts $MyFileVar "            \"value\":                [lindex [lindex $Groups $i] 4],"
                     puts $MyFileVar "            \"table\":                [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],"
                 } elseif {[lindex [lindex $Groups $i] 3] eq "Phreatic_Line"} {
-                    if {[lindex [lindex $Groups $i] 8] eq "Y"} {
+                    if {[lindex [lindex $Groups $i] 9] eq "Y"} {
                         set PutStrings 1
-                    } elseif {[lindex [lindex $Groups $i] 8] eq "Z"} {
+                    } elseif {[lindex [lindex $Groups $i] 9] eq "Z"} {
                         set PutStrings 2
                     } else {
                         set PutStrings 0
                     }
                     puts $MyFileVar "            \"out_of_plane_direction\":    $PutStrings,"
-                    puts $MyFileVar "            \"first_reference_coordinate\" :    \[[lindex [lindex $Groups $i] 10],[lindex [lindex $Groups $i] 11],[lindex [lindex $Groups $i] 12]\],"
-                    puts $MyFileVar "            \"second_reference_coordinate\":    \[[lindex [lindex $Groups $i] 14],[lindex [lindex $Groups $i] 15],[lindex [lindex $Groups $i] 16]\],"
+                    puts $MyFileVar "            \"first_reference_coordinate\" :    \[[lindex [lindex $Groups $i] 11],[lindex [lindex $Groups $i] 12],[lindex [lindex $Groups $i] 13]\],"
+                    puts $MyFileVar "            \"second_reference_coordinate\":    \[[lindex [lindex $Groups $i] 15],[lindex [lindex $Groups $i] 16],[lindex [lindex $Groups $i] 17]\],"
                     puts $MyFileVar "            \"table\":                \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1]\],"
                 } elseif {[lindex [lindex $Groups $i] 3] eq "Phreatic_Surface"} {
-                    puts $MyFileVar "            \"first_reference_coordinate\" :    \[[lindex [lindex $Groups $i] 10],[lindex [lindex $Groups $i] 11],[lindex [lindex $Groups $i] 12]\],"
-                    puts $MyFileVar "            \"second_reference_coordinate\":    \[[lindex [lindex $Groups $i] 14],[lindex [lindex $Groups $i] 15],[lindex [lindex $Groups $i] 16]\],"
-                    puts $MyFileVar "            \"third_reference_coordinate\" :    \[[lindex [lindex $Groups $i] 18],[lindex [lindex $Groups $i] 19],[lindex [lindex $Groups $i] 20]\],"
+                    puts $MyFileVar "            \"first_reference_coordinate\" :    \[[lindex [lindex $Groups $i] 11],[lindex [lindex $Groups $i] 12],[lindex [lindex $Groups $i] 13]\],"
+                    puts $MyFileVar "            \"second_reference_coordinate\":    \[[lindex [lindex $Groups $i] 15],[lindex [lindex $Groups $i] 16],[lindex [lindex $Groups $i] 17]\],"
+                    puts $MyFileVar "            \"third_reference_coordinate\" :    \[[lindex [lindex $Groups $i] 19],[lindex [lindex $Groups $i] 20],[lindex [lindex $Groups $i] 21]\],"
                     puts $MyFileVar "            \"table\":                \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table2]\],"
                 }
+                puts $MyFileVar "            \"pressure_tension_cut_off\":      [lindex [lindex $Groups $i] 8],"
                 puts $MyFileVar "            \"specific_weight\":      [lindex [lindex $Groups $i] 7]"
 
                 puts $MyFileVar "        \}"
@@ -148,7 +149,7 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
                 puts $MyFileVar "        \"Parameters\":    \{"
                 puts $MyFileVar "            \"model_part_name\":      \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
                 puts $MyFileVar "            \"variable_name\":        \"$VarName\","
-                puts $MyFileVar "            \"is_fixed\":             [lindex [lindex $Groups $i] 21],"
+                puts $MyFileVar "            \"is_fixed\":             [lindex [lindex $Groups $i] 22],"
                 puts $MyFileVar "            \"table\":                [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],"
                 puts $MyFileVar "            \"fluid_pressure_type\": \"[lindex [lindex $Groups $i] 3]\","
 
@@ -163,9 +164,9 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
                 puts $MyFileVar "            \"gravity_direction\":    $PutStrings,"
                 
                 if {[lindex [lindex $Groups $i] 3] eq "Interpolate_Line"} {
-                    if {[lindex [lindex $Groups $i] 8] eq "Y"} {
+                    if {[lindex [lindex $Groups $i] 9] eq "Y"} {
                         set PutStrings 1
-                    } elseif {[lindex [lindex $Groups $i] 8] eq "Z"} {
+                    } elseif {[lindex [lindex $Groups $i] 9] eq "Z"} {
                         set PutStrings 2
                     } else {
                         set PutStrings 0
