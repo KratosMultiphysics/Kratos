@@ -17,6 +17,7 @@
 
 // Project includes
 #include "utilities/constraint_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -33,18 +34,20 @@ void ComputeActiveDofs(
     // Base active dofs
     rActiveDofs.resize(rDofSet.size());
 
-    #pragma omp parallel for
-    for(int i=0; i<static_cast<int>(rActiveDofs.size()); ++i) {
-        rActiveDofs[i] = 1;
-    }
+    block_for_each(
+        rActiveDofs,
+        [](int& r_dof)
+        { r_dof = 1; }
+    );
 
-    #pragma omp parallel for
-    for (int i = 0; i<static_cast<int>(rDofSet.size()); ++i) {
-        const auto it_dof = rDofSet.begin() + i;
-        if (it_dof->IsFixed()) {
-            rActiveDofs[it_dof->EquationId()] = 0;
+    block_for_each(
+        rDofSet,
+        [&rActiveDofs](const ModelPart::DofType& rDof){
+            if (rDof.IsFixed()){
+                rActiveDofs[rDof.EquationId()] = 0;
+            }
         }
-    }
+    );
 
     // Filling rActiveDofs when MPC exist
     if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
@@ -68,30 +71,24 @@ void ResetSlaveDofs(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
-    // The number of constraints
-    const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-
     // The current process info
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
     // Setting to zero the slave dofs
-    #pragma omp parallel
-    {
-        #pragma omp for schedule(guided, 512)
-        for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-
+    block_for_each(
+        rModelPart.MasterSlaveConstraints(),
+        [&r_current_process_info](MasterSlaveConstraint& rConstraint)
+        {
             // Detect if the constraint is active or not. If the user did not make any choice the constraint
             // It is active by default
             bool constraint_is_active = true;
-            if (it_const->IsDefined(ACTIVE))
-                constraint_is_active = it_const->Is(ACTIVE);
+            if (rConstraint.IsDefined(ACTIVE))
+                constraint_is_active = rConstraint.Is(ACTIVE);
 
-            if (constraint_is_active) {
-                it_const->ResetSlaveDofs(r_current_process_info);
-            }
+            if (constraint_is_active)
+                rConstraint.ResetSlaveDofs(r_current_process_info);
         }
-    }
+    );
 
     KRATOS_CATCH("")
 }
@@ -103,30 +100,25 @@ void ApplyConstraints(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
-    // The number of constraints
-    const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-
     // The current process info
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
     // Adding MPC contribution
-    #pragma omp parallel
-    {
-        #pragma omp for schedule(guided, 512)
-        for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-
+    block_for_each(
+        rModelPart.MasterSlaveConstraints(),
+        [&r_current_process_info](MasterSlaveConstraint& rConstraint)
+        {
             // Detect if the constraint is active or not. If the user did not make any choice the constraint
             // It is active by default
             bool constraint_is_active = true;
-            if (it_const->IsDefined(ACTIVE))
-                constraint_is_active = it_const->Is(ACTIVE);
+            if (rConstraint.IsDefined(ACTIVE))
+                constraint_is_active = rConstraint.Is(ACTIVE);
 
             if (constraint_is_active) {
-                it_const->Apply(r_current_process_info);
+                rConstraint.Apply(r_current_process_info);
             }
         }
-    }
+    );
 
     KRATOS_CATCH("")
 }
