@@ -620,19 +620,17 @@ private:
         NodesArrayType& r_nodes_array = mrDestinationMainModelPart.Nodes();
 
         /* Nodes */
-        const auto& r_variables = mInternalVariableList;
-        const auto allocation_size = mAllocationSize;
         block_for_each(r_nodes_array, auxiliar_search<TDim>(mrOriginMainModelPart),
-        [&r_variables, &allocation_size](Node<3>& rNode, auxiliar_search<TDim>& aux) {
+        [this](Node<3>& rNode, auxiliar_search<TDim>& aux) {
 
             const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
             if (!old_entity) {
-                const bool found = aux.point_locator.FindPointOnMeshSimplified(rNode.Coordinates(), aux.N, aux.p_element, allocation_size);
+                const bool found = aux.point_locator.FindPointOnMeshSimplified(rNode.Coordinates(), aux.N, aux.p_element, mAllocationSize);
 
                 if (!found) {
                     KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING: Node "<< rNode.Id() << " not found (interpolation not posible)" <<  "\t X:"<< rNode.X() << "\t Y:"<< rNode.Y() << "\t Z:"<< rNode.Z() << std::endl;
                 } else {
-                    for (auto& variable_name : r_variables) {
+                    for (auto& variable_name : mInternalVariableList) {
                         if (KratosComponents<DoubleVarType>::Has(variable_name)) {
                             const auto& r_variable = KratosComponents<DoubleVarType>::Get(variable_name);
                             InterpolateToNode(r_variable, aux.N, rNode, aux.p_element);

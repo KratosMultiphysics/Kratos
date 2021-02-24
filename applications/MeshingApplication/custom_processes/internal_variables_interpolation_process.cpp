@@ -418,9 +418,8 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
     const ProcessInfo& r_origin_process_info = mrOriginMainModelPart.GetProcessInfo();
 
     /* Elements */
-    const auto& r_variables = mInternalVariableList; 
     block_for_each(r_elements_array, this_integration_method,
-        [&r_origin_process_info, &r_variables](Element& rElement, GeometryData::IntegrationMethod& this_integration_method) {
+        [&r_origin_process_info, this](Element& rElement, GeometryData::IntegrationMethod& this_integration_method) {
 
         const bool old_entity = rElement.IsDefined(OLD_ENTITY) ? rElement.Is(OLD_ENTITY) : false;
         if (!old_entity) { // We don't interpolate from preserved meshes
@@ -462,7 +461,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
                 ConstitutiveLaw::Pointer p_origin_cl = constitutive_law_vector[i_gauss_point];
 
                 // We interpolate and add the variable
-                for (auto& variable_name : r_variables) {
+                for (auto& variable_name : mInternalVariableList) {
                     if (KratosComponents<DoubleVarType>::Has(variable_name)) {
                         const DoubleVarType& r_variable = KratosComponents<DoubleVarType>::Get(variable_name);
                         if (p_origin_cl->Has(r_variable)) {
@@ -498,7 +497,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
             }
 
             // We divide by the total weight
-            for (auto& variable_name : r_variables) {
+            for (auto& variable_name : mInternalVariableList) {
                 if (KratosComponents<DoubleVarType>::Has(variable_name)) {
                     const DoubleVarType& r_variable = KratosComponents<DoubleVarType>::Get(variable_name);
                     PonderateVariable(r_this_geometry, r_variable, total_weight);
@@ -533,7 +532,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
     /* Elements */
     block_for_each(r_elements_array_destination, this_integration_method,
-        [&r_destination_process_info, &r_variables](Element& rElement, GeometryData::IntegrationMethod& this_integration_method) {
+        [&r_destination_process_info, this](Element& rElement, GeometryData::IntegrationMethod& this_integration_method) {
 
         const bool old_entity = rElement.IsDefined(OLD_ENTITY) ? rElement.Is(OLD_ENTITY) : false;
         if (!old_entity) { // We don't interpolate from preserved meshes
@@ -565,7 +564,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
                 // The destination CL
                 ConstitutiveLaw::Pointer p_destination_cl = constitutive_law_vector[i_gauss_point];
 
-                for (auto& variable_name : r_variables) {
+                for (auto& variable_name : mInternalVariableList) {
                     if (KratosComponents<DoubleVarType>::Has(variable_name)) {
                         const DoubleVarType& r_variable = KratosComponents<DoubleVarType>::Get(variable_name);
                         if (p_destination_cl->Has(r_variable)) {
