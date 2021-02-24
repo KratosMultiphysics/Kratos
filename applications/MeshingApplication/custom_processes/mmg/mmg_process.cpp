@@ -138,12 +138,10 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
 
         // Remove not marked
         auto& r_conditions_array = mrThisModelPart.Conditions();
-        const auto it_cond_begin = r_conditions_array.begin();
-        IndexPartition<std::size_t>(r_conditions_array.size()).for_each(
-        [&it_cond_begin](std::size_t i) {
-            auto it_cond = it_cond_begin + i;
-            if (it_cond->IsNot(MARKER)) {
-                it_cond->Set(TO_ERASE, true);
+        block_for_each(r_conditions_array,
+        [&](Condition& rCondition) {
+            if (rCondition.IsNot(MARKER)) {
+                rCondition.Set(TO_ERASE, true);
             }
         });
         mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE); // In theory with RemoveConditions is enough
@@ -328,12 +326,10 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
     // Move mesh before remesh
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {  // TODO: Revert when dependency problem solved
         NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
 
-        IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-            [&it_node_begin](std::size_t i) {
-            auto it_node = it_node_begin + i;
-            noalias(it_node->GetInitialPosition().Coordinates()) = it_node->Coordinates();
+        block_for_each(r_nodes_array,
+            [&](NodeType& rNode) {
+            noalias(rNode.GetInitialPosition().Coordinates()) = rNode.Coordinates();
         });
     }
 
@@ -512,45 +508,39 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
     // First we empty the model part
     auto& r_nodes_array = mrThisModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
 
-    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-        [&it_node_begin](std::size_t i) {
-        auto it_node = it_node_begin + i;
+    block_for_each(r_nodes_array,
+        [&](NodeType& rNode) {
 
-        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            it_node->Set(TO_ERASE, true);
+            rNode.Set(TO_ERASE, true);
         }
     });
     r_old_model_part.AddNodes( mrThisModelPart.NodesBegin(), mrThisModelPart.NodesEnd() );
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 
     auto& r_conditions_array = mrThisModelPart.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
 
-    IndexPartition<std::size_t>(r_conditions_array.size()).for_each(
-        [&it_cond_begin](std::size_t i) {
-        auto it_cond = it_cond_begin + i;
+    block_for_each(r_conditions_array,
+        [&](Condition& rCondition) {
 
-        const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
+        const bool old_entity = rCondition.IsDefined(OLD_ENTITY) ? rCondition.Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            it_cond->Set(TO_ERASE, true);
+            rCondition.Set(TO_ERASE, true);
         }
     });
     r_old_model_part.AddConditions( mrThisModelPart.ConditionsBegin(), mrThisModelPart.ConditionsEnd() );
     mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 
     auto& r_elements_array = mrThisModelPart.Elements();
-    const auto it_elem_begin = r_elements_array.begin();
 
-    IndexPartition<std::size_t>(r_elements_array.size()).for_each(
-        [&it_elem_begin](std::size_t i) {
-        auto it_elem = it_elem_begin + i;
+    block_for_each(r_elements_array,
+        [&](Element& rElement) {
 
-        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
+        const bool old_entity = rElement.IsDefined(OLD_ENTITY) ? rElement.Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            it_elem->Set(TO_ERASE, true);
+            rElement.Set(TO_ERASE, true);
         }
     });
     r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
@@ -603,12 +593,10 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     /* Unmoving the original mesh to be able to interpolate */
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
         NodesArrayType& r_old_nodes_array = r_old_model_part.Nodes();
-        const auto it_old_node_begin = r_old_nodes_array.begin();
 
-        IndexPartition<std::size_t>(r_old_nodes_array.size()).for_each(
-        [&it_old_node_begin](std::size_t i) {
-            auto it_node = it_old_node_begin + i;
-            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
+        block_for_each(r_old_nodes_array,
+        [&](NodeType& rNode) {
+            noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
         });
     }
 
@@ -639,35 +627,27 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
     /* We do some operations related with the Lagrangian framework */
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
+        r_nodes_array = mrThisModelPart.Nodes();
         if (mDiscretization == DiscretizationOption::STANDARD) {
             // If we remesh during non linear iteration we just move to the previous displacement, to the last displacement otherwise
             const IndexType step = mThisParameters["remesh_at_non_linear_iteration"].GetBool() ? 1 : 0;
 
             /* We move the mesh */
-            r_nodes_array = mrThisModelPart.Nodes();
-            const auto it_node_begin = r_nodes_array.begin();
-
-            IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-            [&it_node_begin,&step](std::size_t i) {
-                auto it_node = it_node_begin + i;
-
-                noalias(it_node->Coordinates())  = it_node->GetInitialPosition().Coordinates();
-                noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT, step);
+            block_for_each(r_nodes_array,
+            [&step](NodeType& rNode) {
+                noalias(rNode.Coordinates())  = rNode.GetInitialPosition().Coordinates();
+                noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT, step);
             });
         } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
             /* We reset the displacement (the API already moved the mesh) */
             const SizeType buffer_size = mrThisModelPart.GetBufferSize();
-            r_nodes_array = mrThisModelPart.Nodes();
-            const auto it_node_begin = r_nodes_array.begin();
 
             const array_1d<double, 3> zero_vector = ZeroVector(3);
 
-            IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-            [&it_node_begin,&zero_vector,&buffer_size](std::size_t i) {
-                auto it_node = it_node_begin + i;
-
+            block_for_each(r_nodes_array,
+            [&zero_vector,&buffer_size](NodeType& rNode) {
                 for (IndexType i_buffer = 0; i_buffer < buffer_size; ++i_buffer) {
-                    noalias(it_node->FastGetSolutionStepValue(DISPLACEMENT, i_buffer)) = zero_vector;
+                    noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT, i_buffer)) = zero_vector;
                 }
             });
         }
@@ -713,19 +693,15 @@ void MmgProcess<TMMGLibrary>::InitializeElementsAndConditions()
     const auto& r_process_info = mrThisModelPart.GetProcessInfo();
 
     // Iterate over conditions
-    auto& r_conditions_array = mrThisModelPart.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
-    IndexPartition<std::size_t>(r_conditions_array.size()).for_each(
-        [&it_cond_begin,&r_process_info](std::size_t i) {
-        (it_cond_begin + i)->Initialize(r_process_info);
+    block_for_each(mrThisModelPart.Conditions(),
+        [&r_process_info](Condition& rCondition) {
+        rCondition.Initialize(r_process_info);
     });
 
     // Iterate over elements
-    auto& r_elements_array = mrThisModelPart.Elements();
-    const auto it_elem_begin = r_elements_array.begin();
-    IndexPartition<std::size_t>(r_elements_array.size()).for_each(
-        [&it_elem_begin,&r_process_info](std::size_t i) {
-        (it_elem_begin + i)->Initialize(r_process_info);
+    block_for_each(mrThisModelPart.Elements(),
+        [&r_process_info](Element& rElement) {
+        rElement.Initialize(r_process_info);
     });
 
     KRATOS_CATCH("");
@@ -924,14 +900,13 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
     // Declare auxiliar coordinates
     GeometryType::CoordinatesArrayType aux_coords;
 
-    IndexPartition<std::size_t>(r_elements_array.size()).for_each(aux_coords,
-        [&it_elem_begin](std::size_t i, GeometryType::CoordinatesArrayType& aux_coords) {
-        auto it_elem = it_elem_begin + i;
-        const GeometryType& r_geometry = it_elem->GetGeometry();
+    block_for_each(r_elements_array, aux_coords,
+        [&](Element& rElement, GeometryType::CoordinatesArrayType& aux_coords) {
+        const GeometryType& r_geometry = rElement.GetGeometry();
 
         // Set elemition normal
         r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
-        it_elem->SetValue(NORMAL, r_geometry.UnitNormal(aux_coords));
+        rElement.SetValue(NORMAL, r_geometry.UnitNormal(aux_coords));
     });
 
     // Adding the normal contribution of each node
@@ -945,15 +920,14 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
         }
     }
 
-    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-        [&it_node_begin](std::size_t i) {
-        auto it_node = it_node_begin + i;
+    block_for_each(r_nodes_array,
+        [&](NodeType& rNode) {
 
-        array_1d<double, 3>& r_normal = it_node->GetValue(NORMAL);
+        array_1d<double, 3>& r_normal = rNode.GetValue(NORMAL);
         const double norm_normal = norm_2(r_normal);
 
         if (norm_normal > std::numeric_limits<double>::epsilon()) r_normal /= norm_normal;
-        else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
+        else KRATOS_ERROR_IF(rNode.Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << rNode.Id() << std::endl;
     });
 
     // Iterate over nodes
@@ -1106,12 +1080,10 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
 
     // Iterate over first elements
     auto& r_elements_array_1 = r_auxiliar_model_part.Elements();
-    const auto it_elem_begin_1 = r_elements_array_1.begin();
 
-    IndexPartition<std::size_t>(r_elements_array_1.size()).for_each(
-        [&it_elem_begin_1,&p_prop_1](std::size_t i) {
-        auto it_elem = it_elem_begin_1 + i;
-        it_elem->SetProperties(p_prop_1);
+    block_for_each(r_elements_array_1,
+        [&p_prop_1](Element& rElement) {
+        rElement.SetProperties(p_prop_1);
     });
     // Old model part
     FastTransferBetweenModelPartsProcess transfer_process_old = FastTransferBetweenModelPartsProcess(r_copy_old_model_part, rOldModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
@@ -1120,12 +1092,10 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
 
     // Iterate over second elements
     auto& r_elements_array_2 = r_copy_old_model_part.Elements();
-    const auto it_elem_begin_2 = r_elements_array_2.begin();
 
-    IndexPartition<std::size_t>(r_elements_array_2.size()).for_each(
-        [&it_elem_begin_2,&p_prop_2](std::size_t i) {
-        auto it_elem = it_elem_begin_2 + i;
-        it_elem->SetProperties(p_prop_2);
+    block_for_each(r_elements_array_2,
+        [&p_prop_2](Element& rElement) {
+        rElement.SetProperties(p_prop_2);
     });
 
     // Reorder ids to ensure be consecuent
@@ -1193,14 +1163,12 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
 
     // Iterate over elements
     const auto& r_elements_array = mrThisModelPart.Elements();
-    const auto it_elem_begin = r_elements_array.begin();
 
     // Saving the nodes that belong to an element
-    IndexPartition<std::size_t>(r_elements_array.size()).for_each(
-        [&it_elem_begin](std::size_t i_elem) {
+    block_for_each(r_elements_array,
+        [&](Element& rElement) {
 
-        const auto it_elem = it_elem_begin + i_elem;
-        auto& r_geom = it_elem->GetGeometry();
+        auto& r_geom = rElement.GetGeometry();
 
         for (IndexType i_node = 0; i_node < r_geom.size(); ++i_node){
             r_geom[i_node].Set(TO_ERASE, false);
