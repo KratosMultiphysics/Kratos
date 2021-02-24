@@ -58,7 +58,6 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 {
     // Iterate in the nodes
     NodesArrayType& r_nodes_array = mThisModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
 
     // Some checks
     VariableUtils().CheckVariableExists(mVariableGradient, r_nodes_array);
@@ -87,24 +86,23 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
     const auto min_size = mMinSize;
     const auto size_boundary_layer = mSizeBoundLayer;
 
-    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(
-        [this,&it_node_begin,&r_tensor_variable,&r_variable_gradient,&r_ani_reference_var,&r_size_reference_var,&enforce_current,&min_size,&size_boundary_layer](std::size_t i_node) {
-        auto it_node = it_node_begin + i_node;
+    block_for_each(r_nodes_array,
+        [this,&r_tensor_variable,&r_variable_gradient,&r_ani_reference_var,&r_size_reference_var,&enforce_current,&min_size,&size_boundary_layer](NodeType& rNode) {
 
-        array_1d<double, 3>& r_gradient_value = it_node->FastGetSolutionStepValue(r_variable_gradient);
+        array_1d<double, 3>& r_gradient_value = rNode.FastGetSolutionStepValue(r_variable_gradient);
 
         // Isotropic by default
         double ratio = 1.0;
-        if (it_node->SolutionStepsDataHas(r_ani_reference_var)) {
-            const double ratio_reference = it_node->FastGetSolutionStepValue(r_ani_reference_var);
+        if (rNode.SolutionStepsDataHas(r_ani_reference_var)) {
+            const double ratio_reference = rNode.FastGetSolutionStepValue(r_ani_reference_var);
             ratio = CalculateAnisotropicRatio(ratio_reference);
         }
 
         // MinSize by default
         double element_size = min_size;
-        const double nodal_h = it_node->GetValue(NODAL_H);
-        if (it_node->SolutionStepsDataHas(r_size_reference_var)) {
-            const double size_reference = it_node->FastGetSolutionStepValue(r_size_reference_var);
+        const double nodal_h = rNode.GetValue(NODAL_H);
+        if (rNode.SolutionStepsDataHas(r_size_reference_var)) {
+            const double size_reference = rNode.FastGetSolutionStepValue(r_size_reference_var);
             element_size = CalculateElementSize(size_reference, nodal_h);
             if (((element_size > nodal_h) && enforce_current) || (std::abs(size_reference) > size_boundary_layer))
                 element_size = nodal_h;
@@ -114,7 +112,7 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
         }
 
         // For postprocess pourposes
-        it_node->SetValue(ANISOTROPIC_RATIO, ratio);
+        rNode.SetValue(ANISOTROPIC_RATIO, ratio);
 
         const double tolerance = 1.0e-12;
         const double norm_gradient_value = norm_2(r_gradient_value);
@@ -122,12 +120,12 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
             r_gradient_value /= norm_gradient_value;
 
         // We compute the metric
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(TDim) + "D  not defined for node " << it_node->Id() << std::endl;
-        TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+        KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(TDim) + "D  not defined for node " << rNode.Id() << std::endl;
+        TensorArrayType& r_metric = rNode.GetValue(r_tensor_variable);
 
         const double norm_metric = norm_2(r_metric);
         if (norm_metric > 0.0) { // NOTE: This means we combine differents metrics, at the same time means that the r_metric should be reseted each time
-            const TensorArrayType& r_old_metric = it_node->GetValue(r_tensor_variable);
+            const TensorArrayType& r_old_metric = rNode.GetValue(r_tensor_variable);
             const TensorArrayType new_metric = ComputeLevelSetMetricTensor(r_gradient_value, ratio, element_size);
 
             noalias(r_metric) = MetricsMathUtils<TDim>::IntersectMetrics(r_old_metric, new_metric);
