@@ -80,6 +80,8 @@ public:
         mAuxMatrices.resize(number_of_threads);
         mRotatedSensitivityMatrices.resize(number_of_threads);
         mSensitivityMatrices.resize(number_of_threads);
+
+        KRATOS_INFO(this->Info()) << this->Info() << " created [ Dimensionality = " << TDim << ", BlockSize = " << TBlockSize << " ].\n";
     }
 
     /// Destructor.
