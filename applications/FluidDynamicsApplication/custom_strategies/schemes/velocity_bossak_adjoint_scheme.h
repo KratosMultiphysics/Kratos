@@ -72,6 +72,7 @@ public:
         AdjointResponseFunction::Pointer pResponseFunction
         ) : BaseType(Settings, pResponseFunction)
     {
+        KRATOS_INFO(this->Info()) << this->Info() << " created [ Dimensionality = " << TDim << ", BlockSize = " << TBlockSize << " ].\n";
     }
 
     /// Destructor.
