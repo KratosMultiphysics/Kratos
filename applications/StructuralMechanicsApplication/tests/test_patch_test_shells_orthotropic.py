@@ -4,6 +4,10 @@ from KratosMultiphysics import *
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    from KratosMultiphysics import ConstitutiveLawsApplication
+
 class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
     def setUp(self):
         pass
@@ -72,6 +76,7 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
 
     def _apply_material_properties(self,mp):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         #define properties
         orthotropic_props = Matrix(4,16)
 
@@ -108,7 +113,7 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
-        cl = StructuralMechanicsApplication.LinearElasticOrthotropic2DLaw()
+        cl = ConstitutiveLawsApplication.LinearElasticOrthotropic2DLaw()
 
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
