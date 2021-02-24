@@ -89,10 +89,6 @@ namespace Kratos
 
     void Shell3pElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
         // Reading integration points
         const GeometryType& r_geometry = GetGeometry();
         const Properties& r_properties = GetProperties();
