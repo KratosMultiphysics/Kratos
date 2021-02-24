@@ -96,18 +96,20 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(UnifiedFatigueLaw);
 
     struct PlasticDamageFatigueParameters {
-        BoundedVectorType PlasticFlow   = ZeroVector(VoigtSize,VoigtSize);
-        BoundedVectorType PlasticStrain = ZeroVector(VoigtSize,VoigtSize);
-        BoundedVectorType StrainVector  = ZeroVector(VoigtSize,VoigtSize);
-        BoundedVectorType StressVector  = ZeroVector(VoigtSize,VoigtSize);
-        double NonLinearIndicator          = 0.0;
-        double PlasticityIndicator         = 0.0;
-        double PlasticConsistencyIncrement = 0.0;
+        BoundedMatrixType ComplianceIncrementMatrix = ZeroMatrix(VoigtSize,VoigtSize);
+        BoundedMatrixType ComplianceMatrix       = ZeroMatrix(VoigtSize,VoigtSize);
+        BoundedVectorType PlasticFlow            = ZeroVector(VoigtSize,VoigtSize);
+        BoundedVectorType PlasticStrain          = ZeroVector(VoigtSize,VoigtSize);
+        BoundedVectorType PlasticStrainIncrement = ZeroVector(VoigtSize,VoigtSize);
+        BoundedVectorType StrainVector           = ZeroVector(VoigtSize,VoigtSize);
+        BoundedVectorType StressVector           = ZeroVector(VoigtSize,VoigtSize);
+        double NonLinearIndicator          = 0.0; // F
+        double PlasticConsistencyIncrement = 0.0; // Lambda dot
         double UniaxialStress              = 0.0;
-        double HardeningParameterDamage    = 0.0;
-        double DamageDissipation           = 0.0;
-        double PlasticDissipation          = 0.0;
-        double TotalDissipation            = 0.0;
+        double HardeningParameter          = 0.0;
+        double DamageDissipation           = 0.0; // Kappa d
+        double PlasticDissipation          = 0.0; // Kappa p
+        double TotalDissipation            = 0.0; // Kappa
         double CharacteristicLength        = 0.0;
         double Threshold                   = 0.0;
         double PlasticDenominator          = 0.0;
@@ -581,6 +583,23 @@ public:
         return (Number > machine_tolerance) ? Number : 0.0;
     }
 
+    /**
+     * @brief This method computes the normalized
+     * plastic dissipation
+     */
+    void CalculatePlasticDissipationIncrement(
+        double &rPlasticDissipationIncrement,
+        const Properties &rMaterialProperties,
+        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method computes the normalized
+     * plastic dissipation
+     */
+    void CalculateDamageDissipationIncrement(
+        double &rDamageDissipationIncrement,
+        const Properties &rMaterialProperties,
+        PlasticDamageFatigueParameters &rPlasticDamageParameters);
 
 protected:
 

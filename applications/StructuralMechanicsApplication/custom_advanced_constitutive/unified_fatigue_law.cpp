@@ -73,6 +73,43 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculatePlasticDissipationIncrement(
+    double &rPlasticDissipationIncrement,
+    const Properties &rMaterialProperties,
+    PlasticDamageFatigueParameters &rParam
+    )
+{
+    const double fracture_energy = rMaterialProperties[FRACTURE_ENERGY];
+    rPlasticDissipationIncrement = inner_prod(rParam.StressVector,rParam.PlasticStrainIncrement) *
+                          rParam.CharacteristicLength / fracture_energy;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateDamageDissipationIncrement(
+    double &rDamageDissipationIncrement,
+    const Properties &rMaterialProperties,
+    PlasticDamageFatigueParameters &rParam
+    )
+{
+    const double fracture_energy = rMaterialProperties[FRACTURE_ENERGY];
+    rDamageDissipationIncrement = inner_prod(rParam.StressVector,
+                            prod(rParam.ComplianceIncrementMatrix,rParam.StressVector)) *
+                            0.5 * rParam.CharacteristicLength / fracture_energy;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
 void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateElasticComplianceMatrix(
     Matrix& rC,
     const Properties& rMaterialProperties
