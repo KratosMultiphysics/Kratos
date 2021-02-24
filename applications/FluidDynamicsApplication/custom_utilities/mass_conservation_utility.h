@@ -113,6 +113,7 @@ public:
      */
     double ComputeFlowOverBoundary( const Kratos::Flags BoundaryFlag );
 
+    double GetInterfaceArea();
 
     /**
      * @brief Initialization of the utility including computation of inital volumes

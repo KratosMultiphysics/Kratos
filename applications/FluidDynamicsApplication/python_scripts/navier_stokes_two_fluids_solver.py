@@ -195,7 +195,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "min_dt_factor"                      : 1e-5,
             "max_dt_factor"                      : 1.0,
             "correct_backwards"                  : true,
-            "maximum_iterations"                 : 70
+            "maximum_iterations"                 :8
         }""" )
         #self.mass_conservation_process = ApplyLocalMassConservationCheckProcessWithFlow(self.model, mass_settings)
         self.mass_conservation_process = ApplyLocalMassConservationCheckProcess(self.model, mass_settings)
@@ -222,7 +222,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             #TODO: THINK IF WE KEEP THIS IN HERE OR AT THE END OF THE STEP
             # Apply mass conservation process
-            self.mass_conservation_process.Execute()
+            # self.mass_conservation_process.Execute()
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set mass correction is performed.")
 
             # Recompute the distance field according to the new level-set position

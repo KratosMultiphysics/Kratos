@@ -190,57 +190,88 @@ double MassConservationUtility::ComputeTimeStepForConvection(double& rOrthogonal
     const double tol = 1e-14;
     double time_step_for_convection = 0.0;
     if ( mVolumeError < 0.0 ){
-
-        KRATOS_WATCH("We're negative volume")
-        // case: water volume was lost by mistake
         mFluidVolumeConservation = FluidVolumeConservation::VOLUME_LOST;
-        // checking if flow is sufficient (avoid division by 0)
-        if (std::abs(rOrthogonalFlow) > tol) {
-            // If negative orthogonal flow (from air to water) negative delta time to go "backwards" and loose mass
-            if (rOrthogonalFlow < 0.0) {
-                time_step_for_convection = -std::abs(mVolumeError / rOrthogonalFlow);
+        time_step_for_convection = -std::abs(mVolumeError / rOrthogonalFlow);
             // If positive orthogonal flow (from water to air) positive delta time to go "frontwards" and earn mass
-            } else {
-                time_step_for_convection = std::abs(mVolumeError / rOrthogonalFlow);
-            }
+           
         }
-    }
     else if ( mVolumeError > 0.0) {
-        KRATOS_WATCH("We're positive volume")
-        // case: water volume was gained by mistake
-        mFluidVolumeConservation = FluidVolumeConservation::VOLUME_GAINED;
-        // checking if flow is sufficient (avoid division by 0)
-        if ( std::abs(rOrthogonalFlow) > tol ){
-            // If negative orthogonal flow (from air to water) positive delta time to go "backwards" and loose mass
-            if (rOrthogonalFlow < 0.0) {
-                time_step_for_convection = std::abs(mVolumeError / rOrthogonalFlow);
-            // If positive orthogonal flow (from water to air) negative delta time to go "frontwards" and earn mass
-            } else {
-                time_step_for_convection = -std::abs(mVolumeError / rOrthogonalFlow);
+        time_step_for_convection = -std::abs(mVolumeError / rOrthogonalFlow);
             }
-        }
-    }
     else {
         // case: Exactly the correct volume of water is present
         mFluidVolumeConservation = FluidVolumeConservation::EXACT_VOLUME;
     }
 
-   
-
-    const double limit_dt = limit_factor * current_dt;
-    if (std::abs(time_step_for_convection) > limit_dt){
-        time_step_for_convection = (time_step_for_convection < 0.0) ? -limit_dt : limit_dt;
-    }
-    
     KRATOS_WATCH(time_step_for_convection)
-
     return time_step_for_convection;
 }
 
 
 
+// void MassConservationUtility::GetInterfaceArea()
+// {
+//     for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
+//         const auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+//         Matrix shape_functions;
+//         GeometryType::ShapeFunctionsGradientsType shape_derivatives;
+//         auto r_geom = it_elem->GetGeometry();
+//         unsigned int pt_count_pos = 0;
+//         unsigned int pt_count_neg = 0;
+//         const bool geom_is_cut = IsGeometryCut(r_geom, pt_count_neg, pt_count_pos);
+//         if (geom_is_cut){
+//             // KRATOS_WATCH("IS INTERSECTED")
+//             // element is cut by the surface (splitting)
+//             Vector w_gauss_interface(3, 0.0);
+//             Vector distance( r_geom.PointsNumber(), 0.0 );
+//             for (unsigned int i = 0; i < r_geom.PointsNumber(); i++){
+//                 distance[i] = r_geom[i].GetSolutionStepValue(DISTANCE);
+//             }
+
+//             const auto p_modified_sh_func = GetModifiedShapeFunctions(it_elem->pGetGeometry(), distance);
+
+//             // Concerning their area, the positive and negative side of the interface are equal
+//             p_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
+//                     shape_functions,                    // N
+//                     shape_derivatives,                  // DN
+//                     w_gauss_interface,                  // includes the weights of the GAUSS points (!!!)
+//                     GeometryData::GI_GAUSS_2);          // second order Gauss integration
+
+//             // negative side outwards area normal vector values for the Gauss pts. of given quadrature
+//             std::vector<Vector> normal_vectors;
+//             p_modified_sh_func->ComputeNegativeSideInterfaceAreaNormals(
+//                 normal_vectors,
+//                 GeometryData::GI_GAUSS_2
+//             );
+
+//             // iteration over all 3 or 6 integration points
+//             for ( unsigned int i_gauss = 0; i_gauss < w_gauss_interface.size(); i_gauss++)
+//             {
+//                 const double& r_weight = w_gauss_interface[i_gauss];    
+//             }
 
 
+//                 const double interface_area= r_weight;
+//                 // KRATOS_WATCH(r_orthogonal_flow)
+               
+//             }
+//         }
+    
+//     const double global_interface_area = mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(interface_area);
+   
+//     return global_interface_area;
+// }
+
+
+
+double MassConservationUtility::GetInterfaceArea()
+{
+    double neg_vol = 0.0;
+    double inter_area = 0.0;
+    ComputeVolumesAndInterface(neg_vol, inter_area );
+    mInterfaceArea = inter_area;
+    return mInterfaceArea;
+}
 
 
 void MassConservationUtility::RestoreDistanceValues( const Variable<double>& rAuxDistVar ){
