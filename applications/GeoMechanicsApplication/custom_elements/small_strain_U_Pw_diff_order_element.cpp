@@ -1168,23 +1168,10 @@ void SmallStrainUPwDiffOrderElement::
         unsigned int VoigtSize = Variables.StressVector.size();
         Vector VoigtVector = ZeroVector(VoigtSize);
 
-        if (VoigtSize == VOIGT_SIZE_3D)
-        {
-            VoigtVector[INDEX_3D_XX] = 1.0;
-            VoigtVector[INDEX_3D_YY] = 1.0;
-            VoigtVector[INDEX_3D_ZZ] = 1.0;
-        }
-        else if (VoigtSize == VOIGT_SIZE_2D_PLANE_STRAIN)
-        {
-            VoigtVector[INDEX_2D_PLANE_STRAIN_XX] = 1.0;
-            VoigtVector[INDEX_2D_PLANE_STRAIN_YY] = 1.0;
-            VoigtVector[INDEX_2D_PLANE_STRAIN_ZZ] = 1.0;
-        }
-        else
-        {
-            VoigtVector[INDEX_2D_PLANE_STRESS_XX] = 1.0;
-            VoigtVector[INDEX_2D_PLANE_STRESS_YY] = 1.0;
-        }
+        for (unsigned int i=0; i < rGeom.WorkingSpaceDimension(); ++i) VoigtVector[i] = 1.0;
+
+        // create general parametes of retention law
+        RetentionLaw::Parameters RetentionParameters(rGeom, GetProperties(), rCurrentProcessInfo);
 
         //Loop over integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -1204,12 +1191,13 @@ void SmallStrainUPwDiffOrderElement::
             UpdateStressVector(Variables, PointNumber);
 
             const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
-            const double BiotCoefficient = 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
+            Variables.BiotCoefficient = 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
 
-            CalculateFluidPressure(Variables, PointNumber);
+            this->CalculateRetentionResponse(Variables, RetentionParameters, PointNumber);
 
             noalias(Variables.StressVector) +=  PORE_PRESSURE_SIGN_FACTOR
-                                              * BiotCoefficient
+                                              * Variables.BiotCoefficient
+                                              * Variables.BishopCoefficient
                                               * Variables.FluidPressure
                                               * VoigtVector;
 
@@ -2176,10 +2164,7 @@ void SmallStrainUPwDiffOrderElement::
     if ( Dim == 3 ) voigtsize  = VOIGT_SIZE_3D;
 
     Vector VoigtVector = ZeroVector(voigtsize);
-    for (SizeType idim=0; idim < Dim; ++idim)
-    {
-        VoigtVector[idim] = 1.0;
-    }
+    for (SizeType idim=0; idim < Dim; ++idim)  VoigtVector[idim] = 1.0;
 
     Matrix CouplingMatrix = - PORE_PRESSURE_SIGN_FACTOR 
                             * rVariables.BiotCoefficient
