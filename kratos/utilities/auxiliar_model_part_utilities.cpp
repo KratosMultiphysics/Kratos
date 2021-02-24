@@ -20,6 +20,7 @@
 #include "includes/key_hash.h"
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "variable_utils.h"
 
 namespace Kratos
 {
@@ -106,10 +107,7 @@ void AuxiliarModelPartUtilities::RemoveElementAndBelongings(
 {
     auto& r_array_nodes = mrModelPart.Nodes(ThisIndex);
 
-    block_for_each( 
-        r_array_nodes, [&IdentifierFlag]( Node<3>& rNode )
-        { rNode.Set(IdentifierFlag, true); }  
-    );
+    VariableUtils().SetFlag(IdentifierFlag, true, r_array_nodes);
 
     block_for_each(
         mrModelPart.Elements(ThisIndex), [&IdentifierFlag,ElementId]( ModelPart::ElementType& rElement )
@@ -188,14 +186,11 @@ void AuxiliarModelPartUtilities::RemoveElementAndBelongingsFromAllLevels(Element
 void AuxiliarModelPartUtilities::RemoveElementsAndBelongings(Flags IdentifierFlag)
 {
     //loop over all the meshes
+    VariableUtils variable_utils;
     auto& meshes = mrModelPart.GetMeshes();
     for(auto i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++) {
         auto& r_array_nodes = i_mesh->Nodes();
-        block_for_each(
-            r_array_nodes,
-            [&IdentifierFlag](Node<3>& rNode)
-            { rNode.Set(IdentifierFlag, true); }
-        );
+        variable_utils.SetFlag(IdentifierFlag, true, r_array_nodes);
 
         block_for_each(
             i_mesh->Elements(),
@@ -241,11 +236,7 @@ void AuxiliarModelPartUtilities::RemoveElementsAndBelongingsFromAllLevels(Flags 
 void AuxiliarModelPartUtilities::RemoveConditionAndBelongings(IndexType ConditionId, Flags IdentifierFlag, IndexType ThisIndex)
 {
     auto& r_array_nodes = mrModelPart.Nodes(ThisIndex);
-    block_for_each(
-        r_array_nodes,
-        [&IdentifierFlag](Node<3>& rNode)
-        { rNode.Set(IdentifierFlag, true); }
-    );
+    VariableUtils().SetFlag(IdentifierFlag, true, r_array_nodes);
 
     block_for_each(
         mrModelPart.Conditions(ThisIndex),
@@ -324,14 +315,11 @@ void AuxiliarModelPartUtilities::RemoveConditionAndBelongingsFromAllLevels(Condi
 void AuxiliarModelPartUtilities::RemoveConditionsAndBelongings(Flags IdentifierFlag)
 {
     //loop over all the meshes
+    VariableUtils variable_utils;
     auto& meshes = mrModelPart.GetMeshes();
     for(auto i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++) {
         auto& r_array_nodes = i_mesh->Nodes();
-        block_for_each(
-            r_array_nodes,
-            [&IdentifierFlag](Node<3>& rNode)
-            { rNode.Set(IdentifierFlag, true); }
-        );
+        variable_utils.SetFlag(IdentifierFlag, true, r_array_nodes);
 
         block_for_each(
             i_mesh->Conditions(),
