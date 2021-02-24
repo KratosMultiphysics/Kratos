@@ -41,12 +41,12 @@ void ComputeActiveDofs(
     );
 
     // TODO: convert to block_for_each when support for looping over const objects is added
-    IndexPartition<std::size_t>(rDofSet.size()).for_each(
-        [&rActiveDofs,&rDofSet](std::size_t iDof)
-        {
-            const auto it_dof = rDofSet.begin() + iDof;
-            if (it_dof->IsFixed())
-                rActiveDofs[it_dof->EquationId()] = 0;
+    block_for_each(
+        rDofSet,
+        [&rActiveDofs](const ModelPart::DofType& rDof){
+            if (rDof.IsFixed()){
+                rActiveDofs[rDof.EquationId()] = 0;
+            }
         }
     );
 
