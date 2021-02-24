@@ -56,7 +56,7 @@ namespace Kratos
  * @author Alejandro Cornejo Velazquez
  */
 template<unsigned int TDim>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ParallelRuleOfMixturesLaw
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ParallelRuleOfMixturesLaw
     : public ConstitutiveLaw
 {
 public:

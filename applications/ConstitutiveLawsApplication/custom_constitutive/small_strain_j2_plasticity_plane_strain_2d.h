@@ -60,7 +60,7 @@ namespace Kratos
  * @author Manuel Caicedo
  * @author Alfredo Huespe
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainJ2PlasticityPlaneStrain2D
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SmallStrainJ2PlasticityPlaneStrain2D
     : public SmallStrainJ2Plasticity3D
 {
 public:

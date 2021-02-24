@@ -33,7 +33,7 @@ namespace Kratos
      *
      * @author Klaus B Sautter
      */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MultiLinearIsotropicPlaneStress2D
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) MultiLinearIsotropicPlaneStress2D
     : public LinearPlaneStress
 {
 public:

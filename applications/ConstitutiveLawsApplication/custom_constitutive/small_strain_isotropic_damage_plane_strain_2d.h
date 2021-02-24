@@ -53,7 +53,7 @@ namespace Kratos
  * @note
  * @author Marcelo Raschi
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicDamagePlaneStrain2D
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SmallStrainIsotropicDamagePlaneStrain2D
     : public SmallStrainIsotropicDamage3D
 
 {

@@ -55,7 +55,7 @@ namespace Kratos
  * @warning Only small strains (for the moment...)
  * @author Fernando Rastellini
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PlasticityIsotropicKinematicJ2
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) PlasticityIsotropicKinematicJ2
     : public ConstitutiveLaw
 {
 public:

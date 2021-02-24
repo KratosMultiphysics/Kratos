@@ -47,7 +47,7 @@ namespace Kratos
  * @details
  * @author Alejandro Cornejo & Lucia Barbu
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainViscoplasticity3D
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainViscoplasticity3D
     : public ConstitutiveLaw
 {
   public:

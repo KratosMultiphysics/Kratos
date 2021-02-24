@@ -54,7 +54,7 @@ namespace Kratos
 * - SHEAR_MODULUS_GAMMA12_4
 * @note Reference: Chen, S., Harper, L. T., Endruweit, A., & Warrior, N. A. (2015). Formability optimisation of fabric preforms by controlling material draw-in through in-plane constraints. Composites Part A: Applied Science and Manufacturing, 76, 10-19. https://doi.org/10.1016/j.compositesa.2015.05.006
 * @author Philippe Bussetta
-*/class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElasticIsotropicPlaneStressUncoupledShear : public LinearPlaneStress
+*/class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ElasticIsotropicPlaneStressUncoupledShear : public LinearPlaneStress
 {
 public:
 

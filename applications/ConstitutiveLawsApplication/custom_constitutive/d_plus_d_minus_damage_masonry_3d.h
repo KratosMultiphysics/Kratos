@@ -48,7 +48,7 @@ namespace Kratos
  * @class DamageDPlusDMinusMasonry3DLaw
  * @ingroup StructuralMechanicsApplication
  */
- class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DamageDPlusDMinusMasonry3DLaw
+ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) DamageDPlusDMinusMasonry3DLaw
     : public ElasticIsotropic3D
 {
 public:

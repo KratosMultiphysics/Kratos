@@ -49,7 +49,7 @@ namespace Kratos
  * @author Malik Ali Dawi
  * @author Ruben Zorrilla
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicKirchhoffPlaneStress2D
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) HyperElasticIsotropicKirchhoffPlaneStress2D
     : public HyperElasticIsotropicKirchhoff3D
 {
 public:

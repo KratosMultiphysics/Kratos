@@ -57,7 +57,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainKinematicPlasticity
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericFiniteStrainKinematicPlasticity
     : public TElasticBehaviourLaw
 {
 public:

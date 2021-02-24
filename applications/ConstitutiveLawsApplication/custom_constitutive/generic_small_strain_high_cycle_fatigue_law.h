@@ -51,7 +51,7 @@ typedef std::size_t SizeType;
  * @author Sergio Jiménez/Alejandro Cornejo/Lucia Barbu
  */
 template <class TConstLawIntegratorType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainHighCycleFatigueLaw
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainHighCycleFatigueLaw
     : public GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>
 {
 public:

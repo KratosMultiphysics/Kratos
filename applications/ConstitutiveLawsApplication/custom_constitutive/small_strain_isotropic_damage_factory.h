@@ -46,7 +46,7 @@ namespace Kratos
  * @brief Dummy class to register, only implements create()
  * @author Alejandro Cornejo & Lucia Barbu
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicDamageFactory
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SmallStrainIsotropicDamageFactory
     : public ConstitutiveLaw
 {
   public:

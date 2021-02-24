@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo 
+//  Main authors:    Alejandro Cornejo
 //  Collaborator:    Lucia Barbu
 //
 
@@ -45,13 +45,13 @@ namespace Kratos
 /**
  * @class GenericAnisotropic3DLaw
  * @ingroup StructuralMechanicsApplication
- * @brief This CL takes into account the material anisotropy in terms of 
- * young modulus, poisson ratio, orientation and strengths. 
+ * @brief This CL takes into account the material anisotropy in terms of
+ * young modulus, poisson ratio, orientation and strengths.
  * @details See "Comportamiento mecánico de los materiales compuestos" by S. Oller,
  * Chapter "Anisotropía mecánica"
  * @author Alejandro Cornejo
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropic3DLaw
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
     : public ConstitutiveLaw
 {
   public:
@@ -69,10 +69,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropic3DLaw
 
     /// The size type definition
     typedef std::size_t SizeType;
-    
+
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 3;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 6;
 
@@ -106,7 +106,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropic3DLaw
 
     // Copy constructor
     GenericAnisotropic3DLaw(GenericAnisotropic3DLaw const& rOther)
-        : ConstitutiveLaw(rOther), 
+        : ConstitutiveLaw(rOther),
         mpIsotropicCL(rOther.mpIsotropicCL)
     {
     }
@@ -331,7 +331,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropic3DLaw
      * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK2(Parameters& rValues) override;  
+    void InitializeMaterialResponsePK2(Parameters& rValues) override;
 
     /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.

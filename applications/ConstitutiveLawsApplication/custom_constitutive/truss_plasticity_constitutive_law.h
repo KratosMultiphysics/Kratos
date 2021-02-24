@@ -32,7 +32,7 @@ namespace Kratos
  */
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussPlasticityConstitutiveLaw : public ConstitutiveLaw
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) TrussPlasticityConstitutiveLaw : public ConstitutiveLaw
 {
 public:
     /**

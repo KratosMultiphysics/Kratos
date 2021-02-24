@@ -54,7 +54,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template <class TConstLawIntegratorType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainKinematicPlasticity
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainKinematicPlasticity
     : public std::conditional<TConstLawIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:

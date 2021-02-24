@@ -57,7 +57,7 @@ namespace Kratos
  */
 
 template<class TElasticBehaviourLaw>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ViscousGeneralizedKelvin
     : public TElasticBehaviourLaw
 {
 public:

@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo 
+//  Main authors:    Alejandro Cornejo
 //                   Vicente Mataix
 //                   Fernando Rastellini
 //  Collaborator:    Lucia Barbu
@@ -46,11 +46,11 @@ namespace Kratos
 /**
  * @class SerialParallelRuleOfMixturesLaw
  * @ingroup StructuralMechanicsApplication
- * @brief This CL implements the serial-parallel rule of mixtures developed by F.Rastellini 
+ * @brief This CL implements the serial-parallel rule of mixtures developed by F.Rastellini
  * @details
  * @author Alejandro Cornejo
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesLaw
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     : public ConstitutiveLaw
 {
   public:
@@ -334,10 +334,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
      * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK2(Parameters& rValues) override;  
+    void InitializeMaterialResponsePK2(Parameters& rValues) override;
 
     /**
-     * This method computes the strain vector in the fiber and matrix according to the total 
+     * This method computes the strain vector in the fiber and matrix according to the total
      * strain and the serial strain of the matrix
      * @param rStrainVector The total strain of the composite
      * @param rParallelProjector The Parallel behaviour projector
@@ -446,7 +446,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     {
         return true;
     }
-    
+
     ///@}
     ///@name Access
     ///@{

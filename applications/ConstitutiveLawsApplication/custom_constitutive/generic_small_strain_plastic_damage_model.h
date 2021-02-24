@@ -54,7 +54,7 @@ typedef std::size_t SizeType;
  * @author Alejandro Cornejo & Sergio Jimenez
  */
 template <class TPlasticityIntegratorType, class TDamageIntegratorType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainPlasticDamageModel
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainPlasticDamageModel
     : public std::conditional<TPlasticityIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:

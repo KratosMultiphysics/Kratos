@@ -8,8 +8,8 @@
 //
 //  Main authors:    Philip Kalkbrenner
 //                   Massimo Petracca
-//                   Alejandro Cornejo 
-//  
+//                   Alejandro Cornejo
+//
 //
 #if !defined(KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED )
 #define  KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED
@@ -24,10 +24,10 @@
 namespace Kratos
 {
 /**
-* @class DamageDPlusDMinusMasonry2DLaw 
+* @class DamageDPlusDMinusMasonry2DLaw
 * @ingroup StructuralMechanicsApplication
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DamageDPlusDMinusMasonry2DLaw 
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) DamageDPlusDMinusMasonry2DLaw
 	: public ConstitutiveLaw
 {
 public:
@@ -68,7 +68,7 @@ public:
 	/**
 	* @brief returns the working space dimension of the current constitutive law
 	*/
-	SizeType WorkingSpaceDimension() override 
+	SizeType WorkingSpaceDimension() override
 	{
 		return Dimension;
 	};
@@ -76,7 +76,7 @@ public:
 	/**
 	* @brief returns the size of the strain vector of the current constitutive law
 	*/
-	SizeType GetStrainSize() override 
+	SizeType GetStrainSize() override
 	{
 		return VoigtSize;
 	};
@@ -84,7 +84,7 @@ public:
 	struct CalculationData{
 
 		// Elastic Properties
-		double YoungModulus;								double PoissonRatio;	
+		double YoungModulus;								double PoissonRatio;
 		Matrix ElasticityMatrix;
 
 		// Tension Damage Properties
@@ -107,7 +107,7 @@ public:
 		int TensionYieldModel;
 
 	};
-		
+
 	/**
 	* returns whether this constitutive Law has specified variable
 	* @param rThisVariable the variable to be checked for
@@ -152,7 +152,7 @@ public:
 	* @param rValue output: the value of the specified variable
 	*/
 	double& GetValue(
-		const Variable<double>& rThisVariable, 
+		const Variable<double>& rThisVariable,
 		double& rValue) override;
 
 	/**
@@ -162,7 +162,7 @@ public:
 	* @return the value of the specified variable
 	*/
 	Vector& GetValue(
-		const Variable<Vector>& rThisVariable, 
+		const Variable<Vector>& rThisVariable,
 		Vector& rValue) override;
 
 	/**
@@ -171,7 +171,7 @@ public:
 	* @return the value of the specified variable
 	*/
 	Matrix& GetValue(
-		const Variable<Matrix>& rThisVariable, 
+		const Variable<Matrix>& rThisVariable,
 		Matrix& rValue) override;
 
 	/**
@@ -213,7 +213,7 @@ public:
 	*/
 	void SetValue(
 		const Variable<Vector >& rVariable,
-		const Vector& rValue, 
+		const Vector& rValue,
 		const ProcessInfo& rCurrentProcessInfo) override;
 
 	/**
@@ -224,7 +224,7 @@ public:
 	*/
 	void SetValue(
 		const Variable<Matrix >& rVariable,
-		const Matrix& rValue, 
+		const Matrix& rValue,
 		const ProcessInfo& rCurrentProcessInfo) override;
 
 	/**
@@ -448,7 +448,7 @@ protected:
 	double CurrentDeltaTime  = 0.0;					// at time step n + 1
 	double PreviousDeltaTime = 0.0;					// at time step n
 
-	// temporary internal variables saved for the implicit step in the finalize solution step of the IMPLEX 
+	// temporary internal variables saved for the implicit step in the finalize solution step of the IMPLEX
 	double TemporaryImplicitThresholdTension = 0.0;
 	double TemporaryImplicitThresholdTCompression = 0.0;
     // end for IMPLEX Integration
@@ -463,11 +463,11 @@ protected:
 	* @brief Initializes the CalculationData at the beginning of each SolutionStep
 	* @param Properties& props 		The Material Properties of the constitutive law from rValues
 	* 		 GeometryType& geom 	The Element Geometry from rValues
-	*		 ProcessInfo& pinfo		The ProcessInfo from rValues	
-	*		 CalculationData	
+	*		 ProcessInfo& pinfo		The ProcessInfo from rValues
+	*		 CalculationData
 	*/
 	void InitializeCalculationData(
-		const Properties& props, 
+		const Properties& props,
 		const GeometryType& geom,
 		const ProcessInfo& pinfo,
 		CalculationData& data);
@@ -495,96 +495,96 @@ protected:
 
 	/**
 	* @brief This method computes the equivalent stress in Tension
-	* @param CalculationData 
+	* @param CalculationData
 	* 		 UniaxialStressTension The variable to be filled with the resulting value
 	*/
 	void CalculateEquivalentStressTension(
-		CalculationData& data, 
+		CalculationData& data,
 		double& UniaxialStressTension);
 
 	/**
 	* @brief This method computes the equivalent stress in Compression
-	* @param CalculationData 
+	* @param CalculationData
 	* 		 UniaxialStressCompression The variable to be filled with the resulting value
 	*/
 	void CalculateEquivalentStressCompression(
-		CalculationData& data, 
+		CalculationData& data,
 		double& UniaxialStressCompression);
 
 	/**
-	* @brief This method computes the damage variable d+ of the tension law 
+	* @brief This method computes the damage variable d+ of the tension law
 	*        by considering an exponential softening behavior
-	* @param CalculationData 
-	* 		 internal_variable 	The internal variable that considers the considers the state of damage 
+	* @param CalculationData
+	* 		 internal_variable 	The internal variable that considers the considers the state of damage
 	*        rDamage 			The final damage variable to be filled by this method
 	*/
 	void CalculateDamageTension(
-		CalculationData& data, 
-		double internal_variable, 
+		CalculationData& data,
+		double internal_variable,
 		double& rDamageTension);
 
 	/**
-	*  BRIEF DOCUMENTATION OF THE USED UNIAXIAL SOFTENING BEHAVIOR IN COMPRESSION 
+	*  BRIEF DOCUMENTATION OF THE USED UNIAXIAL SOFTENING BEHAVIOR IN COMPRESSION
 	*  Entire documentation can be found in the the Phd Thesis of Massimo Petracca
 	*  << Computational Multiscale Analysis of Masonry Structures>>
 	*
 	*  UNIAXIAL BEZIER COMPRESSION DAMAGE
-	*  {I}   Linear Elastic 
-	*  {II}  Hardening Quadratic Bezier Curve 
-	*          Control nodes:  0=(e_0,s_0); I=(e_i,s_p); P=(e_p,s_p) 
-	*  {III} Softening Quadratic Bezier Curve 
+	*  {I}   Linear Elastic
+	*  {II}  Hardening Quadratic Bezier Curve
+	*          Control nodes:  0=(e_0,s_0); I=(e_i,s_p); P=(e_p,s_p)
+	*  {III} Softening Quadratic Bezier Curve
 	*          Control nodes:  P=(e_p,s_p); J=(e_j,s_j); K=(e_k,s_k)
-	*  {IV}  Softening Quadratic Bezier Curve 
+	*  {IV}  Softening Quadratic Bezier Curve
 	*          Control nodes:  K=(e_k,s_k); R=(e_r,s_r); U=(e_u,s_u)
 	*  {V}   Residual Strength
 	*
-	*    STRESS                 
+	*    STRESS
 	*       ^
 	*      /|\
 	*       |                     (P)
-	* s_p = |------------(I)+----#####--+(J) 
+	* s_p = |------------(I)+----#####--+(J)
 	* s_i = |               ' ###  ' ####
 	* s_j   |              ###     '    ###
 	*       |            ###'      '    ' ##
 	* s_k   |-----------##--+------+----+--## (K)
-	* s_0   |---------##(0) '      '    '   ### 
+	* s_0   |---------##(0) '      '    '   ###
 	*       |        ## '   '      '    '    '###
 	*       |       ##  '   '      '    '    '   ####
 	*       |      ##   '   '      '    '    '      #####
 	*       |     ##    '   '      '    '    '          #####
 	*       |    ##     '   '      '    '    '    (R)       ######## (U)
 	* s_r = |---##------+---+------'----+----+-----+-----------------######################
-	* s_u   |  ##       '   '      '    '    '     '                 '                                    
+	* s_u   |  ##       '   '      '    '    '     '                 '
 	*       |_##________+___+______+____+____+_____+_________________+______________________________\
 	*                  e_0 e_i    e_p  e_j  e_k   e_r               e_u                             / STRAIN
 	*        '          '          '         '                       '
-	*        '   {I}    '   {II}   '  {III}  '        {IV}           '          {V}         
+	*        '   {I}    '   {II}   '  {III}  '        {IV}           '          {V}
 	*        '          '          '         '                       '
 	*
 	*/
 
 	/**
-	* @brief This method computes the damage variable d- of the compression law 
+	* @brief This method computes the damage variable d- of the compression law
 	*        by considering the above explained bezier curved uniaxial behavior
 	* @param CalculationData 	Calculation Data for the CL
-	* 		 internal_variable	The internal variable that considers the considers the state of damage 
+	* 		 internal_variable	The internal variable that considers the considers the state of damage
 	*        rDamage 			The final damage variable to be filled by this method
 	*/
 	void CalculateDamageCompression(
-		CalculationData& data, 
-		double internal_variable, 
+		CalculationData& data,
+		double internal_variable,
 		double& rDamage);
 
 	/**
-	* @brief This method computes the energy of the uniaxial damage law before regularization 
-	* @param rBezierEnergy 
+	* @brief This method computes the energy of the uniaxial damage law before regularization
+	* @param rBezierEnergy
 	*		 rBezierEnergy1
 	* 		 double s_p, double s_k, double s_r, double e_p, double e_j, double e_k, double e_r, double e_u
 	*						As inputs for the energy calculation
 	*/
 	void ComputeBezierEnergy(
-		double& rBezierEnergy, 
-		double& rBezierEnergy1, 
+		double& rBezierEnergy,
+		double& rBezierEnergy1,
 		double s_p, double s_k, double s_r,
 		double e_p, double e_j, double e_k, double e_r, double e_u);
 
@@ -604,7 +604,7 @@ protected:
 	*		 e_j, e_k, e_r, e_u	The strains that have to be modified by the stretcher
 	*/
 	void ApplyBezierStretcherToStrains(
-		double stretcher, double e_p, double& e_j, 
+		double stretcher, double e_p, double& e_j,
 		double& e_k, double& e_r, double& e_u);
 
 	/**
@@ -615,7 +615,7 @@ protected:
 	* 		 y1, y2, y3 		y-coordinates of the Bezier control points
 	*/
 	void EvaluateBezierCurve(
-		double& rDamageParameter, double xi, 
+		double& rDamageParameter, double xi,
 		double x1, double x2, double x3,
 		double y1, double y2, double y3);
 
@@ -630,13 +630,13 @@ protected:
 
 	/**
 	* @brief This method computes the internal material response strain to stress by applying cl
-	* @param strain_vector		The strain vector 
-	*	  	 stress_vector		The stress vector 
+	* @param strain_vector		The strain vector
+	*	  	 stress_vector		The stress vector
 	*		 CalculationData	Calculation Data for the CL
 	*/
 	void CalculateMaterialResponseInternal(
-		const Vector& strain_vector, 
-		Vector& stress_vector, 
+		const Vector& strain_vector,
+		Vector& stress_vector,
 		CalculationData& data,
 		const Properties props);
 
@@ -646,18 +646,18 @@ protected:
 	 *		  is_damaging_tension	The damage compression bool
      */
 	void CheckDamageLoadingUnloading(
-		bool& is_damaging_tension, 
+		bool& is_damaging_tension,
 		bool& is_damaging_compression);
-	 
+
 	 /**
      * @brief This method computes the tangent tensor
      * @param rValues 			The constitutive law parameters and flags
-	 *		  strain_vector		The strain vector 
-	 *	  	  stress_vector		The stress vector 
+	 *		  strain_vector		The strain vector
+	 *	  	  stress_vector		The stress vector
 	 *		  CalculationData	Calculation Data for the CL
      */
 	void CalculateTangentTensor(
-		Parameters& rValues, 
+		Parameters& rValues,
 		Vector strain_vector,
 		Vector stress_vector,
 		CalculationData& data,
@@ -719,7 +719,7 @@ private:
 
 	///@}
 
-}; // Class DamageDPlusDMinusMasonry2DLaw 
+}; // Class DamageDPlusDMinusMasonry2DLaw
 
 } // namespace Kratos
-#endif // KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED  defined 
+#endif // KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED  defined

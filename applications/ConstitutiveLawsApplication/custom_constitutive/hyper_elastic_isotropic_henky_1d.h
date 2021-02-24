@@ -31,7 +31,7 @@ namespace Kratos
  */
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicHenky1D : public ConstitutiveLaw
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) HyperElasticIsotropicHenky1D : public ConstitutiveLaw
 {
 public:
     /**

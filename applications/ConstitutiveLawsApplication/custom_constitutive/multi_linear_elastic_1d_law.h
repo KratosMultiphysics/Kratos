@@ -34,7 +34,7 @@ namespace Kratos
      */
 
 
-    class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MultiLinearElastic1DLaw : public TrussConstitutiveLaw
+    class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) MultiLinearElastic1DLaw : public TrussConstitutiveLaw
     {
     public:
 

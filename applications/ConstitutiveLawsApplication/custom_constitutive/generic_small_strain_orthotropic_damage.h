@@ -53,7 +53,7 @@ typedef std::size_t SizeType;
  * @author Alejandro Cornejo
  */
 template <class TConstLawIntegratorType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainOrthotropicDamage
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainOrthotropicDamage
     : public std::conditional<TConstLawIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:

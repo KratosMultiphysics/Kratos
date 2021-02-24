@@ -46,7 +46,7 @@ namespace Kratos
  * @brief Dummy class to register, only implements create()
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainKinematicPlasticityFactory
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) FiniteStrainKinematicPlasticityFactory
     : public ConstitutiveLaw
 {
   public:

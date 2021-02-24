@@ -47,7 +47,7 @@ namespace Kratos
  * More info https://en.wikipedia.org/wiki/Neo-Hookean_solid
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicNeoHookean3D
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) HyperElasticIsotropicNeoHookean3D
     : public ConstitutiveLaw
 {
 public:

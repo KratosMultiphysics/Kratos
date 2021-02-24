@@ -45,7 +45,7 @@ namespace Kratos
  * @brief This law defines a wrinkling modification for any linear 2D claw
  * @author Klaus B. Sautter
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) WrinklingLinear2DLaw
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) WrinklingLinear2DLaw
     : public ConstitutiveLaw
 {
 public:
