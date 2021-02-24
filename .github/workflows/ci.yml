@@ -78,7 +78,7 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/run_tests.py -l small -c python3 -v2
+        python3 kratos/python_scripts/run_tests.py -l small -c python3
 
     - name: Running MPICore C++ tests (2 Cores)
       timeout-minutes : 10
