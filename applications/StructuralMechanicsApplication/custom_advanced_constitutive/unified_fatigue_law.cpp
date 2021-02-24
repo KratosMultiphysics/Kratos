@@ -22,6 +22,9 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 
+// Plasticity Integrator includes
+#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+
 // Yield surfaces
 #include "custom_advanced_constitutive/yield_surfaces/generic_yield_surface.h"
 #include "custom_advanced_constitutive/yield_surfaces/von_mises_yield_surface.h"
@@ -266,6 +269,35 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
                 MathUtils<double>::InvertMatrix(compliance_matrix, inverse_C, aux_det_b);
                 r_integrated_stress_vector = prod(inverse_C, r_strain_vector - plastic_strain);
                 noalias(r_constitutive_matrix) = inverse_C;
+
+                // ----------------------------------------------------------------------- DISSIPATION
+                double r_t, r_c;
+                GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(r_integrated_stress_vector, r_t, r_c);
+
+                const Properties& r_material_properties = rValues.GetMaterialProperties();
+                const double young_modulus = r_material_properties[YOUNG_MODULUS];
+                const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
+                const double yield_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+                const double yield_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+                const double n = yield_compression / yield_tension;
+                const double fracture_energy_tension = r_material_properties[FRACTURE_ENERGY]; // Frac energy in tension
+                const double fracture_energy_comprression = r_material_properties[FRACTURE_ENERGY] * std::pow(n, 2); // Frac energy in compression
+
+                const double characteristic_fracture_energy_tension = fracture_energy_tension / characteristic_length;
+                const double characteristic_fracture_energy_compression = fracture_energy_comprression / characteristic_length;
+
+                const double hlim = 2.0 * young_modulus * characteristic_fracture_energy_compression / (std::pow(yield_compression, 2));
+
+                KRATOS_ERROR_IF(characteristic_length > hlim) << "The Fracture Energy is to low: " << characteristic_fracture_energy_compression << std::endl;
+                double constant0 = 0.0, constant1 = 0.0, dplastic_dissipation = 0.0;
+                if (characteristic_fracture_energy_tension > 0.000001) {
+                    constant0 = r_t / characteristic_fracture_energy_tension;
+                    constant1 = r_c / characteristic_fracture_energy_compression;
+                }
+                const double constant = constant0 + constant1;
+
+                mDamageDissipation += 0.5 * constant * inner_prod(r_integrated_stress_vector, prod(compliance_increment, r_integrated_stress_vector));
+                KRATOS_WATCH(mDamageDissipation)
             }
             ////////////////////
             // Elastic Matrix
@@ -354,6 +386,10 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
     )
 {
     bool has = false;
+
+    if (rThisVariable == PLASTIC_DISSIPATION)
+        has = true;
+
     return has;
 }
 
@@ -447,6 +483,8 @@ double& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
     )
 {
     rValue = 0.0;
+    if (rThisVariable == PLASTIC_DISSIPATION)
+        rValue = mDamageDissipation;
     return rValue;
 }
 

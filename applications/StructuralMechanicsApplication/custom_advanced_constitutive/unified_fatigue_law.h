@@ -572,7 +572,8 @@ private:
     ///@{
 
     double mPlasticDissipation = 0.0;
-    double mThreshold = 0.0;
+    double mDamageDissipation  = 0.0;
+    double mThreshold          = 0.0;
     Vector mPlasticStrain = ZeroVector(VoigtSize);
     Matrix mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
 
