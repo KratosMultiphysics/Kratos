@@ -62,7 +62,7 @@ namespace Kratos
 
     // Selective constructor for vectors
     InitialState::InitialState(const Vector& rImposingEntity,
-                    const int InitialImposingType = static_cast<int>(InitialImposingType::STRAIN_ONLY))
+                    const InitialImposingType InitialImposition)
     {
         const SizeType voigt_size = rImposingEntity.size();
         const SizeType dimension = (voigt_size == 6) ? 3 : 2;
@@ -75,9 +75,9 @@ namespace Kratos
         noalias(mInitialStrainVector) = ZeroVector(voigt_size);
         noalias(mInitialStressVector) = ZeroVector(voigt_size);
 
-        if (InitialImposingType == static_cast<int>(InitialImposingType::STRAIN_ONLY)) {
+        if (InitialImposition == InitialImposingType::STRAIN_ONLY) {
             noalias(mInitialStrainVector) = rImposingEntity;
-        } else if (InitialImposingType == static_cast<int>(InitialImposingType::STRESS_ONLY)) {
+        } else if (InitialImposition == InitialImposingType::STRESS_ONLY) {
             noalias(mInitialStressVector) = rImposingEntity;
         }
     }

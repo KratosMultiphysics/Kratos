@@ -19,6 +19,7 @@
 
 //elements
 #include "custom_elements/shell_3p_element.h"
+#include "custom_elements/shell_5p_hierarchic_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -101,6 +102,7 @@ private:
     ///@{
 
     const Shell3pElement mShell3pElement;
+    const Shell5pHierarchicElement mShell5pHierarchicElement;
 
     //Conditions
     const OutputCondition mOutputCondition;

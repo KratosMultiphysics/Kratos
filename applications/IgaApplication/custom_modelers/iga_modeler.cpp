@@ -207,6 +207,9 @@ namespace Kratos
         SizeType& rIdCounter,
         PropertiesPointerType pProperties) const
     {
+        KRATOS_ERROR_IF(!KratosComponents<Element>::Has(rElementName))
+            << rElementName << " not registered." << std::endl;
+
         const Element& rReferenceElement = KratosComponents<Element>::Get(rElementName);
 
         ElementsContainerType new_element_list;
