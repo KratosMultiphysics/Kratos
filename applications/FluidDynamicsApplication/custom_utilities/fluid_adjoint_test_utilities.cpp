@@ -118,15 +118,14 @@ void FluidAdjointTestUtilities::Testing<TContainerType>::CalculateResidual(
     Vector nodal_scalar_values, current_nodal_scalar_rate_values, old_nodal_scalar_rate_values;
     Matrix lhs, damping_matrix, mass_matrix;
 
+    rEntity.Initialize(rProcessInfo);
     rEntity.CalculateLocalSystem(lhs, residual, rProcessInfo);
     rEntity.CalculateMassMatrix(mass_matrix, rProcessInfo);
     rEntity.CalculateLocalVelocityContribution(damping_matrix, residual, rProcessInfo);
 
-    // TODO : Remove these casts once non const versions of the followings are removed from
-    // the element and condition base classes.
-    static_cast<const typename TContainerType::data_type&>(rEntity).GetFirstDerivativesVector(nodal_scalar_values);
-    static_cast<const typename TContainerType::data_type&>(rEntity).GetSecondDerivativesVector(current_nodal_scalar_rate_values);
-    static_cast<const typename TContainerType::data_type&>(rEntity).GetSecondDerivativesVector(old_nodal_scalar_rate_values, 1);
+    rEntity.GetFirstDerivativesVector(nodal_scalar_values);
+    rEntity.GetSecondDerivativesVector(current_nodal_scalar_rate_values);
+    rEntity.GetSecondDerivativesVector(old_nodal_scalar_rate_values, 1);
 
     noalias(current_nodal_scalar_rate_values) =
         current_nodal_scalar_rate_values * (1 - bossak_alpha) +
@@ -288,19 +287,18 @@ void FluidAdjointTestUtilities::Testing<TContainerType>::RunAdjointEntityDerivat
                 CalculateResidual(residual, r_primal_element, r_primal_process_info);
                 fd_derivatives = (residual - residual_ref) / Delta;
 
+                Vector analytical_derivatives(number_of_nodes * residual_block_size);
+
                 // checking fd derivatives and adjoint derivatives
                 for (IndexType a = 0; a < number_of_nodes; ++a) {
                     for (IndexType b = 0; b < residual_block_size; ++b) {
-                        const double adjoint_derivative_value = adjoint_residual_derivatives(
+                        analytical_derivatives[a * residual_block_size + b] = adjoint_residual_derivatives(
                             c * adjoint_derivatives_block_size + DerivativeOffset + k,
                             a * adjoint_equation_block_size + EquationOffset + b);
-                        const double fd_derivative_value =
-                            fd_derivatives[a * residual_block_size + b];
-
-                        KRATOS_CHECK_RELATIVE_NEAR(
-                            adjoint_derivative_value, fd_derivative_value, Tolerance);
                     }
                 }
+
+                KRATOS_CHECK_VECTOR_RELATIVE_NEAR(analytical_derivatives, fd_derivatives, Tolerance);
 
                 perturbation_method(r_node, k) -= Delta;
             }

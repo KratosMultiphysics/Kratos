@@ -322,8 +322,10 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateLocalSy
     KRATOS_TRY
 
     // Resize and initialize output
-    if (rLeftHandSideMatrix.size1() != 0)
-        rLeftHandSideMatrix.resize(0, 0, false);
+    if (rLeftHandSideMatrix.size1() != TElementLocalSize || rLeftHandSideMatrix.size2() != TElementLocalSize)
+        rLeftHandSideMatrix.resize(TElementLocalSize, TElementLocalSize, false);
+
+    rLeftHandSideMatrix.clear();
 
     KRATOS_CATCH("");
 }
@@ -359,6 +361,12 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateLocalVe
     VectorType &rRightHandSideVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
+    if (rDampMatrix.size1() != TElementLocalSize || rDampMatrix.size2() != TElementLocalSize) {
+        rDampMatrix.resize(TElementLocalSize, TElementLocalSize, false);
+    }
+
+    rDampMatrix.clear();
+
     if (rRightHandSideVector.size() != TElementLocalSize)
         rRightHandSideVector.resize(TElementLocalSize, false);
 
@@ -439,6 +447,37 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateSensiti
     }
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
+void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Calculate(
+    const Variable<Vector>& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (rVariable == PRIMAL_RELAXED_SECOND_DERIVATIVE_VALUES) {
+        if (rOutput.size() != TElementLocalSize) {
+            rOutput.resize(TElementLocalSize);
+        }
+
+        IndexType local_index = 0;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            const auto& r_node = this->GetGeometry()[i_node];
+            rOutput[local_index++] = r_node.GetValue(RELAXED_ACCELERATION_X);
+            rOutput[local_index++] = r_node.GetValue(RELAXED_ACCELERATION_Y);
+
+            if (TDim == 3)
+                rOutput[local_index++] = r_node.GetValue(RELAXED_ACCELERATION_Z);
+
+            rOutput[local_index++] = 0.0;
+        }
+    } else {
+        KRATOS_ERROR << "Unsupported variable requested Calculate method. [ rVariable.Name() = " << rVariable.Name() << " ].\n";
+    }
+
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
