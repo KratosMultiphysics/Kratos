@@ -40,7 +40,6 @@ void ComputeActiveDofs(
         { r_dof = 1; }
     );
 
-    // TODO: convert to block_for_each when support for looping over const objects is added
     block_for_each(
         rDofSet,
         [&rActiveDofs](const ModelPart::DofType& rDof){
