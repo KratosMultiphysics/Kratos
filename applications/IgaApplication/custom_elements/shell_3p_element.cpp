@@ -89,16 +89,12 @@ namespace Kratos
 
     void Shell3pElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        // Reading integration points
-        const GeometryType& r_geometry = GetGeometry();
-        const Properties& r_properties = GetProperties();
-        const auto& N_values = r_geometry.ShapeFunctionsValues();
-
-        // Reading integration points
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+        ConstitutiveLaw::Parameters constitutive_law_parameters(
+            GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
-            mConstitutiveLawVector[point_number]->FinalizeSolutionStep(r_properties, r_geometry, row(N_values, point_number), rCurrentProcessInfo);
+            mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(
+                constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
         }
     }
 
