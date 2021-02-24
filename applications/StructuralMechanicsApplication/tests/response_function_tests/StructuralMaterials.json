@@ -10,7 +10,8 @@
                 "THICKNESS"     : 0.25,
                 "DENSITY"       : 7850.0,
                 "YOUNG_MODULUS" : 1000.0,
-                "POISSON_RATIO" : 0.2
+                "POISSON_RATIO" : 0.2,
+                "COMPUTE_LUMPED_MASS_MATRIX": true
             },
             "Tables"           : {}
         }
