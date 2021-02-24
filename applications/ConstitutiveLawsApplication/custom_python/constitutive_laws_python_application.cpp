@@ -24,6 +24,8 @@
 #include "constitutive_laws_application.h"
 #include "constitutive_laws_application_variables.h"
 
+#include "custom_python/add_custom_constitutive_laws_to_python.h"
+
 
 namespace Kratos {
 namespace Python {
@@ -38,6 +40,7 @@ PYBIND11_MODULE(KratosConstitutiveLawsApplication,m)
         .def(py::init<>())
         ;
 
+    AddCustomConstitutiveLawsToPython(m);
 }
 
 } // namespace Python.
