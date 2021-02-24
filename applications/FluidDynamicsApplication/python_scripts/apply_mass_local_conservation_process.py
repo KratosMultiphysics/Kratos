@@ -109,7 +109,13 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
 
     def Execute(self):
         self.ExecuteInitializeSolutionStep()
-
+    
+    def _DistanceGradientNorm(self,gradient):
+        norm_distance_gradient=(gradient[0]**2+gradient[1]**2+gradient[2]**2)**(0.5)
+        return norm_distance_gradient
+    def _DotProductKratos(self, Vector1,Vector2):
+        dot_product=Vector1[0]*Vector2[0]+Vector1[1]*Vector2[1]+Vector1[2]*Vector2[2]
+        return dot_product
     def ExecuteInitializeSolutionStep(self):
         # Save current distance in case we do not improve
         KratosMultiphysics.VariableUtils().SaveScalarVar(
@@ -137,11 +143,13 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
         # Volume error tolerance in order to correct mass
         user_error_volume_tolerance=1/100000
         tol_error = self.theoreticalVolume*user_error_volume_tolerance
+        tol_flow=1e-05
         # tol_error=0.001
         print(tol_error)
         tol_error_flux=1.0e-5
         
         # mass conservation  correction 
+<<<<<<< HEAD
         if abs(initial_volume_error) > tol_error and  Flow_interface_corrected_old>tol_error_flux:
             iterations = 0
             print("we are correcting")
@@ -218,21 +226,91 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                 old_volume_error=new_volume_error
                 iterations += 1
 
+=======
+        if abs(initial_volume_error) > tol_error and abs(Flow_interface_corrected_old)>tol_flow:
+            iteration=0
+            while iteration < self._maximum_iterations:
+                print("we are correcting")
+                flow_interface=self._CalculateFlowIntoAir() 
+                volumetric_error=self.mass_conservation_utility.GetVolumeError()
+                self._GetDistanceGradientProcess().Execute()
+                global_corrector= self.mass_conservation_utility.GetInterfaceArea()
+                print("AREA",global_corrector)
+                for node in self._fluid_model_part.Nodes:
+                    distance_gradient=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
+                    distance_gradient_norm=self._DistanceGradientNorm(distance_gradient)
+                    normalized_distance_gradient=distance_gradient*distance_gradient_norm
+                    veolocity_nodal=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                    projected_velocity=self._DotProductKratos(veolocity_nodal,normalized_distance_gradient)
+                    local_corrector=projected_velocity/flow_interface
+                    
+                    if abs(local_corrector)<abs(global_corrector):
+                        corrector_distance=volumetric_error*abs(local_corrector)
+                        
+                    else: 
+                        corrector_distance=volumetric_error/global_corrector
+                    # corrector_distance=volumetric_error/global_corrector    
+                    previous_distance=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                    new_distance= previous_distance+ corrector_distance
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,new_distance)
+                
+            
+                self.mass_conservation_utility.ComputeBalancedVolume()
+                new_error = self.mass_conservation_utility.GetVolumeError()
 
+                if abs(new_error)< abs(initial_volume_error):
+                    print("mass correction has been carried out succesfully")
+                    print("PREVIUS_VOLUME", old_volume_error)
+                    print("NEW_ERROR", new_error)
+                else:
+                    print("We are NOT improving mass conservation")
+                    print("PREVIUS_VOLUME", old_volume_error)
+                    print("NEW_ERROR", new_error)
+                    return
+                if abs(local_corrector)<abs(global_corrector):
+                    print("WE ARE USING LOCAL CORRECTOR")
+                else:
+                    print("WE ARE USING GLOBAL CORRECTOR")
+>>>>>>> 31de4c168431a8a17d6da4a2be7fc091c78cd17e
 
+                if abs(new_error)>tol_error:
+                    old_volume_error=new_error 
+                    iteration+=1
+                else:
+                    print("MASS CONSERVATION CHECK IS COMPLETED")
+                    return
 
+                
+
+                
+    
         self.ExecuteFinalizeSolutionStepWriting()
 
 
 
 
+<<<<<<< HEAD
     def _DotProductKratos(self, vector1, vector2):
         dot_product= vector1[0]*vector2[0]+vector1[1]*vector2[1]+vector1[2]*vector2[2]
         return dot_product
+=======
+
+    def _CreateDistanceGradientProcess(self):
+        distance_gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(
+                self._fluid_model_part,
+                KratosMultiphysics.DISTANCE,
+                KratosMultiphysics.DISTANCE_GRADIENT,
+                KratosMultiphysics.NODAL_AREA)
+>>>>>>> 31de4c168431a8a17d6da4a2be7fc091c78cd17e
+
+        return distance_gradient_process
 
 
 
-
+    def _GetDistanceGradientProcess(self):
+        if not hasattr(self, '_distance_gradient_process'):
+            self._distance_gradient_process = self._CreateDistanceGradientProcess()
+        return self._distance_gradient_process
 
 
 

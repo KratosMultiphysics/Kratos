@@ -185,6 +185,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("RevertVelocityDirection", &MassConservationUtility::RevertVelocityDirection)
         .def("CalculateWaterVolume", &MassConservationUtility::CalculateWaterVolume)
         .def("CalculateInitialVolume", &MassConservationUtility::CalculateInitialVolume)
+        .def("GetInterfaceArea", &MassConservationUtility::GetInterfaceArea)
         // .def("ComputeTimeStepForConvectionSign", &MassConservationUtility::ComputeTimeStepForConvectionSign)
 
        
