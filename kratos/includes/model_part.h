@@ -1067,6 +1067,21 @@ public:
         IndexType Id, typename GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
+    /// Creates new element with a node ids list.
+    ElementType::Pointer CreateNewElement(const ElementType& rElementProto,
+        IndexType Id, std::vector<IndexType> ElementNodeIds,
+        PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+
+    /// Creates new element with a nodes list.
+    ElementType::Pointer CreateNewElement(const ElementType& rElementProto,
+        IndexType Id, Geometry< Node < 3 > >::PointsArrayType& pElementNodes,
+        PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+
+    /// Creates new element with pointer to geometry.
+    ElementType::Pointer CreateNewElement(const ElementType& rElementProto,
+        IndexType Id, typename GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+
     /** Returns the Element::Pointer  corresponding to it's identifier */
     ElementType::Pointer pGetElement(IndexType ElementId, IndexType ThisIndex = 0)
     {

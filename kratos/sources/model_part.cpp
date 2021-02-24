@@ -1008,6 +1008,88 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
     KRATOS_CATCH("")
 }
 
+/** Inserts an element in the mesh with ThisIndex.
+*/
+ModelPart::ElementType::Pointer ModelPart::CreateNewElement(const ElementType& rElementProto,
+        ModelPart::IndexType Id, std::vector<ModelPart::IndexType> ElementNodeIds,
+        ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
+{
+    KRATOS_TRY
+    if (IsSubModelPart())
+    {
+        ElementType::Pointer p_new_element = mpParentModelPart->CreateNewElement(rElementProto, Id, ElementNodeIds, pProperties, ThisIndex);
+        GetMesh(ThisIndex).AddElement(p_new_element);
+        return p_new_element;
+    }
+
+    Geometry< Node < 3 > >::PointsArrayType pElementNodes;
+
+    for (unsigned int i = 0; i < ElementNodeIds.size(); i++)
+    {
+        pElementNodes.push_back(pGetNode(ElementNodeIds[i]));
+    }
+
+    return CreateNewElement(rElementProto, Id, pElementNodes, pProperties, ThisIndex);
+    KRATOS_CATCH("");
+}
+
+/** Inserts an element in the mesh with ThisIndex.
+*/
+ModelPart::ElementType::Pointer ModelPart::CreateNewElement(const ElementType& rElementProto,
+        ModelPart::IndexType Id, Geometry< Node < 3 > >::PointsArrayType& pElementNodes,
+        ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
+{
+    KRATOS_TRY
+    if (IsSubModelPart())
+    {
+        ElementType::Pointer p_new_element = mpParentModelPart->CreateNewElement(rElementProto, Id, pElementNodes, pProperties, ThisIndex);
+        GetMesh(ThisIndex).AddElement(p_new_element);
+        return p_new_element;
+    }
+
+    // auto existing_element_iterator = GetMesh(ThisIndex).Elements().find(Id);
+    // KRATOS_ERROR_IF(existing_element_iterator != GetMesh(ThisIndex).ElementsEnd() )
+    //     << "trying to construct an element with ID " << Id << " however an element with the same Id already exists";
+
+    // Create the new element
+    Element::Pointer p_element = rElementProto.Create(Id, pElementNodes, pProperties);
+
+    // Add the new element
+    // GetMesh(ThisIndex).AddElement(p_element);
+
+    return p_element;
+    KRATOS_CATCH("")
+}
+
+/** Inserts an element in the mesh with ThisIndex.
+*/
+ModelPart::ElementType::Pointer ModelPart::CreateNewElement(const ElementType& rElementProto,
+        ModelPart::IndexType Id, typename GeometryType::Pointer pGeometry,
+        ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
+{
+    KRATOS_TRY
+    if (IsSubModelPart())
+    {
+        ElementType::Pointer p_new_element = mpParentModelPart->CreateNewElement(rElementProto, Id, pGeometry, pProperties, ThisIndex);
+        GetMesh(ThisIndex).AddElement(p_new_element);
+        return p_new_element;
+    }
+
+    auto existing_element_iterator = GetMesh(ThisIndex).Elements().find(Id);
+    KRATOS_ERROR_IF(existing_element_iterator != GetMesh(ThisIndex).ElementsEnd() )
+        << "trying to construct an element with ID " << Id << " however an element with the same Id already exists";
+
+
+    // Create the new element
+    Element::Pointer p_element = rElementProto.Create(Id, pGeometry, pProperties);
+
+    //add the new element
+    GetMesh(ThisIndex).AddElement(p_element);
+
+    return p_element;
+    KRATOS_CATCH("")
+}
+
 /** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs.
 */
 void ModelPart::RemoveElement(ModelPart::IndexType ElementId, ModelPart::IndexType ThisIndex)
