@@ -110,8 +110,8 @@ EpsilonKBasedWallConditionDataDerivatives<TDim>::Data::Data(
     mBeta = r_properties[WALL_SMOOTHNESS_BETA];
 
     noalias(mUnitNormal) = rGeometry.GetValue(NORMAL);
-    mNormalMagnitude = norm_2(mUnitNormal);
-    mUnitNormal /= mNormalMagnitude;
+    mUnitNormal /= norm_2(mUnitNormal);
+    mNormalMagnitude = rGeometry.Area();
 
     // get wall height from the condition data container
     mWallHeight = rGeometry.GetValue(DISTANCE);

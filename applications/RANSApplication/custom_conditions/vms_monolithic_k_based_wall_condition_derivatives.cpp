@@ -165,8 +165,8 @@ VMSMonolithicKBasedWallConditionDerivatives<TDim, TNumNodes>::Data::Data(
     mYPlusLimit = condition_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
 
     const auto& normal = rCondition.GetValue(NORMAL);
-    mNormalMagnitude = norm_2(normal);
-    noalias(mUnitNormal) = normal / mNormalMagnitude;
+    noalias(mUnitNormal) = normal / norm_2(normal);
+    mNormalMagnitude = rCondition.GetGeometry().Area();
 
     mCmu25 = std::pow(mCmu, 0.25);
     mInvKappa = 1.0 / mKappa;
@@ -257,12 +257,12 @@ template <class TDerivativesType>
 void VMSMonolithicKBasedWallConditionDerivatives<TDim, TNumNodes>::VariableDerivatives<TDerivativesType>::CalculateGaussPointResidualsDerivativeContributions(
     VectorF& rResidualDerivative,
     const IndexType ConditionNodeIndex,
+    const IndexType ParentElementNodeIndex,
     const IndexType DirectionIndex,
     const double W,
     const Vector& rN,
     const double WDerivative,
-    const double DetJDerivative,
-    const IndexType ParentElementNodeIndex)
+    const double DetJDerivative)
 {
     KRATOS_TRY
 
@@ -320,10 +320,10 @@ template <unsigned int TDim, unsigned int TNumNodes>
 template <class TDerivativesType>
 void VMSMonolithicKBasedWallConditionDerivatives<TDim, TNumNodes>::VariableDerivatives<TDerivativesType>::CalculateGaussPointResidualsDerivativeContributions(
     VectorF& rResidualDerivative,
+    const IndexType ParentElementNodeIndex,
     const IndexType DirectionIndex,
     const double W,
-    const Vector& rN,
-    const IndexType ParentElementNodeIndex)
+    const Vector& rN)
 {
     KRATOS_TRY
 

@@ -136,19 +136,19 @@ public:
         void CalculateGaussPointResidualsDerivativeContributions(
             VectorN& rResidualDerivative,
             const IndexType ConditionNodeIndex,
+            const IndexType ParentElementNodeIndex,
             const IndexType DirectionIndex,
             const double W,
             const Vector& rN,
             const double WDerivative,
-            const double DetJDerivative,
-            const IndexType ParentElementNodeIndex);
+            const double DetJDerivative);
 
         void CalculateGaussPointResidualsDerivativeContributions(
             VectorN& rResidualDerivative,
+            const IndexType ParentElementNodeIndex,
             const IndexType DirectionIndex,
             const double W,
-            const Vector& rN,
-            const IndexType ParentElementNodeIndex);
+            const Vector& rN);
 
         ///@}
     private:

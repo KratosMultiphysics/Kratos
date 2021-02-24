@@ -188,12 +188,12 @@ template <class TDerivativesType>
 void ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::VariableDerivatives<TDerivativesType>::CalculateGaussPointResidualsDerivativeContributions(
     VectorN& rResidualDerivative,
     const IndexType ConditionNodeIndex,
+    const IndexType ParentElementNodeIndex,
     const IndexType DirectionIndex,
     const double W,
     const Vector& rN,
     const double WDerivative,
-    const double DetJDerivative,
-    const IndexType ParentElementNodeIndex)
+    const double DetJDerivative)
 {
     KRATOS_TRY
 
@@ -214,10 +214,10 @@ template <unsigned int TDim, unsigned int TNumNodes, class TConditionDataType>
 template <class TDerivativesType>
 void ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::VariableDerivatives<TDerivativesType>::CalculateGaussPointResidualsDerivativeContributions(
     VectorN& rResidualDerivative,
+    const IndexType ParentElementNodeIndex,
     const IndexType DirectionIndex,
     const double W,
-    const Vector& rN,
-    const IndexType ParentElementNodeIndex)
+    const Vector& rN)
 {
     KRATOS_TRY
 
