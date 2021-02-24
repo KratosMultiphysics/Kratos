@@ -95,6 +95,24 @@ public:
     /// Pointer definition of UnifiedFatigueLaw
     KRATOS_CLASS_POINTER_DEFINITION(UnifiedFatigueLaw);
 
+    struct PlasticDamageFatigueParameters {
+        BoundedVectorType PlasticFlow   = ZeroVector(VoigtSize,VoigtSize);
+        BoundedVectorType PlasticStrain = ZeroVector(VoigtSize,VoigtSize);
+        BoundedVectorType StrainVector  = ZeroVector(VoigtSize,VoigtSize);
+        BoundedVectorType StressVector  = ZeroVector(VoigtSize,VoigtSize);
+        double NonLinearIndicator          = 0.0;
+        double PlasticityIndicator         = 0.0;
+        double PlasticConsistencyIncrement = 0.0;
+        double UniaxialStress              = 0.0;
+        double HardeningParameterDamage    = 0.0;
+        double DamageDissipation           = 0.0;
+        double PlasticDissipation          = 0.0;
+        double TotalDissipation            = 0.0;
+        double CharacteristicLength        = 0.0;
+        double Threshold                   = 0.0;
+        double PlasticDenominator          = 0.0;
+    };
+
     ///@name Lyfe Cycle
     ///@{
 
@@ -542,6 +560,27 @@ public:
         Matrix& rConstitutiveMatrix,
         const Properties& rMaterialProperties
         );
+
+    /**
+     * @brief This method add somehting if the increment is positive
+     */
+    void AddIfPositive(
+        double&  rToBeAdded,
+        const double Increment
+        )
+    {
+        if (Increment > machine_tolerance)
+            rToBeAdded += Increment;
+    }
+
+    /**
+     * @brief This method evaluates the Macaulay brackets
+     */
+    double MacaullyBrackets(const double Number)
+    {
+        return (Number > machine_tolerance) ? Number : 0.0;
+    }
+
 
 protected:
 
