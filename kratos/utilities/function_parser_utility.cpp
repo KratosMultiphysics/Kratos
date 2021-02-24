@@ -14,7 +14,7 @@
 // System includes
 
 // External includes
-#include "muparser/muparser/muParser.h"
+#include "tinyexpr/tinyexpr/tinyexpr.h"
 
 // Project includes
 #include "includes/global_variables.h"
@@ -27,7 +27,7 @@ namespace Kratos
 GenericFunctionUtility::GenericFunctionUtility(
     const std::string& rFunctionBody,
     Parameters LocalSystem
-    ) : mFunctionBody(StringUtilities::ReplaceAllSubstrings(rFunctionBody, "**", "^")) // Correcting function from python style to muparser
+    ) : mFunctionBody(StringUtilities::ReplaceAllSubstrings(rFunctionBody, "**", "^")) // Correcting function from python style to tinyexpr
 {
     // Defining namespace
     mNameSpace.insert(std::pair<std::string, double>("x", 0.0));
@@ -87,7 +87,7 @@ GenericFunctionUtility::GenericFunctionUtility(GenericFunctionUtility const& rOt
 
 GenericFunctionUtility::~GenericFunctionUtility()
 {
-//    delete [] mpParser;
+    te_free(mpTinyExpr);
 }
 
 /***********************************************************************************/
@@ -145,7 +145,7 @@ double GenericFunctionUtility::CallFunction(
     mNameSpace["Z"] = Z;
     mNameSpace["t"] = t;
 
-    return mpParser->Eval();
+    return te_eval(mpTinyExpr);
 }
 
 /***********************************************************************************/
@@ -154,30 +154,26 @@ double GenericFunctionUtility::CallFunction(
 void GenericFunctionUtility::InitializeParser()
 {
     // Initialize
-    if (mpParser == nullptr) {
-        mpParser = new mu::Parser;
+    if (mpTinyExpr == nullptr) {
+        int err;
+
+        /* Defining table */
+        double& x = mNameSpace["x"];
+        double& y = mNameSpace["y"];
+        double& z = mNameSpace["z"];
+        double& t = mNameSpace["t"];
+        double& X = mNameSpace["X"];
+        double& Y = mNameSpace["Y"];
+        double& Z = mNameSpace["Z"];
+        double& pi = mNameSpace["pi"];
+
+        /* Store variable names and pointers. */
+        te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"Z", &Z}, {"Y", &Y}, {"Z", &Z}, {"pi", &pi}};
+
+        /* Compile the expression with variables. */
+        mpTinyExpr = te_compile(mFunctionBody.c_str(), vars, 8, &err);
+
     }
-
-    // Defining table
-    double& x = mNameSpace["x"];
-    double& y = mNameSpace["y"];
-    double& z = mNameSpace["z"];
-    double& t = mNameSpace["t"];
-    double& X = mNameSpace["X"];
-    double& Y = mNameSpace["Y"];
-    double& Z = mNameSpace["Z"];
-    double& pi = mNameSpace["pi"];
-
-    mpParser->DefineVar("x", &x);
-    mpParser->DefineVar("y", &y);
-    mpParser->DefineVar("z", &z);
-    mpParser->DefineVar("t", &t);
-    mpParser->DefineVar("X", &X);
-    mpParser->DefineVar("Y", &Y);
-    mpParser->DefineVar("Z", &Z);
-    mpParser->DefineVar("pi", &pi);
-
-    mpParser->SetExpr(mFunctionBody);
 }
 
 } /// namespace Kratos

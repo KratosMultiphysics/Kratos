@@ -24,10 +24,7 @@
 #include "includes/kratos_parameters.h"
 
 // Forward declaration to reduce compilation time
-namespace mu
-{
-    class Parser;
-}
+class te_expr;
 
 namespace Kratos
 {
@@ -188,7 +185,7 @@ private:
     ///@{
 
     std::unordered_map<std::string, double>  mNameSpace;   /// The variables considered on the function
-    mu::Parser* mpParser = nullptr;                        /// The function parser
+    te_expr* mpTinyExpr = nullptr;                         /// The function parser
     std::string mFunctionBody;                             /// The function body
 
     bool mDependsOnSpace = true;                 /// If it depends on space
