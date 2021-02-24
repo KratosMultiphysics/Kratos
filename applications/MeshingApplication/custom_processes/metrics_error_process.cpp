@@ -88,16 +88,11 @@ void MetricErrorProcess<TDim>::CalculateElementSize()
     ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
 
     // Auxiliar member variables
-    const auto& r_min_size = mMinSize;
-    const auto& r_max_size = mMaxSize;
-    const auto& r_set_element_number = mSetElementNumber;
-    const auto& r_element_number = mElementNumber;
-    const auto& r_target_error = mTargetError;
     const auto number_of_elements = mrThisModelPart.NumberOfElements();
 
     // Compute new element size
     block_for_each(r_elements_array,
-        [&r_min_size,&r_max_size,&r_set_element_number,&r_element_number,&r_target_error,&tolerance,&energy_norm_overall,&error_overall,&number_of_elements](Element& rElement) {
+        [this,&tolerance,&energy_norm_overall,&error_overall,&number_of_elements](Element& rElement) {
 
         //Compute the current element size h
         MeshingUtilities::ComputeElementSize(rElement);
@@ -108,17 +103,17 @@ void MetricErrorProcess<TDim>::CalculateElementSize()
         double new_element_size = coeff * rElement.GetValue(ELEMENT_H);
 
         // If a target number for elements is given: use this, else: use current element number
-        // if(r_set_element_number && r_element_number < number_of_elements)
-        if(r_set_element_number)
-            new_element_size *= std::sqrt((std::pow(energy_norm_overall, 2) + std::pow(error_overall, 2))/r_element_number) * r_target_error;
+        // if(mSetElementNumber && mElementNumber < number_of_elements)
+        if(mSetElementNumber)
+            new_element_size *= std::sqrt((std::pow(energy_norm_overall, 2) + std::pow(error_overall, 2))/mElementNumber) * mTargetError;
         else
-            new_element_size *= std::sqrt((energy_norm_overall*energy_norm_overall+error_overall*error_overall)/number_of_elements)*r_target_error;
+            new_element_size *= std::sqrt((energy_norm_overall*energy_norm_overall+error_overall*error_overall)/number_of_elements)*mTargetError;
 
         // Check if element sizes are in specified limits. If not, set them to the limit case
-        if(new_element_size < r_min_size)
-            new_element_size = r_min_size;
-        if(new_element_size > r_max_size)
-            new_element_size = r_max_size;
+        if(new_element_size < mMinSize)
+            new_element_size = mMinSize;
+        if(new_element_size > mMaxSize)
+            new_element_size = mMaxSize;
 
         rElement.SetValue(ELEMENT_H, new_element_size);
     });
