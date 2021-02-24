@@ -9,7 +9,7 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
     '''Main script for structural mechanics with CoSimIO'''
 
     def __init__(self, model, parameters):
-        super(StructuralMechanicsAnalysisWithCoSimIO,self).__init__(model, parameters)
+        super().__init__(model, parameters)
 
         # To avoid many prints
         if (self.echo_level == 0):
@@ -18,7 +18,7 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
 
     def Initialize(self):
-        super(StructuralMechanicsAnalysisWithCoSimIO, self).Initialize()
+        super().Initialize()
         self.co_sim_settings = self.project_parameters["co_sim_settings"]
         self.connection_name = self.co_sim_settings["connection_name"].GetString()
         self.is_strong_coupling = self.co_sim_settings["is_strong_coupling"].GetBool()
@@ -94,7 +94,7 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
             self.OutputSolutionStep()
 
     def Finalize(self):
-        super(StructuralMechanicsAnalysisWithCoSimIO, self).Finalize()
+        super().Finalize()
 
         disconnect_settings = CoSimIO.Info()
         disconnect_settings.SetString("connection_name", self.connection_name)
