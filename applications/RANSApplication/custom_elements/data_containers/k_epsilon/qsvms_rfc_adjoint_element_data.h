@@ -64,6 +64,8 @@ public:
 
     static std::vector<const Variable<double>*> GetDofVariablesList();
 
+    static std::vector<const Variable<double>*> GetPrimalSecondDerivativeVariablesList();
+
     ///@}
     ///@name Classes
     ///@{
