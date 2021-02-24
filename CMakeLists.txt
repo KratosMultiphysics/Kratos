@@ -492,8 +492,8 @@ message("\t VariableComponent and VectorComponentAdaptor are no longer used: htt
 # Compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
 
-# Compiling the muparser library
-add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/muparser)
+# Compiling the tinyexpr library
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
 
 # runkratos - compiles "runkratos and packages the python lib needed"
 if(${INSTALL_RUNKRATOS} MATCHES ON )
