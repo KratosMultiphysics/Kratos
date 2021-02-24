@@ -90,7 +90,7 @@ public:
     typedef array_1d<double, VoigtSize> BoundedVectorType;
 
     /// The definition of the bounded matrix type
-    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+    typedef BoundedMatrix<double, VoigtSize, VoigtSize> BoundedMatrixType;
 
     /// Pointer definition of UnifiedFatigueLaw
     KRATOS_CLASS_POINTER_DEFINITION(UnifiedFatigueLaw);
@@ -574,7 +574,7 @@ private:
     double mPlasticDissipation = 0.0;
     double mDamageDissipation  = 0.0;
     double mThreshold          = 0.0;
-    BoundedVectorType mPlasticStrain = ZeroVector(VoigtSize);
+    BoundedVectorType mPlasticStrain    = ZeroVector(VoigtSize);
     BoundedMatrixType mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
 
     ///@}
