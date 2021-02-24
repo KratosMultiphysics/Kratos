@@ -11,9 +11,10 @@
 #define KRATOS_BREP_TRIMMING_UTILITIES_H_INCLUDED
 
 // System includes
+#include "includes/define.h"
 
 // External includes
-#include "clipper.hpp"
+#include "clipper/clipper.h"
 
 // Project includes
 #include "geometries/geometry.h"
@@ -26,7 +27,7 @@ namespace Kratos
     ///@name Kratos Classes
     ///@{
 
-    using namespace ClipperLib;
+    //using namespace ClipperLib;
 
     class BrepTrimmingUtilities
     {
@@ -54,9 +55,11 @@ namespace Kratos
             const TBrepLoopType& rInnerLoops,
             const std::vector<double>& rSpansU,
             const std::vector<double>& rSpansV,
+            SizeType PointsInU,
+            SizeType PointsInV,
             IntegrationInfo& rIntegrationInfo)
         {
-            Paths outer_loops(rOuterLoops.size()), inner_loops(rInnerLoops.size()), solution;
+            ClipperLib::Paths outer_loops(rOuterLoops.size()), inner_loops(rInnerLoops.size()), solution;
             const double factor = 1e-10;
 
             for (IndexType i = 0; i < rOuterLoops.size(); ++i) {
@@ -86,32 +89,29 @@ namespace Kratos
             }
 
             //perform intersection
-            Clipper c;
+            ClipperLib::Clipper c;
 
-            //c.Execute(ctIntersection, solution, pftNonZero, pftNonZero);
-            for (IndexType i = 0; i < rSpansU.size(); ++i) {
-                for (IndexType j = 0; j < rSpansV.size(); ++j) {
+            c.Execute(ClipperLib::ctIntersection, solution, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+            for (IndexType i = 0; i < rSpansU.size() - 1; ++i) {
+                for (IndexType j = 0; j < rSpansV.size() - 1; ++j) {
 
-                    c.AddPaths(outer_loops, ptSubject, true);
-                    c.AddPaths(inner_loops, ptSubject, true);
+                    c.AddPaths(outer_loops, ClipperLib::ptSubject, true);
+                    c.AddPaths(inner_loops, ClipperLib::ptSubject, true);
 
-                    Paths span(1);
+                    ClipperLib::Paths span(1);
                     span[0] <<
                         BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j], factor) << BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j], factor) <<
                         BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j + 1], factor) << BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j + 1], factor);
 
-                    c.AddPaths(span, ptClip, true);
-                    c.Execute(ctIntersection, solution, pftNonZero, pftNonZero);
-
-                    const IndexType points_in_u = 2;// mpNurbsSurface->PolynomialDegreeU() + 1;
-                    const IndexType points_in_v = 2;//mpNurbsSurface->PolynomialDegreeV() + 1;
+                    c.AddPaths(span, ClipperLib::ptClip, true);
+                    c.Execute(ClipperLib::ctIntersection, solution, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
 
                     if (solution.size() == 0) {
                         continue;
                     }
-                    else if (std::abs((std::abs(Area(solution[0])) - std::abs(Area(span[0]))) * (factor * factor)) < 1e-6) {
+                    else if (std::abs((std::abs(ClipperLib::Area(solution[0])) - std::abs(ClipperLib::Area(span[0]))) * (factor * factor)) < 1e-6) {
 
-                        const IndexType number_of_integration_points = points_in_u * points_in_v;
+                        const IndexType number_of_integration_points = PointsInU * PointsInV;
 
                         IndexType initial_integration_size = rIntegrationPoints.size();
 
@@ -124,7 +124,7 @@ namespace Kratos
 
                         IntegrationPointUtilities::IntegrationPoints2D(
                             integration_point_iterator,
-                            points_in_u, points_in_v,
+                            PointsInU, PointsInV,
                             rSpansU[i], rSpansU[i + 1],
                             rSpansV[j], rSpansV[j + 1]);
                     }
@@ -133,18 +133,9 @@ namespace Kratos
                         std::vector<Matrix> triangles;
                         BrepTrimmingUtilities::Triangulate_OPT(solution[0], triangles, factor);
 
-                        int number_of_triangles = triangles.size();
-                        int number_of_points = std::max(points_in_u, points_in_v) + 1;
-                        int number_of_gauss_points;
-                        if (number_of_points == 1) { number_of_gauss_points = 1; }
-                        else if (number_of_points == 2) { number_of_gauss_points = 3; }
-                        else if (number_of_points == 3) { number_of_gauss_points = 4; }
-                        else if (number_of_points == 4) { number_of_gauss_points = 6; }
-                        else if (number_of_points == 5) { number_of_gauss_points = 7; }
-                        else if (number_of_points == 6) { number_of_gauss_points = 12; }
-                        else if (number_of_points == 7) { number_of_gauss_points = 13; }
+                        const SizeType number_of_points = std::max(PointsInU, PointsInV);
 
-                        const IndexType number_of_integration_points = number_of_triangles * number_of_gauss_points;
+                        const IndexType number_of_integration_points = triangles.size() * IntegrationPointUtilities::s_gauss_triangle[number_of_points].size();
 
                         IndexType initial_integration_size = rIntegrationPoints.size();
 
@@ -410,7 +401,6 @@ namespace Kratos
 
             return point;
         }
-
 
         ///@}
     };
