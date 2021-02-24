@@ -16,7 +16,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/properties.h"
-#include "custom_advanced_constitutive/multi_linear_isotropic_plane_stress_2d.h"
+#include "custom_constitutive/multi_linear_isotropic_plane_stress_2d.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos

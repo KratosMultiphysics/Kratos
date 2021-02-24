@@ -13,7 +13,7 @@
 // System includes
 
 // Project includes
-#include "custom_advanced_constitutive/viscous_generalized_kelvin.h"
+#include "custom_constitutive/viscous_generalized_kelvin.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos

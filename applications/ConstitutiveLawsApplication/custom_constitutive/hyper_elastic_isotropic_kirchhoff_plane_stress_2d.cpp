@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_advanced_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
 
 #include "structural_mechanics_application_variables.h"
 

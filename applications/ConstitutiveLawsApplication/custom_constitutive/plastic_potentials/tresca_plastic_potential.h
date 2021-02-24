@@ -15,7 +15,7 @@
 // System includes
 
 // Project includes
-#include "custom_advanced_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
 
 namespace Kratos
 {

@@ -15,7 +15,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_advanced_constitutive/wrinkling_linear_2d_law.h"
+#include "custom_constitutive/wrinkling_linear_2d_law.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -131,7 +131,7 @@ void  WrinklingLinear2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parame
 
 
         noalias(stress_vector) = prod(material_tangent_modulus_modified_1,strain_vector);
-        
+
         if (MathUtils<double>::Norm(pre_stress_vector) > 0.0) {
             // Pre-stress is added in the element
             // Make sure no pre_stress is added in the wrinkling direction

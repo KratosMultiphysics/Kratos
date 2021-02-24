@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_advanced_constitutive/rule_of_mixtures_law.h"
+#include "custom_constitutive/rule_of_mixtures_law.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 
@@ -1417,7 +1417,7 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::CalculateRotationMatrix(
         const Properties& rMaterialProperties,
         BoundedMatrix<double, VoigtSize, VoigtSize>& rRotationMatrix,
-        const IndexType Layer 
+        const IndexType Layer
     )
 {
 
@@ -1433,9 +1433,9 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateRotationMatrix(
         BoundedMatrix<double, 3, 3>  rotation_matrix;
 
         if (std::abs(euler_angle_phi) + std::abs(euler_angle_theta) + std::abs(euler_angle_hi) > machine_tolerance) {
-            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi, 
+            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi,
                                                                            euler_angle_theta,
-                                                                           euler_angle_hi, 
+                                                                           euler_angle_hi,
                                                                            rotation_matrix);
             ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix,
                                                                                 rRotationMatrix);

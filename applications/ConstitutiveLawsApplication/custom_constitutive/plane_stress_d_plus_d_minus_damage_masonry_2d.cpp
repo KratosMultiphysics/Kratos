@@ -8,8 +8,8 @@
 //
 //  Main authors:    Philip Kalkbrenner
 //					 Massimo Petracca
-//                   Alejandro Cornejo 
-//  
+//                   Alejandro Cornejo
+//
 //
 
 // System includes
@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_advanced_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "includes/model_part.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -110,7 +110,7 @@ double& DamageDPlusDMinusMasonry2DLaw::GetValue(
 	else if(rThisVariable == THRESHOLD_TENSION)
 		rValue = ThresholdTension;
 	else if(rThisVariable == THRESHOLD_COMPRESSION)
-		rValue = ThresholdCompression;	
+		rValue = ThresholdCompression;
 	return rValue;
 }
 /***********************************************************************************/
@@ -304,7 +304,7 @@ void DamageDPlusDMinusMasonry2DLaw::FinalizeSolutionStep(
 
 }
 /***********************************************************************************/
-/***********************************************************************************/	
+/***********************************************************************************/
 void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponsePK1 (
 	Parameters& rValues)
 {
@@ -332,15 +332,15 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	const ProcessInfo&  pinfo = rValues.GetProcessInfo();
 	const GeometryType& geom  = rValues.GetElementGeometry();
 	const Properties&   props = rValues.GetMaterialProperties();
-	
+
 	const Vector& StrainVector   	= rValues.GetStrainVector();
 	Vector& PredictiveStressVector	= rValues.GetStressVector();
-	
+
 	CalculationData data;
 	this->InitializeCalculationData(props, geom, pinfo, data);
 
 	this->CalculateMaterialResponseInternal(StrainVector, PredictiveStressVector, data, props);
-	
+
 	bool is_damaging_tension = false;
 	bool is_damaging_compression = false;
 	this->CheckDamageLoadingUnloading(is_damaging_tension, is_damaging_compression);
@@ -349,7 +349,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	if (rValues.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
 		if(is_damaging_tension || is_damaging_compression) {
 			this->CalculateTangentTensor(rValues, StrainVector, PredictiveStressVector, data, props);
-		} 
+		}
 		else {
 			this->CalculateSecantTensor(rValues, data);
 		}
@@ -593,24 +593,24 @@ void DamageDPlusDMinusMasonry2DLaw::ConstructProjectionTensors(
 
 	array_1d<double,3> projection_vector_11;
 	Matrix projection_tensor_11;
-	projection_tensor_11 = outer_prod(eigen_vector_1, eigen_vector_1); 
+	projection_tensor_11 = outer_prod(eigen_vector_1, eigen_vector_1);
 	projection_vector_11 = MathUtils<double>::StressTensorToVector(projection_tensor_11);
 
 	array_1d<double,3> projection_vector_22;
 	Matrix projection_tensor_22;
-	projection_tensor_22 = outer_prod(eigen_vector_2, eigen_vector_2); 
+	projection_tensor_22 = outer_prod(eigen_vector_2, eigen_vector_2);
 	projection_vector_22 = MathUtils<double>::StressTensorToVector(projection_tensor_22);
 
 	projection_tensor_tension.clear();
-	noalias(projection_tensor_tension) += HEAVISIDE(eigen_values_matrix(0, 0)) * 
+	noalias(projection_tensor_tension) += HEAVISIDE(eigen_values_matrix(0, 0)) *
 										  outer_prod(projection_vector_11, projection_vector_11);
-	noalias(projection_tensor_tension) += HEAVISIDE(eigen_values_matrix(1, 1)) * 
+	noalias(projection_tensor_tension) += HEAVISIDE(eigen_values_matrix(1, 1)) *
 										  outer_prod(projection_vector_22, projection_vector_22);
 
 #ifdef PROJECTION_OPERATOR_CERVERA_2003
 /*
 Theory from: "Viscoelasticity and rate-dependent continuum damage models"
-			  Miguel Cervera 
+			  Miguel Cervera
 			  2003 (page 58)
 */
 	array_1d<double,3> projection_vector_12;
@@ -657,7 +657,7 @@ Theory from: 	"An Energy-Equivalent d+/d- Damage Model with
 	projection_tensor_cross = 0.5 * (projection_tensor_12 + projection_tensor_21);
 	projection_vector_cross = MathUtils<double>::StressTensorToVector(projection_tensor_cross);
 
-	noalias(projection_tensor_tension) += (HEAVISIDE(eigen_values_matrix(0, 0)) + HEAVISIDE(eigen_values_matrix(1, 1))) * 
+	noalias(projection_tensor_tension) += (HEAVISIDE(eigen_values_matrix(0, 0)) + HEAVISIDE(eigen_values_matrix(1, 1))) *
 										  outer_prod(projection_vector_cross, projection_vector_cross);
 #endif //PROJECTION_OPERATOR_CERVERA_2017
 
@@ -671,10 +671,10 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressTension(Calculation
 	UniaxialStressTension = 0.0;
 	if(data.PrincipalStressVector(0) > 0.0){
 		if (data.TensionYieldModel == 0) {
-			// Lubliner Yield Criteria 
+			// Lubliner Yield Criteria
 			const double yield_compression 		 	= 	data.YieldStressCompression;
 			const double yield_tension 				= 	data.YieldStressTension;
-			const double alpha 						= 	(data.BiaxialCompressionMultiplier - 1.0) / 
+			const double alpha 						= 	(data.BiaxialCompressionMultiplier - 1.0) /
 														(2.0* data.BiaxialCompressionMultiplier - 1.0);
 			double I1, J2;
 			array_1d<double, 3> deviator = ZeroVector(3);
@@ -685,7 +685,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressTension(Calculation
 			const double beta 	= yield_compression / yield_tension * (1.0 - alpha) - (1.0 + alpha);
 			const double smax 	= std::max(std::max(data.PrincipalStressVector(0), data.PrincipalStressVector(1)),0.0);
 
-			UniaxialStressTension = 1.0 / (1.0-alpha) * (alpha * I1 + std::sqrt(3.0 * J2) + beta * smax) / 
+			UniaxialStressTension = 1.0 / (1.0-alpha) * (alpha * I1 + std::sqrt(3.0 * J2) + beta * smax) /
 									yield_compression * yield_tension;
 		}
 		else if (data.TensionYieldModel == 1) {
@@ -702,7 +702,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressCompression(Calcula
 	if(data.PrincipalStressVector(1) < 0.0){
 		const double yield_compression 			= 	data.DamageOnsetStressCompression;
 		const double yield_tension 				= 	data.YieldStressTension;
-		const double alpha 						= 	(data.BiaxialCompressionMultiplier - 1.0) / 
+		const double alpha 						= 	(data.BiaxialCompressionMultiplier - 1.0) /
 													(2.0* data.BiaxialCompressionMultiplier - 1.0);
 		double I1, J2;
 		array_1d<double, 3> deviator = ZeroVector(3);
@@ -713,15 +713,15 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressCompression(Calcula
 		const double beta = (yield_compression / yield_tension) * (1.0 - alpha) - (1.0 + alpha);
 		const double smax = std::max(std::max(data.PrincipalStressVector(0), data.PrincipalStressVector(1)),0.0);
 
-		UniaxialStressCompression = 1.0 / (1.0-alpha) * (alpha * I1 + std::sqrt(3.0 * J2) + 
+		UniaxialStressCompression = 1.0 / (1.0-alpha) * (alpha * I1 + std::sqrt(3.0 * J2) +
 															data.ShearCompressionReductor * beta * smax);
 	}
 }
 /***********************************************************************************/
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
-	CalculationData& data, 
-	double internal_variable, 
+	CalculationData& data,
+	double internal_variable,
 	double& rDamage)
 {
 	if(internal_variable <= data.YieldStressTension) {
@@ -733,23 +733,23 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 		const double yield_tension  			= 	data.YieldStressTension;
 		const double fracture_energy_tension  	=  	data.FractureEnergyTension;
 		const double initial_internal_variable  =  	yield_tension;
-		const double material_length  			=  	2.0 * young_modulus * fracture_energy_tension / 
+		const double material_length  			=  	2.0 * young_modulus * fracture_energy_tension /
 													(yield_tension * yield_tension);
 
 		if(characteristic_length >= material_length){
 			std::stringstream ss;
 			ss << "FRACTURE_ENERGY_TENSION is too low:  2*E*Gt/(ft*ft) = " << material_length
-				<< ",   Characteristic Length = " << characteristic_length 
+				<< ",   Characteristic Length = " << characteristic_length
 				<< ",   FRACTURE_ENERGY_TENSION should be at least = " << (characteristic_length * yield_tension * yield_tension) / (2.0 * young_modulus) <<std::endl;
 			std::cout << ss.str();
 			exit(-1);
 		}
-		
-		const double damage_parameter  = 2.0 * characteristic_length / 
+
+		const double damage_parameter  = 2.0 * characteristic_length /
 											(material_length - characteristic_length);
-		
-		rDamage = 	1.0 - initial_internal_variable / internal_variable * 
-							std::exp(damage_parameter * 
+
+		rDamage = 	1.0 - initial_internal_variable / internal_variable *
+							std::exp(damage_parameter *
 							(1.0 - internal_variable / initial_internal_variable));
 
 		const double internal_variable_min = 1.0e-2 * yield_tension;
@@ -761,14 +761,14 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 /***********************************************************************************/
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
-	CalculationData& data, 
-	double internal_variable, 
+	CalculationData& data,
+	double internal_variable,
 	double& rDamage)
 {
 	if(internal_variable <= data.DamageOnsetStressCompression){
 		rDamage = 0.0;
 	}
-	else { 
+	else {
 		// extract material parameters
 		const double young_modulus  = data.YoungModulus;
 		const double s_0 			= data.DamageOnsetStressCompression;
@@ -778,7 +778,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 		const double c1 			= data.BezierControllerC1;
 		const double c2 			= data.BezierControllerC2;
 		const double c3 			= data.BezierControllerC3;
-		const double specific_fracture_energy = data.FractureEnergyCompression / 
+		const double specific_fracture_energy = data.FractureEnergyCompression /
 												data.CharacteristicLength;
 
 		// Auto-computation of remaining constitutive law parameters
@@ -793,10 +793,10 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 
 		// regularization
 		double bezier_fracture_energy, bezier_energy_1;
-		this->ComputeBezierEnergy(bezier_fracture_energy, bezier_energy_1, 
+		this->ComputeBezierEnergy(bezier_fracture_energy, bezier_energy_1,
 									s_p, s_k, s_r, e_p, e_j, e_k, e_r, e_u);
-		
-		const double stretcher 	= (specific_fracture_energy - bezier_energy_1) / 
+
+		const double stretcher 	= (specific_fracture_energy - bezier_energy_1) /
 									(bezier_fracture_energy - bezier_energy_1) - 1.0;
 
 		if(stretcher <= -1.0){
@@ -833,7 +833,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::ComputeBezierEnergy(double& rBezierEnergy, double& rBezierEnergy1, 
+void DamageDPlusDMinusMasonry2DLaw::ComputeBezierEnergy(double& rBezierEnergy, double& rBezierEnergy1,
 								double s_p, double s_k, double s_r,
 								double e_p, double e_j, double e_k, double e_r, double e_u)
 {
@@ -841,16 +841,16 @@ void DamageDPlusDMinusMasonry2DLaw::ComputeBezierEnergy(double& rBezierEnergy, d
 	double bezier_energy_2 = this->EvaluateBezierArea(e_p, e_j, e_k, s_p, s_p, s_k);
 	double bezier_energy_3 = this->EvaluateBezierArea(e_k, e_r, e_u, s_k, s_r, s_r);
 	rBezierEnergy = rBezierEnergy1 + bezier_energy_2 + bezier_energy_3;
-} 
+}
 /***********************************************************************************/
 /***********************************************************************************/
 double DamageDPlusDMinusMasonry2DLaw::EvaluateBezierArea(
 	double x1,double x2,double x3,double y1,double y2,double y3)
 {
-	double bezier_area = 	x2 * y1 / 3.0 + 
-							x3 * y1 / 6.0 - 
-							x2 * y3 / 3.0 + 
-							x3 * y2 / 3.0 + 
+	double bezier_area = 	x2 * y1 / 3.0 +
+							x3 * y1 / 6.0 -
+							x2 * y3 / 3.0 +
+							x3 * y2 / 3.0 +
 							x3 * y3 / 2.0 -
 							x1 * (y1 / 2.0 + y2 / 3.0 + y3 / 6.0) ;
 	return bezier_area;
@@ -868,7 +868,7 @@ void DamageDPlusDMinusMasonry2DLaw::ApplyBezierStretcherToStrains(
 /***********************************************************************************/
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry2DLaw::EvaluateBezierCurve(
-	double& rDamageParameter, double xi, 
+	double& rDamageParameter, double xi,
 	double x1, double x2, double x3,
 	double y1, double y2, double y3)
 {
@@ -883,11 +883,11 @@ void DamageDPlusDMinusMasonry2DLaw::EvaluateBezierCurve(
 		bezier_law_param_C 	= x1 - xi;
 	}
 
-	double bezier_law_param_D = bezier_law_param_B * bezier_law_param_B - 
+	double bezier_law_param_D = bezier_law_param_B * bezier_law_param_B -
 								4.0 * bezier_law_param_A * bezier_law_param_C;
-	double bezier_law_param_t = (-bezier_law_param_B + std::sqrt(bezier_law_param_D)) / 
+	double bezier_law_param_t = (-bezier_law_param_B + std::sqrt(bezier_law_param_D)) /
 								(2.0 * bezier_law_param_A);
-	rDamageParameter = 	(y1 - 2.0 * y2 + y3) * bezier_law_param_t * bezier_law_param_t + 
+	rDamageParameter = 	(y1 - 2.0 * y2 + y3) * bezier_law_param_t * bezier_law_param_t +
 						2.0 * (y2 - y1) * bezier_law_param_t + y1;
 }
 /***********************************************************************************/
@@ -941,7 +941,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 	if(std::abs(data.EffectiveStressVector(0)) < tolerance) {data.EffectiveStressVector(0) = 0.0;}
 	if(std::abs(data.EffectiveStressVector(1)) < tolerance) {data.EffectiveStressVector(1) = 0.0;}
 	if(std::abs(data.EffectiveStressVector(2)) < tolerance) {data.EffectiveStressVector(2) = 0.0;}
-	
+
 	this->TensionCompressionSplit(data);
 	this->ConstructProjectionTensors(data);
 
@@ -998,7 +998,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 /***********************************************************************************/
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry2DLaw::CheckDamageLoadingUnloading(
-	bool& is_damaging_tension, 
+	bool& is_damaging_tension,
 	bool& is_damaging_compression)
 {
 	const double F_tension 		= UniaxialStressTension - CurrentThresholdTension;
@@ -1016,7 +1016,7 @@ void DamageDPlusDMinusMasonry2DLaw::CheckDamageLoadingUnloading(
 /***********************************************************************************/
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry2DLaw::CalculateTangentTensor(
-	Parameters& rValues, 
+	Parameters& rValues,
 	Vector StrainVector,
 	Vector PredictiveStressVector,
 	CalculationData& data,
@@ -1051,7 +1051,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateTangentTensor(
 		this->CalculateMaterialResponseInternal(perturbated_strain_vector, perturbated_stress_vector, data, props);
 
 		for(size_t i = 0; i < VoigtSize; i++)
-			constitutive_matrix(i,j) = ( perturbated_stress_vector(i) - PredictiveStressVector(i) ) / 
+			constitutive_matrix(i,j) = ( perturbated_stress_vector(i) - PredictiveStressVector(i) ) /
 										perturbation_factor;
 	}
 
