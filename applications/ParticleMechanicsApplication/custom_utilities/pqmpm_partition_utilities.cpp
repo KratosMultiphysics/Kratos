@@ -155,10 +155,10 @@ namespace Kratos
                 }
                 else {
 
-                    if ((*intersected_geometries[i]).IsInside(sub_point_position, local_coordinates, Tolerance))
+                    if (intersected_geometries[i]->IsInside(sub_point_position, local_coordinates))
                     {
-                        (*intersected_geometries[i]).ShapeFunctionsValues(N, local_coordinates);
-                        (*intersected_geometries[i]).ShapeFunctionsLocalGradients(DN_De, local_coordinates);
+                        intersected_geometries[i]->ShapeFunctionsValues(N, local_coordinates);
+                        intersected_geometries[i]->ShapeFunctionsLocalGradients(DN_De, local_coordinates);
                         trial_subpoint = IntegrationPoint<3>(local_coordinates, sub_point_volume / mp_volume_vec[0]);
 
                         ips[active_subpoint_index] = trial_subpoint;
@@ -170,6 +170,23 @@ namespace Kratos
                             active_node_index += 1;
                         }
                         active_subpoint_index += 1;
+                    }
+                    else
+                    {
+                        if (i == 0)
+                        {
+                            #pragma omp critical
+                            {
+                                std::cout << "PQMPM says we are not in the first element, but we must be!\n"
+                                    << "Element geometry = \n" << rParentGeom
+                                    << "\nMP coord = " << rCoordinates
+                                    << "\nMP bounding box = " << master_domain_points
+                                    << "\nLocal coords = " << local_coordinates
+                                    << "\nSub point pos = " << sub_point_position
+                                    << "\n IsInside function for sub point pos = " << rParentGeom.IsInside(sub_point_position, local_coordinates)
+                                    << std::endl;
+                            }
+                        }
                     }
                 }
             }
@@ -554,6 +571,7 @@ namespace Kratos
                 rSubPointCoord[0] += centroid_result.get<0>();
                 rSubPointCoord[1] += centroid_result.get<1>();
             }
+
         }
         //else
         //{
@@ -562,7 +580,11 @@ namespace Kratos
         //    KRATOS_ERROR << "ERROR";
         //}
 
-        rSubPointCoord /= double(polygon_result_container.size());
+        if (polygon_result_container.size() != 0)
+        {
+            rSubPointCoord /= double(polygon_result_container.size());
+        }
+
 
         KRATOS_CATCH("")
     }
@@ -729,8 +751,8 @@ namespace Kratos
 
         double center_to_center = norm_2(0.5* ele_point_low + 0.5* ele_point_high - rCoord);
         double maximum_contact_range = 0.5*norm_2(rPointHigh- rPointLow) +
-            0.6*norm_2(ele_point_high - ele_point_low);
-        if (center_to_center < maximum_contact_range) return true;
+            0.51*norm_2(ele_point_high - ele_point_low);
+        if (center_to_center <= maximum_contact_range) return true;
         return false;
     }
 
