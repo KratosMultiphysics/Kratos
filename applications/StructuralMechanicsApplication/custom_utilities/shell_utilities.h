@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi (porting from utility made by Fabio Petracca and Peter Wilson)
-//					 Philipp Bucher
+//					 Philipp Bucher  (https://github.com/philbucher)
 //
 
 #if !defined(KRATOS_SHELL_UTILITIES_H_INCLUDED )
@@ -44,6 +44,12 @@ class JacobianOperator
 public:
 
     JacobianOperator();
+
+    template<class TLocalCoordinateSystem>
+    void Calculate(const TLocalCoordinateSystem& CS, const Matrix& dN)
+    {
+        KRATOS_ERROR << "This function should not be called, this type of coordinate transformation is unknown!" << std::endl;
+    }
 
     void Calculate(const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN);
 
