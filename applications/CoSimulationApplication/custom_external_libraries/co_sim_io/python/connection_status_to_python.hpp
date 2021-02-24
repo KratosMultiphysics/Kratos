@@ -23,6 +23,8 @@
 // CoSimIO include
 #include "../co_sim_io.hpp"
 
+namespace CoSimIO {
+
 void AddCoSimIOConnectionStatusToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -35,5 +37,7 @@ void AddCoSimIOConnectionStatusToPython(pybind11::module& m)
         .value("DisconnectionError", CoSimIO::ConnectionStatus::DisconnectionError)
         ;
 }
+
+} // namespace CoSimIO
 
 #endif // CO_SIM_IO_CONNECTION_STATUS_TO_PYHON_INCLUDED

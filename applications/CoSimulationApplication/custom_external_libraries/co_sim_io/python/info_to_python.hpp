@@ -37,6 +37,8 @@ void AddGetSetInterface(pybind11::class_<CoSimIO::Info>& PythonInfo, const std::
 
 }
 
+namespace CoSimIO {
+
 void AddCoSimIOInfoToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -58,5 +60,7 @@ void AddCoSimIOInfoToPython(pybind11::module& m)
     AddGetSetInterface<bool>(py_info, "Bool");
     AddGetSetInterface<std::string>(py_info, "String");
 }
+
+} // namespace CoSimIO
 
 #endif // CO_SIM_IO_INFO_TO_PYHON_INCLUDED

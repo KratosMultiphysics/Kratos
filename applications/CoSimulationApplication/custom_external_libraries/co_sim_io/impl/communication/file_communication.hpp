@@ -25,7 +25,6 @@
 #include "communication.hpp"
 #include "../vtk_utilities.hpp"
 #include "../filesystem_inc.hpp"
-#include "../version.hpp"
 
 namespace CoSimIO {
 namespace Internals {
@@ -82,90 +81,70 @@ private:
         if (mCommInFolder) {
             if (GetIsPrimaryConnection()) {
                 // delete and recreate directory to remove potential leftovers
-                fs::remove_all(mCommFolder);
-                fs::create_directory(mCommFolder);
-            } else {
-                // secondary connection waits until folder is created, otherwise it will crash
-                // when trying to create files in a non-existing folder
-                WaitForPath(mCommFolder);
+                std::error_code ec;
+                fs::remove_all(mCommFolder, ec);
+                if (ec) {
+                    CO_SIM_IO_INFO("CoSimIO") << "Warning, communication directory (" << mCommFolder << ")could not be deleted!\nError code: " << ec.message() << std::endl;
+                }
+                if (!fs::exists(mCommFolder)) {
+                    fs::create_directory(mCommFolder);
+                }
             }
         }
 
-        // both partners write a file which contains some information
-        const fs::path file_name_primary(GetFileName("CoSimIO_primary_connect_" + GetConnectionName(), "sync"));
-        const fs::path file_name_secondary(GetFileName("CoSimIO_secondary_connect_" + GetConnectionName(), "sync"));
-
-        if (GetIsPrimaryConnection()) {
-            ExchangeSyncFileWithPartner(file_name_primary, file_name_secondary);
-        } else {
-            ExchangeSyncFileWithPartner(file_name_secondary, file_name_primary);
-        }
+        ExchangeSyncFileWithPartner();
 
         Info info;
         info.Set("is_connected", true);
         return info;
     }
 
-    void ExchangeSyncFileWithPartner(
-        const fs::path& I_MyFileName,
-        const fs::path& I_PartnerFileName
-        ) const
-    {
-        std::ofstream my_config_file;
-        my_config_file.open(GetTempFileName(I_MyFileName));
-        CheckStream(my_config_file, I_MyFileName);
-
-        // TODO write configuration and do sth with it?
-        // Maybe in the future use Import/ExportInfo here...
-        my_config_file << GetMajorVersion() << "\n";
-        my_config_file << GetMinorVersion() << "\n";
-        my_config_file << GetPatchVersion() << "\n";
-
-        my_config_file.close();
-        MakeFileVisible(I_MyFileName);
-
-        WaitForPath(I_PartnerFileName);
-
-        std::ifstream partner_config_file(I_PartnerFileName);
-        CheckStream(partner_config_file, I_PartnerFileName);
-
-        // TODO read configuration and do sth with it?
-        int partner_major_version;
-        int partner_minor_version;
-
-        partner_config_file >> partner_major_version;
-        partner_config_file >> partner_minor_version;
-
-        partner_config_file.close();
-
-        CO_SIM_IO_INFO_IF("CoSimIO", GetMajorVersion() != partner_major_version) << "Major version mismatch!" << std::endl;
-        CO_SIM_IO_INFO_IF("CoSimIO", GetMinorVersion() != partner_minor_version) << "Minor version mismatch!" << std::endl;
-
-        RemovePath(I_PartnerFileName);
-
-        WaitUntilFileIsRemoved(I_MyFileName);
-    }
-
     Info DisconnectDetail(const Info& I_Info) override
     {
-        // both partners write a file which contains some information
-        const fs::path file_name_primary(GetFileName("CoSimIO_primary_disconnect_" + GetConnectionName(), "sync"));
-        const fs::path file_name_secondary(GetFileName("CoSimIO_secondary_disconnect_" + GetConnectionName(), "sync"));
-
-        if (GetIsPrimaryConnection()) {
-            ExchangeSyncFileWithPartner(file_name_primary, file_name_secondary);
-        } else {
-            ExchangeSyncFileWithPartner(file_name_secondary, file_name_primary);
-        }
+        ExchangeSyncFileWithPartner();
 
         if (mCommInFolder && GetIsPrimaryConnection()) {
             // delete directory to remove potential leftovers
-            fs::remove_all(mCommFolder);
+            std::error_code ec;
+            fs::remove_all(mCommFolder, ec);
+            if (ec) {
+                CO_SIM_IO_INFO("CoSimIO") << "Warning, communication directory (" << mCommFolder << ")could not be deleted!\nError code: " << ec.message() << std::endl;
+            }
         }
 
         Info info;
         info.Set("is_connected", false);
         return info;
+    }
+
+    void ExchangeSyncFileWithPartner() const
+    {
+        const fs::path file_name_primary(GetFileName("CoSimIO_primary_connect_" + GetConnectionName(), "sync"));
+        const fs::path file_name_secondary(GetFileName("CoSimIO_secondary_connect_" + GetConnectionName(), "sync"));
+
+        if (GetIsPrimaryConnection()) {
+            std::ofstream sync_file;
+            sync_file.open(GetTempFileName(file_name_primary));
+            sync_file.close();
+            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTempFileName(file_name_primary))) << "Primary sync file " << file_name_primary << " could not be created!" << std::endl;
+            MakeFileVisible(file_name_primary);
+
+            WaitForPath(file_name_secondary);
+            RemovePath(file_name_secondary);
+
+            WaitUntilFileIsRemoved(file_name_primary);
+        } else {
+            WaitForPath(file_name_primary);
+            RemovePath(file_name_primary);
+
+            std::ofstream sync_file;
+            sync_file.open(GetTempFileName(file_name_secondary));
+            sync_file.close();
+            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTempFileName(file_name_secondary))) << "Secondary sync file " << file_name_secondary << " could not be created!" << std::endl;
+            MakeFileVisible(file_name_secondary);
+
+            WaitUntilFileIsRemoved(file_name_secondary);
+        }
     }
 
     Info ImportInfoImpl(const Info& I_Info) override
@@ -564,9 +543,7 @@ private:
     {
         std::error_code ec;
         fs::rename(GetTempFileName(rPath), rPath, ec);
-        if (ec) {
-            CO_SIM_IO_ERROR << rPath << " could not be made visible!\nError code: " << ec.message() << std::endl;
-        }
+        CO_SIM_IO_ERROR_IF(ec) << rPath << " could not be made visible!\nError code: " << ec.message() << std::endl;
     }
 
     void RemovePath(const fs::path& rPath) const

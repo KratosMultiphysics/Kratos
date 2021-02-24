@@ -26,18 +26,40 @@
 //
 #include "../impl/define.hpp"
 
-// has to be done outside of any namespace!
-PYBIND11_MAKE_OPAQUE(std::vector<int>)
-PYBIND11_MAKE_OPAQUE(std::vector<double>)
+namespace CoSimIO {
 
-namespace {
+// small wrapper around std::vector for using it in Python
+// Note: deliberately not using PYBIND11_MAKE_OPAQUE as this
+// can be problematic if integrated in other libraries
+template<typename TDataType>
+class VectorWrapper
+{
+public:
+    VectorWrapper() = default;
+    VectorWrapper(const std::size_t I_Size) { mVector.resize(I_Size); }
+    VectorWrapper(const std::vector<TDataType>& I_Vector)
+        : mVector(I_Vector) {};
+
+    VectorWrapper(const VectorWrapper& Other) : mVector(Other.mVector) {}
+    VectorWrapper& operator=(const VectorWrapper&) = delete;
+
+    std::vector<TDataType>& Vector() {return mVector;}
+    const std::vector<TDataType>& Vector() const {return mVector;}
+
+private:
+    std::vector<TDataType> mVector;
+};
+
+} // namespace CoSimIO
+
+namespace { // anonymous namespace
 
 template<typename TDataType>
 void AddVectorWithTypeToPython(pybind11::module& m, const std::string& Name)
 {
     namespace py = pybind11;
 
-    using VectorType = std::vector<TDataType>;
+    using VectorType = CoSimIO::VectorWrapper<TDataType>;
 
     const std::string full_name = Name+"Vector";
 
@@ -47,7 +69,7 @@ void AddVectorWithTypeToPython(pybind11::module& m, const std::string& Name)
         .def(py::init( [](const py::list& l){
             VectorType vec(l.size());
             for(std::size_t i=0; i<l.size(); ++i) {
-                vec[i] = py::cast<TDataType>(l[i]);
+                vec.Vector()[i] = py::cast<TDataType>(l[i]);
             }
             return vec;
         }))
@@ -57,36 +79,36 @@ void AddVectorWithTypeToPython(pybind11::module& m, const std::string& Name)
             CO_SIM_IO_ERROR_IF(info.ndim != 1) << "Buffer dimension of 1 is required, got: " << info.ndim << std::endl;
             VectorType vec(info.shape[0]);
             for (int i=0; i<info.shape[0]; ++i) {
-                vec[i] = static_cast<TDataType *>(info.ptr)[i];
+                vec.Vector()[i] = static_cast<TDataType *>(info.ptr)[i];
             }
             return vec;
         }))
 
         .def("__len__", [](VectorType& v)
-            { return v.size(); } )
+            { return v.Vector().size(); } )
         .def("size", [](VectorType& v)
-            { return v.size(); } )
+            { return v.Vector().size(); } )
         .def("resize", [](VectorType& v, const std::size_t& size)
-            { v.resize(size); } )
+            { v.Vector().resize(size); } )
         .def("append", [](VectorType& v, const TDataType& val)
-            { v.push_back(val); } )
+            { v.Vector().push_back(val); } )
         .def("__setitem__", [](VectorType& v, const std::size_t I_Index, const TDataType& val)
-            { v[I_Index] = val; } )
+            { v.Vector()[I_Index] = val; } )
         .def("__getitem__", [](VectorType& v, const std::size_t I_Index)
-            { return v[I_Index]; } )
+            { return v.Vector()[I_Index]; } )
         .def("__iter__",     [](VectorType& v)
-            {return py::make_iterator(v.begin(), v.end());},  py::keep_alive<0,1>())
+            {return py::make_iterator(v.Vector().begin(), v.Vector().end());},  py::keep_alive<0,1>())
 
         .def("__str__",   [](const VectorType& v)
             {
                 std::stringstream ss;
-                const std::size_t size = v.size();
+                const std::size_t size = v.Vector().size();
 
                 ss << "[";
-                if(size>0) ss << v[0];
+                if(size>0) ss << v.Vector()[0];
                 if(size>1) {
                     for(std::size_t i=1; i<size; ++i)
-                        ss<<", "<<v[i];
+                        ss<<", "<<v.Vector()[i];
                 }
                 ss << "]";
 
@@ -94,12 +116,16 @@ void AddVectorWithTypeToPython(pybind11::module& m, const std::string& Name)
         ;
 }
 
-}
+} // anonymous namespace
+
+namespace CoSimIO {
 
 void AddCoSimIOVectorToPython(pybind11::module& m)
 {
     AddVectorWithTypeToPython<int>(m, "Int");
     AddVectorWithTypeToPython<double>(m, "Double");
 }
+
+} // namespace CoSimIO
 
 #endif // CO_SIM_IO_VECTOR_TO_PYHON_INCLUDED

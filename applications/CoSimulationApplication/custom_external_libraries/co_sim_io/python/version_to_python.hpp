@@ -25,6 +25,8 @@
 // CoSimIO include
 #include "../co_sim_io.hpp"
 
+namespace CoSimIO {
+
 void AddCoSimIOVersionToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -35,5 +37,7 @@ void AddCoSimIOVersionToPython(pybind11::module& m)
                    << CoSimIO::GetPatchVersion();
     m.attr("__version__") = version_stream.str();
 }
+
+} // namespace CoSimIO
 
 #endif // CO_SIM_IO_VERSION_TO_PYHON_INCLUDED

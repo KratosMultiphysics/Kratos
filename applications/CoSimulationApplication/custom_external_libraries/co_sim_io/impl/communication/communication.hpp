@@ -22,6 +22,7 @@
 #include "../model_part.hpp"
 #include "../filesystem_inc.hpp"
 #include "../utilities.hpp"
+#include "../version.hpp"
 
 namespace CoSimIO {
 namespace Internals {
@@ -36,9 +37,11 @@ public:
         mConnectTo = I_Settings.Get<std::string>("connect_to");
         if (I_Settings.Has("is_primary_connection")) {
             mIsPrimaryConnection = I_Settings.Get<bool>("is_primary_connection");
+            mPrimaryWasExplicitlySpecified = true;
         } else {
             // automatically determine the primary connection in case the user didn't specify it
             mIsPrimaryConnection = mMyName < mConnectTo;
+            mPrimaryWasExplicitlySpecified = false;
         }
         mConnectionName = CreateConnectionName(mMyName, mConnectTo);
 
@@ -69,6 +72,8 @@ public:
         CO_SIM_IO_ERROR_IF_NOT(mIsConnected) << "Connection was not successful!" << std::endl;
 
         CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Connection established" << std::endl;
+
+        PerformCompatibilityCheck();
 
         return connect_detail_info;
     }
@@ -150,6 +155,7 @@ private:
     fs::path mWorkingDirectory;
     int mEchoLevel = 1;
     bool mIsPrimaryConnection;
+    bool mPrimaryWasExplicitlySpecified;
     bool mPrintTiming = false;
     bool mIsConnected = false;
 
@@ -204,6 +210,35 @@ private:
     {
         CO_SIM_IO_ERROR << "ExportMeshImpl not implemented for this comm-type!" << std::endl;
         return Info();
+    }
+
+    void PerformCompatibilityCheck()
+    {
+        CoSimIO::Info my_info;
+        CoSimIO::Info partner_info;
+        my_info.Set<int>("version_major", GetMajorVersion());
+        my_info.Set<int>("version_minor", GetMinorVersion());
+        my_info.Set("version_patch", GetPatchVersion());
+        my_info.Set<bool>("primary_was_explicitly_specified", mPrimaryWasExplicitlySpecified);
+
+        my_info.Set("identifier", "compatibility_checks");
+
+        if (GetIsPrimaryConnection()) {
+            ExportInfo(my_info);
+            CoSimIO::Info partner_import_info;
+            partner_import_info.Set("identifier", "compatibility_checks");
+            partner_info = ImportInfo(partner_import_info);
+        } else {
+            CoSimIO::Info partner_import_info;
+            partner_import_info.Set("identifier", "compatibility_checks");
+            partner_info = ImportInfo(partner_import_info);
+            ExportInfo(my_info);
+        }
+
+        // perform checks for compatibility
+        CO_SIM_IO_ERROR_IF(GetMajorVersion() != partner_info.Get<int>("version_major")) << "Major version mismatch! My version: " << GetMajorVersion() << "; partner version: " << partner_info.Get<int>("version_major") << std::endl;
+        CO_SIM_IO_ERROR_IF(GetMinorVersion() != partner_info.Get<int>("version_minor")) << "Minor version mismatch! My version: " << GetMinorVersion() << "; partner version: " << partner_info.Get<int>("version_minor") << std::endl;
+        CO_SIM_IO_ERROR_IF(mPrimaryWasExplicitlySpecified != partner_info.Get<bool>("primary_was_explicitly_specified")) << std::boolalpha << "Mismatch in how the primary connection was specified!\nPrimary connection was explicitly specified for me: " << mPrimaryWasExplicitlySpecified << "\nPrimary connection was explicitly specified for partner: " << partner_info.Get<bool>("primary_was_explicitly_specified") << std::endl;
     }
 };
 
