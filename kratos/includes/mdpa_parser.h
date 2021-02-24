@@ -13,6 +13,8 @@
 
 #include "includes/model_part.h"
 
+#include "utilities/parallel_utilities.h"
+
 namespace Kratos {
 
 class SubMdpa {
@@ -95,6 +97,10 @@ class MemoryMdpa {
 
         DataValuesType                  mNodalSolutionStepData; // std::unordered_map<std::string, std::tuple<int, bool, double>> --> Variablename,  list(Id,fixiy,value)
         StepDataValuesType              mNodalData;             // std::unordered_map<std::string, std::tuple<int, double>> --> Variablename,  list(Id,value)
+
+        int                             mNumNodes = 0;
+        int                             mNumElems = 0;
+        int                             mNumConds = 0;
 };
 
 class MdpaReader {
@@ -238,17 +244,22 @@ public:
             rMdpa.mNodes.push_back(MemoryMdpa::NodeType(id, coords));
         }
 
+        rMdpa.mNumNodes += rMdpa.mNodes.size();
+
         std::cout << "[DEBUG] Finished Node Block" << std::endl;
     }
 
+    // 2 Points (2D2N, ...)
     static inline void FastScan4(std::string& rLine, int& rId, int& rProp, std::vector<ModelPart::IndexType>& rData) {
         sscanf(rLine.c_str(), "%i %i %lu %lu", &rId, &rProp, &rData[0], &rData[1]);
     }
 
+    // 3 Points (2D3N, 3D3N, ...)
     static inline void FastScan5(std::string& rLine, int& rId, int& rProp, std::vector<ModelPart::IndexType>& rData) {
         sscanf(rLine.c_str(), "%i %i %lu %lu %lu", &rId, &rProp, &rData[0], &rData[1], &rData[2]);
     }
 
+    // 4 Points (2D4N, 3D4N, ...)
     static inline void FastScan6(std::string& rLine, int& rId, int& rProp, std::vector<ModelPart::IndexType>& rData) {
         sscanf(rLine.c_str(), "%i %i %lu %lu %lu %lu", &rId, &rProp, &rData[0], &rData[1], &rData[2], &rData[3]);
     }
@@ -294,6 +305,8 @@ public:
             elems.push_back(MemoryMdpa::ConnectType(id, prop, mElemData));
         }
 
+        rMdpa.mNumElems += elems.size();
+
         std::cout << "[DEBUG] Finished Element Block" << std::endl;
     }
 
@@ -337,6 +350,8 @@ public:
 
             conds.push_back(MemoryMdpa::ConnectType(id, prop, mCondData));
         }
+
+        rMdpa.mNumConds += conds.size();
 
         std::cout << "[DEBUG] Finished Condition Block" << std::endl;
     }
@@ -478,6 +493,30 @@ public:
         GenerateModelPart(mdpa);
     }
 
+    class ContainerMerge{
+        public:
+            typedef ModelPart::ElementsContainerType value_type;
+
+            value_type local_container;
+
+            value_type GetValue() {
+                return local_container;
+            }
+
+            void LocalReduce(const ModelPart::ElementType& ) {
+                local_container.push_back(item);
+            }
+
+            void ThreadSafeReduce(ContainerMerge& rOther){
+                #pragma omp critical
+                {
+                    for(auto& item: rOther.local_container.GetContainer()) {
+                        local_container.push_back(item);
+                    }
+                }
+            }
+    };
+
     void GenerateModelPart(const MemoryMdpa& rMdpa) {
 
         Model model;
@@ -487,6 +526,8 @@ public:
         model_part.AddNodalSolutionStepVariable(TEMPERATURE);
         model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
+        std::map<int, ModelPart::NodeType::Pointer> nodeMap;
+
         for(auto & node: rMdpa.mNodes) {
             auto new_node = model_part.CreateNewNode(
                 std::get<0>(node),
@@ -494,35 +535,97 @@ public:
                 std::get<1>(node)[1],
                 std::get<1>(node)[2]
             );
+            nodeMap[std::get<0>(node)] = new_node;
         }
 
-        for(auto & entity: rMdpa.mElems) {  
+        // TODO: OpenMP
+        ModelPart::ElementsContainerType aux_elems;
+
+        for(auto & entity: rMdpa.mElems) {
             auto elem_name = entity.first;
             auto elem_list = entity.second;
 
+            ModelPart::ElementType const& r_base_elem = KratosComponents<ModelPart::ElementType>::Get(elem_name);
             Properties::Pointer p_prop = Kratos::make_shared<Properties>(0);
 
+            std::size_t geom_size = r_base_elem.GetGeometry().size();
+
+            // ModelPart::ElementsContainerType tls_local_elems;
+            // ModelPart::ElementsContainerType named_aux_elems = IndexPartition<ContainerMerge>(elem_list.size()).for_each(elem_list, tsl_local_elems, [&](MemoryMdpa::ConnectType& rElem, ModelPart::ElementsContainerType& local_elems) {
+            //     auto& r_elem_id = std::get<0>(rElem);
+            //     auto& r_elem_data = std::get<2>(rElem);
+
+            //     Geometry< Node < 3 > >::PointsArrayType pElemNodes(geom_size);
+            //     auto& pElemNodesContainer = pElemNodes.GetContainer();
+
+            //     for (unsigned int i = 0; i < geom_size; i++) {
+            //         pElemNodesContainer[i] = nodeMap[r_elem_data[i]];
+            //     }
+
+            //     local_elems.push_back();
+            //     // return r_base_elem.Create(r_elem_id, pElemNodes, p_prop);
+            // });
+
+            // ModelPart::ElementsContainerType named_aux_elems = block_for_each<ContainerMerge>(elem_list, tls_local_elems, [&](MemoryMdpa::ConnectType& rElem, ModelPart::ElementsContainerType& local_elems) {
+            //     auto& r_elem_id = std::get<0>(rElem);
+            //     auto& r_elem_data = std::get<2>(rElem);
+
+            //     Geometry< Node < 3 > >::PointsArrayType pElemNodes(geom_size);
+            //     auto& pElemNodesContainer = pElemNodes.GetContainer();
+
+            //     for (unsigned int i = 0; i < geom_size; i++) {
+            //         pElemNodesContainer[i] = nodeMap[r_elem_data[i]];
+            //     }
+
+            //     // local_elems.push_back();
+            //     return r_base_elem.Create(r_elem_id, pElemNodes, p_prop);
+            // });
+
+            // for(auto& elem: named_aux_elems.GetContainer()) {
+            //     aux_elems.push_back(elem);
+            // }
+
             for(auto & elem: elem_list) {
-                auto mew_elem = model_part.CreateNewElement(
-                    elem_name, std::get<0>(elem), std::get<2>(elem), p_prop
-                );
+                auto& r_elem = std::get<2>(elem);
+                for (unsigned int i = 0; i < geom_size; i++) {
+                    pElemNodesContainer[i] = nodeMap[r_elem[i]];
+                }
+
+                aux_elems.push_back(r_base_elem.Create(std::get<0>(elem), pElemNodes, p_prop));
             }
         }
 
+
+        /////////////////////////////
+
+        aux_elems.Unique();
+        model_part.AddElements(aux_elems.begin(), aux_elems.end());
+
+        ModelPart::ConditionsContainerType aux_conds;
         for(auto & entity: rMdpa.mConds) {  
             auto cond_name = entity.first;
             auto cond_list = entity.second;
 
+            ModelPart::ConditionType const& r_base_cond = KratosComponents<ModelPart::ConditionType>::Get(cond_name);
             Properties::Pointer p_prop = Kratos::make_shared<Properties>(0);
+            
+            Geometry< Node < 3 > >::PointsArrayType pCondNodes(r_base_cond.GetGeometry().size());
+            auto& pCondNodesContainer = pCondNodes.GetContainer();
 
             for(auto & cond: cond_list) {
-                auto new_cond = model_part.CreateNewCondition(
-                    cond_name, std::get<0>(cond), std::get<2>(cond), p_prop
-                );
+                auto& r_cond = std::get<2>(cond);
+                for (unsigned int i = 0; i < r_base_cond.GetGeometry().size(); i++) {
+                    pCondNodesContainer[i] = nodeMap[r_cond[i]];
+                }
+
+                aux_conds.push_back(r_base_cond.Create(std::get<0>(cond), pCondNodes, p_prop));
             }
+
+            std::cout << "[DEBUG]: readed " << cond_list.size() << " conditions" << std::endl;
         }
 
-        KRATOS_WATCH(model_part);
+        aux_conds.Unique();
+        model_part.AddConditions(aux_conds.begin(), aux_conds.end());
     }
 
     void PrintSubMdpa(SubMdpa::Pointer pSubMdpa, std::string printPadding, int to_print) {
