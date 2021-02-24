@@ -250,22 +250,22 @@ void ImportData_ModelPart_Vector(
 
 void ImportData_RawValues(
     CoSimIO::Info& rInfo,
-    std::vector<double>& rValues)
+    CoSimIO::VectorWrapper<double>& rValues)
 {
     KRATOS_TRY
 
-    CoSimIO::ImportData(rInfo, rValues);
+    CoSimIO::ImportData(rInfo, rValues.Vector());
 
     KRATOS_CATCH("")
 }
 
 void ExportData_RawValues(
     CoSimIO::Info& rInfo,
-    const std::vector<double>& rValues)
+    const CoSimIO::VectorWrapper<double>& rValues)
 {
     KRATOS_TRY
 
-    CoSimIO::ExportData(rInfo, rValues);
+    CoSimIO::ExportData(rInfo, rValues.Vector());
 
     KRATOS_CATCH("")
 }
@@ -293,10 +293,10 @@ void  AddCoSimIOToPython(pybind11::module& m)
 
     auto m_co_sim_io = m.def_submodule("CoSimIO");
 
-    AddCoSimIOInfoToPython(m_co_sim_io);
-    AddCoSimIOConnectionStatusToPython(m_co_sim_io);
-    AddCoSimIOVectorToPython(m_co_sim_io);
-    AddCoSimIOVersionToPython(m_co_sim_io);
+    CoSimIO::AddCoSimIOInfoToPython(m_co_sim_io);
+    CoSimIO::AddCoSimIOConnectionStatusToPython(m_co_sim_io);
+    CoSimIO::AddCoSimIOVectorToPython(m_co_sim_io);
+    CoSimIO::AddCoSimIOVersionToPython(m_co_sim_io);
 
     m_co_sim_io.def("Connect",    &CoSimIO::Connect);
     m_co_sim_io.def("Disconnect", &CoSimIO::Disconnect);
