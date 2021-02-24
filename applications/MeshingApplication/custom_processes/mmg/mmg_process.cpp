@@ -1161,11 +1161,8 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     // Marking all nodes as "superfluous"
     VariableUtils().SetFlag(TO_ERASE, true, r_nodes_array);
 
-    // Iterate over elements
-    const auto& r_elements_array = mrThisModelPart.Elements();
-
     // Saving the nodes that belong to an element
-    block_for_each(r_elements_array,
+    block_for_each(mrThisModelPart.Elements(),
         [&](Element& rElement) {
 
         auto& r_geom = rElement.GetGeometry();
