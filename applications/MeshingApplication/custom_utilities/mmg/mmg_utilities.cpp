@@ -4049,52 +4049,51 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     }
 
     /* Nodes */
-    auto& r_this = *this;
     block_for_each(r_nodes_array, nodes_colors,
-        [&r_this,&Framework](NodeType& rNode, ColorsMapType& nodes_colors) {
+        [this,&Framework](NodeType& rNode, ColorsMapType& nodes_colors) {
 
         const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
         if (!old_entity) {
             const array_1d<double, 3>& r_coordinates = Framework == FrameworkEulerLagrange::LAGRANGIAN ? rNode.GetInitialPosition() : rNode.Coordinates();
-            r_this.SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[rNode.Id()], rNode.Id());
+            SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[rNode.Id()], rNode.Id());
 
             bool blocked = false;
             if (rNode.IsDefined(BLOCKED))
                 blocked = rNode.Is(BLOCKED);
             if (blocked)
-                r_this.BlockNode(rNode.Id());
+                BlockNode(rNode.Id());
         }
     });
 
     /* Conditions */
     block_for_each(r_conditions_array, cond_colors,
-        [&r_this](Condition& rCondition, ColorsMapType& cond_colors) {
+        [this](Condition& rCondition, ColorsMapType& cond_colors) {
 
         const bool old_entity = rCondition.IsDefined(OLD_ENTITY) ? rCondition.Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            r_this.SetConditions(rCondition.GetGeometry(), cond_colors[rCondition.Id()], rCondition.Id());
+            SetConditions(rCondition.GetGeometry(), cond_colors[rCondition.Id()], rCondition.Id());
 
             bool blocked = false;
             if (rCondition.IsDefined(BLOCKED))
                 blocked = rCondition.Is(BLOCKED);
             if (blocked)
-                r_this.BlockCondition(rCondition.Id());
+                BlockCondition(rCondition.Id());
         }
     });
 
     /* Elements */
     block_for_each(r_elements_array, elem_colors,
-        [&r_this](Element& rElement, ColorsMapType& elem_colors) {
+        [this](Element& rElement, ColorsMapType& elem_colors) {
 
         const bool old_entity = rElement.IsDefined(OLD_ENTITY) ? rElement.Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            r_this.SetElements(rElement.GetGeometry(), elem_colors[rElement.Id()], rElement.Id());
+            SetElements(rElement.GetGeometry(), elem_colors[rElement.Id()], rElement.Id());
 
             bool blocked = false;
             if (rElement.IsDefined(BLOCKED))
                 blocked = rElement.Is(BLOCKED);
             if (blocked)
-                r_this.BlockElement(rElement.Id());
+                BlockElement(rElement.Id());
         }
     });
 
@@ -4225,8 +4224,7 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
 
     // In case of considering metric tensor
     if (mUsingMetricTensor) {
-        auto& r_this = *this;
-        block_for_each(r_nodes_array,[&r_tensor_variable,&r_this](NodeType& rNode) {
+        block_for_each(r_nodes_array,[&r_tensor_variable,this](NodeType& rNode) {
             const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
             if (!old_entity) {
                 KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << rNode.Id() << std::endl;
@@ -4235,12 +4233,11 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
                 const TensorArrayType& r_metric = rNode.GetValue(r_tensor_variable);
 
                 // We set the metric
-                r_this.SetMetricTensor(r_metric, rNode.Id());
+                SetMetricTensor(r_metric, rNode.Id());
             }
         });
     } else {
-        auto& r_this = *this;
-        block_for_each(r_nodes_array,[&r_this](NodeType& rNode) {
+        block_for_each(r_nodes_array,[this](NodeType& rNode) {
             const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
             if (!old_entity) {
                 KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(METRIC_SCALAR)) << "METRIC_SCALAR not defined for node " << rNode.Id() << std::endl;
@@ -4249,7 +4246,7 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
                 const double metric = rNode.GetValue(METRIC_SCALAR);
 
                 // We set the metric
-                r_this.SetMetricScalar(metric, rNode.Id());
+                SetMetricScalar(metric, rNode.Id());
             }
         });
     }
@@ -4271,9 +4268,8 @@ void MmgUtilities<TMMGLibrary>::GenerateDisplacementDataFromModelPart(ModelPart&
     // Set size of the solution
     SetDispSizeVector(r_nodes_array.size());
 
-    auto& r_this = *this;
     block_for_each(r_nodes_array,
-        [&r_this](NodeType& rNode) {
+        [this](NodeType& rNode) {
 
         const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
         if (!old_entity) {
@@ -4281,7 +4277,7 @@ void MmgUtilities<TMMGLibrary>::GenerateDisplacementDataFromModelPart(ModelPart&
             const array_1d<double, 3>& r_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
             // We set the displacement
-            r_this.SetDisplacementVector(r_displacement, rNode.Id());
+            SetDisplacementVector(r_displacement, rNode.Id());
         }
     });
 
