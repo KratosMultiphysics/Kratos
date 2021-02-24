@@ -81,7 +81,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
     } else { // We check for plasticity
         // Integrate Stress plasticity
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        const double characteristic_length = 
+        const double characteristic_length =
             ConstitutiveLawUtilities<VoigtSize>::
             CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
@@ -124,7 +124,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
             if (F > machine_tolerance) {
                 double J2;
                 array_1d<double, VoigtSize> deviator = ZeroVector(6);
-                const double I1 = r_integrated_stress_vector[0] + r_integrated_stress_vector[1] 
+                const double I1 = r_integrated_stress_vector[0] + r_integrated_stress_vector[1]
                                   + r_integrated_stress_vector[2];
                 ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(r_integrated_stress_vector, I1, deviator, J2);
                 TYieldSurfaceType::CalculateYieldSurfaceDerivative(r_integrated_stress_vector, deviator, J2, plastic_flow, rValues);
@@ -135,9 +135,9 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
                 noalias(aux) = prod(inverse_C, plastic_flow);
                 const double lambda_p = F / ((inner_prod(plastic_flow, aux)));
 
-                noalias(compliance_increment) = lambda_p*(outer_prod(plastic_flow, plastic_flow)) 
+                noalias(compliance_increment) = lambda_p*(outer_prod(plastic_flow, plastic_flow))
                                                 / (inner_prod(plastic_flow, r_integrated_stress_vector));
-                
+
                 compliance_matrix += compliance_increment;
                 MathUtils<double>::InvertMatrix(compliance_matrix, inverse_C, aux_det_b);
                 r_integrated_stress_vector = prod(inverse_C, r_strain_vector - plastic_strain);
@@ -210,7 +210,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
     } else { // We check for plasticity
         // Integrate Stress plasticity
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        const double characteristic_length = 
+        const double characteristic_length =
             ConstitutiveLawUtilities<VoigtSize>::
             CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
@@ -253,7 +253,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
             if (F > machine_tolerance) {
                 double J2;
                 array_1d<double, VoigtSize> deviator = ZeroVector(6);
-                const double I1 = r_integrated_stress_vector[0] + r_integrated_stress_vector[1] 
+                const double I1 = r_integrated_stress_vector[0] + r_integrated_stress_vector[1]
                                   + r_integrated_stress_vector[2];
                 ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(r_integrated_stress_vector, I1, deviator, J2);
                 TYieldSurfaceType::CalculateYieldSurfaceDerivative(r_integrated_stress_vector, deviator, J2, plastic_flow, rValues);
@@ -264,9 +264,9 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
                 noalias(aux) = prod(inverse_C, plastic_flow);
                 const double lambda_p = F / ((inner_prod(plastic_flow, aux)));
 
-                noalias(compliance_increment) = lambda_p*(outer_prod(plastic_flow, plastic_flow)) 
+                noalias(compliance_increment) = lambda_p*(outer_prod(plastic_flow, plastic_flow))
                                                 / (inner_prod(plastic_flow, r_integrated_stress_vector));
-                
+
                 compliance_matrix += compliance_increment;
                 noalias(mComplianceMatrix) = compliance_matrix;
                 MathUtils<double>::InvertMatrix(compliance_matrix, inverse_C, aux_det_b);
@@ -362,7 +362,7 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
 {
     bool has = false;
     // At least one layer should have the value
-    if (rThisVariable == UNIAXIAL_STRESS) 
+    if (rThisVariable == UNIAXIAL_STRESS)
         has = true;
     return has;
 }
@@ -457,7 +457,7 @@ double& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
     )
 {
     rValue = 0.0;
-    if (rThisVariable == UNIAXIAL_STRESS) 
+    if (rThisVariable == UNIAXIAL_STRESS)
         rValue = mUniaxialStress;
 
     return rValue;
@@ -680,7 +680,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterial(
 {
     // We construct the CL parameters
     ProcessInfo dummy_process_info;
-    ConstitutiveLaw::Parameters aux_param(rElementGeometry, rMaterialProperties, 
+    ConstitutiveLaw::Parameters aux_param(rElementGeometry, rMaterialProperties,
                                           dummy_process_info);
 
     // We call the integrator
