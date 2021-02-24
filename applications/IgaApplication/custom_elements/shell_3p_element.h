@@ -250,7 +250,7 @@ public:
             rCurrentProcessInfo, true, true);
     }
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
