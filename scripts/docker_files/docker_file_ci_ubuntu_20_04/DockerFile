@@ -22,11 +22,9 @@ RUN apt-get update -y && apt-get upgrade -y && \
         gfortran-7 \
         git \
         intel-mkl-2020.0-088 \
-        libblas-dev \
         libboost-dev \
         libhdf5-dev \
         libhdf5-openmpi-dev \
-        liblapack-dev \
         libmetis-dev \
         libopenmpi-dev \
         libscotch-dev \

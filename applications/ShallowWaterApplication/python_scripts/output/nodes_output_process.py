@@ -1,5 +1,6 @@
 import KratosMultiphysics as KM
 import numpy as np
+import os, glob
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
 def Factory(settings, model):
@@ -57,6 +58,9 @@ class NodesOutputProcess(KM.Process):
 
         # The tolerance relative tho the average element size
         self.rel_tolerance = self.settings["relative_tol_to_line"].GetDouble()
+
+        # Delete the previous files
+        self._DeleteExistingFiles()
 
     def ExecuteInitialize(self):
         """The model part related variables are initialized:
@@ -177,3 +181,15 @@ class NodesOutputProcess(KM.Process):
         for var in self.nonhist_variables:
             line += str(node.GetValue(var)) + " "
         return line + "\n"
+
+    def _DeleteExistingFiles(self):
+        output_path = self.settings["output_path"].GetString()
+        file_name = self.settings["file_name"].GetString()
+        if not output_path:
+            output_path = "."
+        pattern = output_path + "/" + file_name + "*"
+        for filename in glob.glob(pattern):
+            try:
+                os.remove(filename)
+            except:
+                pass

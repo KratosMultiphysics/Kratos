@@ -55,7 +55,7 @@ namespace Kratos
 	//************************************************************************************
 
 
-	void MonolithicAutoSlipPFEM23D::AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
+	void MonolithicAutoSlipPFEM23D::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
 
@@ -78,7 +78,7 @@ namespace Kratos
 	//************************************************************************************
 	//************************************************************************************
 
-	void MonolithicAutoSlipPFEM23D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void MonolithicAutoSlipPFEM23D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -717,7 +717,7 @@ namespace Kratos
 	//************************************************************************************
 	// this subroutine calculates the nodal contributions for the explicit steps of the
 	// fractional step procedure
-	void MonolithicAutoSlipPFEM23D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+	void MonolithicAutoSlipPFEM23D::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -727,13 +727,13 @@ namespace Kratos
 	//************************************************************************************
 	//************************************************************************************
 
-	void MonolithicAutoSlipPFEM23D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+	void MonolithicAutoSlipPFEM23D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 	{
 		const int TDim = 3;
 
 		const SizeType NumNodes = TDim+1;
 		const SizeType LocalSize = (TDim+1)*(TDim+1);
-		GeometryType& rGeom = this->GetGeometry();
+		const GeometryType& rGeom = this->GetGeometry();
 
 		SizeType LocalIndex = 0;
 
@@ -752,13 +752,13 @@ namespace Kratos
 	//************************************************************************************
 	//************************************************************************************
 
-	void MonolithicAutoSlipPFEM23D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+	void MonolithicAutoSlipPFEM23D::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& CurrentProcessInfo) const
 	{
 		const int TDim = 3;
 
 		const SizeType NumNodes = TDim+1;
 		const SizeType LocalSize = (TDim+1)*(TDim+1);
-		GeometryType& rGeom = this->GetGeometry();
+		const GeometryType& rGeom = this->GetGeometry();
 
 		if (ElementalDofList.size() != LocalSize)
 			ElementalDofList.resize(LocalSize);
@@ -779,7 +779,7 @@ namespace Kratos
 	//************************************************************************************
 	//************************************************************************************
 
-	void MonolithicAutoSlipPFEM23D::CalculatePressureProjection(ProcessInfo& CurrentProcessInfo)
+	void MonolithicAutoSlipPFEM23D::CalculatePressureProjection(const ProcessInfo& CurrentProcessInfo)
 	{
 			KRATOS_TRY
 

@@ -185,7 +185,7 @@ void GetValuesOnIntegrationPoints(
 
 template< class TObject, class TDataType >
 void SetValuesOnIntegrationPoints(
-    TObject& dummy, const Variable<TDataType>& rVariable, std::vector<TDataType> values, const ProcessInfo& rCurrentProcessInfo)
+    TObject& dummy, const Variable<TDataType>& rVariable, const std::vector<TDataType>& values, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(values.size() != dummy.GetGeometry().IntegrationPointsNumber())
         << "Sizes do not match. Size of values vector is: " << values.size() << ". The number of integration points is: "
@@ -202,20 +202,16 @@ void SetValuesOnIntegrationPointsArray1d(
     const ProcessInfo& rCurrentProcessInfo)
 {
     std::vector< array_1d<double, 3> > values(values_list.size());
-    for (unsigned int i = 0; i < values_list.size(); i++)
-    {
+    for (std::size_t i = 0; i < values_list.size(); i++) {
         if (py::isinstance<array_1d<double, 3>>(values_list[i])) {
             values[i] = (values_list[i]).cast<array_1d<double, 3> >();
-        }
-        else if (py::isinstance<pybind11::list>(values_list[i]) ||
-            py::isinstance<Vector>(values_list[i]))
-        {
+        } else if (py::isinstance<pybind11::list>(values_list[i]) ||
+            py::isinstance<Vector>(values_list[i])) {
             Vector value = (values_list[i]).cast<Vector>();
             KRATOS_ERROR_IF(value.size() != 3)
                 << " parsed vector is not of size 3. Size of vector: " << value.size() << std::endl;
             values[i] = value;
-        }
-        else {
+        } else {
             KRATOS_ERROR << "expecting a list of array_1d<double,3> " << std::endl;
         }
     }
@@ -229,8 +225,7 @@ void SetValuesOnIntegrationPointsVector( TObject& dummy,
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector<Vector> values( integration_points.size() );
-    for( unsigned int i=0; i<integration_points.size(); i++ )
-    {
+    for( std::size_t i=0; i<integration_points.size(); i++ ) {
         if(py::isinstance<Vector>(values_list[i]))
             values[i] = (values_list[i]).cast<Vector>();
         else

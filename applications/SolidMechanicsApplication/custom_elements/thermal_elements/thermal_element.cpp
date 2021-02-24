@@ -173,7 +173,7 @@ void ThermalElement::GetSecondDerivativesVector( Vector& rValues, int Step ) con
 //************************************************************************************
 
 void ThermalElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
-                                                  std::vector<double>& rValues,
+                                                  const std::vector<double>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -185,7 +185,7 @@ void ThermalElement::SetValuesOnIntegrationPoints( const Variable<double>& rVari
 //************************************************************************************
 
 void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
-                                                  std::vector<Vector>& rValues,
+                                                  const std::vector<Vector>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -197,7 +197,7 @@ void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVari
 //************************************************************************************
 
 void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
-                                                  std::vector<Matrix>& rValues,
+                                                  const std::vector<Matrix>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
