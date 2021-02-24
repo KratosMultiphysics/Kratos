@@ -282,6 +282,14 @@ protected:
         const TElementData& rData,
         double &rMassRHS) const override;
 
+    void SubscaleVelocity(
+        const TElementData& rData,
+        array_1d<double,3> &rVelocitySubscale);
+
+    void SubscalePressure(
+        const TElementData& rData,
+        double &rPressureSubscale);
+
     ///@}
     ///@name Protected  Access
     ///@{
