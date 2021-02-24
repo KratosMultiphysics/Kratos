@@ -197,21 +197,11 @@ public:
             }
 
             int computed_size = 0;
-            int computed_capc = 0;
             for(int i = 0; i < KratosFormatNodeConnectivities.size(); i++) {
-                computed_size += sizeof(std::size_t) * KratosFormatNodeConnectivities[i].size() + sizeof(std::vector<std::size_t>);
-                // std::cout << "\t" << i << ":\t";
-                // for(int j = 0; j < KratosFormatNodeConnectivities[i].size(); j++) {
-                //     std::cout << KratosFormatNodeConnectivities[i][j] << " ";
-                // }
-                // std::cout << std::endl;
+                computed_size += sizeof(std::size_t) * KratosFormatNodeConnectivities[i].size() + sizeof(std::vector<std::size_t>) * 2;
             }
-
-            computed_capc = KratosFormatNodeConnectivities.capacity() * sizeof(std::vector<std::size_t>) - KratosFormatNodeConnectivities.size() * sizeof(std::vector<std::size_t>);
-
+    
             std::cout << "\tSizeof(KratosFormatNodeConnectivities): " << computed_size / (1024.0 * 1024.0) << std::endl;
-            std::cout << "\tCapact(KratosFormatNodeConnectivities): " << computed_capc / (1024.0 * 1024.0) << std::endl;
-            std::cout << "\tSIZE/CAPC: " << KratosFormatNodeConnectivities.size() << " " << KratosFormatNodeConnectivities.capacity() << std::endl;
 
             // Write connectivity data in CSR format
             idxtype* NodeIndices = 0;
@@ -224,6 +214,8 @@ public:
                 process_mem_usage(vm, rss);
                 std::cout << "Convert to CSR Usage: VM:\t " << vm << "; \tRSS: " << rss << std::endl;
             }
+
+            // SparseGraph<> connGraph;
 
             std::vector<idxtype> NodePartition;
             PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);
