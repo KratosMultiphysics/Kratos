@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Klaus B. Sautter and Inigo Lopez
+//  Main authors:    Klaus B. Sautter
 //
 
 // Project includes
