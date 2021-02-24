@@ -271,7 +271,10 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self.assertAlmostEqual(sigma_ele, sigma[timestep])
         self.assertAlmostEqual(F_ele, stretch[timestep])
 
-    def _check_results_dynamic(self,mp,time_i):
+    def _check_results_dynamic(self,mp,time_i,step=0,lumped=True):
+
+        d_3 = [2.183478040188371e-09, 1.0916088797143896e-08, 2.837610576048193e-08]
+        d_2 = [-5.457380946862887e-10, -2.727839581526318e-09, -7.0886397355963445e-09]
 
         #analaytical free-vibration node 3
         we1 = 7917.25
@@ -279,6 +282,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         y1 = 1.4142*2.874e-5
         y2 = -1.4142*4.93107e-6
         test_disp_temp = y1*(1-cos(we1*time_i))-y2*(1-cos(we2*time_i))
+        if lumped==False: test_disp_temp = d_3[step]
         simulated_disp_temp = mp.Nodes[3].GetSolutionStepValue(
             KratosMultiphysics.DISPLACEMENT_X)
 
@@ -290,6 +294,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         y1 = 1.000*2.874e-5
         y2 = 1.000*4.93107e-6
         test_disp_temp = y1*(1-cos(we1*time_i))-y2*(1-cos(we2*time_i))
+        if lumped==False: test_disp_temp = d_2[step]
         simulated_disp_temp = mp.Nodes[2].GetSolutionStepValue(
             KratosMultiphysics.DISPLACEMENT_X)
 
@@ -711,6 +716,59 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             #solve + compare
             self._solve_dynamic(mp)
             self._check_results_dynamic(mp,time_i)
+            time_step += 1
+
+    def test_truss3D2N_dynamic_consistent_mm(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
+        self._add_constitutive_law(mp,True)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,0.5,0.0,0.0)
+        mp.CreateNewNode(3,1.0,0.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[3],mp.GetProperties()[0])
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_yz = mp.CreateSubModelPart("Dirichlet_YZ")
+        bcs_yz.AddNodes([2,3])
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([3])
+        bcs_neumann.AddConditions([1])
+        #create Elements
+        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("TrussElement3D2N", 2, [2,3], mp.GetProperties()[0])
+        #apply constant boundary conditions
+        Force_X = 100000
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_yz,'yz')
+        self._apply_Neumann_BCs(bcs_neumann,'x',Force_X)
+
+        #loop over time
+        time_start = 0.00
+        time_end = 0.000002
+        time_delta = 0.000001
+        time_i = time_start
+        time_step = 0
+        self._set_and_fill_buffer(mp,2,time_delta)
+
+        while (time_i <= time_end):
+
+            time_i += time_delta
+            mp.CloneTimeStep(time_i)
+            #solve + compare
+            self._solve_dynamic(mp)
+            self._check_results_dynamic(mp,time_i,step=time_step,lumped=False)
             time_step += 1
 
     def test_truss3D2N_cable(self):

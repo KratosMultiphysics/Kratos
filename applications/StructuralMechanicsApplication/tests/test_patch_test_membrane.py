@@ -308,8 +308,6 @@ class StaticPatchTestMembrane(BasePatchTestMembrane):
 
         self._check_static_results(mp.Nodes[10],displacement_results)
 
-
-
     def test_membrane_3d4n_static(self):
         displacement_results = [0.0 , -0.594047 , 0.0]
 
@@ -415,16 +413,47 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
             self._solve_dynamic(mp)
             self._check_dynamic_results(mp.Nodes[10],step-1,displacement_results)
 
+    def test_membrane_3d3n_dynamic_consistent_mm(self):
+
+        # testing the consistent mass matrix
+        displacement_results = [-0.007490195298497999, -0.032008707697301596,
+         -0.07313132678361953, -0.1171081718045768, -0.1384903773430217,
+          -0.12044575630131722, -0.07614647605109326, -0.0328982085965797,
+           -0.008994627434113668, -0.009564750788784326, -0.02929434986576273]
+
+
+        current_model = KratosMultiphysics.Model()
+        mp = self._set_up_system_3d3n(current_model)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
+
+        #time integration parameters
+        dt = 0.05
+        time = 0.0
+        end_time = 0.5
+        step = 0
+
+        self._set_and_fill_buffer(mp,2,dt)
+
+        while(time <= end_time):
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+
+            self._solve_dynamic(mp)
+            self._check_dynamic_results(mp.Nodes[10],step-1,displacement_results)
+
     def test_membrane_3d4n_dynamic(self):
 
-        displacement_results = [-0.007965444599683935, -0.03429569272708872,
-         -0.08347269985836575, -0.15492404513176913, -0.23652735237940312,
-          -0.30707829314392593, -0.3272427614896494, -0.30090356124783313,
-           -0.2666017458572726, -0.2435556601417446, -0.22710935966385354]
+        displacement_results = [-0.007956003816411416, -0.0336553107183398,
+         -0.07845076950091191, -0.1360319104963161, -0.19766950151873647,
+          -0.2617749078533427, -0.3335965254246396, -0.41524138998079596,
+           -0.4963437440996801, -0.5629691601869904, -0.6121937059819637]
+
 
 
         current_model = KratosMultiphysics.Model()
         mp = self._set_up_system_3d4n(current_model)
+
 
         #time integration parameters
         dt = 0.05
@@ -442,6 +471,34 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
             self._solve_dynamic(mp)
             self._check_dynamic_results(mp.Nodes[9],step-1,displacement_results)
 
+    def test_membrane_3d4n_dynamic_consistent_mm(self):
+
+        # testing the consistent mass matrix
+        displacement_results = [-0.006954651460397126, -0.030377865722449902,
+         -0.0745932100515235, -0.1339422113753997, -0.20310257944037005,
+          -0.28680567104235655, -0.3850721549673468, -0.48028507997673897,
+           -0.5523440591205869, -0.6043301811108817, -0.6539170313350569]
+
+
+        current_model = KratosMultiphysics.Model()
+        mp = self._set_up_system_3d4n(current_model)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
+
+        #time integration parameters
+        dt = 0.05
+        time = 0.0
+        end_time = 0.5
+        step = 0
+
+        self._set_and_fill_buffer(mp,2,dt)
+
+        while(time <= end_time):
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+
+            self._solve_dynamic(mp)
+            self._check_dynamic_results(mp.Nodes[9],step-1,displacement_results)
 
     def test_membrane_3d3n_dynamic_explicit(self):
 
