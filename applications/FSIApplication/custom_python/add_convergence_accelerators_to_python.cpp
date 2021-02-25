@@ -42,7 +42,6 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef ConvergenceAccelerator<SparseSpaceType, DenseSpaceType> BaseConvergenceAcceleratorType;
-    typedef typename ConvergenceAccelerator<SparseSpaceType, DenseSpaceType>::Pointer BaseConvergenceAcceleratorPointerType;
 
     // Constant relaxation convergence accelerator
     typedef ConstantRelaxationConvergenceAccelerator<SparseSpaceType, DenseSpaceType> ConstantRelaxationConvergenceAcceleratorType;
