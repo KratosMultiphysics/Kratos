@@ -32,6 +32,7 @@ class AdjointFluidTest(UnitTest.TestCase):
                 AdjointFluidTest._AddJsonCheckProcess(primal_parameters, "./AdjointVMSSensitivity2DTest/cylinder_test_primal_results.json", 1e-9)
             else:
                 AdjointFluidTest._AddJsonOutputProcess(primal_parameters, "./AdjointVMSSensitivity2DTest/cylinder_test_primal_results.json")
+            AdjointFluidTest._AddHDF5PrimalOutputProcess(primal_parameters)
             SolvePrimalProblem(primal_parameters)
 
             adjoint_parameters = AdjointFluidTest._ReadParameters(
@@ -47,6 +48,7 @@ class AdjointFluidTest(UnitTest.TestCase):
                 AdjointFluidTest._AddJsonCheckProcess(primal_parameters, "./AdjointVMSSensitivity2DTest/cylinder_slip_test_primal_results.json", 1e-9)
             else:
                 AdjointFluidTest._AddJsonOutputProcess(primal_parameters, "./AdjointVMSSensitivity2DTest/cylinder_slip_test_primal_results.json")
+            AdjointFluidTest._AddHDF5PrimalSlipOutputProcess(primal_parameters)
             SolvePrimalProblem(primal_parameters)
 
             adjoint_parameters = AdjointFluidTest._ReadParameters(
@@ -207,6 +209,71 @@ class AdjointFluidTest(UnitTest.TestCase):
         check_process["Parameters"]["tolerance"].SetDouble(tolerance)
         kratos_parameters["processes"]["auxiliar_process_list"].Append(
             check_process)
+
+    @staticmethod
+    def _AddHDF5PrimalOutputProcess(parameters):
+        process_parameters = Kratos.Parameters(R'''
+        {
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_primal_output_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {
+                    "file_access_mode" : "truncate"
+                },
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["VELOCITY", "PRESSURE", "ACCELERATION"]
+                }
+            }
+        }
+        ''')
+
+        parameters["processes"]["auxiliar_process_list"].Append(process_parameters)
+
+    @staticmethod
+    def _AddHDF5PrimalSlipOutputProcess(parameters):
+        process_parameters = Kratos.Parameters(R'''
+        {
+            "kratos_module": "KratosMultiphysics.HDF5Application",
+            "python_module": "single_mesh_primal_output_process",
+            "help": "",
+            "process_name": "",
+            "Parameters": {
+                "model_part_name": "MainModelPart",
+                "file_settings": {
+                    "file_access_mode": "truncate"
+                },
+                "nodal_solution_step_data_settings": {
+                    "list_of_variables": [
+                        "VELOCITY",
+                        "PRESSURE",
+                        "NORMAL",
+                        "BODY_FORCE",
+                        "ACCELERATION"
+                    ]
+                },
+                "nodal_data_value_settings": {
+                    "list_of_variables": [
+                        "Y_WALL"
+                    ]
+                },
+                "nodal_flag_value_settings": {
+                    "list_of_variables": [
+                        "SLIP"
+                    ]
+                },
+                "condition_flag_value_settings": {
+                    "list_of_variables": [
+                        "SLIP"
+                    ]
+                }
+            }
+        }
+        ''')
+
+        parameters["processes"]["auxiliar_process_list"].Append(process_parameters)
 
     @classmethod
     def tearDownClass(_):

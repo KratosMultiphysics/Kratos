@@ -72,6 +72,7 @@ public:
         AdjointResponseFunction::Pointer pResponseFunction
         ) : BaseType(Settings, pResponseFunction)
     {
+        KRATOS_INFO(this->Info()) << this->Info() << " created [ Dimensionality = " << TDim << ", BlockSize = " << TBlockSize << " ].\n";
     }
 
     /// Destructor.
@@ -88,7 +89,7 @@ public:
         BaseType::Initialize(rModelPart);
 
         // Allocate auxiliary memory.
-        int num_threads = OpenMPUtils::GetNumThreads();
+        int num_threads = ParallelUtilities::GetNumThreads();
         mAuxiliaryMatrix.resize(num_threads);
         mRotatedMatrix.resize(num_threads);
 

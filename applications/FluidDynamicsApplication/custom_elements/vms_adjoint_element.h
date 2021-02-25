@@ -651,6 +651,38 @@ public:
     }
 
 
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        if (rVariable == PRIMAL_RELAXED_SECOND_DERIVATIVE_VALUES) {
+            if (rOutput.size() != TFluidLocalSize) {
+                rOutput.resize(TFluidLocalSize, false);
+            }
+
+            const auto& r_geometry = this->GetGeometry();
+
+            IndexType local_index = 0;
+            for (IndexType i = 0; i < TNumNodes; ++i) {
+                // VMS adjoint uses old way of getting relaxed accelration
+                // hence this also uses the old way to be consistent
+                // Eventually to be removed.
+                const auto& value = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
+                for (IndexType j = 0; j < TDim; ++j) {
+                    rOutput[local_index++] = value[j];
+                }
+                // skip pressure dof
+                rOutput[local_index++] = 0.0;
+            }
+        } else {
+            KRATOS_ERROR << "Unsupported variable type is requested. [ rVariable.Name() = " << rVariable.Name() << " ].\n";
+        }
+
+        KRATOS_CATCH("")
+    }
 
     void GetDofList(
         DofsVectorType& rElementalDofList,

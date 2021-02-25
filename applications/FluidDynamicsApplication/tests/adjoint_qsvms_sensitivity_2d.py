@@ -1,3 +1,4 @@
+import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.kratos_utilities import DeleteTimeFiles
 
@@ -7,7 +8,6 @@ from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_u
 from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import SolveAdjointProblem
 from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import ComputeAdjointSensitivity
 from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis
-from KratosMultiphysics.FluidDynamicsApplication.finite_difference_sensitivity_utilities import FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis
 
 @KratosUnittest.skipIfApplicationsNotAvailable("HDF5Application")
 class AdjointQSVMSSensitivity2D(KratosUnittest.TestCase):
@@ -25,7 +25,10 @@ class AdjointQSVMSSensitivity2D(KratosUnittest.TestCase):
             primal_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/one_element_test_parameters.json')
             step_size = 6.4e-5
             fd_sensitivities = FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis.ComputeSensitivity(
-                node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0], 'MainModelPart.Structure', SolvePrimalProblem)
+                node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0],
+                'MainModelPart.Structure',
+                SolvePrimalProblem,
+                AdjointQSVMSSensitivity2D.AddHDF5PrimalOutputProcess)
 
             # solve adjoint
             adjoint_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/one_element_test_adjoint_parameters.json')
@@ -41,7 +44,10 @@ class AdjointQSVMSSensitivity2D(KratosUnittest.TestCase):
             primal_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/cylinder_test_parameters.json')
             step_size = 1e-7
             fd_sensitivities = FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis.ComputeSensitivity(
-                node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0], 'MainModelPart.NoSlip2D_Cylinder', SolvePrimalProblem)
+                node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0],
+                'MainModelPart.NoSlip2D_Cylinder',
+                SolvePrimalProblem,
+                AdjointQSVMSSensitivity2D.AddHDF5PrimalOutputProcess)
 
             # solve adjoint
             adjoint_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/cylinder_test_adjoint_parameters.json')
@@ -57,13 +63,45 @@ class AdjointQSVMSSensitivity2D(KratosUnittest.TestCase):
             primal_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/steady_cylinder_test_parameters.json')
             step_size = 1e-8
             fd_sensitivities = FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis.ComputeSensitivity(
-                node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0], 'MainModelPart.NoSlip2D_Cylinder', SolvePrimalProblem)
+                node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0],
+                'MainModelPart.NoSlip2D_Cylinder',
+                SolvePrimalProblem,
+                AdjointQSVMSSensitivity2D.AddHDF5PrimalOutputProcess)
 
             # solve adjoint
             adjoint_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/steady_cylinder_test_adjoint_parameters.json')
             adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
 
             self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 3)
+
+    @staticmethod
+    def AddHDF5PrimalOutputProcess(parameters):
+        process_parameters = Kratos.Parameters(R'''
+        {
+            "kratos_module": "KratosMultiphysics.HDF5Application",
+            "python_module": "single_mesh_temporal_output_process",
+            "help": "",
+            "process_name": "",
+            "Parameters": {
+                "model_part_name": "MainModelPart",
+                "file_settings": {
+                    "file_access_mode": "truncate"
+                },
+                "nodal_solution_step_data_settings": {
+                    "list_of_variables": [
+                        "VELOCITY",
+                        "PRESSURE"
+                    ]
+                },
+                "nodal_data_value_settings": {
+                    "list_of_variables": [
+                        "RELAXED_ACCELERATION"
+                    ]
+                }
+            }
+        }
+        ''')
+        parameters["processes"]["auxiliar_process_list"].Append(process_parameters)
 
     @classmethod
     def tearDownClass(_):
