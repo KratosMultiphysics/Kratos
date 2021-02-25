@@ -142,7 +142,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         dummy_property = self.wake_model_part.Properties[0]
         node_id = 1
         elem_id = 1
-        z= -1e-4
+        #z= -1e-5
+        z= 0.0#-1e-4
 
         # Looping over stl meshes
         for stl_mesh in wake_stl_mesh:

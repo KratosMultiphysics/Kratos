@@ -445,10 +445,14 @@ void Define3DWakeProcess::ComputeNodalDistancesToWakeAndLowerSurface(const Eleme
             }
             else{
                 distance = inner_prod(distance_vector, mWakeNormal);
-                // Nodes slightly below and above the wake are given a positive distance
+                // Nodes slightly below and above the wake are given a positive distance (wake down)
                 if(std::abs(distance) < mTolerance){
                     distance = mTolerance;
                 }
+                // // Nodes slightly below and above the wake are given a positive distance (wake up)
+                // if(std::abs(distance) < mTolerance){
+                //     distance = -mTolerance;
+                // }
             }
 
             // if(std::abs(distance) < mTolerance){
