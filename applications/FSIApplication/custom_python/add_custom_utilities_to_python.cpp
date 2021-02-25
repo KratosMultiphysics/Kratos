@@ -57,7 +57,10 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("CheckCurrentCoordinatesStructure", &PartitionedFSIUtilities<TSpace, double, 2>::CheckCurrentCoordinatesStructure)
         .def("InitializeInterfaceVector", &PartitionedFSIUtilities<TSpace, double, 2>::InitializeInterfaceVector)
         .def("CreateCouplingElementBasedSkin", &PartitionedFSIUtilities<TSpace, double, 2>::CreateCouplingElementBasedSkin)
-        .def("EmbeddedPressureToPositiveFacePressureInterpolator", &PartitionedFSIUtilities<TSpace, double, 2>::EmbeddedPressureToPositiveFacePressureInterpolator);
+        .def("EmbeddedPressureToPositiveFacePressureInterpolator", &PartitionedFSIUtilities<TSpace, double, 2>::EmbeddedPressureToPositiveFacePressureInterpolator)
+        .def("CalculateTractionFromPressureValues", [](PartitionedFSIUtilities<TSpace,double,2>& rPartitionedFSIUtilities, ModelPart& rModelPart, const Variable<double>& rPressureVariable, const Variable<array_1d<double,3>>& rTractionVariable){rPartitionedFSIUtilities.CalculateTractionFromPressureValues(rModelPart, rPressureVariable, rTractionVariable);})
+        .def("CalculateTractionFromPressureValues", [](PartitionedFSIUtilities<TSpace,double,2>& rPartitionedFSIUtilities, ModelPart& rModelPart, const Variable<double>& rPositivePressureVariable, const Variable<double>& rNegativePressureVariable, const Variable<array_1d<double,3>>& rTractionVariable){rPartitionedFSIUtilities.CalculateTractionFromPressureValues(rModelPart, rPositivePressureVariable, rNegativePressureVariable, rTractionVariable);})
+        ;
 
     py::class_<PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>, PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>::Pointer>(m, "PartitionedFSIUtilitiesArray2D")
         .def(py::init<>())
@@ -73,7 +76,10 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("CheckCurrentCoordinatesStructure", &PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>::CheckCurrentCoordinatesStructure)
         .def("InitializeInterfaceVector", &PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>::InitializeInterfaceVector)
         .def("CreateCouplingElementBasedSkin", &PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>::CreateCouplingElementBasedSkin)
-        .def("EmbeddedPressureToPositiveFacePressureInterpolator", &PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>::EmbeddedPressureToPositiveFacePressureInterpolator);
+        .def("EmbeddedPressureToPositiveFacePressureInterpolator", &PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>::EmbeddedPressureToPositiveFacePressureInterpolator)
+        .def("CalculateTractionFromPressureValues", [](PartitionedFSIUtilities<TSpace,array_1d<double,3>,2>& rPartitionedFSIUtilities, ModelPart& rModelPart, const Variable<double>& rPressureVariable, const Variable<array_1d<double,3>>& rTractionVariable){rPartitionedFSIUtilities.CalculateTractionFromPressureValues(rModelPart, rPressureVariable, rTractionVariable);})
+        .def("CalculateTractionFromPressureValues", [](PartitionedFSIUtilities<TSpace,array_1d<double,3>,2>& rPartitionedFSIUtilities, ModelPart& rModelPart, const Variable<double>& rPositivePressureVariable, const Variable<double>& rNegativePressureVariable, const Variable<array_1d<double,3>>& rTractionVariable){rPartitionedFSIUtilities.CalculateTractionFromPressureValues(rModelPart, rPositivePressureVariable, rNegativePressureVariable, rTractionVariable);})
+        ;
 
     py::class_<PartitionedFSIUtilities<TSpace,double,3>, PartitionedFSIUtilities<TSpace,double,3>::Pointer>(m,"PartitionedFSIUtilitiesDouble3D")
         .def(py::init<>())
@@ -89,7 +95,10 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("CheckCurrentCoordinatesStructure", &PartitionedFSIUtilities<TSpace,double,3>::CheckCurrentCoordinatesStructure)
         .def("InitializeInterfaceVector", &PartitionedFSIUtilities<TSpace,double,3>::InitializeInterfaceVector)
         .def("CreateCouplingElementBasedSkin", &PartitionedFSIUtilities<TSpace,double,3>::CreateCouplingElementBasedSkin)
-        .def("EmbeddedPressureToPositiveFacePressureInterpolator", &PartitionedFSIUtilities<TSpace,double,3>::EmbeddedPressureToPositiveFacePressureInterpolator);
+        .def("EmbeddedPressureToPositiveFacePressureInterpolator", &PartitionedFSIUtilities<TSpace,double,3>::EmbeddedPressureToPositiveFacePressureInterpolator)
+        .def("CalculateTractionFromPressureValues", [](PartitionedFSIUtilities<TSpace,double,3>& rPartitionedFSIUtilities, ModelPart& rModelPart, const Variable<double>& rPressureVariable, const Variable<array_1d<double,3>>& rTractionVariable){rPartitionedFSIUtilities.CalculateTractionFromPressureValues(rModelPart, rPressureVariable, rTractionVariable);})
+        .def("CalculateTractionFromPressureValues", [](PartitionedFSIUtilities<TSpace,double,3>& rPartitionedFSIUtilities, ModelPart& rModelPart, const Variable<double>& rPositivePressureVariable, const Variable<double>& rNegativePressureVariable, const Variable<array_1d<double,3>>& rTractionVariable){rPartitionedFSIUtilities.CalculateTractionFromPressureValues(rModelPart, rPositivePressureVariable, rNegativePressureVariable, rTractionVariable);})
+        ;
 
     py::class_<PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>, PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::Pointer>(m,"PartitionedFSIUtilitiesArray3D")
         .def(py::init<>())
@@ -105,7 +114,10 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("CheckCurrentCoordinatesStructure", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::CheckCurrentCoordinatesStructure)
         .def("InitializeInterfaceVector", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::InitializeInterfaceVector)
         .def("CreateCouplingElementBasedSkin", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::CreateCouplingElementBasedSkin)
-        .def("EmbeddedPressureToPositiveFacePressureInterpolator", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::EmbeddedPressureToPositiveFacePressureInterpolator);
+        .def("EmbeddedPressureToPositiveFacePressureInterpolator", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::EmbeddedPressureToPositiveFacePressureInterpolator)
+        .def("CalculateTractionFromPressureValues", [](PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>& rPartitionedFSIUtilities, ModelPart& rModelPart, const Variable<double>& rPressureVariable, const Variable<array_1d<double,3>>& rTractionVariable){rPartitionedFSIUtilities.CalculateTractionFromPressureValues(rModelPart, rPressureVariable, rTractionVariable);})
+        .def("CalculateTractionFromPressureValues", [](PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>& rPartitionedFSIUtilities, ModelPart& rModelPart, const Variable<double>& rPositivePressureVariable, const Variable<double>& rNegativePressureVariable, const Variable<array_1d<double,3>>& rTractionVariable){rPartitionedFSIUtilities.CalculateTractionFromPressureValues(rModelPart, rPositivePressureVariable, rNegativePressureVariable, rTractionVariable);})
+        ;
 
 }
 

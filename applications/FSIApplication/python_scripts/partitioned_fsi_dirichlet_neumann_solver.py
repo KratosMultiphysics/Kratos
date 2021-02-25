@@ -28,6 +28,9 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         return this_defaults
 
     def Initialize(self):
+        #TODO: MOVE SOME THINGS TO THE BASE CLASS
+        super().Initialize()
+
         # Get the domain size
         self.domain_size = self._GetDomainSize()
 
@@ -51,32 +54,37 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         self._InitializeDirichletNeumannInterface()
 
         # Construct the interface mapper
-        self._SetUpMapper()
+        #TODO: THIS MUST BE UPDATED WITH THE MAPPING APPLICATION
+        # self._SetUpMapper()
 
+        #TODO: THIS SHOULD BE MOVED TO AN __InitializeFSIInterfaces AS WE DO IN THE EMBEDDED SOLVER
         # Set the Neumann B.C. in the structure interface
-        self._SetStructureNeumannCondition() #TODO change when the interface is able to correctly transfer distributed forces
+        self._SetStructureNeumannCondition() #TODO: change when the interface is able to correctly transfer distributed forces
 
-        # Initialize the iteration value vector
-        self._InitializeIterationValueVector()
+        #TODO: THIS IS NOW DONE IN THE FSI COUPLING INTERFACE
+        # # Initialize the iteration value vector
+        # self._InitializeIterationValueVector()
 
-        # Compute the fluid domain NODAL_AREA values (required as weight in the residual norm computation)
-        KratosMultiphysics.CalculateNodalAreaProcess(self.fluid_solver.GetComputingModelPart(), self.domain_size).Execute()
+        #TODO: CHECK WHY THIS IS REQUIRED... I GUESS IT IS NO LONGER NEEDED
+        # # Compute the fluid domain NODAL_AREA values (required as weight in the residual norm computation)
+        # KratosMultiphysics.CalculateNodalAreaProcess(self.fluid_solver.GetComputingModelPart(), self.domain_size).Execute()
 
-        # Coupling utility initialization
-        # The _GetConvergenceAccelerator is supposed to construct the convergence accelerator in here
-        self._GetConvergenceAccelerator().Initialize()
+        # # Coupling utility initialization
+        # # The _GetConvergenceAccelerator is supposed to construct the convergence accelerator in here
+        # self._GetConvergenceAccelerator().Initialize()
 
-    def _InitializeIterationValueVector(self):
-        # Note that the FSI problem is defined in terms of the fluid interface
-        # Besides, one of the two interfaces is considered for the residual vector computation
-        # in case a shell structure is analised. This is due to the fact that the same mesh_solver
-        # displacement is map to both fluid sides.
+    #TODO: THIS IS NOW DONE IN THE FSI COUPLING INTERFACE
+    # def _InitializeIterationValueVector(self):
+    #     # Note that the FSI problem is defined in terms of the fluid interface
+    #     # Besides, one of the two interfaces is considered for the residual vector computation
+    #     # in case a shell structure is analised. This is due to the fact that the same mesh_solver
+    #     # displacement is map to both fluid sides.
 
-        # Initialize the iteration value for the residual computation
-        fluid_interface_residual_size = self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart())
-        self.iteration_value = KratosMultiphysics.Vector(fluid_interface_residual_size)
-        for i in range(0,fluid_interface_residual_size):
-            self.iteration_value[i] = 0.0
+    #     # Initialize the iteration value for the residual computation
+    #     fluid_interface_residual_size = self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart())
+    #     self.iteration_value = KratosMultiphysics.Vector(fluid_interface_residual_size)
+    #     for i in range(0,fluid_interface_residual_size):
+    #         self.iteration_value[i] = 0.0
 
     def _InitializeDirichletNeumannInterface(self):
         # Initialize Dirichlet fluid interface
@@ -84,15 +92,17 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         num_fl_interfaces = coupling_settings["fluid_interfaces_list"].size()
         for fl_interface_id in range(num_fl_interfaces):
             fl_interface_name = coupling_settings["fluid_interfaces_list"][fl_interface_id].GetString()
-            fl_interface_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(fl_interface_name)
+            fl_interface_submodelpart = self.model.GetModelPart(fl_interface_name)
+            # fl_interface_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(fl_interface_name)
 
             # Fix the VELOCITY, MESH_DISPLACEMENT and MESH_VELOCITY variables in all the fluid interface submodelparts
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_X, True, fl_interface_submodelpart.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Y, True, fl_interface_submodelpart.Nodes)
-            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Z, True, fl_interface_submodelpart.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_X, True, fl_interface_submodelpart.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_Y, True, fl_interface_submodelpart.Nodes)
-            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_Z, True, fl_interface_submodelpart.Nodes)
+            if self.domain_size == 3:
+                KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Z, True, fl_interface_submodelpart.Nodes)
+                KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_Z, True, fl_interface_submodelpart.Nodes)
 
             # Set the interface flag
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, fl_interface_submodelpart.Nodes)
@@ -101,7 +111,8 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         num_str_interfaces = coupling_settings["structure_interfaces_list"].size()
         for str_interface_id in range(num_str_interfaces):
             str_interface_name = coupling_settings["structure_interfaces_list"][str_interface_id].GetString()
-            str_interface_submodelpart = self.structure_solver.main_model_part.GetSubModelPart(str_interface_name)
+            str_interface_submodelpart = self.model.GetModelPart(str_interface_name)
+            # str_interface_submodelpart = self.structure_solver.main_model_part.GetSubModelPart(str_interface_name)
 
             # Set the interface flag
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, str_interface_submodelpart.Nodes)
