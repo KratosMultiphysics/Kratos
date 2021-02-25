@@ -300,6 +300,18 @@ public:
         return NumberOfKnotsV() - PolynomialDegreeV() + 1;
     }
 
+    /// returns number of control points in direction u.
+    SizeType GetNumberOfPointsU() const override
+    {
+        return NumberOfControlPointsU();
+    }
+
+    /// returns number of control points in direction v.
+    SizeType GetNumberOfPointsV() const override
+    {
+        return NumberOfControlPointsV();
+    }
+
     /// Returns the number of spans in DirectionIndex=0:U and DirectionIndex=1:V (which are larger than 0).
     SizeType NumberOfKnotSpans(IndexType DirectionIndex) const
     {
