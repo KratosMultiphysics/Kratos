@@ -58,7 +58,7 @@ public:
     typedef UpdatedLagrangianElement::ElementDataType ElementDataType;
 
     /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_INTRUSSIVE_POINTER_DEFINITION( UpdatedLagrangianUWwPElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianUWwPElement );
     ///@}
 
     ///@name Life Cycle

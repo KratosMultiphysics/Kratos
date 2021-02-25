@@ -66,7 +66,7 @@ public:
     ///@{
 
     /// Pointer definition of ComputeVelocityLaplacianComponentSimplex
-    KRATOS_CLASS_INTRUSSIVE_POINTER_DEFINITION(ComputeVelocityLaplacianComponentSimplex);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ComputeVelocityLaplacianComponentSimplex);
 
     typedef ComputeMaterialDerivativeSimplex<TDim, TNumNodes> BaseType;
 

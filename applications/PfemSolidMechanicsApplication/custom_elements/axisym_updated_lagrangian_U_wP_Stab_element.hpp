@@ -58,7 +58,7 @@ namespace Kratos
          typedef GeometryData::IntegrationMethod IntegrationMethod;
 
          /// Counted pointer of LargeDisplacementUPElement
-         KRATOS_CLASS_INTRUSSIVE_POINTER_DEFINITION( AxisymUpdatedLagrangianUwPStabElement );
+         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AxisymUpdatedLagrangianUwPStabElement );
          ///@}
 
          ///@name Life Cycle
