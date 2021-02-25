@@ -22,6 +22,7 @@
 // External includes
 
 // Core applications
+#include "topology_optimization_application.h"
 
 #include "custom_elements/small_displacement_simp_element.hpp"
 #include "includes/variables.h"

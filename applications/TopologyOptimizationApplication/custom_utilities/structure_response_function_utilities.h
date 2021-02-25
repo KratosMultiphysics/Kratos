@@ -20,7 +20,9 @@
 
 // External includes
 #include <pybind11/pybind11.h>
-
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/io.hpp>
 // Project includes
 //#include "includes/define.h"
 //#include "includes/element.h"
@@ -30,11 +32,12 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
 #include "includes/process_info.h"
 
 // Application includes
 #include "topology_optimization_application.h"
+
+#include "custom_elements/small_displacement_simp_element.hpp"
 
 
 namespace Kratos
@@ -119,8 +122,11 @@ public:
 		for( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
 				element_i++ )
 		{
-			element_i->Calculate(LOCAL_STRAIN_ENERGY, Out, mr_structure_model_part.GetProcessInfo());
+			const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
+			element_i->Calculate(LOCAL_STRAIN_ENERGY, Out, ConstProcessInfo);
 			Global_Strain_Energy += element_i->GetValue(LOCAL_STRAIN_ENERGY);
+			///std::cout<< "Globalstrain ist: " << Global_Strain_Energy << " Wert"<< std::endl; 
+			///std::cout<< "LocalStrain ist: " << element_i->GetValue(LOCAL_STRAIN_ENERGY) << " Wert"<< std::endl;
 		}
 
 		clock_t end = clock();
@@ -141,6 +147,7 @@ public:
 
 		int number_elements = 0;
 		double Global_Volume_Fraction = 0.0;
+
 
 		// Loop over all elements to obtain their X_PHYS and know how many elements the model has
 		for( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
