@@ -26,6 +26,11 @@ class AdjointRANSAnalysis(AnalysisStage):
         self.start_time = problem_data["start_time"].GetDouble() + delta_time
         self.end_time = problem_data["end_time"].GetDouble() + delta_time
 
+        # in the case of steady problems, is is only required to do calculations
+        # in the last time step. therefore,
+        if (self._GetSolver().is_steady):
+            self.start_time = self.end_time - delta_time
+
         # now set start_time, end_time of the problem_data bt flipping them
         self.project_parameters["problem_data"]["start_time"].SetDouble(self.end_time)
         self.project_parameters["problem_data"]["end_time"].SetDouble(self.start_time)
