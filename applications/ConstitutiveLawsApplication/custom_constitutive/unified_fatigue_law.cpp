@@ -197,9 +197,10 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::IntegrateStressPlasticDamageMechanics
 
     bool is_converged = false;
     IndexType iteration = 0, max_iter = 100;
-    while (is_converged == false && iteration <= max_iter) {
+    while (!is_converged && iteration <= max_iter) {
         // Evaluate the updated Threshold and slope
         CalculateThresholdAndSlope(rValues, rPDParameters);
+        CalculateFlowVector(rValues, rPDParameters);
         CalculatePlasticConsistencyIncrement(rValues, rPDParameters);
 
         // Compute the compliance increment -> C dot
@@ -222,9 +223,10 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::IntegrateStressPlasticDamageMechanics
         rPDParameters.TotalDissipation += (rPDParameters.DamageDissipationIncrement + 
             rPDParameters.PlasticDissipationIncrement);
 
-        // updated uniaxial stress check
+        // updated uniaxial and threshold stress check
         TYieldSurfaceType::CalculateEquivalentStress(rPDParameters.StressVector, 
             rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues);
+        CalculateThresholdAndSlope(rValues, rPDParameters);
         rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rPDParameters.Threshold;
         
         if (rPDParameters.NonLinearIndicator <= std::abs(1.0e-4 * rPDParameters.Threshold)) {
