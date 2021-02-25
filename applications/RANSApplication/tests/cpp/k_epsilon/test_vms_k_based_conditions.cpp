@@ -39,13 +39,27 @@ namespace Testing
 
 namespace
 {
+
+void SetTkeBasedUtau(ModelPart& rModelPart) {
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 5.0, 10.0, 0);
+}
+
+void SetUBasedUtauLinear(ModelPart& rModelPart) {
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 50.0, 100.0, 0);
+}
+
+void SetUBasedUtauLogarithmic(ModelPart& rModelPart) {
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 500.0, 1000.0, 0);
+}
+
 ModelPart& CreateRansKEpsilonVMSKBasedEpsilonKBased2D2NModelPart(
     Model& rModel,
     const std::string& rModelPartName,
-    const std::string& rConditionName)
+    const std::string& rConditionName,
+    const std::function<void(ModelPart&)>& rVelocitySetMethod)
 {
-    const auto& set_variable_values = [](ModelPart& rModelPart) {
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 50.0, 100.0, 0);
+    const auto& set_variable_values = [&](ModelPart& rModelPart) {
+        rVelocitySetMethod(rModelPart);
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 0);
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 0);
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 0);
@@ -169,6 +183,7 @@ void RunRansKEpsilonQSVMSRFCAdjointTest(
     const std::string& rPrimalConditionName,
     const Variable<TDataType>& rVariable,
     const std::function<void(Matrix&, ModelPart::ConditionType&, const ProcessInfo&)>& rDerivativesRetrievalFunction,
+    const std::function<void(ModelPart&)>& rVelocitySettingMethod,
     const IndexType EquationOffset,
     const IndexType DerivativesOffset,
     const double Delta,
@@ -177,11 +192,11 @@ void RunRansKEpsilonQSVMSRFCAdjointTest(
     Model model;
 
     // prepare primal model part
-    auto& r_primal_model_part = CreateRansKEpsilonVMSKBasedEpsilonKBased2D2NModelPart(model, "primal", rPrimalConditionName);
+    auto& r_primal_model_part = CreateRansKEpsilonVMSKBasedEpsilonKBased2D2NModelPart(model, "primal", rPrimalConditionName, rVelocitySettingMethod);
     RansVariableUtilities::SetElementConstitutiveLaws(r_primal_model_part.Elements());
 
     // prepare adjoint model part
-    auto& r_adjoint_model_part = CreateRansKEpsilonVMSKBasedEpsilonKBased2D2NModelPart(model, "adjoint", "RansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint2D2N");
+    auto& r_adjoint_model_part = CreateRansKEpsilonVMSKBasedEpsilonKBased2D2NModelPart(model, "adjoint", "RansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint2D2N", rVelocitySettingMethod);
     r_adjoint_model_part.GetElement(1).Initialize(r_adjoint_model_part.GetProcessInfo());
     NormalCalculationUtils().CalculateNormalShapeDerivativesOnSimplex(r_adjoint_model_part.Conditions(), 2);
 
@@ -215,7 +230,7 @@ void RunRansKEpsilonQSVMSRFCAdjointTest(
                 r_cond.SetValue(DISTANCE, y);
 
                 RansCalculationUtilities::CalculateConditionGeometryData(
-                    r_condition_geometry, r_cond.GetIntegrationMethod(), Ws, Ns);
+                    r_condition_geometry, GeometryData::IntegrationMethod::GI_GAUSS_2, Ws, Ns);
                 const int number_of_gauss_points = Ws.size();
 
                 Vector& r_gauss_y_plus = r_cond.GetValue(GAUSS_RANS_Y_PLUS);
@@ -251,115 +266,335 @@ void RunRansKEpsilonQSVMSRFCAdjointTest(
 /************** RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallCondition Derivative Tests **************/
 /********************************************************************************************************/
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UU, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UU_1, KratosRansFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
                                         const ProcessInfo& rProcessInfo) {
         rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", VELOCITY, derivatives_method, 0, 0, 1e-5, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", VELOCITY, derivatives_method, SetUBasedUtauLinear, 0, 0, 1e-5, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UP, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UU_2, KratosRansFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
                                         const ProcessInfo& rProcessInfo) {
         rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", PRESSURE, derivatives_method, 0, 2, 1e-5, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", VELOCITY, derivatives_method, SetUBasedUtauLogarithmic, 0, 0, 1e-5, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UK, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UU_3, KratosRansFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
                                         const ProcessInfo& rProcessInfo) {
         rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", TURBULENT_KINETIC_ENERGY, derivatives_method, 0, 3, 1e-5, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", VELOCITY, derivatives_method, SetTkeBasedUtau, 0, 0, 1e-5, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UE, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UP_1, KratosRansFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
                                         const ProcessInfo& rProcessInfo) {
         rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", TURBULENT_ENERGY_DISSIPATION_RATE, derivatives_method, 0, 4, 1e-5, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", PRESSURE, derivatives_method, SetUBasedUtauLinear, 0, 2, 1e-5, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UP_2, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", PRESSURE, derivatives_method, SetUBasedUtauLogarithmic, 0, 2, 1e-5, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UP_3, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", PRESSURE, derivatives_method, SetTkeBasedUtau, 0, 2, 1e-5, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UK_1, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", TURBULENT_KINETIC_ENERGY, derivatives_method, SetUBasedUtauLinear, 0, 3, 1e-5, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UK_2, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", TURBULENT_KINETIC_ENERGY, derivatives_method, SetUBasedUtauLogarithmic, 0, 3, 1e-5, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UK_3, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", TURBULENT_KINETIC_ENERGY, derivatives_method, SetTkeBasedUtau, 0, 3, 1e-5, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UE_1, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", TURBULENT_ENERGY_DISSIPATION_RATE, derivatives_method, SetUBasedUtauLinear, 0, 4, 1e-5, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UE_2, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", TURBULENT_ENERGY_DISSIPATION_RATE, derivatives_method, SetUBasedUtauLogarithmic, 0, 4, 1e-5, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UE_3, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", TURBULENT_ENERGY_DISSIPATION_RATE, derivatives_method, SetTkeBasedUtau, 0, 4, 1e-5, 1e-5);
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UX, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UX_1, KratosRansFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
                                         const ProcessInfo& rProcessInfo) {
         rCondition.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", SHAPE_SENSITIVITY, derivatives_method, 0, 0, 1e-10, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", SHAPE_SENSITIVITY, derivatives_method, SetUBasedUtauLinear, 0, 0, 1e-10, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionSecondDerivativesLHS_U, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UX_2, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", SHAPE_SENSITIVITY, derivatives_method, SetUBasedUtauLogarithmic, 0, 0, 1e-10, 1e-4);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_UX_3, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", SHAPE_SENSITIVITY, derivatives_method, SetTkeBasedUtau, 0, 0, 1e-10, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionSecondDerivativesLHS_U_1, KratosRansFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
                                         const ProcessInfo& rProcessInfo) {
         rCondition.CalculateSecondDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", ACCELERATION, derivatives_method, 0, 0, 1e-5, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", ACCELERATION, derivatives_method, SetUBasedUtauLinear, 0, 0, 1e-5, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EU, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionSecondDerivativesLHS_U_2, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateSecondDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", ACCELERATION, derivatives_method, SetUBasedUtauLogarithmic, 0, 0, 1e-5, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionSecondDerivativesLHS_U_3, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateSecondDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansVMSMonolithicKBasedWall2D2N", ACCELERATION, derivatives_method, SetTkeBasedUtau, 0, 0, 1e-5, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EU_1, KratosRansFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
                                         const ProcessInfo& rProcessInfo) {
         rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", VELOCITY, derivatives_method, 4, 0, 1e-5, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", VELOCITY, derivatives_method, SetUBasedUtauLinear, 4, 0, 1e-5, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EP, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EU_2, KratosRansFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
                                         const ProcessInfo& rProcessInfo) {
         rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", PRESSURE, derivatives_method, 4, 2, 1e-5, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", VELOCITY, derivatives_method, SetUBasedUtauLogarithmic, 4, 0, 1e-5, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EK, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EU_3, KratosRansFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
                                         const ProcessInfo& rProcessInfo) {
         rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", TURBULENT_KINETIC_ENERGY, derivatives_method, 4, 3, 1e-7, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", VELOCITY, derivatives_method, SetTkeBasedUtau, 4, 0, 1e-5, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EE, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EP_1, KratosRansFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
                                         const ProcessInfo& rProcessInfo) {
         rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", TURBULENT_ENERGY_DISSIPATION_RATE, derivatives_method, 4, 4, 1e-7, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", PRESSURE, derivatives_method, SetUBasedUtauLinear, 4, 2, 1e-5, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EX, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EP_2, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", PRESSURE, derivatives_method, SetUBasedUtauLogarithmic, 4, 2, 1e-5, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EP_3, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", PRESSURE, derivatives_method, SetTkeBasedUtau, 4, 2, 1e-5, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EK_1, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", TURBULENT_KINETIC_ENERGY, derivatives_method, SetUBasedUtauLinear, 4, 3, 1e-7, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EK_2, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", TURBULENT_KINETIC_ENERGY, derivatives_method, SetUBasedUtauLogarithmic, 4, 3, 1e-7, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EK_3, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", TURBULENT_KINETIC_ENERGY, derivatives_method, SetTkeBasedUtau, 4, 3, 1e-7, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EE_1, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", TURBULENT_ENERGY_DISSIPATION_RATE, derivatives_method, SetUBasedUtauLinear, 4, 4, 1e-7, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EE_2, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", TURBULENT_ENERGY_DISSIPATION_RATE, derivatives_method, SetUBasedUtauLogarithmic, 4, 4, 1e-7, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EE_3, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateFirstDerivativesLHS(rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", TURBULENT_ENERGY_DISSIPATION_RATE, derivatives_method, SetTkeBasedUtau, 4, 4, 1e-7, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EX_1, KratosRansFastSuite)
 {
     const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
                                         const ProcessInfo& rProcessInfo) {
         rCondition.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rMatrix, rProcessInfo);
     };
 
-    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", SHAPE_SENSITIVITY, derivatives_method, 4, 0, 1e-10, 1e-5);
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", SHAPE_SENSITIVITY, derivatives_method, SetUBasedUtauLinear, 4, 0, 1e-10, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EX_2, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", SHAPE_SENSITIVITY, derivatives_method, SetUBasedUtauLogarithmic, 4, 0, 1e-10, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonVMSMonolithicKBasedEpsilonKBasedWallConditionFirstDerivativesLHS_EX_3, KratosRansFastSuite)
+{
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ConditionType& rCondition,
+                                        const ProcessInfo& rProcessInfo) {
+        rCondition.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rMatrix, rProcessInfo);
+    };
+
+    RunRansKEpsilonQSVMSRFCAdjointTest("RansKEpsilonEpsilonKBasedWall2D2N", SHAPE_SENSITIVITY, derivatives_method, SetTkeBasedUtau, 4, 0, 1e-10, 1e-5);
 }
 
 } // namespace Testing

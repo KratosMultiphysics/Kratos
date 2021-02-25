@@ -629,8 +629,6 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
     VectorF residual_derivative;
 
-    const IndexType parent_element_number_of_nodes = rParentElement.GetGeometry().PointsNumber();
-
     for (IndexType g = 0; g < Ws.size(); ++g) {
         const Vector& N = row(Ns, g);
         const double W = Ws[g];
@@ -778,8 +776,6 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
     VectorN residual_derivative;
 
-    const IndexType parent_element_number_of_nodes = rParentElement.GetGeometry().PointsNumber();
-
     for (IndexType g = 0; g < Ws.size(); ++g) {
         const Vector& N = row(Ns, g);
         const double W = Ws[g];
@@ -795,7 +791,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
                 CalculateGeometryDataDerivative(W_derivative, detJ_derivative, c, k, g, integration_method);
 
                 derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, c, rConditionNodeParentIndex[c], k, W, N, W_derivative, detJ_derivative);
-                AssembleSubVectorToMatrix(rOutput, row++, 0, residual_derivative);
+                AssembleSubVectorToMatrix(rOutput, row++, TDim + 2, residual_derivative);
             }
         }
 
@@ -804,7 +800,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
             const IndexType p_index = rParentOnlyNodeIndices[c];
             for (IndexType k = 0; k < TDim; ++k) {
                 derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, p_index, k, W, N);
-                AssembleSubVectorToMatrix(rOutput, row++, 0, residual_derivative);
+                AssembleSubVectorToMatrix(rOutput, row++, TDim + 2, residual_derivative);
             }
         }
     }
