@@ -489,7 +489,7 @@ message("\t Minor update of import mechanism for applications: https://github.co
 message("\t Update of Element, Condition and Scheme Interface: https://github.com/KratosMultiphysics/Kratos/issues/7381")
 message("\t VariableComponent and VectorComponentAdaptor are no longer used: https://github.com/KratosMultiphysics/Kratos/pull/6686")
 
-#compiling the triangle library
+# Compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
 
 # runkratos - compiles "runkratos and packages the python lib needed"
