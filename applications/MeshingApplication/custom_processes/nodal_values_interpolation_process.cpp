@@ -18,9 +18,11 @@
 #include "containers/model.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/skin_detection_process.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -153,39 +155,20 @@ void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
 template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::GenerateBoundary(const std::string& rAuxiliarNameModelPart)
 {
-    // Auxiliar zero array
-    const array_1d<double, 3> zero_array = ZeroVector(3);
-
     // Initialize values of Normal
     /* Origin model part */
     NodesArrayType& r_nodes_array_origin = mrOriginMainModelPart.Nodes();
-    const int num_nodes_origin = static_cast<int>(r_nodes_array_origin.size());
-    const auto it_node_begin_origin = r_nodes_array_origin.begin();
     NodesArrayType& r_nodes_array_destiny = mrDestinationMainModelPart.Nodes();
-    const int num_nodes_destiny = static_cast<int>(r_nodes_array_destiny.size());
-    const auto it_node_begin_destination = r_nodes_array_destiny.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < num_nodes_origin; ++i)
-        (it_node_begin_origin + i)->SetValue(NORMAL, zero_array);
-    #pragma omp parallel for
-    for(int i = 0; i < num_nodes_destiny; ++i)
-        (it_node_begin_destination + i)->SetValue(NORMAL, zero_array);
+    VariableUtils().SetNonHistoricalVariableToZero(NORMAL, r_nodes_array_origin);
+    VariableUtils().SetNonHistoricalVariableToZero(NORMAL, r_nodes_array_destiny);
 
     /* Destination model part */
     ConditionsArrayType& r_conditions_array_origin = mrOriginMainModelPart.Conditions();
-    const int num_conditions_origin = static_cast<int>(r_conditions_array_origin.size());
-    const auto it_cond_begin_origin = r_conditions_array_origin.begin();
     ConditionsArrayType& r_conditions_array_destiny = mrDestinationMainModelPart.Conditions();
-    const int num_conditions_destiny = static_cast<int>(r_conditions_array_destiny.size());
-    const auto it_cond_begin_destiny = r_conditions_array_destiny.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < num_conditions_origin; ++i)
-        (it_cond_begin_origin + i)->SetValue(NORMAL, zero_array);
-    #pragma omp parallel for
-    for(int i = 0; i < num_conditions_destiny; ++i)
-        (it_cond_begin_destiny + i)->SetValue(NORMAL, zero_array);
+    VariableUtils().SetNonHistoricalVariableToZero(NORMAL, r_conditions_array_origin);
+    VariableUtils().SetNonHistoricalVariableToZero(NORMAL, r_conditions_array_destiny);
 
     Parameters skin_parameters = Parameters(R"(
     {
@@ -283,9 +266,11 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
         }
     }
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(point_list_destination.size()); ++i)
-        point_list_destination[i]->UpdatePoint();
+    // Update point
+    IndexPartition<std::size_t>(point_list_destination.size()).for_each(
+        [&point_list_destination](std::size_t i)
+        { point_list_destination[i]->UpdatePoint(); }
+    );
 
     // Create a tree
     // It will use a copy of mNodeList (a std::vector which contains pointers)
@@ -341,18 +326,16 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
 {
     // Sum all the nodes normals
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = it_cond_begin + i;
-        GeometryType& this_geometry = it_cond->GetGeometry();
+    block_for_each(r_conditions_array,
+        [&](Condition& rCond) {
+        GeometryType& this_geometry = rCond.GetGeometry();
 
         // Aux coordinates
         CoordinatesArrayType aux_coords;
         aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
 
-        it_cond->SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
+        rCond.SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
 
         const SizeType number_nodes = this_geometry.PointsNumber();
 
@@ -362,26 +345,22 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
             const array_1d<double, 3> normal = this_geometry.UnitNormal(aux_coords);
             auto& aux_normal = this_node.GetValue(NORMAL);
             for (IndexType index = 0; index < 3; ++index) {
-                #pragma omp atomic
-                aux_normal[index] += normal[index];
+                AtomicAdd(aux_normal[index], normal[index]); 
             }
         }
-    }
+    });
 
+    // Iterate over nodes
     NodesArrayType& r_nodes_array = rModelPart.Nodes();
-    const int num_nodes = static_cast<int>(r_nodes_array.size());
-    const auto it_node_begin = r_nodes_array.begin();
+    block_for_each(r_nodes_array,
+        [&](NodeType& rNode) {
+            array_1d<double, 3>& r_normal = rNode.GetValue(NORMAL);
+            const double norm_normal = norm_2(r_normal);
 
-    #pragma omp parallel for
-    for(int i = 0; i < num_nodes; ++i) {
-        auto it_node = it_node_begin + i;
-
-        array_1d<double, 3>& normal = it_node->GetValue(NORMAL);
-        const double norm_normal = norm_2(normal);
-
-        if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
-        else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
-    }
+            if (norm_normal > std::numeric_limits<double>::epsilon()) r_normal /= norm_normal;
+            else KRATOS_ERROR_IF(rNode.Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << rNode.Id() << std::endl;
+        }
+    );
 }
 
 /***********************************************************************************/
