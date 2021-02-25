@@ -749,10 +749,11 @@ namespace Kratos
         NodeType ele_point_low, ele_point_high;
         rGeom.BoundingBox(ele_point_low, ele_point_high);
 
-        double center_to_center = norm_2(0.5* ele_point_low + 0.5* ele_point_high - rCoord);
-        double maximum_contact_range = 0.5*norm_2(rPointHigh- rPointLow) +
-            0.51*norm_2(ele_point_high - ele_point_low);
-        if (center_to_center <= maximum_contact_range) return true;
+        const double half_box_diag = 0.5 * norm_2(ele_point_high - ele_point_low);
+        const double half_mp_diag = 0.5 * norm_2(rPointHigh - rPointLow);
+        const double center_to_center = norm_2(0.5 * ele_point_low + 0.5 * ele_point_high - rCoord);
+
+        if (center_to_center <= half_box_diag + half_mp_diag) return true;
         return false;
     }
 
