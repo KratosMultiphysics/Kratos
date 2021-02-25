@@ -175,7 +175,6 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
 
         process_info = model_part.ProcessInfo
         bossak_alpha = process_info[Kratos.BOSSAK_ALPHA]
-        wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
 
         settings = self.GetParameters()
 
