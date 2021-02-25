@@ -129,11 +129,11 @@ void SmallDisplacementSIMPElement::GetValueOnIntegrationPoints( const Variable<d
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, std::vector<double>& rOutput, const ProcessInfo &rCurrentProcessInfo)
+void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, double &rOutput, const ProcessInfo &rCurrentProcessInfo)
 {
 	KRATOS_TRY
 
-
+	std::cout<< "Variable ist: " << rVariable << " Wert"<< std::endl; 
 	if (rVariable == DCDX || rVariable == LOCAL_STRAIN_ENERGY)
 	{
 		// Get values
@@ -150,6 +150,7 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 		double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
 		double factor    = (1/E_current)*E_new;
 		MatrixType Ke = Ke0 * factor;
+		std::cout<< "Variable ist: " << Ke << " Wert"<< std::endl; 
 
 		// Loop through nodes of elements and create elemental displacement vector "ue"
 		Element::GeometryType& rGeom = this->GetGeometry();
@@ -178,11 +179,13 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 			// Calculation of the compliance sensitivities DCDX
 			double dcdx = (-penalty) * (E_initial - E_min) * pow(x_phys, penalty - 1) * ue_Ke0_ue;
 			this->SetValue(DCDX, dcdx);
+			std::cout<< "Variable ist: " << dcdx << " Wert"<< std::endl; 
 		}
 		if (rVariable == LOCAL_STRAIN_ENERGY)
 		{
 			// Calculation of the local strain energy (requires Ke)
-			double local_strain_energy = factor * ue_Ke0_ue;
+		
+			double local_strain_energy = 120;
 			this->SetValue(LOCAL_STRAIN_ENERGY, local_strain_energy);
 		}
 
@@ -290,6 +293,7 @@ void SmallDisplacementSIMPElement::SetElementData(const KinematicVariables& rThi
 
 // =============================================================================================================================================
 // =============================================================================================================================================
+
 
 // =============================================================================================================================================
 // =============================================================================================================================================

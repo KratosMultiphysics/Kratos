@@ -40,11 +40,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 {
 	namespace py = pybind11;
 
+
+
 	// =============================================================================================================================================
 	// Utility Classes
 	// =============================================================================================================================================
 
-	py::class_<StructureResponseFunctionUtilities, StructureResponseFunctionUtilities::Pointer>(m, "StructureResponseFunctionUtilities")
+	py::class_<StructureResponseFunctionUtilities>(m, "StructureResponseFunctionUtilities")
     .def(py::init<ModelPart& >())
 	.def("ComputeStrainEnergy", &StructureResponseFunctionUtilities::ComputeStrainEnergy)
 	.def("ComputeVolumeFraction", &StructureResponseFunctionUtilities::ComputeVolumeFraction)
