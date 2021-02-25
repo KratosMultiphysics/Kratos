@@ -35,6 +35,9 @@ namespace {
 template <unsigned int TDim>
 std::vector<const Variable<double>*> GetDofsList();
 
+template <unsigned int TDim>
+std::vector<const Variable<double>*> GetSecondDerivativeVariablesList();
+
 template <>
 std::vector<const Variable<double>*> GetDofsList<2>()
 {
@@ -47,6 +50,17 @@ std::vector<const Variable<double>*> GetDofsList<2>()
 }
 
 template <>
+std::vector<const Variable<double>*> GetSecondDerivativeVariablesList<2>()
+{
+    return {
+        &RELAXED_ACCELERATION_X,
+        &RELAXED_ACCELERATION_Y,
+        &PRESSURE,
+        &RANS_AUXILIARY_VARIABLE_1,
+        &RANS_AUXILIARY_VARIABLE_2};
+}
+
+template <>
 std::vector<const Variable<double>*> GetDofsList<3>()
 {
     return {
@@ -56,6 +70,18 @@ std::vector<const Variable<double>*> GetDofsList<3>()
         &ADJOINT_FLUID_SCALAR_1,
         &RANS_SCALAR_1_ADJOINT_1,
         &RANS_SCALAR_2_ADJOINT_1};
+}
+
+template <>
+std::vector<const Variable<double>*> GetSecondDerivativeVariablesList<3>()
+{
+    return {
+        &RELAXED_ACCELERATION_X,
+        &RELAXED_ACCELERATION_Y,
+        &RELAXED_ACCELERATION_Z,
+        &PRESSURE,
+        &RANS_AUXILIARY_VARIABLE_1,
+        &RANS_AUXILIARY_VARIABLE_2};
 }
 } // namespace
 
@@ -77,6 +103,12 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<const Variable<double>*> QSVMSRFCAdjointElementData<TDim, TNumNodes>::GetDofVariablesList()
 {
     return GetDofsList<TDim>();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<const Variable<double>*> QSVMSRFCAdjointElementData<TDim, TNumNodes>::GetPrimalSecondDerivativeVariablesList()
+{
+    return GetSecondDerivativeVariablesList<TDim>();
 }
 
 // template instantiations
