@@ -1018,12 +1018,16 @@ class MultilevelMonteCarlo(object):
         # save problem name
         self.problem_name = parameters["problem_data"]["problem_name"].GetString()
         # serialize parmeters (to avoid adding new data dependent on the application)
-        parameters = self.wrapper.SetModelImportSettingsInputType("use_input_model_part")
+        self.wrapper.SetModelImportSettingsInputType("use_input_model_part")
+        materials_filename = self.wrapper.GetMaterialsFilename()
+        self.wrapper.SetMaterialsFilename("")
         serialized_project_parameters = KratosMultiphysics.StreamSerializer()
         serialized_project_parameters.Save("ParametersSerialization",parameters)
         self.serialized_project_parameters.append(serialized_project_parameters)
         # reset to read the model part
-        parameters = self.wrapper.SetModelImportSettingsInputType("mdpa")
+        self.wrapper.SetModelImportSettingsInputType("mdpa")
+        self.wrapper.SetMaterialsFilename(materials_filename)
+
         # prepare the model to serialize
         model = KratosMultiphysics.Model()
         fake_sample = generator.GenerateSample(self.problem_name) # only used to serialize

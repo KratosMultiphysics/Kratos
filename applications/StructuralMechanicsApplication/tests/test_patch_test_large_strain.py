@@ -3,6 +3,10 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    from KratosMultiphysics import ConstitutiveLawsApplication
+
 
 class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def setUp(self):
@@ -26,12 +30,14 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             if (small_strain == True):
                 cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
             else:
-                cl = StructuralMechanicsApplication.HyperElasticPlaneStrain2DLaw()
+                self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+                cl = ConstitutiveLawsApplication.HyperElasticPlaneStrain2DLaw()
         else:
             if (small_strain == True):
                 cl = StructuralMechanicsApplication.LinearElastic3DLaw()
             else:
-                cl = StructuralMechanicsApplication.HyperElastic3DLaw()
+                self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+                cl = ConstitutiveLawsApplication.HyperElastic3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
     def _set_buffer(self,mp):

@@ -3,6 +3,10 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    from KratosMultiphysics import ConstitutiveLawsApplication
+
 from math import sqrt, sin, cos, pi, exp, atan
 
 class TestTruss3D2N(KratosUnittest.TestCase):
@@ -23,17 +27,18 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
 
     def _add_constitutive_law(self,mp,elastic_flag):
-        cl = StructuralMechanicsApplication.TrussPlasticityConstitutiveLaw()
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+        cl = ConstitutiveLawsApplication.TrussPlasticityConstitutiveLaw()
         if elastic_flag:
             cl = StructuralMechanicsApplication.TrussConstitutiveLaw()
         mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
     def _add_non_linear_constitutive_law(self,mp,law):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 
-
-        if law=="henky": cl = StructuralMechanicsApplication.HyperElasticIsotropicHenky1D()
+        if law=="henky": cl = ConstitutiveLawsApplication.HyperElasticIsotropicHenky1D()
         else:
-            cl = StructuralMechanicsApplication.HyperElasticIsotropicOgden1D()
+            cl = ConstitutiveLawsApplication.HyperElasticIsotropicOgden1D()
 
             if law=="st_venant":
                 mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.OGDEN_BETA_1,4.0)
@@ -1055,6 +1060,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self.assertAlmostEqual(displacement_node2_x, -0.09407182775540882,4)
 
     def test_truss3D2N_multi_linear_elasticity(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
@@ -1066,7 +1072,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.MULTI_LINEAR_ELASTICITY_MODULI,[2.0,1.0/3.0,1.0])
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.MULTI_LINEAR_ELASTICITY_STRAINS,[0.0,1.0,4.0])
 
-        cl = StructuralMechanicsApplication.MultiLinearElastic1DLaw()
+        cl = ConstitutiveLawsApplication.MultiLinearElastic1DLaw()
         mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
 

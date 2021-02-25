@@ -44,7 +44,7 @@ void GeometricalSensitivityUtility::Initialize()
         << ")." << std::endl;
 
     mCofactorJ = MathUtils<double>::CofactorMatrix(mrJ);
-    mDetJ = MathUtils<double>::DetMat(mrJ);
+    mDetJ = MathUtils<double>::Det(mrJ);
 
     KRATOS_CATCH("");
 }
