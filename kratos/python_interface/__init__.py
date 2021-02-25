@@ -90,6 +90,10 @@ def __ModuleInitDetail():
 
 KratosGlobals = __ModuleInitDetail()
 
+# print the process id e.g. for attatching a debugger
+if KratosGlobals.Kernel.BuildType() != "Release":
+    Logger.PrintInfo("Process Id", os.getpid())
+
 def _ImportApplicationAsModule(application, application_name, application_folder, mod_path):
     Kernel = KratosGlobals.Kernel
     Logger.PrintInfo("", "Importing    " + application_name)
