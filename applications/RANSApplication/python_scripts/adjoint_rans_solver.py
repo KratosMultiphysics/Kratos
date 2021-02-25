@@ -5,9 +5,18 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.RANSApplication as KratosRANS
 
-import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-
+from KratosMultiphysics import IsDistributedRun
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
+
+# case specific imports
+if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
+    import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
+elif (IsDistributedRun()):
+    raise Exception("Distributed run requires TrilinosApplication")
+
+# Import base class
 from KratosMultiphysics.RANSApplication.coupled_rans_solver import CoupledRANSSolver
 
 def CreateSolver(main_model_part, custom_settings):
@@ -111,6 +120,11 @@ class AdjointRANSSolver(CoupledRANSSolver):
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Model reading finished.")
 
     def Initialize(self):
+        if (IsDistributedRun()):
+            self.communicator = KratosTrilinos.CreateCommunicator()
+        else:
+            self.communicator = None
+
         domain_size = self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
         CalculateNormalsOnConditions(self.main_model_part)
         Kratos.NormalCalculationUtils().CalculateNormalShapeDerivativesOnSimplex(self.main_model_part.Conditions, domain_size)
@@ -287,7 +301,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
         reform_dof_set_at_each_step = False
         calculate_norm_dx_flag = False
         move_mesh_flag = False
-        return Kratos.ResidualBasedLinearStrategy(
+        return GetKratosObjectPrototype("ResidualBasedLinearStrategy")(
             computing_model_part,
             time_scheme,
             builder_and_solver,
@@ -297,8 +311,8 @@ class AdjointRANSSolver(CoupledRANSSolver):
             move_mesh_flag)
 
     def _CreateLinearSolver(self):
-        linear_solver_configuration = self.adjoint_settings["linear_solver_settings"]
-        return linear_solver_factory.ConstructSolver(linear_solver_configuration)
+        linear_solver_factory = GetKratosObjectPrototype("LinearSolverFactory")
+        return linear_solver_factory(self.adjoint_settings["linear_solver_settings"])
 
     def _CreateScheme(self):
         response_function = self.GetResponseFunction()
@@ -307,18 +321,18 @@ class AdjointRANSSolver(CoupledRANSSolver):
         domain_size = self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
         if (domain_size == 2):
             if (element_names == (("QSVMS"), )):
-                bossak_scheme_type = KratosCFD.VelocityBossakAdjointScheme2D
-                steady_scheme_type = KratosCFD.SimpleSteadyAdjointScheme2D
+                bossak_scheme_type = GetKratosObjectPrototype("VelocityBossakAdjointScheme2D")
+                steady_scheme_type = GetKratosObjectPrototype("SimpleSteadyAdjointScheme2D")
             else:
-                bossak_scheme_type = KratosRANS.RansVelocityBossakAdjointScheme2D
-                steady_scheme_type = KratosRANS.RansSimpleSteadyAdjointScheme2D
+                bossak_scheme_type = GetKratosObjectPrototype("RansVelocityBossakAdjointScheme2D")
+                steady_scheme_type = GetKratosObjectPrototype("RansSimpleSteadyAdjointScheme2D")
         elif (domain_size == 3):
             if (element_names == (("QSVMS"), )):
-                bossak_scheme_type = KratosCFD.VelocityBossakAdjointScheme3D
-                steady_scheme_type = KratosCFD.SimpleSteadyAdjointScheme3D
+                bossak_scheme_type = GetKratosObjectPrototype("VelocityBossakAdjointScheme3D")
+                steady_scheme_type = GetKratosObjectPrototype("SimpleSteadyAdjointScheme3D")
             else:
-                bossak_scheme_type = KratosRANS.RansVelocityBossakAdjointScheme3D
-                steady_scheme_type = KratosRANS.RansSimpleSteadyAdjointScheme3D
+                bossak_scheme_type = GetKratosObjectPrototype("RansVelocityBossakAdjointScheme3D")
+                steady_scheme_type = GetKratosObjectPrototype("RansSimpleSteadyAdjointScheme3D")
         else:
             raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
 
@@ -335,10 +349,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
     def _CreateBuilderAndSolver(self):
         linear_solver = self._GetLinearSolver()
-        if self.settings["consider_periodic_conditions"].GetBool():
-            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(
-                linear_solver,
-                KratosCFD.PATCH_INDEX)
-        else:
-            builder_and_solver = Kratos.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        return builder_and_solver
+        return CreateBlockBuilderAndSolver(
+            linear_solver,
+            self.settings["consider_periodic_conditions"].GetBool(),
+            self.communicator)

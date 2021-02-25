@@ -28,6 +28,14 @@
 #include "custom_strategies/bossak_relaxation_scalar_scheme.h"
 #include "custom_strategies/steady_scalar_scheme.h"
 
+// adjoint schemes
+#include "custom_strategies/schemes/simple_steady_adjoint_scheme.h"
+#include "custom_strategies/schemes/velocity_bossak_adjoint_scheme.h"
+
+// sensitivity builder schemes
+#include "custom_strategies/schemes/simple_steady_sensitivity_builder_scheme.h"
+#include "custom_strategies/schemes/velocity_bossak_sensitivity_builder_scheme.h"
+
 // Include base h
 #include "add_trilinos_strategies_to_python.h"
 
@@ -57,6 +65,29 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     py::class_<MPIBossakRelaxationScalarSchemeType, typename MPIBossakRelaxationScalarSchemeType::Pointer, MPIBaseSchemeType>(m, "MPIBossakRelaxationScalarScheme")
         .def(py::init<const double, const double, const Variable<double>&>());
 
+    using  SimpleSteadyAdjointScheme2DType = SimpleSteadyAdjointScheme<2, MPISparseSpaceType, LocalSpaceType, 5>;
+    py::class_<SimpleSteadyAdjointScheme2DType, typename SimpleSteadyAdjointScheme2DType::Pointer, MPIBaseSchemeType>
+        (m, "MPIRansSimpleSteadyAdjointScheme2D")
+        .def(py::init<AdjointResponseFunction::Pointer>())
+        ;
+
+    using  SimpleSteadyAdjointScheme3DType = SimpleSteadyAdjointScheme<3, MPISparseSpaceType, LocalSpaceType, 6>;
+    py::class_<SimpleSteadyAdjointScheme3DType, typename SimpleSteadyAdjointScheme3DType::Pointer, MPIBaseSchemeType>
+        (m, "MPIRansSimpleSteadyAdjointScheme3D")
+        .def(py::init<AdjointResponseFunction::Pointer>())
+        ;
+
+    using  VelocityBossakAdjointScheme2DType = VelocityBossakAdjointScheme<2, MPISparseSpaceType, LocalSpaceType, 5>;
+    py::class_<VelocityBossakAdjointScheme2DType, typename VelocityBossakAdjointScheme2DType::Pointer, MPIBaseSchemeType>
+        (m, "MPIRansVelocityBossakAdjointScheme2D")
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer>())
+        ;
+
+    using  VelocityBossakAdjointScheme3DType = VelocityBossakAdjointScheme<3, MPISparseSpaceType, LocalSpaceType, 6>;
+    py::class_<VelocityBossakAdjointScheme3DType, typename VelocityBossakAdjointScheme3DType::Pointer, MPIBaseSchemeType>
+        (m, "MPIRansVelocityBossakAdjointScheme3D")
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer>())
+        ;
 }
 
 } // namespace Python
