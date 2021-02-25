@@ -148,7 +148,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         strategy.Check()
         strategy.Solve()
 
-    def _solve_dynamic(self,mp):
+    def _set_up_dynamic_solver(self,mp):
         #define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
@@ -172,7 +172,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
         strategy.Initialize()
         strategy.Check()
-        strategy.Solve()
+        return strategy
 
     def _check_results_linear(self,mp):
         #1.) check displacement result
@@ -709,12 +709,14 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         time_step = 0
         self._set_and_fill_buffer(mp,2,time_delta)
 
+        strategy = self._set_up_dynamic_solver(mp)
+
         while (time_i <= time_end):
 
             time_i += time_delta
             mp.CloneTimeStep(time_i)
             #solve + compare
-            self._solve_dynamic(mp)
+            strategy.Solve()
             self._check_results_dynamic(mp,time_i)
             time_step += 1
 
@@ -762,12 +764,14 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         time_step = 0
         self._set_and_fill_buffer(mp,2,time_delta)
 
+        strategy = self._set_up_dynamic_solver(mp)
+
         while (time_i <= time_end):
 
             time_i += time_delta
             mp.CloneTimeStep(time_i)
             #solve + compare
-            self._solve_dynamic(mp)
+            strategy.Solve()
             self._check_results_dynamic(mp,time_i,step=time_step,lumped=False)
             time_step += 1
 

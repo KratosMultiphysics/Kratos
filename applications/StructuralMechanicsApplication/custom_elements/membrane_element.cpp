@@ -1082,6 +1082,7 @@ void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix,
     if (rMassMatrix.size1() != mat_size) {
         rMassMatrix.resize(mat_size, mat_size, false);
     }
+    noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
 
     if (number_of_nodes==3 && StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo) ){
         // lumped 3 noded is easy to pre-integrate
@@ -1091,7 +1092,6 @@ void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix,
         for (SizeType i = 0; i < mat_size; ++i) rMassMatrix(i, i) = nodal_mass;
     }
     else {
-        noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
         // CONSISTENT MASS MATRIX
         CalculateConsistentMassMatrix(rMassMatrix,rCurrentProcessInfo);
 
@@ -1125,6 +1125,7 @@ void MembraneElement::CalculateLumpedMassVector(
     if (rLumpedMassVector.size() != local_size) {
         rLumpedMassVector.resize(local_size, false);
     }
+    Matrix mass_matrix = ZeroMatrix(local_size, local_size);
 
     if (number_of_nodes==3){
         // lumped 3 noded is easy to pre-integrate
@@ -1134,7 +1135,6 @@ void MembraneElement::CalculateLumpedMassVector(
         for (SizeType i = 0; i < local_size; ++i) rLumpedMassVector[i] = nodal_mass;
     }
     else {
-        Matrix mass_matrix = ZeroMatrix(local_size, local_size);
         // CONSISTENT MASS MATRIX
         CalculateConsistentMassMatrix(mass_matrix,rCurrentProcessInfo);
 
