@@ -38,7 +38,7 @@ namespace Kratos
     protected:
 
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(RingElement3D);
+        KRATOS_CLASS_INTRUSSIVE_POINTER_DEFINITION(RingElement3D);
 
 
         typedef Element BaseType;
