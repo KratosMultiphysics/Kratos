@@ -104,21 +104,52 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateDamageDissipationIncrement(
 
 // TO BE GENERALIZED TO ANY HARDENING LAW
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateThreshold(
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateThresholdAndSlope(
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageFatigueParameters &rPDParameters
     )
 {
-    double initial_threshold;
-    TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
-    rPDParameters.Threshold = initial_threshold * std::sqrt(1.0 - rPDParameters.TotalDissipation);
-
     GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
         CalculateEquivalentStressThresholdHardeningCurveLinearSoftening(rPDParameters.TotalDissipation,
         0.0, 0.0, rPDParameters.Threshold, rPDParameters.Slope, rValues);
-
-
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateFlowVector(
+    ConstitutiveLaw::Parameters& rValues,
+    PlasticDamageFatigueParameters &rPlasticDamageParameters
+    )
+{
+    const BoundedVectorType
+    const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 /***********************************************************************************/
 /***********************************************************************************/

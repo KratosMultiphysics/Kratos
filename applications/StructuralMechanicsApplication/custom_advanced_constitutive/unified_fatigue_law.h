@@ -604,15 +604,18 @@ public:
 
     /**
      * @brief This method computes the threshold
-     * according to energy dissipation
+     * and the dThreshold/dKappa according to energy dissipation
      */
-    void CalculateThreshold(
+    void CalculateThresholdAndSlope(
         ConstitutiveLaw::Parameters& rValues,
         PlasticDamageFatigueParameters &rPlasticDamageParameters);
 
-    // void CalculateFlowVector(
-
-    // )
+    /**
+     * @brief This method computes the plastic flow (dF/dS)
+     */
+    void CalculateFlowVector(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageFatigueParameters &rPlasticDamageParameters);
 
 protected:
 
