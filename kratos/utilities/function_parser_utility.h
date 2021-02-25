@@ -53,13 +53,6 @@ namespace Kratos
  * @brief This function allows to call a function method of type f(x, y, z, t) implemented in python style.
  * @details The functions can be constructed by providing a python-defined method of the type
  *
- *  class aux_object_cpp_callback:
- *    def __init__(self, function_string ):
- *        #TODO: check python version
- *        self.compiled_function = compile(function_string, '', 'eval', optimize=2)
- *
- *    def f(self,x,y,z,t,X,Y,Z):
- *        return  eval(self.compiled_function)
  *
  * The object is then insantiated as
  * aux_function = GenericFunctionUtility(aux_object_cpp_callback(self.function_string))
