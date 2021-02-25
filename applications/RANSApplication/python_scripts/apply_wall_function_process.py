@@ -41,9 +41,9 @@ class ApplyWallFunctionProcess(KratosMultiphysics.Process):
             }  """)
 
         settings.ValidateAndAssignDefaults(default_parameters)
-        
+
         self.model_part = Model[settings["model_part_name"].GetString()]
-        if (not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]):            
+        if (not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]):
             process_info = self.model_part.ProcessInfo
             if (process_info.Has(KratosRANS.WALL_MODEL_PART_NAME)):
                 raise Exception(
