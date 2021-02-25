@@ -283,7 +283,8 @@ protected:
     void AddFluidShapeDerivatives(
         Matrix& rOutput,
         Element& rParentElement,
-        const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
+        const BoundedVector<IndexType, TNumNodes>& rConditionNodeParentIndex,
+        const std::vector<IndexType>& rParentOnlyNodeIndices,
         const ProcessInfo& rCurrentProcessInfo);
 
     void AddTurbulenceResidualsContributions(
@@ -299,7 +300,8 @@ protected:
     void AddTurbulenceShapeDerivatives(
         Matrix& rOutput,
         Element& rParentElement,
-        const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
+        const BoundedVector<IndexType, TNumNodes>& rConditionNodeParentIndex,
+        const std::vector<IndexType>& rParentOnlyNodeIndices,
         const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateGeometryData(
@@ -316,7 +318,8 @@ protected:
         const GeometryData::IntegrationMethod& rIntegrationMethod) const;
 
     void ComputeParentElementNodesToConditionNodesMap(
-        std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
+        BoundedVector<IndexType, TNumNodes>& rConditionNodeParentIndex,
+        std::vector<IndexType>& rParentOnlyNodeIndices,
         const GeometryType& rConditionGeometry,
         const GeometryType& rParentElementGeometry) const;
 

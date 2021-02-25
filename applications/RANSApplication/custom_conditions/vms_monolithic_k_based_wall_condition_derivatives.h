@@ -139,22 +139,52 @@ public:
         ///@name Operations
         ///@{
 
+        /**
+         * @brief Calculates derivatives of residual w.r.t. condition nodes
+         *
+         * This method is used to calculate gauss point residual derivatives w.r.t.
+         * condition nodes and its directions.
+         *
+         * @param rResidualDerivative           Output residual derivative
+         * @param ConditionNodeIndex            Condition node index
+         * @param ParentElementNodeIndex        Parent element node index corresponding to condition node given by ConditionNodeIndex
+         * @param DirectionIndex                Direction index
+         * @param W                             Gauss point weight
+         * @param rN                            Shape function values
+         * @param WDerivative                   Gauss point weight derivative
+         * @param DetJDerivative                Jacobian determinant derivative
+         */
         void CalculateGaussPointResidualsDerivativeContributions(
             VectorF& rResidualDerivative,
             const IndexType ConditionNodeIndex,
+            const IndexType ParentElementNodeIndex,
             const IndexType DirectionIndex,
             const double W,
             const Vector& rN,
             const double WDerivative,
-            const double DetJDerivative,
-            const IndexType ParentElementNodeIndex);
+            const double DetJDerivative);
 
+        /**
+         * @brief Calculates derivatives of residual w.r.t. parent only nodes
+         *
+         * This method is used to calculate gauss point residual derivatives w.r.t.
+         * parent element only nodes for the given condition. (common nodes' derivatives should not be calculated here)
+         *
+         * All the conditions have their parent element which the condition belongs to.
+         * This can be identified through NEIGHBOUR_ELEMENTS of the condition
+         *
+         * @param rResidualDerivative           Output residual derivative
+         * @param ParentElementNodeIndex        Parent element node index
+         * @param DirectionIndex                Direction index
+         * @param W                             Gauss point weight    (calculated from condition geometry)
+         * @param rN                            Shape function values (calculated from condition geometry)
+         */
         void CalculateGaussPointResidualsDerivativeContributions(
             VectorF& rResidualDerivative,
+            const IndexType ParentElementNodeIndex,
             const IndexType DirectionIndex,
             const double W,
-            const Vector& rN,
-            const IndexType ParentElementNodeIndex);
+            const Vector& rN);
 
         ///@}
     private:

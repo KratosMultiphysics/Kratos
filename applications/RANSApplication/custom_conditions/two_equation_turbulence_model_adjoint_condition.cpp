@@ -237,13 +237,32 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
         // because, wall distance calculation involves parent nodes.
         const auto& r_parent_element_geometry = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry();
         const IndexType coords_size = (TDim + 3) * r_parent_element_geometry.size();
+
+        BoundedVector<IndexType, TNumNodes> condition_node_parent_index;
+        std::vector<IndexType> parent_only_node_indices;
+
+        ComputeParentElementNodesToConditionNodesMap(
+            condition_node_parent_index, parent_only_node_indices,
+            this->GetGeometry(), r_parent_element_geometry);
+
+
         if (rConditionalDofList.size() != coords_size) {
             rConditionalDofList.resize(coords_size);
         }
 
         IndexType local_index = 0;
-        for (IndexType i = 0; i < r_parent_element_geometry.size(); ++i) {
-            const auto& r_node = r_parent_element_geometry[i];
+
+        // add condition dofs
+        for (IndexType i = 0; i < TNumNodes; ++i) {
+            const auto& r_node = this->GetGeometry()[i];
+            for (const auto p_variable : r_variables_list) {
+                rConditionalDofList[local_index++] = r_node.pGetDof(*p_variable);
+            }
+        }
+
+        // add parent element dofs
+        for (IndexType i = 0; i < parent_only_node_indices.size(); ++i) {
+            const auto& r_node = r_parent_element_geometry[parent_only_node_indices[i]];
             for (const auto p_variable : r_variables_list) {
                 rConditionalDofList[local_index++] = r_node.pGetDof(*p_variable);
             }
@@ -329,6 +348,8 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
         TAdjointConditionData::InitializeCondition(*this, rCurrentProcessInfo);
     }
+
+    this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
 
     KRATOS_CATCH("");
 }
@@ -463,13 +484,14 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
         rOutput.clear();
         if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-            std::unordered_map<int, int> parent_elements_to_condition_nodes_map;
+            BoundedVector<IndexType, TNumNodes> condition_node_parent_index;
+            std::vector<IndexType> parent_only_node_indices;
             ComputeParentElementNodesToConditionNodesMap(
-                parent_elements_to_condition_nodes_map, this->GetGeometry(),
-                r_parent_elemnet.GetGeometry());
+                condition_node_parent_index, parent_only_node_indices,
+                this->GetGeometry(), r_parent_elemnet.GetGeometry());
 
-            AddFluidShapeDerivatives(rOutput, r_parent_elemnet, parent_elements_to_condition_nodes_map, rCurrentProcessInfo);
-            AddTurbulenceShapeDerivatives(rOutput, r_parent_elemnet, parent_elements_to_condition_nodes_map, rCurrentProcessInfo);
+            AddFluidShapeDerivatives(rOutput, r_parent_elemnet, condition_node_parent_index, parent_only_node_indices, rCurrentProcessInfo);
+            AddTurbulenceShapeDerivatives(rOutput, r_parent_elemnet, condition_node_parent_index, parent_only_node_indices, rCurrentProcessInfo);
         }
     } else {
         KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
@@ -566,17 +588,17 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
         IndexType row = 0;
         for (IndexType c = 0; c < TNumNodes; ++c) {
             for (IndexType k = 0; k < TDim; ++k) {
-                velocity_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, k, W, N, 0.0, 0.0, c);
+                velocity_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 999, k, W, N, 0.0, 0.0);
                 AssembleSubVectorToMatrix(rOutput, row++, 0, residual);
             }
 
             // skip pressure derivative
             ++row;
 
-            turbulence_equation_1_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 0, W, N, 0.0, 0.0, c);
+            turbulence_equation_1_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 999, 0, W, N, 0.0, 0.0);
             AssembleSubVectorToMatrix(rOutput, row++, 0, residual);
 
-            turbulence_equation_2_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 0, W, N, 0.0, 0.0, c);
+            turbulence_equation_2_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 999, 0, W, N, 0.0, 0.0);
             AssembleSubVectorToMatrix(rOutput, row++, 0, residual);
         }
     }
@@ -588,7 +610,8 @@ template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddFluidShapeDerivatives(
     Matrix& rOutput,
     Element& rParentElement,
-    const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
+    const BoundedVector<IndexType, TNumNodes>& rConditionNodeParentIndex,
+    const std::vector<IndexType>& rParentOnlyNodeIndices,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -606,8 +629,6 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
     VectorF residual_derivative;
 
-    const IndexType parent_element_number_of_nodes = rParentElement.GetGeometry().PointsNumber();
-
     for (IndexType g = 0; g < Ws.size(); ++g) {
         const Vector& N = row(Ns, g);
         const double W = Ws[g];
@@ -615,19 +636,23 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
         element_data.CalculateGaussPointData(W, N);
 
         IndexType row = 0;
-        for (IndexType c = 0; c < parent_element_number_of_nodes; ++c) {
-            auto p_index = rParentElementNodesToConditionNodesMap.find(c);
-            for (IndexType k = 0; k < TDim; ++k) {
-                if (p_index->second >= 0) {
-                    // compute derivative w.r.t. condition nodes
-                    double detJ_derivative, W_derivative;
-                    CalculateGeometryDataDerivative(W_derivative, detJ_derivative, p_index->second, k, g, integration_method);
 
-                    derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, p_index->second, k, W, N, W_derivative, detJ_derivative, c);
-                } else {
-                    // compute derivatives w.r.t. parent element only nodes
-                    derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, k, W, N, c);
-                }
+        // calculate derivatives w.r.t. condition nodes
+        for (IndexType c = 0; c < TNumNodes; ++c) {
+            for (IndexType k = 0; k < TDim; ++k) {
+                double detJ_derivative, W_derivative;
+                CalculateGeometryDataDerivative(W_derivative, detJ_derivative, c, k, g, integration_method);
+
+                derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, c, rConditionNodeParentIndex[c], k, W, N, W_derivative, detJ_derivative);
+                AssembleSubVectorToMatrix(rOutput, row++, 0, residual_derivative);
+            }
+        }
+
+        // calculate derivatives w.r.t parent element only nodes
+        for (IndexType c = 0; c < rParentOnlyNodeIndices.size(); ++c) {
+            const IndexType p_index = rParentOnlyNodeIndices[c];
+            for (IndexType k = 0; k < TDim; ++k) {
+                derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, p_index, k, W, N);
                 AssembleSubVectorToMatrix(rOutput, row++, 0, residual_derivative);
             }
         }
@@ -708,7 +733,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
             // add derivatives w.r.t velocity
             for (IndexType k = 0; k < TDim; ++k) {
-                eq_2_derivative_0.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, k, W, N, 0, 0, c);
+                eq_2_derivative_0.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 999, k, W, N, 0, 0);
                 AssembleSubVectorToMatrix(rOutput, row_index++, TDim + 2, residual_derivatives);
             }
 
@@ -716,11 +741,11 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
             ++row_index;
 
             // add derivatives w.r.t. turbulence variable 1
-            eq_2_derivative_1.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, 0, 0, c);
+            eq_2_derivative_1.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 999, 0, W, N, 0, 0);
             AssembleSubVectorToMatrix(rOutput, row_index++, TDim + 2, residual_derivatives);
 
             // add derivative w.r.t. turbulence variable 2
-            eq_2_derivative_2.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, 0, 0, c);
+            eq_2_derivative_2.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 999, 0, W, N, 0, 0);
             AssembleSubVectorToMatrix(rOutput, row_index++, TDim + 2, residual_derivatives);
         }
     }
@@ -732,7 +757,8 @@ template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::AddTurbulenceShapeDerivatives(
     Matrix& rOutput,
     Element& rParentElement,
-    const std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
+    const BoundedVector<IndexType, TNumNodes>& rConditionNodeParentIndex,
+    const std::vector<IndexType>& rParentOnlyNodeIndices,
     const ProcessInfo& rCurrentProcessInfo)
 {
      KRATOS_TRY
@@ -750,8 +776,6 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
     VectorN residual_derivative;
 
-    const IndexType parent_element_number_of_nodes = rParentElement.GetGeometry().PointsNumber();
-
     for (IndexType g = 0; g < Ws.size(); ++g) {
         const Vector& N = row(Ns, g);
         const double W = Ws[g];
@@ -759,19 +783,23 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
         element_data.CalculateGaussPointData(W, N);
 
         IndexType row = 0;
-        for (IndexType c = 0; c < parent_element_number_of_nodes; ++c) {
-            auto p_index = rParentElementNodesToConditionNodesMap.find(c);
-            for (IndexType k = 0; k < TDim; ++k) {
-                if (p_index->second >= 0) {
-                    // compute derivative w.r.t. condition nodes
-                    double detJ_derivative, W_derivative;
-                    CalculateGeometryDataDerivative(W_derivative, detJ_derivative, p_index->second, k, g, integration_method);
 
-                    derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, p_index->second, k, W, N, W_derivative, detJ_derivative, c);
-                } else {
-                    // compute derivatives w.r.t. parent element only nodes
-                    derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, k, W, N, c);
-                }
+        // calculate derivatives w.r.t. condition nodes
+        for (IndexType c = 0; c < TNumNodes; ++c) {
+            for (IndexType k = 0; k < TDim; ++k) {
+                double detJ_derivative, W_derivative;
+                CalculateGeometryDataDerivative(W_derivative, detJ_derivative, c, k, g, integration_method);
+
+                derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, c, rConditionNodeParentIndex[c], k, W, N, W_derivative, detJ_derivative);
+                AssembleSubVectorToMatrix(rOutput, row++, TDim + 2, residual_derivative);
+            }
+        }
+
+        // calculate derivatives w.r.t parent element only nodes
+        for (IndexType c = 0; c < rParentOnlyNodeIndices.size(); ++c) {
+            const IndexType p_index = rParentOnlyNodeIndices[c];
+            for (IndexType k = 0; k < TDim; ++k) {
+                derivative.CalculateGaussPointResidualsDerivativeContributions(residual_derivative, p_index, k, W, N);
                 AssembleSubVectorToMatrix(rOutput, row++, TDim + 2, residual_derivative);
             }
         }
@@ -782,18 +810,29 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::ComputeParentElementNodesToConditionNodesMap(
-    std::unordered_map<int, int>& rParentElementNodesToConditionNodesMap,
+    BoundedVector<IndexType, TNumNodes>& rConditionNodeParentIndex,
+    std::vector<IndexType>& rParentOnlyNodeIndices,
     const GeometryType& rConditionGeometry,
     const GeometryType& rParentElementGeometry) const
 {
-    for (IndexType a = 0; a < rParentElementGeometry.PointsNumber(); ++a) {
-        rParentElementNodesToConditionNodesMap[a] = -1; // this is returned if no condition node is found for parent element node
+    const IndexType parent_element_number_of_nodes = rParentElementGeometry.PointsNumber();
 
-        for (IndexType b = 0; b < rConditionGeometry.PointsNumber(); ++b) {
-            if (rConditionGeometry[b].Id() == rParentElementGeometry[a].Id()) {
-                rParentElementNodesToConditionNodesMap[a] = b;
+    rParentOnlyNodeIndices.resize(parent_element_number_of_nodes - TNumNodes);
+
+    // collect condition and parent element common node information
+    IndexType parent_nodes = 0;
+    for (IndexType p_i = 0; p_i < parent_element_number_of_nodes; ++p_i) {
+        IndexType c_i;
+        for (c_i = 0; c_i < TNumNodes; ++c_i) {
+            if (rConditionGeometry[c_i].Id() == rParentElementGeometry[p_i].Id()) {
+                rConditionNodeParentIndex[c_i] = p_i;
                 break;
             }
+        }
+
+        // if the parent element node is not found in the condition
+        if (c_i == TNumNodes) {
+            rParentOnlyNodeIndices[parent_nodes++] = p_i;
         }
     }
 }
