@@ -1,3 +1,5 @@
+import os
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
 import KratosMultiphysics.HDF5Application as KratosHDF5
@@ -18,9 +20,8 @@ def Factory(parameters, model):
     settings = parameters["Parameters"]
     default_settings = Kratos.Parameters("""{
         "model_part_name": "",
-        "steady"         : true,
         "file_settings"  : {
-            "file_name"        : "./<model_part_name>-<time>.h5",
+            "folder_name"      : ".",
             "time_format"      : "0.6f",
             "file_access_mode" : "truncate",
             "max_files_to_keep": "unlimited",
@@ -31,13 +32,22 @@ def Factory(parameters, model):
     settings.ValidateAndAssignDefaults(default_settings)
     model_part = model[settings["model_part_name"].GetString()]
 
+    is_steady = model_part.ProcessInfo[KratosRANS.RANS_IS_STEADY]
+    file_settings = settings["file_settings"]
+    file_settings.AddEmptyValue("file_name")
+    if (is_steady):
+        file_settings["file_name"].SetString(os.path.join(file_settings["folder_name"].GetString(), "<model_part_name>-final.h5"))
+    else:
+        file_settings["file_name"].SetString(os.path.join(file_settings["folder_name"].GetString(), "<model_part_name>-<time>.h5"))
+    file_settings.RemoveValue("folder_name")
+
     core_settings = ParametersWrapper("""
         [{
-            "model_part_name": "",
+            "model_part_name" : "",
             "process_step": "before_solution_loop",
             "io_settings": {
                 "io_type": "serial_hdf5_file_io",
-                "file_name": "<model_part_name>.h5"
+                "file_name": "<model_part_name>-<time>.h5"
             },
             "list_of_operations": []
         },{
@@ -67,9 +77,6 @@ def Factory(parameters, model):
             model_part_output_type = "model_part_output"
             core_settings[i]["io_settings"]["io_type"] = "serial_hdf5_file_io"
 
-        if (not settings["steady"].GetBool()):
-            core_settings[i]["io_settings"]["max_files_to_keep"] = "unlimited"
-
     list_of_solution_step_variables = ParametersWrapper("""{
         "list_of_variables" : ["ALL_VARIABLES"]
     }""")
@@ -80,21 +87,26 @@ def Factory(parameters, model):
         "list_of_variables" : ["SLIP", "INLET", "OUTLET"]
     }""")
     list_of_condition_data_variables = ParametersWrapper("""{
-        "list_of_variables" : ["RANS_IS_WALL_FUNCTION_ACTIVE", "RANS_IS_INLET"]
+        "list_of_variables" : ["RANS_IS_WALL_FUNCTION_ACTIVE"]
+    }""")
+    list_of_condition_flags = ParametersWrapper("""{
+        "list_of_variables" : ["SLIP"]
     }""")
 
     core_settings[0]["list_of_operations"] = [
-        CreateOperationSettings(model_part_output_type, file_settings),
         CreateOperationSettings("nodal_solution_step_data_output", list_of_solution_step_variables),
         CreateOperationSettings("nodal_data_value_output", list_of_nodal_variables),
-        CreateOperationSettings("nodal_flag_value_output", list_of_nodal_flags)
-        # CreateOperationSettings("condition_data_value_output", list_of_condition_data_variables)
+        CreateOperationSettings("nodal_flag_value_output", list_of_nodal_flags),
+        CreateOperationSettings("condition_data_value_output", list_of_condition_data_variables),
+        CreateOperationSettings("condition_flag_value_output", list_of_condition_flags)
     ]
+
     core_settings[1]["list_of_operations"] = [
         CreateOperationSettings("nodal_solution_step_data_output", list_of_solution_step_variables),
         CreateOperationSettings("nodal_data_value_output", list_of_nodal_variables),
-        CreateOperationSettings("nodal_flag_value_output", list_of_nodal_flags)
-        # CreateOperationSettings("condition_data_value_output", list_of_condition_data_variables)
+        CreateOperationSettings("nodal_flag_value_output", list_of_nodal_flags),
+        CreateOperationSettings("condition_data_value_output", list_of_condition_data_variables),
+        CreateOperationSettings("condition_flag_value_output", list_of_condition_flags)
     ]
 
     core_settings[1]["controller_settings"]["step_frequency"] = 1
@@ -104,6 +116,8 @@ def Factory(parameters, model):
         controller = CreateControllerWithFileIO(core_settings[i], model)
         AssignOperationsToController(core_settings[i]['list_of_operations'], controller)
         AssignControllerToProcess(core_settings[i], controller, process)
+
+    Kratos.Logger.PrintInfo("PrimalHDF5OutputProcess", "PrimalHDF5OutputProcess created.")
     return process
 
 class PrimalHDF5OutputProcess(ControllerProcess):
