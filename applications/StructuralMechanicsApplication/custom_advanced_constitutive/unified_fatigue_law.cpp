@@ -74,14 +74,14 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
 
 template<class TYieldSurfaceType>
 void UnifiedFatigueLaw<TYieldSurfaceType>::CalculatePlasticDissipationIncrement(
-    double &rPlasticDissipationIncrement,
     const Properties &rMaterialProperties,
     PlasticDamageFatigueParameters &rParam
     )
 {
     const double fracture_energy = rMaterialProperties[FRACTURE_ENERGY];
-    rPlasticDissipationIncrement = inner_prod(rParam.StressVector,rParam.PlasticStrainIncrement) *
-                          rParam.CharacteristicLength / fracture_energy;
+    rParam.PlasticDissipationIncrement = inner_prod(rParam.StressVector,
+                            rParam.PlasticStrainIncrement) *
+                            rParam.CharacteristicLength / fracture_energy;
 }
 
 /***********************************************************************************/
@@ -89,19 +89,36 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculatePlasticDissipationIncrement(
 
 template<class TYieldSurfaceType>
 void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateDamageDissipationIncrement(
-    double &rDamageDissipationIncrement,
     const Properties &rMaterialProperties,
     PlasticDamageFatigueParameters &rParam
     )
 {
     const double fracture_energy = rMaterialProperties[FRACTURE_ENERGY];
-    rDamageDissipationIncrement = inner_prod(rParam.StressVector,
+    rParam.DamageDissipationIncrement = inner_prod(rParam.StressVector,
                             prod(rParam.ComplianceIncrementMatrix,rParam.StressVector)) *
                             0.5 * rParam.CharacteristicLength / fracture_energy;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+// TO BE GENERALIZED TO ANY HARDENING LAW
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    PlasticDamageFatigueParameters &rPDParameters
+    )
+{
+    double initial_threshold;
+    TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
+    rPDParameters.Threshold = initial_threshold * std::sqrt(1.0 - rPDParameters.TotalDissipation);
+
+    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
+        CalculateEquivalentStressThresholdHardeningCurveLinearSoftening(rPDParameters.TotalDissipation,
+        0.0, 0.0, rPDParameters.Threshold, rPDParameters.Slope, rValues);
+
+
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -118,7 +135,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateElasticComplianceMatrix(
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double NU = rMaterialProperties[POISSON_RATIO];
 
-    this->CheckClearElasticMatrix(rC);
+    CheckClearElasticMatrix(rC);
 
     const double G = E / (2.0 * (1.0 + NU));
     const double c1 = 1.0 / E;

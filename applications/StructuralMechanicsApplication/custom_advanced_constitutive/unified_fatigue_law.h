@@ -108,11 +108,14 @@ public:
         double UniaxialStress              = 0.0;
         double HardeningParameter          = 0.0;
         double DamageDissipation           = 0.0; // Kappa d
+        double DamageDissipationIncrement  = 0.0; // Kappa d dot
         double PlasticDissipation          = 0.0; // Kappa p
+        double PlasticDissipationIncrement = 0.0; // Kappa p dot
         double TotalDissipation            = 0.0; // Kappa
         double CharacteristicLength        = 0.0;
         double Threshold                   = 0.0;
         double PlasticDenominator          = 0.0;
+        double Slope                       = 0.0; // d(Threshold)/d(dissipation)
     };
 
     ///@name Lyfe Cycle
@@ -588,7 +591,6 @@ public:
      * plastic dissipation
      */
     void CalculatePlasticDissipationIncrement(
-        double &rPlasticDissipationIncrement,
         const Properties &rMaterialProperties,
         PlasticDamageFatigueParameters &rPlasticDamageParameters);
 
@@ -597,9 +599,20 @@ public:
      * plastic dissipation
      */
     void CalculateDamageDissipationIncrement(
-        double &rDamageDissipationIncrement,
         const Properties &rMaterialProperties,
         PlasticDamageFatigueParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method computes the threshold
+     * according to energy dissipation
+     */
+    void CalculateThreshold(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+
+    // void CalculateFlowVector(
+
+    // )
 
 protected:
 
