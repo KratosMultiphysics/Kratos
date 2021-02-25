@@ -473,6 +473,42 @@ void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementDa
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::Calculate(
+    const Variable<Vector>& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (rVariable == PRIMAL_RELAXED_SECOND_DERIVATIVE_VALUES) {
+
+        if (rOutput.size() != TElementLocalSize) {
+            rOutput.resize(TElementLocalSize, false);
+        }
+
+        const auto& r_variables_list = TAdjointElementData::GetPrimalSecondDerivativeVariablesList();
+
+        IndexType local_index = 0;
+        for (IndexType i = 0; i < TNumNodes; ++i) {
+            const auto& r_node = this->GetGeometry()[i];
+            for (IndexType j = 0; j < TDim; ++j) {
+                rOutput[local_index++] = r_node.GetValue(*r_variables_list[j]);
+            }
+
+            rOutput[local_index++] = 0.0; // pressure dof
+            rOutput[local_index++] = r_node.FastGetSolutionStepValue(*r_variables_list[TDim+1]);
+            rOutput[local_index++] = r_node.FastGetSolutionStepValue(*r_variables_list[TDim+2]);
+        }
+    } else {
+        KRATOS_ERROR << "Unsupported variable requested for Calculate method. "
+                        "[ rVariable.Name() = "
+                     << rVariable.Name() << " ].\n";
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 std::string TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::Info() const
 {
     std::stringstream buffer;
