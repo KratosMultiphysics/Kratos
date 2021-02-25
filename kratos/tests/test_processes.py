@@ -63,8 +63,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "model_part_name" : "Main",
                         "variable_name"   : "VISCOSITY",
                         "interval"        : [0.0, 10.0],
-                        "constrained"		  : true,
-                        "value"      : "x+100.0*y*t**2"
+                        "constrained"     : true,
+                        "value"           : "x+100.0*y*t**2"
                     }
                 },
                 {
@@ -74,7 +74,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "Parameters"            : {
                         "model_part_name" : "Main",
                         "variable_name"   : "DENSITY",
-                        "value"      : "x*x+y*y+z*z+t"
+                        "value"           : "x*x+y*y+z*z+t"
                     }
                 },
                 {
@@ -85,8 +85,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "model_part_name" : "Main",
                         "variable_name"   : "DISPLACEMENT_X",
                         "interval"        : [0.0, 5.0],
-                        "constrained"		  : true,
-                        "value"      : "sqrt(x**2+y**2)*t",
+                        "constrained"     : true,
+                        "value"           : "sqrt(x**2+y**2)*t",
                         "local_axes"               :{
                             "origin" : [0.0, 0.0, 0.0],
                             "axes"  : [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
