@@ -100,9 +100,9 @@ double& MPMDamageDPlusDMinusMasonry2DLaw::GetValue(
 {
 	rValue = 0.0;
 	if(rThisVariable == DAMAGE_TENSION)
-		rValue = DamageParameterTensionOld;
+		rValue = DamageParameterTensionOutput;
 	else if(rThisVariable == DAMAGE_COMPRESSION)
-		rValue = DamageParameterCompressionOld;
+		rValue = DamageParameterCompressionOutput;
 	else if(rThisVariable == UNIAXIAL_STRESS_TENSION)
 		rValue = UniaxialStressTension;
 	else if(rThisVariable == UNIAXIAL_STRESS_COMPRESSION)
@@ -417,9 +417,9 @@ void MPMDamageDPlusDMinusMasonry2DLaw::ResetMaterial(
 	ThresholdCompression 		= 0.0;
 	CurrentThresholdCompression = 0.0;
 	DamageParameterTension 		= 0.0;
-	DamageParameterTensionOld = 0.0;
+	DamageParameterTensionOutput = 0.0;
 	DamageParameterCompression 	= 0.0;
-	DamageParameterCompressionOld 	= 0.0;
+	DamageParameterCompressionOutput 	= 0.0;
 	InitialCharacteristicLength = 0.0;
 	InitializeDamageLaw 		= false;
 }
@@ -725,6 +725,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressTension(Calculat
 		}
 		else if (data.TensionYieldModel == 1) {
 			// Rankine Yield Criteria
+			KRATOS_ERROR << "USING RANKINE\n";
 			UniaxialStressTension = std::max(std::max(data.PrincipalStressVector(0), data.PrincipalStressVector(1)), 0.0);
 		}
 	}
@@ -760,9 +761,9 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	double& rDamage)
 {
 	if (internal_variable <= data.YieldStressTension) {
-		rDamage = DamageParameterTensionOld;
+		rDamage = DamageParameterTensionOutput;
 	}
-	else if (DamageParameterTensionOld > 0.99) rDamage = DamageParameterTensionOld;
+	else if (DamageParameterTensionOutput > 0.99) rDamage = DamageParameterTensionOutput;
 	else {
 		const double characteristic_length 		= 	data.CharacteristicLength;
 		const double young_modulus   			= 	data.YoungModulus;
@@ -793,21 +794,22 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 		//if((1.0 - rDamage) * internal_variable < internal_variable_min){
 		//	rDamage = 1.0- internal_variable_min / internal_variable;
 		//}
-		if (rDamage < DamageParameterTensionOld) rDamage = DamageParameterTensionOld;
-		else DamageParameterTensionOld = rDamage;
+		if (rDamage < DamageParameterTensionOutput) rDamage = DamageParameterTensionOutput;
+		else DamageParameterTensionOutput = rDamage;
 	}
 }
 /***********************************************************************************/
 /***********************************************************************************/
 void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 	CalculationData& data,
-	double internal_variable,
+	double threshold_compression,
+	double eq_compression_stress,
 	double& rDamage)
 {
-	if(internal_variable <= data.DamageOnsetStressCompression){
-		rDamage = DamageParameterCompressionOld;
-	}
-	else if (DamageParameterCompressionOld > 0.99) rDamage = DamageParameterCompressionOld;
+
+	if (threshold_compression <= data.DamageOnsetStressCompression) rDamage = 0.0;
+	else if (eq_compression_stress <= data.ResidualStressCompression) rDamage = 0.0; // dont apply damage if we are below the residual stress
+	else if (DamageParameterCompressionOutput > 0.99) rDamage = 1.0 - data.ResidualStressCompression / eq_compression_stress; // set eq stress to residual stress if we are fully damaged
 	else {
 		// extract material parameters
 		const double young_modulus  = data.YoungModulus;
@@ -832,7 +834,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 		double e_u    		= e_r * c3;
 
 		// current abscissa
-		const double strain_like_counterpart = internal_variable / young_modulus;
+		const double strain_like_counterpart = eq_compression_stress / young_modulus;
 
 		if (strain_like_counterpart > e_p)
 		{
@@ -860,28 +862,39 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 		}
 
 
-		// compute damage
-		double damage_variable = internal_variable;
+		// Compute damage
+		double damage_stress;
 		if(strain_like_counterpart <= e_p){
-			this->EvaluateBezierCurve(damage_variable, strain_like_counterpart, e_0, e_i, e_p, s_0, s_p, s_p);
+			// Hardening pseudo-damage (reduction of stresses but not actual damage)
+			this->EvaluateBezierCurve(damage_stress, strain_like_counterpart, e_0, e_i, e_p, s_0, s_p, s_p);
+			rDamage = 1.0 - damage_stress / data.YieldStressCompression;
 		}
-		else if(strain_like_counterpart <= e_k){
-			this->EvaluateBezierCurve(damage_variable, strain_like_counterpart, e_p, e_j, e_k, s_p, s_p, s_k);
-		}
-		else if(strain_like_counterpart <= e_u){
-			this->EvaluateBezierCurve(damage_variable, strain_like_counterpart, e_k, e_r, e_u, s_k, s_r, s_r);
-		}
-		else {
-			damage_variable = s_r;
-		}
-		rDamage = 1.0 - damage_variable / internal_variable;
-
-		if (strain_like_counterpart > e_p)
+		else
 		{
-			if (rDamage > 0.99) rDamage = 1.0;
-			if (rDamage < DamageParameterCompressionOld) rDamage = DamageParameterCompressionOld;
-			else DamageParameterCompressionOld = rDamage;
+			// Actual damage
+			if (strain_like_counterpart <= e_k) {
+				this->EvaluateBezierCurve(damage_stress, strain_like_counterpart, e_p, e_j, e_k, s_p, s_p, s_k);
+			}
+			else if (strain_like_counterpart <= e_u) {
+				this->EvaluateBezierCurve(damage_stress, strain_like_counterpart, e_k, e_r, e_u, s_k, s_r, s_r);
+			}
+			else {
+				damage_stress = s_r;
+			}
+			const double current_true_damage = 1.0 - (damage_stress - s_r) / (data.YieldStressCompression - s_r); // from 0-1
+			if (current_true_damage > DamageParameterCompressionOutput) DamageParameterCompressionOutput = current_true_damage; // update if current damage increases
+
+			const double predicted_damaged_stress = s_r + (1.0 - DamageParameterCompressionOutput) * (data.YieldStressCompression - s_r);
+
+			rDamage = 1.0 - predicted_damaged_stress/ eq_compression_stress;
+			rDamage = std::max(0.0, rDamage);
+			rDamage = std::min(1.0, rDamage);
 		}
+	}
+	if (rDamage <0.0 || rDamage > 1.0)
+	{
+		KRATOS_WATCH("DAMAGE OUT OF BOUNDS!")
+		KRATOS_ERROR << "DAMAGE OUT OF BOUNDS!";
 	}
 }
 /***********************************************************************************/
@@ -1012,7 +1025,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 
 		// new damage variables (explicit)
 		this->CalculateDamageTension(data, ThresholdTension, DamageParameterTension);
-		this->CalculateDamageCompression(data, ThresholdCompression, DamageParameterCompression);
+		this->CalculateDamageCompression(data, ThresholdCompression, UniaxialStressCompression,DamageParameterCompression);
 	}
 	else { // IMPLICIT Integration
 
@@ -1022,7 +1035,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 
 		if(UniaxialStressCompression > ThresholdCompression)
 			ThresholdCompression = UniaxialStressCompression;
-		this->CalculateDamageCompression(data, ThresholdCompression, DamageParameterCompression);
+		this->CalculateDamageCompression(data, ThresholdCompression, UniaxialStressCompression, DamageParameterCompression);
 
 		TemporaryImplicitThresholdTension = ThresholdTension;
 		TemporaryImplicitThresholdTCompression = ThresholdCompression;

@@ -440,7 +440,7 @@ protected:
 
 	// Damage Parameters & Uniaxial Stresses
 	double DamageParameterTension = 0.0;			double DamageParameterCompression = 0.0;
-	double DamageParameterTensionOld = 0.0;			double DamageParameterCompressionOld = 0.0;
+	double DamageParameterTensionOutput = 0.0;		double DamageParameterCompressionOutput = 0.0;
 	double UniaxialStressTension  = 0.0;			double UniaxialStressCompression  = 0.0;
 
 	// Misc
@@ -577,6 +577,7 @@ protected:
 	void CalculateDamageCompression(
 		CalculationData& data,
 		double internal_variable,
+		double eq_compression_stress,
 		double& rDamage);
 
 	/**
