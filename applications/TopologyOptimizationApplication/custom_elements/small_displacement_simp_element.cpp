@@ -128,8 +128,13 @@ void SmallDisplacementSIMPElement::GetValueOnIntegrationPoints( const Variable<d
 
 //************************************************************************************
 //************************************************************************************
+<<<<<<< HEAD
 /* 
 void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double>& rOutput, const ProcessInfo &rCurrentProcessInfo)
+=======
+
+void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, double &rOutput, const ProcessInfo &rCurrentProcessInfo)
+>>>>>>> 6e78fab8eea79d68c7d0f00190f2cfd2753f87c2
 {
 	KRATOS_TRY
 

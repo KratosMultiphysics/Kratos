@@ -159,7 +159,7 @@ public:
     /// Function to calculate the sensitivities and the objective function
 /*     void CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
-    std::vector<double>& rOutput,
+    double &rOutput,
     const ProcessInfo& rCurrentProcessInfo
     ); */
 

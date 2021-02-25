@@ -123,8 +123,12 @@ public:
 				element_i++ )
 		{
 			const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
+<<<<<<< HEAD
 			std::vector<double> Out;
 			element_i->CalculateOnIntegrationPoints(LOCAL_STRAIN_ENERGY, Out, ConstProcessInfo);
+=======
+			element_i->Calculate(LOCAL_STRAIN_ENERGY, Out, ConstProcessInfo);
+>>>>>>> 6e78fab8eea79d68c7d0f00190f2cfd2753f87c2
 			Global_Strain_Energy += element_i->GetValue(LOCAL_STRAIN_ENERGY);
 			///std::cout<< "Globalstrain ist: " << Global_Strain_Energy << " Wert"<< std::endl; 
 			///std::cout<< "LocalStrain ist: " << element_i->GetValue(LOCAL_STRAIN_ENERGY) << " Wert"<< std::endl;
