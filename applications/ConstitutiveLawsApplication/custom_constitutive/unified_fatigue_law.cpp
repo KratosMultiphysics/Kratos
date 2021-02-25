@@ -87,6 +87,8 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
         noalias(PlasticDamageParameters.StrainVector) = r_strain_vector;
 
         CalculateConstitutiveMatrix(rValues, PlasticDamageParameters);
+        noalias(rValues.GetConstitutiveMatrix()) = PlasticDamageParameters.ConstitutiveMatrix;
+
         noalias(PlasticDamageParameters.StressVector) = prod(PlasticDamageParameters.ConstitutiveMatrix,
             r_strain_vector - PlasticDamageParameters.PlasticStrain);
 
@@ -334,6 +336,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::IntegrateStressPlasticDamageMechanics
             iteration++;
         }
     }
+    KRATOS_WATCH(iteration)
     if (iteration > max_iter) {
         KRATOS_WARNING_FIRST_N("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
@@ -458,6 +461,9 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
 {
     // At least one layer should have the value
     bool has = false;
+    if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
+        has = true;
+    }
     return has;
 }
 
@@ -558,6 +564,9 @@ Vector& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
 {
     // We combine the values of the layers
     rValue.clear();
+    if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
+        rValue = mPlasticStrain;
+    }
     return rValue;
 }
 

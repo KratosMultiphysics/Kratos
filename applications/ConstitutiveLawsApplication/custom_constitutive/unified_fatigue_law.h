@@ -117,7 +117,7 @@ public:
         double Threshold                   = 0.0;
         double PlasticDenominator          = 0.0;
         double Slope                       = 0.0; // d(Threshold)/d(dissipation)
-        double PlasticDamageProportion     = 1.0; // 0-> Plastic    1->Damage
+        double PlasticDamageProportion     = 0.0; // 0-> Plastic    1->Damage
     };
 
     ///@name Lyfe Cycle
