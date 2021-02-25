@@ -96,7 +96,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(UnifiedFatigueLaw);
 
     struct PlasticDamageFatigueParameters {
-        BoundedMatrixType ComplianceIncrementMatrix = ZeroMatrix(VoigtSize,VoigtSize);
+        BoundedMatrixType ComplianceMatrixIncrement = ZeroMatrix(VoigtSize,VoigtSize);
         BoundedMatrixType ComplianceMatrix       = ZeroMatrix(VoigtSize,VoigtSize);
         BoundedVectorType PlasticFlow            = ZeroVector(VoigtSize,VoigtSize);
         BoundedVectorType PlasticStrain          = ZeroVector(VoigtSize,VoigtSize);
@@ -618,7 +618,24 @@ public:
         ConstitutiveLaw::Parameters& rValues,
         PlasticDamageFatigueParameters &rPlasticDamageParameters);
 
+    /**
+     * @brief This method computes the Plastic Strain increment
+     */
     void CalculatePlasticStrainIncrement(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method computes the Compliance matrix increment
+     */
+    void CalculateComplianceMatrixIncrement(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method computes the plastic consistency increment
+     */
+    void CalculatePlasticConsistencyIncrement(
         ConstitutiveLaw::Parameters& rValues,
         PlasticDamageFatigueParameters &rPlasticDamageParameters);
 

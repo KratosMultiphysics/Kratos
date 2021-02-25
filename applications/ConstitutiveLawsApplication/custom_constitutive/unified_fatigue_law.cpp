@@ -95,7 +95,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateDamageDissipationIncrement(
 {
     const double fracture_energy = rMaterialProperties[FRACTURE_ENERGY];
     rParam.DamageDissipationIncrement = inner_prod(rParam.StressVector,
-                            prod(rParam.ComplianceIncrementMatrix,rParam.StressVector)) *
+                            prod(rParam.ComplianceMatrixIncrement,rParam.StressVector)) *
                             0.5 * rParam.CharacteristicLength / fracture_energy;
 }
 
@@ -149,8 +149,39 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculatePlasticStrainIncrement(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateComplianceMatrixIncrement(
+    ConstitutiveLaw::Parameters& rValues,
+    PlasticDamageFatigueParameters &rPDParameters
+    )
+{
+    const BoundedVectorType& plastic_flow = rPDParameters.PlasticFlow;
+
+    rPDParameters.ComplianceMatrixIncrement = (rPDParameters.PlasticDamageProportion) *
+        rPDParameters.PlasticConsistencyIncrement * outer_prod(plastic_flow,plastic_flow) /
+        inner_prod(plastic_flow, rPDParameters.StressVector);
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculatePlasticConsistencyIncrement(
+    ConstitutiveLaw::Parameters& rValues,
+    PlasticDamageFatigueParameters &rPDParameters
+    )
+{
+    const double fracture_energy = rValues.GetMaterialProperties()[FRACTURE_ENERGY];
+    const double g = fracture_energy / rPDParameters.CharacteristicLength;
+    BoundedVectorType plastic_flow = rPDParameters.PlasticFlow;
+    BoundedMatrixType constitutive_matrix;
+    double det = 0.0;
+    MathUtils<double>::InvertMatrix(rPDParameters.ComplianceMatrix, constitutive_matrix, det);
+    
+    rPDParameters.PlasticConsistencyIncrement = rPDParameters.NonLinearIndicator / 
+        (inner_prod(plastic_flow, prod(constitutive_matrix, plastic_flow)) + 
+        rPDParameters.Slope*inner_prod(rPDParameters.StressVector / g, plastic_flow));
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
