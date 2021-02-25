@@ -70,7 +70,7 @@ public:
     ///@{
 
     template <unsigned int TBlockSize>
-    class SlipUtilities
+    class KRATOS_API(FLUID_DYNAMICS_APPLICATION) SlipUtilities
     {
     public:
         ///@name Static Operations
