@@ -115,7 +115,7 @@ public:
 		clock_t begin = clock();
 		std::cout<<"  Start calculating strain energy."<<std::endl;
 
-		double Out = 0.0;
+		
 		double Global_Strain_Energy = 0.0;
 
 		// Loop over all elements to calculate their local objective function and sum it into the global objective function (Global Strain Energy)
@@ -123,7 +123,8 @@ public:
 				element_i++ )
 		{
 			const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
-			element_i->Calculate(LOCAL_STRAIN_ENERGY, Out, ConstProcessInfo);
+			std::vector<double> Out;
+			element_i->CalculateOnIntegrationPoints(LOCAL_STRAIN_ENERGY, Out, ConstProcessInfo);
 			Global_Strain_Energy += element_i->GetValue(LOCAL_STRAIN_ENERGY);
 			///std::cout<< "Globalstrain ist: " << Global_Strain_Energy << " Wert"<< std::endl; 
 			///std::cout<< "LocalStrain ist: " << element_i->GetValue(LOCAL_STRAIN_ENERGY) << " Wert"<< std::endl;

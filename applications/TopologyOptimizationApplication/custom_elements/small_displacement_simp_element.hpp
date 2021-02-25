@@ -44,7 +44,7 @@ namespace Kratos
  * This works for arbitrary geometries in 3D
  */
 class KRATOS_API(TOPOLOGY_OPTIMIZATION_APPLICATION) SmallDisplacementSIMPElement
-    : public SmallDisplacement
+    : public BaseSolidElement
 {
 public:
 
@@ -64,7 +64,7 @@ public:
 
     /// hinugefügt am 10.02.
     /// The base element type
-    typedef SmallDisplacement BaseType;
+    typedef BaseSolidElement BaseType;
 
     /// The definition of the index type
     typedef std::size_t IndexType;
@@ -157,11 +157,11 @@ public:
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Function to calculate the sensitivities and the objective function
-    void Calculate(
+/*     void CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
-    double &rOutput,
+    std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
-    );
+    ); */
 
     
 
@@ -221,7 +221,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    SmallDisplacementSIMPElement() : SmallDisplacement()
+    SmallDisplacementSIMPElement() : BaseSolidElement()
     {
     }
     
