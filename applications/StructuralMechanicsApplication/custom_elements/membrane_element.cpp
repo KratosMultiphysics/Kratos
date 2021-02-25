@@ -1265,7 +1265,6 @@ void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector,
             CalculateLumpedMassVector(lumped_mass_vector,rCurrentProcessInfo);
 
             for (SizeType i = 0; i < number_of_nodes; ++i) {
-                KRATOS_WATCH(r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION));
                 for (SizeType j = 0; j < 3; ++j)
                 {
                     const SizeType index = i * 3 + j;
