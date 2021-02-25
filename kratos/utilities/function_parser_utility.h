@@ -23,7 +23,7 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 
-// Forward declaration to reduce compilation time
+// Forward declaration to avoid the include of tinyexpr in a header file
 struct te_expr;
 
 namespace Kratos
