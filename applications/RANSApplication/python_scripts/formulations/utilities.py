@@ -204,16 +204,25 @@ def InitializePeriodicConditions(
         pcu.AddPeriodicVariable(properties, variable)
 
     index = model_part.NumberOfConditions()
+
+    def modify_condition_properties(condition):
+        condition.SetProperties(properties)
+
+    def create_new_condition(condition):
+        index += 1
+        node_id_list = [node.Id for node in condition.GetNodes()]
+        periodic_condition = model_part.CreateNewCondition(
+            periodic_condition_name, index, node_id_list, properties)
+        periodic_condition.Set(Kratos.PERIODIC)
+
+    if (create_new_condition):
+        periodic_condition_update = create_new_condition
+    else:
+        periodic_condition_update = modify_condition_properties
+
     for condition in base_model_part.Conditions:
         if condition.Is(Kratos.PERIODIC):
-            if (create_new_conditions):
-                index += 1
-                node_id_list = [node.Id for node in condition.GetNodes()]
-                periodic_condition = model_part.CreateNewCondition(
-                    periodic_condition_name, index, node_id_list, properties)
-                periodic_condition.Set(Kratos.PERIODIC)
-            else:
-                condition.SetProperties(properties)
+            periodic_condition_update(condition)
 
 def InitializeWallLawProperties(model):
     for model_part_name in model.GetModelPartNames():
