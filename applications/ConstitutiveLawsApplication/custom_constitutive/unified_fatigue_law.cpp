@@ -124,8 +124,14 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateFlowVector(
     )
 {
     // const BoundedVectorType
+    const BoundedVectorType deviator;
+    double J2;
     const BoundedVectorType& r_stress = rPDParameters.StressVector;
     const double I1 = r_stress[0] + r_stress[1] + r_stress[2];
+    ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(r_stress, 
+        I1, deviator, J2);
+    YieldSurfaceType::CalculateYieldSurfaceDerivative(r_stress, 
+        deviator, J2, rPDParameters.PlasticFlow, rValues);
 }
 
 /***********************************************************************************/
