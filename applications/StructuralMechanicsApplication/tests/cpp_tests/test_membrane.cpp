@@ -431,6 +431,149 @@ namespace Testing
     }
 
 
+    // Tests the dead load of the MembraneElement3D4N
+    KRATOS_TEST_CASE_IN_SUITE(MembraneElement3D4NDeadLoad, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+
+        const double density = 7850.0;
+        const double length  = 2.0;
+        const double height  = 1.0;
+        const double thickness = 0.01;
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+        p_elem_prop->SetValue(DENSITY, density);
+        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+        p_elem_prop->SetValue(THICKNESS, thickness);
+        array_1d<double, 3> gravity = ZeroVector(3);
+        gravity[0] = 1.0;
+        gravity[1] = 2.0;
+        gravity[2] = 3.0;
+        p_elem_prop->SetValue(VOLUME_ACCELERATION,gravity);
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStress2DLaw");
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+        // Create the test element
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, length , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, length ,height , 0.0);
+        auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , height , 0.0);
+
+
+        AddDisplacementDofs(r_model_part);
+
+        std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
+        auto p_element = r_model_part.CreateNewElement("MembraneElement3D4N", 1, element_nodes, p_elem_prop);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        const auto& r_const_elem_ref = *p_element;
+        r_const_elem_ref.Check(r_process_info);
+
+        const unsigned int number_of_nodes = p_element->GetGeometry().size();
+        const unsigned int dimension = p_element->GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_dofs = number_of_nodes * dimension;
+
+        for (unsigned int i=0;i<number_of_nodes;++i){
+            array_1d<double, 3>& r_current_acceleration = p_element->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            r_current_acceleration = gravity;
+        }
+
+        Vector rhs = ZeroVector(number_of_dofs);
+        p_element->CalculateRightHandSide(rhs,r_process_info);
+
+
+        const double m1 = (0.250 * length * height * thickness * density);
+
+        for (unsigned int i=0;i<number_of_nodes;++i){
+            for (unsigned int j=0;j<dimension;++j){
+                const unsigned int index = (i*dimension)+j;
+                KRATOS_CHECK_NEAR(
+                    rhs[index],
+                    m1*gravity[j],
+                    1.0e-10);
+            }
+        }
+    }
+
+   // Tests the dead load of the MembraneElement3D3N
+    KRATOS_TEST_CASE_IN_SUITE(MembraneElement3D3NDeadLoad, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+
+        const double density = 7850.0;
+        const double length  = 2.0;
+        const double height  = 1.0;
+        const double thickness = 0.01;
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+        p_elem_prop->SetValue(DENSITY, density);
+        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+        p_elem_prop->SetValue(THICKNESS, thickness);
+        array_1d<double, 3> gravity = ZeroVector(3);
+        gravity[0] = 1.0;
+        gravity[1] = 2.0;
+        gravity[2] = 3.0;
+        p_elem_prop->SetValue(VOLUME_ACCELERATION,gravity);
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStress2DLaw");
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+        // Create the test element
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, length , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, length ,height , 0.0);
+
+
+        AddDisplacementDofs(r_model_part);
+
+        std::vector<ModelPart::IndexType> element_nodes {1,2,3};
+        auto p_element = r_model_part.CreateNewElement("MembraneElement3D3N", 1, element_nodes, p_elem_prop);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        const auto& r_const_elem_ref = *p_element;
+        r_const_elem_ref.Check(r_process_info);
+
+        const unsigned int number_of_nodes = p_element->GetGeometry().size();
+        const unsigned int dimension = p_element->GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_dofs = number_of_nodes * dimension;
+
+        for (unsigned int i=0;i<number_of_nodes;++i){
+            array_1d<double, 3>& r_current_acceleration = p_element->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            r_current_acceleration = gravity;
+        }
+
+        Vector rhs = ZeroVector(number_of_dofs);
+        p_element->CalculateRightHandSide(rhs,r_process_info);
+
+
+        const double m1 = 0.50 * length * height * thickness * density / 3.0;
+
+        for (unsigned int i=0;i<number_of_nodes;++i){
+            for (unsigned int j=0;j<dimension;++j){
+                const unsigned int index = (i*dimension)+j;
+                KRATOS_CHECK_NEAR(
+                    rhs[index],
+                    m1*gravity[j],
+                    1.0e-10);
+            }
+        }
+    }
 }
 }

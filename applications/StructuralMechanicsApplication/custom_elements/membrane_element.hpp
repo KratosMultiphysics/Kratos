@@ -377,7 +377,7 @@ namespace Kratos
        const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase);
 
 
-    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector);
+    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo) const;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
     double mReferenceArea = 0.0;
