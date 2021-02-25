@@ -192,7 +192,7 @@ private:
 
     ModelPart& mrModelPart;                     /// The modelpart where compute
 
-    GenericFunctionUtility::Pointer mpFunction; /// The python function used, depends on X, Y, Z, and t
+    Kratos::unique_ptr<GenericFunctionUtility> mpFunction; /// The python function used, depends on X, Y, Z, and t
 
     std::string mVariableName;                  /// The name of the vaiable to assign
 
