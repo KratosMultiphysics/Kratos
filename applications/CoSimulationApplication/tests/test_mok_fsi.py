@@ -93,7 +93,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                 "model_part_name"  : "FluidModelPart",
                 "output_file_settings": {
                     "file_name"  : "fsi_mok_cfd_results_disp.dat",
-                    "folder_name": "fsi_mok"
+                    "output_path": "fsi_mok"
                 },
                 "output_variables" : [
                     "MESH_DISPLACEMENT_X",
@@ -121,7 +121,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                 "model_part_name"  : "FluidModelPart",
                 "output_file_settings": {
                     "file_name"  : "fsi_mok_cfd_results_fluid.dat",
-                    "folder_name": "fsi_mok"
+                    "output_path": "fsi_mok"
                 },
                 "output_variables" : [
                     "VELOCITY_X",
