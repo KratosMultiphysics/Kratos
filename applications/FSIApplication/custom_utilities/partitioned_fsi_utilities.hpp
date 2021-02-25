@@ -651,8 +651,8 @@ public:
         // Calculate the tractions from the pressure values
         block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
             const auto& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
-            const double aux_p = rNode.FastGetSolutionStepValue(rPressureVariable);
-            noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = aux_p * r_normal;
+            const double p_pos = rNode.FastGetSolutionStepValue(rPressureVariable);
+            noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = (p_pos / norm_2(r_normal)) * r_normal;
         });
 
         // Synchronize values among processes
@@ -671,9 +671,9 @@ public:
         // Calculate the tractions from the pressure values
         block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
             const auto& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
-            double p_pos = rNode.FastGetSolutionStepValue(rPositivePressureVariable);
-            double p_neg = rNode.FastGetSolutionStepValue(rNegativePressureVariable);
-            noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = (p_neg - p_pos) * r_normal;
+            const double p_pos = rNode.FastGetSolutionStepValue(rPositivePressureVariable);
+            const double p_neg = rNode.FastGetSolutionStepValue(rNegativePressureVariable);
+            noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = ((p_pos - p_neg) / norm_2(r_normal)) * r_normal;
         });
 
         // Synchronize values among processes
@@ -821,7 +821,6 @@ protected:
             const auto &value_origin = it_node->FastGetSolutionStepValue(rOriginalVariable);
             const auto &value_modified = it_node->FastGetSolutionStepValue(rModifiedVariable);
             r_error_storage = value_modified - value_origin;
-            // r_error_storage = value_origin - value_modified;
         }
     }
 

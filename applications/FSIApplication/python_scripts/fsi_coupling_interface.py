@@ -115,8 +115,8 @@ class FSICouplingInterface():
         self._output_variable_residual_vector = KratosMultiphysics.Vector(self._residual_size)
         self._get_partitioned_fsi_utilities().ComputeInterfaceResidualVector(
             self.GetInterfaceModelPart(),
-            output_variable,
             self._old_relaxed_variable,
+            output_variable,
             self._residual_variable,
             self._output_variable_residual_vector,
             "nodal",

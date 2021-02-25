@@ -158,10 +158,15 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
         KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', "Finished initialization.")
 
+    #TODO: USE THIS IN THE BASE CLASS
+
     def AdvanceInTime(self, current_time):
+        # Subdomains time advance
         fluid_new_time = self.fluid_solver.AdvanceInTime(current_time)
         structure_new_time = self.structure_solver.AdvanceInTime(current_time)
 
+        # Even though these are auxiliary model parts, this is mandatory to be done to properly set up the database
+        # Note that if this operations are removed, some auxiliary utils (e.g. FM-ALE algorithm in embedded) will perform wrong
         self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(fluid_new_time)
         self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(structure_new_time)
 
@@ -191,12 +196,14 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self.__UpdateLevelSet()
 
         # Correct the updated level set
+        #TODO: I THINK THESE COULD  BE REMOVED (DISTANCE IS NOT REQUIRED FOR THE FLUID PREDICT)
         self.fluid_solver.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
         # Fluid solver prediction
         self.fluid_solver.Predict()
 
         # Restore the fluid node fixity to its original status
+        #TODO: I THINK THESE COULD  BE REMOVED (DISTANCE IS NOT REQUIRED FOR THE FLUID PREDICT)
         self.fluid_solver.GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
     def GetComputingModelPart(self):
@@ -709,7 +716,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
                 "parent_model_part_name": "",
                 "input_variable_list": [],
                 "output_variable_list": ["DISPLACEMENT"],
-                "auxiliary_variable_list": ["POSITIVE_FACE_PRESSURE"]
+                "auxiliary_variable_list": ["POSITIVE_FACE_PRESSURE","NORMAL"]
             }""")
         elif (self.level_set_type == "discontinuous"):
             aux_settings = KratosMultiphysics.Parameters(
@@ -718,7 +725,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
                 "parent_model_part_name": "",
                 "input_variable_list": [],
                 "output_variable_list": ["DISPLACEMENT"],
-                "auxiliary_variable_list": ["POSITIVE_FACE_PRESSURE","NEGATIVE_FACE_PRESSURE"]
+                "auxiliary_variable_list": ["POSITIVE_FACE_PRESSURE","NEGATIVE_FACE_PRESSURE","NORMAL"]
             }""")
         else:
             err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
@@ -814,7 +821,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
             self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
             0)
-        self.__GetFSICouplingInterfaceFluid().UpdatePosition()
+        self.__GetFSICouplingInterfaceFluid().UpdatePosition(KratosMultiphysics.DISPLACEMENT)
 
         # Update the EMBEDDED_VELOCITY and solve the fluid problem
         self.__SolveFluid()
@@ -827,12 +834,14 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self.__MapFluidInterfaceTraction()
 
         # Save as RELAXED_TRATION the TRACTION coming from the fluid
-        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
-            self.__GetTractionVariable(),
-            KratosMultiphysics.RELAXED_TRACTION,
-            self.__GetStructureInterfaceSubmodelPart(),
-            self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
-            0)
+        # Note that this would be required in order to set the first observation matrices
+        if self._GetConvergenceAccelerator().IsBlockNewton():
+            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
+                self.__GetTractionVariable(),
+                KratosMultiphysics.RELAXED_TRACTION,
+                self.__GetStructureInterfaceSubmodelPart(),
+                self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
+                0)
 
         # Directly send the map load from the structure FSI coupling interface to the parent one
         self.__GetFSICouplingInterfaceStructure().TransferValuesToFatherModelPart(self.__GetTractionVariable())                    
