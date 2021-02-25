@@ -1,16 +1,16 @@
 solid GiD
-  facet normal               0              -0               1  
+  facet normal               0              -0               1
     outer loop
-      vertex             1.5               0               0
-      vertex             1.5               2               0
-      vertex               1               0               0
+      vertex             1.6               -0.1               -0.0001
+      vertex             1.6               2.1               -0.0001
+      vertex               1               0               -0.0001
     endloop
   endfacet
-  facet normal               0               0               1  
+  facet normal               0               0               1
     outer loop
-      vertex             1.5               2               0
-      vertex               1               2               0
-      vertex               1               0               0
+      vertex             1.6               2.1               -0.0001
+      vertex               1               2.1               -0.0001
+      vertex               1               -0.1               -0.0001
     endloop
   endfacet
 endsolid GiD

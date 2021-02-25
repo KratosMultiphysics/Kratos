@@ -14,12 +14,18 @@
             "input_type"     : "mdpa",
             "input_filename" : "rhombus_3d"
         },
+        "formulation": {
+            "element_type": "perturbation_incompressible"
+        },
         "maximum_iterations"     : 10,
         "echo_level"             : 0,
         "volume_model_part_name" : "Parts_Parts_Auto1",
         "skin_parts"             : ["PotentialWallCondition3D_Far_field_Auto1","Body3D_Body_Auto1"],
         "no_skin_parts"          : ["Wake3D_Wake_Auto1","Tip3D_Wing_Tips_Auto1"],
-        "auxiliary_variables_list" : ["DISTANCE","WAKE_DISTANCE"]
+        "auxiliary_variables_list" : ["DISTANCE","WAKE_DISTANCE"],
+        "linear_solver_settings"  : {
+            "solver_type": "LinearSolversApplication.pardiso_lu"
+        }
     },
     "processes"        : {
         "boundary_conditions_process_list" : [{
@@ -29,7 +35,10 @@
                 "model_part_name" : "MainModelPart.PotentialWallCondition3D_Far_field_Auto1",
                 "angle_of_attack" : 0.0,
                 "mach_infinity"   : 0.03,
-                "speed_of_sound"  : 340.0
+                "speed_of_sound"  : 340.0,
+                "initialize_flow_field": false,
+                "perturbation_field": true,
+                "inlet_potential": 0.0
             }
         },{
             "python_module" : "define_wake_process_3d",
