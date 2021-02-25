@@ -10,10 +10,10 @@ In this last case, the appropriate import has to be changed in xmc/distributedEn
 
 Dependencies
 ------------
-- KratosMultiphysics ≥ 9.0."Dev"-14ca0bbc78, and applications:
-   - ConvectionDiffusionApplication, 
-   - LinearSolversApplication,  
-   - MeshingApplication and 
+- KratosMultiphysics ≥ 9.0."Dev"-8d4dafd96f, and applications:
+   - ConvectionDiffusionApplication,
+   - LinearSolversApplication,
+   - MeshingApplication and
    - MultilevelMonteCarloApplication.
 - COMPSs ≥ 2.8 (to run in parallel).
 """

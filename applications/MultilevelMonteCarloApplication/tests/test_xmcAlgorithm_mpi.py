@@ -11,7 +11,7 @@ and in test_runcompss_xmcALgorithm_mpi.sh the test to run must be selected.
 
 Dependencies
 ------------
-- KratosMultiphysics ≥ 9.0."Dev"-14ca0bbc78 configured with the CMAKE flag USE_MPI set to "ON",
+- KratosMultiphysics ≥ 9.0."Dev"-8d4dafd96f configured with the CMAKE flag USE_MPI set to "ON",
   and applications:
    - FluidDynamicsApplication,
    - LinearSolversApplication,
