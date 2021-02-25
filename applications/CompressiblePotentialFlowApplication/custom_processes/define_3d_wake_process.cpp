@@ -580,13 +580,11 @@ void Define3DWakeProcess::SelectWakeTipNodes() const
     outfile_wake_tip.open("wake_tip_nodes_id.txt");
     std::ofstream outfile_wake_tip_elements;
     outfile_wake_tip.open("wake_tip_elements_id.txt");
-    const double tolerance = 1e-5;
     for (auto& r_element : wake_sub_model_part.Elements()){
         auto& r_geometry = r_element.GetGeometry();
         for (unsigned int i = 0; i < r_geometry.size(); i++){
             auto& r_node = r_geometry[i];
-            const double difference = std::abs(std::abs(r_node.Y()) - 2.0);
-            if( difference < tolerance){
+            if( std::abs(r_node.Y()) > 2.0){
                 r_node.SetValue(WING_TIP, true);
                 r_element.SetValue(WING_TIP_ELEMENT, true);
                 std::ofstream outfile_wake_tip;

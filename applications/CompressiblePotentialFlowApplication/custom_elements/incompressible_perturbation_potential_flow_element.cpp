@@ -629,18 +629,19 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
         // }
     }
 
-    // if(this->GetValue(WING_TIP_ELEMENT)){
-    //     // KRATOS_WATCH(this->Id())
-    //     for (unsigned int row = 0; row < NumNodes; ++row){
-    //         if(GetGeometry()[row].GetValue(WING_TIP)){
-    //             rLeftHandSideMatrix(2*NumNodes + row, row) = -lhs_total(row, row);
-    //             rLeftHandSideMatrix(2*NumNodes + row, row + NumNodes) = lhs_total(row, row);
+    const double wake_tip_condition_factor = rCurrentProcessInfo[LAMBDA];
+    if(this->GetValue(WING_TIP_ELEMENT)){
+        // KRATOS_WATCH(this->Id())
+        for (unsigned int row = 0; row < NumNodes; ++row){
+            if(GetGeometry()[row].GetValue(WING_TIP)){
+                rLeftHandSideMatrix(2*NumNodes + row, row) = -wake_tip_condition_factor*lhs_total(row, row);
+                rLeftHandSideMatrix(2*NumNodes + row, row + NumNodes) = wake_tip_condition_factor*lhs_total(row, row);
 
-    //             rLeftHandSideMatrix(row, 2*NumNodes + row) = -lhs_total(row, row);
-    //             rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + row) = lhs_total(row, row);
-    //         }
-    //     }
-    // }
+                rLeftHandSideMatrix(row, 2*NumNodes + row) = -wake_tip_condition_factor*lhs_total(row, row);
+                rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + row) = wake_tip_condition_factor*lhs_total(row, row);
+            }
+        }
+    }
 
     // Print lhs
     std::cout.precision(5);

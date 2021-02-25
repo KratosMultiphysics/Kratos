@@ -54,12 +54,17 @@ class PotentialFlowFormulation(object):
 
     def _SetUpIncompressiblePerturbationElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "perturbation_incompressible"
+            "element_type": "perturbation_incompressible",
+            "apply_wake_tip_condition": false
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "IncompressiblePerturbationPotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
+        apply_wake_tip_condition = formulation_settings["apply_wake_tip_condition"].GetBool()
+        self.process_info_data[KratosMultiphysics.LAMBDA] = 0.0
+        if apply_wake_tip_condition:
+            self.process_info_data[KratosMultiphysics.LAMBDA] = 1.0
 
     def _SetUpCompressiblePerturbationElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
