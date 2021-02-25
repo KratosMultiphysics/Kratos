@@ -49,20 +49,6 @@ int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(
         << "VON_KARMAN is not found or not properly initialized in process "
            "info.\n";
 
-    KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOUR_ELEMENTS))
-        << "NEIGHBOUR_ELEMENTS are not found in condition [ rCondition.Id() = "
-        << this->Id() << " ].\n";
-
-    KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() != 1)
-        << "NEIGHBOUR_ELEMENTS are not properly initialized in condition. "
-           "Condition can only have one parent [ rCondition.Id() = "
-        << this->Id() << ", NEIGHBOUR_ELEMENTS.size() = "
-        << this->GetValue(NEIGHBOUR_ELEMENTS).size() << ", required.size() = 1 ].\n";
-
-    KRATOS_ERROR_IF(norm_2(this->GetValue(NORMAL)) == 0.0)
-        << "NORMAL is properly initialized in condition. [ rCondition.Id() = "
-        << this->Id() << " ].\n";
-
     const auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
     const auto& r_element_properties = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
     KRATOS_ERROR_IF(r_element_properties[DENSITY] <= 0.0)
@@ -80,19 +66,36 @@ int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(
         << ", rElementProperties.Id() = " << r_element_properties.Id()
         << ", DYNAMIC_VISCOSITY = " << r_element_properties[DYNAMIC_VISCOSITY] << " ].\n";
 
-    const auto& r_condition_properties = this->GetProperties();
-    KRATOS_ERROR_IF(r_condition_properties[WALL_SMOOTHNESS_BETA] <= 0.0)
-        << "WALL_SMOOTHNESS_BETA is not found or not properly initialized in "
-           "properties of "
-           "condition [ rCondition.Id() = "
-        << this->Id() << ", rConditionProperties.Id() = " << r_condition_properties.Id()
-        << ", WALL_SMOOTHNESS_BETA = " << r_condition_properties[WALL_SMOOTHNESS_BETA] << " ].\n";
-    KRATOS_ERROR_IF(r_condition_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT] <= 0.0)
-        << "RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT is not found or not properly initialized in "
-           "properties of "
-           "condition [ rCondition.Id() = "
-        << this->Id() << ", rConditionProperties.Id() = " << r_condition_properties.Id()
-        << ", RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT = " << r_condition_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT] << " ].\n";
+    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+
+        KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOUR_ELEMENTS))
+            << "NEIGHBOUR_ELEMENTS are not found in condition [ rCondition.Id() = "
+            << this->Id() << " ].\n";
+
+        KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() != 1)
+            << "NEIGHBOUR_ELEMENTS are not properly initialized in condition. "
+            "Condition can only have one parent [ rCondition.Id() = "
+            << this->Id() << ", NEIGHBOUR_ELEMENTS.size() = "
+            << this->GetValue(NEIGHBOUR_ELEMENTS).size() << ", required.size() = 1 ].\n";
+
+        KRATOS_ERROR_IF(norm_2(this->GetValue(NORMAL)) == 0.0)
+            << "NORMAL is properly initialized in condition. [ rCondition.Id() = "
+            << this->Id() << " ].\n";
+
+        const auto& r_condition_properties = this->GetProperties();
+        KRATOS_ERROR_IF(r_condition_properties[WALL_SMOOTHNESS_BETA] <= 0.0)
+            << "WALL_SMOOTHNESS_BETA is not found or not properly initialized in "
+            "properties of "
+            "condition [ rCondition.Id() = "
+            << this->Id() << ", rConditionProperties.Id() = " << r_condition_properties.Id()
+            << ", WALL_SMOOTHNESS_BETA = " << r_condition_properties[WALL_SMOOTHNESS_BETA] << " ].\n";
+        KRATOS_ERROR_IF(r_condition_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT] <= 0.0)
+            << "RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT is not found or not properly initialized in "
+            "properties of "
+            "condition [ rCondition.Id() = "
+            << this->Id() << ", rConditionProperties.Id() = " << r_condition_properties.Id()
+            << ", RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT = " << r_condition_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT] << " ].\n";
+    }
 
     const auto& r_geometry = this->GetGeometry();
 
