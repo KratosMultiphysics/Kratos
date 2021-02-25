@@ -7,6 +7,7 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
+from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.coupled_rans_solver import CoupledRANSSolver
 
 def CreateSolver(main_model_part, custom_settings):
@@ -50,6 +51,9 @@ class AdjointRANSSolver(CoupledRANSSolver):
             ("RansVMSMonolithicKBasedWall",) : "AdjointMonolithicWallCondition",
             ("RansVMSMonolithicKBasedWall", "", "RansKEpsilonEpsilonKBasedWall") : "RansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint"
         }
+
+        self.min_buffer_size = 2
+        self.main_model_part.ProcessInfo[KratosRANS.RANS_IS_STEADY] = self.is_steady
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Construction of AdjointRANSSolver finished.")
 
@@ -108,7 +112,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
     def Initialize(self):
         domain_size = self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-        Kratos.NormalCalculationUtils().CalculateOnSimplex(self.main_model_part.Conditions, domain_size)
+        CalculateNormalsOnConditions(self.main_model_part)
         Kratos.NormalCalculationUtils().CalculateNormalShapeDerivativesOnSimplex(self.main_model_part.Conditions, domain_size)
 
         # Construct and set the solution strategy
@@ -137,7 +141,11 @@ class AdjointRANSSolver(CoupledRANSSolver):
         self._GetSolutionStrategy().FinalizeSolutionStep()
         self.GetResponseFunction().FinalizeSolutionStep()
 
+        original_fractional_step = self.main_model_part.ProcessInfo[Kratos.FRACTIONAL_STEP]
+        self.main_model_part.ProcessInfo[Kratos.FRACTIONAL_STEP] = 200
         self.GetSensitivityBuilder().UpdateSensitivities()
+        self.main_model_part.ProcessInfo[Kratos.FRACTIONAL_STEP] = original_fractional_step
+
         self.GetSensitivityBuilder().FinalizeSolutionStep()
 
     def Check(self):
@@ -258,7 +266,6 @@ class AdjointRANSSolver(CoupledRANSSolver):
         time_scheme_settings = self.settings["time_scheme_settings"]
         time_scheme_type = time_scheme_settings["scheme_type"].GetString()
 
-        domain_size = self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
         if (time_scheme_type == "steady"):
             self.sensitivity_builder_scheme = steady_scheme_type()
         elif (time_scheme_type == "bossak"):
