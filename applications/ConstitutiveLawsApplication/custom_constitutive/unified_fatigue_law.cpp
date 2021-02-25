@@ -18,20 +18,20 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_advanced_constitutive/unified_fatigue_law.h"
+#include "custom_constitutive/unified_fatigue_law.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 
 // Plasticity Integrator includes
-#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
 
 // Yield surfaces
-#include "custom_advanced_constitutive/yield_surfaces/generic_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
 
 // Plastic potentials
-#include "custom_advanced_constitutive/plastic_potentials/generic_plastic_potential.h"
-#include "custom_advanced_constitutive/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
 
 namespace Kratos
 {
@@ -120,11 +120,12 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateThresholdAndSlope(
 template<class TYieldSurfaceType>
 void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateFlowVector(
     ConstitutiveLaw::Parameters& rValues,
-    PlasticDamageFatigueParameters &rPlasticDamageParameters
+    PlasticDamageFatigueParameters &rPDParameters
     )
 {
-    const BoundedVectorType
-    const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
+    // const BoundedVectorType
+    const BoundedVectorType& r_stress = rPDParameters.StressVector;
+    const double I1 = r_stress[0] + r_stress[1] + r_stress[2];
 }
 
 /***********************************************************************************/

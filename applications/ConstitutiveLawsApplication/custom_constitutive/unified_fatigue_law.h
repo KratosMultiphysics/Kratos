@@ -55,7 +55,7 @@ localization analysis (Wu and Cervera https://doi.org/10.1016/j.ijsolstr.2016.03
  * @author Sergio Jimenez
  */
 template<class TYieldSurfaceType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UnifiedFatigueLaw
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueLaw
     : public std::conditional<TYieldSurfaceType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:
