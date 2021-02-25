@@ -39,49 +39,16 @@ class AdjointTwoElementsTest(KratosUnittest.TestCase):
             primal_parameters = AdjointTwoElementsTest._ReadParameters('./TwoElementsTest/qsvms_test_parameters.json')
             step_size = 1e-9
             fd_sensitivities = FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis.ComputeSensitivity(
-                node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0], 'MainModelPart.Structure', SolvePrimalProblem)
+                node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0],
+                'MainModelPart.Structure',
+                SolvePrimalProblem,
+                AdjointTwoElementsTest._AddHDF5PrimalOutputProcess)
 
             # solve adjoint
             adjoint_parameters = AdjointTwoElementsTest._ReadParameters('./TwoElementsTest/qsvms_test_adjoint_parameters.json')
             adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
 
             self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 3)
-
-    # def testQSVMSSteadySlip(self):
-    #     with KratosUnittest.WorkFolderScope('.', __file__):
-    #         node_ids = [4]
-
-    #         # calculate sensitivity by finite difference
-    #         primal_parameters = AdjointTwoElementsTest._ReadParameters('./TwoElementsTest/one_element_qsvms_slip_steady_test_parameters.json')
-
-    #         # total_steps = [1e-8, 5e-9, 4e-9, 3e-9, 2e-9, 1e-9, 8e-10, 5e-10, 2e-10, 1e-10, 5e-11]
-    #         # sensitivities = []
-    #         # for step_size in total_steps:
-    #         #     # step_size = 1e-9
-    #         #     fd_sensitivities = FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis.ComputeSensitivity(
-    #         #         node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0], 'MainModelPart.Structure', SolvePrimalProblem, True)
-    #         #     sensitivities.append(fd_sensitivities)
-
-    #         # for i, steps in enumerate(total_steps):
-    #         #     print(steps, sensitivities[i])
-
-    #         step_size = 2e-10
-    #         fd_sensitivities = FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis.ComputeSensitivity(
-    #             node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0], 'MainModelPart.Structure', SolvePrimalProblem, True)
-
-    #         # # solve unperturbed
-    #         # SolvePrimalProblem(primal_parameters)
-
-    #         # solve adjoint
-    #         adjoint_parameters = AdjointTwoElementsTest._ReadParameters('./TwoElementsTest/one_element_qsvms_slip_steady_test_adjoint_parameters.json')
-    #         adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
-
-    #         # fd_sensitivities = Kratos.Matrix(1, 2)
-    #         # fd_sensitivities[0, 0] = 0.0422357
-    #         # fd_sensitivities[0, 1] = 0.033163
-    #         print(adjoint_sensitivities)
-    #         print(fd_sensitivities)
-    #         self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 5)
 
     def testQSVMSKEpsilonSteady(self):
         with KratosUnittest.WorkFolderScope('.', __file__):
@@ -111,7 +78,7 @@ class AdjointTwoElementsTest(KratosUnittest.TestCase):
 
             # calculate sensitivity by finite difference
             primal_parameters = AdjointTwoElementsTest._ReadParameters('./TwoElementsTest/ke_bossak_test_parameters.json')
-            step_size = 1e-4
+            step_size = 1e-8
             fd_sensitivities = FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis.ComputeSensitivity(
                 node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0],
                 'MainModelPart.Structure',
