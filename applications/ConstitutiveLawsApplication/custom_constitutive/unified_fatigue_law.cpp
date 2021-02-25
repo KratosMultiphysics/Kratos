@@ -192,38 +192,50 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::IntegrateStressPlasticDamageMechanics
     PlasticDamageFatigueParameters &rPDParameters
     )
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
     BoundedVectorType delta_sigma;
+    const auto& r_mat_properties = rValues.GetMaterialProperties();
 
     bool is_converged = false;
     IndexType iteration = 0, max_iter = 100;
     while (is_converged == false && iteration <= max_iter) {
+        // Evaluate the updated Threshold and slope
         CalculateThresholdAndSlope(rValues, rPDParameters);
         CalculatePlasticConsistencyIncrement(rValues, rPDParameters);
 
+        // Compute the compliance increment -> C dot
         CalculateComplianceMatrixIncrement(rValues, rPDParameters);
         noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
         CalculateConstitutiveMatrix(rValues, rPDParameters);
 
+        // Compute the plastic strain increment
         CalculatePlasticStrainIncrement(rValues, rPDParameters);
         noalias(rPDParameters.PlasticStrain) += rPDParameters.PlasticStrainIncrement;
 
+        // Correct the stress
         noalias(delta_sigma) = prod(rPDParameters.ConstitutiveMatrix, 
             rPDParameters.PlasticStrainIncrement);
-        
-        noalias(rPDParameters.StressVector) -= noalias(delta_sigma);
+        noalias(rPDParameters.StressVector) -= delta_sigma;
 
+        // Compute the non-linear dissipation performed
+        CalculatePlasticDissipationIncrement(r_mat_properties, rPDParameters);
+        CalculateDamageDissipationIncrement(r_mat_properties, rPDParameters);
+        rPDParameters.TotalDissipation += (rPDParameters.DamageDissipationIncrement + 
+            rPDParameters.PlasticDissipationIncrement);
+
+        // updated uniaxial stress check
         TYieldSurfaceType::CalculateEquivalentStress(rPDParameters.StressVector, 
-            rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues)
-        rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rValues.Threshold;
+            rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues);
+        rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rPDParameters.Threshold;
         
-        if (rPDParameters.NonLinearIndicator <= std::abs(1.0e-4 * rThreshold)) { // Has converged
+        if (rPDParameters.NonLinearIndicator <= std::abs(1.0e-4 * rPDParameters.Threshold)) {
             is_converged = true;
         } else {
             iteration++;
         }
     }
-
+    if (iteration > max_iter) {
+        KRATOS_WARNING_FIRST_N("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+    }
 }
 
 /***********************************************************************************/
