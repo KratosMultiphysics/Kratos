@@ -116,8 +116,52 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rValues
     )
 {
+    // Auxiliar values
+    const Flags& r_constitutive_law_options = rValues.GetOptions();
 
+    // We get the strain vector
+    Vector& r_strain_vector = rValues.GetStrainVector();
 
+    // We get the constitutive tensor
+    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+
+    const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
+
+    Vector& r_integrated_stress_vector = rValues.GetStressVector();
+    const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::
+        CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+
+    if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
+    }
+
+    // We compute the stress or the constitutive matrix
+    if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
+        r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        
+        PlasticDamageFatigueParameters PlasticDamageParameters = PlasticDamageFatigueParameters();
+        PlasticDamageParameters.PlasticDissipation = mPlasticDissipation;
+        PlasticDamageParameters.DamageDissipation  = mDamageDissipation;
+        PlasticDamageParameters.TotalDissipation   = mPlasticDissipation + mDamageDissipation;
+        PlasticDamageParameters.Threshold     = mThreshold;
+        PlasticDamageParameters.PlasticStrain = mPlasticStrain;
+        PlasticDamageParameters.ComplianceMatrix = mComplianceMatrix;
+        noalias(PlasticDamageParameters.StrainVector) = r_strain_vector;
+
+        CalculateConstitutiveMatrix(rValues, PlasticDamageParameters);
+        noalias(PlasticDamageParameters.StressVector) = prod(PlasticDamageParameters.ConstitutiveMatrix,
+            r_strain_vector - PlasticDamageParameters.PlasticStrain);
+
+        TYieldSurfaceType::CalculateEquivalentStress(PlasticDamageParameters.StressVector, 
+            PlasticDamageParameters.StrainVector, PlasticDamageParameters.UniaxialStress, rValues);
+
+        PlasticDamageParameters.NonLinearIndicator = PlasticDamageParameters.UniaxialStress - mThreshold;
+
+        if (PlasticDamageParameters.NonLinearIndicator > std::abs(1.0e-4 * mThreshold)) { // Elastic case
+            IntegrateStressPlasticDamageMechanics(rValues, PlasticDamageParameters);
+            UpdateInternalVariables(PlasticDamageParameters);
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -311,6 +355,18 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateConstitutiveMatrix(
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::UpdateInternalVariables(
+    PlasticDamageFatigueParameters &rPDParameters
+    )
+{
+    mPlasticDissipation        = rPDParameters.PlasticDissipation;
+    mDamageDissipation         = rPDParameters.DamageDissipation;
+    mThreshold                 = rPDParameters.Threshold;
+    noalias(mPlasticStrain)    = rPDParameters.PlasticStrain;
+    noalias(mComplianceMatrix) = rPDParameters.ComplianceMatrix;
+}
 
 /***********************************************************************************/
 /***********************************************************************************/

@@ -654,6 +654,13 @@ public:
         ConstitutiveLaw::Parameters& rValues,
         PlasticDamageFatigueParameters &rPlasticDamageParameters);
 
+    /**
+     * @brief This method updates all the internal variables
+     */
+    void UpdateInternalVariables(
+        PlasticDamageFatigueParameters &rPlasticDamageParameters
+    );
+
 protected:
 
     ///@name Protected static Member Variables
