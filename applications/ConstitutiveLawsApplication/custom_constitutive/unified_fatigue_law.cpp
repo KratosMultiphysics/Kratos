@@ -123,7 +123,6 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateFlowVector(
     PlasticDamageFatigueParameters &rPDParameters
     )
 {
-    // const BoundedVectorType
     BoundedVectorType deviator;
     double J2;
     const BoundedVectorType& r_stress = rPDParameters.StressVector;
@@ -136,6 +135,16 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateFlowVector(
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculatePlasticStrainIncrement(
+    ConstitutiveLaw::Parameters& rValues,
+    PlasticDamageFatigueParameters &rPDParameters
+    )
+{
+    rPDParameters.PlasticStrainIncrement = (1.0 - rPDParameters.PlasticDamageProportion) *
+        rPDParameters.PlasticConsistencyIncrement * rPDParameters.PlasticFlow;
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
