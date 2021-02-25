@@ -575,6 +575,41 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
     }
 }
 
+void MembraneElement::ReferenceLumpingFactors(Vector& rResult) const
+{
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& r_integrations_points = r_geom.IntegrationPoints( integration_method );
+    const Matrix& r_Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
+
+
+    array_1d<Vector,2> reference_covariant_base_vectors;
+    double detJ = 0.0;
+    // Iterate over the integration points
+    double domain_size = 0.0;
+    for ( IndexType point_number = 0; point_number < r_integrations_points.size(); ++point_number ) {
+        const Vector& rN = row(r_Ncontainer,point_number);
+        const Matrix& shape_functions_gradients_i = r_geom.ShapeFunctionsLocalGradients(integration_method)[point_number];
+        CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
+
+        JacobiDeterminante(detJ,reference_covariant_base_vectors);
+        const double integration_weight = r_integrations_points[point_number].Weight() * detJ;
+
+        // Computing domain size
+        domain_size += integration_weight;
+
+        for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+            rResult[i] += rN[i] * integration_weight;
+        }
+    }
+
+    // Divide by the domain size
+    for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+        rResult[i] /= domain_size;
+    }
+}
+
 
 void MembraneElement::MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
     const Matrix& rMaterialTangentModulus,const SizeType& rPositionI,
@@ -1084,29 +1119,15 @@ void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix,
     }
     noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
 
-    if (number_of_nodes==3 && StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo) ){
-        // lumped 3 noded is easy to pre-integrate
-        const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
-        const double nodal_mass = total_mass / 3.0;
 
-        for (SizeType i = 0; i < mat_size; ++i) rMassMatrix(i, i) = nodal_mass;
+    if (StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo) ){
+        Vector lumped_mass_vector = ZeroVector(mat_size);
+        CalculateLumpedMassVector(lumped_mass_vector,rCurrentProcessInfo);
+        for (SizeType i=0;i<mat_size;++i) rMassMatrix(i,i) = lumped_mass_vector[i];
     }
     else {
         // CONSISTENT MASS MATRIX
         CalculateConsistentMassMatrix(rMassMatrix,rCurrentProcessInfo);
-
-        if (StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo)) {
-
-            for (SizeType i = 0; i < mat_size; ++i) {
-                double diagonal_entry = 0.0;
-                for (SizeType j = 0; j < mat_size; ++j)
-                {
-                    diagonal_entry += rMassMatrix(i,j);
-                    rMassMatrix(i,j) = 0.0;
-                }
-                rMassMatrix(i, i) = diagonal_entry;
-            }
-        }
     }
 
     KRATOS_CATCH("")
@@ -1125,29 +1146,21 @@ void MembraneElement::CalculateLumpedMassVector(
     if (rLumpedMassVector.size() != local_size) {
         rLumpedMassVector.resize(local_size, false);
     }
-    Matrix mass_matrix = ZeroMatrix(local_size, local_size);
 
-    if (number_of_nodes==3){
-        // lumped 3 noded is easy to pre-integrate
-        const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
-        const double nodal_mass = total_mass / 3.0;
+    const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
-        for (SizeType i = 0; i < local_size; ++i) rLumpedMassVector[i] = nodal_mass;
-    }
-    else {
-        // CONSISTENT MASS MATRIX
-        CalculateConsistentMassMatrix(mass_matrix,rCurrentProcessInfo);
+    Vector lump_fact =  ZeroVector(number_of_nodes);
+    ReferenceLumpingFactors(lump_fact);
 
-        for (SizeType i = 0; i < local_size; ++i) {
-            double diagonal_entry = 0.0;
-            for (SizeType j = 0; j < local_size; ++j)
-            {
-                diagonal_entry += mass_matrix(i,j);
-            }
-            rLumpedMassVector[i] = diagonal_entry;
+    for (SizeType i = 0; i < number_of_nodes; ++i) {
+        const double temp = lump_fact[i] * total_mass;
+
+        for (SizeType j = 0; j < 3; ++j)
+        {
+            const SizeType index = i * 3 + j;
+            rLumpedMassVector[index] = temp;
         }
     }
-
     KRATOS_CATCH("")
 }
 
@@ -1243,37 +1256,20 @@ void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector,
     const SizeType number_of_nodes = r_geom.size();
     const SizeType local_size = dimension*number_of_nodes;
 
-
     if (r_geom[0].SolutionStepsDataHas(VOLUME_ACCELERATION)){
 
-        if (number_of_nodes==3){
-            // dead load lumping is always 1/3 for triangles
-            const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
-            const double nodal_mass = total_mass / 3.0;
+        Vector lumped_mass_vector = ZeroVector(local_size);
+        CalculateLumpedMassVector(lumped_mass_vector,rCurrentProcessInfo);
 
-            for (SizeType i = 0; i < number_of_nodes; ++i) {
-                for (SizeType j = 0; j < 3; ++j)
-                {
-                    const SizeType index = i * 3 + j;
-                    rRightHandSideVector[index] += nodal_mass * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
-                }
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            for (SizeType j = 0; j < 3; ++j)
+            {
+                const SizeType index = i * 3 + j;
+                rRightHandSideVector[index] += lumped_mass_vector[index] * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
             }
         }
-        else {
-            // dead load must be integrated for quads
-            Vector lumped_mass_vector = ZeroVector(local_size);
-            CalculateLumpedMassVector(lumped_mass_vector,rCurrentProcessInfo);
-
-            for (SizeType i = 0; i < number_of_nodes; ++i) {
-                for (SizeType j = 0; j < 3; ++j)
-                {
-                    const SizeType index = i * 3 + j;
-                    rRightHandSideVector[index] += lumped_mass_vector[index] * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
-                }
-            }
-        }
-
     }
+
     KRATOS_CATCH("")
 }
 

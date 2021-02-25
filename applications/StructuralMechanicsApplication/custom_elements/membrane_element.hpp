@@ -379,6 +379,8 @@ namespace Kratos
 
     void CalculateAndAddBodyForce(VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo) const;
 
+    void ReferenceLumpingFactors(Vector& rResult) const;
+
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
     double mReferenceArea = 0.0;
 
