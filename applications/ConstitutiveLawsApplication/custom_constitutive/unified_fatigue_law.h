@@ -98,6 +98,7 @@ public:
     struct PlasticDamageFatigueParameters {
         BoundedMatrixType ComplianceMatrixIncrement = ZeroMatrix(VoigtSize,VoigtSize);
         BoundedMatrixType ComplianceMatrix       = ZeroMatrix(VoigtSize,VoigtSize);
+        BoundedMatrixType ConstitutiveMatrix     = ZeroMatrix(VoigtSize,VoigtSize);
         BoundedVectorType PlasticFlow            = ZeroVector(VoigtSize,VoigtSize);
         BoundedVectorType PlasticStrain          = ZeroVector(VoigtSize,VoigtSize);
         BoundedVectorType PlasticStrainIncrement = ZeroVector(VoigtSize,VoigtSize);
@@ -636,6 +637,20 @@ public:
      * @brief This method computes the plastic consistency increment
      */
     void CalculatePlasticConsistencyIncrement(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method integrates the stress
+     */
+    void IntegrateStressPlasticDamageMechanics(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method computes the constitutive matrix
+     */
+    void CalculateConstitutiveMatrix(
         ConstitutiveLaw::Parameters& rValues,
         PlasticDamageFatigueParameters &rPlasticDamageParameters);
 

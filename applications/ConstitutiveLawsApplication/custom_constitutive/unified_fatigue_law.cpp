@@ -186,8 +186,59 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculatePlasticConsistencyIncrement(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::IntegrateStressPlasticDamageMechanics(
+    ConstitutiveLaw::Parameters& rValues,
+    PlasticDamageFatigueParameters &rPDParameters
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    BoundedVectorType delta_sigma;
+
+    bool is_converged = false;
+    IndexType iteration = 0, max_iter = 100;
+    while (is_converged == false && iteration <= max_iter) {
+        CalculateThresholdAndSlope(rValues, rPDParameters);
+        CalculatePlasticConsistencyIncrement(rValues, rPDParameters);
+
+        CalculateComplianceMatrixIncrement(rValues, rPDParameters);
+        noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
+        CalculateConstitutiveMatrix(rValues, rPDParameters);
+
+        CalculatePlasticStrainIncrement(rValues, rPDParameters);
+        noalias(rPDParameters.PlasticStrain) += rPDParameters.PlasticStrainIncrement;
+
+        noalias(delta_sigma) = prod(rPDParameters.ConstitutiveMatrix, 
+            rPDParameters.PlasticStrainIncrement);
+        
+        noalias(rPDParameters.StressVector) -= noalias(delta_sigma);
+
+        TYieldSurfaceType::CalculateEquivalentStress(rPDParameters.StressVector, 
+            rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues)
+        rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rValues.Threshold;
+        
+        if (rPDParameters.NonLinearIndicator <= std::abs(1.0e-4 * rThreshold)) { // Has converged
+            is_converged = true;
+        } else {
+            iteration++;
+        }
+    }
+
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateConstitutiveMatrix(
+    ConstitutiveLaw::Parameters& rValues,
+    PlasticDamageFatigueParameters &rPDParameters
+    )
+{
+    double det = 0.0;
+    MathUtils<double>::InvertMatrix(rPDParameters.ComplianceMatrix, 
+        rPDParameters.ConstitutiveMatrix, det);
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
