@@ -443,5 +443,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ParallelRuleOfMixturesLaw2D", mParallelRuleOfMixturesLaw2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ParallelRuleOfMixturesLaw3D", mParallelRuleOfMixturesLaw3D);
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("UnifiedFatigueLaw3DVonMisesVonMises", mUnifiedFatigueLaw3DVonMisesVonMises);
+
 }
 }  // namespace Kratos.

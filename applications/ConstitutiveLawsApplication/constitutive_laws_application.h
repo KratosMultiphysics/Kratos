@@ -96,6 +96,8 @@
 // Rules of mixtures
 #include "custom_constitutive/rule_of_mixtures_law.h"
 
+#include "custom_constitutive/unified_fatigue_law.h"
+
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -653,6 +655,8 @@ private:
 
     // Anisotropic law
     const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
+
+    const UnifiedFatigueLaw <VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mUnifiedFatigueLaw3DVonMisesVonMises;
 
     ///@}
     ///@name Private Operators
