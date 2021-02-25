@@ -371,6 +371,21 @@ public:
         return mpGeometryParent->DeterminantOfJacobian(rPoint);
     }
 
+    /* @brief returns the respective segment length of this
+     *        quadrature point. Length of vector always 1.
+     * @param rResult vector of results of this quadrature point.
+     */
+    Vector& DeterminantOfJacobianParent(
+        Vector& rResult) const
+    {
+        if (rResult.size() != 1)
+            rResult.resize(1, false);
+
+        rResult[0] = this->GetGeometryParent(0).DeterminantOfJacobian(this->IntegrationPoints()[0]);
+
+        return rResult;
+    }
+
     Matrix& InverseOfJacobian(
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates
@@ -409,6 +424,21 @@ public:
             << "Pointer to parent is not assigned." << std::endl;
 
         return mpGeometryParent->ShapeFunctionsLocalGradients(rResult, rPoint);
+    }
+
+    ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput) override
+    {
+        if (rVariable == DETERMINANT_OF_JACOBIAN_PARENT)
+        {
+            DeterminantOfJacobianParent(rOutput);
+        }
     }
 
     ///@}

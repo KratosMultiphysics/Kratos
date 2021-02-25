@@ -67,21 +67,9 @@ class TestTinyFetiCoSimulationCases(co_simulation_test_case.CoSimulationTestCase
             self._runTest()
 
 
-class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
-    '''This class contains "small" CoSimulation-Cases, small enough to run in the nightly suite
+class TestFastSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
+    '''This class contains "fast small" CoSimulation-Cases, small enough to run in the nightly suite
     '''
-
-    def test_MPM_FEM_beam_penalty(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
-        if not have_mpm_fem_dependencies:
-            self.skipTest("MPM-FEM dependencies are not available!")
-
-        self.name = "penalty_beam"
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self._createTest("mpm_fem_beam", "cosim_mpm_fem_beam")
-            self._runTest()
-
     def test_FEM_FEM_small_2d_plate_dual_mortar(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
@@ -102,6 +90,43 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
         self.name = "test_FEM_FEM_small_2d_plate_full_mortar"
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fem_fem/small_2d_plate", "cosim_fem_fem_small_2d_plate_full_mortar")
+            self._runTest()
+
+    def test_MPM_FEM_small_2d_plate_conforming(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_fem_fem_dependencies:
+            self.skipTest("FEM-FEM dependencies are not available!")
+
+        self.name = "test_MPM_FEM_small_2d_plate_conforming"
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("mpm_fem/small_2d_plate", "cosim_mpm_fem_small_2d_plate_conforming")
+            self._runTest()
+
+    def test_MPM_FEM_small_2d_plate_nonconforming(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_fem_fem_dependencies:
+            self.skipTest("FEM-FEM dependencies are not available!")
+
+        self.name = "test_MPM_FEM_small_2d_plate_nonconforming"
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("mpm_fem/small_2d_plate", "cosim_mpm_fem_small_2d_plate_nonconforming")
+            self._runTest()
+
+class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
+    '''This class contains "small" CoSimulation-Cases, small enough to run in the nightly suite
+    '''
+
+    def test_MPM_FEM_beam_penalty(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_mpm_fem_dependencies:
+            self.skipTest("MPM-FEM dependencies are not available!")
+
+        self.name = "penalty_beam"
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("mpm_fem_beam", "cosim_mpm_fem_beam")
             self._runTest()
 
     #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit(self):

@@ -1,0 +1,37 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    4        0.00000        1.00000        0.00000
+    8        0.00000        0.00000        0.00000
+   10        1.00000        1.00000        0.00000
+   12        1.00000        0.00000        0.00000
+   16        2.00000        1.00000        0.00000
+   19        2.00000        0.00000        0.00000
+End Nodes
+
+
+Begin Elements UpdatedLagrangian2D4N// GUI group identifier: plate
+        1          0         12         10          4          8 
+        2          0         19         16         10         12 
+End Elements
+
+Begin SubModelPart Parts_plate // Group plate // Subtree Parts
+    Begin SubModelPartNodes
+            4
+            8
+           10
+           12
+           16
+           19
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

@@ -35,10 +35,10 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     const IndexType slave_index = (mIsDestinationIsSlave) ? 1 : 0;
     const IndexType master_index = 1 - slave_index;
 
-    const auto& r_geometry_master = (mIsProjection)
+    auto& r_geometry_master = (mIsProjection)
         ? mpGeom->GetGeometryPart(master_index) // set to master  - get projected 'mass' matrix
         : mpGeom->GetGeometryPart(slave_index); // set to slave - get consistent slave 'mass' matrix
-    const auto& r_geometry_slave = mpGeom->GetGeometryPart(slave_index);
+    auto& r_geometry_slave = mpGeom->GetGeometryPart(slave_index);
 
     const bool is_dual_mortar = (!mIsProjection && mIsDualMortar)
         ? true
@@ -58,8 +58,9 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     auto sf_values_master = r_geometry_master.ShapeFunctionsValues();
     auto sf_values_slave = r_geometry_slave.ShapeFunctionsValues();
     Vector det_jacobian;
-    r_geometry_slave.DeterminantOfJacobian(det_jacobian);
-    KRATOS_ERROR_IF(det_jacobian.size() != 1)
+    if (&(r_geometry_slave.GetGeometryParent(0)) == nullptr) r_geometry_slave.DeterminantOfJacobian(det_jacobian);
+    else r_geometry_slave.Calculate(DETERMINANT_OF_JACOBIAN_PARENT, det_jacobian);
+    KRATOS_DEBUG_ERROR_IF(det_jacobian.size() != 1)
         << "Coupling Geometry Mapper should only have 1 integration point coupling per local system" << std::endl;
     const double weight = r_geometry_slave.IntegrationPoints()[0].Weight();
 
@@ -98,10 +99,10 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     }
 
     for (IndexType i=0; i< sf_values_master.size2(); ++i) {
-        rOriginIds[i] = r_geometry_master[i].GetValue(INTERFACE_EQUATION_ID);
+            rOriginIds[i] = r_geometry_master[i].GetValue(INTERFACE_EQUATION_ID);
     }
     for (IndexType i=0; i< sf_values_slave.size2(); ++i) {
-        rDestinationIds[i] = r_geometry_slave[i].GetValue(INTERFACE_EQUATION_ID);
+            rDestinationIds[i] = r_geometry_slave[i].GetValue(INTERFACE_EQUATION_ID);
     }
 }
 
@@ -144,7 +145,6 @@ CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CouplingGeometryMapper(
     // adds destination model part
     mpModeler->GenerateNodes(rModelPartDestination);
     mpModeler->SetupGeometryModel();
-    mpModeler->PrepareGeometryModel();
 
     // here use whatever ModelPart(s) was created by the Modeler
     mpCouplingMP = &(rModelPartOrigin.GetModel().GetModelPart("coupling"));
@@ -159,6 +159,7 @@ CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CouplingGeometryMapper(
     mpInterfaceVectorContainerMaster = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceMaster);
     mpInterfaceVectorContainerSlave = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceSlave);
 
+    this->CheckCouplingInputs();
     this->CreateLinearSolver();
     this->InitializeInterface();
 }
@@ -382,6 +383,21 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWi
         mpLinearSolver->Solve(rConsistentInterfaceMatrix, solution, projector_column);
         for (size_t j = 0; j < n_rows; ++j) (*mpMappingMatrix).insert_element(j, i,solution[j]);
     }
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CheckCouplingInputs()
+{
+    // Extra checks of the coupling input validity
+
+    // Check 1 - MPM cannot be the coupling interface slave
+    const bool destination_is_slave = mMapperSettings["destination_is_slave"].GetBool();
+    const Model& r_slave_model = (destination_is_slave)
+        ? mrModelPartDestination.GetModel()
+        : mrModelPartOrigin.GetModel();
+    KRATOS_ERROR_IF(r_slave_model.HasModelPart("Background_Grid"))
+        << "CouplingGeometryMapper | MPM was specified as the slave model which is currently not researched."
+        << "\nPlease reverse coupling order with 'destination_is_slave = false' in the parameters file.\n";
 }
 
 template<class TSparseSpace, class TDenseSpace>

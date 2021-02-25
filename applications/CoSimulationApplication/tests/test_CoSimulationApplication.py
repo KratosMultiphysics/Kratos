@@ -10,6 +10,7 @@ except:
 
 from co_simulation_test_factory import TestTinyFetiCoSimulationCases
 from co_simulation_test_factory import TestSmallCoSimulationCases
+from co_simulation_test_factory import TestFastSmallCoSimulationCases
 from co_simulation_test_factory import TestCoSimulationCases
 from test_function_callback_utility import TestGenericCallFunction
 from test_ping_pong_coupling import TestPingPong
@@ -53,6 +54,7 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
     ################################################################################
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFastSmallCoSimulationCases]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestGenericCallFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreatePointBasedEntitiesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))

@@ -89,6 +89,9 @@
 #include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
 
+//---modelers
+#include "custom_modelers/structure_mpm_modeler.h"
+
 namespace Kratos
 {
 
@@ -314,6 +317,8 @@ private:
     // Hardening Laws
     const ExponentialStrainSofteningLaw             mExponentialStrainSofteningLaw;
     const CamClayHardeningLaw                       mCamClayHardeningLaw;
+
+    const StructureMpmModeler mStructureMpmModeler;
 
     ///@}
     ///@name Private Operators

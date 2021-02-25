@@ -150,11 +150,16 @@ public:
         Kratos::Flags MappingOptions,
         double SearchRadius) override
     {
+        KRATOS_ERROR << "Not implemented!" << std::endl;
+
+        if (mMapperSettings["echo_level"].GetInt() > 0) KRATOS_INFO("CouplingGeometryMapper") << "Updating interface" << std::endl;
+
         mpModeler->PrepareGeometryModel();
 
-        AssignInterfaceEquationIds();
+        mMapperLocalSystemsProjector.clear();
+        mMapperLocalSystemsSlave.clear();
 
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+        this->InitializeInterface();
     }
 
     void Map(
@@ -341,6 +346,8 @@ private:
     void CreateLinearSolver();
 
     void CalculateMappingMatrixWithSolver(MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix);
+
+    void CheckCouplingInputs();
 
     Parameters GetMapperDefaultSettings() const
     {
