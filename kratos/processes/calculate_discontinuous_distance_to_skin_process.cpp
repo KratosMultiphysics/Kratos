@@ -379,7 +379,7 @@ namespace Kratos
         const std::vector<array_1d<double,3>>& rIntersectionPointsCoordinates)
     {
         const auto &r_geometry = rElement.GetGeometry();
-        const unsigned int n_cut_edges = rIntersectionPointsCoordinates.size();
+        const unsigned int n_cut_points = rIntersectionPointsCoordinates.size();
 
         // Get reference to ELEMENTAL_DISTANCES
         Vector& r_elemental_distances = rElement.GetValue(ELEMENTAL_DISTANCES);
@@ -387,7 +387,7 @@ namespace Kratos
         // If there are more than 3 (3D) or 2 (2D) intersected edges, compute the least squares plane approximation
         // using the ComputePlaneApproximation utility.
         // Otherwise, the distance is computed using the plane defined by the 3 (3D) or 2 (2D) intersection points.
-        const bool do_plane_approx = (n_cut_edges == TDim) ? false : true;
+        const bool do_plane_approx = (n_cut_points == TDim) ? false : true;
         const auto compute_plane_appoximation = [&] (const std::vector<array_1d<double,3>>& rPointVector) {
             array_1d<double,3> base_pt, normal;
             ComputePlaneApproximation(rElement, rPointVector, base_pt, normal);
@@ -400,7 +400,7 @@ namespace Kratos
         };
 
         if (do_plane_approx){
-            if (n_cut_edges > TDim) {
+            if (n_cut_points > TDim) {
                 // Call the plane optimization utility
                 compute_plane_appoximation(rIntersectionPointsCoordinates);
             }
