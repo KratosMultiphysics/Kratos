@@ -101,8 +101,9 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
                 self.__CommunicateStateOfConvergence(True)
                 return True
 
-            if k+1 >= self.num_coupling_iterations and self.echo_level > 0:
-                cs_tools.cs_print_info(self._ClassName(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
+            if k+1 >= self.num_coupling_iterations:
+                if self.echo_level > 0:
+                    cs_tools.cs_print_info(self._ClassName(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
                 self.__CommunicateStateOfConvergence(True) # True because max number of iterations is achieved. Otherwise external solver is stuck in time
                 return False
 
