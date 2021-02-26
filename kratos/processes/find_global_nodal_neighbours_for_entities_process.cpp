@@ -254,15 +254,16 @@ std::unordered_map<int, std::vector<int>> FindNodalNeighboursForEntitiesProcess<
     {
     public:
         typedef GlobalPointersVector<NodeType> value_type;
-        value_type gp_vector;
+        typedef GlobalPointersVector<NodeType> return_type;
 
-        value_type GetValue()
+        return_type gp_vector;
+        return_type GetValue()
         {
             gp_vector.Unique();
             return gp_vector;
         }
 
-        void LocalReduce(const value_type& rGPVector)
+        void LocalReduce(const return_type& rGPVector)
         {
             for (auto& r_gp : rGPVector.GetContainer()) {
                 this->gp_vector.push_back(r_gp);
