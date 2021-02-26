@@ -18,7 +18,6 @@
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -263,7 +262,7 @@ private:
     ModelPart& mrModelPart;                                           /// The model part to compute
 
     bool mNonHistoricalVariable = false;                              /// If the variable is non-historical
-    const Variable<double>* mrOriginVariable;                         /// The scalar variable list to compute
+    const Variable<double>* mpOriginVariable;                         /// The scalar variable list to compute
     const Variable<double>* mpRatioReferenceVariable;                 /// Variable used to compute the anisotropic ratio
 
     Parameters mThisParameters;                                       /// Here configurations are stored
@@ -284,7 +283,7 @@ private:
      * @param rAuxiliarHessianComputationVariables Struct containing several variables
      */
     template<SizeType TDim>
-    array_1d<double, 3 * (TDim - 1)> ComputeHessianMetricTensor(
+    static array_1d<double, 3 * (TDim - 1)> ComputeHessianMetricTensor(
         const Vector& rHessian,
         const AuxiliarHessianComputationVariables& rAuxiliarHessianComputationVariables
         );
@@ -335,7 +334,7 @@ private:
      * @param BoundLayer The boundary layer limit
      * @param rInterpolation The type of interpolation
      */
-    double CalculateAnisotropicRatio(
+    static double CalculateAnisotropicRatio(
         const double Distance,
         const double AnisotropicRatio,
         const double BoundLayer,

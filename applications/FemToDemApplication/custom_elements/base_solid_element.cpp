@@ -1258,7 +1258,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
+    const std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {

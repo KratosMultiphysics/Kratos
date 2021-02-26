@@ -25,10 +25,6 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
-#ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
-#include "custom_python/add_custom_advanced_constitutive_laws_to_python.h"
-#endif // STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
-
 namespace Kratos {
 namespace Python {
 
@@ -47,10 +43,6 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     AddCustomUtilitiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
     AddCustomResponseFunctionUtilitiesToPython(m);
-
-#ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
-    AddCustomAdvancedConstitutiveLawsToPython(m);
-#endif // STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 
     py::class_<Variable<ShellCrossSection::Pointer>,VariableData >(m,"ShellCrossSectionVariable");
 

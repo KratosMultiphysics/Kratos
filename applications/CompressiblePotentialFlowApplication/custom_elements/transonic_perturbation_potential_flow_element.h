@@ -65,7 +65,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of TransonicPerturbationPotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(TransonicPerturbationPotentialFlowElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransonicPerturbationPotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
