@@ -115,7 +115,7 @@ public:
         double CharacteristicLength        = 0.0;
         double Threshold                   = 0.0;
         double Slope                       = 0.0; // d(Threshold)/d(dissipation)
-        double PlasticDamageProportion     = 0.5; // 0-> Plastic    1->Damage
+        double PlasticDamageProportion     = 0.9; // 0-> Plastic    1->Damage
     };
 
     ///@name Lyfe Cycle
