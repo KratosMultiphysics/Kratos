@@ -107,7 +107,6 @@ public:
         double NonLinearIndicator          = 0.0; // F
         double PlasticConsistencyIncrement = 0.0; // Lambda dot
         double UniaxialStress              = 0.0;
-        double HardeningParameter          = 0.0;
         double DamageDissipation           = 0.0; // Kappa d
         double DamageDissipationIncrement  = 0.0; // Kappa d dot
         double PlasticDissipation          = 0.0; // Kappa p
@@ -115,7 +114,6 @@ public:
         double TotalDissipation            = 0.0; // Kappa
         double CharacteristicLength        = 0.0;
         double Threshold                   = 0.0;
-        double PlasticDenominator          = 0.0;
         double Slope                       = 0.0; // d(Threshold)/d(dissipation)
         double PlasticDamageProportion     = 0.0; // 0-> Plastic    1->Damage
     };
@@ -564,7 +562,7 @@ public:
      * @param rValues The constitutive law parameters and flags
      */
     void CalculateElasticComplianceMatrix(
-        Matrix& rConstitutiveMatrix,
+        BoundedMatrixType& rConstitutiveMatrix,
         const Properties& rMaterialProperties
         );
 
