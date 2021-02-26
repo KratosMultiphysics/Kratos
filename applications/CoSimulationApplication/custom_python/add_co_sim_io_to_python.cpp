@@ -301,6 +301,9 @@ void  AddCoSimIOToPython(pybind11::module& m)
     m_co_sim_io.def("Connect",    &CoSimIO::Connect);
     m_co_sim_io.def("Disconnect", &CoSimIO::Disconnect);
 
+    m_co_sim_io.def("ImportInfo", &CoSimIO::ImportInfo);
+    m_co_sim_io.def("ExportInfo", &CoSimIO::ExportInfo);
+
     m_co_sim_io.def("ImportMesh", CoSimIO_Wrappers::ImportMesh);
     m_co_sim_io.def("ExportMesh", CoSimIO_Wrappers::ExportMesh);
 
