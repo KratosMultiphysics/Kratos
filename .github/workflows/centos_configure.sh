@@ -23,6 +23,7 @@ add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
 add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 
 # Clean
 clear
