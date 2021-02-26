@@ -206,8 +206,9 @@ namespace Kratos {
         } else {
             mDamageEnergyCoeff = 0.0;
         }
-        KRATOS_ERROR_IF(mDamageEnergyCoeff > 30.0) << "The fracture energy is too big for the provided strength of this material. Properties Id: "
-                                                   << element1->GetProperties().Id() << std::endl;
+        
+        KRATOS_ERROR_IF((mDamageEnergyCoeff > 10.0) || (mDamageEnergyCoeff < 0.0)) << "Damage energy is too big or too low!" << std::endl;
+
         if (mDamageEnergyCoeff < 0.0) {
             mDamageEnergyCoeff = 0.0;
         }
@@ -290,8 +291,8 @@ namespace Kratos {
         LocalElasticContactForce[2] = BondedLocalElasticContactForce2 + mUnbondedLocalElasticContactForce2;
 
         if (mDebugPrintingOption) {
-            unsigned int sphere_id = 93;
-            unsigned int neigh_sphere_id = 65;
+            unsigned int sphere_id = 1;
+            unsigned int neigh_sphere_id = 2;
 
             if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
                 static std::ofstream normal_forces_file("nl.txt", std::ios_base::out | std::ios_base::app);
@@ -516,8 +517,8 @@ namespace Kratos {
         double returned_by_mapping_tension = returned_by_mapping_force / calculation_area;
 
         if (mDebugPrintingOption) {
-            unsigned int sphere_id = 93;
-            unsigned int neigh_sphere_id = 65;
+            unsigned int sphere_id = 1;
+            unsigned int neigh_sphere_id = 2;
             double quotient = local_elastic_force_modulus / calculation_area;
             double quotient_bonded_only = local_elastic_force_modulus_bonded_only / calculation_area;
             double quotient_unbonded_only = local_elastic_force_modulus_unbonded_only / calculation_area;
