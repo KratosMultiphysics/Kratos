@@ -87,6 +87,9 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
             self._bfecc_convection = False
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "BFECC is not implemented in MPI yet. Switching to standard level set convection.")
 
+        self._reinitialization_type = "variational"
+        self._distance_smoothing = False
+
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 

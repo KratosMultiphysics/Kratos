@@ -160,12 +160,9 @@ void CrBeamElement2D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
     const double A = GetProperties()[CROSS_AREA];
     const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
-    bool use_consistent_mass_matrix = true;
-    if (GetProperties().Has(USE_CONSISTENT_MASS_MATRIX)) {
-        use_consistent_mass_matrix = GetProperties()[USE_CONSISTENT_MASS_MATRIX];
-    }
+    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo);
 
-    if (use_consistent_mass_matrix) {
+    if (!compute_lumped_mass_matrix) {
         const double pre_beam = (rho * A * L) / 420.00;
         const double pre_bar = (rho * A * L) / 6.00;
 
