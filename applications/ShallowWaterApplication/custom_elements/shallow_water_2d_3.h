@@ -55,7 +55,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ShallowWater2D3
-    KRATOS_CLASS_POINTER_DEFINITION(ShallowWater2D3);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShallowWater2D3);
 
     ///@}
     ///@name Life Cycle
