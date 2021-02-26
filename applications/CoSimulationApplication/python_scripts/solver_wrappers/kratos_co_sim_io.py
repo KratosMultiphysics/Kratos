@@ -43,7 +43,7 @@ class KratosCoSimIO(CoSimulationIO):
 
         info = CoSimIO.Info()
         info.SetString("connection_name", self.connection_name)
-        info.SetString("identifier", model_part_name)
+        info.SetString("identifier", model_part_name.replace(".", "-")) # TODO chec if better solution can be found
 
         CoSimIO.ImportMesh(info, self.model[model_part_name]) # TODO this can also be geometry at some point
 
@@ -52,7 +52,7 @@ class KratosCoSimIO(CoSimulationIO):
 
         info = CoSimIO.Info()
         info.SetString("connection_name", self.connection_name)
-        info.SetString("identifier", model_part_name)
+        info.SetString("identifier", model_part_name.replace(".", "-")) # TODO chec if better solution can be found
 
         CoSimIO.ExportMesh(info, self.model[model_part_name]) # TODO this can also be geometry at some point
 
