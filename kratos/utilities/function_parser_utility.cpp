@@ -30,7 +30,8 @@ GenericFunctionUtility::GenericFunctionUtility(
         mFunctionBody(rFunctionBody)
 {
     // Correcting function from python style to tinyexpr
-    std::unordered_map<std::string,std::string> aux_replace_letters({{"**","^"},{"X","a"},{"Y","b"},{"Z","c"}});
+    // NOTE: tinyexpr does not support capital letters
+    std::unordered_map<std::string,std::string> aux_replace_letters({{"**","^"},{"X","x0"},{"Y","y0"},{"Z","z0"}});
     for (auto& r_pair : aux_replace_letters) {
         mFunctionBody = StringUtilities::ReplaceAllSubstrings(mFunctionBody, r_pair.first, r_pair.second);
     }
@@ -173,7 +174,7 @@ void GenericFunctionUtility::InitializeParser()
         double& Z = mNameSpace["Z"];
 
         /* Store variable names and pointers. */
-        const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"a", &X}, {"b", &Y}, {"c", &Z}};
+        const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"x0", &X}, {"y0", &Y}, {"z0", &Z}};
 
         /* Compile the expression with variables. */
         mpTinyExpr = te_compile(mFunctionBody.c_str(), vars, 7, &err);
