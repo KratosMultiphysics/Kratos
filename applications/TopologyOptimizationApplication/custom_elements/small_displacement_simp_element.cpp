@@ -129,7 +129,7 @@ void SmallDisplacementSIMPElement::GetValueOnIntegrationPoints( const Variable<d
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double>& rOutput, const ProcessInfo &rCurrentProcessInfo)
+/* void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double>& rOutput, const ProcessInfo &rCurrentProcessInfo)
 {
 	KRATOS_TRY
 
@@ -196,7 +196,7 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 
 	KRATOS_CATCH( "" )
 } 
-
+ */
 
 //************************************************************************************
 //************************************************************************************
@@ -206,6 +206,70 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 		const ProcessInfo& rCurrentProcessInfo)
 {
 	KRATOS_TRY
+
+
+	std::cout<< "Variable ist: " << rVariable << " Wert"<< std::endl; 
+	if (rVariable == DCDX || rVariable == LOCAL_STRAIN_ENERGY)
+	{
+		// Get values
+		double E_min     = this->GetValue(E_MIN);
+		double E_initial = this->GetValue(E_0);
+		double E_current = this->GetValue(YOUNG_MODULUS);
+		double penalty   = this->GetValue(PENAL);
+		double x_phys    = this->GetValue(X_PHYS);
+
+		// Get element stiffness matrix and modify it with the factor that considers the adjusted Youngs Modulus according to the SIMP method
+		// Note that Ke0 is computed based on the originally provided Youngs Modulus in the .mdpa-file
+		MatrixType Ke0 = Matrix();
+		this->CalculateLeftHandSide(Ke0, const_cast <ProcessInfo&>(rCurrentProcessInfo));
+		double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
+		double factor    = (1/E_current)*E_new;
+		MatrixType Ke = Ke0 * factor;
+		std::cout<< "Variable ist: " << Ke << " Wert"<< std::endl; 
+
+		// Loop through nodes of elements and create elemental displacement vector "ue"
+		Element::GeometryType& rGeom = this->GetGeometry();
+		unsigned int NumNodes = rGeom.PointsNumber();  //NumNodes=8
+
+		// Resize "ue" according to element type
+		Vector ue;
+		ue.resize(NumNodes * 3);
+
+		// Set the displacement obtained from the FE-Analysis
+		for (unsigned int node_i = 0; node_i < NumNodes; node_i++) {
+			array_1d<double, 3> &CurrentDisplacement = rGeom[node_i].FastGetSolutionStepValue(DISPLACEMENT);
+			ue[3 * node_i + 0] = CurrentDisplacement[0];
+			ue[3 * node_i + 1] = CurrentDisplacement[1];
+			ue[3 * node_i + 2] = CurrentDisplacement[2];
+		}
+
+		// Calculate trans(ue)*Ke0*ue
+		Vector intermediateVector;
+		intermediateVector.resize(NumNodes * 3);
+		intermediateVector = prod(trans(ue), Ke0);
+		double ue_Ke0_ue = inner_prod(intermediateVector, ue);
+
+		if (rVariable == DCDX)
+		{
+			// Calculation of the compliance sensitivities DCDX
+			double dcdx = (-penalty) * (E_initial - E_min) * pow(x_phys, penalty - 1) * ue_Ke0_ue;
+			this->SetValue(DCDX, dcdx);
+			std::cout<< "Variable ist: " << dcdx << " Wert"<< std::endl; 
+		}
+		if (rVariable == LOCAL_STRAIN_ENERGY)
+		{
+			// Calculation of the local strain energy (requires Ke)
+		
+			double local_strain_energy = factor * ue_Ke0_ue;
+			this->SetValue(LOCAL_STRAIN_ENERGY, local_strain_energy);
+		}
+
+	} 
+	if (rVariable == DVDX) {
+		// Calculation of the volume sensitivities DVDX
+		this->SetValue(DVDX, 1.0);
+	}
+
 
 	// From original SmallDisplacementElement
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
