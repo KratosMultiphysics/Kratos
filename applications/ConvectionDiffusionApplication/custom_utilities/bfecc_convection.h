@@ -33,6 +33,8 @@
 #include "utilities/openmp_utils.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/pointer_communicator.h"
+#include "utilities/pointer_map_communicator.h"
 
 namespace Kratos
 {
@@ -319,6 +321,36 @@ public:
             mSigmaMinus.resize(nparticles);
         }
 
+        DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+        GlobalPointersVector< Node<3 > > gp_list;
+
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node){
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+                auto& global_pointer = global_pointer_list(j);
+                gp_list.push_back(global_pointer);
+            }
+        }
+
+        GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, gp_list);
+
+        auto coordinate_proxy = pointer_comm.Apply(
+            [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
+            {
+                return global_pointer->Coordinates();
+            }
+        );
+
+        auto distance_proxy = pointer_comm.Apply(
+            [&](GlobalPointer<Node<3> >& global_pointer) -> double
+            {
+                return global_pointer->FastGetSolutionStepValue(rVar);
+            }
+        );
+
         #pragma omp parallel for
         for (unsigned int i_node = 0; i_node < nparticles; ++i_node){
             auto it_node = rModelPart.NodesBegin() + i_node;
@@ -328,13 +360,16 @@ public:
             double S_plus = 0.0;
             double S_minus = 0.0;
 
-            for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
-                j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-                if (it_node->Id() == j_node->Id())
-                    continue;
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
 
-                const auto& X_j = j_node->Coordinates();
+                /* if (it_node->Id() == j_node->Id())
+                    continue; */
+
+                auto& global_pointer = global_pointer_list(j);
+                auto X_j = coordinate_proxy.Get(global_pointer);
 
                 S_plus += std::max(0.0, inner_prod(grad_i, X_i-X_j));
                 S_minus += std::min(0.0, inner_prod(grad_i, X_i-X_j));
@@ -354,14 +389,17 @@ public:
             double numerator = 0.0;
             double denominator = 0.0;
 
-            for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
-                j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-                if (it_node->Id() == j_node->Id())
-                    continue;
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
 
-                const double distance_j = j_node->FastGetSolutionStepValue(rVar);
-                const auto& X_j = j_node->Coordinates();
+                /* if (it_node->Id() == j_node->Id())
+                    continue; */
+
+                auto& global_pointer = global_pointer_list(j);
+                auto X_j = coordinate_proxy.Get(global_pointer);
+                const double distance_j = distance_proxy.Get(global_pointer);
 
                 double beta_ij = 1.0;
                 if (inner_prod(grad_i, X_i-X_j) > 0)

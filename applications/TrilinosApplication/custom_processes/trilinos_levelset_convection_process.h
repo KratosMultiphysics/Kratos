@@ -378,7 +378,7 @@ protected:
         auto distance_proxy = pointer_comm.Apply(
             [&](GlobalPointer<Node<3> >& global_pointer) -> double
             {
-                return global_pointer->FastGetSolutionStepValue(this->mrLevelSetVar); //TODO: Get mrLevelSetVar
+                return global_pointer->FastGetSolutionStepValue(this->mrLevelSetVar);
             }
         );
 
@@ -388,8 +388,8 @@ protected:
 
             it_node->SetValue(this->mrLevelSetVar, it_node->FastGetSolutionStepValue(this->mrLevelSetVar)); //Store mrLevelSetVar
 
-            const auto X_i = it_node->Coordinates();
-            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            const auto& X_i = it_node->Coordinates();
+            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
 
             double S_plus = 0.0;
             double S_minus = 0.0;
@@ -417,8 +417,8 @@ protected:
         for (int i_node = 0; i_node < static_cast<int>(BaseType::mpDistanceModelPart->NumberOfNodes()); ++i_node){
             auto it_node = BaseType::mpDistanceModelPart->NodesBegin() + i_node;
             const double distance_i = it_node->FastGetSolutionStepValue(this->mrLevelSetVar);
-            const auto X_i = it_node->Coordinates();
-            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            const auto& X_i = it_node->Coordinates();
+            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
 
             double numerator = 0.0;
             double denominator = 0.0;
