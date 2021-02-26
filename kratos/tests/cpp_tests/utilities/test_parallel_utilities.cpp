@@ -309,11 +309,11 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     }
     class CustomReducer{
         public:
-            typedef std::tuple<double,double> value_type;
+            typedef double value_type;
             typedef std::tuple<double,double> return_type;
 
-            double max_value = -std::numeric_limits<double>::max();
-            double max_abs = 0.0;
+            value_type max_value = -std::numeric_limits<double>::max();
+            value_type max_abs = 0.0;
 
             return_type GetValue()
             {
@@ -323,7 +323,7 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
                 return values;
             }
 
-            void LocalReduce(double function_return_value){
+            void LocalReduce(value_type function_return_value){
                 this->max_value = std::max(this->max_value,function_return_value);
                 this->max_abs   = std::max(this->max_abs,std::abs(function_return_value));
             }
