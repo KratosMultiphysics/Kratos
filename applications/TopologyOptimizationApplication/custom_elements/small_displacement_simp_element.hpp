@@ -154,7 +154,7 @@ public:
     // =============================================================================================================================================
     
     /// Function that gets the value on the Integration Point (For printing purposes in the output GiD)
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+   /// void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 /*     /// Function to calculate the sensitivities and the objective function
      void CalculateOnIntegrationPoints(

@@ -95,7 +95,7 @@ Element::Pointer SmallDisplacementSIMPElement::Clone (
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementSIMPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+/* void SmallDisplacementSIMPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 		std::vector<double>& rValues,
 		const ProcessInfo& rCurrentProcessInfo )
 {
@@ -124,7 +124,7 @@ void SmallDisplacementSIMPElement::GetValueOnIntegrationPoints( const Variable<d
 	}
 
 	KRATOS_CATCH( "" )
-}
+} */
 
 //************************************************************************************
 //************************************************************************************
@@ -206,6 +206,27 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 		const ProcessInfo& rCurrentProcessInfo)
 {
 	KRATOS_TRY
+	// Additional part for post-processing of the topology optimized model part
+	if (rVariable == X_PHYS)
+		CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+
+	// From original SmallDisplacementElement
+	else if (rVariable == VON_MISES_STRESS)
+		CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+	else {
+
+		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
+		if (rOutput.size() != integration_points.size())
+			rOutput.resize(integration_points.size());
+
+		for ( SizeType ii = 0; ii < integration_points.size(); ii++ )
+      	{
+        rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
+      	}
+
+
+	}
 
 
 	std::cout<< "Variable ist: " << rVariable << " Wert"<< std::endl; 
@@ -256,7 +277,7 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 			this->SetValue(DCDX, dcdx);
 			std::cout<< "Variable ist: " << dcdx << " Wert"<< std::endl; 
 		}
-		if (rVariable == LOCAL_STRAIN_ENERGY)
+		else if (rVariable == LOCAL_STRAIN_ENERGY)
 		{
 			// Calculation of the local strain energy (requires Ke)
 		
