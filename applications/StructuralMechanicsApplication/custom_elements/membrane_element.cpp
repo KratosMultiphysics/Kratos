@@ -149,7 +149,6 @@ void MembraneElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
         }
 
-        mReferenceArea = GetGeometry().Area();
     }
     KRATOS_CATCH( "" )
 }
@@ -1055,7 +1054,7 @@ void MembraneElement::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
 
     if (number_of_nodes == 3){
         // consistent mass matrix for triangular element can be easily pre-computed
-        const BoundedMatrix<double, 3, 3> fill_matrix = mReferenceArea*(IdentityMatrix(3)/12.0);
+        const BoundedMatrix<double, 3, 3> fill_matrix = CalculateReferenceArea()*(IdentityMatrix(3)/12.0);
         for (SizeType i=0; i<3; ++i){
             for (SizeType j=0; j<3; ++j){
                     project(rMassMatrix, range((i*3),((i+1)*3)),range((j*3),((j+1)*3))) += fill_matrix;
@@ -1147,7 +1146,7 @@ void MembraneElement::CalculateLumpedMassVector(
         rLumpedMassVector.resize(local_size, false);
     }
 
-    const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+    const double total_mass = CalculateReferenceArea() * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
     Vector lump_fact =  ZeroVector(number_of_nodes);
     ReferenceLumpingFactors(lump_fact);
@@ -1273,6 +1272,37 @@ void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector,
     KRATOS_CATCH("")
 }
 
+double MembraneElement::CalculateReferenceArea() const
+{
+    KRATOS_TRY;
+    const auto& r_geom = GetGeometry();
+    const IntegrationMethod integration_method = GetIntegrationMethod();
+
+    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);
+    const Matrix& rNcontainer = r_geom.ShapeFunctionsValues(integration_method);
+    array_1d<Vector,2> reference_covariant_base_vectors;
+
+    double detJ = 0.0;
+    double ref_area = 0.0;
+
+    for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+
+        const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+        CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
+        JacobiDeterminante(detJ,reference_covariant_base_vectors);
+
+        const double integration_weight = r_integration_points[point_number].Weight();
+        const Vector& rN = row(rNcontainer,point_number);
+
+        ref_area += integration_weight * detJ;
+    }
+    return ref_area;
+    KRATOS_CATCH("");
+}
+
+
+
 void MembraneElement::PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector)
 {
     // make sure to divide rNonPrincipalVector[2]/2 if strains are passed
@@ -1333,14 +1363,12 @@ void MembraneElement::save(Serializer& rSerializer) const
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
       rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
-      rSerializer.save("mReferenceArea", mReferenceArea);
     }
 
     void MembraneElement::load(Serializer& rSerializer)
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
       rSerializer.load("mConstitutiveLawVector", mConstitutiveLawVector);
-      rSerializer.load("mReferenceArea", mReferenceArea);
     }
 
 

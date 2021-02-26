@@ -201,33 +201,6 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         strategy.Check()
         strategy.Solve()
 
-    def _set_up_dynamic_solver(self,mp):
-
-        #define a minimal newton raphson dynamic solver
-        damp_factor_m = -0.30
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-6,1e-9)
-        convergence_criterion.SetEchoLevel(0)
-
-        max_iters = 500
-        compute_reactions = True
-        reform_step_dofs = False
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                        scheme,
-                                                                        convergence_criterion,
-                                                                        builder_and_solver,
-                                                                        max_iters,
-                                                                        compute_reactions,
-                                                                        reform_step_dofs,
-                                                                        move_mesh_flag)
-        strategy.SetEchoLevel(0)
-
-        strategy.Check()
-        return strategy
-
     def _check_static_results(self,node,displacement_results):
         #check that the results are exact on the node
         displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
@@ -404,7 +377,7 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
 
         self._set_and_fill_buffer(mp,2,dt)
 
-        strategy = self._set_up_dynamic_solver(mp)
+        strategy = _set_up_dynamic_solver(mp)
 
 
         while(time <= end_time):
@@ -438,7 +411,7 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
 
         self._set_and_fill_buffer(mp,2,dt)
 
-        strategy = self._set_up_dynamic_solver(mp)
+        strategy = _set_up_dynamic_solver(mp)
 
         while(time <= end_time):
             time = time + dt
@@ -468,7 +441,7 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
 
         self._set_and_fill_buffer(mp,2,dt)
 
-        strategy = self._set_up_dynamic_solver(mp)
+        strategy = _set_up_dynamic_solver(mp)
 
         while(time <= end_time):
             time = time + dt
@@ -498,7 +471,7 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
 
         self._set_and_fill_buffer(mp,2,dt)
 
-        strategy = self._set_up_dynamic_solver(mp)
+        strategy = _set_up_dynamic_solver(mp)
 
         while(time <= end_time):
             time = time + dt
@@ -558,6 +531,34 @@ def _create_dynamic_explicit_strategy(mp,scheme_name):
     strategy = StructuralMechanicsApplication.MechanicalExplicitStrategy(mp,scheme,0,0,1)
     strategy.SetEchoLevel(0)
     return strategy
+
+def _set_up_dynamic_solver(mp):
+
+    #define a minimal newton raphson dynamic solver
+    damp_factor_m = -0.30
+    linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+    builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+    scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+    convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-6,1e-9)
+    convergence_criterion.SetEchoLevel(0)
+
+    max_iters = 500
+    compute_reactions = True
+    reform_step_dofs = False
+    move_mesh_flag = True
+    strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                    scheme,
+                                                                    convergence_criterion,
+                                                                    builder_and_solver,
+                                                                    max_iters,
+                                                                    compute_reactions,
+                                                                    reform_step_dofs,
+                                                                    move_mesh_flag)
+    strategy.SetEchoLevel(0)
+
+    strategy.Check()
+    return strategy
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -382,7 +382,7 @@ namespace Kratos
     void ReferenceLumpingFactors(Vector& rResult) const;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-    double mReferenceArea = 0.0;
+    double CalculateReferenceArea() const;
 
     ///@}
     ///@name Serialization
