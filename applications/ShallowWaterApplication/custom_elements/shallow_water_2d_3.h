@@ -55,7 +55,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ShallowWater2D3
-    KRATOS_CLASS_POINTER_DEFINITION(ShallowWater2D3);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShallowWater2D3);
 
     ///@}
     ///@name Life Cycle
@@ -313,7 +313,6 @@ protected:
 
     struct ElementData
     {
-        double dt_inv;
         double stab_factor;
         double shock_stab_factor;
         double rel_dry_height;

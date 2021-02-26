@@ -10,47 +10,12 @@
 //
 
 #include "shell_thick_element_3D4N.hpp"
-#include "custom_utilities/shell_utilities.h"
 
 #include <string>
 #include <iomanip>
 
 namespace Kratos
 {
-// =====================================================================================
-//
-// Class JacobianOperator
-//
-// =====================================================================================
-
-template <ShellKinematics TKinematics>
-ShellThickElement3D4N<TKinematics>::JacobianOperator::JacobianOperator()
-    : mJac(2, 2, 0.0)
-    , mInv(2, 2, 0.0)
-    , mXYDeriv(4, 2, 0.0)
-    , mDet(0.0)
-{
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::JacobianOperator::Calculate(const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN)
-{
-    mJac(0, 0) = dN(0, 0) * CS.X1() + dN(1, 0) * CS.X2() + dN(2, 0) * CS.X3() + dN(3, 0) * CS.X4();
-    mJac(0, 1) = dN(0, 0) * CS.Y1() + dN(1, 0) * CS.Y2() + dN(2, 0) * CS.Y3() + dN(3, 0) * CS.Y4();
-    mJac(1, 0) = dN(0, 1) * CS.X1() + dN(1, 1) * CS.X2() + dN(2, 1) * CS.X3() + dN(3, 1) * CS.X4();
-    mJac(1, 1) = dN(0, 1) * CS.Y1() + dN(1, 1) * CS.Y2() + dN(2, 1) * CS.Y3() + dN(3, 1) * CS.Y4();
-
-    mDet = mJac(0, 0) * mJac(1, 1) - mJac(1, 0) * mJac(0, 1);
-    double mult = 1.0 / mDet;
-
-    mInv(0, 0) =   mJac(1, 1) * mult;
-    mInv(0, 1) = - mJac(0, 1) * mult;
-    mInv(1, 0) = - mJac(1, 0) * mult;
-    mInv(1, 1) =   mJac(0, 0) * mult;
-
-    noalias(mXYDeriv) = prod(dN, trans(mInv));
-}
-
 // =====================================================================================
 //
 // Class MITC4Params
@@ -277,7 +242,7 @@ ShellThickElement3D4N<TKinematics>::EASOperator::EASOperator(const ShellQ4_Local
 }
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step1(double xi, double eta, const JacobianOperator& jac,
+void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step1(double xi, double eta, const ShellUtilities::JacobianOperator& jac,
         Vector& generalizedStrains,
         EASOperatorStorage& storage)
 {
@@ -392,8 +357,6 @@ void ShellThickElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentP
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        this->mpCoordinateTransformation->Initialize();
-        this->SetupOrientationAngles();
         mEASStorage.Initialize(GetGeometry());
     }
 
@@ -401,17 +364,9 @@ void ShellThickElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentP
 }
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->mpCoordinateTransformation->InitializeNonLinearIteration();
-
-    this->BaseInitializeNonLinearIteration(rCurrentProcessInfo);
-}
-
-template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    this->mpCoordinateTransformation->FinalizeNonLinearIteration();
+    BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
 
     ShellQ4_LocalCoordinateSystem LCS(this->mpCoordinateTransformation->CreateLocalCoordinateSystem());
     Vector globalDisplacementVector(24);
@@ -419,16 +374,12 @@ void ShellThickElement3D4N<TKinematics>::FinalizeNonLinearIteration(const Proces
     Vector localDisplacementVector(this->mpCoordinateTransformation->CalculateLocalDisplacements(LCS, globalDisplacementVector));
 
     mEASStorage.FinalizeNonLinearIteration(localDisplacementVector);
-
-    this->BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    this->BaseInitializeSolutionStep(rCurrentProcessInfo);
-
-    this->mpCoordinateTransformation->InitializeSolutionStep();
+    BaseType::InitializeSolutionStep(rCurrentProcessInfo);
 
     mEASStorage.InitializeSolutionStep();
 }
@@ -436,52 +387,11 @@ void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(const ProcessInf
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    this->BaseFinalizeSolutionStep(rCurrentProcessInfo);
-
-    this->mpCoordinateTransformation->FinalizeSolutionStep();
+    BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
 
     mEASStorage.FinalizeSolutionStep();
 }
 
-template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    if ((rMassMatrix.size1() != 24) || (rMassMatrix.size2() != 24)) {
-        rMassMatrix.resize(24, 24, false);
-    }
-    noalias(rMassMatrix) = ZeroMatrix(24, 24);
-
-    // Compute the local coordinate system.
-
-    ShellQ4_LocalCoordinateSystem referenceCoordinateSystem(
-        this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-
-    // lumped area
-
-    double lump_area = referenceCoordinateSystem.Area() / 4.0;
-
-    // Calculate avarage mass per unit area
-    double av_mass_per_unit_area = 0.0;
-    for (SizeType i = 0; i < 4; i++) {
-        av_mass_per_unit_area += this->mSections[i]->CalculateMassPerUnitArea(GetProperties());
-    }
-    av_mass_per_unit_area /= 4.0;
-
-    // Gauss Loop
-
-    for (SizeType i = 0; i < 4; i++) {
-        SizeType index = i * 6;
-
-        double nodal_mass = av_mass_per_unit_area * lump_area;
-
-        // translational mass
-        rMassMatrix(index, index)            = nodal_mass;
-        rMassMatrix(index + 1, index + 1)    = nodal_mass;
-        rMassMatrix(index + 2, index + 2)    = nodal_mass;
-
-        // rotational mass - neglected for the moment...
-    }
-}
 
 // =====================================================================================
 //
@@ -538,7 +448,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
         // the jacobian matrix, its inverse, its determinant
         // and the derivatives of the shape functions in the local
         // coordinate system
-        JacobianOperator jacOp;
+        ShellUtilities::JacobianOperator jacOp;
 
         // Instantiate all strain-displacement matrices.
         Matrix B(8, 24, 0.0);
@@ -642,7 +552,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
         MITC4Params shearParameters(referenceCoordinateSystem);
 
         // Instantiate the Jacobian Operator.
-        JacobianOperator jacOp;
+        ShellUtilities::JacobianOperator jacOp;
 
         // Instantiate all strain-displacement matrices.
         Matrix B(8, 24, 0.0);
@@ -789,35 +699,6 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
 
     if (TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) {
         return;
-    }
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
-        std::vector<array_1d<double,3> >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == LOCAL_AXIS_1 ||
-            rVariable == LOCAL_AXIS_2 ||
-            rVariable == LOCAL_AXIS_3) {
-        BaseType::ComputeLocalAxis(rVariable, rOutput, this->mpCoordinateTransformation);
-    } else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
-               rVariable == LOCAL_MATERIAL_AXIS_2 ||
-               rVariable == LOCAL_MATERIAL_AXIS_3) {
-        BaseType::ComputeLocalMaterialAxis(rVariable, rOutput, this->mpCoordinateTransformation);
-    }
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
-        Output.resize(3, 3, false);
-
-        // Compute the local coordinate system.
-        ShellQ4_LocalCoordinateSystem localCoordinateSystem(
-            this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-        Output = trans(localCoordinateSystem.Orientation());
     }
 }
 
@@ -1154,69 +1035,8 @@ double ShellThickElement3D4N<TKinematics>::CalculateStenbergShearStabilization(c
 }
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::SetupOrientationAngles()
-{
-    if (this->Has(MATERIAL_ORIENTATION_ANGLE)) {
-        for (auto it = this->mSections.begin(); it != this->mSections.end(); ++it) {
-            (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
-        }
-    } else {
-        ShellQ4_LocalCoordinateSystem lcs(this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-
-        Vector3Type normal;
-        noalias(normal) = lcs.Vz();
-
-        Vector3Type dZ;
-        dZ(0) = 0.0;
-        dZ(1) = 0.0;
-        dZ(2) = 1.0; // for the moment let's take this. But the user can specify its own triad! TODO
-
-        Vector3Type dirX;
-        MathUtils<double>::CrossProduct(dirX,   dZ, normal);
-
-        // try to normalize the x vector. if it is near zero it means that we need
-        // to choose a default one.
-        double dirX_norm = dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2);
-        if (dirX_norm < 1.0E-12) {
-            dirX(0) = 1.0;
-            dirX(1) = 0.0;
-            dirX(2) = 0.0;
-        } else if (dirX_norm != 1.0) {
-            dirX_norm = std::sqrt(dirX_norm);
-            dirX /= dirX_norm;
-        }
-
-        Vector3Type elem_dirX = lcs.Vx();
-
-        // now calculate the angle between the element x direction and the material x direction.
-        Vector3Type& a = elem_dirX;
-        Vector3Type& b = dirX;
-        double a_dot_b = a(0)*b(0) + a(1)*b(1) + a(2)*b(2);
-        if (a_dot_b < -1.0) {
-            a_dot_b = -1.0;
-        }
-        if (a_dot_b >  1.0) {
-            a_dot_b =  1.0;
-        }
-        double angle = std::acos(a_dot_b);
-
-        // if they are not counter-clock-wise, let's change the sign of the angle
-        if (angle != 0.0) {
-            const MatrixType& R = lcs.Orientation();
-            if (dirX(0)*R(1, 0) + dirX(1)*R(1, 1) + dirX(2)*R(1, 2) < 0.0) {
-                angle = -angle;
-            }
-        }
-
-        for (auto it = this->mSections.begin(); it != this->mSections.end(); ++it) {
-            (*it)->SetOrientationAngle(angle);
-        }
-    }
-}
-
-template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CalculateBMatrix(double xi, double eta,
-        const JacobianOperator& Jac, const MITC4Params& mitc_params,
+        const ShellUtilities::JacobianOperator& Jac, const MITC4Params& mitc_params,
         const Vector& N,
         Matrix& B, Vector& Bdrill)
 {
@@ -1369,7 +1189,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
     // and the derivatives of the shape functions in the local
     // coordinate system
 
-    JacobianOperator jacOp;
+    ShellUtilities::JacobianOperator jacOp;
     array_1d<double, 4> dArea;
 
     // Instantiate all strain-displacement matrices.
@@ -1595,7 +1415,7 @@ bool ShellThickElement3D4N<TKinematics>::TryCalculateOnIntegrationPoints_General
     // and the derivatives of the shape functions in the local
     // coordinate system
 
-    JacobianOperator jacOp;
+    ShellUtilities::JacobianOperator jacOp;
 
     // Instantiate all strain-displacement matrices.
 
