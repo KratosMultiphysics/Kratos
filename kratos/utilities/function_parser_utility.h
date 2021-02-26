@@ -179,7 +179,6 @@ private:
 
     std::unordered_map<std::string, double>  mNameSpace;   /// The variables considered on the function
     te_expr* mpTinyExpr = nullptr;                         /// The function parser
-    std::string mOriginalFunctionBody;                     /// The function body (not modified)
     std::string mFunctionBody;                             /// The function body
 
     bool mDependsOnSpace = true;                 /// If it depends on space

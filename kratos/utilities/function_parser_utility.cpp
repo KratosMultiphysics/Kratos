@@ -26,8 +26,7 @@ namespace Kratos
 GenericFunctionUtility::GenericFunctionUtility(
     const std::string& rFunctionBody,
     Parameters LocalSystem
-    ) : mOriginalFunctionBody(rFunctionBody),
-        mFunctionBody(rFunctionBody)
+    ) : mFunctionBody(rFunctionBody)
 {
     // Correcting function from python style to tinyexpr
     // NOTE: tinyexpr does not support capital letters
@@ -63,12 +62,9 @@ GenericFunctionUtility::GenericFunctionUtility(
     }
 
     // Check if it depends on space
-    if (mOriginalFunctionBody.find(std::string("x")) == std::string::npos &&
-        mOriginalFunctionBody.find(std::string("y")) == std::string::npos &&
-        mOriginalFunctionBody.find(std::string("z")) == std::string::npos &&
-        mOriginalFunctionBody.find(std::string("X")) == std::string::npos &&
-        mOriginalFunctionBody.find(std::string("Y")) == std::string::npos &&
-        mOriginalFunctionBody.find(std::string("Z")) == std::string::npos) {
+    if (mFunctionBody.find(std::string("x")) == std::string::npos &&
+        mFunctionBody.find(std::string("y")) == std::string::npos &&
+        mFunctionBody.find(std::string("z")) == std::string::npos) {
         mDependsOnSpace = false;
     }
 }
@@ -78,7 +74,6 @@ GenericFunctionUtility::GenericFunctionUtility(
 
 GenericFunctionUtility::GenericFunctionUtility(GenericFunctionUtility const& rOther)
     : mNameSpace(rOther.mNameSpace),
-      mOriginalFunctionBody(rOther.mOriginalFunctionBody),
       mFunctionBody(rOther.mFunctionBody),
       mDependsOnSpace(rOther.mDependsOnSpace),
       mUseLocalSystem(rOther.mUseLocalSystem),
@@ -102,7 +97,12 @@ GenericFunctionUtility::~GenericFunctionUtility()
 
 std::string GenericFunctionUtility::FunctionBody()
 {
-    return mOriginalFunctionBody;
+    std::string aux_string = mFunctionBody;
+    std::unordered_map<std::string,std::string> aux_replace_letters({{"**","^"},{"X","x0"},{"Y","y0"},{"Z","z0"}});
+    for (auto& r_pair : aux_replace_letters) {
+         aux_string = StringUtilities::ReplaceAllSubstrings(aux_string, r_pair.second, r_pair.first);
+    }
+    return aux_string;
 }
 
 /***********************************************************************************/
