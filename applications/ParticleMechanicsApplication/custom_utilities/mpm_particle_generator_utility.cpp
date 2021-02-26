@@ -385,9 +385,12 @@ namespace MPMParticleGeneratorUtility
                             ProcessInfo process_info = ProcessInfo();
 
                             auto p_new_node = rBackgroundGridModelPart.CreateNewNode(rBackgroundGridModelPart.Nodes().size() + 1, mpc_xg[0][0], mpc_xg[0][1], mpc_xg[0][2]);
-                                    // p_new_node->AddDof(DISPLACEMENT_X,REACTION_X);
-                                    // p_new_node->AddDof(DISPLACEMENT_Y,REACTION_Y);
-                                    // p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
+                                    p_new_node->AddDof(DISPLACEMENT_X,REACTION_X);
+                                    p_new_node->AddDof(DISPLACEMENT_Y,REACTION_Y);
+                                    p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
+                                    p_new_node->AddDof(VELOCITY_X);
+                                    p_new_node->AddDof(VELOCITY_Y);
+                                    p_new_node->AddDof(VELOCITY_Z);
 
                                     
                             p_condition->SetValue(MPC_NODE, p_new_node);

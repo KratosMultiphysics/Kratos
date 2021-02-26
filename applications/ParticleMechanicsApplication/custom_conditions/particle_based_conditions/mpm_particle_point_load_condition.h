@@ -178,6 +178,12 @@ protected:
      */
     double GetPointLoadIntegrationWeight() override;
 
+    /**
+     * Called at the beginning of each solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
 
     /**
      * Called at the end of eahc solution step
