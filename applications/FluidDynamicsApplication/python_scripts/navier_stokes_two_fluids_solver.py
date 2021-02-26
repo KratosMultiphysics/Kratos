@@ -251,6 +251,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 if (self._eulerian_error_compensation):
                     self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
                 self._GetLevelSetConvectionProcess().Execute()
+
         # Recompute the distance field according to the new level-set position
         if (self._reinitialization_type == "variational"):
             self._GetDistanceReinitializationProcess().Execute()
