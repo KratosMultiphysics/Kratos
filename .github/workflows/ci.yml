@@ -184,3 +184,9 @@ jobs:
       run: |
         cp .github/workflows/temp_centos_configure.sh temp_centos_configure.sh
         bash temp_centos_configure.sh
+
+    - name: Running small tests
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Release
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Release/libs
+        python3 kratos/python_scripts/run_tests.py -l small -c python3
