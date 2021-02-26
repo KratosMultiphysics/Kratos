@@ -307,14 +307,16 @@ protected:
         auto& r_element_nodes = rElement.GetGeometry();
         const std::size_t num_nodal_dofs = num_element_dofs/num_element_nodes;
         std::size_t dof_component_index;
+        std::size_t dof_index;
         for (std::size_t i_node = 0; i_node < num_element_nodes; ++i_node)
         {
             auto& r_node = r_element_nodes[i_node];
             
-            // Loop over nodal dofs
+            // Loop over nodal dofs of this element
             for (std::size_t i_dof = 0; i_dof < num_nodal_dofs; ++i_dof)
             {
-                auto& rp_dof = r_element_dof_list[i_node*num_nodal_dofs+i_dof];
+                dof_index = i_node*num_nodal_dofs+i_dof;
+                auto& rp_dof = r_element_dof_list[dof_index];
                 
                 if (rp_dof->IsFree())
                 {
@@ -350,7 +352,7 @@ protected:
                     noalias(element_LHS_derivative) = ((element_LHS_p_perturbed - element_LHS_m_perturbed) / (2.0*BaseType::mFiniteDifferenceStepSize));
                     
                     // Compute adjoint RHS contribution
-                    rAdjointRHS_Contribution[i_node*num_nodal_dofs+i_dof] = -inner_prod(prod(element_LHS_derivative, phi_elemental), phi_elemental);
+                    rAdjointRHS_Contribution[dof_index] = -inner_prod(prod(element_LHS_derivative, phi_elemental), phi_elemental);
                 }
 
             }
