@@ -6,7 +6,7 @@ Begin Properties 0
 End Properties
 Begin Properties 1
     DENSITY   7.85000E+03 
-    YOUNG_MODULUS   1000
+    YOUNG_MODULUS   200.00000E+09
     POISSON_RATIO   2.90000E-01 
 End Properties
 
@@ -19616,7 +19616,7 @@ Begin Conditions PointLoadCondition3D1N// GUI group identifier: load
 6 0 89
 End Conditions
 
-Begin SubModelPart Parts_solid // Group solid // Subtree Parts
+Begin SubModelPart Parts_structure // Group structure // Subtree Parts
     Begin SubModelPartNodes
          1
          2

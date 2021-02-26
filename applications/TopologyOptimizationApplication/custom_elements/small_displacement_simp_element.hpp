@@ -18,9 +18,6 @@
 
 #include "structural_mechanics_application.h"
 #include "custom_elements/small_displacement.h"
-#include "includes/define.h"
-#include "custom_elements/base_solid_element.h"
-#include "includes/variables.h"
 
 
 namespace Kratos
@@ -101,7 +98,7 @@ public:
     ///@{
 
     /// Assignment operator.
-    // SmallDisplacementSIMPElement& operator=(SmallDisplacementSIMPElement const& rOther);
+    SmallDisplacementSIMPElement& operator=(SmallDisplacementSIMPElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -157,14 +154,14 @@ public:
     // =============================================================================================================================================
     
     /// Function that gets the value on the Integration Point (For printing purposes in the output GiD)
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+   /// void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Function to calculate the sensitivities and the objective function
-    void Calculate(
+     void Calculate(
     const Variable<double>& rVariable,
-    std::vector<double>& rOutput,
+    double &rOutput,
     const ProcessInfo& rCurrentProcessInfo
-    );
+    );  
 
     
 
