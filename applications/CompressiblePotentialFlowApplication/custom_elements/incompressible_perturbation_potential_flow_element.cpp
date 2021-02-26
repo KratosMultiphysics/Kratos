@@ -727,7 +727,16 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
 
     const BoundedVector<double, NumNodes> upper_rhs = - data.vol * free_stream_density * prod(data.DN_DX, upper_velocity);
     const BoundedVector<double, NumNodes> lower_rhs = - data.vol * free_stream_density * prod(data.DN_DX, lower_velocity);
-    const BoundedVector<double, NumNodes> wake_rhs = - data.vol * free_stream_density * prod(data.DN_DX, diff_velocity);
+
+    // Wake condition matrix
+    BoundedMatrix<double, Dim, Dim> condition_matrix = IdentityMatrix(Dim,Dim);
+    condition_matrix(0,0) = 1.0;
+    condition_matrix(1,1) = 0.0;
+    condition_matrix(2,2) = 0.0;
+
+    const auto xzfilter = prod(data.DN_DX, condition_matrix);
+
+    const BoundedVector<double, NumNodes> wake_rhs = - data.vol * free_stream_density * prod(xzfilter, diff_velocity);
 
     if (this->Is(STRUCTURE))
     {
@@ -929,10 +938,10 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignRightH
 {
     if (rData.distances[rRow] > 0.0){
         rRightHandSideVector[rRow] = rUpper_rhs(rRow);
-        rRightHandSideVector[rRow + NumNodes] = 0.0; //rWake_rhs(rRow);
+        rRightHandSideVector[rRow + NumNodes] = -rWake_rhs(rRow);
     }
     else{
-        rRightHandSideVector[rRow] = 0.0; //rWake_rhs(rRow);
+        rRightHandSideVector[rRow] = rWake_rhs(rRow);
         rRightHandSideVector[rRow + NumNodes] = rLower_rhs(rRow);
     }
 }

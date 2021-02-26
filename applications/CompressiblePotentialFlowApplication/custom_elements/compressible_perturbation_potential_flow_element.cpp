@@ -745,9 +745,11 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignRightHan
 {
     if (rData.distances[rRow] > 0.0){
         rRightHandSideVector[rRow] = rUpper_rhs(rRow);
-        rRightHandSideVector[rRow + NumNodes] = rWake_rhs(rRow);
+        // TODO: Check theory behind setting rhs to 0
+        rRightHandSideVector[rRow + TNumNodes] = -rWake_rhs(rRow);
     }
     else{
+        // TODO: Check theory behind setting rhs to 0
         rRightHandSideVector[rRow] = rWake_rhs(rRow);
         rRightHandSideVector[rRow + NumNodes] = rLower_rhs(rRow);
     }
