@@ -263,7 +263,7 @@ std::unordered_map<int, std::vector<int>> FindNodalNeighboursForEntitiesProcess<
             return gp_vector;
         }
 
-        void LocalReduce(const return_type& rGPVector)
+        void LocalReduce(const value_type& rGPVector)
         {
             for (auto& r_gp : rGPVector.GetContainer()) {
                 this->gp_vector.push_back(r_gp);
