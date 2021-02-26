@@ -141,18 +141,18 @@ public:
         // Get PhiElemental
         LocalSystemVectorType phi_elemental;
         this->GetPhiElemental(phi_elemental, basis_i, rElement, rCurrentProcessInfo);
-        const std::size_t element_dofs_size = phi_elemental.size();
+        const std::size_t num_element_dofs = phi_elemental.size();
 
         // Initialize rRHS_Contribution
-        if (rRHS_Contribution.size() != element_dofs_size)
-            rRHS_Contribution.resize(element_dofs_size,false);
+        if (rRHS_Contribution.size() != num_element_dofs)
+            rRHS_Contribution.resize(num_element_dofs,false);
         rRHS_Contribution.clear();
 
         // Compute element LHS derivative
         // Lock element nodes for OMP parallelism
         this->LockElementNodes(rElement);
         
-        Matrix element_matrix_derivative(element_dofs_size, element_dofs_size);
+        Matrix element_matrix_derivative(num_element_dofs, num_element_dofs);
         // Perform FD
         switch (BaseType::mFiniteDifferenceType)
         {
@@ -303,13 +303,14 @@ protected:
         this->GetPhiElemental(phi_elemental, BasisIndex, rElement, rCurrentProcessInfo);
 
         // Apply perturbation
-        const std::size_t nodal_dof_size = phi_elemental.size()/rElement.GetGeometry().size();
-        for(std::size_t i_node = 0; i_node < rElement.GetGeometry().size(); ++i_node)
+        const std::size_t num_element_nodes = rElement.GetGeometry().size();
+        const std::size_t num_nodal_dofs = phi_elemental.size()/num_element_nodes;
+        for(std::size_t i_node = 0; i_node < num_element_nodes; ++i_node)
         {
-            for (std::size_t i_dof = 0; i_dof < nodal_dof_size; ++i_dof)
+            for (std::size_t i_dof = 0; i_dof < num_nodal_dofs; ++i_dof)
             {
-                const double dof_perturbation = Step*BaseType::mFiniteDifferenceStepSize*phi_elemental[i_node*nodal_dof_size+i_dof];
-                auto& rp_dof = r_element_dof_list[i_node*nodal_dof_size+i_dof];
+                const double dof_perturbation = Step*BaseType::mFiniteDifferenceStepSize*phi_elemental[i_node*num_nodal_dofs+i_dof];
+                auto& rp_dof = r_element_dof_list[i_node*num_nodal_dofs+i_dof];
 
                 // Some elements need solution step value while others need the current coordinate. Thus perturb all!
                 // Update solution step value

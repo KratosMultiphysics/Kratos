@@ -158,11 +158,11 @@ public:
         // Get element DOF list and resize rRHS_Contribution
         TElementDofPointersVectorType r_element_dof_list;
         rElement.GetDofList(r_element_dof_list, rCurrentProcessInfo);
-        const std::size_t element_dofs_size = r_element_dof_list.size();
+        const std::size_t num_element_dofs = r_element_dof_list.size();
 
         // Initialize rRHS_contribution
-        if (rRHS_Contribution.size() != element_dofs_size)
-            rRHS_Contribution.resize(element_dofs_size, false);
+        if (rRHS_Contribution.size() != num_element_dofs)
+            rRHS_Contribution.resize(num_element_dofs, false);
         rRHS_Contribution.clear();
 
         // Basis derivative RHS contribution
@@ -221,14 +221,14 @@ protected:
         const std::size_t basis_i = rCurrentProcessInfo[BASIS_I];
 
         // Get element DOF list
-        const std::size_t element_dofs_size = rRHS_Contribution.size();
+        const std::size_t num_element_dofs = rRHS_Contribution.size();
 
         // Get PhiElemental
         LocalSystemVectorType phi_elemental;
         this->GetPhiElemental(phi_elemental, basis_i, rElement, rCurrentProcessInfo);
 
         // Compute element matrix derivative
-        LocalSystemMatrixType element_matrix_derivative(element_dofs_size, element_dofs_size);
+        LocalSystemMatrixType element_matrix_derivative(num_element_dofs, num_element_dofs);
         element_matrix_derivative.clear();
         switch (mDerivativeParameter)
         {

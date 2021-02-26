@@ -270,7 +270,7 @@ protected:
             } 
             else
             {
-                // if not successful: unlock all locked nodes and empty locked nodes vector
+                // if not successful: unlock all locked nodes
                 for (auto it_locked_node = element_nodes.begin(); it_locked_node != it_node; ++it_locked_node)
                     it_locked_node->UnSetLock();
                     
@@ -319,20 +319,21 @@ protected:
         rElement.GetDofList(r_element_dof_list, rCurrentProcessInfo);
 
         // Get elemental and nodal DOFs size
-        const std::size_t element_dofs_size = r_element_dof_list.size();
-        const std::size_t nodal_dof_size = element_dofs_size/rElement.GetGeometry().size();
+        const std::size_t num_element_dofs = r_element_dof_list.size();
+        const std::size_t num_element_nodes = rElement.GetGeometry().size();
+        const std::size_t num_nodal_dofs = num_element_dofs/num_element_nodes;
         
         // Get PhiElemental
-        if (rPhiElemental.size() != element_dofs_size)
-            rPhiElemental.resize(element_dofs_size, false);
-        for(std::size_t i_node = 0; i_node < rElement.GetGeometry().size(); ++i_node)
+        if (rPhiElemental.size() != num_element_dofs)
+            rPhiElemental.resize(num_element_dofs, false);
+        for(std::size_t i_node = 0; i_node < num_element_nodes; ++i_node)
         {
             const auto& r_node = rElement.GetGeometry()[i_node];
             const auto& r_phi_nodal = r_node.GetValue(ROM_BASIS);
-            for (std::size_t i_dof = 0; i_dof < nodal_dof_size; ++i_dof)
+            for (std::size_t i_dof = 0; i_dof < num_nodal_dofs; ++i_dof)
             {
-                const auto& rp_dof = r_element_dof_list[i_node*nodal_dof_size+i_dof];
-                rPhiElemental[i_node*nodal_dof_size+i_dof] = r_phi_nodal(rCurrentProcessInfo[MAP_PHI].at(rp_dof->GetVariable().Key()), BasisIndex);
+                const auto& rp_dof = r_element_dof_list[i_node*num_nodal_dofs+i_dof];
+                rPhiElemental[i_node*num_nodal_dofs+i_dof] = r_phi_nodal(rCurrentProcessInfo[MAP_PHI].at(rp_dof->GetVariable().Key()), BasisIndex);
             }
         }
         KRATOS_CATCH("")
