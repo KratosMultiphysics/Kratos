@@ -386,11 +386,11 @@ protected:
     const bool mIsBfecc;
     const bool mPartialDt;
 
-    std::vector< double > mOldDistance;
-    std::vector< double > mError;
+    Kratos::Vector mOldDistance;
+    Kratos::Vector mError;
     std::vector< array_1d<double,3> > mVelocity, mVelocityOld;
-    std::vector< double > mSigmaPlus, mSigmaMinus;
-    std::vector< double > mLimiter;
+    Kratos::Vector mSigmaPlus, mSigmaMinus;
+    Kratos::Vector mLimiter;
 
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
@@ -616,8 +616,8 @@ protected:
 
             it_node->SetValue(mrLevelSetVar, it_node->FastGetSolutionStepValue(mrLevelSetVar)); //Store mrLevelSetVar
 
-            const auto X_i = it_node->Coordinates();
-            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            const auto& X_i = it_node->Coordinates();
+            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
 
             double S_plus = 0.0;
             double S_minus = 0.0;
@@ -628,7 +628,7 @@ protected:
                 if (it_node->Id() == j_node->Id())
                     continue;
 
-                const auto X_j = j_node->Coordinates();
+                const auto& X_j = j_node->Coordinates();
 
                 S_plus += std::max(0.0, inner_prod(grad_i, X_i-X_j));
                 S_minus += std::min(0.0, inner_prod(grad_i, X_i-X_j));
@@ -643,8 +643,8 @@ protected:
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             const double distance_i = it_node->FastGetSolutionStepValue(mrLevelSetVar);
-            const auto X_i = it_node->Coordinates();
-            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            const auto& X_i = it_node->Coordinates();
+            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
 
             double numerator = 0.0;
             double denominator = 0.0;
@@ -656,7 +656,7 @@ protected:
                     continue;
 
                 const double distance_j = j_node->FastGetSolutionStepValue(mrLevelSetVar);
-                const auto X_j = j_node->Coordinates();
+                const auto& X_j = j_node->Coordinates();
 
                 double beta_ij = 1.0;
 

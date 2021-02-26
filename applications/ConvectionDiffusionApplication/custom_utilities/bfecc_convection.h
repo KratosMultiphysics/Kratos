@@ -314,14 +314,16 @@ public:
 
         const unsigned int nparticles = rModelPart.Nodes().size();
 
-        mSigmaPlus.resize(nparticles);
-        mSigmaMinus.resize(nparticles);
+        if(mSigmaPlus.size() != nparticles){
+            mSigmaPlus.resize(nparticles);
+            mSigmaMinus.resize(nparticles);
+        }
 
         #pragma omp parallel for
         for (unsigned int i_node = 0; i_node < nparticles; ++i_node){
             auto it_node = rModelPart.NodesBegin() + i_node;
-            const auto X_i = it_node->Coordinates();
-            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            const auto& X_i = it_node->Coordinates();
+            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
 
             double S_plus = 0.0;
             double S_minus = 0.0;
@@ -332,7 +334,7 @@ public:
                 if (it_node->Id() == j_node->Id())
                     continue;
 
-                const auto X_j = j_node->Coordinates();
+                const auto& X_j = j_node->Coordinates();
 
                 S_plus += std::max(0.0, inner_prod(grad_i, X_i-X_j));
                 S_minus += std::min(0.0, inner_prod(grad_i, X_i-X_j));
@@ -346,8 +348,8 @@ public:
         for (unsigned int i_node = 0; i_node < nparticles; ++i_node){
             auto it_node = rModelPart.NodesBegin() + i_node;
             const double distance_i = it_node->FastGetSolutionStepValue(rVar);
-            const auto X_i = it_node->Coordinates();
-            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            const auto& X_i = it_node->Coordinates();
+            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
 
             double numerator = 0.0;
             double denominator = 0.0;
@@ -359,7 +361,7 @@ public:
                     continue;
 
                 const double distance_j = j_node->FastGetSolutionStepValue(rVar);
-                const auto X_j = j_node->Coordinates();
+                const auto& X_j = j_node->Coordinates();
 
                 double beta_ij = 1.0;
                 if (inner_prod(grad_i, X_i-X_j) > 0)
@@ -432,7 +434,7 @@ public:
     }
 
 protected:
-    std::vector< double > mSigmaPlus, mSigmaMinus, mLimiter;
+    Kratos::Vector mSigmaPlus, mSigmaMinus, mLimiter;
 
 private:
     typename BinBasedFastPointLocator<TDim>::Pointer mpSearchStructure;
