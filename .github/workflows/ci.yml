@@ -189,4 +189,4 @@ jobs:
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Release
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Release/libs
-        python3 kratos/python_scripts/run_tests.py -l small -c python3
+        python3.5 kratos/python_scripts/run_tests.py -l small -c python3.5
