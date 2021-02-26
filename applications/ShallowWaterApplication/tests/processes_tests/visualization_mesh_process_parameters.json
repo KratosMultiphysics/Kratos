@@ -32,7 +32,7 @@
                 "value"           : "z"
             }
         },{
-            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication.output",
             "python_module"   : "visualization_mesh_process",
             "Parameters"      : {
                 "model_part_name"                : "main_model_part",

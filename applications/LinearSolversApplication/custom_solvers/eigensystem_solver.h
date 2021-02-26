@@ -18,13 +18,13 @@
 // Project includes
 #include "includes/define.h"
 #if defined EIGEN_USE_MKL_ALL
-#include "eigen_pardiso_ldlt_solver.h"
+#include "eigen_pardiso_lu_solver.h"
 #endif // defined EIGEN_USE_MKL_ALL
 #include "eigen_sparse_lu_solver.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
-#include "utilities/openmp_utils.h"
 #include "custom_utilities/ublas_wrapper.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
@@ -110,8 +110,7 @@ class EigensystemSolver
 
 
         // --- timer
-
-        double start_time = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
 
         KRATOS_INFO_IF("EigensystemSolver:", echo_level > 0) << "Start"  << std::endl;
 
@@ -178,7 +177,7 @@ class EigensystemSolver
 
         #if defined USE_EIGEN_MKL
         if (mParam["use_mkl_if_available"].GetBool()) {
-            p_solver = Kratos::make_unique<DirectSolverWrapper<EigenPardisoLDLTSolver<double>>>();
+            p_solver = Kratos::make_unique<DirectSolverWrapper<EigenPardisoLUSolver<double>>>();
         } else {
             p_solver = Kratos::make_unique<DirectSolverWrapper<EigenSparseLUSolver<double>>>();
         }
@@ -286,8 +285,7 @@ class EigensystemSolver
 
         // --- output
         if (echo_level > 0) {
-            double end_time = OpenMPUtils::GetCurrentTime();
-            double duration = end_time - start_time;
+            double duration = timer.ElapsedSeconds();
 
             Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "[ ", " ]");
 

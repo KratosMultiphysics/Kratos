@@ -17,6 +17,7 @@ class BaseBenchmarkProcess(KM.Process):
 
         It is intended to be called from the constructor of deriving classes.
         """
+
         super().__init__()
 
         default_settings = KM.Parameters("""
@@ -42,6 +43,7 @@ class BaseBenchmarkProcess(KM.Process):
 
     def ExecuteInitialize(self):
         """This method sets the topography and the initial conditions"""
+
         time = self.model_part.ProcessInfo[KM.TIME]
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(SW.TOPOGRAPHY, self._Topography(node))
@@ -52,6 +54,7 @@ class BaseBenchmarkProcess(KM.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         """This method computes the exact values of the benchmark and computes the error of the simulation"""
+
         time = self.model_part.ProcessInfo[KM.TIME]
         for node in self.model_part.Nodes:
             for (variable, exact_variable, error_variable) in zip(self.variables, self.exact_variables, self.error_variables):
