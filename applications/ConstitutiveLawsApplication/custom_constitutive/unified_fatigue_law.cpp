@@ -87,37 +87,24 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
         noalias(PlasticDamageParameters.StrainVector) = r_strain_vector;
         PlasticDamageParameters.CharacteristicLength  = characteristic_length;
 
-        // KRATOS_WATCH(PlasticDamageParameters.Threshold)
-        // KRATOS_WATCH(PlasticDamageParameters.TotalDissipation)
-        // KRATOS_WATCH(PlasticDamageParameters.PlasticStrain)
+        CheckMinimumFractureEnergy(rValues, PlasticDamageParameters);
 
         CalculateConstitutiveMatrix(rValues, PlasticDamageParameters);
         noalias(rValues.GetConstitutiveMatrix()) = PlasticDamageParameters.ConstitutiveMatrix;
 
         noalias(PlasticDamageParameters.StressVector) = prod(PlasticDamageParameters.ConstitutiveMatrix,
             r_strain_vector - PlasticDamageParameters.PlasticStrain);
-            
-            KRATOS_WATCH(r_strain_vector)
-            KRATOS_WATCH(PlasticDamageParameters.StressVector)
-            // KRATOS_WATCH(PlasticDamageParameters.PlasticStrain)
 
         TYieldSurfaceType::CalculateEquivalentStress(PlasticDamageParameters.StressVector, 
             PlasticDamageParameters.StrainVector, PlasticDamageParameters.UniaxialStress, rValues);
-        // KRATOS_WATCH(PlasticDamageParameters.UniaxialStress)
 
         PlasticDamageParameters.NonLinearIndicator = PlasticDamageParameters.UniaxialStress - mThreshold;
 
-        if (PlasticDamageParameters.NonLinearIndicator <= std::abs(1.0e-4 * mThreshold)) { // Elastic case
-                noalias(r_integrated_stress_vector) = PlasticDamageParameters.StressVector;
+        if (PlasticDamageParameters.NonLinearIndicator <= std::abs(1.0e-4 * mThreshold)) {
+            noalias(r_integrated_stress_vector) = PlasticDamageParameters.StressVector;
         } else {
-            // KRATOS_WATCH("NON LINEAL")
             IntegrateStressPlasticDamageMechanics(rValues, PlasticDamageParameters);
             noalias(r_integrated_stress_vector) = PlasticDamageParameters.StressVector;
-            // KRATOS_WATCH(r_integrated_stress_vector)
-            // KRATOS_WATCH(PlasticDamageParameters.StrainVector)
-            // KRATOS_WATCH(PlasticDamageParameters.PlasticStrain)
-            // KRATOS_WATCH(PlasticDamageParameters.UniaxialStress)
-            // KRATOS_WATCH(PlasticDamageParameters.Threshold)
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
@@ -162,6 +149,8 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
     noalias(PlasticDamageParameters.ComplianceMatrix) = mComplianceMatrix;
     noalias(PlasticDamageParameters.StrainVector) = r_strain_vector;
     PlasticDamageParameters.CharacteristicLength  = characteristic_length;
+
+    CheckMinimumFractureEnergy(rValues, PlasticDamageParameters);
 
     CalculateConstitutiveMatrix(rValues, PlasticDamageParameters);
     noalias(PlasticDamageParameters.StressVector) = prod(PlasticDamageParameters.ConstitutiveMatrix,
@@ -326,9 +315,8 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::IntegrateStressPlasticDamageMechanics
         noalias(rPDParameters.PlasticStrain) += rPDParameters.PlasticStrainIncrement;
 
         // Correct the stress
-        noalias(delta_sigma) = prod(rPDParameters.ConstitutiveMatrix, 
-            rPDParameters.PlasticStrainIncrement);
-        noalias(rPDParameters.StressVector) -= delta_sigma;
+        noalias(rPDParameters.StressVector) = prod(rPDParameters.ConstitutiveMatrix, 
+            rPDParameters.StrainVector - rPDParameters.PlasticStrain);
 
         // Compute the non-linear dissipation performed
         CalculatePlasticDissipationIncrement(r_mat_properties, rPDParameters);
@@ -336,10 +324,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::IntegrateStressPlasticDamageMechanics
         rPDParameters.DamageDissipation  += rPDParameters.DamageDissipationIncrement;
         rPDParameters.PlasticDissipation += rPDParameters.PlasticDissipationIncrement;
         rPDParameters.TotalDissipation   = (rPDParameters.PlasticDissipation + 
-                                             rPDParameters.DamageDissipation);
-
-        // KRATOS_WATCH(rPDParameters.DamageDissipation)
-        // KRATOS_WATCH(rPDParameters.PlasticDissipation)
+            rPDParameters.DamageDissipation);
 
         // updated uniaxial and threshold stress check
         TYieldSurfaceType::CalculateEquivalentStress(rPDParameters.StressVector, 
@@ -353,7 +338,6 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::IntegrateStressPlasticDamageMechanics
             iteration++;
         }
     }
-    KRATOS_WATCH(iteration)
     if (iteration > max_iter) {
         KRATOS_WARNING_FIRST_N("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
