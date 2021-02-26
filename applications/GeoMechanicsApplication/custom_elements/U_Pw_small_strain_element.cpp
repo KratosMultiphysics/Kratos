@@ -159,13 +159,13 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("01-UPwSmallStrainElement::UpdateElementalVariableStressVector()") << std::endl;
+    // KRATOS_INFO("0-UPwSmallStrainElement::UpdateElementalVariableStressVector()") << std::endl;
 
     for (unsigned int i=0; i < StressVector.size(); ++i)
     {
         StressVector(i) = mStressVector[PointNumber][i];
     }
-    // KRATOS_INFO("11-UPwSmallStrainElement::UpdateElementalVariableStressVector()") << std::endl;
+    // KRATOS_INFO("1-UPwSmallStrainElement::UpdateElementalVariableStressVector()") << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -194,14 +194,14 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     UpdateStressVector(const Vector &StressVector, const unsigned int &PointNumber)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("01-UPwSmallStrainElement::UpdateStressVector()") << std::endl;
+    // KRATOS_INFO("0-UPwSmallStrainElement::UpdateStressVector()") << std::endl;
 
     for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
     {
         mStressVector[PointNumber][i] = StressVector(i);
     }
 
-    // KRATOS_INFO("11-UPwSmallStrainElement::UpdateStressVector()") << std::endl;
+    // KRATOS_INFO("1-UPwSmallStrainElement::UpdateStressVector()") << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -782,7 +782,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("01-UPwSmallStrainElement::CalculateOnIntegrationPoints()") << std::endl;
+    // KRATOS_INFO("0-UPwSmallStrainElement::CalculateOnIntegrationPoints<double,3>()") << std::endl;
 
     if (rVariable == FLUID_FLUX_VECTOR)
     {
@@ -852,7 +852,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         }
     }
 
-    // KRATOS_INFO("11-UPwSmallStrainElement::CalculateOnIntegrationPoints()") << std::endl;
+    // KRATOS_INFO("1-UPwSmallStrainElement::CalculateOnIntegrationPoints<double,3>()") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -1267,9 +1267,11 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     // gradient of shape functions and determinant of Jacobian
     (rVariables.detJContainer).resize(NumGPoints,false);
+
     Geom.ShapeFunctionsIntegrationPointsGradients( rVariables.DN_DXContainer,
                                                    rVariables.detJContainer,
                                                    this->GetIntegrationMethod() );
+
 
     //Constitutive Law parameters
     rVariables.StrainVector.resize(VoigtSize,false);
