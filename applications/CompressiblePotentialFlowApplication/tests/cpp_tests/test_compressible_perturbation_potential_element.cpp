@@ -168,7 +168,7 @@ BoundedVector<double,3> AssignDistancesToPerturbationCompressibleElement()
     return distances;
 }
 
-void AssignPotentialsToWakeCompressiblePerturbationElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances, const std::array<double, 6> rPotential)
+void AssignPotentialsToWakeCompressiblePerturbationElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances, const std::array<double, 6>& rPotential)
 {
     for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) > 0.0)
