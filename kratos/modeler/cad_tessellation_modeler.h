@@ -135,7 +135,6 @@ private:
      * @brief This method returns the triangulation of a NURBS surface
      */
     std::vector<Matrix> ComputeSurfaceTriangulation(
-        ModelPart& rSkinModelPart,
         const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
         const std::vector<array_1d<double, 2>>& rBoundaryLoopUV
     );
@@ -149,6 +148,11 @@ private:
     std::vector<Matrix> CadTessellationModeler::InsertGaussPointsApproxSurface(
         const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
         const std::vector<Matrix>& rTriangulation_uv
+    );
+
+    Vector ComputeDiscretizationError(
+        const std::vector<Matrix>& rGaussPointsExact,
+        const std::vector<Matrix>& rGaussPointsApprox
     );
 
     /**

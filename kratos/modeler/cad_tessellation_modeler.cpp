@@ -67,37 +67,36 @@ namespace Kratos
                 }
 
                 auto triangulation_uv = this->ComputeSurfaceTriangulation(
-                    skin_model_part,
                     r_brep_surface_geom,
                     boundary_loop_uv);
 
-                // array_1d<double,3> result = ZeroVector(3);
-                // array_1d<double,3> local_coordinate = ZeroVector(3);
+                array_1d<double,3> result = ZeroVector(3);
+                array_1d<double,3> local_coordinate = ZeroVector(3);
 
-                // for (IndexType tri_i = 0; tri_i < triangulation_uv.size(); ++tri_i) {
-                //     for (IndexType point_i = 0; point_i < 3; ++point_i) {
+                for (IndexType tri_i = 0; tri_i < triangulation_uv.size(); ++tri_i) {
+                    for (IndexType point_i = 0; point_i < 3; ++point_i) {
 
-                //         local_coordinate[0] = triangulation_uv[tri_i](point_i, 0);
-                //         local_coordinate[1] = triangulation_uv[tri_i](point_i, 1);
-                //         auto point_xyz = r_brep_surface_geom.GlobalCoordinates(result, local_coordinate);
+                        local_coordinate[0] = triangulation_uv[tri_i](point_i, 0);
+                        local_coordinate[1] = triangulation_uv[tri_i](point_i, 1);
+                        auto point_xyz = r_brep_surface_geom.GlobalCoordinates(result, local_coordinate);
 
-                //         skin_model_part.CreateNewNode(
-                //             node_id++,
-                //             point_xyz[0],
-                //             point_xyz[1],
-                //             point_xyz[2]);
-                //     }
-                // }
+                        skin_model_part.CreateNewNode(
+                            node_id++,
+                            point_xyz[0],
+                            point_xyz[1],
+                            point_xyz[2]);
+                    }
+                }
 
-                // Properties::Pointer p_properties(new Properties(0));
+                Properties::Pointer p_properties(new Properties(0));
 
-                // // create elements in skin_model_part
-                // for (IndexType element_i = 0; element_i < triangulation_uv.size(); ++element_i)
-                // {
-                //     skin_model_part.CreateNewElement("Element3D3N",
-                //         element_id++, {{vertex_id, vertex_id + 1, vertex_id + 2}}, p_properties);
-                //     vertex_id += 3;
-                // }
+                // create elements in skin_model_part
+                for (IndexType element_i = 0; element_i < triangulation_uv.size(); ++element_i)
+                {
+                    skin_model_part.CreateNewElement("Element3D3N",
+                        element_id++, {{vertex_id, vertex_id + 1, vertex_id + 2}}, p_properties);
+                    vertex_id += 3;
+                }
             }
         }
     }
@@ -135,7 +134,6 @@ namespace Kratos
      * @brief This method returns the triangulation of a NURBS surface
      */
     std::vector<Matrix> CadTessellationModeler::ComputeSurfaceTriangulation(
-        ModelPart& rSkinModelPart,
         const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
         const std::vector<array_1d<double, 2>>& rBoundaryLoopUV
     )
@@ -195,7 +193,7 @@ namespace Kratos
         in_data.numberofholes = 0;
         in_data.holelist = (REAL*) malloc(in_data.numberofholes * 2 * sizeof(REAL));
 
-        auto aux_area = 1.0;
+        auto aux_area = 5.0;
         std::vector<Matrix> triangulation_uv;
 
         for (IndexType i = 1; i < 2; ++i)
@@ -223,22 +221,30 @@ namespace Kratos
                 rSurfaceGeometry,
                 triangulation_uv);
 
-            node_id = 0;
-            for (int i = 0; i < triangulation_uv.size(); ++i)
+            auto gauss_points_approx_xyz = this->InsertGaussPointsApproxSurface(
+                rSurfaceGeometry,
+                triangulation_uv);
+
+            auto discretization_error = this->ComputeDiscretizationError(
+                gauss_points_exact_xyz,
+                gauss_points_approx_xyz);
+
+            auto max_error = *std::max_element(
+                std::begin(discretization_error), std::end(discretization_error));
+            auto tolerance = false;
+            auto max_triangulation_error = 1e-1;
+
+            for (IndexType j = 0; j < discretization_error.size(); ++j)
             {
-                for (int point_i = 0; point_i < 3; ++point_i)
+                if (discretization_error[j] > max_triangulation_error)
                 {
-                    rSkinModelPart.CreateNewNode(node_id++,
-                        gauss_points_exact_xyz[i](point_i,0),
-                        gauss_points_exact_xyz[i](point_i,1),
-                        gauss_points_exact_xyz[i](point_i,2)
-                        );
+                    tolerance = true;
+                    break;
                 }
             }
 
-
-
-
+            KRATOS_INFO_IF("EMBEDDED_IGA", mEchoLevel >= 0) << "Iteration " << i << std::endl;
+            KRATOS_INFO_IF("EMBEDDED_IGA", mEchoLevel >= 0) << "Area: " << aux_area << " - max_error: " << max_error << std::endl;
 
 
             // Triangle copies the pointer for the holelist from the in_data to the out_data
@@ -252,37 +258,8 @@ namespace Kratos
             // if error is above a certain value -> remesh again with the area halved
             aux_area /= 2;
         }
+
         CleanTriangulationDataStructure(in_data);
-
-
-        // node_id = 0;
-        // array_1d<double,3> result = ZeroVector(3);
-        // array_1d<double,3> local_coordinate = ZeroVector(3);
-
-        // for (IndexType tri_i = 0; tri_i < triangulation_uv.size(); ++tri_i) {
-        //     for (IndexType point_i = 0; point_i < 3; ++point_i) {
-
-        //         local_coordinate[0] = triangulation_uv[tri_i](point_i, 0);
-        //         local_coordinate[1] = triangulation_uv[tri_i](point_i, 1);
-        //         auto point_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate);
-
-        //         rSkinModelPart.CreateNewNode(
-        //             node_id++,
-        //             point_xyz[0],
-        //             point_xyz[1],
-        //             point_xyz[2]);
-        //     }
-        // }
-        // Properties::Pointer p_properties(new Properties(0));
-        // IndexType element_id = 0;
-        // IndexType vertex_id = 0;
-        // // create elements in skin_model_part
-        // for (IndexType element_i = 0; element_i < triangulation_uv.size(); ++element_i)
-        // {
-        //     rSkinModelPart.CreateNewElement("Element3D3N",
-        //         element_id++, {{vertex_id, vertex_id + 1, vertex_id + 2}}, p_properties);
-        //     vertex_id += 3;
-        // }
 
         return triangulation_uv;
     }
@@ -307,9 +284,9 @@ namespace Kratos
         gp_xyz.resize(rTriangulation_uv.size(), ZeroMatrix(3, 3));
 
 
-        for (unsigned int tri_i = 0; tri_i < rTriangulation_uv.size(); ++tri_i)
+        for (IndexType tri_i = 0; tri_i < rTriangulation_uv.size(); ++tri_i)
         {
-            for (unsigned int gp_i = 0; gp_i < gp_canonical_tri.size(); ++gp_i)
+            for (IndexType gp_i = 0; gp_i < gp_canonical_tri.size(); ++gp_i)
             {
                 local_coordinate[0] = rTriangulation_uv[tri_i](0,0) * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
                                       rTriangulation_uv[tri_i](1,0) * gp_canonical_tri[gp_i][0] +
@@ -334,112 +311,78 @@ namespace Kratos
         const std::vector<Matrix>& rTriangulation_uv
     )
     {
-    /**
-     * This function first maps the triangulation into the cartesian space and consequently inserts
-     * Gauss-Legendre points into the triangles approximating the exact Surface.
-     * These points can be used to measure the distance between the approximated and exact surface
-    */
+        /**
+         * This function first maps the triangulation into the cartesian space and consequently inserts
+         * Gauss-Legendre points into the triangles approximating the exact Surface.
+         * These points can be used to measure the distance between the approximated and exact surface
+        */
 
-    const auto gp_canonical_tri =
-        Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+        const auto gp_canonical_tri =
+            Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
 
-    array_1d<double,3> result = ZeroVector(3);
-    array_1d<double,3> local_coordinate_0 = ZeroVector(3);
-    array_1d<double,3> local_coordinate_1 = ZeroVector(3);
-    array_1d<double,3> local_coordinate_2 = ZeroVector(3);
+        array_1d<double,3> result = ZeroVector(3);
+        array_1d<double,3> local_coordinate_0 = ZeroVector(3);
+        array_1d<double,3> local_coordinate_1 = ZeroVector(3);
+        array_1d<double,3> local_coordinate_2 = ZeroVector(3);
 
-    std::vector<Matrix> gp_xyz;
-    gp_xyz.resize(rTriangulation_uv.size(), ZeroMatrix(3, 3));
+        std::vector<Matrix> gp_xyz;
+        gp_xyz.resize(rTriangulation_uv.size(), ZeroMatrix(3, 3));
 
-    for (IndexType tri_i = 0; tri_i < rTriangulation_uv.size(); ++tri_i) {
-        for (IndexType gp_i = 0; gp_i < gp_canonical_tri.size(); ++gp_i) {
+        for (IndexType tri_i = 0; tri_i < rTriangulation_uv.size(); ++tri_i) {
+            for (IndexType gp_i = 0; gp_i < gp_canonical_tri.size(); ++gp_i) {
 
-            local_coordinate_0[0] = rTriangulation_uv[tri_i](0, 0);
-            local_coordinate_0[1] = rTriangulation_uv[tri_i](0, 1);
-            auto point_0_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate_0);
+                local_coordinate_0[0] = rTriangulation_uv[tri_i](0, 0);
+                local_coordinate_0[1] = rTriangulation_uv[tri_i](0, 1);
+                auto point_0_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate_0);
 
-            local_coordinate_1[0] = rTriangulation_uv[tri_i](1, 0);
-            local_coordinate_1[1] = rTriangulation_uv[tri_i](1, 1);
-            auto point_1_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate_1);
+                local_coordinate_1[0] = rTriangulation_uv[tri_i](1, 0);
+                local_coordinate_1[1] = rTriangulation_uv[tri_i](1, 1);
+                auto point_1_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate_1);
 
-            local_coordinate_2[0] = rTriangulation_uv[tri_i](2, 0);
-            local_coordinate_2[1] = rTriangulation_uv[tri_i](2, 1);
-            auto point_2_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate_2);
+                local_coordinate_2[0] = rTriangulation_uv[tri_i](2, 0);
+                local_coordinate_2[1] = rTriangulation_uv[tri_i](2, 1);
+                auto point_2_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate_2);
 
-            gp_xyz[tri_i](gp_i,0) = point_0_xyz[0] * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
-                                    point_1_xyz[0] * gp_canonical_tri[gp_i][0] +
-                                    point_2_xyz[0] * gp_canonical_tri[gp_i][1];
+                gp_xyz[tri_i](gp_i, 0) = point_0_xyz[0] * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
+                                         point_1_xyz[0] * gp_canonical_tri[gp_i][0] +
+                                         point_2_xyz[0] * gp_canonical_tri[gp_i][1];
 
-            gp_xyz[tri_i](gp_i,1) = point_0_xyz[1] * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
-                                    point_1_xyz[1] * gp_canonical_tri[gp_i][0] +
-                                    point_2_xyz[1] * gp_canonical_tri[gp_i][1];
+                gp_xyz[tri_i](gp_i, 1) = point_0_xyz[1] * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
+                                         point_1_xyz[1] * gp_canonical_tri[gp_i][0] +
+                                         point_2_xyz[1] * gp_canonical_tri[gp_i][1];
 
-            gp_xyz[tri_i](gp_i,2) = point_0_xyz[2] * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
-                                    point_1_xyz[2] * gp_canonical_tri[gp_i][0] +
-                                    point_2_xyz[2] * gp_canonical_tri[gp_i][1];
+                gp_xyz[tri_i](gp_i, 2) = point_0_xyz[2] * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
+                                         point_1_xyz[2] * gp_canonical_tri[gp_i][0] +
+                                         point_2_xyz[2] * gp_canonical_tri[gp_i][1];
 
+            }
         }
-   }
-    return gp_xyz;
-}
+        return gp_xyz;
+    }
 
 
-//     std::vector<Matrix> CadTessellationModeler::InsertGaussPointsApproxSurface(
-//         const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
-//         const std::vector<Matrix>& rTriangulation_uv
-//     )
-//     {
-//     /**
-//      * This function first maps the triangulation into the cartesian space and consequently inserts
-//      * Gauss-Legendre points into the triangles approximating the exact Surface.
-//      * These points can be used to measure the distance between the approximated and exact surface
-//     */
+    Vector CadTessellationModeler::ComputeDiscretizationError(
+        const std::vector<Matrix>& rGaussPointsExact,
+        const std::vector<Matrix>& rGaussPointsApprox
+    )
+    {
+        Vector discretization_error = ZeroVector(rGaussPointsExact.size());
 
-//     const auto gp_canonical_tri =
-//         Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+        double ele_error;
 
-//     array_1d<double,3> result = ZeroVector(3);
-//     array_1d<double,3> local_coordinate = ZeroVector(3);
-
-//     std::vector<Matrix> triangulation_xyz;
-//     triangulation_xyz.resize(rTriangulation_uv.size(), ZeroMatrix(3, 3));
-
-//     for (IndexType tri_i = 0; tri_i < rTriangulation_uv.size(); ++tri_i) {
-//         for (IndexType point_i = 0; point_i < 3; ++point_i) {
-
-//             local_coordinate[0] = rTriangulation_uv[tri_i](point_i,0);
-//             local_coordinate[1] = rTriangulation_uv[tri_i](point_i,1);
-
-//             auto point_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate);
-
-//             triangulation_xyz[tri_i](point_i, 0) = point_xyz[0];
-//             triangulation_xyz[tri_i](point_i, 1) = point_xyz[1];
-//             triangulation_xyz[tri_i](point_i, 2) = point_xyz[2];
-//         }
-//    }
-
-//     std::vector<Matrix> gp_xyz;
-//     gp_xyz.resize(triangulation_xyz.size(), ZeroMatrix(3, 3));
-
-//     for (IndexType tri_i = 0; tri_i < rTriangulation_uv.size(); ++tri_i)
-//     {
-//         for (IndexType gp_i = 0; gp_i < gp_canonical_tri.size(); ++gp_i)
-//         {
-//             gp_xyz[tri_i](gp_i,0) = triangulation_xyz[tri_i](0, 0) * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
-//                                     triangulation_xyz[tri_i](1, 0) * gp_canonical_tri[gp_i][0] +
-//                                     triangulation_xyz[tri_i](2, 0) * gp_canonical_tri[gp_i][1];
-
-//             gp_xyz[tri_i](gp_i,1) = triangulation_xyz[tri_i](0, 1) * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
-//                                     triangulation_xyz[tri_i](1, 1) * gp_canonical_tri[gp_i][0] +
-//                                     triangulation_xyz[tri_i](2, 1) * gp_canonical_tri[gp_i][1];
-
-//             gp_xyz[tri_i](gp_i,2) = triangulation_xyz[tri_i](0, 2) * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
-//                                     triangulation_xyz[tri_i](1, 2) * gp_canonical_tri[gp_i][0] +
-//                                     triangulation_xyz[tri_i](2, 2) * gp_canonical_tri[gp_i][1];
-//         }
-//     }
-//     return gp_xyz;
-// }
+        for (IndexType tri_i = 0; tri_i < rGaussPointsExact.size(); ++tri_i)
+        {
+            ele_error = 0;
+            for (IndexType point_i = 0; point_i < 3; ++point_i)
+            {
+                ele_error += sqrt(pow((rGaussPointsExact[tri_i](point_i, 0) - rGaussPointsApprox[tri_i](point_i, 0)),2) +
+                                  pow((rGaussPointsExact[tri_i](point_i, 1) - rGaussPointsApprox[tri_i](point_i, 1)),2) +
+                                  pow((rGaussPointsExact[tri_i](point_i, 2) - rGaussPointsApprox[tri_i](point_i, 2)),2));
+            }
+            discretization_error[tri_i] = ele_error;
+        }
+        return discretization_error;
+    }
 
 
 
