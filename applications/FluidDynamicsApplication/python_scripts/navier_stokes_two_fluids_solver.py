@@ -206,27 +206,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
-
-            # Recompute the distance field according to the new level-set position
-            if (self._reinitialization_type == "variational"):
-                self._GetDistanceReinitializationProcess().Execute()
-            elif (self._reinitialization_type == "parallel"):
-                adjusting_parameter = 0.05
-                layers = int(adjusting_parameter*self.main_model_part.NumberOfElements()) # this parameter is essential
-                max_distance = 1.0 # use this parameter to define the redistancing range
-                # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
-                self._GetDistanceReinitializationProcess().CalculateDistances(
-                    self.main_model_part,
-                    KratosMultiphysics.DISTANCE,
-                    KratosMultiphysics.NODAL_AREA,
-                    layers,
-                    max_distance,
-                    self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
-
-            if (self._reinitialization_type != "none"):
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
-
             # filtering noises is necessary for curvature calculation
             if (self._distance_smoothing):
                 # distance gradient is used as a boundary condition for smoothing process
@@ -241,6 +220,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self._GetDistanceCurvatureProcess().Execute()
                 # it is needed to store level-set consistent nodal PRESSURE_GRADIENT for stabilization purpose
                 self._GetConsistentNodalPressureGradientProcess().Execute()
+
+            # TODO: Performing mass conservation check and correction process
+
+            # TODO: Doing the distance modification to prevent zero-cuts
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
@@ -268,6 +251,24 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 if (self._eulerian_error_compensation):
                     self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
                 self._GetLevelSetConvectionProcess().Execute()
+        # Recompute the distance field according to the new level-set position
+        if (self._reinitialization_type == "variational"):
+            self._GetDistanceReinitializationProcess().Execute()
+        elif (self._reinitialization_type == "parallel"):
+            adjusting_parameter = 0.05
+            layers = int(adjusting_parameter*self.main_model_part.NumberOfElements()) # this parameter is essential
+            max_distance = 1.0 # use this parameter to define the redistancing range
+            # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
+            self._GetDistanceReinitializationProcess().CalculateDistances(
+                self.main_model_part,
+                KratosMultiphysics.DISTANCE,
+                KratosMultiphysics.NODAL_AREA,
+                layers,
+                max_distance,
+                self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+
+        if (self._reinitialization_type != "none"):
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
 
         if self._TimeBufferIsInitialized():
             self._GetSolutionStrategy().FinalizeSolutionStep()

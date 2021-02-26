@@ -32,7 +32,7 @@ class MonolithicPFEM22D : public Element
 public:
 
      /// Counted pointer of PFEM22D
-    KRATOS_CLASS_POINTER_DEFINITION(MonolithicPFEM22D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MonolithicPFEM22D);
     ///base type: an IndexedObject that automatically has a unique number
     ///typedef IndexedObject BaseType;
     ///Element from which it is derived

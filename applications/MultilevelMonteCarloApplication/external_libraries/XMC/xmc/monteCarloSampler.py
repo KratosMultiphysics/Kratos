@@ -347,7 +347,11 @@ class MonteCarloSampler:
             # serialze Kratos objects into monteCarloIndex indeces instances
             # requirements: KratosSolverWrapper as SolverWrapper
             for lev in range (0,len(self.indices)):
+                # serialize level l
                 self.indices[lev].sampler.solvers[0].serialize()
+                if lev > 0:
+                    # serialize level l-1, if needed
+                    self.indices[lev].sampler.solvers[1].serialize()
             # prepare batch indices and booleans
             self.batchIndices = [[] for _ in range(self.numberBatches)]
             self.batchesLaunched = [False for _ in range(self.numberBatches)]
@@ -377,34 +381,40 @@ class MonteCarloSampler:
         """
         Method passing serialized Kratos Model and Kratos Parameters and other KratosSolverWrapper members to new batches. Passing them, we avoid serializing for each batch, and we do only once for the first batch.
         """
-        # we pass solver = 0 since solver = 1 is the coarser
         # model
         self.batchIndices[batch][index].sampler.solvers[solver].pickled_model = (
-            self.indices[index].sampler.solvers[0].pickled_model
+            self.indices[index].sampler.solvers[solver].pickled_model
         )
         self.batchIndices[batch][index].sampler.solvers[solver].serialized_model = (
-            self.indices[index].sampler.solvers[0].serialized_model
+            self.indices[index].sampler.solvers[solver].serialized_model
+        )
+        # mapping reference model: model of level 0,
+        # used for mapping finer levels quantities onto level 0 model
+        # it is required if "mappingOutputQuantities" flag is true,
+        # however, for sake of simplicity, we copy it always
+        self.batchIndices[batch][index].sampler.solvers[solver].pickled_mapping_reference_model = (
+            self.indices[index].sampler.solvers[solver].pickled_mapping_reference_model
         )
         # project parameters
         self.batchIndices[batch][index].sampler.solvers[solver].pickled_project_parameters = (
-            self.indices[index].sampler.solvers[0].pickled_project_parameters
+            self.indices[index].sampler.solvers[solver].pickled_project_parameters
         )
         self.batchIndices[batch][index].sampler.solvers[
             solver
         ].serialized_project_parameters = (
-            self.indices[index].sampler.solvers[0].serialized_project_parameters
+            self.indices[index].sampler.solvers[solver].serialized_project_parameters
         )
         # custom metric refinement parameters
         self.batchIndices[batch][index].sampler.solvers[
             solver
         ].pickled_custom_metric_refinement_parameters = (
-            self.indices[0].sampler.solvers[0].pickled_custom_metric_refinement_parameters
+            self.indices[index].sampler.solvers[solver].pickled_custom_metric_refinement_parameters
         )
         # custom remesh refinement parameters
         self.batchIndices[batch][index].sampler.solvers[
             solver
         ].pickled_custom_remesh_refinement_parameters = (
-            self.indices[0].sampler.solvers[0].pickled_custom_remesh_refinement_parameters
+            self.indices[index].sampler.solvers[solver].pickled_custom_remesh_refinement_parameters
         )
         # booleans
         self.batchIndices[batch][index].sampler.solvers[
