@@ -352,7 +352,7 @@ protected:
 
         //mProjectedGradientProcess.Execute();
 
-        DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+        auto& r_default_comm = BaseType::mpDistanceModelPart->GetCommunicator().GetDataCommunicator();
         GlobalPointersVector< Node<3 > > gp_list;
 
         for (int i_node = 0; i_node < static_cast<int>(BaseType::mpDistanceModelPart->NumberOfNodes()); ++i_node){

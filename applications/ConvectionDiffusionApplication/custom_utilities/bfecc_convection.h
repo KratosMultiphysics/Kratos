@@ -321,7 +321,7 @@ public:
             mSigmaMinus.resize(nparticles);
         }
 
-        DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+        auto& r_default_comm = rModelPart.GetCommunicator().GetDataCommunicator();
         GlobalPointersVector< Node<3 > > gp_list;
 
         for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node){
