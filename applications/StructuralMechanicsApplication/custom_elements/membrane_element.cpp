@@ -1280,7 +1280,6 @@ double MembraneElement::CalculateReferenceArea() const
 
     const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method);
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);
-    const Matrix& rNcontainer = r_geom.ShapeFunctionsValues(integration_method);
     array_1d<Vector,2> reference_covariant_base_vectors;
 
     double detJ = 0.0;
@@ -1291,9 +1290,7 @@ double MembraneElement::CalculateReferenceArea() const
         const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
         CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
         JacobiDeterminante(detJ,reference_covariant_base_vectors);
-
         const double integration_weight = r_integration_points[point_number].Weight();
-        const Vector& rN = row(rNcontainer,point_number);
 
         ref_area += integration_weight * detJ;
     }
