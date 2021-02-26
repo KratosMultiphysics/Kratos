@@ -1403,7 +1403,7 @@ private:
             return mValue;
         }
 
-        void LocalReduce(const return_type& value)
+        void LocalReduce(const value_type& value)
         {
             mValue += value;
         }
