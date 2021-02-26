@@ -659,6 +659,15 @@ public:
         PlasticDamageFatigueParameters &rPlasticDamageParameters
     );
 
+    /**
+     * @brief This method updates all the internal variables
+     */
+    void CheckMinimumFractureEnergy(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageFatigueParameters &rPDParameters
+    );
+
+
 protected:
 
     ///@name Protected static Member Variables

@@ -391,6 +391,27 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::UpdateInternalVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<class TYieldSurfaceType>
+void UnifiedFatigueLaw<TYieldSurfaceType>::CheckMinimumFractureEnergy(
+    ConstitutiveLaw::Parameters& rValues,
+    PlasticDamageFatigueParameters &rPDParameters
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+    const double young_modulus = r_material_properties[YOUNG_MODULUS];
+    const double yield = r_material_properties[YIELD_STRESS];
+    const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
+    const double characteristic_fracture_energy_tension = fracture_energy / 
+        rPDParameters.CharacteristicLength;
+
+    const double hlim = 2.0 * young_modulus * characteristic_fracture_energy_tension / 
+        (std::pow(yield, 2));
+    KRATOS_ERROR_IF(rPDParameters.CharacteristicLength > hlim) << "The Fracture Energy is to low: " << 
+        characteristic_fracture_energy_tension << std::endl;
+
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
