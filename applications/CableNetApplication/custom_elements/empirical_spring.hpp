@@ -43,7 +43,7 @@ namespace Kratos
         static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
 
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(EmpiricalSpringElement3D2N);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmpiricalSpringElement3D2N);
 
 
         typedef Element BaseType;
