@@ -30,77 +30,151 @@ namespace Kratos
             ? mpModel->GetModelPart(skin_model_part_name)
             :mpModel->CreateModelPart(skin_model_part_name);
 
+        IndexType node_id = 0;
+        IndexType element_id = 0;
+        IndexType vertex_id = 0;
         const auto& r_geometries = cad_model_part.Geometries();
-
-        IndexType point_id = 0;
-        std::vector<array_1d<double, 2>> boundary_loop_uv;
-
         for (auto it = r_geometries.begin(); it != r_geometries.end(); ++it) {
-            if (it->GetGeometryType() == GeometryData::Kratos_Brep_Curve) {
+
+            IndexType trim_index = 0;
+            if (it->GetGeometryType() == GeometryData::Kratos_Brep_Surface) {
+
                 const auto& r_aux_geometry = *it;
-                const auto r_brep_geom = dynamic_cast<const BrepCurveOnSurface<PointerVector<Node<3>>, PointerVector<Point>>&>(r_aux_geometry);
-                const auto p_curve_on_surface_geom = r_brep_geom.pGetCurveOnSurface();
+                const auto r_brep_surface_geom = dynamic_cast<const BrepSurface<PointerVector<Node<3>>, PointerVector<Point>>&>(r_aux_geometry);
 
-                auto tessellation = NurbsCurveTessellation<2, PointerVector<Node<3>>>::ComputeTessellation(
-                    *p_curve_on_surface_geom,
-                    p_curve_on_surface_geom->PolynomialDegree(0),
-                    p_curve_on_surface_geom->DomainInterval(),
-                    p_curve_on_surface_geom->KnotSpanIntervals(),
-                    1e-2);
+                std::vector<array_1d<double, 2>> boundary_loop_uv;
+                IndexType point_id = 0;
 
-                boundary_loop_uv.resize(boundary_loop_uv.size() + tessellation.size() - 1, ZeroVector(2));
-                for (int i = 0; i < tessellation.size() - 1; ++i)
-                {
-                    array_1d<double,3> result = ZeroVector(3);
-                    array_1d<double,3> local_coordinate = ZeroVector(3);
-                    local_coordinate[0] = tessellation.at(i).first;
+                while (r_brep_surface_geom.HasGeometryPart(trim_index)) {
 
-                    for (IndexType j = 0; j < 2; ++j)
-                    {
-                        boundary_loop_uv[point_id][j] = p_curve_on_surface_geom->pGetCurve()->GlobalCoordinates(result, local_coordinate)[j];
+                    auto p_surface_geometry = cad_model_part.pGetGeometry(r_brep_surface_geom.Id());
+                    auto p_surface_trim = p_surface_geometry->pGetGeometryPart(trim_index);
+                    auto p_brep_curve_on_surface =
+                        dynamic_pointer_cast<BrepCurveOnSurface<PointerVector<Node<3>>, PointerVector<Point>>>(p_surface_trim);
+
+                    auto boundary_segment_tessellation = this->ComputeBoundaryTessellation(*p_brep_curve_on_surface);
+
+                    boundary_loop_uv.resize(boundary_loop_uv.size() + boundary_segment_tessellation.size(), ZeroVector(2));
+
+                    for (IndexType i = 0; i < boundary_segment_tessellation.size(); ++i) {
+
+                        boundary_loop_uv[point_id][0] = boundary_segment_tessellation[i][0];
+                        boundary_loop_uv[point_id][1] = boundary_segment_tessellation[i][1];
+
+                        point_id++;
                     }
-                    point_id += 1;
+                    trim_index++;
                 }
+
+                auto triangulation_uv = this->ComputeSurfaceTriangulation(
+                    skin_model_part,
+                    r_brep_surface_geom,
+                    boundary_loop_uv);
+
+                // array_1d<double,3> result = ZeroVector(3);
+                // array_1d<double,3> local_coordinate = ZeroVector(3);
+
+                // for (IndexType tri_i = 0; tri_i < triangulation_uv.size(); ++tri_i) {
+                //     for (IndexType point_i = 0; point_i < 3; ++point_i) {
+
+                //         local_coordinate[0] = triangulation_uv[tri_i](point_i, 0);
+                //         local_coordinate[1] = triangulation_uv[tri_i](point_i, 1);
+                //         auto point_xyz = r_brep_surface_geom.GlobalCoordinates(result, local_coordinate);
+
+                //         skin_model_part.CreateNewNode(
+                //             node_id++,
+                //             point_xyz[0],
+                //             point_xyz[1],
+                //             point_xyz[2]);
+                //     }
+                // }
+
+                // Properties::Pointer p_properties(new Properties(0));
+
+                // // create elements in skin_model_part
+                // for (IndexType element_i = 0; element_i < triangulation_uv.size(); ++element_i)
+                // {
+                //     skin_model_part.CreateNewElement("Element3D3N",
+                //         element_id++, {{vertex_id, vertex_id + 1, vertex_id + 2}}, p_properties);
+                //     vertex_id += 3;
+                // }
             }
         }
+    }
 
+    /**
+     * @brief This method returns the tessellation of the boundary curves
+     */
+    std::vector<array_1d<double, 2>> CadTessellationModeler::ComputeBoundaryTessellation(
+        const BrepCurveOnSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rBoundaryCurveOnSurface
+    )
+    {
+        auto tessellation = NurbsCurveTessellation<2, PointerVector<Node<3>>>::ComputeTessellation(
+            rBoundaryCurveOnSurface,
+            rBoundaryCurveOnSurface.PolynomialDegree(0),
+            rBoundaryCurveOnSurface.DomainInterval(),
+            rBoundaryCurveOnSurface.KnotSpanIntervals(),
+            1e-2);
+
+        std::vector<array_1d<double, 2>> boundary_segment_uv;
+        array_1d<double,3> result = ZeroVector(3);
+        array_1d<double,3> local_coordinate = ZeroVector(3);
+        boundary_segment_uv.resize(tessellation.size() - 1, ZeroVector(2));
+
+        for (IndexType i = 0; i < tessellation.size() - 1; ++i)
+        {
+            local_coordinate[0] = tessellation.at(i).first;
+
+            boundary_segment_uv[i][0] = rBoundaryCurveOnSurface.pGetCurveOnSurface()->pGetCurve()->GlobalCoordinates(result, local_coordinate)[0];
+            boundary_segment_uv[i][1] = rBoundaryCurveOnSurface.pGetCurveOnSurface()->pGetCurve()->GlobalCoordinates(result, local_coordinate)[1];
+        }
+        return boundary_segment_uv;
+    }
+
+    /**
+     * @brief This method returns the triangulation of a NURBS surface
+     */
+    std::vector<Matrix> CadTessellationModeler::ComputeSurfaceTriangulation(
+        ModelPart& rSkinModelPart,
+        const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
+        const std::vector<array_1d<double, 2>>& rBoundaryLoopUV
+    )
+    {
         // initiliazing the i/o containers
         struct triangulateio in_data;
         struct triangulateio out_data;
         struct triangulateio vor_out_data;
 
         InitTriangulationDataStructure(in_data);
-        InitTriangulationDataStructure(out_data);
-        InitTriangulationDataStructure(vor_out_data);
 
         // Initialize the pointlist (1d list) with the number of points and the coordinates
         // of the points (outer and inner polygons)
-        in_data.numberofpoints = boundary_loop_uv.size();
+        in_data.numberofpoints = rBoundaryLoopUV.size();
         in_data.pointlist = (REAL*) malloc(in_data.numberofpoints * 2 * sizeof(REAL));
         in_data.pointmarkerlist = (int*) malloc(in_data.numberofpoints * sizeof(int));
 
-        point_id = 0;
+        IndexType point_id = 0;
         IndexType point_marker_id = 0;
         IndexType point_marker = 0;
 
-        for (IndexType node_i = 0; node_i < boundary_loop_uv.size(); ++node_i)
+        for (IndexType node_i = 0; node_i < rBoundaryLoopUV.size(); ++node_i)
         {
             for (IndexType coords_i = 0; coords_i < 2; ++coords_i)
             {
-                in_data.pointlist[point_id++] = boundary_loop_uv[node_i][coords_i];
+                in_data.pointlist[point_id++] = rBoundaryLoopUV[node_i][coords_i];
             }
             in_data.pointmarkerlist[point_marker_id++] = point_marker;
         }
 
         // Initilize the segment list with the number of boundary edges and the start and end node id
         // For closed polygons the number of segments is equal to the number of points
-        in_data.numberofsegments = boundary_loop_uv.size();
+        in_data.numberofsegments = rBoundaryLoopUV.size();
         in_data.segmentlist = (int*) malloc(in_data.numberofsegments * 2 * sizeof(int));
         in_data.segmentmarkerlist = (int*) malloc(in_data.numberofsegments * sizeof(int));
         IndexType node_id = 0;
         IndexType seg_marker = 0;
         IndexType start_node_id = 0;
-        IndexType end_node_id = boundary_loop_uv.size();
+        IndexType end_node_id = rBoundaryLoopUV.size();
 
         for (IndexType seg_i = start_node_id * 2 ; seg_i < end_node_id * 2; ++seg_i)
         {
@@ -118,68 +192,255 @@ namespace Kratos
             }
         }
 
-
         in_data.numberofholes = 0;
         in_data.holelist = (REAL*) malloc(in_data.numberofholes * 2 * sizeof(REAL));
 
-        triangulate("Qqpza1", &in_data, &out_data, &vor_out_data);
+        auto aux_area = 1.0;
         std::vector<Matrix> triangulation_uv;
-                triangulation_uv.resize(out_data.numberoftriangles, ZeroMatrix(3,2));
 
-        IndexType tri_id = 0;
-        for (IndexType i = 0; i < out_data.numberoftriangles; ++i)
+        for (IndexType i = 1; i < 2; ++i)
         {
-            for (IndexType j = 0; j < 3; ++j)
+            InitTriangulationDataStructure(out_data);
+            InitTriangulationDataStructure(vor_out_data);
+
+            std::string str = "Qqpza" + std::to_string(aux_area);
+            char *meshing_options = new char[str.length() + 1];
+            strcpy(meshing_options, str.c_str());
+            triangulate(meshing_options, &in_data, &out_data, &vor_out_data);
+
+            triangulation_uv.resize(out_data.numberoftriangles, ZeroMatrix(3,2));
+            IndexType tri_id = 0;
+            for (IndexType i = 0; i < out_data.numberoftriangles; ++i)
             {
-                triangulation_uv[i](j,0) = out_data.pointlist[out_data.trianglelist[tri_id + j] * 2];
-                triangulation_uv[i](j,1) = out_data.pointlist[out_data.trianglelist[tri_id + j] * 2 + 1];
+                for (IndexType j = 0; j < 3; ++j)
+                {
+                    triangulation_uv[i](j,0) = out_data.pointlist[out_data.trianglelist[tri_id + j] * 2];
+                    triangulation_uv[i](j,1) = out_data.pointlist[out_data.trianglelist[tri_id + j] * 2 + 1];
+                }
+                tri_id += 3;
             }
-            tri_id += 3;
-        }
+            auto gauss_points_exact_xyz = this->InsertGaussPointsExactSurface(
+                rSurfaceGeometry,
+                triangulation_uv);
 
-        node_id = 0;
-        IndexType vertex_id = 0;
-        IndexType element_id = 0;
-
-        for (int tri_i = 0; tri_i < triangulation_uv.size(); ++tri_i)
-        {
-            for (int point_i = 0; point_i < 3; ++point_i)
+            node_id = 0;
+            for (int i = 0; i < triangulation_uv.size(); ++i)
             {
-                skin_model_part.CreateNewNode(node_id++,
-                    triangulation_uv[tri_i](point_i,0),
-                    triangulation_uv[tri_i](point_i,1),
-                    0);
+                for (int point_i = 0; point_i < 3; ++point_i)
+                {
+                    rSkinModelPart.CreateNewNode(node_id++,
+                        gauss_points_exact_xyz[i](point_i,0),
+                        gauss_points_exact_xyz[i](point_i,1),
+                        gauss_points_exact_xyz[i](point_i,2)
+                        );
+                }
+            }
+
+
+
+
+
+
+            // Triangle copies the pointer for the holelist from the in_data to the out_data
+            // In order to avoid the freeing of memory twice, which leads to an error the points will
+            // be deleted from the out_data and in_data cleans the memory fully.
+            out_data.holelist = nullptr;
+
+            CleanTriangulationDataStructure(out_data);
+            CleanTriangulationDataStructure(vor_out_data);
+
+            // if error is above a certain value -> remesh again with the area halved
+            aux_area /= 2;
+        }
+        CleanTriangulationDataStructure(in_data);
+
+
+        // node_id = 0;
+        // array_1d<double,3> result = ZeroVector(3);
+        // array_1d<double,3> local_coordinate = ZeroVector(3);
+
+        // for (IndexType tri_i = 0; tri_i < triangulation_uv.size(); ++tri_i) {
+        //     for (IndexType point_i = 0; point_i < 3; ++point_i) {
+
+        //         local_coordinate[0] = triangulation_uv[tri_i](point_i, 0);
+        //         local_coordinate[1] = triangulation_uv[tri_i](point_i, 1);
+        //         auto point_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate);
+
+        //         rSkinModelPart.CreateNewNode(
+        //             node_id++,
+        //             point_xyz[0],
+        //             point_xyz[1],
+        //             point_xyz[2]);
+        //     }
+        // }
+        // Properties::Pointer p_properties(new Properties(0));
+        // IndexType element_id = 0;
+        // IndexType vertex_id = 0;
+        // // create elements in skin_model_part
+        // for (IndexType element_i = 0; element_i < triangulation_uv.size(); ++element_i)
+        // {
+        //     rSkinModelPart.CreateNewElement("Element3D3N",
+        //         element_id++, {{vertex_id, vertex_id + 1, vertex_id + 2}}, p_properties);
+        //     vertex_id += 3;
+        // }
+
+        return triangulation_uv;
+    }
+
+    std::vector<Matrix> CadTessellationModeler::InsertGaussPointsExactSurface(
+        const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
+        const std::vector<Matrix>& rTriangulation_uv
+    )
+    {
+        /**
+         * This function inserts Gauss-Legendre Points into the triangulation of the surface in the parametric domain
+         * and subsequently projects these points onto the NURBS surface.
+        */
+
+        const auto gp_canonical_tri =
+            Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+
+        array_1d<double,3> result = ZeroVector(3);
+        array_1d<double,3> local_coordinate = ZeroVector(3);
+
+        std::vector<Matrix> gp_xyz;
+        gp_xyz.resize(rTriangulation_uv.size(), ZeroMatrix(3, 3));
+
+
+        for (unsigned int tri_i = 0; tri_i < rTriangulation_uv.size(); ++tri_i)
+        {
+            for (unsigned int gp_i = 0; gp_i < gp_canonical_tri.size(); ++gp_i)
+            {
+                local_coordinate[0] = rTriangulation_uv[tri_i](0,0) * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
+                                      rTriangulation_uv[tri_i](1,0) * gp_canonical_tri[gp_i][0] +
+                                      rTriangulation_uv[tri_i](2,0) * gp_canonical_tri[gp_i][1];
+
+                local_coordinate[1] = rTriangulation_uv[tri_i](0,1) * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
+                                      rTriangulation_uv[tri_i](1,1) * gp_canonical_tri[gp_i][0] +
+                                      rTriangulation_uv[tri_i](2,1) * gp_canonical_tri[gp_i][1];
+
+                auto point_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate);
+
+                gp_xyz[tri_i](gp_i, 0) = point_xyz[0];
+                gp_xyz[tri_i](gp_i, 1) = point_xyz[1];
+                gp_xyz[tri_i](gp_i, 2) = point_xyz[2];
             }
         }
+        return gp_xyz;
+    }
 
-        Properties::Pointer p_properties(new Properties(0));
+    std::vector<Matrix> CadTessellationModeler::InsertGaussPointsApproxSurface(
+        const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
+        const std::vector<Matrix>& rTriangulation_uv
+    )
+    {
+    /**
+     * This function first maps the triangulation into the cartesian space and consequently inserts
+     * Gauss-Legendre points into the triangles approximating the exact Surface.
+     * These points can be used to measure the distance between the approximated and exact surface
+    */
 
-        // create elements in skin_model_part
-        for (int element_i = 0; element_i < triangulation_uv.size(); ++element_i)
-        {
-            skin_model_part.CreateNewElement("Element3D3N",
-                element_id++, {{vertex_id, vertex_id + 1, vertex_id + 2}}, p_properties);
-            vertex_id += 3;
+    const auto gp_canonical_tri =
+        Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+
+    array_1d<double,3> result = ZeroVector(3);
+    array_1d<double,3> local_coordinate_0 = ZeroVector(3);
+    array_1d<double,3> local_coordinate_1 = ZeroVector(3);
+    array_1d<double,3> local_coordinate_2 = ZeroVector(3);
+
+    std::vector<Matrix> gp_xyz;
+    gp_xyz.resize(rTriangulation_uv.size(), ZeroMatrix(3, 3));
+
+    for (IndexType tri_i = 0; tri_i < rTriangulation_uv.size(); ++tri_i) {
+        for (IndexType gp_i = 0; gp_i < gp_canonical_tri.size(); ++gp_i) {
+
+            local_coordinate_0[0] = rTriangulation_uv[tri_i](0, 0);
+            local_coordinate_0[1] = rTriangulation_uv[tri_i](0, 1);
+            auto point_0_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate_0);
+
+            local_coordinate_1[0] = rTriangulation_uv[tri_i](1, 0);
+            local_coordinate_1[1] = rTriangulation_uv[tri_i](1, 1);
+            auto point_1_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate_1);
+
+            local_coordinate_2[0] = rTriangulation_uv[tri_i](2, 0);
+            local_coordinate_2[1] = rTriangulation_uv[tri_i](2, 1);
+            auto point_2_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate_2);
+
+            gp_xyz[tri_i](gp_i,0) = point_0_xyz[0] * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
+                                    point_1_xyz[0] * gp_canonical_tri[gp_i][0] +
+                                    point_2_xyz[0] * gp_canonical_tri[gp_i][1];
+
+            gp_xyz[tri_i](gp_i,1) = point_0_xyz[1] * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
+                                    point_1_xyz[1] * gp_canonical_tri[gp_i][0] +
+                                    point_2_xyz[1] * gp_canonical_tri[gp_i][1];
+
+            gp_xyz[tri_i](gp_i,2) = point_0_xyz[2] * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
+                                    point_1_xyz[2] * gp_canonical_tri[gp_i][0] +
+                                    point_2_xyz[2] * gp_canonical_tri[gp_i][1];
+
         }
+   }
+    return gp_xyz;
+}
 
-    }
 
+//     std::vector<Matrix> CadTessellationModeler::InsertGaussPointsApproxSurface(
+//         const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
+//         const std::vector<Matrix>& rTriangulation_uv
+//     )
+//     {
+//     /**
+//      * This function first maps the triangulation into the cartesian space and consequently inserts
+//      * Gauss-Legendre points into the triangles approximating the exact Surface.
+//      * These points can be used to measure the distance between the approximated and exact surface
+//     */
 
-    /**
-     * @brief This method returns the tessellation of the boundary curves
-     */
-    void CadTessellationModeler::ComputeBoundaryTessellation()
-    {
+//     const auto gp_canonical_tri =
+//         Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
 
-    }
+//     array_1d<double,3> result = ZeroVector(3);
+//     array_1d<double,3> local_coordinate = ZeroVector(3);
 
-    /**
-     * @brief This method returns the triangulation of a NURBS surface
-     */
-    void CadTessellationModeler::ComputeTriangulation()
-    {
+//     std::vector<Matrix> triangulation_xyz;
+//     triangulation_xyz.resize(rTriangulation_uv.size(), ZeroMatrix(3, 3));
 
-    }
+//     for (IndexType tri_i = 0; tri_i < rTriangulation_uv.size(); ++tri_i) {
+//         for (IndexType point_i = 0; point_i < 3; ++point_i) {
+
+//             local_coordinate[0] = rTriangulation_uv[tri_i](point_i,0);
+//             local_coordinate[1] = rTriangulation_uv[tri_i](point_i,1);
+
+//             auto point_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate);
+
+//             triangulation_xyz[tri_i](point_i, 0) = point_xyz[0];
+//             triangulation_xyz[tri_i](point_i, 1) = point_xyz[1];
+//             triangulation_xyz[tri_i](point_i, 2) = point_xyz[2];
+//         }
+//    }
+
+//     std::vector<Matrix> gp_xyz;
+//     gp_xyz.resize(triangulation_xyz.size(), ZeroMatrix(3, 3));
+
+//     for (IndexType tri_i = 0; tri_i < rTriangulation_uv.size(); ++tri_i)
+//     {
+//         for (IndexType gp_i = 0; gp_i < gp_canonical_tri.size(); ++gp_i)
+//         {
+//             gp_xyz[tri_i](gp_i,0) = triangulation_xyz[tri_i](0, 0) * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
+//                                     triangulation_xyz[tri_i](1, 0) * gp_canonical_tri[gp_i][0] +
+//                                     triangulation_xyz[tri_i](2, 0) * gp_canonical_tri[gp_i][1];
+
+//             gp_xyz[tri_i](gp_i,1) = triangulation_xyz[tri_i](0, 1) * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
+//                                     triangulation_xyz[tri_i](1, 1) * gp_canonical_tri[gp_i][0] +
+//                                     triangulation_xyz[tri_i](2, 1) * gp_canonical_tri[gp_i][1];
+
+//             gp_xyz[tri_i](gp_i,2) = triangulation_xyz[tri_i](0, 2) * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
+//                                     triangulation_xyz[tri_i](1, 2) * gp_canonical_tri[gp_i][0] +
+//                                     triangulation_xyz[tri_i](2, 2) * gp_canonical_tri[gp_i][1];
+//         }
+//     }
+//     return gp_xyz;
+// }
+
 
 
     /**

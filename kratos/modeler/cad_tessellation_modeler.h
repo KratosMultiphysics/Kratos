@@ -31,7 +31,9 @@ extern "C"
 // Project includes
 #include "modeler.h"
 #include "utilities/nurbs_curve_tessellation.h"
+#include "geometries/brep_surface.h"
 #include "geometries/brep_curve_on_surface.h"
+#include "integration/triangle_gauss_legendre_integration_points.h"
 
 namespace Kratos {
 
@@ -51,9 +53,7 @@ public:
 
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
-
-
-
+    typedef std::vector<array_1d<double, 3>> NodeVector;
 
     ///@}
     ///@name Life Cycle
@@ -127,12 +127,29 @@ private:
     /**
      * @brief This method returns the tessellation of the boundary curves
      */
-    void ComputeBoundaryTessellation();
+    std::vector<array_1d<double, 2>> ComputeBoundaryTessellation(
+        const BrepCurveOnSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rBoundaryCurveOnSurface
+    );
 
     /**
      * @brief This method returns the triangulation of a NURBS surface
      */
-    void ComputeTriangulation();
+    std::vector<Matrix> ComputeSurfaceTriangulation(
+        ModelPart& rSkinModelPart,
+        const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
+        const std::vector<array_1d<double, 2>>& rBoundaryLoopUV
+    );
+
+
+    std::vector<Matrix> CadTessellationModeler::InsertGaussPointsExactSurface(
+        const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
+        const std::vector<Matrix>& rTriangulation_uv
+    );
+
+    std::vector<Matrix> CadTessellationModeler::InsertGaussPointsApproxSurface(
+        const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
+        const std::vector<Matrix>& rTriangulation_uv
+    );
 
     /**
      * @brief This method initializes the necessary data structure for triangle
