@@ -77,6 +77,14 @@ class KratosCoSimIO(CoSimulationIO):
             info.SetString("identifier", interface_data.name)
 
             CoSimIO.ExportData(info, interface_data.GetModelPart(), interface_data.variable, GetDataLocation(interface_data.location))
+
+        elif data_type == "repeat_time_step":
+            info = CoSimIO.Info()
+            info.SetString("connection_name", self.connection_name)
+            info.SetString("identifier", "repeat_time_step_info")
+            info.SetBool("repeat_time_step", data_config["repeat_time_step"])
+
+            CoSimIO.ExportInfo(info)
         else:
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
