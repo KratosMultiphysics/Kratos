@@ -32,9 +32,12 @@ class Communication
 {
 public:
     explicit Communication(const Info& I_Settings)
+        : mMyName(I_Settings.Get<std::string>("my_name")),
+          mConnectTo(I_Settings.Get<std::string>("connect_to")),
+          mWorkingDirectory(I_Settings.Get<std::string>("working_directory", fs::relative(fs::current_path()).string())),
+          mEchoLevel(I_Settings.Get<int>("echo_level", 0)),
+          mPrintTiming(I_Settings.Get<bool>("print_timing", false))
     {
-        mMyName = I_Settings.Get<std::string>("my_name");
-        mConnectTo = I_Settings.Get<std::string>("connect_to");
         if (I_Settings.Has("is_primary_connection")) {
             mIsPrimaryConnection = I_Settings.Get<bool>("is_primary_connection");
             mPrimaryWasExplicitlySpecified = true;
@@ -45,10 +48,7 @@ public:
         }
         mConnectionName = CreateConnectionName(mMyName, mConnectTo);
 
-        mWorkingDirectory = I_Settings.Get<std::string>("working_directory", fs::relative(fs::current_path()).string());
-
-        mEchoLevel = I_Settings.Get<int>("echo_level", 0);
-        mPrintTiming = I_Settings.Get<bool>("print_timing", false);
+        CO_SIM_IO_ERROR_IF_NOT(fs::exists(mWorkingDirectory)) << "The working directory " << mWorkingDirectory << " does not exist!" << std::endl;
     }
 
     virtual ~Communication() = default; // impl of disconnect has to be in derived class due to order of class destruction

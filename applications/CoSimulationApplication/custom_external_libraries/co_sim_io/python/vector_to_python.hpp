@@ -36,8 +36,8 @@ class VectorWrapper
 {
 public:
     VectorWrapper() = default;
-    VectorWrapper(const std::size_t I_Size) { mVector.resize(I_Size); }
-    VectorWrapper(const std::vector<TDataType>& I_Vector)
+    explicit VectorWrapper(const std::size_t I_Size) { mVector.resize(I_Size); }
+    explicit VectorWrapper(const std::vector<TDataType>& I_Vector)
         : mVector(I_Vector) {};
 
     VectorWrapper(const VectorWrapper& Other) : mVector(Other.mVector) {}
