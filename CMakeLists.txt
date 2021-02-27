@@ -105,15 +105,24 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
-
-if(USE_COTIRE MATCHES ON)
-  include(cotire)
-  set(CMAKE_SKIP_RPATH ON)
-
-  if(${MSVC})
-    set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
-  endif(${MSVC})
-endif(USE_COTIRE MATCHES ON)
+# Unitary builds with version is lower than 3.16 deactivate
+IF(CMAKE_VERSION VERSION_LESS "3.16.0")
+    IF(CMAKE_UNITY_BUILD MATCHES ON)
+        SET(CMAKE_UNITY_BUILD OFF)
+    ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+ELSE(CMAKE_VERSION VERSION_LESS "3.16.0")
+    # Legacy Unitary build
+    IF(USE_COTIRE MATCHES ON)
+        SET(CMAKE_UNITY_BUILD ON)
+    ENDIF(USE_COTIRE MATCHES ON)
+    # Some checks
+    IF(CMAKE_UNITY_BUILD MATCHES ON)
+        SET(CMAKE_SKIP_RPATH ON)
+        IF(${MSVC})
+          SET(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
+        ENDIF(${MSVC})
+    ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+ENDIF(CMAKE_VERSION VERSION_LESS "3.16.0")
 
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
