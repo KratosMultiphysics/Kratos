@@ -65,10 +65,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosRomApplicationCore)
-    cotire(KratosRomApplication)
-endif(USE_COTIRE MATCHES ON)
-
 install(TARGETS KratosRomApplicationCore DESTINATION libs )
 install(TARGETS KratosRomApplication DESTINATION libs )
