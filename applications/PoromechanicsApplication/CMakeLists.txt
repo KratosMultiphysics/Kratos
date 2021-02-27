@@ -147,12 +147,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosPoromechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosPoromechanicsCore)
-    cotire(KratosPoromechanicsApplication)
-endif(USE_COTIRE MATCHES ON)
-
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/PoromechanicsApplication.py KratosMultiphysics/PoromechanicsApplication/__init__.py )
 
