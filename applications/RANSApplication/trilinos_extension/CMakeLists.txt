@@ -36,11 +36,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 ###############################################################################
-if(USE_COTIRE MATCHES ON)
-  cotire(KratosRANSTrilinosExtension)
-endif(USE_COTIRE MATCHES ON)
-
-###############################################################################
 ## installing the resulting libraries
 install(TARGETS KratosRANSTrilinosExtension DESTINATION libs )
 
