@@ -36,10 +36,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMeshMovingTrilinosExtension PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-if(USE_COTIRE MATCHES ON)
-	cotire(KratosMeshMovingTrilinosExtension)
-endif(USE_COTIRE MATCHES ON)
-
 ###############################################################################
 ## installing the resulting libraries
 install(TARGETS KratosMeshMovingTrilinosExtension DESTINATION libs )
