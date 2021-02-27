@@ -36,10 +36,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosFluidDynamicsTrilinosExtension PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-if(USE_COTIRE MATCHES ON)
-	cotire(KratosFluidDynamicsTrilinosExtension)
-endif(USE_COTIRE MATCHES ON)
-
 ###############################################################################
 ## installing the resulting libraries
 install(TARGETS KratosFluidDynamicsTrilinosExtension DESTINATION libs )
