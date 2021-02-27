@@ -110,12 +110,6 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
     set_target_properties( KratosLinearSolversApplication PROPERTIES SUFFIX .pyd )
 endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosLinearSolversCore)
-    cotire(KratosLinearSolversApplication)
-endif(USE_COTIRE MATCHES ON)
-
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/LinearSolversApplication.py KratosMultiphysics/LinearSolversApplication/__init__.py )
 
