@@ -161,14 +161,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    ## The MMG is not compatible with cotire
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg/mmg_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/parmmg/pmmg_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    cotire(KratosMeshingCore)
-    cotire(KratosMeshingApplication)
-endif(USE_COTIRE MATCHES ON)
+# Unity build
+if(CMAKE_UNITY_BUILD MATCHES ON)
+    ## The MMG is not compatible with unity build
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg/mmg_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/parmmg/pmmg_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+endif(CMAKE_UNITY_BUILD MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/MeshingApplication.py KratosMultiphysics/MeshingApplication/__init__.py )
