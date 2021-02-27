@@ -131,12 +131,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosDamApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosDamCore)
-    cotire(KratosDamApplication)
-endif(USE_COTIRE MATCHES ON)
-
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/DamApplication.py KratosMultiphysics/DamApplication/__init__.py )
 
