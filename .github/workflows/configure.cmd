@@ -40,9 +40,8 @@ cmake                                                ^
   -DINSTALL_RUNKRATOS=OFF                            ^
   -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX"        ^
   -DFORCE_LOCAL_ZLIB_COMPILATION=ON                  ^
-  -DUSE_COTIRE=ON                                    || goto :error
+  -DCMAKE_UNITY_BUILD=ON                                    || goto :error
 
-cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
 cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target zlibstatic -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
 cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
 
