@@ -12,7 +12,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.TopologyOptimizationApplication import topology_optimizer_factory
 
 
-parameter_file = open("/home/philipp/opt/kratosDev/applications/TopologyOptimizationApplication/examples/01_Small_Cantilever_Hexahedra/ProjectParameters.json",'r')
+parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = km.Parameters(parameter_file.read())
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
 current_model = km.Model()
