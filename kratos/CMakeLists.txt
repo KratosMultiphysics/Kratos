@@ -90,33 +90,22 @@ endif()
 pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
 
-if(USE_COTIRE MATCHES ON)
+if(CMAKE_UNITY_BUILD MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
-    SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_filesystem.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    cotire(KratosVersion)
-    cotire(KratosCore)
-    if(${KRATOS_BUILD_TESTING} MATCHES ON)
-        cotire(KratosTests)
-    endif(${KRATOS_BUILD_TESTING} MATCHES ON)
-
-    ## Kratos cannot be compiled with just one unity build as it takes way too much ram
-    SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_filesystem.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 
     ## This sources in particular take too much ram by their own
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometrical_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_other_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_variable_utils_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-
-    cotire(Kratos)
-endif(USE_COTIRE MATCHES ON)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometrical_utilities_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_other_utilities_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_variable_utils_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+endif(CMAKE_UNITY_BUILD MATCHES ON)
 
 # Install python scripts
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
