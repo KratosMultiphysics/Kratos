@@ -316,7 +316,7 @@ int AdjointMonolithicWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rC
     KRATOS_ERROR_IF_NOT(this->Has(NORMAL))
         << "NORMAL is not defined for " << this->Info() << ".\n";
 
-    KRATOS_ERROR_IF(norm_2(this->GetValue(NORMAL)) = 0.0)
+    KRATOS_ERROR_IF(norm_2(this->GetValue(NORMAL)) == 0.0)
         << "NORMAL is not properly initialized in " << this->Info() << ".\n";
 
     KRATOS_ERROR_IF_NOT(this->Has(NORMAL_SHAPE_DERIVATIVE))
