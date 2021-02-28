@@ -25,6 +25,7 @@
 
 // Application includes
 #include "custom_utilities/fluid_calculation_utilities.h"
+#include "fluid_dynamics_application_variables.h"
 
 // Include base h
 #include "fluid_adjoint_utilities.h"
@@ -59,7 +60,24 @@ void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::CalculateRotatedSli
         const IndexType block_index = a * TBlockSize;
         if (r_node.Is(SLIP)) {
             AddNodalRotationDerivatives(rOutput, rResidualDerivatives, block_index, r_node);
-            AddNodalApplySlipConditionDerivatives(rOutput, block_index, r_node);
+            if (!r_node.IsFixed(ADJOINT_FLUID_VECTOR_1_X)) {
+                // in here we have to check whether SLIP and not INLET
+                // At the inlet ADJOINT_FLUID_VECTOR_1_X is fixed.
+                // There can be a situation where a node is
+                // shared among both inlet and slip (corner node). In this case
+                // AddNodalApplySlipConditionDerivatives will set all the values in the
+                // column corresponding to ADJOINT_FLUID_VECTOR_1_X of the common node to zero except for the
+                // nodal normal derivative contributions. If the normal is perpendicular to the X direction, then
+                // this will set the diagonal in the column corresponding to this node's ADJOINT_FLUID_VECTOR_1_X dof
+                // to zero. But there can be non-zero off-diagonal due to normal not being zero. Eventhough
+                // ADJOINT_FLUID_VECTOR_1_X will be fixed in the block builder and solver
+                // it will not recognize this column as empty, so diagonal won't be fixed by B&S to 1.0.
+                // Since ADJOINT_FLUID_VECTOR_1_X of this node is fixed, B&S will set all the off-diagonals
+                // to zero. This will create a zero column in the system matrix which makes it singular.
+                // So this check is performed here to avoid this.
+                // In here inlets are alsways assumed to be dirichlet.
+                AddNodalApplySlipConditionDerivatives(rOutput, block_index, r_node);
+            }
         } else {
             AddNodalResidualDerivatives(rOutput, rResidualDerivatives, block_index);
         }
@@ -90,7 +108,24 @@ void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::CalculateRotatedSli
             AddNodalRotationDerivatives(rOutput, rResidualDerivatives, block_index, r_node);
             // since slip condition is only based on first derivative
             // variable, make the column zero for all derivatives
-            ClearNodalResidualDerivatives(rOutput, block_index);
+            if (!r_node.IsFixed(ADJOINT_FLUID_VECTOR_1_X)) {
+                // in here we have to check whether SLIP and not INLET.
+                // At the inlet ADJOINT_FLUID_VECTOR_1_X is fixed.
+                // There can be a situation where a node is
+                // shared among both inlet and slip (corner node). In this case
+                // AddNodalApplySlipConditionDerivatives will set all the values in the
+                // column corresponding to ADJOINT_FLUID_VECTOR_1_X of the common node to zero except for the
+                // nodal normal derivative contributions. If the normal is perpendicular to the X direction, then
+                // this will set the diagonal in the column corresponding to this node's ADJOINT_FLUID_VECTOR_1_X dof
+                // to zero. But there can be non-zero off-diagonal due to normal not being zero. Eventhough
+                // ADJOINT_FLUID_VECTOR_1_X will be fixed in the block builder and solver
+                // it will not recognize this column as empty, so diagonal won't be fixed by B&S to 1.0.
+                // Since ADJOINT_FLUID_VECTOR_1_X of this node is fixed, B&S will set all the off-diagonals
+                // to zero. This will create a zero column in the system matrix which makes it singular.
+                // So this check is performed here to avoid this.
+                // In here inlets are alsways assumed to be dirichlet.
+                ClearNodalResidualDerivatives(rOutput, block_index);
+            }
         } else {
             AddNodalResidualDerivatives(rOutput, rResidualDerivatives, block_index);
         }
