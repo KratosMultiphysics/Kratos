@@ -488,11 +488,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def __CreateDistanceModificationProcess(self):
         # Set suitable distance correction settings for free-surface problems
-        # Note that the distance modification process is applied to the volume model part
+        # Note that the distance modification process is applied to the computing model part
         distance_modification_settings = self.settings["distance_modification_settings"]
         distance_modification_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["distance_modification_settings"])
-        aux_full_volume_part_name = self.settings["model_part_name"].GetString() + "." + self.settings["volume_model_part_name"].GetString()
-        distance_modification_settings["model_part_name"].SetString(aux_full_volume_part_name)
+        distance_modification_settings["model_part_name"].SetString(self.GetComputingModelPart().FullName())
 
         # Check user provided settings
         if not distance_modification_settings["continuous_distance"].GetBool():
