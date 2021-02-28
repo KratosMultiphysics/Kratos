@@ -41,7 +41,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckPairin
 {
     // Getting the corresponding submodelparts
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + BaseType::mThisParameters["id_name"].GetString());
+    ModelPart& r_sub_contact_model_part = this->IsNotMultipleSearchs() ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + BaseType::mThisParameters["id_name"].GetString());
     ModelPart& r_master_model_part = r_sub_contact_model_part.GetSubModelPart("MasterSubModelPart" + BaseType::mThisParameters["id_name"].GetString());
     ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart("SlaveSubModelPart" + BaseType::mThisParameters["id_name"].GetString());
 
@@ -87,7 +87,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActi
 
     // Iterate over the nodes
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + BaseType::mThisParameters["id_name"].GetString());
+    ModelPart& r_sub_contact_model_part = this->IsNotMultipleSearchs() ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + BaseType::mThisParameters["id_name"].GetString());
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     // If we do an static check
@@ -178,7 +178,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeLine
 
     // Iterate over the nodes
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + BaseType::mThisParameters["id_name"].GetString());
+    ModelPart& r_sub_contact_model_part = this->IsNotMultipleSearchs() ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + BaseType::mThisParameters["id_name"].GetString());
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     // We compute now the normal gap and set the nodes under certain threshold as active
