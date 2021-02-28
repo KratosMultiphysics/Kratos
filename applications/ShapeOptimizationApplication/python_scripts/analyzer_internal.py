@@ -28,6 +28,10 @@ try:
     from KratosMultiphysics.ConvectionDiffusionApplication.response_functions import convection_diffusion_response_function_factory as convdiff_response_factory
 except ImportError:
     convdiff_response_factory = None
+try:
+    from KratosMultiphysics.RANSApplication.response_functions import rans_response_function_factory as rans_response_factory
+except ImportError:
+    rans_response_factory = None
 
 import time as timer
 
@@ -119,6 +123,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
         sho_response_functions = ["plane_based_packaging", "mesh_based_packaging", "surface_normal_shape_change"]
         csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
         convdiff_response_functions = ["point_temperature"]
+        rans_respone_functions = ["lift_to_drag_response"]
 
         for (response_id, response_settings) in specified_responses:
             if response_id in response_functions.keys():
@@ -136,6 +141,8 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
                 response_functions[response_id] = convdiff_response_factory.CreateResponseFunction(response_id, response_settings, model)
             elif response_type in sho_response_functions:
                 response_functions[response_id] = sho_response_factory.CreateResponseFunction(response_id, response_settings, model)
+            elif response_type in rans_respone_functions:
+                response_functions[response_id] = rans_response_factory.CreateResponseFunction(response_id, response_settings, model)
             else:
                 raise NameError("The response function '{}' of type '{}' is not available.".format(response_id, response_type))
 
