@@ -36,7 +36,7 @@ class KRATOS_API(POROMECHANICS_APPLICATION) UPwElement : public Element
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwElement );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -94,7 +94,7 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 

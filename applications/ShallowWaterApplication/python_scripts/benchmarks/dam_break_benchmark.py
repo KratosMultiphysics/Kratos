@@ -25,6 +25,7 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
 
         The base class validates the settings and sets the model_part, the variables and the benchmark_settings
         """
+
         super().__init__(model, settings)
 
         self.dam = self.benchmark_settings["dam_position"].GetDouble()
