@@ -26,6 +26,9 @@ class ResponseFunctionInterface(object):
     def Initialize(self):
         pass
 
+    def SetOptimizationModelPart(self, optimization_model_part):
+        pass
+
     def InitializeSolutionStep(self):
         pass
 
