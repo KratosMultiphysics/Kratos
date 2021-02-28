@@ -55,8 +55,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         return default_settings
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
-        super(AdjointVMSMonolithicSolver,self).__init__(model,custom_settings)
+        super().__init__(model,custom_settings)
         self.element_has_nodal_properties = True
 
         self.element_name = "VMSAdjointElement"

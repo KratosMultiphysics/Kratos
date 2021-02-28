@@ -28,7 +28,7 @@ class  WaveEquationElement : public Element
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( WaveEquationElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( WaveEquationElement );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
