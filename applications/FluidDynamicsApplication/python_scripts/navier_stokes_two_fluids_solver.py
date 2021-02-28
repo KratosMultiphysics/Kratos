@@ -22,7 +22,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "two_fluids_solver_from_defaults",
+            "solver_type": "two_fluids",
             "model_part_name": "",
             "domain_size": -1,
             "model_import_settings": {
@@ -82,10 +82,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         return default_settings
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
-
         # TODO: DO SOMETHING IN HERE TO REMOVE THE "time_order" FROM THE DEFAULT SETTINGS BUT KEEPING THE BACKWARDS COMPATIBILITY
-
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
@@ -109,8 +106,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
-        surface_tension = self.settings["formulation"]["surface_tension"].GetBool()
-
+        surface_tension = False
+        if (self.settings["formulation"].Has("surface_tension")):
+            surface_tension = self.settings["formulation"]["surface_tension"].GetBool()
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SURFACE_TENSION, surface_tension)
 
         self._reinitialization_type = self.settings["distance_reinitialization"].GetString()
