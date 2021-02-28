@@ -12,6 +12,8 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
+import os, pathlib
+
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 
@@ -27,8 +29,25 @@ try:
 except ImportError:
     convdiff_response_factory = None
 
-
 import time as timer
+
+class IterationScope:
+    def __init__(self, output_folder_name, response_id, iteration_number):
+        if (output_folder_name != None):
+            self.currentPath = pathlib.Path.cwd()
+            output_path = pathlib.Path(output_folder_name)
+            response_text = "response_{:}/{:d}".format(response_id, iteration_number)
+            self.scope = output_path / response_text
+
+    def __enter__(self):
+        if (hasattr(self, "scope")):
+            self.scope.mkdir(parents=True, exist_ok=True)
+            os.chdir(str(self.scope))
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if (hasattr(self, "currentPath")):
+            os.chdir(self.currentPath)
+
 
 # ==============================================================================
 class KratosInternalAnalyzer( AnalyzerBaseClass ):
@@ -50,6 +69,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
         step_before_analysis = optimization_model_part.ProcessInfo.GetValue(KM.STEP)
         delta_time_before_analysis = optimization_model_part.ProcessInfo.GetValue(KM.DELTA_TIME)
 
+        response_id = 1
         for identifier, response in self.response_functions.items():
 
             # Reset step/time iterators such that they match the optimization iteration after calling CalculateValue (which internally calls CloneTimeStep)
@@ -57,19 +77,24 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             optimization_model_part.ProcessInfo.SetValue(KM.TIME, time_before_analysis-1)
             optimization_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, 0)
 
-            response.InitializeSolutionStep()
+            # now we scope in to the directory where response operations are done
+            with IterationScope(self.model_part_controller.GetOutputFolderName(), response_id, optimizationIteration):
+                # set the optimization model part in the response
+                response.SetOptimizationModelPart(optimization_model_part)
 
-            # response values
-            if communicator.isRequestingValueOf(identifier):
-                response.CalculateValue()
-                communicator.reportValue(identifier, response.GetValue())
+                response.InitializeSolutionStep()
 
-            # response gradients
-            if communicator.isRequestingGradientOf(identifier):
-                response.CalculateGradient()
-                communicator.reportGradient(identifier, response.GetNodalGradient(KM.SHAPE_SENSITIVITY))
+                # response values
+                if communicator.isRequestingValueOf(identifier):
+                    response.CalculateValue()
+                    communicator.reportValue(identifier, response.GetValue())
 
-            response.FinalizeSolutionStep()
+                # response gradients
+                if communicator.isRequestingGradientOf(identifier):
+                    response.CalculateGradient()
+                    communicator.reportGradient(identifier, response.GetNodalGradient(KM.SHAPE_SENSITIVITY))
+
+                response.FinalizeSolutionStep()
 
             # Clear results or modifications on model part
             optimization_model_part.ProcessInfo.SetValue(KM.STEP, step_before_analysis)
@@ -78,6 +103,8 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
 
             self.model_part_controller.SetMeshToReferenceMesh()
             self.model_part_controller.SetDeformationVariablesToZero()
+
+            response_id += 1
 
     # --------------------------------------------------------------------------
     def FinalizeAfterOptimizationLoop( self ):
