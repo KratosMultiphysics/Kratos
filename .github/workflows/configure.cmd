@@ -42,7 +42,6 @@ cmake                                                ^
   -DFORCE_LOCAL_ZLIB_COMPILATION=ON                  ^
   -DUSE_COTIRE=ON                                    || goto :error
 
-cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
 cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target zlibstatic -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
 cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
 
