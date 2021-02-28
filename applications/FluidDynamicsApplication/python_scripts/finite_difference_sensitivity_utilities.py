@@ -261,5 +261,5 @@ class FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis:
         response_parameters["Parameters"]["response_settings"]["norm_model_part_name"].SetString(
             norm_model_part_name[seperator_index+1:])
 
-        kratos_parameters["processes"]["auxiliar_process_list"].Append(
-            response_parameters)
+        kratos_parameters["output_processes"].AddEmptyList("response_function_outputs")
+        kratos_parameters["output_processes"]["response_function_outputs"].Append(response_parameters)
