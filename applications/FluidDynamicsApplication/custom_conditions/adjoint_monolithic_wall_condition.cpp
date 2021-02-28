@@ -309,10 +309,22 @@ void AdjointMonolithicWallCondition<3, 3>::GetSecondDerivativesVector(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int AdjointMonolithicWallCondition<TDim, TNumNodes>::Check(
-        const ProcessInfo& rCurrentProcessInfo) const
+int AdjointMonolithicWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    return 0;
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(this->Has(NORMAL))
+        << "NORMAL is not defined for " << this->Info() << ".\n";
+
+    KRATOS_ERROR_IF(norm_2(this->GetValue(NORMAL)) = 0.0)
+        << "NORMAL is not properly initialized in " << this->Info() << ".\n";
+
+    KRATOS_ERROR_IF_NOT(this->Has(NORMAL_SHAPE_DERIVATIVE))
+        << "NORMAL_SHAPE_DERIVATIVE is not defined for " << this->Info() << ".\n";
+
+    return Condition::Check(rCurrentProcessInfo);
+
+    KRATOS_CATCH("");
 }
 
 template<>
@@ -353,9 +365,6 @@ void AdjointMonolithicWallCondition<TDim, TNumNodes>::CalculateData(
 {
     KRATOS_TRY
 
-    KRATOS_DEBUG_ERROR_IF(!this->Has(NORMAL))
-        << "NORMAL is not defined for " << this->Info() << ".\n";
-
     const auto& aux_normal = this->GetValue(NORMAL);
     for (IndexType i = 0; i < TDim; ++i) {
         rUnitNormal[i] = aux_normal[i];
@@ -377,9 +386,6 @@ void AdjointMonolithicWallCondition<TDim, TNumNodes>::CalculateDataShapeDerivati
     const array_1d<double, TDim>& rUnitNormal) const
 {
     KRATOS_TRY
-
-    KRATOS_DEBUG_ERROR_IF(!this->Has(NORMAL_SHAPE_DERIVATIVE))
-        << "NORMAL_SHAPE_DERIVATIVE is not defined for " << this->Info() << ".\n";
 
     const auto& normal_shape_derivatives = this->GetValue(NORMAL_SHAPE_DERIVATIVE);
     noalias(rAreaDerivatives) = prod(normal_shape_derivatives, rUnitNormal);
