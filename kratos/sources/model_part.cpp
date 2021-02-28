@@ -1716,18 +1716,32 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
 
 ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
 {
-    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+    const auto delim_pos = SubModelPartName.find('.');
+    const std::string& sub_model_part_name = SubModelPartName.substr(0, delim_pos);
 
-    return *i;
+    SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
+    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << sub_model_part_name << "\" in model part\"" << Name() << "\"" << std::endl;
+
+    if (delim_pos == std::string::npos) {
+        return *i;
+    } else {
+        return i->GetSubModelPart(SubModelPartName.substr(delim_pos + 1));
+    }
 }
 
 ModelPart* ModelPart::pGetSubModelPart(std::string const& SubModelPartName)
 {
-    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+    const auto delim_pos = SubModelPartName.find('.');
+    const std::string& sub_model_part_name = SubModelPartName.substr(0, delim_pos);
 
-    return (i.base()->second).get();
+    SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
+    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << sub_model_part_name << "\" in model part\"" << Name() << "\"" << std::endl;
+
+    if (delim_pos == std::string::npos) {
+        return (i.base()->second).get();
+    } else {
+        return i->pGetSubModelPart(SubModelPartName.substr(delim_pos + 1));
+    }
 }
 
 /** Remove a sub modelpart with given name.
@@ -1778,7 +1792,15 @@ const ModelPart& ModelPart::GetParentModelPart() const
 
 bool ModelPart::HasSubModelPart(std::string const& ThisSubModelPartName) const
 {
-    return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
+    const auto delim_pos = ThisSubModelPartName.find('.');
+    const std::string& sub_model_part_name = ThisSubModelPartName.substr(0, delim_pos);
+
+    const auto i = mSubModelParts.find(sub_model_part_name);
+    if (delim_pos == std::string::npos) {
+        return (i != mSubModelParts.end());
+    } else {
+        return i->HasSubModelPart(ThisSubModelPartName.substr(delim_pos + 1));
+    }
 }
 
 std::vector<std::string> ModelPart::GetSubModelPartNames()
