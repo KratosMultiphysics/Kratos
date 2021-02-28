@@ -32,6 +32,8 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "utilities/variable_utils.h"
+#include "utilities/pointer_communicator.h"
+#include "utilities/pointer_map_communicator.h"
 #include "includes/global_pointer_variables.h"
 
 namespace Kratos
@@ -599,7 +601,7 @@ protected:
         return n_steps;
     }
 
-    virtual void EvaluateLimiter()
+    void EvaluateLimiter()
     {
         // ****************************************************************************************
         // ****************************************************************************************
@@ -609,6 +611,36 @@ protected:
         const double power_bfecc = 2.0;
 
         //mProjectedGradientProcess.Execute();
+
+        auto& r_default_comm = mpDistanceModelPart->GetCommunicator().GetDataCommunicator();
+        GlobalPointersVector< Node<3 > > gp_list;
+
+        for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+            auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+                auto& global_pointer = global_pointer_list(j);
+                gp_list.push_back(global_pointer);
+            }
+        }
+
+        GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, gp_list);
+
+        auto coordinate_proxy = pointer_comm.Apply(
+            [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
+            {
+                return global_pointer->Coordinates();
+            }
+        );
+
+        auto distance_proxy = pointer_comm.Apply(
+            [&](GlobalPointer<Node<3> >& global_pointer) -> double
+            {
+                return global_pointer->FastGetSolutionStepValue(mrLevelSetVar);
+            }
+        );
 
         #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
@@ -622,13 +654,15 @@ protected:
             double S_plus = 0.0;
             double S_minus = 0.0;
 
-            for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
-                j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-                if (it_node->Id() == j_node->Id())
-                    continue;
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+                // if (it_node->Id() == j_node->Id())
+                //     continue;
 
-                const auto& X_j = j_node->Coordinates();
+                auto& global_pointer = global_pointer_list(j);
+                auto X_j = coordinate_proxy.Get(global_pointer);
 
                 S_plus += std::max(0.0, inner_prod(grad_i, X_i-X_j));
                 S_minus += std::min(0.0, inner_prod(grad_i, X_i-X_j));
@@ -649,14 +683,16 @@ protected:
             double numerator = 0.0;
             double denominator = 0.0;
 
-            for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
-                j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-                if (it_node->Id() == j_node->Id())
-                    continue;
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+                // if (it_node->Id() == j_node->Id())
+                //     continue;
 
-                const double distance_j = j_node->FastGetSolutionStepValue(mrLevelSetVar);
-                const auto& X_j = j_node->Coordinates();
+                auto& global_pointer = global_pointer_list(j);
+                auto X_j = coordinate_proxy.Get(global_pointer);
+                const double distance_j = distance_proxy.Get(global_pointer);
 
                 double beta_ij = 1.0;
 
