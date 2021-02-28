@@ -69,11 +69,16 @@ public:
     ///@name Classes
     ///@{
 
-    template <unsigned int TBlockSize>
     class KRATOS_API(FLUID_DYNAMICS_APPLICATION) SlipUtilities
     {
     public:
-        ///@name Static Operations
+        ///@name Life Cycle
+        ///@{
+
+        SlipUtilities(const IndexType BlockSize);
+
+        ///@}
+        ///@name Operations
         ///@{
 
         /**
@@ -91,10 +96,10 @@ public:
          * @param rResidualDerivatives      Non-rotated and non-slip applied state derivatives
          * @param rGeometry                 Geometry of which rResidualDerivatives are computed on
          */
-        static void CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
+        void CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
             Matrix& rOutput,
             const Matrix& rResidualDerivatives,
-            const GeometryType& rGeometry);
+            const GeometryType& rGeometry) const;
 
         /**
          * @brief Calculates rotated slip applied state derivatives
@@ -111,10 +116,10 @@ public:
          * @param rResidualDerivatives      Non-rotated and non-slip applied state derivatives
          * @param rGeometry                 Geometry of which rResidualDerivatives are computed on
          */
-        static void CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+        void CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
             Matrix& rOutput,
             const Matrix& rResidualDerivatives,
-            const GeometryType& rGeometry);
+            const GeometryType& rGeometry) const;
 
         /**
          * @brief Rotates residual derivatives
@@ -127,11 +132,11 @@ public:
          * @param NodeStartIndex            Block starting column for that specific node
          * @param rNode                     Node which has rotated residual derivative contributions
          */
-        static void AddNodalRotationDerivatives(
+        void AddNodalRotationDerivatives(
             Matrix& rOutput,
             const Matrix& rResidualDerivatives,
             const IndexType NodeStartIndex,
-            const NodeType& rNode);
+            const NodeType& rNode) const;
 
         /**
          * @brief Slip condition residual derivatives
@@ -143,10 +148,10 @@ public:
          * @param NodeStartIndex            Block starting column for that specific node
          * @param rNode                     Node which has rotated residual derivative contributions
          */
-        static void AddNodalApplySlipConditionDerivatives(
+        void AddNodalApplySlipConditionDerivatives(
             Matrix& rOutput,
             const IndexType NodeStartIndex,
-            const NodeType& rNode);
+            const NodeType& rNode) const;
 
         /**
          * @brief Adds the nodal state derivatives as it is
@@ -158,10 +163,10 @@ public:
          * @param rResidualDerivatives      Non-rotated state derivatives
          * @param NodeStartIndex            Block starting column for that specific node
          */
-        static void AddNodalResidualDerivatives(
+        void AddNodalResidualDerivatives(
             Matrix& rOutput,
             const Matrix& rResidualDerivatives,
-            const IndexType NodeStartIndex);
+            const IndexType NodeStartIndex) const;
 
         /**
          * @brief Clears a residual derivative
@@ -169,16 +174,18 @@ public:
          * @param rOutput               Output matrix
          * @param ResidualIndex         Residual index which needs to be set to zero.
          */
-        static void ClearNodalResidualDerivatives(
+        void ClearNodalResidualDerivatives(
             Matrix& rOutput,
-            const IndexType ResidualIndex);
+            const IndexType ResidualIndex) const;
 
         ///@}
     private:
-        ///@name Private Static Members
+        ///@name Private Members
         ///@{
 
-        static const CoordinateTransformationUtilities mRotationTool;
+        const IndexType mBlockSize;
+
+        const CoordinateTransformationUtilities mRotationTool;
 
         ///@}
     };

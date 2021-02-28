@@ -34,16 +34,17 @@ namespace Kratos
 {
 
 template <unsigned int TDim>
-template <unsigned int TBlockSize>
-const CoordinateTransformationUtils<Matrix, Vector, double> FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::mRotationTool(
-    TDim, TBlockSize);
+FluidAdjointUtilities<TDim>::SlipUtilities::SlipUtilities(const IndexType BlockSize)
+: mBlockSize(BlockSize),
+  mRotationTool(TDim, mBlockSize)
+{
+}
 
 template <unsigned int TDim>
-template <unsigned int TBlockSize>
-void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
+void FluidAdjointUtilities<TDim>::SlipUtilities::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
     Matrix& rOutput,
     const Matrix& rResidualDerivatives,
-    const GeometryType& rGeometry)
+    const GeometryType& rGeometry) const
 {
     if (rOutput.size1() != rResidualDerivatives.size1() ||
         rOutput.size2() != rResidualDerivatives.size2()) {
@@ -57,7 +58,7 @@ void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::CalculateRotatedSli
     // add residual derivative contributions
     for (IndexType a = 0; a < number_of_nodes; ++a) {
         const auto& r_node = rGeometry[a];
-        const IndexType block_index = a * TBlockSize;
+        const IndexType block_index = a * mBlockSize;
         if (r_node.Is(SLIP)) {
             AddNodalRotationDerivatives(rOutput, rResidualDerivatives, block_index, r_node);
             if (!r_node.IsFixed(ADJOINT_FLUID_VECTOR_1_X)) {
@@ -85,11 +86,10 @@ void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::CalculateRotatedSli
 }
 
 template <unsigned int TDim>
-template <unsigned int TBlockSize>
-void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+void FluidAdjointUtilities<TDim>::SlipUtilities::CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
     Matrix& rOutput,
     const Matrix& rResidualDerivatives,
-    const GeometryType& rGeometry)
+    const GeometryType& rGeometry) const
 {
     if (rOutput.size1() != rResidualDerivatives.size1() ||
         rOutput.size2() != rResidualDerivatives.size2()) {
@@ -103,7 +103,7 @@ void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::CalculateRotatedSli
     // add residual derivative contributions
     for (IndexType a = 0; a < number_of_nodes; ++a) {
         const auto& r_node = rGeometry[a];
-        const IndexType block_index = a * TBlockSize;
+        const IndexType block_index = a * mBlockSize;
         if (r_node.Is(SLIP)) {
             AddNodalRotationDerivatives(rOutput, rResidualDerivatives, block_index, r_node);
             // since slip condition is only based on first derivative
@@ -133,12 +133,11 @@ void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::CalculateRotatedSli
 }
 
 template <unsigned int TDim>
-template <unsigned int TBlockSize>
-void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::AddNodalRotationDerivatives(
+void FluidAdjointUtilities<TDim>::SlipUtilities::AddNodalRotationDerivatives(
     Matrix& rOutput,
     const Matrix& rResidualDerivatives,
     const IndexType NodeStartIndex,
-    const NodeType& rNode)
+    const NodeType& rNode) const
 {
     KRATOS_TRY
 
@@ -159,7 +158,7 @@ void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::AddNodalRotationDer
         FluidCalculationUtilities::AddSubVector<TDim>(rOutput, aux_vector, c, NodeStartIndex);
 
         // add rest of the equation derivatives
-        for (IndexType a = TDim; a < TBlockSize; ++a) {
+        for (IndexType a = TDim; a < mBlockSize; ++a) {
             rOutput(c, NodeStartIndex + a) += rResidualDerivatives(c, NodeStartIndex + a);
         }
     }
@@ -168,11 +167,10 @@ void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::AddNodalRotationDer
 }
 
 template <unsigned int TDim>
-template <unsigned int TBlockSize>
-void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::AddNodalApplySlipConditionDerivatives(
+void FluidAdjointUtilities<TDim>::SlipUtilities::AddNodalApplySlipConditionDerivatives(
     Matrix& rOutput,
     const IndexType NodeStartIndex,
-    const NodeType& rNode)
+    const NodeType& rNode) const
 {
     KRATOS_TRY
 
@@ -193,17 +191,16 @@ void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::AddNodalApplySlipCo
 }
 
 template <unsigned int TDim>
-template <unsigned int TBlockSize>
-void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::AddNodalResidualDerivatives(
+void FluidAdjointUtilities<TDim>::SlipUtilities::AddNodalResidualDerivatives(
     Matrix& rOutput,
     const Matrix& rResidualDerivatives,
-    const IndexType NodeStartIndex)
+    const IndexType NodeStartIndex) const
 {
     KRATOS_TRY
 
     // add non-rotated residual derivative contributions
     for (IndexType c = 0; c < rResidualDerivatives.size1(); ++c) {
-        for (IndexType i = 0; i < TBlockSize; ++i) {
+        for (IndexType i = 0; i < mBlockSize; ++i) {
             rOutput(c, NodeStartIndex + i) += rResidualDerivatives(c, NodeStartIndex + i);
         }
     }
@@ -212,10 +209,9 @@ void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::AddNodalResidualDer
 }
 
 template <unsigned int TDim>
-template <unsigned int TBlockSize>
-void FluidAdjointUtilities<TDim>::SlipUtilities<TBlockSize>::ClearNodalResidualDerivatives(
+void FluidAdjointUtilities<TDim>::SlipUtilities::ClearNodalResidualDerivatives(
     Matrix& rOutput,
-    const IndexType ResidualIndex)
+    const IndexType ResidualIndex) const
 {
     for (IndexType c = 0; c < rOutput.size1(); ++c) {
         rOutput(c, ResidualIndex) = 0.0;
@@ -299,14 +295,5 @@ std::array<const Variable<double>*, 3> FluidAdjointUtilities<3>::GetRelevantGrad
 
 template class FluidAdjointUtilities<2>;
 template class FluidAdjointUtilities<3>;
-
-template class FluidAdjointUtilities<2>::SlipUtilities<3>;
-template class FluidAdjointUtilities<2>::SlipUtilities<4>;
-template class FluidAdjointUtilities<2>::SlipUtilities<5>;
-
-template class FluidAdjointUtilities<3>::SlipUtilities<4>;
-template class FluidAdjointUtilities<3>::SlipUtilities<5>;
-template class FluidAdjointUtilities<3>::SlipUtilities<6>;
-
 
 } // namespace Kratos
