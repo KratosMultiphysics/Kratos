@@ -100,7 +100,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActi
     #pragma omp parallel for firstprivate(auxiliar_length, auxiliar_check, has_weighted_gap)
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
         auto it_node = r_nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == this->IsNot(BaseType::INVERTED_SEARCH)) {
+        if (it_node->Is(SLAVE) == this->IsNotInvertedSearch()) {
             auxiliar_check = false;
             auxiliar_length = reference_auxiliar_length;
             has_weighted_gap = it_node->SolutionStepsDataHas(WEIGHTED_GAP);
@@ -440,7 +440,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMF
     )
 {
     if (norm_2(ItNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseType::PURE_SLIP)) {
+        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->IsPureSlip()) {
             ItNode->Set(SLIP, true);
         } else {
             ItNode->Set(SLIP, false);
@@ -557,7 +557,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMF
     )
 {
     if (norm_2(ItNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseType::PURE_SLIP)) {
+        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->IsPureSlip()) {
             ItNode->Set(SLIP, true);
         } else {
             ItNode->Set(SLIP, false);
