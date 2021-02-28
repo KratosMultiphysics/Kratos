@@ -171,19 +171,6 @@ class FSICouplingInterface():
             output_variable,
             iteration_value_u_vector)
 
-        # # Set and fill the traction value vector with the current non-linear iteration values (f^{k+1})
-        # # Note that these are the values that were employed to obtain the current displacements
-        # if self.input_variable_list.size() == 1:
-        #     input_variable_name = self.input_variable_list[0].GetString()
-        #     input_variable = KratosMultiphysics.KratosGlobals.GetVariable(input_variable_name)
-        # else:
-        #     err_msg = "Input variable list has more than one variable. One is expected for the IBQN update."
-        #     raise Exception(err_msg)
-        # iteration_value_f_vector = KratosMultiphysics.Vector(self._residual_size)
-        # self._get_partitioned_fsi_utilities().InitializeInterfaceVector(
-        #     self.GetInterfaceModelPart(),
-        #     input_variable,
-        #     iteration_value_f_vector)
 
         # Set and fill the traction value vector with the current non-linear iteration values (f^{k+1})
         # Note that these are the values that were employed to obtain the current displacements
