@@ -14,7 +14,7 @@
                 "TORSIONAL_INERTIA" : 0.0337623035,
                 "I22"               : 0.0168811518,
                 "I33"               : 0.02,
-                "USE_CONSISTENT_MASS_MATRIX" : true
+                "COMPUTE_LUMPED_MASS_MATRIX" : false
             },
             "Tables"           : {}
         }

@@ -17,7 +17,7 @@ from darcy_channel_test import DarcyChannelTest
 from embedded_piston_test import EmbeddedPistonTest
 from embedded_reservoir_test import EmbeddedReservoirTest
 from embedded_reservoir_discontinuous_test import EmbeddedReservoirDiscontinuousTest
-from embedded_couette_test import EmbeddedCouetteTest
+from embedded_couette_flow_test import EmbeddedCouetteFlowTest
 from embedded_couette_imposed_test import EmbeddedCouetteImposedTest
 from embedded_velocity_inlet_emulation_test import EmbeddedVelocityInletEmulationTest
 from fluid_element_test import FluidElementTest
@@ -51,13 +51,10 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTest(CouetteFlowTest('testCouetteFlow2DSymbolicStokes'))
-    smallSuite.addTest(CouetteFlowTest('testCouetteFlow2DSymbolicNavierStokes'))
-    smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedCouette2D'))
-    smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipCouette2D'))
-    smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasCouette2D'))
-    smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedDevelopmentCouette2D'))
-    smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipDevelopmentCouette2D'))
-    smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasDevelopmentCouette2D'))
+    smallSuite.addTest(CouetteFlowTest('testCouetteFlow2DWeaklyCompressibleNavierStokes'))
+    smallSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2D'))
+    smallSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2DSlip'))
+    smallSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D'))
     smallSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed2D'))
     smallSuite.addTest(EmbeddedPistonTest('testEmbeddedPiston2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
@@ -80,12 +77,9 @@ def AssembleTestSuites():
     nightSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir3D'))
     nightSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir3D'))
     nightSuite.addTest(EmbeddedReservoirDiscontinuousTest('testEmbeddedReservoirDiscontinuous3D'))
-    nightSuite.addTest(EmbeddedCouetteTest('testEmbeddedCouette3D'))
-    nightSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipCouette3D'))
-    nightSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasCouette3D'))
-    nightSuite.addTest(EmbeddedCouetteTest('testEmbeddedDevelopmentCouette3D'))
-    nightSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipDevelopmentCouette3D'))
-    nightSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasDevelopmentCouette3D'))
+    nightSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes3D'))
+    nightSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes3DSlip'))
+    nightSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokesDiscontinuous3D'))
     nightSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed3D'))
     nightSuite.addTest(FluidElementTest('testCavityQSASGS'))
     nightSuite.addTest(FluidElementTest('testCavityQSOSS'))
@@ -93,14 +87,12 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidElementTest('testCavityDOSS'))
     nightSuite.addTest(FluidElementTest('testTimeIntegratedQSVMS'))
     nightSuite.addTest(FluidElementTest('testSymbolic'))
-    nightSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
     nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
     nightSuite.addTest(AdjointFluidTest('testCylinder'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSecondDerivativesLHS'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS1'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS2'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSensitivityMatrix'))
-    nightSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
     nightSuite.addTest(HDF5IOTest('testInputOutput'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
@@ -118,7 +110,9 @@ def AssembleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
+    validationSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
+    validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
 
 
     # Create a test suite that contains all the tests:
@@ -128,12 +122,4 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
-    KratosMultiphysics.Tester.RunTestSuite("FluidDynamicsApplicationFastSuite")
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

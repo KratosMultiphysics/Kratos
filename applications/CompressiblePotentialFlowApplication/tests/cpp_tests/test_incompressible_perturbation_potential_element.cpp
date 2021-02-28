@@ -57,23 +57,20 @@ namespace Kratos {
         pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
     }
 
-    void AssignPotentialsToWakePerturbationElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances)
+    void AssignPotentialsToWakePerturbationElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances, const std::array<double, 6>& rPotential)
     {
-      // Define the nodal values
-      std::array<double, 3> potential{1.0, 2.0, 3.0};
-
       for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) > 0.0)
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
         else
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i];
-      }
-      for (unsigned int i = 0; i < 3; i++){
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i];
+    }
+    for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) < 0.0)
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i]+5;
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+3];
         else
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i]+5;
-      }
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+3];
+    }
     }
 
     BoundedVector<double,3> AssignDistancesToPerturbationElement()
@@ -152,7 +149,8 @@ namespace Kratos {
       pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
       pElement->GetValue(WAKE) = true;
 
-      AssignPotentialsToWakePerturbationElement(pElement, distances);
+      const std::array<double, 6> potential{1.5348, 2.31532, 3.2874, 4.1642, 6.8254, 5.174};
+      AssignPotentialsToWakePerturbationElement(pElement, distances, potential);
 
       // Compute RHS
       Vector RHS = ZeroVector(6);
@@ -161,9 +159,9 @@ namespace Kratos {
       pElement->CalculateRightHandSide(RHS, r_current_process_info);
 
       // Check the RHS values
-      std::vector<double> reference{5.5, 0.0, 0.0, 0.0, -5, -0.5};
+      std::vector<double> reference{5.39026,2.252080000000001,-1.31174,0.9403400000000008,-7.1563,0.8256999999999999};
 
-      KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-6);
+      KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(WakeIncompressiblePerturbationPotentialFlowElementCalculateLHS, CompressiblePotentialApplicationFastSuite)
@@ -179,7 +177,8 @@ namespace Kratos {
       pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
       pElement->GetValue(WAKE) = true;
 
-      AssignPotentialsToWakePerturbationElement(pElement, distances);
+      const std::array<double, 6> potential{1.0, 2.0, 3.0, 6.0, 7.0, 8.0};
+      AssignPotentialsToWakePerturbationElement(pElement, distances, potential);
 
       // Compute LHS
       Matrix LHS = ZeroMatrix(6,6);

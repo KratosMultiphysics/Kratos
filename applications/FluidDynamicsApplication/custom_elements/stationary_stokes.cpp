@@ -21,20 +21,7 @@ int StationaryStokes<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     int Result = Element::Check(rCurrentProcessInfo);
 
-    // Check that all required variables have been registered
-    if(VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-    if(PRESSURE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-    if(DENSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-    if(VISCOSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-    if(BODY_FORCE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"BODY_FORCE Key is 0. Check if the application was correctly registered.","");
-
     // Checks on nodes
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
@@ -167,7 +154,7 @@ void StationaryStokes<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatri
 
 template< unsigned int TDim >
 void StationaryStokes<TDim>::GetDofList(DofsVectorType &rElementalDofList,
-                                  const ProcessInfo &rCurrentProcessInfo) const 
+                                  const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -189,7 +176,7 @@ void StationaryStokes<TDim>::GetDofList(DofsVectorType &rElementalDofList,
 
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::EquationIdVector(Element::EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const 
+void StationaryStokes<TDim>::EquationIdVector(Element::EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -211,7 +198,7 @@ void StationaryStokes<TDim>::EquationIdVector(Element::EquationIdVectorType &rRe
 
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step) const 
+void StationaryStokes<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step) const
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();

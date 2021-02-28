@@ -13,7 +13,7 @@ class IncompressiblePotentialFlowSolverFormulationTest(UnitTest.TestCase):
         self._runTest()
 
     def _runTest(self):
-        self.addCleanup(lambda: kratos_utilities.DeleteTimeFiles("BackwardFacingStepTest"))
+        self.addCleanup(lambda: kratos_utilities.DeleteTimeFiles("."))
 
         self.parameters = {}
         if (km.IsDistributedRun()):

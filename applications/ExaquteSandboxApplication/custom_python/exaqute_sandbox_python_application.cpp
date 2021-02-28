@@ -24,6 +24,7 @@
 #include "exaqute_sandbox_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 
 namespace Kratos {
@@ -41,6 +42,7 @@ PYBIND11_MODULE(KratosExaquteSandboxApplication,m)
 
     AddCustomStrategiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
     //registering variables in python
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AVERAGED_DIVERGENCE )

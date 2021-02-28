@@ -9,19 +9,15 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 # Use Metis 5 by default
 OPTION ( USE_METIS_5 "Using Metis 5 (and not 4)" ON )
 
-if(${USE_METIS_5} MATCHES ON)
-    message("using metis (and not Parmetis) version 5")
-    add_definitions(-DKRATOS_USE_METIS_5)
-    find_package(METIS REQUIRED)
-    include_directories(${METIS_INCLUDE_DIR})
-    link_directories(${METIS_LIBRARIES})
-    install(FILES ${METIS_LIBRARIES} DESTINATION libs)
-else(${USE_METIS_5} MATCHES ON)
-    message("using PARMETIS < 4 as default. Set USE_METIS_5=ON to compile with METIS v5 instead- note that current compile option is deprecated and will be removed soon")
-    find_package(PARMETIS REQUIRED)
-    include_directories(${PARMETIS_INCLUDE_DIR})
-    link_directories(${PARMETIS_LIBRARIES})
-endif(${USE_METIS_5} MATCHES ON)
+if(${USE_METIS_5} MATCHES OFF)
+    message( FATAL_ERROR "Support for Metis version < 5 has been dropped")
+endif(${USE_METIS_5} MATCHES OFF)
+
+add_definitions(-DKRATOS_USE_METIS_5)
+find_package(METIS REQUIRED)
+include_directories(${METIS_INCLUDE_DIR})
+link_directories(${METIS_LIBRARIES})
+install(FILES ${METIS_LIBRARIES} DESTINATION libs)
 
 ## Metis Core sources
 file( GLOB KRATOS_METIS_APPLICATION_CORE

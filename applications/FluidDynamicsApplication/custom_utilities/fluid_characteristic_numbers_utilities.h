@@ -15,7 +15,7 @@
 #define	KRATOS_FLUID_CHARACTERISTIC_NUMBERS_UTILITIES_H
 
 // System includes
-#include <tuple>
+#include <utility>
 
 // External includes
 
@@ -89,7 +89,7 @@ public:
     /**
      * @brief Calculate the element Prandtl number
      * For the given element, this method calculates the Prandtl number
-     * @tparam ConsiderArtificialMagnitudes Template parameter specifying if the artificial values are considered 
+     * @tparam ConsiderArtificialMagnitudes Template parameter specifying if the artificial values are considered
      * @param rElement Element to calculate the Prandtl number
      * @return double The element Prandtl number
      */
@@ -99,14 +99,14 @@ public:
     /**
      * @brief Calculate the elemental Peclet numbers
      * For the given element, this method calculates the Peclet number considering both the
-     * dynamic viscosity and the shear conductivity 
+     * dynamic viscosity and the shear conductivity
      * @tparam ConsiderArtificialMagnitudes Template parameter specifying if the artificial values are considered
      * @tparam DensityIsNodal Template parameter specifying if the density is nodally stored
      * @param rElement Element to calculate the Peclet number
-     * @return std::tuple<double,double> Tuple containing the viscosity (first position) and conductivity (second position) Peclet numbers
+     * @return std::pair<double,double> Pair containing the viscosity (first position) and conductivity (second position) Peclet numbers
      */
     template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
-    static std::tuple<double,double> CalculateElementPecletNumbers(
+    static std::pair<double,double> CalculateElementPecletNumbers(
         const Element& rElement,
         const ElementSizeFunctionType& rElementSizeCalculator);
 
@@ -139,14 +139,14 @@ public:
     /**
      * @brief Calculate the elemental Fourier numbers
      * For the given element, this method calculates the Fourier number considering both the
-     * dynamic viscosity and the shear conductivity 
+     * dynamic viscosity and the shear conductivity
      * @tparam ConsiderArtificialMagnitudes Template parameter specifying if the artificial values are considered
      * @tparam DensityIsNodal Template parameter specifying if the density is nodally stored
      * @param rElement Element to calculate the Fourier number
-     * @return std::tuple<double,double> Tuple containing the viscosity (first position) and thermal (second position) Fourier numbers
+     * @return std::pair<double,double> Pair containing the viscosity (first position) and thermal (second position) Fourier numbers
      */
     template<bool ConsiderArtificialMagnitudes, bool DensityIsNodal>
-    static std::tuple<double,double> CalculateElementFourierNumbers(
+    static std::pair<double,double> CalculateElementFourierNumbers(
         const Element& rElement,
         const ElementSizeFunctionType& rElementSizeCalculator,
         const double Dt);
@@ -206,7 +206,7 @@ public:
      * @return ElementSizeFunctionType Function to calculate the average element size
      */
     static ElementSizeFunctionType GetAverageElementSizeFunction(const Geometry<Node<3>>& rGeometry);
-    
+
     ///@}
 
 private:
@@ -219,7 +219,7 @@ private:
     static double AuxiliaryGetDensity(const Element& rElement);
 
     template<bool AddArtificialValues>
-    static std::tuple<double,double> GetDiffusivityValues(const Element& rElement);
+    static std::pair<double,double> GetDiffusivityValues(const Element& rElement);
 
     template<bool AddArtificialValues>
     static double GetDynamicViscosityValue(const Element& rElement);
