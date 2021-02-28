@@ -45,12 +45,7 @@ namespace Testing
 array_1d<double, 3> GetArray3DVector(
     const std::vector<double>& rInput)
 {
-    array_1d<double, 3> result;
-    result[0] = rInput[0];
-    result[1] = rInput[1];
-    result[2] = rInput[2];
-
-    return result;
+    return array_1d<double, 3>{rInput[0], rInput[1], rInput[2]};
 }
 
 void SetModelPartOldValues(
