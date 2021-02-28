@@ -145,12 +145,15 @@ void AdjointMonolithicWallCondition<2, 2>::EquationIdVector(
         rResult.resize(6);
     }
 
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_VECTOR_1_X);
+    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_SCALAR_1);
+
     IndexType local_index = 0;
     for (IndexType i = 0; i < 2; ++i) {
         const auto& r_node = this->GetGeometry()[i];
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_X).EquationId();
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Y).EquationId();
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_SCALAR_1).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_X, xpos).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Y, xpos + 1).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_SCALAR_1, ppos).EquationId();
     }
 }
 
@@ -163,13 +166,16 @@ void AdjointMonolithicWallCondition<3, 3>::EquationIdVector(
         rResult.resize(12);
     }
 
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_VECTOR_1_X);
+    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_SCALAR_1);
+
     IndexType local_index = 0;
     for (IndexType i = 0; i < 3; ++i) {
         const auto& r_node = this->GetGeometry()[i];
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_X).EquationId();
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Y).EquationId();
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Z).EquationId();
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_SCALAR_1).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_X, xpos).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Y, xpos + 1).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Z, xpos + 2).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_SCALAR_1, ppos).EquationId();
     }
 }
 
@@ -182,12 +188,15 @@ void AdjointMonolithicWallCondition<2, 2>::GetDofList(
         rResult.resize(6);
     }
 
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_VECTOR_1_X);
+    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_SCALAR_1);
+
     IndexType local_index = 0;
     for (IndexType i = 0; i < 2; ++i) {
         const auto& r_node = this->GetGeometry()[i];
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_X);
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Y);
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_SCALAR_1);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_X, xpos);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Y, xpos + 1);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_SCALAR_1, ppos);
     }
 }
 
@@ -200,13 +209,16 @@ void AdjointMonolithicWallCondition<3, 3>::GetDofList(
         rResult.resize(12);
     }
 
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_VECTOR_1_X);
+    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_SCALAR_1);
+
     IndexType local_index = 0;
     for (IndexType i = 0; i < 3; ++i) {
         const auto& r_node = this->GetGeometry()[i];
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_X);
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Y);
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Z);
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_SCALAR_1);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_X, xpos);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Y, xpos + 1);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Z, xpos + 2);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_SCALAR_1, ppos);
     }
 }
 
