@@ -60,8 +60,8 @@ Here you can find the basic documentation of the project:
 * [Multiphysics](https://github.com/KratosMultiphysics/Kratos/wiki/Multiphysics-example)
 
 ## More documentation
-
 [Wiki](https://github.com/KratosMultiphysics/Kratos/wiki)
+
 # Examples of use
 Kratos has been used for simulation of many different problems in a wide variety of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
 
