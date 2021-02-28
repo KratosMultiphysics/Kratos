@@ -65,7 +65,7 @@ public:
     ///@{
 
     /// Pointer definition of ComputeMaterialDerivativeSimplex
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeMaterialDerivativeSimplex);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ComputeMaterialDerivativeSimplex);
 
     /// Node type (default is: Node<3>)
     typedef Node <3> NodeType;

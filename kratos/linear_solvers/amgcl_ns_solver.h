@@ -225,6 +225,7 @@ public:
                 );
 
         Solver solve(*pA, mprm);
+        KRATOS_INFO_IF("AMGCL NS Solver", mVerbosity > 1) << "AMGCL-NS Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
         return solve(*pA, rB, rX);
     }
 
@@ -260,6 +261,7 @@ public:
                 );
 
         Solver solve(*pA, mprm);
+        KRATOS_INFO_IF("AMGCL NS Solver", mVerbosity > 1) << "AMGCL-NS Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
         return solve(*pA, rB, rX);
     }
 

@@ -147,9 +147,21 @@ pybind11::list CalculateOnIntegrationPoints(
     std::vector<TDataType> Output;
     dummy.CalculateOnIntegrationPoints(rVariable, Output, rProcessInfo);
     pybind11::list result;
-    for (unsigned int j = 0; j < Output.size(); j++)
-    {
+    for (std::size_t j = 0; j < Output.size(); j++) {
         result.append(Output[j]);
+    }
+    return result;
+}
+
+template< class TObject>
+pybind11::list CalculateOnIntegrationPointsBool(
+    TObject& dummy, const Variable<bool>& rVariable, const ProcessInfo& rProcessInfo)
+{
+    std::vector<bool> Output;
+    dummy.CalculateOnIntegrationPoints(rVariable, Output, rProcessInfo);
+    pybind11::list result;
+    for (std::size_t j = 0; j < Output.size(); j++) {
+        result.append(static_cast<int>(Output[j]));
     }
     return result;
 }
@@ -173,7 +185,7 @@ void GetValuesOnIntegrationPoints(
 
 template< class TObject, class TDataType >
 void SetValuesOnIntegrationPoints(
-    TObject& dummy, const Variable<TDataType>& rVariable, std::vector<TDataType> values, const ProcessInfo& rCurrentProcessInfo)
+    TObject& dummy, const Variable<TDataType>& rVariable, const std::vector<TDataType>& values, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(values.size() != dummy.GetGeometry().IntegrationPointsNumber())
         << "Sizes do not match. Size of values vector is: " << values.size() << ". The number of integration points is: "
@@ -190,20 +202,16 @@ void SetValuesOnIntegrationPointsArray1d(
     const ProcessInfo& rCurrentProcessInfo)
 {
     std::vector< array_1d<double, 3> > values(values_list.size());
-    for (unsigned int i = 0; i < values_list.size(); i++)
-    {
+    for (std::size_t i = 0; i < values_list.size(); i++) {
         if (py::isinstance<array_1d<double, 3>>(values_list[i])) {
             values[i] = (values_list[i]).cast<array_1d<double, 3> >();
-        }
-        else if (py::isinstance<pybind11::list>(values_list[i]) ||
-            py::isinstance<Vector>(values_list[i]))
-        {
+        } else if (py::isinstance<pybind11::list>(values_list[i]) ||
+            py::isinstance<Vector>(values_list[i])) {
             Vector value = (values_list[i]).cast<Vector>();
             KRATOS_ERROR_IF(value.size() != 3)
                 << " parsed vector is not of size 3. Size of vector: " << value.size() << std::endl;
             values[i] = value;
-        }
-        else {
+        } else {
             KRATOS_ERROR << "expecting a list of array_1d<double,3> " << std::endl;
         }
     }
@@ -217,8 +225,7 @@ void SetValuesOnIntegrationPointsVector( TObject& dummy,
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector<Vector> values( integration_points.size() );
-    for( unsigned int i=0; i<integration_points.size(); i++ )
-    {
+    for( std::size_t i=0; i<integration_points.size(); i++ ) {
         if(py::isinstance<Vector>(values_list[i]))
             values[i] = (values_list[i]).cast<Vector>();
         else
@@ -463,6 +470,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
     // CalculateOnIntegrationPoints
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsBool<Element>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, int>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, double>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, array_1d<double, 3>>)
@@ -471,6 +479,7 @@ void  AddMeshToPython(pybind11::module& m)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Element>)
     // SetValuesOnIntegrationPoints
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, bool>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, int>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
@@ -588,6 +597,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNodes", GetNodesFromCondition )
 
     // CalculateOnIntegrationPoints
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsBool<Condition>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, int>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, double>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, array_1d<double, 3>>)
@@ -596,6 +606,7 @@ void  AddMeshToPython(pybind11::module& m)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Condition>)
     // SetValuesOnIntegrationPoints
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, bool>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, int>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, double>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)

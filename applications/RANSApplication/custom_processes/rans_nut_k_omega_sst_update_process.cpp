@@ -26,6 +26,7 @@
 // Application includes
 #include "custom_elements/data_containers/k_omega_sst/element_data_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -116,22 +117,22 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteAfterCouplingSolveStep()
 
     auto& r_elements = r_model_part.Elements();
 
-    std::function<double(const Element&, const ProcessInfo&)> nut_calculation_method;
+    std::function<double(const Element&)> nut_calculation_method;
     const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
     if (domain_size == 2) {
-        nut_calculation_method = [this](const Element& rElement, const ProcessInfo& rProcessInfo) {
-            return this->CalculateElementNuT<2>(rElement, rProcessInfo);
+        nut_calculation_method = [&](const Element& rElement) {
+            return this->CalculateElementNuT<2>(rElement, r_model_part.GetProcessInfo());
         };
     } else if (domain_size == 3) {
-        nut_calculation_method = [this](const Element& rElement, const ProcessInfo& rProcessInfo) {
-            return this->CalculateElementNuT<3>(rElement, rProcessInfo);
+        nut_calculation_method = [&](const Element& rElement) {
+            return this->CalculateElementNuT<3>(rElement, r_model_part.GetProcessInfo());
         };
     } else {
         KRATOS_ERROR << "Unsupported domain size.";
     }
 
     block_for_each(r_elements, [&](ModelPart::ElementType& rElement) {
-        const double nut = nut_calculation_method(rElement, r_model_part.GetProcessInfo());
+        const double nut = nut_calculation_method(rElement);
         auto& r_geometry = rElement.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             auto& r_node = r_geometry[i_node];
@@ -148,9 +149,6 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteAfterCouplingSolveStep()
             rNode.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
         double& nut = rNode.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
         nut = std::max(nut / number_of_neighbour_elements, mMinValue);
-
-        // TODO: update this as well when CLs are fully functional
-        rNode.FastGetSolutionStepValue(VISCOSITY) = rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nut;
     });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
@@ -171,7 +169,9 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(
     const double beta_star = rProcessInfo[TURBULENCE_RANS_C_MU];
     const double a1 = rProcessInfo[TURBULENCE_RANS_A1];
 
-    const auto& r_geometry = rElement.GetGeometry();
+    auto& r_geometry = rElement.GetGeometry();
+    const auto& r_properties = rElement.GetProperties();
+    auto constitutive_law = rElement.GetValue(CONSTITUTIVE_LAW);
 
     // Get Shape function data
     Vector gauss_weights;
@@ -183,18 +183,25 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(
 
     BoundedMatrix<double, TDim, TDim> velocity_gradient;
 
+    ConstitutiveLaw::Parameters cl_parameters(r_geometry, r_properties, rProcessInfo);
+    cl_parameters.SetShapeFunctionsValues(row(shape_functions, 0));
+
+    const double rho = r_properties.GetValue(DENSITY);
+
     double nut{0.0}, tke, omega, nu, y;
 
     for (int g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector& r_gauss_shape_functions = row(shape_functions, g);
 
-        RansCalculationUtilities::EvaluateInPoint(r_geometry, r_gauss_shape_functions,
+        FluidCalculationUtilities::EvaluateInPoint(r_geometry, r_gauss_shape_functions,
             std::tie(tke, TURBULENT_KINETIC_ENERGY),
             std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
-            std::tie(nu, KINEMATIC_VISCOSITY),
             std::tie(y, DISTANCE)
         );
+
+        constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+        nu /= rho;
 
         CalculateGradient<TDim>(velocity_gradient, r_geometry, VELOCITY, r_shape_derivatives);
 

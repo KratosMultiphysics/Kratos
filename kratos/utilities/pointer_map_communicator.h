@@ -22,6 +22,7 @@
 #include <utility>
 
 // External includes
+#include "concurrentqueue/concurrentqueue.h"
 
 // Project includes
 #include "containers/global_pointers_unordered_map.h"
@@ -99,13 +100,7 @@ public:
 
     using GlobalPointerType = GlobalPointer<TPointerDataType>;
 
-    using GlobalPointerVectorType = std::vector<GlobalPointerType>;
-
-    using GlobalPointerProcessMapType = std::unordered_map<int, GlobalPointerVectorType>;
-
     using DataVectorType = std::vector<TValueDataType>;
-
-    using DataVectorProcessMapType = std::unordered_map<int, DataVectorType>;
 
     ///@}
     ///@name Life cycle
@@ -131,11 +126,6 @@ public:
             KRATOS_DEBUG_ERROR_IF(OpenMPUtils::IsInParallel() != 0)
                 << "Constructing a proxy in a parallel "
                    "region is not allowed.\n";
-
-            // resizing for OMP parallel loops
-            const int number_of_threads = OpenMPUtils::GetNumThreads();
-            mNonLocalGlobalPointerMapsVector.resize(number_of_threads);
-            mNonLocalDataValueMapsVector.resize(number_of_threads);
 
             this->mUpdateMethod = &ProxyType::AssignLocalAndRemoteData;
         } else {
@@ -204,17 +194,7 @@ private:
 
     void (ProxyType::*mUpdateMethod)(GlobalPointerType&, const TValueDataType&);
 
-    // here we store this in two vector maps(vector of gps, vector of values) instead of one vector map(key:gp, value: std::vector)
-    // because, when updating
-    //      1. Two vector maps will have to only have to append the two vectors for each non-local update.
-    //          Whenever std::vector reaches the capacity, it is doubled,
-    //          so the cost of resizing for vector appending is in O(log N)
-    //      2. If a single vector map is used, first it has to find the gp in the map [ O(log N) if found, otherwise larger] and then append one vector
-    //          for each non-local update.
-    // The method 2 is little bit more expensive than first one AFAIK. so implemented the vector versions. Suggestions are highly appreciated :)
-    //
-    std::vector<GlobalPointerProcessMapType> mNonLocalGlobalPointerMapsVector;
-    std::vector<DataVectorProcessMapType> mNonLocalDataValueMapsVector;
+    moodycamel::ConcurrentQueue<std::pair<GlobalPointerType, TValueDataType>> mNonLocalGlobalPointerValueConcurrentQueue;
 
     TGPMapCommunicator& mrPointerCommunicator;
 
@@ -259,9 +239,8 @@ private:
         if (data_rank == mCurrentRank) {
             mrApplyFunctor(*rGlobalPointer, rValue);
         } else {
-            const int k = OpenMPUtils::ThisThread();
-            mNonLocalGlobalPointerMapsVector[k][data_rank].push_back(std::move(rGlobalPointer));
-            mNonLocalDataValueMapsVector[k][data_rank].push_back(rValue);
+            mNonLocalGlobalPointerValueConcurrentQueue.enqueue(
+                std::make_pair(std::move(rGlobalPointer), rValue));
         }
     }
 
@@ -289,15 +268,9 @@ public:
 
     using GlobalPointerType = GlobalPointer<TPointerDataType>;
 
-    using GlobalPointerVectorType = std::vector<GlobalPointerType>;
-
-    using GlobalPointerProcessMapType = std::unordered_map<int, GlobalPointerVectorType>;
-
     using DataVectorType = std::vector<TValueDataType>;
 
-    using DataVectorProcessMapType = std::unordered_map<int, DataVectorType>;
-
-    using GlobalPointerValuePair = std::pair<GlobalPointerType, DataVectorType>;
+    using GlobalPointerValueVectorPair = std::pair<GlobalPointerType, DataVectorType>;
 
     template<class TApplyFunctor>
     using ProxyType = ApplyProxy<TPointerDataType, TValueDataType, TApplyFunctor>;
@@ -363,19 +336,15 @@ public:
             // which will result in lower communication for keys. These unique keys can be easily OMP parallelized
             std::unordered_map<int, GlobalPointersUnorderedMap<TPointerDataType, DataVectorType>> non_local_map;
 
-            for (IndexType i = 0; i < rApplyProxy.mNonLocalGlobalPointerMapsVector.size(); ++i) {
-                const auto& current_gp_map = rApplyProxy.mNonLocalGlobalPointerMapsVector[i];
-                const auto& current_data_map = rApplyProxy.mNonLocalDataValueMapsVector[i];
-
-                for (const auto& r_gp_map_item : current_gp_map) {
-                    auto& current_rank_gp_map = non_local_map[r_gp_map_item.first];
-
-                    const auto& r_gp_vector = r_gp_map_item.second;
-                    const auto& r_data_vector = current_data_map.find(r_gp_map_item.first)->second;
-
-                    for (IndexType i = 0; i < r_gp_vector.size(); ++i) {
-                        current_rank_gp_map[r_gp_vector[i]].push_back(std::move(r_data_vector[i]));
-                    }
+            bool found_gp_value = true;
+            while (found_gp_value) {
+                std::pair<GlobalPointerType, TValueDataType> item_pair;
+                found_gp_value =
+                    rApplyProxy.mNonLocalGlobalPointerValueConcurrentQueue.try_dequeue(item_pair);
+                if (found_gp_value) {
+                    auto& r_gp = item_pair.first;
+                    non_local_map[r_gp.GetRank()][r_gp].push_back(
+                        std::move(item_pair.second));
                 }
             }
 
@@ -411,14 +380,14 @@ public:
                     // create list for OMP parallel looping
                     // using move semantics to move data of GP and std::vector<TValueDataType>
                     // objects in received_gp_map
-                    std::vector<GlobalPointerValuePair> gp_value_pair_list;
+                    std::vector<GlobalPointerValueVectorPair> gp_value_pair_list;
                     gp_value_pair_list.resize(received_gp_map.size());
                     for (const auto& r_pair : received_gp_map) {
                         gp_value_pair_list.push_back(std::move(r_pair));
                     }
 
                     // running this in parallel assuming rApplyProxy.mrApplyFunctor is thread safe
-                    BlockPartition<std::vector<GlobalPointerValuePair>>(gp_value_pair_list).for_each([&](GlobalPointerValuePair& rItem) {
+                    BlockPartition<std::vector<GlobalPointerValueVectorPair>>(gp_value_pair_list).for_each([&](GlobalPointerValueVectorPair& rItem) {
                         auto& r_pointer_data_type_entity = *(rItem.first);
                         for (IndexType i = 0; i < rItem.second.size(); ++i) {
                             // it is safer to call the serial update method here
@@ -429,11 +398,8 @@ public:
                 }
             }
 
-            // clear data containers once communication is done
-            for (IndexType i = 0; i < rApplyProxy.mNonLocalGlobalPointerMapsVector.size(); ++i) {
-                rApplyProxy.mNonLocalGlobalPointerMapsVector[i].clear();
-                rApplyProxy.mNonLocalDataValueMapsVector[i].clear();
-            }
+            // Clearing of the concurrent queue is not required here because, when dequeueing, it will make an
+            // empty concurrent queue.
         }
 
         KRATOS_CATCH("");

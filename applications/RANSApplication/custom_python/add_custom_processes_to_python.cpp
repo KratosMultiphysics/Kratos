@@ -38,6 +38,7 @@
 #include "custom_processes/rans_clip_scalar_variable_process.h"
 #include "custom_processes/rans_line_output_process.h"
 #include "custom_processes/rans_compute_reactions_process.h"
+#include "custom_processes/rans_nut_nodal_update_process.h"
 
 // Include base h
 #include "custom_python/add_custom_processes_to_python.h"
@@ -82,6 +83,10 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<RansClipScalarVariableProcess, RansClipScalarVariableProcess::Pointer, RansFormulationProcess>(m, "RansClipScalarVariableProcess")
         .def(py::init<Model&, Parameters&>());
+
+    py::class_<RansNutNodalUpdateProcess, RansNutNodalUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutNodalUpdateProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const int>());
 
     py::class_<RansNutKEpsilonUpdateProcess, RansNutKEpsilonUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKEpsilonUpdateProcess")
         .def(py::init<Model&, Parameters&>())

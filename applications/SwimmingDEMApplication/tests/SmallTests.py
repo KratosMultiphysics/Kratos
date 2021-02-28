@@ -77,6 +77,10 @@ class CFD_DEM_two_way_test(FDEMTF.TestFactory):
      file_name = "CFD_DEM_two_way_tests/Two_way_testFluid"
      file_parameters = "CFD_DEM_two_way_tests/ProjectParameters.json"
 
+class CFD_DEM_two_way_test_DVMS(FDEMTF.TestFactory):
+     file_name = "CFD_DEM_two_way_tests/Two_way_testFluid_DVMS"
+     file_parameters = "CFD_DEM_two_way_tests/ProjectParameters_DVMS.json"
+
 available_tests = []
 available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in BackwardCouplingTF.TestFactory.__subclasses__()]

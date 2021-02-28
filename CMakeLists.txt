@@ -301,14 +301,18 @@ if(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
 endif(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
 
 if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
-  message("Using OpenMP for shared memory parallelization")
-  add_definitions( -DKRATOS_SMP_OPENMP )
-
 	find_package(OpenMP)
 	if (OPENMP_FOUND)
+    message("Using OpenMP for shared memory parallelization")
+    add_definitions( -DKRATOS_SMP_OPENMP )
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+  else (OPENMP_FOUND)
+    message(FATAL_ERROR "OpenMP could not be found!")
+    # fallback solution => in future once better supported we can use the C++11 based parallelization instead
+    message("OpenMP could not be found, disabling shared memory parallelization!")
+    add_definitions( -DKRATOS_SMP_NONE )
 	endif (OPENMP_FOUND)
 
 elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11")
@@ -500,8 +504,8 @@ install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
 install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 
 # Install core files for the KratosMultiphysics python module
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" "KratosMultiphysics/__init__.py" )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" "KratosMultiphysics/kratos_globals.py" )
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
