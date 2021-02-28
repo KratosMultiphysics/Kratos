@@ -365,6 +365,24 @@ protected:
      */
     CheckGap ConvertCheckGap(const std::string& str);
 
+    /**
+     * @brief This returns if we consider multiple searchs
+     * @return True if we consider multiple searchs
+     */
+    bool IsMultipleSearchs()
+    {
+        return this->Is(MULTIPLE_SEARCHS);
+    }
+
+    /**
+     * @brief This returns if we do not consider multiple searchs
+     * @return True if we do not consider multiple searchs
+     */
+    bool IsNotMultipleSearchs()
+    {
+        return this->IsNot(MULTIPLE_SEARCHS);
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
