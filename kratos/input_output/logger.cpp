@@ -57,8 +57,9 @@ namespace Kratos
     #pragma omp critical
     {
       auto i = std::find(GetOutputsInstance().begin(), GetOutputsInstance().end(), pTheOutput);
-      KRATOS_ERROR_IF(i == GetOutputsInstance().end()) << pTheOutput->Info() << " was not found in the list of loggers.\n";
-      GetOutputsInstance().erase(i);
+      if (i != GetOutputsInstance().end()) {
+         GetOutputsInstance().erase(i);
+      }  
     }
 
     KRATOS_CATCH("");
