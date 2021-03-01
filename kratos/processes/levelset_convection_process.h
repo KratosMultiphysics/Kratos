@@ -235,7 +235,7 @@ public:
         if (mPartialDt){
             dt_factor = rCurrentProcessInfo.GetValue(DELTA_TIME_FACTOR);
         }
-        KRATOS_ERROR_IF(dt_factor < 1.0e-12) << "ERROR: DELTA_TIME_FACTOR shoild be larger than zero." <<std::endl;
+        KRATOS_ERROR_IF(dt_factor < 1.0e-2) << "ERROR: DELTA_TIME_FACTOR should be larger than zero." <<std::endl;
         const double levelset_delta_time = dt_factor * previous_delta_time;
 
         // Save current level set value and current and previous step velocity values
