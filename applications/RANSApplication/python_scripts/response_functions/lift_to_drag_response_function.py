@@ -79,7 +79,7 @@ class LiftToDragResponseFunction(ResponseFunctionInterface):
     def Initialize(self):
         pass
 
-    def SetOptimizationModelPart(self, OptimizationModelPart):
+    def SetEvaluationModelPart(self, OptimizationModelPart):
         self.optimization_model_part = OptimizationModelPart
 
     def InitializeSolutionStep(self):
@@ -100,27 +100,19 @@ class LiftToDragResponseFunction(ResponseFunctionInterface):
         startTime = timer.time()
 
         # open primal settings
-        with open(self.problem_setup_file_settings["primal_project_parameters_file"].GetString(), "r") as file_input:
-            primal_parameters = Kratos.Parameters(file_input.read())
+        primal_settings_file_name = self.problem_setup_file_settings["primal_project_parameters_file"].GetString()
+        primal_filled_settings_file = Path(primal_settings_file_name[:primal_settings_file_name.rfind(".")] + "_final.json")
 
-        # add response function outputs
-        LiftToDragResponseFunction._AddResponseFunctionOutput(primal_parameters, self.lift_model_part_name)
-        LiftToDragResponseFunction._AddResponseFunctionOutput(primal_parameters, self.drag_model_part_name)
+        if (not primal_filled_settings_file.is_file()):
+            with open(primal_settings_file_name, "r") as file_input:
+                primal_parameters = Kratos.Parameters(file_input.read())
 
-        log_file = Path("primal_evaluation.log")
-        is_primal_evaluation_completed = False
-        if (log_file.is_file()):
-            with open(str(log_file), "r") as file_input:
-                log_file_lines = file_input.readlines()
+            # add response function outputs
+            LiftToDragResponseFunction._AddResponseFunctionOutput(primal_parameters, self.lift_model_part_name)
+            LiftToDragResponseFunction._AddResponseFunctionOutput(primal_parameters, self.drag_model_part_name)
 
-            for log_file_line in reversed(log_file_lines):
-                if (log_file_line.startswith("RANS Analysis: Analysis -END-")):
-                    is_primal_evaluation_completed = True
-                    break
-
-        if (not is_primal_evaluation_completed):
             # set the loggers
-            file_logger = Kratos.FileLoggerOutput(str(log_file))
+            file_logger = Kratos.FileLoggerOutput("primal_evaluation.log")
             default_severity = Kratos.Logger.GetDefaultOutput().GetSeverity()
             Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
             Kratos.Logger.AddOutput(file_logger)
@@ -130,11 +122,17 @@ class LiftToDragResponseFunction(ResponseFunctionInterface):
             self.primal_simulation = RANSAnalysis(self.primal_model, primal_parameters)
             self.primal_simulation.Run()
 
+            with open(str(primal_filled_settings_file), "w") as file_output:
+                file_output.write(primal_parameters.PrettyPrintJsonString())
+
             # flush the primal output
             Kratos.Logger.Flush()
             Kratos.Logger.GetDefaultOutput().SetSeverity(default_severity)
             Kratos.Logger.RemoveOutput(file_logger)
         else:
+            # following is done to initialize default settings
+            with open(str(primal_filled_settings_file), "r") as file_input:
+                primal_parameters = Kratos.Parameters(file_input.read())
             Kratos.Logger.PrintInfo(self._GetLabel(), "Found existing completed primal evaluation.")
 
         # calculate lift and drag
@@ -189,6 +187,9 @@ class LiftToDragResponseFunction(ResponseFunctionInterface):
                 lift_node.GetSolutionStepValue(variable) / self.drag - \
                 self.lift * drag_node.GetSolutionStepValue(variable) / (self.drag ** 2)
         return gradient
+
+    def IsEvaluatedInFolder(self):
+        return True
 
     @staticmethod
     def _GetLabel():
