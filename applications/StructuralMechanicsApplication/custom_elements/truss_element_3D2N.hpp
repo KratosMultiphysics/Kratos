@@ -158,6 +158,10 @@ namespace Kratos
             MatrixType& rMassMatrix,
             const ProcessInfo& rCurrentProcessInfo) override;
 
+        void CalculateConsistentMassMatrix(
+            MatrixType& rMassMatrix,
+            const ProcessInfo& rCurrentProcessInfo) const;
+
         void CalculateDampingMatrix(
             MatrixType& rDampingMatrix,
             const ProcessInfo& rCurrentProcessInfo) override;
