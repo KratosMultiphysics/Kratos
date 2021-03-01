@@ -42,7 +42,7 @@ public:
 
     ///@name Pointer Definitions
     /// Pointer definition of EmbeddedIncompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedIncompressiblePotentialFlowElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedIncompressiblePotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -115,7 +115,7 @@ public:
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
     /// Turn back information as a string.
     std::string Info() const override;
 

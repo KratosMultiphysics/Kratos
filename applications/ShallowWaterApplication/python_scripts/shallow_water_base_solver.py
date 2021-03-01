@@ -55,14 +55,10 @@ class ShallowWaterBaseSolver(PythonSolver):
     def PrepareModelPart(self):
         # Definition of the variables
         gravity = self.settings["gravity"].GetDouble()
-        dry_height = self.settings["dry_height_threshold"].GetDouble()
-        stabilization_factor = self.settings["stabilization_factor"].GetDouble()
 
         # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
         self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, gravity)
-        self.main_model_part.ProcessInfo.SetValue(SW.DRY_HEIGHT, dry_height)
-        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, stabilization_factor)
 
         if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
             ## Replace default elements and conditions
@@ -101,7 +97,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         if self._TimeBufferIsInitialized():
             is_converged = self._GetSolutionStrategy().SolveSolutionStep()
             if not is_converged:
-                KM.Logger.PrintWarning(self.__class__.__name__, "The solver did not converge")
+                KM.Logger.PrintInfo(self.__class__.__name__, "The solver did not converge")
             return is_converged
         else:
             return True
@@ -144,8 +140,7 @@ class ShallowWaterBaseSolver(PythonSolver):
                 "input_filename"           : "unknown_name"
             },
             "echo_level"               : 0,
-            "stabilization_factor"     : 0.005,
-            "dry_height_threshold"     : 1e-3,
+            "convergence_criterion"    : "displacement",
             "relative_tolerance"       : 1e-6,
             "absolute_tolerance"       : 1e-9,
             "maximum_iterations"       : 20,
@@ -243,9 +238,21 @@ class ShallowWaterBaseSolver(PythonSolver):
         return builder_and_solver
 
     def _CreateConvergenceCriterion(self):
-        convergence_criterion = KM.DisplacementCriteria(
-            self.settings["relative_tolerance"].GetDouble(),
-            self.settings["absolute_tolerance"].GetDouble())
+        convergence_criterion_type = self.settings["convergence_criterion"].GetString()
+        if convergence_criterion_type == "displacement":
+            convergence_criterion = KM.DisplacementCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+        elif convergence_criterion_type == "residual":
+            convergence_criterion = KM.ResidualCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+        else:
+            msg = "The displacement criterion specified is '{}'\n".format(convergence_criterion_type)
+            msg += "The following options are available:\n"
+            msg += "    - 'displacement'"
+            msg += "    - 'residual'"
+            raise Exception(msg)
         convergence_criterion.SetEchoLevel(self.echo_level)
         return convergence_criterion
 

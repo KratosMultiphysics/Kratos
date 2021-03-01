@@ -291,7 +291,7 @@ void LargeDisplacementSegregatedVPElement::SetProcessInformation(const ProcessIn
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::GetValuesVector( Vector& rValues, int Step )
+void LargeDisplacementSegregatedVPElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -335,7 +335,7 @@ void LargeDisplacementSegregatedVPElement::GetValuesVector( Vector& rValues, int
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void LargeDisplacementSegregatedVPElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -377,7 +377,7 @@ void LargeDisplacementSegregatedVPElement::GetFirstDerivativesVector( Vector& rV
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void LargeDisplacementSegregatedVPElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -634,7 +634,7 @@ void LargeDisplacementSegregatedVPElement::CalculateDampingMatrix( MatrixType& r
 //************************************************************************************
 //************************************************************************************
 
-LargeDisplacementSegregatedVPElement::SizeType LargeDisplacementSegregatedVPElement::GetDofsSize()
+LargeDisplacementSegregatedVPElement::SizeType LargeDisplacementSegregatedVPElement::GetDofsSize() const
 {
   KRATOS_TRY
 

@@ -10,6 +10,9 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ConstitutiveModelsApplicatio
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConstitutiveModelsApplication)
 
+# Enable Fortran compilation
+enable_language(Fortran)
+
 # Generate variables with the sources
 set( KRATOS_UMAT_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_application.cpp

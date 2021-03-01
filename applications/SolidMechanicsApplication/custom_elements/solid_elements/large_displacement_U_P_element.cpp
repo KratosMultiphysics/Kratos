@@ -176,7 +176,7 @@ void LargeDisplacementUPElement::EquationIdVector( EquationIdVectorType& rResult
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::GetValuesVector( Vector& rValues, int Step )
+void LargeDisplacementUPElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -208,7 +208,7 @@ void LargeDisplacementUPElement::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void LargeDisplacementUPElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -237,7 +237,7 @@ void LargeDisplacementUPElement::GetFirstDerivativesVector( Vector& rValues, int
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -270,7 +270,7 @@ void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, in
 //************************************************************************************
 //************************************************************************************
 
-LargeDisplacementUPElement::SizeType LargeDisplacementUPElement::GetDofsSize()
+LargeDisplacementUPElement::SizeType LargeDisplacementUPElement::GetDofsSize() const
 {
   KRATOS_TRY
 
@@ -1268,9 +1268,6 @@ int LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     if(LawFeatures.mOptions.IsNot(ConstitutiveLaw::U_P_LAW))
       KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-P element type ", " Large Displacements U_P" )
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
 
     return ErrorCode;
 

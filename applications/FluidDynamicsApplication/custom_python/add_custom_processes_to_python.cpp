@@ -36,9 +36,10 @@
 #include "custom_processes/embedded_skin_visualization_process.h"
 #include "custom_processes/integration_point_statistics_process.h"
 #include "custom_processes/mass_conservation_check_process.h"
-#include "custom_processes/shock_detection_process.h"
+#include "custom_processes/shock_capturing_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
 #include "custom_processes/distance_smoothing_process.h"
+#include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/linear_solver.h"
@@ -133,13 +134,10 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
     ;
 
-    py::class_<ShockDetectionProcess, ShockDetectionProcess::Pointer, Process>
-    (m, "ShockDetectionProcess")
-    .def(py::init < ModelPart&, const Variable<double>&, const Variable<array_1d<double,3>>&, const bool, const bool >())
-    .def(py::init < ModelPart&, const Variable<double>&, const Variable<array_1d<double,3>>&, const Variable<double>&, const bool, const bool >())
-    .def("ExecuteInitialize", &ShockDetectionProcess::ExecuteInitialize)
-    .def("ExecuteInitializeSolutionStep", &ShockDetectionProcess::ExecuteInitialize)
-    .def("Execute", &ShockDetectionProcess::Execute)
+    py::class_<ShockCapturingProcess, ShockCapturingProcess::Pointer, Process>
+    (m, "ShockCapturingProcess")
+    .def(py::init < Model&, Parameters >())
+    .def(py::init < ModelPart&, Parameters >())
     ;
 
     py::class_<TwoFluidsInletProcess, TwoFluidsInletProcess::Pointer, Process>
@@ -156,6 +154,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<DistanceSmoothingProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, DistanceSmoothingProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"DistanceSmoothingProcess3D")
     .def(py::init< ModelPart&, LinearSolverType::Pointer >())
+    .def(py::init< ModelPart&, Parameters >())
+    .def(py::init< Model&, Parameters >())
+    ;
+
+    py::class_<CalulateLevelsetConsistentNodalGradientProcess, CalulateLevelsetConsistentNodalGradientProcess::Pointer, Process>(m,"CalulateLevelsetConsistentNodalGradientProcess")
+    .def(py::init< ModelPart& >())
     .def(py::init< ModelPart&, Parameters >())
     .def(py::init< Model&, Parameters >())
     ;

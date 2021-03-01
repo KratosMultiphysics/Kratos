@@ -66,6 +66,14 @@ class UpdateThermalModelPartProcess : public Process {
         this->CopyNodes();
         this->DuplicateElements();
         this->BuildThermalComputingDomain();
+        this->UpdateConditions();
+
+        // It was verified that the residue of the thermal problem has large terms associated to DOFs
+        // of flux BC in free surface problems, when the node is not connected to fluid.
+        // If these DOFs are not considered in the residue, which is done by fixing them, the remaining terms satisfy the tolerance.
+        // This next function is to fix the flux DOFs that are not connected to fluid, 
+        // to avoid the unessesary iteration in nonlinear thermal analysis, but it is also changing the results.
+        // this->FixDOFs();
 
         KRATOS_CATCH("");
     }
@@ -96,8 +104,7 @@ class UpdateThermalModelPartProcess : public Process {
         rDestinationModelPart.AddNodes(rOriginModelPart.NodesBegin(), rOriginModelPart.NodesEnd());
 
         // Copy nodes to the rDestinationModelPart's sub model parts
-        for (auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd();
-             ++i_part) {
+        for (auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd(); ++i_part) {
             if (!rDestinationModelPart.HasSubModelPart(i_part->Name())) {
                 rDestinationModelPart.CreateSubModelPart(i_part->Name());
             }
@@ -149,6 +156,83 @@ class UpdateThermalModelPartProcess : public Process {
         }
 
         rComputingModelPart.AddElements(ids, 0);
+    }
+
+    void UpdateConditions() const
+    {
+      // Remove conditions from thermal submodel parts
+      for (ModelPart::SubModelPartIterator i_mp = rOriginModelPart.SubModelPartsBegin(); i_mp != rOriginModelPart.SubModelPartsEnd(); i_mp++) {
+        if (i_mp->NumberOfConditions() && rDestinationModelPart.HasSubModelPart(i_mp->Name())) {
+          ModelPart& destination_part = rDestinationModelPart.GetSubModelPart(i_mp->Name());
+          VariableUtils().SetFlag(TO_ERASE, true, destination_part.Conditions());
+          destination_part.RemoveConditionsFromAllLevels(TO_ERASE);
+        }
+      }
+      unsigned int condition_id = 0;
+
+      // Re-create conditions based on updated conditions of fluid model part (free surface or not)
+      for (ModelPart::SubModelPartIterator i_mp = rOriginModelPart.SubModelPartsBegin(); i_mp != rOriginModelPart.SubModelPartsEnd(); i_mp++)
+      {
+        if (i_mp->NumberOfConditions() && rDestinationModelPart.HasSubModelPart(i_mp->Name())) {
+          ModelPart& destination_part = rDestinationModelPart.GetSubModelPart(i_mp->Name());
+
+          // Loop over each condition of fluid submodel part
+          for (auto i_cond(i_mp->ConditionsBegin()); i_cond != i_mp->ConditionsEnd(); ++i_cond)
+          {
+            // Get condition nodes
+            Geometry<Node<3>>& r_geometry = i_cond->GetGeometry();
+            Condition::NodesArrayType cond_nodes;
+            cond_nodes.reserve(r_geometry.size());
+            for (int i = 0; i < r_geometry.size(); i++)
+              cond_nodes.push_back(r_geometry(i));
+
+            // Property to be used in the creation of condition
+            Properties::Pointer p_property = i_cond->pGetProperties();
+
+            // Condition type according to domain size
+            std::string condition_type;
+            if      (rDomainSize == 2) condition_type = "ThermalFace2D2N";
+            else if (rDomainSize == 3) condition_type = "ThermalFace3D3N";
+            const Condition& r_reference_condition = KratosComponents<Condition>::Get(condition_type);
+
+            // Create and store thermal face condition
+            Condition::Pointer p_condition = r_reference_condition.Create(++condition_id, cond_nodes, p_property);
+            destination_part.Conditions().push_back(p_condition);
+            rDestinationModelPart.Conditions().push_back(p_condition);
+            rComputingModelPart.Conditions().push_back(p_condition);
+          }
+        }
+      }
+    }
+
+    void FixDOFs() const {
+      // Loop over all conditions (currently, only flux on walls or free surface)
+      for (auto i_cond(rComputingModelPart.ConditionsBegin()); i_cond != rComputingModelPart.ConditionsEnd(); ++i_cond)
+      {
+        // Loop over each condition node
+        Geometry<Node<3>>& cond_geometry = i_cond->GetGeometry();
+        for (int i = 0; i < cond_geometry.size(); i++)
+        {
+          // Loop over neighbour elements
+          bool fix = true;
+          ElementWeakPtrVectorType& neighbour_elements = cond_geometry(i)->GetValue(NEIGHBOUR_ELEMENTS);
+          for (int j = 0; j < neighbour_elements.size(); j++)
+          {
+            // Check if neighbour element is fluid
+            GeometryType neighbour_elements_geom = neighbour_elements(j)->GetGeometry();
+            if (neighbour_elements_geom.size() != 2) {
+              fix = false;
+              break;
+            }
+          }
+          // Fix DOF if it is not connected to fluid elements
+          if (fix) {
+            const Node<3>::DofType::Pointer dof = cond_geometry(i)->pGetDof(TEMPERATURE);
+            if (!dof->IsFixed())
+              dof->FixDof();
+          }
+        }
+      }
     }
 
 };  // Class UpdateThermalModelPartProcess

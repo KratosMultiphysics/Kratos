@@ -7,18 +7,18 @@ import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
 # Import base class file
-from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_base_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_solver
 
 def CreateSolver(main_model_part, custom_settings):
     return ConvectionDiffusionStationarySolver(main_model_part, custom_settings)
 
-class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.ConvectionDiffusionBaseSolver):
+class ConvectionDiffusionStationarySolver(convection_diffusion_solver.ConvectionDiffusionSolver):
     """The stationary class for convection-diffusion solvers.
 
     Public member variables:
     stationary_settings -- settings for the implicit dynamic solvers.
 
-    See convection_diffusion_base_solver.py for more information.
+    See convection_diffusion_solver.py for more information.
     """
 
     def __init__(self, main_model_part, custom_settings):

@@ -71,7 +71,6 @@ namespace Kratos {
 
             // These functions throw an error if the check fails
             // Expected passes: test OK if no error is thrown
-            KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_X, r_node);

@@ -126,7 +126,9 @@ namespace Kratos
     void CalculateMassMatrix(MatrixType& rMassMatrix,
       const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLumpedMassVector(VectorType& rMassVector);
+    void CalculateLumpedMassVector(
+      VectorType& rMassVector,
+      const ProcessInfo& rCurrentProcessInfo) const override;
 
     void AddExplicitContribution(
       const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,

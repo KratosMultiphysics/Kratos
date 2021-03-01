@@ -14,6 +14,7 @@
 #define KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY
 
 // System includes
+#include <iostream>
 
 // External includes
 
@@ -654,15 +655,12 @@ class ResidualBasedNewtonRaphsonStrategy
         if(global_number_of_constraints != 0) {
             const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
 
-            const auto it_const_begin = r_constraints_array.begin();
-
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                (it_const_begin + i)->ResetSlaveDofs(r_process_info);
-
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                 (it_const_begin + i)->Apply(r_process_info);
+            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.ResetSlaveDofs(r_process_info);
+            });
+            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.Apply(r_process_info);
+            });
 
             // The following is needed since we need to eventually compute time derivatives after applying
             // Master slave relations
@@ -1346,6 +1344,16 @@ class ResidualBasedNewtonRaphsonStrategy
             std::stringstream matrix_market_vectname;
             matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
             TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rb);
+
+            std::stringstream matrix_market_dxname;
+            matrix_market_dxname << "dx_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
+            TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_dxname.str()).c_str(), rDx);
+
+            std::stringstream dof_data_name;
+            unsigned int rank=BaseType::GetModelPart().GetCommunicator().MyPID();
+            dof_data_name << "dofdata_" << BaseType::GetModelPart().GetProcessInfo()[TIME]
+                << "_" << IterationNumber << "_rank_"<< rank << ".csv";
+            WriteDofInfo(dof_data_name.str(), rDx);
         }
     }
 
@@ -1386,6 +1394,20 @@ class ResidualBasedNewtonRaphsonStrategy
         if (ThisParameters["builder_and_solver_settings"].Has("name")) {
             KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
+    }
+
+    void WriteDofInfo(std::string FileName, const TSystemVectorType& rDX)
+    {
+        std::ofstream out(FileName);
+
+        out.precision(15);
+        out << "EquationId,NodeId,VariableName,IsFixed,Value,coordx,coordy,coordz" << std::endl;
+        for(const auto& rdof : GetBuilderAndSolver()->GetDofSet()) {
+            const auto& coords = BaseType::GetModelPart().Nodes()[rdof.Id()].Coordinates();
+            out << rdof.EquationId() << "," << rdof.Id() << "," << rdof.GetVariable().Name() << "," << rdof.IsFixed() << ","
+                        << rdof.GetSolutionStepValue() << "," <<  "," << coords[0]  << "," << coords[1]  << "," << coords[2]<< "\n";
+        }
+        out.close();
     }
 
     ///@}

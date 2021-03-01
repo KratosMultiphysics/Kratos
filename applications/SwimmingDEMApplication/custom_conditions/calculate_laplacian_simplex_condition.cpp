@@ -12,9 +12,7 @@ namespace Kratos
  * @see ComputeLaplacianSimplexCondition::EquationIdVector
  */
 template< unsigned int TDim, unsigned int TNumNodes >
-void ComputeLaplacianSimplexCondition<TDim,TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeLaplacianSimplexCondition<TDim,TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
     const SizeType LocalSize = TDim * TNumNodes;
     unsigned int LocalIndex = 0;
 
@@ -35,9 +33,7 @@ void ComputeLaplacianSimplexCondition<TDim,TNumNodes>::EquationIdVector(Equation
  * @see ComputeLaplacianSimplexCondition::GetDofList
  */
 template< unsigned int TDim, unsigned int TNumNodes >
-void ComputeLaplacianSimplexCondition<TDim,TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeLaplacianSimplexCondition<TDim,TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
     const SizeType LocalSize = TDim * TNumNodes;
 
     if (rElementalDofList.size() != LocalSize)

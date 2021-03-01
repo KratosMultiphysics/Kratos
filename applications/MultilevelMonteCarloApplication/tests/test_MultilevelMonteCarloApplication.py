@@ -1,4 +1,4 @@
-# import Kratos
+# Import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
 import KratosMultiphysics.MeshingApplication as MeshingApplication
@@ -6,7 +6,7 @@ import KratosMultiphysics.MeshingApplication as MeshingApplication
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
+# Import test classes to create the suits
 from test_multilevel_montecarlo import KratosMultilevelMonteCarloGeneralTests
 from test_tools import TestTools
 from test_xmcAlgorithm import TestXMCAlgorithm
@@ -44,7 +44,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TestMultiCombinedMomentEstimator('test_updateD0'))
     smallSuite.addTest(TestMultiCombinedMomentEstimator('test_estimationD0'))
     smallSuite.addTest(TestXMCAlgorithm('test_mc_Kratos'))
-    
+
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)

@@ -116,10 +116,6 @@ public:
     /// Add a scalar variable to the list of variables where periodic conditions will be imposed.
     void Add(DoubleVariableType const& rThisVariable)
     {
-        if(rThisVariable.Key()== 0)
-            KRATOS_THROW_ERROR(std::logic_error,
-                         "Adding uninitialized variable to a list of periodic variables: ",rThisVariable.Name());
-
         mPeriodicDoubleVars.push_back(&rThisVariable);
     }
 

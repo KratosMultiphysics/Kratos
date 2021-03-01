@@ -43,6 +43,7 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 // Nurbs Geometries
+#include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
 
@@ -92,10 +93,10 @@ namespace Python
     ///@{
 
     template< class TDataType >
-    void Set(
+    void Assign(
         GeometryType& dummy, const Variable<TDataType>& rVariable, TDataType Value)
     {
-        dummy.Set(rVariable, Value);
+        dummy.Assign(rVariable, Value);
     }
 
     template< class TDataType >
@@ -136,6 +137,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("LocalSpaceDimension",&GeometryType::LocalSpaceDimension)
     .def("Dimension", &GeometryType::Dimension)
     .def("DomainSize",&GeometryType::DomainSize)
+    .def("EdgesNumber",&GeometryType::EdgesNumber)
     .def("PointsNumber",&GeometryType::PointsNumber)
     .def("PointsNumberInDirection",&GeometryType::PointsNumberInDirection)
     .def("PolynomialDegree",&GeometryType::PolynomialDegree)
@@ -182,20 +184,25 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
         IndexType IntegrationPointIndex)
         { return(self.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, self.GetDefaultIntegrationMethod())); })
+    // Mapping
+    .def("GlobalCoordinates", [](GeometryType& self, CoordinatesArrayType& LocalCoordinates)
+        {
+        CoordinatesArrayType result = ZeroVector( 3 );
+        return(self.GlobalCoordinates(result, LocalCoordinates)); })
     // Geometrical
     .def("Center",&GeometryType::Center)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)
     .def("Volume",&GeometryType::Volume)
-    // Set
-    .def("Set", Set<bool>)
-    .def("Set", Set<int>)
-    .def("Set", Set<double>)
-    .def("Set", Set<array_1d<double, 2>>)
-    .def("Set", Set<array_1d<double, 3>>)
-    .def("Set", Set<array_1d<double, 6>>)
-    .def("Set", Set<Vector>)
-    .def("Set", Set<Matrix>)
+    // Assign
+    .def("Assign", Assign<bool>)
+    .def("Assign", Assign<int>)
+    .def("Assign", Assign<double>)
+    .def("Assign", Assign<array_1d<double, 2>>)
+    .def("Assign", Assign<array_1d<double, 3>>)
+    .def("Assign", Assign<array_1d<double, 6>>)
+    .def("Assign", Assign<Vector>)
+    .def("Assign", Assign<Matrix>)
     // Calculate
     .def("Calculate", Calculate<bool>)
     .def("Calculate", Calculate<int>)
@@ -266,6 +273,24 @@ void  AddGeometriesToPython(pybind11::module& m)
     PointerVectorPythonInterface<GeometriesArrayType>().CreateInterface(m, "GeometriesVector");
 
     /// Nurbs Geometries
+    // NurbsVolumeGeometry
+    py::class_<NurbsVolumeGeometry<NodeContainerType>, NurbsVolumeGeometry<NodeContainerType>::Pointer, GeometryType >(m, "NurbsVolumeGeometry")
+        .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const SizeType, const Vector&, const Vector&, const Vector&>())
+        .def("PolynomialDegreeU", &NurbsVolumeGeometry<NodeContainerType>::PolynomialDegreeU)
+        .def("PolynomialDegreeV", &NurbsVolumeGeometry<NodeContainerType>::PolynomialDegreeV)
+        .def("PolynomialDegreeW", &NurbsVolumeGeometry<NodeContainerType>::PolynomialDegreeW)
+        .def("KnotsU", &NurbsVolumeGeometry<NodeContainerType>::KnotsU)
+        .def("KnotsV", &NurbsVolumeGeometry<NodeContainerType>::KnotsV)
+        .def("KnotsW", &NurbsVolumeGeometry<NodeContainerType>::KnotsW)
+        .def("NumberOfKnotsU", &NurbsVolumeGeometry<NodeContainerType>::NumberOfKnotsU)
+        .def("NumberOfKnotsV", &NurbsVolumeGeometry<NodeContainerType>::NumberOfKnotsV)
+        .def("NumberOfKnotsW", &NurbsVolumeGeometry<NodeContainerType>::NumberOfKnotsW)
+        .def("IsRational", &NurbsVolumeGeometry<NodeContainerType>::IsRational)
+        .def("NumberOfControlPointsU", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsU)
+        .def("NumberOfControlPointsV", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsV)
+        .def("NumberOfControlPointsW", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsW)
+        ;
+
     // NurbsSurfaceGeometry3D
     py::class_<NurbsSurfaceGeometry<3, NodeContainerType>, NurbsSurfaceGeometry<3, NodeContainerType>::Pointer, GeometryType >(m, "NurbsSurfaceGeometry3D")
         .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector&, const Vector&>())

@@ -8,6 +8,7 @@ try:
 except:
     numpy_available = False
 
+from co_simulation_test_factory import TestTinyFetiCoSimulationCases
 from co_simulation_test_factory import TestSmallCoSimulationCases
 from co_simulation_test_factory import TestCoSimulationCases
 from test_function_callback_utility import TestGenericCallFunction
@@ -71,6 +72,7 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartUtiliites]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorWrapper]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTinyFetiCoSimulationCases]))
 
 
     ################################################################################

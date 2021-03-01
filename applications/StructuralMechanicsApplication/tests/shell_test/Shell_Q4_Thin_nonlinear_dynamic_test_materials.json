@@ -11,7 +11,8 @@
                             "YOUNG_MODULUS": 1e9,
                             "POISSON_RATIO": 0.3,
                             "THICKNESS": 0.1,
-                            "DENSITY": 7.85e3
+                            "DENSITY": 7.85e3,
+                            "COMPUTE_LUMPED_MASS_MATRIX": true
                     },
                     "Tables": {}
             }

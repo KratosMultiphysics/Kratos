@@ -4,19 +4,16 @@ from numpy import ceil, log2, zeros, float64
 # Import xmc classes
 from xmc.statisticalEstimator import StatisticalEstimator
 from xmc.tools import dynamicImport
-
 from xmc.distributedEnvironmentFramework import get_value_from_remote
-
-# Define types
-from typing import List, DefaultDict, Union, Iterable
-
-PowerSumsDict = DefaultDict[str, Union[float, List[float]]]
-SampleArray = List[List[List[float]]]
-HStatistics = Union[float, List[float]]
-ListIndex = Union[int, slice, Iterable[int]]
-PowerSumsDictUL = DefaultDict[str, PowerSumsDict]  # UL: upper, lower
-CombinedSampleArray = List[List[Union[List[float], int]]]
-# TODO Account for NumPy types
+from xmc.methodDefs_momentEstimator.types import *
+from xmc.methodDefs_momentEstimator import (
+    hStatistics,
+    powerSums,
+    updatePowerSums,
+    updateCombinedPowerSums,
+    computeCentralMoments,
+    computeErrorEstimation,
+)
 
 
 class MomentEstimator(StatisticalEstimator):

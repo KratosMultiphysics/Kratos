@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -111,7 +111,7 @@ void FluxCondition<TNodeNumber>::CalculateRightHandSide(
 template< unsigned int TNodeNumber >
 void FluxCondition<TNodeNumber>::EquationIdVector(
     EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo) const 
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -119,7 +119,7 @@ void FluxCondition<TNodeNumber>::EquationIdVector(
     ConvectionDiffusionSettings& rSettings = *(rProcessInfo[CONVECTION_DIFFUSION_SETTINGS]);
 
     const Variable<double>& rUnknownVar = rSettings.GetUnknownVariable();
-    
+
     if (rResult.size() != TNodeNumber)
     {
         rResult.resize(TNodeNumber,false);
@@ -138,7 +138,7 @@ void FluxCondition<TNodeNumber>::EquationIdVector(
 template< unsigned int TNodeNumber >
 void FluxCondition<TNodeNumber>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    const ProcessInfo& rCurrentProcessInfo) const 
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -169,7 +169,7 @@ GeometryData::IntegrationMethod FluxCondition<TNodeNumber>::GetIntegrationMethod
 }
 
 template< unsigned int TNodeNumber >
-void FluxCondition<TNodeNumber>::GetValueOnIntegrationPoints(
+void FluxCondition<TNodeNumber>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double,3> > &rVariable,
     std::vector<array_1d<double,3> > &rValues,
     const ProcessInfo &rCurrentProcessInfo)
@@ -199,7 +199,7 @@ void FluxCondition<TNodeNumber>::GetValueOnIntegrationPoints(
 }
 
 template< unsigned int TNodeNumber >
-void FluxCondition<TNodeNumber>::GetValueOnIntegrationPoints(
+void FluxCondition<TNodeNumber>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -215,7 +215,7 @@ void FluxCondition<TNodeNumber>::GetValueOnIntegrationPoints(
 }
 
 template< unsigned int TNodeNumber >
-void FluxCondition<TNodeNumber>::GetValueOnIntegrationPoints(
+void FluxCondition<TNodeNumber>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 6 > >& rVariable,
     std::vector<array_1d<double, 6 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -231,7 +231,7 @@ void FluxCondition<TNodeNumber>::GetValueOnIntegrationPoints(
 }
 
 template< unsigned int TNodeNumber >
-void FluxCondition<TNodeNumber>::GetValueOnIntegrationPoints(
+void FluxCondition<TNodeNumber>::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -247,7 +247,7 @@ void FluxCondition<TNodeNumber>::GetValueOnIntegrationPoints(
 }
 
 template< unsigned int TNodeNumber >
-void FluxCondition<TNodeNumber>::GetValueOnIntegrationPoints(
+void FluxCondition<TNodeNumber>::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -334,7 +334,7 @@ template <>
 void FluxCondition<4>::CalculateNormal(array_1d<double,3>& An )
 {
     KRATOS_ERROR << "This function is not yet implemented" << std::endl;
-  
+
 }
 
 // Serialization //////////////////////////////////////////////////////////////

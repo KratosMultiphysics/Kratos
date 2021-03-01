@@ -68,7 +68,7 @@ void DEMWall::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 void DEMWall::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& r_process_info) {
+    const ProcessInfo& r_process_info) {
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -123,7 +123,7 @@ void DEMWall::CalculateRightHandSide(
     }
 }
 
-void DEMWall::CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info)
+void DEMWall::CalculateElasticForces(VectorType& rElasticForces, const ProcessInfo& r_process_info)
 {
 
     const unsigned int number_of_nodes = GetGeometry().size();

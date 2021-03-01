@@ -19,6 +19,7 @@
 
 // Application includes
 #include "custom_elements/data_containers/k_epsilon/element_data_utilities.h"
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "element_data_utilities.h"
 #include "rans_application_variables.h"
@@ -48,7 +49,6 @@ void OmegaElementData<TDim>::Check(
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const auto& r_node = rGeometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
@@ -71,7 +71,9 @@ void OmegaElementData<TDim>::CalculateConstants(
     mSigmaOmega1 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1];
     mSigmaOmega2 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2];
     mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    mKappa = rCurrentProcessInfo[WALL_VON_KARMAN];
+    mKappa = rCurrentProcessInfo[VON_KARMAN];
+
+    mDensity = this->GetProperties().GetValue(DENSITY);
 }
 
 template <unsigned int TDim>
@@ -84,15 +86,21 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
 
     using namespace RansCalculationUtilities;
 
+    auto& cl_parameters = this->GetConstitutiveLawParameters();
+    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
+
+    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, mKinematicViscosity);
+    mKinematicViscosity /= mDensity;
+
     const auto& r_geometry = this->GetGeometry();
 
-    EvaluateInPoint(this->GetGeometry(), rShapeFunctions, Step,
-                    std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
-                    std::tie(mTurbulentSpecificEnergyDissipationRate, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
-                    std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
-                    std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-                    std::tie(mWallDistance, DISTANCE),
-                    std::tie(mEffectiveVelocity, VELOCITY));
+    FluidCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), rShapeFunctions, Step,
+        std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
+        std::tie(mTurbulentSpecificEnergyDissipationRate, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+        std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+        std::tie(mWallDistance, DISTANCE),
+        std::tie(mEffectiveVelocity, VELOCITY));
 
     KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
 
@@ -135,7 +143,7 @@ array_1d<double, 3> OmegaElementData<TDim>::CalculateEffectiveVelocity(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
-    return mEffectiveVelocity;;
+    return mEffectiveVelocity;
 }
 
 template <unsigned int TDim>

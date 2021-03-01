@@ -198,15 +198,14 @@ namespace Kratos
                EigenVectors.clear();
                EigenValues.clear();
 
-               MathUtils<double>::EigenSystem<3> ( rValues.StrainMatrix, EigenVectors, EigenValues);
+         MathUtils<double>::GaussSeidelEigenSystem<MatrixType, MatrixType>(rValues.StrainMatrix, EigenVectors, EigenValues);
 
                rVariables.Strain.Matrix.clear();
                for (unsigned int i = 0; i < 3; i++)
                   rVariables.Strain.Matrix(i,i) =  std::log(EigenValues(i,i)) / 2.0;
 
-               rVariables.Strain.Matrix = prod( rVariables.Strain.Matrix, EigenVectors);
-               rVariables.Strain.Matrix = prod( trans(EigenVectors), rVariables.Strain.Matrix);
-
+         rVariables.Strain.Matrix = prod(rVariables.Strain.Matrix, trans(EigenVectors));
+         rVariables.Strain.Matrix = prod(EigenVectors, rVariables.Strain.Matrix);
 
                rValues.State.Set(ConstitutiveModelData::STRAIN_COMPUTED);
 

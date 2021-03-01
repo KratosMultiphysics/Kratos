@@ -144,7 +144,7 @@ void RigidBodyPointLinkCondition::EquationIdVector(EquationIdVectorType& rResult
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointLinkCondition::GetValuesVector(Vector& rValues, int Step)
+void RigidBodyPointLinkCondition::GetValuesVector(Vector& rValues, int Step) const
 {
   KRATOS_TRY
 
@@ -152,14 +152,14 @@ void RigidBodyPointLinkCondition::GetValuesVector(Vector& rValues, int Step)
 
   const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  const ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
   SizeType indexi = 0;
   SizeType sizei  = 0;
-  for(auto& ie : SlaveElements)
+  for(SizeType j=0; j<SlaveElements.size(); j++)
   {
     Vector SlaveValues;
-    ie.GetValuesVector(SlaveValues,Step);
+    SlaveElements[j].GetValuesVector(SlaveValues,Step);
 
     sizei += SlaveValues.size();
     rValues.resize(sizei,true);
@@ -170,7 +170,7 @@ void RigidBodyPointLinkCondition::GetValuesVector(Vector& rValues, int Step)
     indexi += SlaveValues.size();
   }
 
-  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
+  const Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   Vector MasterValues;
   MasterElement.GetValuesVector(MasterValues, Step);
@@ -187,7 +187,7 @@ void RigidBodyPointLinkCondition::GetValuesVector(Vector& rValues, int Step)
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointLinkCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+void RigidBodyPointLinkCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
   KRATOS_TRY
 
@@ -195,14 +195,14 @@ void RigidBodyPointLinkCondition::GetFirstDerivativesVector( Vector& rValues, in
 
   const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  const ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
   SizeType indexi = 0;
   SizeType sizei  = 0;
-  for(auto& ie : SlaveElements)
+  for(SizeType j=0; j<SlaveElements.size(); j++)
   {
     Vector SlaveValues;
-    ie.GetFirstDerivativesVector(SlaveValues,Step);
+    SlaveElements[j].GetFirstDerivativesVector(SlaveValues,Step);
 
     sizei += SlaveValues.size();
     rValues.resize(sizei,true);
@@ -213,7 +213,7 @@ void RigidBodyPointLinkCondition::GetFirstDerivativesVector( Vector& rValues, in
     indexi += SlaveValues.size();
   }
 
-  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
+  const Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   Vector MasterValues;
   MasterElement.GetFirstDerivativesVector(MasterValues, Step);
@@ -232,7 +232,7 @@ void RigidBodyPointLinkCondition::GetFirstDerivativesVector( Vector& rValues, in
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointLinkCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+void RigidBodyPointLinkCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
   KRATOS_TRY
 
@@ -240,14 +240,14 @@ void RigidBodyPointLinkCondition::GetSecondDerivativesVector( Vector& rValues, i
 
   const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  const ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
   SizeType indexi = 0;
   SizeType sizei  = 0;
-  for(auto& ie : SlaveElements)
+  for(SizeType j=0; j<SlaveElements.size(); j++)
   {
     Vector SlaveValues;
-    ie.GetSecondDerivativesVector(SlaveValues,Step);
+    SlaveElements[j].GetSecondDerivativesVector(SlaveValues,Step);
 
     sizei += SlaveValues.size();
     rValues.resize(sizei,true);
@@ -258,7 +258,7 @@ void RigidBodyPointLinkCondition::GetSecondDerivativesVector( Vector& rValues, i
     indexi += SlaveValues.size();
   }
 
-  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
+  const Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   Vector MasterValues;
   MasterElement.GetSecondDerivativesVector(MasterValues, Step);

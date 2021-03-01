@@ -85,8 +85,7 @@ class CustomFluidDynamicsAnalysis(FluidDynamicsAnalysis):
         if self.print_output:
             super(CustomFluidDynamicsAnalysis,self).OutputSolutionStep()
 
-
-@UnitTest.skipUnless(have_mesh_moving,"Missing required application: MeshMovingApplication")
+@UnitTest.skipIfApplicationsNotAvailable("MeshMovingApplication")
 class EmbeddedPistonTest(UnitTest.TestCase):
 
     # Embedded element tests
