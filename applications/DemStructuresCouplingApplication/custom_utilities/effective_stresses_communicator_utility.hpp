@@ -96,16 +96,11 @@ namespace Kratos {
                     Element::Pointer shared_p_element;
                     is_found = mpSearchStructure->FindPointOnMesh(particle_coordinates, N, shared_p_element, results_begin, max_results, 0.0);
                     if (is_found == true) {
-                        KRATOS_WATCH(shared_p_element->Id())
                         const auto& geom = shared_p_element->GetGeometry();
                         for(size_t j=0; j<geom.size(); j++){
                             tempM = geom[j].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
                             noalias(interpolated_effective_stress_tensor) += N[j] * tempM;
                         }
-                        /*interpolated_effective_stress_tensor(0, 0) = -1.0e4;
-                        interpolated_effective_stress_tensor(1, 1) = -1.0e5;
-                        interpolated_effective_stress_tensor(0, 1) = 0.0;
-                        interpolated_effective_stress_tensor(1, 0) = 0.0;*/
                         tempV = prod(interpolated_effective_stress_tensor, unitary_radial_vector);
                         double radial_stress = MathUtils<double>::Dot(tempV, unitary_radial_vector);
                         node_it->SetValue(RADIAL_NORMAL_STRESS_COMPONENT, radial_stress);
