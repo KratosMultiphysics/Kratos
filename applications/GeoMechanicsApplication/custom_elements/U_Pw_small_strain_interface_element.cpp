@@ -2304,6 +2304,10 @@ void UPwSmallStrainInterfaceElement<2,4>::
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputDoubles()") << std::endl;
+#ifdef KRATOS_DEBUG
+    if (rOutput.size()!=4)
+        KRATOS_THROW_ERROR( std::logic_error, "size of rOutput must be", " 4 " );
+#endif
 
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
 
@@ -2329,6 +2333,10 @@ void UPwSmallStrainInterfaceElement<3,6>::
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputDoubles()") << std::endl;
+#ifdef KRATOS_DEBUG
+    if (rOutput.size()!=6)
+        KRATOS_THROW_ERROR( std::logic_error, "size of rOutput must be", " 6 " );
+#endif
 
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
 
@@ -2363,6 +2371,10 @@ void UPwSmallStrainInterfaceElement<3,8>::
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputDoubles()") << std::endl;
+#ifdef KRATOS_DEBUG
+    if (rOutput.size()!=8)
+        KRATOS_THROW_ERROR( std::logic_error, "size of rOutput must be", " 8 " );
+#endif
 
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
 
@@ -2403,6 +2415,10 @@ void UPwSmallStrainInterfaceElement<2,4>::
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputDoubles()") << std::endl;
+#ifdef KRATOS_DEBUG
+    if (rOutput.size()!=4)
+        KRATOS_THROW_ERROR( std::logic_error, "size of rOutput must be", " 4 " );
+#endif
 
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
 
@@ -2428,8 +2444,10 @@ void UPwSmallStrainInterfaceElement<3,6>::
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputDoubles()") << std::endl;
-    // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,6>::rOutput()")  << rOutput << std::endl;
-    // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,6>::GPValues()") << GPValues << std::endl;
+#ifdef KRATOS_DEBUG
+    if (rOutput.size()!=6)
+        KRATOS_THROW_ERROR( std::logic_error, "size of rOutput must be", " 6 " );
+#endif
 
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
 
@@ -2466,6 +2484,10 @@ void UPwSmallStrainInterfaceElement<3,8>::
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputDoubles()") << std::endl;
+#ifdef KRATOS_DEBUG
+    if (rOutput.size()!=8)
+        KRATOS_THROW_ERROR( std::logic_error, "size of rOutput must be", " 8 " );
+#endif
 
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
 
