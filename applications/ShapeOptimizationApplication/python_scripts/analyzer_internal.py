@@ -36,20 +36,21 @@ except ImportError:
 import time as timer
 
 class IterationScope:
-    def __init__(self, output_folder_name, response_id, iteration_number):
-        if (output_folder_name != None):
+    def __init__(self, output_folder_name, response_id, iteration_number, is_evaluated_in_folder):
+        self.is_evaluated_in_folder = is_evaluated_in_folder
+        if (self.is_evaluated_in_folder):
             self.currentPath = pathlib.Path.cwd()
             output_path = pathlib.Path(output_folder_name)
-            response_text = "response_{:}/{:d}".format(response_id, iteration_number)
+            response_text = "{:}/{:d}".format(response_id, iteration_number)
             self.scope = output_path / response_text
 
     def __enter__(self):
-        if (hasattr(self, "scope")):
+        if (self.is_evaluated_in_folder):
             self.scope.mkdir(parents=True, exist_ok=True)
             os.chdir(str(self.scope))
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if (hasattr(self, "currentPath")):
+        if (self.is_evaluated_in_folder):
             os.chdir(self.currentPath)
 
 
@@ -73,7 +74,6 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
         step_before_analysis = optimization_model_part.ProcessInfo.GetValue(KM.STEP)
         delta_time_before_analysis = optimization_model_part.ProcessInfo.GetValue(KM.DELTA_TIME)
 
-        response_id = 1
         for identifier, response in self.response_functions.items():
 
             # Reset step/time iterators such that they match the optimization iteration after calling CalculateValue (which internally calls CloneTimeStep)
@@ -82,9 +82,9 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             optimization_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, 0)
 
             # now we scope in to the directory where response operations are done
-            with IterationScope(self.model_part_controller.GetOutputFolderName(), response_id, optimizationIteration):
+            with IterationScope(self.model_part_controller.GetIterationDirectory(), identifier, optimizationIteration, response.IsEvaluatedInFolder()):
                 # set the optimization model part in the response
-                response.SetOptimizationModelPart(optimization_model_part)
+                response.SetEvaluationModelPart(optimization_model_part)
 
                 response.InitializeSolutionStep()
 
@@ -107,8 +107,6 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
 
             self.model_part_controller.SetMeshToReferenceMesh()
             self.model_part_controller.SetDeformationVariablesToZero()
-
-            response_id += 1
 
     # --------------------------------------------------------------------------
     def FinalizeAfterOptimizationLoop( self ):
