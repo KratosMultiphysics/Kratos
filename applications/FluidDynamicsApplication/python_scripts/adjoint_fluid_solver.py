@@ -142,6 +142,10 @@ class AdjointFluidSolver(FluidSolver):
         time_scheme_type = time_scheme_settings["scheme_type"].GetString()
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        # the schemes used in fluid supports SLIP conditions which rotates element/condition
+        # matrices based on nodal NORMAL. Hence, the consistent adjoints also need to
+        # rotate adjoint element/condition matrices accordingly and to compute derivatives
+        # of rotation matrices as well. Therefore, following schemes are used.
         if (time_scheme_type == "steady"):
             if domain_size == 2:
                 self.sensitivity_builder_scheme = KratosCFD.SimpleSteadySensitivityBuilderScheme2D()

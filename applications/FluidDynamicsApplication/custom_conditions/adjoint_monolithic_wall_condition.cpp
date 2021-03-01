@@ -145,12 +145,15 @@ void AdjointMonolithicWallCondition<2, 2>::EquationIdVector(
         rResult.resize(6);
     }
 
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_VECTOR_1_X);
+    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_SCALAR_1);
+
     IndexType local_index = 0;
     for (IndexType i = 0; i < 2; ++i) {
         const auto& r_node = this->GetGeometry()[i];
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_X).EquationId();
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Y).EquationId();
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_SCALAR_1).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_X, xpos).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Y, xpos + 1).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_SCALAR_1, ppos).EquationId();
     }
 }
 
@@ -163,13 +166,16 @@ void AdjointMonolithicWallCondition<3, 3>::EquationIdVector(
         rResult.resize(12);
     }
 
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_VECTOR_1_X);
+    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_SCALAR_1);
+
     IndexType local_index = 0;
     for (IndexType i = 0; i < 3; ++i) {
         const auto& r_node = this->GetGeometry()[i];
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_X).EquationId();
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Y).EquationId();
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Z).EquationId();
-        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_SCALAR_1).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_X, xpos).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Y, xpos + 1).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Z, xpos + 2).EquationId();
+        rResult[local_index++] = r_node.GetDof(ADJOINT_FLUID_SCALAR_1, ppos).EquationId();
     }
 }
 
@@ -182,12 +188,15 @@ void AdjointMonolithicWallCondition<2, 2>::GetDofList(
         rResult.resize(6);
     }
 
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_VECTOR_1_X);
+    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_SCALAR_1);
+
     IndexType local_index = 0;
     for (IndexType i = 0; i < 2; ++i) {
         const auto& r_node = this->GetGeometry()[i];
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_X);
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Y);
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_SCALAR_1);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_X, xpos);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Y, xpos + 1);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_SCALAR_1, ppos);
     }
 }
 
@@ -200,13 +209,16 @@ void AdjointMonolithicWallCondition<3, 3>::GetDofList(
         rResult.resize(12);
     }
 
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_VECTOR_1_X);
+    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(ADJOINT_FLUID_SCALAR_1);
+
     IndexType local_index = 0;
     for (IndexType i = 0; i < 3; ++i) {
         const auto& r_node = this->GetGeometry()[i];
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_X);
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Y);
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Z);
-        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_SCALAR_1);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_X, xpos);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Y, xpos + 1);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Z, xpos + 2);
+        rResult[local_index++] = r_node.pGetDof(ADJOINT_FLUID_SCALAR_1, ppos);
     }
 }
 
@@ -297,10 +309,22 @@ void AdjointMonolithicWallCondition<3, 3>::GetSecondDerivativesVector(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int AdjointMonolithicWallCondition<TDim, TNumNodes>::Check(
-        const ProcessInfo& rCurrentProcessInfo) const
+int AdjointMonolithicWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    return 0;
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(this->Has(NORMAL))
+        << "NORMAL is not defined for " << this->Info() << ".\n";
+
+    KRATOS_ERROR_IF(norm_2(this->GetValue(NORMAL)) == 0.0)
+        << "NORMAL is not properly initialized in " << this->Info() << ".\n";
+
+    KRATOS_ERROR_IF_NOT(this->Has(NORMAL_SHAPE_DERIVATIVE))
+        << "NORMAL_SHAPE_DERIVATIVE is not defined for " << this->Info() << ".\n";
+
+    return Condition::Check(rCurrentProcessInfo);
+
+    KRATOS_CATCH("");
 }
 
 template<>
@@ -341,9 +365,6 @@ void AdjointMonolithicWallCondition<TDim, TNumNodes>::CalculateData(
 {
     KRATOS_TRY
 
-    KRATOS_DEBUG_ERROR_IF(!this->Has(NORMAL))
-        << "NORMAL is not defined for " << this->Info() << ".\n";
-
     const auto& aux_normal = this->GetValue(NORMAL);
     for (IndexType i = 0; i < TDim; ++i) {
         rUnitNormal[i] = aux_normal[i];
@@ -365,9 +386,6 @@ void AdjointMonolithicWallCondition<TDim, TNumNodes>::CalculateDataShapeDerivati
     const array_1d<double, TDim>& rUnitNormal) const
 {
     KRATOS_TRY
-
-    KRATOS_DEBUG_ERROR_IF(!this->Has(NORMAL_SHAPE_DERIVATIVE))
-        << "NORMAL_SHAPE_DERIVATIVE is not defined for " << this->Info() << ".\n";
 
     const auto& normal_shape_derivatives = this->GetValue(NORMAL_SHAPE_DERIVATIVE);
     noalias(rAreaDerivatives) = prod(normal_shape_derivatives, rUnitNormal);

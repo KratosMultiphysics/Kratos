@@ -789,6 +789,7 @@ private:
     SizeType mEchoLevel = 0;                                               /// The echo level of the utilities
     bool mRemoveRegions = false;                                           /// Cuttig-out specified regions during surface remeshing
     DiscretizationOption mDiscretization = DiscretizationOption::STANDARD; /// Discretization The discretization type
+    bool mUsingMetricTensor = true;                                        /// Controls if the metric used is a tensor (true) or a scalar (false)
 
     ///@}
     ///@name Private Operators

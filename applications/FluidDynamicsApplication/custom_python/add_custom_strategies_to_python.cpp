@@ -131,25 +131,25 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     using  SimpleSteadyAdjointScheme2DType = SimpleSteadyAdjointScheme<2, SparseSpaceType, LocalSpaceType>;
     py::class_<SimpleSteadyAdjointScheme2DType, typename SimpleSteadyAdjointScheme2DType::Pointer, BaseSchemeType>
         (m, "SimpleSteadyAdjointScheme2D")
-        .def(py::init<AdjointResponseFunction::Pointer>())
+        .def(py::init<AdjointResponseFunction::Pointer, const std::size_t>())
         ;
 
     using  SimpleSteadyAdjointScheme3DType = SimpleSteadyAdjointScheme<3, SparseSpaceType, LocalSpaceType>;
     py::class_<SimpleSteadyAdjointScheme3DType, typename SimpleSteadyAdjointScheme3DType::Pointer, BaseSchemeType>
         (m, "SimpleSteadyAdjointScheme3D")
-        .def(py::init<AdjointResponseFunction::Pointer>())
+        .def(py::init<AdjointResponseFunction::Pointer, const std::size_t>())
         ;
 
     using  VelocityBossakAdjointScheme2DType = VelocityBossakAdjointScheme<2, SparseSpaceType, LocalSpaceType>;
     py::class_<VelocityBossakAdjointScheme2DType, typename VelocityBossakAdjointScheme2DType::Pointer, BaseSchemeType>
         (m, "VelocityBossakAdjointScheme2D")
-        .def(py::init<Parameters, AdjointResponseFunction::Pointer>())
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer, const std::size_t>())
         ;
 
     using  VelocityBossakAdjointScheme3DType = VelocityBossakAdjointScheme<3, SparseSpaceType, LocalSpaceType>;
     py::class_<VelocityBossakAdjointScheme3DType, typename VelocityBossakAdjointScheme3DType::Pointer, BaseSchemeType>
         (m, "VelocityBossakAdjointScheme3D")
-        .def(py::init<Parameters, AdjointResponseFunction::Pointer>())
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer, const std::size_t>())
         ;
 
     using SimpleSteadySensitivityBuilderScheme2DType = SimpleSteadySensitivityBuilderScheme<2>;

@@ -141,7 +141,7 @@ public:
     ///@{
 
     /// Pointer definition of MonolithicDEMCoupledWeak
-    KRATOS_CLASS_POINTER_DEFINITION(MonolithicDEMCoupledWeak);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MonolithicDEMCoupledWeak);
 
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;
