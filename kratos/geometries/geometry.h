@@ -31,8 +31,6 @@
 #include "containers/data_value_container.h"
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
-#include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
-
 
 namespace Kratos
 {
