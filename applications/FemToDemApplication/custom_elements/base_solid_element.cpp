@@ -554,7 +554,7 @@ void BaseSolidElement::CalculateMassMatrix(
         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
             GeometryUtils::JacobianOnInitialConfiguration(
                 r_geom, integration_points[point_number], J0);
-            const double detJ0 = MathUtils<double>::DetMat(J0);
+            const double detJ0 = MathUtils<double>::Det(J0);
             const double integration_weight =
                 GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
             const Vector& rN = row(Ncontainer,point_number);
