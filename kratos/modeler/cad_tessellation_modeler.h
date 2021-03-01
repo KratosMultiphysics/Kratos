@@ -48,12 +48,26 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of Modeler
+    /// Pointer definition of CadTessellationModeler
     KRATOS_CLASS_POINTER_DEFINITION(CadTessellationModeler);
 
-    typedef std::size_t SizeType;
     typedef std::size_t IndexType;
-    typedef std::vector<array_1d<double, 3>> NodeVector;
+
+    typedef std::size_t SizeType;
+
+    typedef Node<3> NodeType;
+
+    typedef Point EmbeddedNodeType;
+
+    typedef PointerVector<NodeType> ContainerNodeType;
+
+    typedef PointerVector<EmbeddedNodeType> ContainerEmbeddedNodeType;
+
+    typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
+
+    typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
+
+
 
     ///@}
     ///@name Life Cycle
@@ -128,25 +142,25 @@ private:
      * @brief This method returns the tessellation of the boundary curves
      */
     std::vector<array_1d<double, 2>> ComputeBoundaryTessellation(
-        const BrepCurveOnSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rBoundaryCurveOnSurface
+        const BrepCurveOnSurfaceType& rBoundaryCurveOnSurface
     );
 
     /**
      * @brief This method returns the triangulation of a NURBS surface
      */
     std::vector<Matrix> ComputeSurfaceTriangulation(
-        const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
+        const BrepSurfaceType& rSurfaceGeometry,
         const std::vector<array_1d<double, 2>>& rBoundaryLoopUV
     );
 
 
     std::vector<Matrix> CadTessellationModeler::InsertGaussPointsExactSurface(
-        const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
+        const BrepSurfaceType& rSurfaceGeometry,
         const std::vector<Matrix>& rTriangulation_uv
     );
 
     std::vector<Matrix> CadTessellationModeler::InsertGaussPointsApproxSurface(
-        const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
+        const BrepSurfaceType& rSurfaceGeometry,
         const std::vector<Matrix>& rTriangulation_uv
     );
 

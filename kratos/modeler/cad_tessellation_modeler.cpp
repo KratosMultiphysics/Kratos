@@ -105,7 +105,7 @@ namespace Kratos
      * @brief This method returns the tessellation of the boundary curves
      */
     std::vector<array_1d<double, 2>> CadTessellationModeler::ComputeBoundaryTessellation(
-        const BrepCurveOnSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rBoundaryCurveOnSurface
+        const BrepCurveOnSurfaceType& rBoundaryCurveOnSurface
     )
     {
         auto tessellation = NurbsCurveTessellation<2, PointerVector<Node<3>>>::ComputeTessellation(
@@ -134,7 +134,7 @@ namespace Kratos
      * @brief This method returns the triangulation of a NURBS surface
      */
     std::vector<Matrix> CadTessellationModeler::ComputeSurfaceTriangulation(
-        const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
+        const BrepSurfaceType& rSurfaceGeometry,
         const std::vector<array_1d<double, 2>>& rBoundaryLoopUV
     )
     {
@@ -307,7 +307,7 @@ namespace Kratos
     }
 
     std::vector<Matrix> CadTessellationModeler::InsertGaussPointsApproxSurface(
-        const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
+        const BrepSurfaceType& rSurfaceGeometry,
         const std::vector<Matrix>& rTriangulation_uv
     )
     {
