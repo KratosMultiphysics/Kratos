@@ -351,8 +351,8 @@ public:
             }
         );
 
-        #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < nparticles; ++i_node){
+        IndexPartition<unsigned int>(nparticles).for_each(
+        [&](unsigned int i_node){
             auto it_node = rModelPart.NodesBegin() + i_node;
             const auto& X_i = it_node->Coordinates();
             const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
@@ -378,9 +378,10 @@ public:
             mSigmaPlus[i_node] = std::min(1.0, (std::abs(S_minus)+epsilon)/(S_plus+epsilon));
             mSigmaMinus[i_node] = std::min(1.0, (S_plus+epsilon)/(std::abs(S_minus)+epsilon));
         }
+        );
 
-        #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < nparticles; ++i_node){
+        IndexPartition<unsigned int>(nparticles).for_each(
+        [&](unsigned int i_node){
             auto it_node = rModelPart.NodesBegin() + i_node;
             const double distance_i = it_node->FastGetSolutionStepValue(rVar);
             const auto& X_i = it_node->Coordinates();
@@ -414,6 +415,7 @@ public:
             const double fraction = (std::abs(numerator)/* +epsilon */) / (denominator + epsilon);
             mLimiter[i_node] = 1.0 - std::pow(fraction, power);
         }
+        );
     }
 
 
