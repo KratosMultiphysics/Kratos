@@ -147,7 +147,7 @@ public:
     /// Calculate with array_1d<double, 3>
     void Calculate(
         const Variable<array_1d<double, 3>>& rVariable,
-        array_1d<double, 3>& rOutput) override
+        array_1d<double, 3>& rOutput) const override
     {
         if (rVariable == LOCAL_TANGENT)
         {
