@@ -101,7 +101,7 @@ public:
     ///@{
 
     /// Counted pointer of UlfAxisym
-    KRATOS_CLASS_POINTER_DEFINITION(UlfAxisym);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UlfAxisym);
 
     ///@}
     ///@name Life Cycle
