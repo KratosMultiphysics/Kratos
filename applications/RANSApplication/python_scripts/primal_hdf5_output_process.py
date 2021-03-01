@@ -20,6 +20,7 @@ def Factory(parameters, model):
     settings = parameters["Parameters"]
     default_settings = Kratos.Parameters("""{
         "model_part_name": "",
+        "model_part_output_settings":{},
         "file_settings"  : {
             "folder_name"      : ".",
             "time_format"      : "0.6f",
@@ -61,7 +62,15 @@ def Factory(parameters, model):
                 "file_name": "<model_part_name>-<time>.h5"
             },
             "list_of_operations": []
-        }]
+        },{
+            "model_part_name" : "",
+            "process_step": "finalize",
+            "io_settings": {
+                "io_type": "serial_hdf5_file_io",
+                "file_name": "<model_part_name>-<time>.h5"
+            },
+            "list_of_operations": []
+        }        ]
         """)
 
     # set file settings
@@ -102,6 +111,16 @@ def Factory(parameters, model):
     ]
 
     core_settings[1]["list_of_operations"] = [
+        CreateOperationSettings("nodal_solution_step_data_output", list_of_solution_step_variables),
+        CreateOperationSettings("nodal_data_value_output", list_of_nodal_variables),
+        CreateOperationSettings("nodal_flag_value_output", list_of_nodal_flags),
+        CreateOperationSettings("condition_data_value_output", list_of_condition_data_variables),
+        CreateOperationSettings("condition_flag_value_output", list_of_condition_flags)
+    ]
+
+    core_settings[2]["list_of_operations"] = [
+        CreateOperationSettings(model_part_output_type, ParametersWrapper(settings["model_part_output_settings"])),
+        CreateOperationSettings("nodal_solution_step_data_output", list_of_solution_step_variables),
         CreateOperationSettings("nodal_solution_step_data_output", list_of_solution_step_variables),
         CreateOperationSettings("nodal_data_value_output", list_of_nodal_variables),
         CreateOperationSettings("nodal_flag_value_output", list_of_nodal_flags),
