@@ -12,7 +12,13 @@ from iga_test_factory import SinglePatchTest as SinglePatchTest
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailImplicitDynamic as MembraneSinglePatchFourPointSailImplicitDynamic
+# 3p Shell KL
 from iga_test_factory import ScordelisRoofShell3pTest as ScordelisRoofShell3pTest
+from iga_test_factory import LinearBeamShell3pTest as LinearBeamShell3pTest
+# 5p Shell Hierarchic
+from iga_test_factory import Shell5pHierarchicLinearThickBeamTest as TShell5pHierarchicLinearThickBeamTest
+from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHierarchicLinearScordelisTest
+from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5pHierarchicNonLinearThickBeamTest
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
@@ -38,9 +44,9 @@ def AssembleTestSuites():
         # Membrane tests
         MembraneSinglePatchFourPointSailLinearStatic,
         MembraneSinglePatchFourPointSailNonLinearStatic,
-        # Shell 3p tests
+        # 3p Shell KL
         ScordelisRoofShell3pTest,
-        # Modelers tests
+        LinearBeamShell3pTest,
         TTestModelers,
         TTestNurbsVolumeElements
         ]))
@@ -52,6 +58,12 @@ def AssembleTestSuites():
         MembraneSinglePatchFourPointSailImplicitDynamic
         ]))
     nightSuite.addTests(smallSuite)
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        # 5p Shell Hierarchic
+        TShell5pHierarchicLinearThickBeamTest,
+        TShell5pHierarchicLinearScordelisTest,
+        TShell5pHierarchicNonLinearThickBeamTest
+        ]))
 
     allSuite = suites['all']
     allSuite.addTests(nightSuite)

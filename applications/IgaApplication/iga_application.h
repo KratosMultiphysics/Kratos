@@ -21,6 +21,7 @@
 #include "custom_elements/shell_3p_element.h"
 #include "custom_elements/iga_membrane_element.h"
 #include "custom_elements/iga_edge_cable_element.h"
+#include "custom_elements/shell_5p_hierarchic_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -105,6 +106,7 @@ private:
     const Shell3pElement mShell3pElement;
     const IgaMembraneElement mIgaMembraneElement;
     const IgaEdgeCableElement mIgaEdgeCableElement;
+    const Shell5pHierarchicElement mShell5pHierarchicElement;
 
     //Conditions
     const OutputCondition mOutputCondition;

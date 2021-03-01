@@ -21,6 +21,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos {
 TrussElement3D2N::TrussElement3D2N(IndexType NewId,
@@ -140,23 +141,44 @@ void TrussElement3D2N::CalculateMassMatrix(
 )
 {
     KRATOS_TRY
-
-    // Compute lumped mass matrix
-    VectorType temp_vector(msLocalSize);
-    CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
-
     // Clear matrix
     if (rMassMatrix.size1() != msLocalSize || rMassMatrix.size2() != msLocalSize) {
         rMassMatrix.resize(msLocalSize, msLocalSize, false);
     }
     rMassMatrix = ZeroMatrix(msLocalSize, msLocalSize);
 
-    // Fill the matrix
-    for (IndexType i = 0; i < msLocalSize; ++i) {
-        rMassMatrix(i, i) = temp_vector[i];
+    if (StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo)){
+        // Compute lumped mass matrix
+        VectorType temp_vector(msLocalSize);
+        CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
+
+        // Fill the matrix
+        for (IndexType i = 0; i < msLocalSize; ++i) {
+            rMassMatrix(i, i) = temp_vector[i];
+        }
+    }
+    else {
+        CalculateConsistentMassMatrix(rMassMatrix,rCurrentProcessInfo);
     }
 
     KRATOS_CATCH("")
+}
+
+void TrussElement3D2N::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+    const double A = GetProperties()[CROSS_AREA];
+    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double rho = GetProperties()[DENSITY];
+    const BoundedMatrix<double, 3, 3> fill_matrix = A * L * rho* (IdentityMatrix(3)/6.0);
+
+    project(rMassMatrix, range(0,3),range(0,3)) += fill_matrix*2.0;
+    project(rMassMatrix, range(0,3),range(3,6)) += fill_matrix;
+    project(rMassMatrix, range(3,6),range(0,3)) += fill_matrix;
+    project(rMassMatrix, range(3,6),range(3,6)) += fill_matrix*2.0;
+
+    KRATOS_CATCH("");
 }
 
 BoundedVector<double, TrussElement3D2N::msLocalSize>
@@ -649,8 +671,7 @@ void TrussElement3D2N::AddExplicitContribution(
             double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
             int index = i * msDimension;
 
-            #pragma omp atomic
-            r_nodal_mass += element_mass_vector(index);
+            AtomicAdd(r_nodal_mass, element_mass_vector(index));
         }
     }
 
@@ -671,8 +692,7 @@ void TrussElement3D2N::AddExplicitContribution(
         Vector current_nodal_velocities = ZeroVector(msLocalSize);
         GetFirstDerivativesVector(current_nodal_velocities);
         Matrix damping_matrix;
-        ProcessInfo temp_process_information; // cant pass const ProcessInfo
-        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        CalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
 
@@ -680,8 +700,7 @@ void TrussElement3D2N::AddExplicitContribution(
             size_t index = msDimension * i;
             array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for (size_t j = 0; j < msDimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+                AtomicAdd(r_force_residual[j], (rRHSVector[index + j] - damping_residual_contribution[index + j]));
             }
         }
     } else if (rDestinationVariable == NODAL_INERTIA) {
@@ -692,16 +711,9 @@ void TrussElement3D2N::AddExplicitContribution(
 
         for (int i = 0; i < msNumberOfNodes; ++i) {
             double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-            array_1d<double, msDimension>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
             int index = i * msDimension;
 
-            #pragma omp atomic
-            r_nodal_mass += mass_vector[index];
-
-            for (int k = 0; k < msDimension; ++k) {
-                #pragma omp atomic
-                r_nodal_inertia[k] += 0.0;
-            }
+            AtomicAdd(r_nodal_mass, mass_vector[index]);
         }
     }
 

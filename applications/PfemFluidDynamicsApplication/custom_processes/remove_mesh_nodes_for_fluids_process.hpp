@@ -80,7 +80,7 @@ namespace Kratos
 			: mrModelPart(rModelPart),
 			  mrRemesh(rRemeshingParameters)
 		{
-			KRATOS_INFO("RemoveMeshNodesForFluidsProcess") << " activated "<< std::endl;
+			KRATOS_INFO("RemoveMeshNodesForFluidsProcess") << " activated " << std::endl;
 
 			mEchoLevel = EchoLevel;
 		}
@@ -1123,24 +1123,34 @@ namespace Kratos
 
 			std::vector<array_1d<double, 3>> rigidNodesCoordinates;
 			std::vector<array_1d<double, 3>> rigidNodesNormals;
-			array_1d<double, 3> notRigidNodeCoordinates(3,0.0);
+			array_1d<double, 3> notRigidNodeCoordinates(3, 0.0);
 			unsigned int notRigidNodeId = 0;
 			rigidNodesCoordinates.resize(3);
 			rigidNodesNormals.resize(3);
+			double baricenterX = 0.25 * (eElement[0].X() + eElement[1].X() + eElement[2].X() + eElement[3].X());
+			double baricenterY = 0.25 * (eElement[0].Y() + eElement[1].Y() + eElement[2].Y() + eElement[3].Y());
+			double baricenterZ = 0.25 * (eElement[0].Z() + eElement[1].Z() + eElement[2].Z() + eElement[3].Z());
 
 			if (mrRemesh.UseRefiningBox == true)
 			{
 				array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
 				array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-				if (eElement[0].X() > mrRemesh.RefiningBoxMinimumPoint[0] && eElement[0].X() < mrRemesh.RefiningBoxMinimumPoint[0] &&
-					eElement[0].Y() > mrRemesh.RefiningBoxMinimumPoint[1] && eElement[0].Y() < mrRemesh.RefiningBoxMinimumPoint[1] &&
-					eElement[0].Z() > mrRemesh.RefiningBoxMinimumPoint[2] && eElement[0].Z() < mrRemesh.RefiningBoxMinimumPoint[2])
+				if (baricenterX > RefiningBoxMinimumPoint[0] && baricenterX < RefiningBoxMaximumPoint[0] &&
+					baricenterY > RefiningBoxMinimumPoint[1] && baricenterY < RefiningBoxMaximumPoint[1] &&
+					baricenterZ > RefiningBoxMinimumPoint[2] && baricenterZ < RefiningBoxMaximumPoint[2])
 				{
-					criticalVolume = 0.25 * 0.1 * (pow(mrRemesh.RefiningBoxMeshSize, 3) / (6.0 * sqrt(2))); //mean Volume per node with 0.025 of penalization
+					criticalVolume = 0.01 * (pow(mrRemesh.RefiningBoxMeshSize, 3) / (6.0 * sqrt(2))); //mean Volume of a regular tetrahedral per node with 0.01 of penalization
 				}
 				else
 				{
-					criticalVolume = 0.25 * 0.1 * (pow(mrRemesh.Refine->CriticalRadius, 3) / (6.0 * sqrt(2)));
+					criticalVolume = 0.01 * (pow(mrRemesh.Refine->CriticalRadius, 3) / (6.0 * sqrt(2)));
+				}
+				double meanSize = 0.5 * (mrRemesh.RefiningBoxMeshSize + mrRemesh.Refine->CriticalRadius);
+				if ((baricenterX > (RefiningBoxMinimumPoint[0] - meanSize) && baricenterX < (RefiningBoxMaximumPoint[0] + meanSize)) ||
+					(baricenterY > (RefiningBoxMinimumPoint[1] - meanSize) && baricenterY < (RefiningBoxMaximumPoint[1] + meanSize)) ||
+					(baricenterZ > (RefiningBoxMinimumPoint[2] - meanSize) && baricenterZ < (RefiningBoxMaximumPoint[2] + meanSize))) //transition zone
+				{
+					safetyCoefficient3D *= 0.8;
 				}
 			}
 
@@ -1231,7 +1241,7 @@ namespace Kratos
 				}
 			}
 
-			bool longDamBreak = false; //to attivate in case of long dam breaks to avoid separeted elements in the water front
+			bool longDamBreak = false; //to attivate in case of long dam breaks to avoid separated elements in the water front
 			if (longDamBreak == true && freeSurfaceNodes > 2 && rigidNodes > 1)
 			{
 				for (unsigned int i = 0; i < numNodes; i++)

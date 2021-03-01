@@ -21,6 +21,7 @@
 #include "add_mpi_communicator_to_python.h"
 #include "add_mpi_data_communicator_to_python.h"
 #include "add_mpi_utilities_to_python.h"
+#include "add_mpi_debug_utilities_to_python.h"
 
 #include "includes/parallel_environment.h"
 
@@ -44,6 +45,7 @@ PYBIND11_MODULE(KratosMPI, m)
     AddMPICommunicatorToPython(m);
     AddMPIDataCommunicatorToPython(m);
     AddMPIUtilitiesToPython(m);
+    AddMPIDebugUtilitiesToPython(m);
 }
 
 }

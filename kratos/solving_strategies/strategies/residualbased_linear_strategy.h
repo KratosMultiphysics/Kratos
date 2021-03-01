@@ -390,21 +390,20 @@ public:
         DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
 
         this->GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+
+        // Applying constraints if needed
         auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
         const int local_number_of_constraints = r_constraints_array.size();
         const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
         if(global_number_of_constraints != 0) {
-            const auto& rProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+            const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
 
-            auto it_begin = BaseType::GetModelPart().MasterSlaveConstraints().begin();
-
-            #pragma omp parallel for firstprivate(it_begin)
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                (it_begin+i)->ResetSlaveDofs(rProcessInfo);
-
-            #pragma omp parallel for firstprivate(it_begin)
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                 (it_begin+i)->Apply(rProcessInfo);
+            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.ResetSlaveDofs(r_process_info);
+            });
+            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.Apply(r_process_info);
+            });
 
             //the following is needed since we need to eventually compute time derivatives after applying
             //Master slave relations
