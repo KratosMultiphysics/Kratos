@@ -187,6 +187,6 @@ jobs:
 
     - name: Running small tests
       run: |
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Release
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Release/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3.5 kratos/python_scripts/run_tests.py -l small -c python3.5
