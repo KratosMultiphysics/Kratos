@@ -56,7 +56,7 @@ void AddCustomResponseFunctionsToPython(pybind11::module& m)
         VelocityPressureNormSquareResponseFunction,
         VelocityPressureNormSquareResponseFunction::Pointer,
         AdjointResponseFunction>(m,"VelocityPressureNormSquareResponseFunction")
-        .def(py::init<Parameters, ModelPart&>());
+        .def(py::init<Parameters, Model&>());
 
 }
 

@@ -126,7 +126,7 @@ class AdjointFluidSolver(FluidSolver):
         elif response_type == "norm_square":
             response_function = KratosCFD.VelocityPressureNormSquareResponseFunction(
                 self.settings["response_function_settings"]["custom_settings"],
-                self.main_model_part)
+                self.model)
         else:
             raise Exception("Invalid response_type: " + response_type + ". Available response functions: \'drag\'.")
         return response_function

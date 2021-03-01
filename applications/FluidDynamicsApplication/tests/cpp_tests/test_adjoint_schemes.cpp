@@ -499,10 +499,13 @@ KRATOS_TEST_CASE_IN_SUITE(SimpleSteadySensitivityBuilderScheme, FluidDynamicsApp
     VariableUtils().SetHistoricalVariableToZero(ACCELERATION, adjoint_model_part.Nodes());
 
     // compute adjoint sensitivities
-    VelocityPressureNormSquareResponseFunction response(Parameters(""
-                                                "{}"
-                                                ""),
-                                     adjoint_model_part);
+    VelocityPressureNormSquareResponseFunction response(
+        Parameters(R"(
+        {
+            "main_model_part_name": "Adjoint",
+            "norm_model_part_name": "Adjoint"
+        })"),
+        model);
 
     SimpleSteadySensitivityBuilderScheme sensitivity_builder_scheme(2, 3);
     Matrix analytical_sensitivities;
@@ -541,10 +544,13 @@ KRATOS_TEST_CASE_IN_SUITE(SimpleSteadyAdjointScheme, FluidDynamicsApplicationFas
     VariableUtils().SetHistoricalVariableToZero(ACCELERATION, adjoint_model_part.Nodes());
 
     // compute adjoint sensitivities
-    VelocityPressureNormSquareResponseFunction response(Parameters(""
-                                                "{}"
-                                                ""),
-                                     adjoint_model_part);
+    VelocityPressureNormSquareResponseFunction response(
+        Parameters(R"(
+        {
+            "main_model_part_name": "Adjoint",
+            "norm_model_part_name": "Adjoint"
+        })"),
+        model);
     SimpleSteadyAdjointScheme<SparseSpaceType, LocalSpaceType> adjoint_scheme(
         Kratos::make_shared<VelocityPressureNormSquareResponseFunction>(response), 2, 3);
 
@@ -577,10 +583,13 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakSensitivityBuilderScheme, FluidDynamicsA
     SetAdjointModelPartValues(adjoint_model_part, primal_model_part);
 
     // compute adjoint sensitivities
-    VelocityPressureNormSquareResponseFunction response(Parameters(""
-                                                "{}"
-                                                ""),
-                                     adjoint_model_part);
+    VelocityPressureNormSquareResponseFunction response(
+        Parameters(R"(
+        {
+            "main_model_part_name": "Adjoint",
+            "norm_model_part_name": "Adjoint"
+        })"),
+        model);
     Matrix analytical_sensitivities;
     const double alpha_bossak = -0.3;
     VelocityBossakSensitivityBuilderScheme sensitivity_builder_scheme(alpha_bossak, 2, 3);
@@ -618,10 +627,13 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeLHS, FluidDynamicsApplicati
     SetAdjointModelPartValues(adjoint_model_part, primal_model_part);
 
     // compute adjoint sensitivities
-    VelocityPressureNormSquareResponseFunction response(Parameters(""
-                                                "{}"
-                                                ""),
-                                     adjoint_model_part);
+    VelocityPressureNormSquareResponseFunction response(
+        Parameters(R"(
+        {
+            "main_model_part_name": "Adjoint",
+            "norm_model_part_name": "Adjoint"
+        })"),
+        model);
     VelocityBossakAdjointScheme<SparseSpaceType, LocalSpaceType> adjoint_scheme(
         Parameters(R"({
             "name"         : "adjoint_bossak",
@@ -670,8 +682,9 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeRHS, FluidDynamicsApplicati
 
     Model model;
 
-    Parameters response_parameters(R"({
-            "norm_model_part_name" : "Structure"
+    Parameters primal_response_parameters(R"({
+            "main_model_part_name" : "Primal",
+            "norm_model_part_name" : "Primal.Structure"
         })");
 
     // Create a primal test element inside a modelpart
@@ -679,7 +692,7 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeRHS, FluidDynamicsApplicati
     GenerateTestModelPart(primal_model_part, "VMS2D3N", "MonolithicWallCondition2D2N");
     SetPrimalModelPartValues(primal_model_part);
     const double delta_time = primal_model_part.GetProcessInfo()[DELTA_TIME];
-    VelocityPressureNormSquareResponseFunction primal_response(response_parameters, primal_model_part);
+    VelocityPressureNormSquareResponseFunction primal_response(primal_response_parameters, model);
     primal_response.Initialize();
 
     // Create a adjoint test element inside a modelpart
@@ -687,8 +700,14 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeRHS, FluidDynamicsApplicati
     GenerateTestModelPart(adjoint_model_part, "VMSAdjointElement2D", "AdjointMonolithicWallCondition2D2N");
     SetAdjointModelPartValues(adjoint_model_part, primal_model_part);
 
+    Parameters adjoint_response_parameters(R"({
+            "main_model_part_name" : "Adjoint",
+            "norm_model_part_name" : "Adjoint.Structure"
+        })");
+
     // compute adjoint sensitivities
-    VelocityPressureNormSquareResponseFunction adjoint_response(response_parameters, adjoint_model_part);
+    VelocityPressureNormSquareResponseFunction adjoint_response(
+        adjoint_response_parameters, model);
     adjoint_response.Initialize();
 
     VelocityBossakAdjointScheme<SparseSpaceType, LocalSpaceType> adjoint_scheme(
