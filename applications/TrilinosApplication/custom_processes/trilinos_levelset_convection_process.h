@@ -49,7 +49,7 @@ namespace Kratos
  * on the top of it
 */
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver >
-class TrilinosLevelSetConvectionProcess
+class KRATOS_API(TRILINOS_APPLICATION) TrilinosLevelSetConvectionProcess
     : public LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
