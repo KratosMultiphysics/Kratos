@@ -24,6 +24,12 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "includes/variables.h"
 
+
+#include "includes/element.h"
+#include "includes/condition.h"
+
+#include "includes/constitutive_law.h"
+
 #include "topology_optimization_application.h"
 
 
@@ -55,12 +61,12 @@ namespace Kratos
     KratosTopologyOptimizationApplication::KratosTopologyOptimizationApplication() 
         : KratosApplication("TopologyOptimizationApplication"),
 
-		///mSmallDisplacementSIMPElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <NodeType>( Element::GeometryType::PointsArrayType( 3 ) ) ) ), // dummy element for surface representation
-        mSmallDisplacement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-        ///mSmallDisplacementSIMPElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
-        mSmallDisplacement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
-        ///mSmallDisplacementSIMPElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <NodeType >( Element::GeometryType::PointsArrayType( 8 ) ) ) )
-        mSmallDisplacement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))){}
+		mSmallDisplacementSIMPElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <NodeType>( Element::GeometryType::PointsArrayType( 3 ) ) ) ), // dummy element for surface representation
+        ///mSmallDisplacement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+        mSmallDisplacementSIMPElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+        ///mSmallDisplacement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+        mSmallDisplacementSIMPElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <NodeType >( Element::GeometryType::PointsArrayType( 8 ) ) ) ){}
+        ///mSmallDisplacement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))){}
 
 //        Extra elements that can be added in the future
 //        mSmallDisplacementSIMPElement3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
@@ -82,9 +88,9 @@ namespace Kratos
         std::cout << "Initializing KratosTopologyOptimizationApplication...    " << std::endl;
 
         //Register small displacement elements
-        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D3N",  mSmallDisplacement3D3N ) // dummy element for surface representation
-        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D4N", mSmallDisplacement3D4N )
-        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D8N", mSmallDisplacement3D8N )
+        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D3N",  mSmallDisplacementSIMPElement3D3N ) // dummy element for surface representation
+        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D4N", mSmallDisplacementSIMPElement3D4N )
+        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D8N", mSmallDisplacementSIMPElement3D8N )
 
 //        Extra elements that can be added in the future
 //        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D6N", mSmallDisplacementSIMPElement3D6N )

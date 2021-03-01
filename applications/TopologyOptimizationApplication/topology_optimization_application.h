@@ -31,6 +31,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
+
 //elements
 
 
@@ -203,12 +204,12 @@ namespace Kratos
 		///@{
 
         //small_displacement
-      	///const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D3N; // dummy element for surface representation
-		const SmallDisplacement mSmallDisplacement3D3N;
-        ///const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D4N;
-		const SmallDisplacement mSmallDisplacement3D4N;
-        ///const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D8N;
-		const SmallDisplacement mSmallDisplacement3D8N;
+      	const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D3N; // dummy element for surface representation
+		///const SmallDisplacement mSmallDisplacement3D3N;
+        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D4N;
+		///const SmallDisplacement mSmallDisplacement3D4N;
+        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D8N;
+		///const SmallDisplacement mSmallDisplacement3D8N;
 
 //        Extra elements to be added in the future
 //        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D6N;
