@@ -80,6 +80,8 @@ namespace Kratos
 
         // Loop over all nodes
         const auto& i_node_begin = rFluidModelPart.NodesBegin();
+
+        #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rFluidModelPart.Nodes().size()); i++) {
           auto i_node = i_node_begin + i;
 
@@ -105,16 +107,15 @@ namespace Kratos
               auto constitutive_law_values = ConstitutiveLaw::Parameters(i_nelem.GetGeometry(), i_nelem.GetProperties(), rCurrentProcessInfo);
               const Properties& r_properties = constitutive_law_values.GetMaterialProperties();
 
-              double effective_density;
-              double effective_conductivity;
-              double effective_capacity;
+              double effective_density      = 0.0;
+              double effective_conductivity = 0.0;
+              double effective_capacity     = 0.0;
 
               // Compute effective properties corresponding to nodal temperature
               if (r_properties.HasTable(TEMPERATURE, DENSITY)) {
                 const auto& r_table = r_properties.GetTable(TEMPERATURE, DENSITY);
                 effective_density = r_table.GetValue(temp);
-              }
-              else {
+              } else {
                 effective_density = r_properties[DENSITY];
               }
                 
