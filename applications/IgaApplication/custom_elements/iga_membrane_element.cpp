@@ -25,7 +25,7 @@ namespace Kratos
     ///@name Initialize Functions
     ///@{
 
-    void IgaMembraneElement::Initialize()
+    void IgaMembraneElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -63,7 +63,7 @@ namespace Kratos
     void IgaMembraneElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     )
@@ -195,7 +195,7 @@ namespace Kratos
 
     void IgaMembraneElement::CalculateInitialStiffnessMatrix(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY
@@ -608,7 +608,7 @@ namespace Kratos
 
     void IgaMembraneElement::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY;
@@ -675,7 +675,7 @@ namespace Kratos
 
     void IgaMembraneElement::CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY;
@@ -758,22 +758,6 @@ namespace Kratos
     ///@}
     ///@name Postprocessing
     ///@{
-
-    void IgaMembraneElement::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY;
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-        KRATOS_CATCH("")
-    }
-
-    void IgaMembraneElement::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY;
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-        KRATOS_CATCH("")
-    }
 
     void IgaMembraneElement::CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
@@ -1065,8 +1049,8 @@ namespace Kratos
 
     void IgaMembraneElement::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         KRATOS_TRY;
 
@@ -1089,8 +1073,8 @@ namespace Kratos
 
     void IgaMembraneElement::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         KRATOS_TRY;
 
@@ -1112,7 +1096,7 @@ namespace Kratos
     ///@name Check
     ///@{
 
-    int IgaMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
+    int IgaMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         // Verify that the constitutive law exists
         if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)

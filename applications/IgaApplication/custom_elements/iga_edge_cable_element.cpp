@@ -30,7 +30,7 @@ namespace Kratos
     ///@name Initialize Functions
     ///@{
 
-    void IgaEdgeCableElement::Initialize()
+    void IgaEdgeCableElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -76,7 +76,7 @@ namespace Kratos
     void IgaEdgeCableElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     )
@@ -165,7 +165,7 @@ namespace Kratos
 
     void IgaEdgeCableElement::CalculateInitialStiffnessMatrix(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY
@@ -245,7 +245,7 @@ namespace Kratos
 
     void IgaEdgeCableElement::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY;
@@ -313,7 +313,7 @@ namespace Kratos
 
     void IgaEdgeCableElement::CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY;
@@ -360,14 +360,6 @@ namespace Kratos
     ///@}
     ///@name Postprocessing
     ///@{
-
-    void IgaEdgeCableElement::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY;
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-        KRATOS_CATCH("")
-    }
 
     void IgaEdgeCableElement::CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
@@ -480,8 +472,8 @@ namespace Kratos
 
     void IgaEdgeCableElement::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         KRATOS_TRY;
 
@@ -504,8 +496,8 @@ namespace Kratos
 
     void IgaEdgeCableElement::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         KRATOS_TRY;
 
@@ -527,7 +519,7 @@ namespace Kratos
     ///@name Check
     ///@{
 
-    int IgaEdgeCableElement::Check(const ProcessInfo& rCurrentProcessInfo)
+    int IgaEdgeCableElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         // Verify that the constitutive law exists
         if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
