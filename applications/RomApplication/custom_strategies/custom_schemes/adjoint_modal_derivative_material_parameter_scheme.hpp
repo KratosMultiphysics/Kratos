@@ -321,31 +321,32 @@ protected:
                 if (rp_dof->IsFree())
                 {
                     dof_component_index = rp_dof->GetVariable().GetComponentIndex();
+                    const double dof_value = rp_dof->GetSolutionStepValue();
                     
                     // Positive perturbation
-                    // rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                     rp_dof->GetSolutionStepValue() += BaseType::mFiniteDifferenceStepSize;
                     if (rp_dof->GetVariable().GetSourceVariable() == DISPLACEMENT)
                         r_node.Coordinates()[dof_component_index] = r_node.GetInitialPosition()[dof_component_index] + rp_dof->GetSolutionStepValue();
-                    // rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+                    rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+                    rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                     element_LHS_p_perturbed.clear();
                     rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
-                    
-                    // Negative perturbation
-                    // rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+
+                    // Negative perturbation                    
                     rp_dof->GetSolutionStepValue() -= 2.0*BaseType::mFiniteDifferenceStepSize;
                     if (rp_dof->GetVariable().GetSourceVariable() == DISPLACEMENT)
                         r_node.Coordinates()[dof_component_index] = r_node.GetInitialPosition()[dof_component_index] + rp_dof->GetSolutionStepValue();
-                    // rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+                    rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+                    rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                     element_LHS_m_perturbed.clear();
                     rElement.CalculateLeftHandSide(element_LHS_m_perturbed, rCurrentProcessInfo);
                     
                     // Reset Perturbation
-                    // rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
-                    rp_dof->GetSolutionStepValue() += BaseType::mFiniteDifferenceStepSize;
+                    rp_dof->GetSolutionStepValue() = dof_value;
                     if (rp_dof->GetVariable().GetSourceVariable() == DISPLACEMENT)
                         r_node.Coordinates()[dof_component_index] = r_node.GetInitialPosition()[dof_component_index] + rp_dof->GetSolutionStepValue();
-                    // rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+                    rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+                    rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                     
                     // Compute LHS derivative
                     element_LHS_derivative.clear();

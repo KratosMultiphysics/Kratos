@@ -314,7 +314,7 @@ void CrBeamElement3D2N::CalculateDampingMatrix(
         msElementSize);
 }
 
-Vector CrBeamElement3D2N::CalculateLocalNodalForces()
+Vector CrBeamElement3D2N::CalculateLocalNodalForces() const
 {
     // deformation modes
     Vector element_forces_t = CalculateElementForces();
@@ -412,7 +412,7 @@ CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() const
 
 BoundedMatrix<double, CrBeamElement3D2N::msElementSize,
 CrBeamElement3D2N::msElementSize>
-CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry()
+CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry() const
 {
 
     KRATOS_TRY;
@@ -716,10 +716,9 @@ CrBeamElement3D2N::CalculateInitialLocalCS() const
     KRATOS_CATCH("")
 }
 
-Vector CrBeamElement3D2N::GetIncrementDeformation()
+Vector CrBeamElement3D2N::GetIncrementDeformation() const
 {
     KRATOS_TRY;
-    GetValuesVector(mDeformationCurrentIteration);
     return mDeformationCurrentIteration - mDeformationPreviousIteration;
     KRATOS_CATCH("")
 }
@@ -727,7 +726,7 @@ Vector CrBeamElement3D2N::GetIncrementDeformation()
 
 void CrBeamElement3D2N::UpdateQuaternionParameters(
     double& rScalNodeA,double& rScalNodeB,
-    Vector& rVecNodeA,Vector& rVecNodeB)
+    Vector& rVecNodeA,Vector& rVecNodeB) const
 {
     KRATOS_TRY;
     BoundedVector<double, msDimension> d_phi_a = ZeroVector(msDimension);
@@ -813,7 +812,7 @@ void CrBeamElement3D2N::SaveQuaternionParameters()
 BoundedMatrix<double, CrBeamElement3D2N::msDimension,
 CrBeamElement3D2N::msDimension>
 CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
-        Vector& VectorDifference)
+        Vector& VectorDifference) const
 {
 
     KRATOS_TRY
@@ -933,7 +932,7 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     KRATOS_CATCH("")
 }
 
-Vector CrBeamElement3D2N::CalculateSymmetricDeformationMode()
+Vector CrBeamElement3D2N::CalculateSymmetricDeformationMode() const
 {
 
     Vector phi_s = ZeroVector(msDimension);
@@ -945,7 +944,7 @@ Vector CrBeamElement3D2N::CalculateSymmetricDeformationMode()
     return phi_s;
 }
 
-Vector CrBeamElement3D2N::CalculateAntiSymmetricDeformationMode()
+Vector CrBeamElement3D2N::CalculateAntiSymmetricDeformationMode() const
 {
     Vector phi_a = ZeroVector(msDimension);
     Vector vector_difference = ZeroVector(msDimension);
@@ -1032,7 +1031,7 @@ void CrBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 void CrBeamElement3D2N::ConstCalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     ConstCalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
@@ -1049,7 +1048,7 @@ void CrBeamElement3D2N::CalculateRightHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateRightHandSide(
-    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     Vector internal_forces = CalculateGlobalNodalForces();
@@ -1072,7 +1071,7 @@ void CrBeamElement3D2N::CalculateLeftHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) const
 {
 
     KRATOS_TRY;
@@ -1092,7 +1091,7 @@ void CrBeamElement3D2N::ConstCalculateLeftHandSide(
     KRATOS_CATCH("")
 }
 
-Vector CrBeamElement3D2N::CalculateGlobalNodalForces()
+Vector CrBeamElement3D2N::CalculateGlobalNodalForces() const
 {
     Vector nodal_forces_local_qe = CalculateLocalNodalForces();
 
@@ -1106,7 +1105,7 @@ Vector CrBeamElement3D2N::CalculateGlobalNodalForces()
 }
 
 BoundedVector<double, CrBeamElement3D2N::msLocalSize>
-CrBeamElement3D2N::CalculateElementForces()
+CrBeamElement3D2N::CalculateElementForces() const
 {
     KRATOS_TRY;
     BoundedVector<double, msLocalSize> deformation_modes_total_v =
@@ -1300,7 +1299,7 @@ void CrBeamElement3D2N::AssembleSmallInBigMatrix(
 }
 
 BoundedMatrix<double, CrBeamElement3D2N::msElementSize, CrBeamElement3D2N::msElementSize>
-  CrBeamElement3D2N::GetTransformationMatrixGlobal()
+  CrBeamElement3D2N::GetTransformationMatrixGlobal() const
 {
     KRATOS_TRY;
     Vector vector_difference = ZeroVector(msDimension);
