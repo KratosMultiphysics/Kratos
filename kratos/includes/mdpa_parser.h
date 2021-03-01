@@ -6,6 +6,7 @@
 
 #include "containers/array_1d.h"
 #include "containers/model.h"
+#include "containers/sparse_graph.h"
 
 #include "includes/serializer.h"
 #include "includes/element.h"
@@ -232,13 +233,6 @@ public:
             if(line == "End Nodes")
                 break; // Block end.
 
-            // std::stringstream stream_line(line);
-
-            // stream_line >> id;
-            // stream_line >> coords[0];
-            // stream_line >> coords[1];
-            // stream_line >> coords[2];
-
             sscanf(line.c_str(), "%i %lf %lf %lf", &id, &coords[0], &coords[1], &coords[2]);
 
             rMdpa.mNodes.push_back(MemoryMdpa::NodeType(id, coords));
@@ -282,15 +276,6 @@ public:
             if(line == "End Elements")
                 break; // Block end.
 
-            // std::stringstream stream_line(line);
-
-            // stream_line >> mElemData[0];        // Id
-            // stream_line >> mElemData[1];        // Property Id
-
-            // for(std::size_t i = 0; i < n_nodes; i++) {
-            //     stream_line >> mElemData[2+i];  // Node Id
-            // }
-
                  if(2 + n_nodes == 4) MdpaReader::FastScan4(line, id, prop, mElemData);
             else if(2 + n_nodes == 5) MdpaReader::FastScan5(line, id, prop, mElemData);
             else if(2 + n_nodes == 6) MdpaReader::FastScan6(line, id, prop, mElemData);
@@ -328,15 +313,6 @@ public:
             if(line == "End Conditions")
                 break; // Block end.
 
-            // std::stringstream stream_line(line);
-
-            // stream_line >> mCondData[0];        // Id
-            // stream_line >> mCondData[1];        // Property Id
-
-            // for(std::size_t i = 0; i < n_nodes; i++) {
-            //     stream_line >> mCondData[2+i];  // Node Id
-            // }
-
                  if(2 + n_nodes == 4) FastScan4(line, id, prop, mCondData);
             else if(2 + n_nodes == 5) FastScan5(line, id, prop, mCondData);
             else if(2 + n_nodes == 6) FastScan6(line, id, prop, mCondData);
@@ -369,9 +345,6 @@ public:
             if(line == "End SubModelPartNodes")
                 break; // Block end.
 
-            // std::stringstream stream_line(line);
-            // stream_line >> id;
-
             sscanf(line.c_str(), "%i", &id);
 
             pSubMdpa->mNodeIds.push_back(id);
@@ -393,9 +366,6 @@ public:
             if(line == "End SubModelPartElements")
                 break; // Block end.
 
-            // std::stringstream stream_line(line);
-            // stream_line >> id;
-
             sscanf(line.c_str(), "%i", &id);
 
             pSubMdpa->mElemIds.push_back(id);
@@ -416,9 +386,6 @@ public:
 
             if(line == "End SubModelPartConditions")
                 break; // Block end.
-
-            // std::stringstream stream_line(line);
-            // stream_line >> id;
 
             sscanf(line.c_str(), "%i", &id);
 
@@ -490,32 +457,9 @@ public:
         }
 
         PrintMdpaStats(mdpa);
-        GenerateModelPart(mdpa);
+        // GenerateModelPart(mdpa);
+        GenerateCSR(mdpa);
     }
-
-    class ContainerMerge{
-        public:
-            typedef ModelPart::ElementsContainerType value_type;
-
-            value_type local_container;
-
-            value_type GetValue() {
-                return local_container;
-            }
-
-            void LocalReduce(const ModelPart::ElementType& ) {
-                local_container.push_back(item);
-            }
-
-            void ThreadSafeReduce(ContainerMerge& rOther){
-                #pragma omp critical
-                {
-                    for(auto& item: rOther.local_container.GetContainer()) {
-                        local_container.push_back(item);
-                    }
-                }
-            }
-    };
 
     void GenerateModelPart(const MemoryMdpa& rMdpa) {
 
@@ -550,40 +494,8 @@ public:
 
             std::size_t geom_size = r_base_elem.GetGeometry().size();
 
-            // ModelPart::ElementsContainerType tls_local_elems;
-            // ModelPart::ElementsContainerType named_aux_elems = IndexPartition<ContainerMerge>(elem_list.size()).for_each(elem_list, tsl_local_elems, [&](MemoryMdpa::ConnectType& rElem, ModelPart::ElementsContainerType& local_elems) {
-            //     auto& r_elem_id = std::get<0>(rElem);
-            //     auto& r_elem_data = std::get<2>(rElem);
-
-            //     Geometry< Node < 3 > >::PointsArrayType pElemNodes(geom_size);
-            //     auto& pElemNodesContainer = pElemNodes.GetContainer();
-
-            //     for (unsigned int i = 0; i < geom_size; i++) {
-            //         pElemNodesContainer[i] = nodeMap[r_elem_data[i]];
-            //     }
-
-            //     local_elems.push_back();
-            //     // return r_base_elem.Create(r_elem_id, pElemNodes, p_prop);
-            // });
-
-            // ModelPart::ElementsContainerType named_aux_elems = block_for_each<ContainerMerge>(elem_list, tls_local_elems, [&](MemoryMdpa::ConnectType& rElem, ModelPart::ElementsContainerType& local_elems) {
-            //     auto& r_elem_id = std::get<0>(rElem);
-            //     auto& r_elem_data = std::get<2>(rElem);
-
-            //     Geometry< Node < 3 > >::PointsArrayType pElemNodes(geom_size);
-            //     auto& pElemNodesContainer = pElemNodes.GetContainer();
-
-            //     for (unsigned int i = 0; i < geom_size; i++) {
-            //         pElemNodesContainer[i] = nodeMap[r_elem_data[i]];
-            //     }
-
-            //     // local_elems.push_back();
-            //     return r_base_elem.Create(r_elem_id, pElemNodes, p_prop);
-            // });
-
-            // for(auto& elem: named_aux_elems.GetContainer()) {
-            //     aux_elems.push_back(elem);
-            // }
+            Geometry< Node < 3 > >::PointsArrayType pElemNodes(geom_size);
+            auto& pElemNodesContainer = pElemNodes.GetContainer();
 
             for(auto & elem: elem_list) {
                 auto& r_elem = std::get<2>(elem);
@@ -626,6 +538,30 @@ public:
 
         aux_conds.Unique();
         model_part.AddConditions(aux_conds.begin(), aux_conds.end());
+    }
+
+    void GenerateCSR(const MemoryMdpa &rMdpa) {
+        std::vector<std::vector<ModelPart::IndexType>> connectivities;
+        std::vector<ModelPart::IndexType> row_index, col_index;
+
+        // for(auto & entity: rMdpa.mElems) {
+        //     auto elem_name = entity.first;
+        //     auto elem_list = entity.second;
+        //     for(auto & elem: elem_list) {
+        //         auto& r_elem = std::get<2>(elem);
+        //         connectivities.push_back(r_elem);
+        //     }
+        // }
+
+        // SparseGraph<> Agraph;
+        // for(const auto& c : connectivities)
+        //     Agraph.AddEntries(c);
+        // Agraph.Finalize();
+
+        // auto nrows = Agraph.ExportCSRArrays(row_index, col_index);
+
+        // std::cout << row_index << std::endl;
+        // std::cout << col_index << std::endl;
     }
 
     void PrintSubMdpa(SubMdpa::Pointer pSubMdpa, std::string printPadding, int to_print) {
