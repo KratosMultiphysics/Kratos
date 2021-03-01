@@ -8,6 +8,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 from KratosMultiphysics import eigen_solver_factory
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 def CreateSolver(main_model_part, custom_settings):
     return EigenSolver(main_model_part, custom_settings)
@@ -20,6 +21,10 @@ class EigenSolver(MechanicalSolver):
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
+        if custom_settings.Has("linear_solver_settings"):
+            IssueDeprecationWarning('EigenSolver', '"linear_solver_settings" was specified which is not used in the EigenSolver. Use "eigensolver_settings"!')
+            custom_settings.RemoveValue("linear_solver_settings")
+
         # Construct the base solver.
         super().__init__(main_model_part, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[EigenSolver]:: ", "Construction finished")
@@ -38,7 +43,9 @@ class EigenSolver(MechanicalSolver):
             },
             "eigensolver_diagonal_values" : { }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        base_parameters = super().GetDefaultParameters()
+        base_parameters.RemoveValue("linear_solver_settings")
+        this_defaults.AddMissingParameters(base_parameters)
         return this_defaults
 
     #### Private functions ####

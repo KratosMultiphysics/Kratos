@@ -250,15 +250,9 @@ namespace Kratos
       if( this->mpFirstDerivative == nullptr ){
         KRATOS_ERROR << " time integration method FirstDerivative not set " <<std::endl;
       }
-      else{
-        KRATOS_CHECK_VARIABLE_KEY((*this->mpFirstDerivative));
-      }
 
       if( this->mpSecondDerivative == nullptr ){
         KRATOS_ERROR << " time integration method SecondDerivative not set " <<std::endl;
-      }
-      else{
-        KRATOS_CHECK_VARIABLE_KEY((*this->mpSecondDerivative));
       }
 
       return ErrorCode;

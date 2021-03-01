@@ -837,7 +837,7 @@ double EmbeddedFluidElementDiscontinuous<TBaseElement>::ComputeNormalPenaltyCoef
     // Compute the Nitsche coefficient (including the Winter stabilization term)
     const double h = rData.ElementSize;
     const double eff_mu = rData.EffectiveViscosity;
-    const double penalty = rData.PenaltyCoefficient;
+    const double penalty = 1.0 / rData.PenaltyCoefficient;
     const double cons_coef = (eff_mu + eff_mu + gauss_pt_rho*gauss_pt_v_norm*h + gauss_pt_rho*h*h/rData.DeltaTime)/(h*penalty);
 
     return cons_coef;
@@ -847,7 +847,7 @@ template <class TBaseElement>
 std::pair<const double, const double> EmbeddedFluidElementDiscontinuous<TBaseElement>::ComputeTangentialPenaltyCoefficients(const EmbeddedDiscontinuousElementData& rData) const
 {
     const double slip_length = rData.SlipLength;;
-    const double penalty = rData.PenaltyCoefficient;
+    const double penalty = 1.0 / rData.PenaltyCoefficient;
 
     const double h = rData.ElementSize;
     const double eff_mu = rData.EffectiveViscosity;
@@ -863,7 +863,7 @@ template <class TBaseElement>
 std::pair<const double, const double> EmbeddedFluidElementDiscontinuous<TBaseElement>::ComputeTangentialNitscheCoefficients(const EmbeddedDiscontinuousElementData& rData) const
 {
     const double slip_length = rData.SlipLength;;
-    const double penalty = rData.PenaltyCoefficient;
+    const double penalty = 1.0 / rData.PenaltyCoefficient;
 
     const double h = rData.ElementSize;
     const double eff_mu = rData.EffectiveViscosity;

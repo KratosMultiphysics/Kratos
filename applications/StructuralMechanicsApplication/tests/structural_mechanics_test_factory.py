@@ -258,6 +258,9 @@ class SerialParallelRuleOfMixturesCubeDamageTest(StructuralMechanicsTestFactory)
 
 class AnisotropyTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/AnisotropyCube/anisotropy_test"
+   
+class InitialStateElasticityTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/InitialStateElasticity/initial_state_test"
 
 class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"
