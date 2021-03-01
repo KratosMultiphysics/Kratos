@@ -13,6 +13,7 @@
 //
 
 // System includes
+#include <mutex>
 #include <algorithm>
 #include <cstdlib> // for std::getenv
 
@@ -24,8 +25,12 @@
 #include "includes/lock_object.h"
 
 
-namespace Kratos
-{
+namespace Kratos {
+
+namespace {
+    std::mutex GlobalLockInitializerMutex;
+}
+
 
 int ParallelUtilities::GetNumThreads()
 {
@@ -106,22 +111,35 @@ int ParallelUtilities::InitializeNumberOfThreads()
 #endif
 }
 
+LockObject& ParallelUtilities::GetGlobalLock()
+{
+    if (!mspGlobalLock) {
+        const std::lock_guard<std::mutex> scope_lock(GlobalLockInitializerMutex);
+        if (!mspGlobalLock) {
+            static LockObject global_lock;
+            mspGlobalLock = &global_lock;
+        }
+    }
+
+    return *mspGlobalLock;
+}
 int& ParallelUtilities::GetNumberOfThreads()
 {
     if (!mspNumThreads) {
-        LockObject lock;
-        lock.SetLock();
+        GetGlobalLock().SetLock();
+        // const std::lock_guard<LockObject> scope_lock(GetGlobalLock());
         if (!mspNumThreads) {
             static int num_threads;
             num_threads = InitializeNumberOfThreads();
             mspNumThreads = &num_threads;
         }
-        lock.UnSetLock();
+        GetGlobalLock().UnSetLock();
     }
 
     return *mspNumThreads;
 }
 
+LockObject* ParallelUtilities::mspGlobalLock = nullptr;
 int* ParallelUtilities::mspNumThreads = nullptr;
 
 }  // namespace Kratos.
