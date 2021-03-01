@@ -504,7 +504,7 @@ KRATOS_TEST_CASE_IN_SUITE(SimpleSteadySensitivityBuilderScheme, FluidDynamicsApp
                                                 ""),
                                      adjoint_model_part);
 
-    SimpleSteadySensitivityBuilderScheme<2> sensitivity_builder_scheme;
+    SimpleSteadySensitivityBuilderScheme sensitivity_builder_scheme(2, 3);
     Matrix analytical_sensitivities;
     EvaluateResidualShapeSensitivities(analytical_sensitivities, adjoint_model_part,
                                        sensitivity_builder_scheme, response);
@@ -545,8 +545,8 @@ KRATOS_TEST_CASE_IN_SUITE(SimpleSteadyAdjointScheme, FluidDynamicsApplicationFas
                                                 "{}"
                                                 ""),
                                      adjoint_model_part);
-    SimpleSteadyAdjointScheme<2, SparseSpaceType, LocalSpaceType> adjoint_scheme(
-        Kratos::make_shared<VelocityPressureNormSquareResponseFunction>(response), 3);
+    SimpleSteadyAdjointScheme<SparseSpaceType, LocalSpaceType> adjoint_scheme(
+        Kratos::make_shared<VelocityPressureNormSquareResponseFunction>(response), 2, 3);
 
     Matrix lhs;
     Vector rhs;
@@ -583,7 +583,7 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakSensitivityBuilderScheme, FluidDynamicsA
                                      adjoint_model_part);
     Matrix analytical_sensitivities;
     const double alpha_bossak = -0.3;
-    VelocityBossakSensitivityBuilderScheme<2> sensitivity_builder_scheme(alpha_bossak);
+    VelocityBossakSensitivityBuilderScheme sensitivity_builder_scheme(alpha_bossak, 2, 3);
     EvaluateResidualShapeSensitivities(analytical_sensitivities, adjoint_model_part,
                                        sensitivity_builder_scheme, response);
 
@@ -622,13 +622,13 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeLHS, FluidDynamicsApplicati
                                                 "{}"
                                                 ""),
                                      adjoint_model_part);
-    VelocityBossakAdjointScheme<2, SparseSpaceType, LocalSpaceType> adjoint_scheme(
+    VelocityBossakAdjointScheme<SparseSpaceType, LocalSpaceType> adjoint_scheme(
         Parameters(R"({
             "name"         : "adjoint_bossak",
             "scheme_type"  : "bossak",
             "alpha_bossak" : -0.3
         })"),
-        Kratos::make_shared<VelocityPressureNormSquareResponseFunction>(response), 3);
+        Kratos::make_shared<VelocityPressureNormSquareResponseFunction>(response), 2, 3);
 
     Matrix lhs;
     Vector rhs;
@@ -691,13 +691,13 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeRHS, FluidDynamicsApplicati
     VelocityPressureNormSquareResponseFunction adjoint_response(response_parameters, adjoint_model_part);
     adjoint_response.Initialize();
 
-    VelocityBossakAdjointScheme<2, SparseSpaceType, LocalSpaceType> adjoint_scheme(
+    VelocityBossakAdjointScheme<SparseSpaceType, LocalSpaceType> adjoint_scheme(
         Parameters(R"({
             "name"         : "adjoint_bossak",
             "scheme_type"  : "bossak",
             "alpha_bossak" : -0.3
         })"),
-        Kratos::make_shared<VelocityPressureNormSquareResponseFunction>(adjoint_response), 3);
+        Kratos::make_shared<VelocityPressureNormSquareResponseFunction>(adjoint_response), 2, 3);
 
     Matrix lhs;
     Vector rhs;
