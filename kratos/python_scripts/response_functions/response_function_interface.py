@@ -26,7 +26,7 @@ class ResponseFunctionInterface(object):
     def Initialize(self):
         pass
 
-    def SetOptimizationModelPart(self, optimization_model_part):
+    def SetEvaluationModelPart(self, evaluation_model_part):
         pass
 
     def InitializeSolutionStep(self):
@@ -55,3 +55,6 @@ class ResponseFunctionInterface(object):
 
     def GetConditionalGradient(self, variable):
         raise NotImplementedError("GetConditionalGradient needs to be implemented by the derived class")
+
+    def IsEvaluatedInFolder(self):
+        return False
