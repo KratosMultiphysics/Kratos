@@ -30,6 +30,7 @@
 
 // Data container includes
 #include "custom_conditions/data_containers/k_epsilon/vms_monolithic_kk_based_epsilon_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_epsilon/vms_monolithic_ku_based_epsilon_wall_condition_data.h"
 
 // Include base h
 #include "two_equation_turbulence_model_adjoint_condition.h"
@@ -865,7 +866,11 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 }
 
 // template instantiations
+// k-epsilon
 template class TwoEquationTurbulenceModelAdjointCondition<2, 2, KEpsilonWallConditionData::VMSMonolithicKBasedEpsilonKBasedWallConditionData<2, 2>>;
 template class TwoEquationTurbulenceModelAdjointCondition<3, 3, KEpsilonWallConditionData::VMSMonolithicKBasedEpsilonKBasedWallConditionData<3, 3>>;
+
+template class TwoEquationTurbulenceModelAdjointCondition<2, 2, KEpsilonWallConditionData::VMSMonolithicKBasedEpsilonUBasedWallConditionData<2, 2>>;
+template class TwoEquationTurbulenceModelAdjointCondition<3, 3, KEpsilonWallConditionData::VMSMonolithicKBasedEpsilonUBasedWallConditionData<3, 3>>;
 
 } // namespace Kratos

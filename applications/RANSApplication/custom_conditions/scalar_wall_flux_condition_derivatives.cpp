@@ -31,6 +31,7 @@
 
 // Derivative data type includes
 #include "custom_conditions/data_containers/k_epsilon/epsilon_k_based_wall_condition_data_derivatives.h"
+#include "custom_conditions/data_containers/k_epsilon/epsilon_u_based_wall_condition_data_derivatives.h"
 
 // Include base h
 #include "scalar_wall_flux_condition_derivatives.h"
@@ -233,6 +234,7 @@ void ScalarWallFluxConditionDerivatives<TDim, TNumNodes, TConditionDataType>::Va
 
 // template instantiations
 
+// k-epsilon k based
 template class ScalarWallFluxConditionDerivatives<2, 2, typename KEpsilonWallConditionData::EpsilonKBasedWallConditionDataDerivatives<2>::Data>;
 template class ScalarWallFluxConditionDerivatives<2, 2, typename KEpsilonWallConditionData::EpsilonKBasedWallConditionDataDerivatives<2>::Data>::VariableDerivatives<typename KEpsilonWallConditionData::EpsilonKBasedWallConditionDataDerivatives<2>::UDerivative>;
 template class ScalarWallFluxConditionDerivatives<2, 2, typename KEpsilonWallConditionData::EpsilonKBasedWallConditionDataDerivatives<2>::Data>::VariableDerivatives<typename KEpsilonWallConditionData::EpsilonKBasedWallConditionDataDerivatives<2>::KDerivative>;
@@ -244,5 +246,18 @@ template class ScalarWallFluxConditionDerivatives<3, 3, typename KEpsilonWallCon
 template class ScalarWallFluxConditionDerivatives<3, 3, typename KEpsilonWallConditionData::EpsilonKBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KEpsilonWallConditionData::EpsilonKBasedWallConditionDataDerivatives<3>::KDerivative>;
 template class ScalarWallFluxConditionDerivatives<3, 3, typename KEpsilonWallConditionData::EpsilonKBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KEpsilonWallConditionData::EpsilonKBasedWallConditionDataDerivatives<3>::EpsilonDerivative>;
 template class ScalarWallFluxConditionDerivatives<3, 3, typename KEpsilonWallConditionData::EpsilonKBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KEpsilonWallConditionData::EpsilonKBasedWallConditionDataDerivatives<3>::ShapeDerivative>;
+
+// k-epsilon u based
+template class ScalarWallFluxConditionDerivatives<2, 2, typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<2>::Data>;
+template class ScalarWallFluxConditionDerivatives<2, 2, typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<2>::Data>::VariableDerivatives<typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<2>::UDerivative>;
+template class ScalarWallFluxConditionDerivatives<2, 2, typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<2>::Data>::VariableDerivatives<typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<2>::KDerivative>;
+template class ScalarWallFluxConditionDerivatives<2, 2, typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<2>::Data>::VariableDerivatives<typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<2>::EpsilonDerivative>;
+template class ScalarWallFluxConditionDerivatives<2, 2, typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<2>::Data>::VariableDerivatives<typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<2>::ShapeDerivative>;
+
+template class ScalarWallFluxConditionDerivatives<3, 3, typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<3>::Data>;
+template class ScalarWallFluxConditionDerivatives<3, 3, typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<3>::UDerivative>;
+template class ScalarWallFluxConditionDerivatives<3, 3, typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<3>::KDerivative>;
+template class ScalarWallFluxConditionDerivatives<3, 3, typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<3>::EpsilonDerivative>;
+template class ScalarWallFluxConditionDerivatives<3, 3, typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KEpsilonWallConditionData::EpsilonUBasedWallConditionDataDerivatives<3>::ShapeDerivative>;
 
 } // namespace Kratos
