@@ -232,7 +232,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
         Matrix elastic_deformation_matrix = previous_elastic_deformation_matrix;
 
         // We compute the previous stress vector
-        rValues.SetDeterminantF(MathUtils<double>::DetMat(rPreviousDeformationGradient));
+        rValues.SetDeterminantF(MathUtils<double>::Det(rPreviousDeformationGradient));
         rValues.SetDeformationGradientF(rPreviousDeformationGradient);
         Vector previous_stress_vector(VoigtSize);
         rConstitutiveLaw.CalculateValue(rValues, rStressVariable, previous_stress_vector);
@@ -269,19 +269,19 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
 
             // The increment of the deformation is not added but multiplied in finite strain
             noalias(rPlasticDeformationGradient) = prod(plastic_deformation_gradient_increment, previous_plastic_deformation_gradient);
-            rValues.SetDeterminantF(MathUtils<double>::DetMat(plastic_deformation_gradient_increment));
+            rValues.SetDeterminantF(MathUtils<double>::Det(plastic_deformation_gradient_increment));
             rValues.SetDeformationGradientF(plastic_deformation_gradient_increment);
             rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, delta_plastic_strain);
 
             // We compute the plastic strain
-            rValues.SetDeterminantF(MathUtils<double>::DetMat(rPlasticDeformationGradient));
+            rValues.SetDeterminantF(MathUtils<double>::Det(rPlasticDeformationGradient));
             rValues.SetDeformationGradientF(rPlasticDeformationGradient);
             rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, plastic_strain);
 
             // We compute the new predictive stress vector
             MathUtils<double>::InvertMatrix(plastic_deformation_gradient_increment, inverse_plastic_deformation_gradient, aux_det);
             predictive_deformation_gradient = prod(inverse_plastic_deformation_gradient, predictive_deformation_gradient);
-            rValues.SetDeterminantF(MathUtils<double>::DetMat(predictive_deformation_gradient));
+            rValues.SetDeterminantF(MathUtils<double>::Det(predictive_deformation_gradient));
             rValues.SetDeformationGradientF(predictive_deformation_gradient);
             rConstitutiveLaw.CalculateValue(rValues, rStressVariable, aux_vector);
             noalias(rPredictiveStressVector) = aux_vector;
