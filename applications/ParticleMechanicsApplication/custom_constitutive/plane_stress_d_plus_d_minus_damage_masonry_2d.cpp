@@ -812,26 +812,32 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 	else if (DamageParameterCompressionOutput > 0.99) rDamage = 1.0 - data.ResidualStressCompression / eq_compression_stress; // set eq stress to residual stress if we are fully damaged
 	else {
 		// extract material parameters
-		const double young_modulus  = data.YoungModulus;
-		const double s_0 			= data.DamageOnsetStressCompression;
-		const double s_p 			= data.YieldStressCompression;
-		const double s_r 			= data.ResidualStressCompression;
-		const double e_p 			= data.YieldStrainCompression;
-		const double c1 			= data.BezierControllerC1;
-		const double c2 			= data.BezierControllerC2;
-		const double c3 			= data.BezierControllerC3;
+		const double young_modulus = data.YoungModulus;
+		const double s_0 = data.DamageOnsetStressCompression;
+		const double s_p = data.YieldStressCompression;
+		const double s_r = data.ResidualStressCompression;
+		const double e_p = std::max(data.YieldStrainCompression, s_p / young_modulus);
+		//const double c1 			= data.BezierControllerC1;
+		//const double c2 			= data.BezierControllerC2;
+		//const double c3 			= data.BezierControllerC3;
+		const double c1 = 0.65;
+		const double c2 = 0.3;
+		const double c3 = 1.1;
 		const double specific_fracture_energy = data.FractureEnergyCompression /
-												data.CharacteristicLength;
+			data.CharacteristicLength;
 
 		// Auto-computation of remaining constitutive law parameters
-		const double s_k    = s_r + (s_p - s_r) * c1;
-		const double e_0    = s_0 / young_modulus;
-		const double e_i 	= s_p / young_modulus;
-		const double alpha  = std::max(0.0,2.0 * (e_p - s_p / young_modulus));
-		double e_j    		= e_p + alpha * c2;
-		double e_k   		= e_j + alpha * (1.0 - c2);
-		double e_r    		= (e_k - e_j) / (s_p - s_k) * (s_p - s_r) + e_j;
-		double e_u    		= e_r * c3;
+		const double s_k = s_r + (s_p - s_r) * c1;
+		const double e_0 = s_0 / young_modulus;
+		const double e_i = s_p / young_modulus;
+		const double alpha = std::max(0.0, 2.0 * (e_p - s_p / young_modulus));
+		//double e_j    		= e_p + alpha * c2;
+		//double e_k   		= e_j + alpha * (1.0 - c2);
+		//double e_r    		= (e_k - e_j) / (s_p - s_k) * (s_p - s_r) + e_j;
+		double e_j = 1.05 * e_p;
+		double e_k = 1.1 * e_p;
+		double e_r = 1.2 * e_p;
+		double e_u = e_r * c3;
 
 		// current abscissa
 		const double strain_like_counterpart = eq_compression_stress / young_modulus;

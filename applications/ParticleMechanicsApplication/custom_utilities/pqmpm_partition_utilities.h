@@ -108,7 +108,7 @@ namespace Kratos
             const Point& rPointHigh,
             IndexType& RecursionCount,
             const array_1d<double, 3>& rCoordinates,
-            const SizeType MaxRecursions = 100);
+            const SizeType MaxRecursions = 1000);
 
         static bool CheckFixedNodesWithinBoundingBox(const PointerVector<Node<3>>& rNodesList,
             const Point& rPointHigh, const Point& rPointLow, const SizeType WorkingDim);
