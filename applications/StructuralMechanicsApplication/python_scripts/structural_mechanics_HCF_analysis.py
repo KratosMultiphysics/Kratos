@@ -13,24 +13,24 @@ class StructuralMechanicsHCFAnalysis(StructuralMechanicsAnalysis):
     def __init__(self, model, project_parameters):
         super(StructuralMechanicsHCFAnalysis, self).__init__(model, project_parameters)
 
-    def RunSolutionLoop(self):
-        """This function executes the solution loop of the AnalysisStage
-        It can be overridden by derived classes
-        """
-        while self.KeepAdvancingSolutionLoop():
-            self.time = self._GetSolver().AdvanceInTime(self.time)
-            process = SMA.AdvanceInTimeHighCycleFatigueProcess(self._GetSolver().GetComputingModelPart(), self.project_parameters)
-            if self.project_parameters["fatigue"]["advancing_strategy"].GetBool():
-                process.Execute()
-                time_incr = self._GetSolver().GetComputingModelPart().ProcessInfo[SMA.TIME_INCREMENT]
-                self.time += time_incr
-                self._GetSolver().GetComputingModelPart().ProcessInfo[SMA.TIME_INCREMENT] = 0.0
-            self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
+    # def RunSolutionLoop(self):
+    #     """This function executes the solution loop of the AnalysisStage
+    #     It can be overridden by derived classes
+    #     """
+    #     while self.KeepAdvancingSolutionLoop():
+    #         self.time = self._GetSolver().AdvanceInTime(self.time)
+    #         process = SMA.AdvanceInTimeHighCycleFatigueProcess(self._GetSolver().GetComputingModelPart(), self.project_parameters)
+    #         if self.project_parameters["fatigue"]["advancing_strategy"].GetBool():
+    #             process.Execute()
+    #             time_incr = self._GetSolver().GetComputingModelPart().ProcessInfo[SMA.TIME_INCREMENT]
+    #             self.time += time_incr
+    #             self._GetSolver().GetComputingModelPart().ProcessInfo[SMA.TIME_INCREMENT] = 0.0
+    #         self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
+    #         self.InitializeSolutionStep()
+    #         self._GetSolver().Predict()
+    #         self._GetSolver().SolveSolutionStep()
+    #         self.FinalizeSolutionStep()
+    #         self.OutputSolutionStep()
 
     def OutputSolutionStep(self):
         super(StructuralMechanicsHCFAnalysis, self).OutputSolutionStep()
