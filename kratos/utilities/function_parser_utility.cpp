@@ -35,15 +35,6 @@ GenericFunctionUtility::GenericFunctionUtility(
         mFunctionBody = StringUtilities::ReplaceAllSubstrings(mFunctionBody, r_pair.first, r_pair.second);
     }
 
-    // Defining namespace
-    mNameSpace.insert(std::pair<std::string, double>("x", 0.0));
-    mNameSpace.insert(std::pair<std::string, double>("y", 0.0));
-    mNameSpace.insert(std::pair<std::string, double>("z", 0.0));
-    mNameSpace.insert(std::pair<std::string, double>("t", 0.0));
-    mNameSpace.insert(std::pair<std::string, double>("X", 0.0));
-    mNameSpace.insert(std::pair<std::string, double>("Y", 0.0));
-    mNameSpace.insert(std::pair<std::string, double>("Z", 0.0));
-
     // Initialize parser classes
     InitializeParser();
 
@@ -73,7 +64,7 @@ GenericFunctionUtility::GenericFunctionUtility(
 /***********************************************************************************/
 
 GenericFunctionUtility::GenericFunctionUtility(GenericFunctionUtility const& rOther)
-    : mNameSpace(rOther.mNameSpace),
+    : mValues(rOther.mValues),
       mFunctionBody(rOther.mFunctionBody),
       mDependsOnSpace(rOther.mDependsOnSpace),
       mUseLocalSystem(rOther.mUseLocalSystem),
@@ -144,13 +135,13 @@ double GenericFunctionUtility::CallFunction(
     const double Z
     )
 {
-    mNameSpace["x"] = x;
-    mNameSpace["y"] = y;
-    mNameSpace["z"] = z;
-    mNameSpace["X"] = X;
-    mNameSpace["Y"] = Y;
-    mNameSpace["Z"] = Z;
-    mNameSpace["t"] = t;
+    mValues[0] = x;
+    mValues[1] = y;
+    mValues[2] = z;
+    mValues[3] = t;
+    mValues[4] = X;
+    mValues[5] = Y;
+    mValues[6] = Z;
 
     return te_eval(mpTinyExpr);
 }
@@ -165,13 +156,13 @@ void GenericFunctionUtility::InitializeParser()
         int err;
 
         /* Defining table */
-        double& x = mNameSpace["x"];
-        double& y = mNameSpace["y"];
-        double& z = mNameSpace["z"];
-        double& t = mNameSpace["t"];
-        double& X = mNameSpace["X"];
-        double& Y = mNameSpace["Y"];
-        double& Z = mNameSpace["Z"];
+        double& x = mValues[0];
+        double& y = mValues[1];
+        double& z = mValues[2];
+        double& t = mValues[3];
+        double& X = mValues[4];
+        double& Y = mValues[5];
+        double& Z = mValues[6];
 
         /* Store variable names and pointers. */
         const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"x0", &X}, {"y0", &Y}, {"z0", &Z}};

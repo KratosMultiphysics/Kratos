@@ -15,7 +15,6 @@
 #define  KRATOS_FUNCTION_PARSER_UTILITY_H_INCLUDED
 
 // System includes
-#include <unordered_map>
 
 // External includes
 
@@ -177,9 +176,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::unordered_map<std::string, double>  mNameSpace;   /// The variables considered on the function
-    te_expr* mpTinyExpr = nullptr;                         /// The function parser
-    std::string mFunctionBody;                             /// The function body
+    array_1d<double, 7> mValues = ZeroVector(7); /// The variables values considered on the function
+    te_expr* mpTinyExpr = nullptr;               /// The function parser
+    std::string mFunctionBody;                   /// The function body
 
     bool mDependsOnSpace = true;                 /// If it depends on space
     bool mUseLocalSystem = false;                /// If we use a local system
