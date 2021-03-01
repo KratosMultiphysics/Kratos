@@ -24,6 +24,8 @@
 namespace Kratos {
 namespace Testing {
 
+    const double epsilon = std::numeric_limits<double>::epsilon();
+
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessHorizontalPlane2D, KratosCoreFastSuite)
     {
         Model current_model;
@@ -267,15 +269,81 @@ namespace Testing {
         Properties::Pointer p_properties_1(new Properties(1));
         skin_part.CreateNewElement("Element2D2N", 1, {{1, 2}}, p_properties_1);
 
+        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::USE_ZERO_DISTANCE_VALUES;
+        // Compute the discontinuous distance function
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part, options);
+        disc_dist_proc.Execute();
+
+        // Check values
+        const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 0.0, epsilon);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointTangentOnNodeInteresected2D, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        // Generate the element
+        ModelPart &fluid_part = current_model.CreateModelPart("Surface");
+        fluid_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        fluid_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        fluid_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        Properties::Pointer p_properties_0(new Properties(0));
+        fluid_part.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties_0);
+
+        // Generate the skin
+        ModelPart &skin_part = current_model.CreateModelPart("Skin");
+        skin_part.CreateNewNode(1, -1.0, 1.0, 0.0);
+        skin_part.CreateNewNode(2,  0.0, 1.0, 0.0);
+        Properties::Pointer p_properties_1(new Properties(1));
+        skin_part.CreateNewElement("Element2D2N", 1, {{1, 2}}, p_properties_1);
+
         // Compute the discontinuous distance function
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part);
         disc_dist_proc.Execute();
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], 0.0, 1e-6);
+        const auto &r_to_split = (fluid_part.ElementsBegin())->Is(TO_SPLIT);
+        KRATOS_CHECK(r_to_split);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 1e3*epsilon, epsilon);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointTangentOnNodeNotInteresected2D, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        // Generate the element
+        ModelPart &fluid_part = current_model.CreateModelPart("Surface");
+        fluid_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        fluid_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        fluid_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        Properties::Pointer p_properties_0(new Properties(0));
+        fluid_part.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties_0);
+
+        // Generate the skin
+        ModelPart &skin_part = current_model.CreateModelPart("Skin");
+        skin_part.CreateNewNode(1, -1.0, 1.0, 0.0);
+        skin_part.CreateNewNode(2,  0.0, 1.0, 0.0);
+        Properties::Pointer p_properties_1(new Properties(1));
+        skin_part.CreateNewElement("Element2D2N", 1, {{1, 2}}, p_properties_1);
+
+        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES;
+        // Compute the discontinuous distance function
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part, options);
+        disc_dist_proc.Execute();
+
+        // Check values
+        const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+        const auto &r_to_split = (fluid_part.ElementsBegin())->Is(TO_SPLIT);
+        KRATOS_CHECK(!r_to_split);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], -1e3*epsilon, epsilon);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleLineTangent2D, KratosCoreFastSuite)
@@ -304,9 +372,47 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], 1e3*epsilon, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], 1e3*epsilon, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, epsilon);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointAndManyIntersectEdge2D, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        // Generate the element
+        ModelPart &fluid_part = current_model.CreateModelPart("Surface");
+        fluid_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        fluid_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        fluid_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        Properties::Pointer p_properties_0(new Properties(0));
+        fluid_part.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties_0);
+
+        // Generate the skin
+        ModelPart &skin_part = current_model.CreateModelPart("Skin");
+        skin_part.CreateNewNode(1, -1.0, 1.0, 0.0);
+        skin_part.CreateNewNode(2,  1.0, 1.0, 0.0);
+        skin_part.CreateNewNode(3,  1.0/6.0, 2.0/3.0, 0.0);
+        skin_part.CreateNewNode(4,  1.0, 2.0/3.0, 0.0);
+        skin_part.CreateNewNode(5,  2.0/3.0, 1.0/6.0, 0.0);
+        skin_part.CreateNewNode(6,  1.0, 1.0/6.0, 0.0);
+        Properties::Pointer p_properties_1(new Properties(1));
+        skin_part.CreateNewElement("Element2D2N", 1, {{1, 2}}, p_properties_1);
+        skin_part.CreateNewElement("Element2D2N", 2, {{2, 3}}, p_properties_1);
+        skin_part.CreateNewElement("Element2D2N", 3, {{3, 4}}, p_properties_1);
+        skin_part.CreateNewElement("Element2D2N", 4, {{4, 5}}, p_properties_1);
+        skin_part.CreateNewElement("Element2D2N", 5, {{5, 6}}, p_properties_1);
+
+        // Compute the discontinuous distance function
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part);
+        disc_dist_proc.Execute();
+
+        // Check values
+        const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -std::sqrt(2)/2.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], 1e3*epsilon, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 1e3*epsilon, epsilon);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleTangent2D, KratosCoreFastSuite)
@@ -341,8 +447,9 @@ namespace Testing {
         Properties::Pointer p_properties_1(new Properties(1));
         skin_part.CreateNewElement("Element2D2N", 1, {{1, 2}}, p_properties_1);
 
+        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::USE_ZERO_DISTANCE_VALUES;
         // Compute the discontinuous distance function
-        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part);
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part, options);
         disc_dist_proc.Execute();
 
         for (auto& r_node : fluid_part.Nodes()) {
@@ -360,7 +467,7 @@ namespace Testing {
 
         // Check values
         for (auto& r_node : fluid_part.Nodes()) {
-            KRATOS_CHECK_NEAR(r_node.GetValue(DISTANCE), r_node.Y(), 1e-6);
+            KRATOS_CHECK_NEAR(r_node.GetValue(DISTANCE), r_node.Y(), epsilon);
         }
     }
 
@@ -396,10 +503,10 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], -1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[3], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], -1.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[3], 1e3*epsilon, epsilon);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleLineTangent3D, KratosCoreFastSuite)
@@ -433,10 +540,10 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[3], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], 1e3*epsilon, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], 1.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[3], 1e3*epsilon, epsilon);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleFaceTangent3D, KratosCoreFastSuite)
@@ -471,10 +578,10 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], 0.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_elem_dist[3], 1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], 1e3*epsilon, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], 1e3*epsilon, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 1e3*epsilon, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[3], 1.0, epsilon);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleTangent3D, KratosCoreFastSuite)
@@ -511,16 +618,16 @@ namespace Testing {
 		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
 		skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
 
-
+        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::USE_ZERO_DISTANCE_VALUES;
         // Compute the discontinuous distance function
-        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(fluid_part, skin_part);
+        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(fluid_part, skin_part, options);
         disc_dist_proc.Execute();
 
         // Check values
         for (auto &elem : fluid_part.Elements()) {
             const auto& r_elem_dist = elem.GetValue(ELEMENTAL_DISTANCES);
             for (unsigned int i = 0; i < r_elem_dist.size(); i++) {
-                KRATOS_CHECK_NEAR(r_elem_dist[i], elem.GetGeometry()[i].Z(), 1e-6);
+                KRATOS_CHECK_NEAR(r_elem_dist[i], elem.GetGeometry()[i].Z(), epsilon);
             }
         }
     }
