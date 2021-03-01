@@ -67,8 +67,6 @@ public:
 
     typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
 
-
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -78,25 +76,47 @@ public:
     {
     }
 
-    /// Constructor.
-    CadTessellationModeler(Model& rModel, Parameters ModelerParameters = Parameters())
-        : Modeler(rModel, ModelerParameters), mpModel(&rModel)
+    /**
+     * @brief Constructor using a Model and Parameters
+     * @param rModel Reference of the Model
+     * @param ModelerParameters Parameters of the discretization
+     */
+    CadTessellationModeler(Model& rModel,
+        Parameters ModelerParameters = Parameters())
+        : Modeler(rModel, ModelerParameters),
+        mpModel(&rModel)
     {
     }
 
     /// Destructor.
     virtual ~CadTessellationModeler() = default;
 
-    /// Creates the Modeler Pointer
-    Modeler::Pointer Create(Model& rModel, const Parameters ModelParameters) const override
-    {
-        return Kratos::make_shared<CadTessellationModeler>(rModel, ModelParameters);
-    }
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Creates the Modeler Pointer and returns a pointer to a new
+     * CadTessellationModeler, created using the given input
+     * @param rModel Reference of the Model
+     * @param ModelerParameters Parameters of the discretization
+     * @return a Pointer to the new Modeler
+     */
+    Modeler::Pointer Create(Model& rModel,
+        const Parameters ModelParameters) const override;
 
     ///@}
     ///@name Stages
     ///@{
 
+    /**
+     * @brief Convert the geometry into an analysis suitable ModePart
+     */
     void SetupModelPart() override;
 
     ///@}
@@ -123,6 +143,12 @@ public:
     ///@}
 
 private:
+
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
     ///@name Member Variables
     ///@{
 
@@ -135,45 +161,87 @@ private:
     friend class Serializer;
 
     ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
     ///@name Private Operations
     ///@{
 
     /**
-     * @brief This method returns the tessellation of the boundary curves
+     * @brief This method computes the tessellation of the boundary curves in the
+     * geometric space and maps the points into the parametric space of the surface
+     * @param rBoundarySegment Segment of the boundary, which is supposed to be tessellated
+     * @return tesselled segment in the parametric space of the surface
      */
     std::vector<array_1d<double, 2>> ComputeBoundaryTessellation(
-        const BrepCurveOnSurfaceType& rBoundaryCurveOnSurface
+        const BrepCurveOnSurfaceType& rBoundarySegment
     );
 
     /**
-     * @brief This method returns the triangulation of a NURBS surface
+     * @brief This method computes the triangulation of the surface in its parametric space
+     * @param rSurfaceGeometry reference of the surface, which is supposed to be triangulated
+     * @param rBoundaryLoop tessellated closed polygon of the outer boundaries
+     * @return a vector of the triangles
      */
     std::vector<Matrix> ComputeSurfaceTriangulation(
         const BrepSurfaceType& rSurfaceGeometry,
-        const std::vector<array_1d<double, 2>>& rBoundaryLoopUV
+        const std::vector<array_1d<double, 2>>& rBoundaryLoop
     );
 
 
+    /**
+     * @brief This method inserts Gauss points into the surface in the parametric space
+     * and projects these points onto the exact input surface. Hence, these points lie within
+     * the exact surface.
+     * @param rSurfaceGeometry reference of the surface on which the points are supposed to be maped
+     * @param rTriangleOutput reference of the Triangle output
+     * @return a vector of Gauss points maped onto the exact surface
+     */
     std::vector<Matrix> CadTessellationModeler::InsertGaussPointsExactSurface(
         const BrepSurfaceType& rSurfaceGeometry,
-        const std::vector<Matrix>& rTriangulation_uv
+        const struct triangulateio& rTriangleOutput
     );
 
+
+    /**
+     * @brief This method insert maps the triangulation from the parametric into the physical space.
+     * Subsequently, Gauss points are inserted into the approximative surface. Hence, the Gauss points
+     * lie within the discretization of the surface and not the exact surface
+     * @see InsertGaussPointsExactSurface
+     * @param rSurfaceGeometry reference of the surface
+     * @param rTriangleOutput reference of the Triangle output
+     * @return a vector of Gauss points maped onto the triangulation of the surface
+     */
     std::vector<Matrix> CadTessellationModeler::InsertGaussPointsApproxSurface(
         const BrepSurfaceType& rSurfaceGeometry,
-        const std::vector<Matrix>& rTriangulation_uv
+        const struct triangulateio& rTriangleOutput
     );
 
+
+    /**
+     * @brief This method computes the discretization error of the surface, measured at the Gauss points.
+     * This is done by measuring the distance between distinctive points (Gauss points) between the exact
+     * surface and the approaximative surface.
+     * @see InsertGaussPointsExactSurface
+     * @see InsertGaussPointsApproxSurface
+     * @param rDataExact reference of distincitive points in the exact surface
+     * @param rDataApprox reference of distincitive points in the discretization
+     * @return a vector of the elemental error
+     */
     Vector ComputeDiscretizationError(
-        const std::vector<Matrix>& rGaussPointsExact,
-        const std::vector<Matrix>& rGaussPointsApprox
+        const std::vector<Matrix>& rDataExact,
+        const std::vector<Matrix>& rDataApprox
     );
+
 
     /**
      * @brief This method initializes the necessary data structure for triangle
      * @param tr This is a struct used to pass data into and out of the triangulate() procedure
      */
     void InitTriangulationDataStructure(triangulateio& tr);
+
 
     /**
      * @brief This method clears the data structure for triangle
@@ -190,7 +258,11 @@ private:
 ///@{
 
 /// input stream function
-inline std::istream& operator>>(std::istream& rIStream, CadTessellationModeler& rThis);
+inline std::istream& operator>>(std::istream& rIStream,
+    CadTessellationModeler& rThis)
+{
+    return rIStream;
+}
 
 /// output stream function
 inline std::ostream& operator<<(std::ostream& rOStream, const CadTessellationModeler& rThis)
