@@ -206,20 +206,30 @@ private:
 class FunctionParser
 {
 public:
+    ///@name Life Cycle
+    ///@{
+
+    /**
+     * @brief Default constructor
+     * @param rFunctionBody The string defining the function
+     */
+    FunctionParser(const std::string& rFunctionBody)
+        : mParser(rFunctionBody)
+    {
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
     /**
      * @brief This method parses a string into a std::function
      * @details This is the version with 3 arguments (x,y,z)
      * @param rFunctionBody The string defining the function
      */
-    static std::function<double(const double, const double, const double)> GenerateFunctionSpace(const std::string& rFunctionBody)
+    std::function<double(const double, const double, const double)> GetFunctionSpace()
     {
-        std::function<double(const double, const double, const double)> function = [rFunctionBody](const double x, const double y, const double z) -> double
-        {
-            GenericFunctionUtility parser(rFunctionBody);
-            return parser.CallFunction(x,y,z,0.0);
-        };
-
-        return function;
+        return [&](const double x, const double y, const double z) -> double {return mParser.CallFunction(x,y,z,0.0);};
     }
 
     /**
@@ -227,15 +237,9 @@ public:
      * @details This is the version with 4 arguments (x,y,z,t)
      * @param rFunctionBody The string defining the function
      */
-    static std::function<double(const double, const double, const double, const double)> GenerateFunction(const std::string& rFunctionBody)
+    std::function<double(const double, const double, const double, const double)> GetFunction()
     {
-        std::function<double(const double, const double, const double, const double)> function = [rFunctionBody](const double x, const double y, const double z, const double t) -> double
-        {
-            GenericFunctionUtility parser(rFunctionBody);
-            return parser.CallFunction(x,y,z,t);
-        };
-
-        return function;
+        return [&](const double x, const double y, const double z, const double t) -> double {return mParser.CallFunction(x,y,z,t);};
     }
 
     /**
@@ -243,16 +247,19 @@ public:
      * @details This is the version with 7 arguments (x,y,z,t)
      * @param rFunctionBody The string defining the function
      */
-    static std::function<double(const double, const double, const double, const double, const double, const double, const double)> GenerateFunctionInitialCoordinates(const std::string& rFunctionBody)
+    std::function<double(const double, const double, const double, const double, const double, const double, const double)> GetFunctionInitialCoordinates()
     {
-        std::function<double(const double, const double, const double, const double, const double, const double, const double)> function = [rFunctionBody](const double x, const double y, const double z, const double t, const double X, const double Y, const double Z) -> double
-        {
-            GenericFunctionUtility parser(rFunctionBody);
-            return parser.CallFunction(x,y,z,t,X,Y,Z);
-        };
-
-        return function;
+        return [&](const double x, const double y, const double z, const double t, const double X, const double Y, const double Z) -> double {return mParser.CallFunction(x,y,z,t,X,Y,Z);};;
     }
+
+    ///@}
+private:
+    ///@name Member Variables
+    ///@{
+    
+    GenericFunctionUtility mParser; /// The parser function utility
+
+    ///@}
 }; /// FunctionParser
 
 } /// namespace Kratos
