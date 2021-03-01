@@ -50,19 +50,9 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if scheme_type == "bossak":
-            if domain_size == 2:
-                scheme = KratosCFD.TrilinosVelocityBossakAdjointScheme2D(self.settings["scheme_settings"], response_function)
-            elif domain_size == 3:
-                scheme = KratosCFD.TrilinosVelocityBossakAdjointScheme3D(self.settings["scheme_settings"], response_function)
-            else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+            scheme = KratosCFD.TrilinosVelocityBossakAdjointScheme(self.settings["scheme_settings"], response_function, domain_size, domain_size + 1)
         elif scheme_type == "steady":
-            if domain_size == 2:
-                scheme = KratosCFD.TrilinosSimpleSteadyAdjointScheme2D(response_function)
-            elif domain_size == 3:
-                scheme = KratosCFD.TrilinosSimpleSteadyAdjointScheme3D(response_function)
-            else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+            scheme = KratosCFD.TrilinosSimpleSteadyAdjointScheme(response_function, domain_size, domain_size + 1)
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
         return scheme
