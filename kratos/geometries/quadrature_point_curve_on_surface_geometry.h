@@ -132,8 +132,8 @@ public:
     ///@name Dynamic access to internals
     ///@{
 
-    /// Set with array_1d<double, 3>
-    void Set(
+    /// Assign with array_1d<double, 3>
+    void Assign(
         const Variable<array_1d<double, 3>>& rVariable,
         const array_1d<double, 3>& rInput) override
     {
