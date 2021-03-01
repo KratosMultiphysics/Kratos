@@ -29,6 +29,8 @@ namespace Kratos
 {
     KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, CALCULATE_ELEMENTAL_EDGE_DISTANCES, 0);
     KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, 1);
+    KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, USE_ZERO_DISTANCE_VALUES, 2);
+    KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES, 3);
 
     template<std::size_t TDim>
     CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(
@@ -38,7 +40,9 @@ namespace Kratos
         , mrSkinPart(rSkinPart)
         , mrVolumePart(rVolumePart)
         , mOptions(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES.AsFalse()
-             | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED.AsFalse())
+             | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED.AsFalse()
+             | CalculateDiscontinuousDistanceToSkinProcessFlags::USE_ZERO_DISTANCE_VALUES.AsFalse()
+             | CalculateDiscontinuousDistanceToSkinProcessFlags::USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES.AsFalse())
     {
     }
 
@@ -427,6 +431,11 @@ namespace Kratos
 
         // Correct the distance values orientation
         CorrectDistanceOrientation(r_geometry, rIntersectedObjects, r_elemental_distances);
+
+        // Replace zero values of the distance with an epislon
+        if (mOptions.IsNot(CalculateDiscontinuousDistanceToSkinProcessFlags::USE_ZERO_DISTANCE_VALUES)) {
+            ReplaceZeroDistances(r_elemental_distances);
+        }
     }
 
     template<std::size_t TDim>
@@ -520,6 +529,18 @@ namespace Kratos
         if (n_neg > n_pos){
             for (std::size_t i_node = 0; i_node < mNumNodes; ++i_node){
                 rElementalDistances[i_node] *= -1.0;
+            }
+        }
+    }
+
+    template<std::size_t TDim>
+    void CalculateDiscontinuousDistanceToSkinProcess<TDim>::ReplaceZeroDistances(
+        Vector& rElementalDistances)
+    {
+        const double multiplicator = (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES))  ? -1e3 : 1e3;
+        for (auto& r_distance : rElementalDistances) {
+            if (std::abs(r_distance) < std::numeric_limits<double>::epsilon()) {
+                r_distance = multiplicator*std::numeric_limits<double>::epsilon();
             }
         }
     }
