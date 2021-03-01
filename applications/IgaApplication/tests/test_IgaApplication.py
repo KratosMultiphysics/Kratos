@@ -52,13 +52,10 @@ def AssembleTestSuites():
         ]))
 
     nightSuite = suites['nightly']
-    # Membrane
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
-        # Membrane tests
-        MembraneSinglePatchFourPointSailImplicitDynamic
-        ]))
     nightSuite.addTests(smallSuite)
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        # Membrane tests
+        MembraneSinglePatchFourPointSailImplicitDynamic,
         # 5p Shell Hierarchic
         TShell5pHierarchicLinearThickBeamTest,
         TShell5pHierarchicLinearScordelisTest,
