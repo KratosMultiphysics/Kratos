@@ -149,84 +149,6 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
         tol_error_flux=1.0e-5
         
         # mass conservation  correction 
-<<<<<<< HEAD
-        if abs(initial_volume_error) > tol_error and  Flow_interface_corrected_old>tol_error_flux:
-            iterations = 0
-            print("we are correcting")
-            if Flow_interface_corrected_old == 0 :
-                return
-            while iterations < self._maximum_iterations:
-                # Computing optimal time step regarding to dt=error/q. This approach is going to follow if both error ( old and new) are in the same side
-                print("FLOW",Flow_interface_corrected_old)
-            
-                dt_new = self.mass_conservation_utility.ComputeTimeStepForConvection(Flow_interface_corrected_old)
-                # If dt_new is negative, we need to reduce water mass
-                # We are adding a correction nodal distance locally
-                
-                self._GetDistanceGradientProcess().Execute()
-                for node in self._fluid_model_part.Nodes:
-                    Gradient_each_node=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
-                    print("GRADIENTE",Gradient_each_node)
-                    Nodal_Velocty=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
-                    print("NODAL VELOCITY",Nodal_Velocty)
-                    Gradient_distance_norm=self._GradientDistanceNorm(Gradient_each_node)
-                    print("NORMA",Gradient_distance_norm)
-                    Normalized_Gradient=Gradient_each_node/Gradient_distance_norm
-                    DeltaDistance=abs(self._DotProductKratos(Nodal_Velocty,Normalized_Gradient))* dt_new
-                    print("DT*",dt_new)
-                    print("añadimos", DeltaDistance)
-                    previus_distance= node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                    print("distancia inicial",previus_distance)
-                    new_distance= previus_distance +DeltaDistance 
-                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,new_distance)
-                    
-                self.mass_conservation_utility.ReCheckTheMassConservation()
-                new_volume_error = self.mass_conservation_utility.GetVolumeError()
-                print("FLOW",Flow_interface_corrected_old)
-                print("OLD ERROR",initial_volume_error)
-                print("NEW_ERROR",new_volume_error)
-                aaaaaaaaaaaa
-                # aaaaaaaaaaaaaaaaa
-                # Flow_interface_corrected_new = self._CalculateFlowIntoAir()
-                # if abs(dt_new) < 1.0e-12:
-                #     return
-                # # If between both error the sign is different, we are going through the root ( none error ), the false rule method is going to consider as a correction approach
-                # print("it. {} new_volume_error: {}".format(iterations,new_volume_error))
-                # if new_volume_error * old_volume_error < 0.0:
-                #     slope=(new_volume_error-old_volume_error)/(dt_new-dt_old)
-                #     if Flow_interface_corrected_new*Flow_interface_corrected_old > 0:
-                #         if Flow_interface_corrected_new>0:
-                #             slope*=-1
-                #     else:
-                #         if old_volume_error   < 0:
-                #             if dt_old  > dt_new :
-                #                 slope*=-1
-                #         else:
-                #             if dt_new > dt_old:
-                #                 slope*=-1
-                #     dt_rule=(-new_volume_error)/slope + dt_new                
-                #     dt_old=dt_new
-                #     dt_new=dt_rule
-                #     dt_super_old=dt_old
-                #     if dt_new*dt_old>0:
-                #         dt_old=dt_super_old
-                #     old_volume_error=new_volume_error
-                #     self._ConvectAuxiliaryDistance(dt_new)
-                #     self.mass_conservation_utility.ReCheckTheMassConservation()
-                #     new_volume_error = self.mass_conservation_utility.GetVolumeError()
-                #     Flow_interface_corrected_old=Flow_interface_corrected_new
-                #     Flow_interface_corrected_new=self._CalculateFlowIntoAir()
-                # if abs(new_volume_error) > abs(initial_volume_error):
-                #     self.mass_conservation_utility.RestoreDistanceValues(KratosFluid.AUX_DISTANCE)
-                #     KratosMultiphysics.Logger.PrintInfo("Volume cannot be corrected, error value increases after iteration")
-                #     return
-                # if (abs(new_volume_error) < tol_error):
-                #     break
-                # else:
-                old_volume_error=new_volume_error
-                iterations += 1
-
-=======
         if abs(initial_volume_error) > tol_error and abs(Flow_interface_corrected_old)>tol_flow:
             iteration=0
             while iteration < self._maximum_iterations:
@@ -271,7 +193,6 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                     print("WE ARE USING LOCAL CORRECTOR")
                 else:
                     print("WE ARE USING GLOBAL CORRECTOR")
->>>>>>> 31de4c168431a8a17d6da4a2be7fc091c78cd17e
 
                 if abs(new_error)>tol_error:
                     old_volume_error=new_error 
@@ -289,11 +210,6 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
 
 
 
-<<<<<<< HEAD
-    def _DotProductKratos(self, vector1, vector2):
-        dot_product= vector1[0]*vector2[0]+vector1[1]*vector2[1]+vector1[2]*vector2[2]
-        return dot_product
-=======
 
     def _CreateDistanceGradientProcess(self):
         distance_gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(
@@ -301,7 +217,6 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                 KratosMultiphysics.DISTANCE,
                 KratosMultiphysics.DISTANCE_GRADIENT,
                 KratosMultiphysics.NODAL_AREA)
->>>>>>> 31de4c168431a8a17d6da4a2be7fc091c78cd17e
 
         return distance_gradient_process
 
