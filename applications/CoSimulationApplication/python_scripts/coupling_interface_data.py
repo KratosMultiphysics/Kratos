@@ -56,11 +56,6 @@ class CouplingInterfaceData:
         if not self.location in admissible_locations:
             self.__RaiseException('"{}" is not allowed as "location", only the following options are possible:\n{}'.format(self.location, ", ".join(admissible_locations)))
 
-    def Initialize(self):
-        # This can only be called after the ModelPart are read, i.e. after the solvers are initialized
-        if not self.model.HasModelPart(self.model_part_name):
-            self.__RaiseException('The specified ModelPart is not in the Model, only the following ModelParts are available:\n{}'.format(self.model.GetModelPartNames()))
-
         self.model_part = self.model[self.model_part_name]
 
         # dimensionality of the data
