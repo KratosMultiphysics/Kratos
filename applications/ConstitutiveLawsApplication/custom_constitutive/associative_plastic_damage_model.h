@@ -44,7 +44,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class UnifiedFatigueLaw
+ * @class AssociativePlasticDamageModel
  * @ingroup StructuralMechanicsApplication
  * @brief This law defines a parallel rule of mixture (classic law of mixture)
  * @details This constitutive law unifies the High cycle, Ultra Low cycle and Low cicle fatigue processes
@@ -55,7 +55,7 @@ localization analysis (Wu and Cervera https://doi.org/10.1016/j.ijsolstr.2016.03
  * @author Sergio Jimenez
  */
 template<class TYieldSurfaceType>
-class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueLaw
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AssociativePlasticDamageModel
     : public std::conditional<TYieldSurfaceType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:
@@ -92,8 +92,8 @@ public:
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, VoigtSize, VoigtSize> BoundedMatrixType;
 
-    /// Pointer definition of UnifiedFatigueLaw
-    KRATOS_CLASS_POINTER_DEFINITION(UnifiedFatigueLaw);
+    /// Pointer definition of AssociativePlasticDamageModel
+    KRATOS_CLASS_POINTER_DEFINITION(AssociativePlasticDamageModel);
 
     struct PlasticDamageFatigueParameters {
         BoundedMatrixType ComplianceMatrixIncrement = ZeroMatrix(VoigtSize,VoigtSize);
@@ -115,7 +115,7 @@ public:
         double CharacteristicLength        = 0.0;
         double Threshold                   = 0.0;
         double Slope                       = 0.0; // d(Threshold)/d(dissipation)
-        double PlasticDamageProportion     = 0.9; // 0-> Plastic    1->Damage
+        double PlasticDamageProportion     = 0.5; // 0-> Plastic    1->Damage
     };
 
     ///@name Lyfe Cycle
@@ -124,13 +124,13 @@ public:
     /**
      * @brief Default constructor.
      */
-    UnifiedFatigueLaw()
+    AssociativePlasticDamageModel()
     {}
 
     /**
      * @brief Destructor.
      */
-    ~UnifiedFatigueLaw() override
+    ~AssociativePlasticDamageModel() override
     {}
 
     ///@}
@@ -149,7 +149,7 @@ public:
     /**
     * Copy constructor.
     */
-    UnifiedFatigueLaw(const UnifiedFatigueLaw &rOther)
+    AssociativePlasticDamageModel(const AssociativePlasticDamageModel &rOther)
         : BaseType(rOther),
           mPlasticDissipation(rOther.mPlasticDissipation),
           mThreshold(rOther.mThreshold),
@@ -740,6 +740,6 @@ private:
     }
 
 
-}; // Class UnifiedFatigueLaw
+}; // Class AssociativePlasticDamageModel
 }  // namespace Kratos.
 #endif // KRATOS_RULE_OF_MIXTURES_LAW_H_INCLUDED  defined

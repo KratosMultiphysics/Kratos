@@ -89,7 +89,7 @@
 // Rules of mixtures
 #include "custom_constitutive/rule_of_mixtures_law.h"
 
-#include "custom_constitutive/unified_fatigue_law.h"
+#include "custom_constitutive/associative_plastic_damage_model.h"
 
 namespace Kratos {
 namespace Python {
@@ -1749,10 +1749,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"SerialParallelRuleOfMixturesLaw").def(py::init<>())
     ;
 
-    py::class_< UnifiedFatigueLaw <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>,
-    typename UnifiedFatigueLaw <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>::Pointer,
+    py::class_< AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>,
+    typename AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
-    (m,"UnifiedFatigueLaw3DVonMisesVonMises").def(py::init<>());
+    (m,"AssociativePlasticDamageModel3DVonMisesVonMises").def(py::init<>());
 }
 
 }  // namespace Python.

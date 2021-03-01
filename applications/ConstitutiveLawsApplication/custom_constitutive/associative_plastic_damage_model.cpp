@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_constitutive/unified_fatigue_law.h"
+#include "custom_constitutive/associative_plastic_damage_model.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 
@@ -40,9 +40,9 @@ namespace Kratos
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-ConstitutiveLaw::Pointer UnifiedFatigueLaw<TYieldSurfaceType>::Clone() const
+ConstitutiveLaw::Pointer AssociativePlasticDamageModel<TYieldSurfaceType>::Clone() const
 {
-    return Kratos::make_shared<UnifiedFatigueLaw>(*this);
+    return Kratos::make_shared<AssociativePlasticDamageModel>(*this);
 }
 
 
@@ -50,7 +50,7 @@ ConstitutiveLaw::Pointer UnifiedFatigueLaw<TYieldSurfaceType>::Clone() const
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -117,7 +117,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseCauchy(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -172,7 +172,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseCauchy(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculatePlasticDissipationIncrement(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticDissipationIncrement(
     const Properties &rMaterialProperties,
     PlasticDamageFatigueParameters &rParam
     )
@@ -188,7 +188,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculatePlasticDissipationIncrement(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateDamageDissipationIncrement(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateDamageDissipationIncrement(
     const Properties &rMaterialProperties,
     PlasticDamageFatigueParameters &rParam
     )
@@ -206,7 +206,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateDamageDissipationIncrement(
 
 // TO BE GENERALIZED TO ANY HARDENING LAW
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateThresholdAndSlope(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlope(
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageFatigueParameters &rPDParameters
     )
@@ -220,7 +220,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateThresholdAndSlope(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateFlowVector(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateFlowVector(
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageFatigueParameters &rPDParameters
     )
@@ -239,7 +239,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateFlowVector(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculatePlasticStrainIncrement(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticStrainIncrement(
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageFatigueParameters &rPDParameters
     )
@@ -252,7 +252,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculatePlasticStrainIncrement(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateComplianceMatrixIncrement(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateComplianceMatrixIncrement(
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageFatigueParameters &rPDParameters
     )
@@ -268,7 +268,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateComplianceMatrixIncrement(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculatePlasticConsistencyIncrement(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticConsistencyIncrement(
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageFatigueParameters &rPDParameters
     )
@@ -289,7 +289,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculatePlasticConsistencyIncrement(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::IntegrateStressPlasticDamageMechanics(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDamageMechanics(
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageFatigueParameters &rPDParameters
     )
@@ -347,7 +347,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::IntegrateStressPlasticDamageMechanics
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateConstitutiveMatrix(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateConstitutiveMatrix(
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageFatigueParameters &rPDParameters
     )
@@ -361,7 +361,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateConstitutiveMatrix(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::UpdateInternalVariables(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::UpdateInternalVariables(
     PlasticDamageFatigueParameters &rPDParameters
     )
 {
@@ -376,7 +376,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::UpdateInternalVariables(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CheckMinimumFractureEnergy(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CheckMinimumFractureEnergy(
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageFatigueParameters &rPDParameters
     )
@@ -406,7 +406,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CheckMinimumFractureEnergy(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateElasticComplianceMatrix(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateElasticComplianceMatrix(
     BoundedMatrixType& rC,
     const Properties& rMaterialProperties
     )
@@ -434,7 +434,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateElasticComplianceMatrix(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
     const Variable<bool>& rThisVariable
     )
 {
@@ -446,7 +446,7 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
     const Variable<int>& rThisVariable
     )
 {
@@ -458,7 +458,7 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
     const Variable<double>& rThisVariable
     )
 {
@@ -477,7 +477,7 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
     const Variable<Vector>& rThisVariable
     )
 {
@@ -493,7 +493,7 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
     const Variable<Matrix>& rThisVariable
     )
 {
@@ -506,7 +506,7 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
     const Variable<array_1d<double, 3 > >& rThisVariable
     )
 {
@@ -519,7 +519,7 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
+bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
     const Variable<array_1d<double, 6 > >& rThisVariable
     )
 {
@@ -532,7 +532,7 @@ bool UnifiedFatigueLaw<TYieldSurfaceType>::Has(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
+bool& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     const Variable<bool>& rThisVariable,
     bool& rValue
     )
@@ -546,7 +546,7 @@ bool& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-int& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
+int& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     const Variable<int>& rThisVariable,
     int& rValue
     )
@@ -560,7 +560,7 @@ int& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-double& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
+double& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -579,7 +579,7 @@ double& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-Vector& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
+Vector& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue
     )
@@ -596,7 +596,7 @@ Vector& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-Matrix& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
+Matrix& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
     )
@@ -610,7 +610,7 @@ Matrix& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-array_1d<double, 3 >& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
+array_1d<double, 3 >& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     const Variable<array_1d<double, 3 >>& rThisVariable,
     array_1d<double, 3 >& rValue
     )
@@ -624,7 +624,7 @@ array_1d<double, 3 >& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-array_1d<double, 6 >& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
+array_1d<double, 6 >& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     const Variable<array_1d<double, 6 >>& rThisVariable,
     array_1d<double, 6 >& rValue
     )
@@ -638,7 +638,7 @@ array_1d<double, 6 >& UnifiedFatigueLaw<TYieldSurfaceType>::GetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
     const Variable<bool>& rThisVariable,
     const bool& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -650,7 +650,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
     const Variable<int>& rThisVariable,
     const int& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -662,7 +662,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
     const Variable<double>& rThisVariable,
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -674,7 +674,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
     const Variable<Vector>& rThisVariable,
     const Vector& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -686,7 +686,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
     const Variable<Matrix>& rThisVariable,
     const Matrix& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -698,7 +698,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
     const Variable<array_1d<double, 3 >>& rThisVariable,
     const array_1d<double, 3 >& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -710,7 +710,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
     const Variable<array_1d<double, 6 >>& rThisVariable,
     const array_1d<double, 6 >& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -723,7 +723,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::SetValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-double& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
+double& AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue
@@ -761,7 +761,7 @@ double& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-Vector& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
+Vector& AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValue
@@ -774,7 +774,7 @@ Vector& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-Matrix& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
+Matrix& AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
@@ -786,7 +786,7 @@ Matrix& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-array_1d<double, 3 >& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
+array_1d<double, 3 >& AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<array_1d<double, 3 >>& rThisVariable,
     array_1d<double, 3 >& rValue
@@ -800,7 +800,7 @@ array_1d<double, 3 >& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-array_1d<double, 6 >& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
+array_1d<double, 6 >& AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<array_1d<double, 6 >>& rThisVariable,
     array_1d<double, 6 >& rValue
@@ -814,7 +814,7 @@ array_1d<double, 6 >& UnifiedFatigueLaw<TYieldSurfaceType>::CalculateValue(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterial(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -839,7 +839,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterial(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponsePK1(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponsePK1(
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -850,7 +850,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponsePK1(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void  UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponsePK2(
+void  AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponsePK2(
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -861,7 +861,7 @@ void  UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponsePK2(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseKirchhoff(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponseKirchhoff(
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -872,7 +872,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateMaterialResponseKirchhoff(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponsePK1(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::InitializeMaterialResponsePK1(
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -883,7 +883,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponsePK1(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponsePK2(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::InitializeMaterialResponsePK2(
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -894,7 +894,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponsePK2(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponseKirchhoff(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::InitializeMaterialResponseKirchhoff(
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -905,7 +905,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponseKirchhoff(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponseCauchy(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::InitializeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -915,29 +915,29 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::InitializeMaterialResponseCauchy(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponsePK1(
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-template<class TYieldSurfaceType>
-/***********************************************************************************/
-/***********************************************************************************/
-
-void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponsePK2(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponsePK1(
     ConstitutiveLaw::Parameters& rValues
     )
 {
     FinalizeMaterialResponseCauchy(rValues);
 }
 
+template<class TYieldSurfaceType>
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    FinalizeMaterialResponseCauchy(rValues);
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseKirchhoff(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseKirchhoff(
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -949,7 +949,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::FinalizeMaterialResponseKirchhoff(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-int UnifiedFatigueLaw<TYieldSurfaceType>::Check(
+int AssociativePlasticDamageModel<TYieldSurfaceType>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
@@ -965,7 +965,7 @@ int UnifiedFatigueLaw<TYieldSurfaceType>::Check(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateTangentTensor(
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateTangentTensor(
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -988,7 +988,7 @@ void UnifiedFatigueLaw<TYieldSurfaceType>::CalculateTangentTensor(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class UnifiedFatigueLaw<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>;
-// template class UnifiedFatigueLaw<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>;
+template class AssociativePlasticDamageModel<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>;
+// template class AssociativePlasticDamageModel<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>;
 
 } // Namespace Kratos
