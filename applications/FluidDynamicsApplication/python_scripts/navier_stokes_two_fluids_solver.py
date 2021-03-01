@@ -71,11 +71,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             },
             "bfecc_convection" : false,
             "bfecc_number_substeps" : 10,
-            "eulerian_error_compensation" : false,
-            "levelset_splitting" : false,
-            "distance_reinitialization" : "variational",
-            "distance_smoothing" : false,
-            "distance_smoothing_coefficient" : 1.0,
+            "levelset_convection_seetings": {
+                "eulerian_error_compensation": false,
+                "levelset_splitting": false,
+            },
+            "distance_reinitialization": "variational",
+            "distance_smoothing": false,
+            "distance_smoothing_coefficient": 1.0,
             "distance_modification_settings": {
                 "model_part_name": "",
                 "distance_threshold": 1e-5,
@@ -103,10 +105,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self._bfecc_convection = self.settings["bfecc_convection"].GetBool()
 
         # this is used to perform one step BFECC for the eulerian LS convection
-        self._eulerian_error_compensation = self.settings["eulerian_error_compensation"].GetBool()
+        self._eulerian_error_compensation = self.settings["levelset_convection_seetings"]["eulerian_error_compensation"].GetBool()
 
         # this is used to identify the splitting of LS convection (Strang splitting idea)
-        self._levelset_splitting = self.settings["levelset_splitting"].GetBool()
+        self._levelset_splitting = self.settings["levelset_convection_seetings"]["levelset_splitting"].GetBool()
         dt_factor = 0.5 if self._levelset_splitting else 1.0
         self._levelset_dt_factor = dt_factor
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, dt_factor)
