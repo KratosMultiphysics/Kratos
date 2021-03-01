@@ -141,23 +141,44 @@ void TrussElement3D2N::CalculateMassMatrix(
 )
 {
     KRATOS_TRY
-
-    // Compute lumped mass matrix
-    VectorType temp_vector(msLocalSize);
-    CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
-
     // Clear matrix
     if (rMassMatrix.size1() != msLocalSize || rMassMatrix.size2() != msLocalSize) {
         rMassMatrix.resize(msLocalSize, msLocalSize, false);
     }
     rMassMatrix = ZeroMatrix(msLocalSize, msLocalSize);
 
-    // Fill the matrix
-    for (IndexType i = 0; i < msLocalSize; ++i) {
-        rMassMatrix(i, i) = temp_vector[i];
+    if (StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo)){
+        // Compute lumped mass matrix
+        VectorType temp_vector(msLocalSize);
+        CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
+
+        // Fill the matrix
+        for (IndexType i = 0; i < msLocalSize; ++i) {
+            rMassMatrix(i, i) = temp_vector[i];
+        }
+    }
+    else {
+        CalculateConsistentMassMatrix(rMassMatrix,rCurrentProcessInfo);
     }
 
     KRATOS_CATCH("")
+}
+
+void TrussElement3D2N::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+    const double A = GetProperties()[CROSS_AREA];
+    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double rho = GetProperties()[DENSITY];
+    const BoundedMatrix<double, 3, 3> fill_matrix = A * L * rho* (IdentityMatrix(3)/6.0);
+
+    project(rMassMatrix, range(0,3),range(0,3)) += fill_matrix*2.0;
+    project(rMassMatrix, range(0,3),range(3,6)) += fill_matrix;
+    project(rMassMatrix, range(3,6),range(0,3)) += fill_matrix;
+    project(rMassMatrix, range(3,6),range(3,6)) += fill_matrix*2.0;
+
+    KRATOS_CATCH("");
 }
 
 BoundedVector<double, TrussElement3D2N::msLocalSize>
@@ -671,8 +692,7 @@ void TrussElement3D2N::AddExplicitContribution(
         Vector current_nodal_velocities = ZeroVector(msLocalSize);
         GetFirstDerivativesVector(current_nodal_velocities);
         Matrix damping_matrix;
-        ProcessInfo temp_process_information; // cant pass const ProcessInfo
-        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        CalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
 
