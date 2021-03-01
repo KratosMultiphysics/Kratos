@@ -31,8 +31,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template<unsigned int TDim, unsigned int TBlockSize = TDim + 1>
-class VelocityBossakSensitivityBuilderScheme : public SimpleSteadySensitivityBuilderScheme<TDim, TBlockSize>
+class VelocityBossakSensitivityBuilderScheme : public SimpleSteadySensitivityBuilderScheme
 {
 public:
     ///@name Type Definitions
@@ -40,7 +39,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(VelocityBossakSensitivityBuilderScheme);
 
-    using BaseType = SimpleSteadySensitivityBuilderScheme<TDim, TBlockSize>;
+    using BaseType = SimpleSteadySensitivityBuilderScheme;
 
     using NodeType = typename BaseType::NodeType;
 
@@ -58,8 +57,10 @@ public:
 
     /// Constructor.
     VelocityBossakSensitivityBuilderScheme(
-        const double NewAlphaBossak)
-        : BaseType()
+        const double NewAlphaBossak,
+        const IndexType Dimension,
+        const IndexType BlockSize)
+        : BaseType(Dimension, BlockSize)
     {
         //default values for the Newmark Scheme
         mAlphaBossak = NewAlphaBossak;
