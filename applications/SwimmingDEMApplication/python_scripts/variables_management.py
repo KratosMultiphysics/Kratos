@@ -356,7 +356,7 @@ class VariablesManager:
             self.coupling_fluid_vars += [SDEM.AVERAGED_FLUID_VELOCITY]
 
         if (parameters["custom_fluid"]["fluid_model_type"].GetInt() == 0
-            or parameters["coupling"]["coupling_level_type"].GetInt() > 1):
+            or parameters["coupling"]["coupling_level_type"].GetInt() >= 1):
             self.coupling_fluid_vars += [Kratos.FLUID_FRACTION]
             self.coupling_fluid_vars += [Kratos.FLUID_FRACTION_OLD]
 

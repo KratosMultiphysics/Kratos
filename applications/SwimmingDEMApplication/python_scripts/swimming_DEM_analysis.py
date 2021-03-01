@@ -307,7 +307,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         # creating a debug tool
         self.dem_volume_tool = self.GetVolumeDebugTool()
 
-        self.SetEmbeddedTools()
+        #self.SetEmbeddedTools()
 
         Say('Initialization Complete\n')
 
