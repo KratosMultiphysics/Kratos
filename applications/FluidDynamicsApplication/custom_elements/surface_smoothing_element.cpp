@@ -266,7 +266,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
     const double he = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
-    const double epsilon = 5.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
+    const double epsilon = 2.0e3*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
 
     // Main loop (one Gauss point)
     //const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
@@ -421,11 +421,11 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                             const double slip_velocity = inner_prod(slip_vector,
                                 GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
 
-                            const double zeta = 0.7;//1.0e-2;//
-                            const double gamma = 0.0311;//0.072;//
+                            const double zeta = 1.0;//0.7;//1.0e-2;//
+                            const double gamma = 0.0426;//0.0311;//0.072;//
                             const double micro_length_scale = 1.0e-9;
 
-                            const double cos_theta_s = 0.779337965;//-0.4539905;//
+                            const double cos_theta_s = 0.5299192642332;//0.779337965;//-0.4539905;//
                             const double theta_s = std::acos(cos_theta_s);
 
                             const double cos_theta_d = cos_theta_s - zeta/gamma * slip_velocity;//Check the sign of slip velocity
