@@ -218,22 +218,9 @@ public:
         return mpNurbsSurface->PolynomialDegree(0) + mpNurbsSurface->PolynomialDegree(1);
     }
 
-    /// Return the DomainInterval of the underlying NURBS curve
-    NurbsInterval DomainInterval() const
-    {
-        return mpNurbsCurve->DomainInterval();
-    }
-
-    /// Return the vector of KnotSpanIntervals of the underlying NURBS curve
-    std::vector<NurbsInterval> KnotSpanIntervals() const
-    {
-        return mpNurbsCurve->KnotSpanIntervals();
-    }
-
     ///@}
     ///@name Set/ Get functions
     ///@{
-
     /// Returns the NurbsCurve::Pointer of this CurveOnSurface.
     NurbsCurvePointerType pGetCurve()
     {

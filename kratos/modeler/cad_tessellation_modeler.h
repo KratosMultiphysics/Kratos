@@ -27,6 +27,7 @@ extern "C"
 // External includes
 //this is not ideal...
 #include "../../external_libraries/triangle/triangle.h"
+// #include "triangle.h"
 
 // Project includes
 #include "modeler.h"

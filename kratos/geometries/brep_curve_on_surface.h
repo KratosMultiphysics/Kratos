@@ -276,16 +276,6 @@ public:
         return mpCurveOnSurface->PolynomialDegree(LocalDirectionIndex);
     }
 
-    NurbsInterval DomainInterval() const
-    {
-        return mpCurveOnSurface->DomainInterval();
-    }
-
-    std::vector<NurbsInterval> KnotSpanIntervals() const
-    {
-        return mpCurveOnSurface->KnotSpanIntervals();
-    }
-
     ///@}
     ///@name Set/ Get functions
     ///@{

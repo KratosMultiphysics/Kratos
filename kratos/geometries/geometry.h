@@ -1056,18 +1056,6 @@ public:
         KRATOS_ERROR << "Trying to access PolynomialDegree from geometry base class." << std::endl;
     }
 
-    /// Return the DomainInterval of the geometry
-    virtual NurbsInterval DomainInterval() const
-    {
-        KRATOS_ERROR << "Trying to access DomainInterval from geometry base class." << std::endl;
-    }
-
-    /// Return the vector of KnotSpanIntervals of the geometry
-    virtual std::vector<NurbsInterval> KnotSpanIntervals() const
-    {
-        KRATOS_ERROR << "Trying to access KnotSpanIntervals from geometry base class." << std::endl;
-    }
-
     ///@}
     ///@name Geometrical Informations
     ///@{

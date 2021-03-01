@@ -129,8 +129,8 @@ std::vector<array_1d<double, 2>> CadTessellationModeler::ComputeBoundaryTessella
     auto tessellation = NurbsCurveTessellation<2, PointerVector<Node<3>>>::ComputeTessellation(
         rBoundarySegment,
         rBoundarySegment.PolynomialDegree(0),
-        rBoundarySegment.DomainInterval(),
-        rBoundarySegment.KnotSpanIntervals(),
+        rBoundarySegment.pGetCurveOnSurface()->pGetCurve()->DomainInterval(),
+        rBoundarySegment.pGetCurveOnSurface()->pGetCurve()->KnotSpanIntervals(),
         chordal_error);
 
     std::vector<array_1d<double, 2>> boundary_segment_uv;
