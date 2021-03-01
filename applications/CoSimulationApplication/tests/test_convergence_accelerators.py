@@ -41,7 +41,6 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
             "variable_name"   : "PRESSURE"
         }""")
         self.interface_data = CouplingInterfaceData(data_settings, self.model)
-        self.interface_data.Initialize()
 
         self.dummy_solver_wrapper = DummySolverWrapper({"data_4_testing" : self.interface_data})
 
