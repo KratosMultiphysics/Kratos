@@ -52,9 +52,7 @@ class RHSElement
 KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
 {
     int nsize = 1e3;
-    std::vector<double> data_vector(nsize);
-    for(auto& it : data_vector)
-        it = 5.0;
+    std::vector<double> data_vector(nsize, 5.0);
 
     //here we raise every entry of a vector to the power 0.1
     BlockPartition<std::vector<double>>(data_vector).for_each(
@@ -93,12 +91,37 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
 }
 
 // Basic Type
+KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerConstContainer, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    const std::vector<double> data_vector(nsize, 5.0);
+
+    //here we check for a reduction (computing the sum of all the entries)
+    auto final_sum = BlockPartition<decltype(data_vector)>(data_vector).for_each<SumReduction<double>>(
+        [](const double item)
+        {
+            return item;
+        }
+    );
+
+    //here we check for a reduction (computing the sum of all the entries)
+    auto final_sum_short = block_for_each<SumReduction<double>>(data_vector,
+        [](const double item)
+        {
+            return item;
+        }
+    );
+
+    const double expected_value = 5.0*nsize;
+    KRATOS_CHECK_DOUBLE_EQUAL(final_sum, expected_value);
+    KRATOS_CHECK_DOUBLE_EQUAL(final_sum_short, expected_value);
+}
+
+// Basic Type
 KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
 {
     int nsize = 1e3;
-    std::vector<double> data_vector(nsize), output(nsize);
-    for(auto& it : data_vector)
-        it = -1.0;
+    std::vector<double> data_vector(nsize, -1.0), output(nsize);
 
     //output = 2*data_vector (in parallel, and accessing by index)
     IndexPartition<unsigned int>(data_vector.size()).for_each(

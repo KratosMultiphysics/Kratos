@@ -48,15 +48,14 @@ void ExecuteFunctor(
     }
 }
 
-template <template <class T> class TFunctor, class TContainer, class... TArgs>
+template <template <class T> class TFunctor, class TContainer>
 void ExecuteFunctorInContainer(
     const SensitivityBuilder::TSensitivityVariables& rVariables,
-    TContainer& rContainer,
-    TArgs&... rArgs)
+    TContainer& rContainer)
 {
     block_for_each(rContainer, [&](typename TContainer::value_type& rEntity) {
-        ExecuteFunctor<TFunctor, typename TContainer::value_type, TArgs...>(
-            rVariables, rEntity, rArgs...);
+        ExecuteFunctor<TFunctor, typename TContainer::value_type>(
+            rVariables, rEntity);
     });
 }
 

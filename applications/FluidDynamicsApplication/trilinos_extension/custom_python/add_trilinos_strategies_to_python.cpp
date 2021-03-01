@@ -69,25 +69,25 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     using TrilinosSimpleSteadyAdjointScheme2DType = SimpleSteadyAdjointScheme<2, TrilinosSparseSpace, UblasLocalSpace>;
     py::class_<TrilinosSimpleSteadyAdjointScheme2DType, typename TrilinosSimpleSteadyAdjointScheme2DType::Pointer, BaseSchemeType>
         (m, "TrilinosSimpleSteadyAdjointScheme2D")
-        .def(py::init<AdjointResponseFunction::Pointer>())
+        .def(py::init<AdjointResponseFunction::Pointer, const std::size_t>())
         ;
 
     using TrilinosSimpleSteadyAdjointScheme3DType = SimpleSteadyAdjointScheme<3, TrilinosSparseSpace, UblasLocalSpace>;
     py::class_<TrilinosSimpleSteadyAdjointScheme3DType, typename TrilinosSimpleSteadyAdjointScheme3DType::Pointer, BaseSchemeType>
         (m, "TrilinosSimpleSteadyAdjointScheme3D")
-        .def(py::init<AdjointResponseFunction::Pointer>())
+        .def(py::init<AdjointResponseFunction::Pointer, const std::size_t>())
         ;
 
     using TrilinosVelocityBossakAdjointScheme2DType = VelocityBossakAdjointScheme<2, TrilinosSparseSpace, UblasLocalSpace>;
     py::class_<TrilinosVelocityBossakAdjointScheme2DType, typename TrilinosVelocityBossakAdjointScheme2DType::Pointer, BaseSchemeType>
         (m, "TrilinosVelocityBossakAdjointScheme2D")
-        .def(py::init<Parameters, AdjointResponseFunction::Pointer>())
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer, const std::size_t>())
         ;
 
     using TrilinosVelocityBossakAdjointScheme3DType = VelocityBossakAdjointScheme<3, TrilinosSparseSpace, UblasLocalSpace>;
     py::class_<TrilinosVelocityBossakAdjointScheme3DType, typename TrilinosVelocityBossakAdjointScheme3DType::Pointer, BaseSchemeType>
         (m, "TrilinosVelocityBossakAdjointScheme3D")
-        .def(py::init<Parameters, AdjointResponseFunction::Pointer>())
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer, const std::size_t>())
         ;
 }
 

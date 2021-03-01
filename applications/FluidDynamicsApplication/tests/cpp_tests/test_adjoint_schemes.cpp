@@ -45,12 +45,7 @@ namespace Testing
 array_1d<double, 3> GetArray3DVector(
     const std::vector<double>& rInput)
 {
-    array_1d<double, 3> result;
-    result[0] = rInput[0];
-    result[1] = rInput[1];
-    result[2] = rInput[2];
-
-    return result;
+    return array_1d<double, 3>{rInput[0], rInput[1], rInput[2]};
 }
 
 void SetModelPartOldValues(
@@ -551,7 +546,7 @@ KRATOS_TEST_CASE_IN_SUITE(SimpleSteadyAdjointScheme, FluidDynamicsApplicationFas
                                                 ""),
                                      adjoint_model_part);
     SimpleSteadyAdjointScheme<2, SparseSpaceType, LocalSpaceType> adjoint_scheme(
-        Kratos::make_shared<VelocityPressureNormSquareResponseFunction>(response));
+        Kratos::make_shared<VelocityPressureNormSquareResponseFunction>(response), 3);
 
     Matrix lhs;
     Vector rhs;
@@ -633,7 +628,7 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeLHS, FluidDynamicsApplicati
             "scheme_type"  : "bossak",
             "alpha_bossak" : -0.3
         })"),
-        Kratos::make_shared<VelocityPressureNormSquareResponseFunction>(response));
+        Kratos::make_shared<VelocityPressureNormSquareResponseFunction>(response), 3);
 
     Matrix lhs;
     Vector rhs;
@@ -702,7 +697,7 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeRHS, FluidDynamicsApplicati
             "scheme_type"  : "bossak",
             "alpha_bossak" : -0.3
         })"),
-        Kratos::make_shared<VelocityPressureNormSquareResponseFunction>(adjoint_response));
+        Kratos::make_shared<VelocityPressureNormSquareResponseFunction>(adjoint_response), 3);
 
     Matrix lhs;
     Vector rhs;

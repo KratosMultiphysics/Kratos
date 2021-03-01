@@ -15,57 +15,8 @@ def CreateSolver(main_model_part, custom_settings):
 
 class AdjointMonolithicMPISolver(AdjointMonolithicSolver):
 
-    @classmethod
-    def GetDefaultParameters(cls):
-        # default settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type": "trilinos_adjoint_vmsmonolithic_solver",
-            "scheme_settings" : {
-                "scheme_type": "bossak"
-            },
-            "response_function_settings" : {
-                "response_type" : "drag"
-            },
-            "sensitivity_settings" : {},
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
-            },
-            "material_import_settings": {
-                "materials_filename": ""
-            },
-            "linear_solver_settings" : {
-                "solver_type" : "amgcl"
-            },
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts": [""],
-            "echo_level": 0,
-            "time_stepping"               : {
-                "automatic_time_step" : false,
-                "time_step"           : -0.1
-            },
-            "domain_size": -1,
-            "model_part_name": "",
-            "time_stepping": {
-                "automatic_time_step" : false,
-                "time_step"           : -0.1
-            },
-            "consider_periodic_conditions": false,
-            "assign_neighbour_elements_to_conditions": true,
-            "formulation": {
-                "element_type": "vms"
-            }
-        }""")
-
-        default_settings.AddMissingParameters(super(AdjointMonolithicMPISolver, cls).GetDefaultParameters())
-        return default_settings
-
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
         super().__init__(model, custom_settings)
-
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of AdjointMonolithicMPISolver finished.")
 
     def AddVariables(self):
         ## Add variables from the base class

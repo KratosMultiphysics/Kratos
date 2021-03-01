@@ -47,7 +47,7 @@ namespace Kratos
       ///@{
 
       /// Pointer definition of SwimmingParticle
-      KRATOS_CLASS_POINTER_DEFINITION(SwimmingParticle);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SwimmingParticle);
 
       ///@}
       ///@name Life Cycle
