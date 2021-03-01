@@ -17,6 +17,7 @@
 // Project includes
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "custom_constitutive/generic_small_strain_high_cycle_fatigue_law.h"
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
 #include "custom_constitutive/constitutive_laws_integrators/high_cycle_fatigue_law_integrator.h"
@@ -179,7 +180,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
             mThresholdStress = s_th;
         }
 
-        double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector);
         uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
         const double F = uniaxial_stress - threshold;
 
