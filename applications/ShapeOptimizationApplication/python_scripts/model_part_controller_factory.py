@@ -43,10 +43,7 @@ class ModelPartController:
             "mesh_motion" : {
                 "apply_mesh_solver" : false
             },
-            "output_settings": {
-                "use_folder_output" : false,
-                "output_folder_name": "optimization_iterations"
-            }
+            "iteration_directory": "optimization_iterations"
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
@@ -70,10 +67,7 @@ class ModelPartController:
         self.damping_regions = {}
         self.damping_utility = None
 
-        if (self.model_settings["output_settings"]["use_folder_output"].GetBool()):
-            self.output_folder_name = self.model_settings["output_settings"]["output_folder_name"].GetString()
-        else:
-            self.output_folder_name = None
+        self.iteration_directory = self.model_settings["iteration_directory"].GetString()
 
     # --------------------------------------------------------------------------
     def Initialize(self):
@@ -132,8 +126,8 @@ class ModelPartController:
         return self.design_surface
 
     # --------------------------------------------------------------------------
-    def GetOutputFolderName(self):
-        return self.output_folder_name
+    def GetIterationDirectory(self):
+        return self.iteration_directory
 
     # --------------------------------------------------------------------------
     def DampNodalVariableIfSpecified(self, variable):
