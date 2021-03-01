@@ -3,6 +3,10 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    from KratosMultiphysics import ConstitutiveLawsApplication
+
 class BasePatchTestMembrane(KratosUnittest.TestCase):
 
     def _add_variables(self,mp,explicit_dynamics=False):
@@ -323,6 +327,7 @@ class StaticPatchTestMembrane(BasePatchTestMembrane):
         #self.__post_process(mp)
 
     def test_membrane_wrinkling_law(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("Structure")
@@ -335,7 +340,7 @@ class StaticPatchTestMembrane(BasePatchTestMembrane):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.30)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,0.0001)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,7850.0)
-        constitutive_law = StructuralMechanicsApplication.WrinklingLinear2DLaw()
+        constitutive_law = ConstitutiveLawsApplication.WrinklingLinear2DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,constitutive_law)
         sub_constitutive_law = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
         mp.GetProperties()[2].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,sub_constitutive_law)

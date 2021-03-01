@@ -33,6 +33,8 @@
 #include "utilities/openmp_utils.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/pointer_communicator.h"
+#include "utilities/pointer_map_communicator.h"
 
 namespace Kratos
 {
@@ -68,7 +70,7 @@ public:
         if (mPartialDt){
             dt_factor = rModelPart.GetProcessInfo()[DELTA_TIME_FACTOR];
         }
-        KRATOS_ERROR_IF(dt_factor < 1.0e-12) << "ERROR: DELTA_TIME_FACTOR shoild be larger than zero." <<std::endl;
+        KRATOS_ERROR_IF(dt_factor < 1.0e-2) << "ERROR: DELTA_TIME_FACTOR should be larger than zero." <<std::endl;
         const double dt = dt_factor*rModelPart.GetProcessInfo()[DELTA_TIME];
 
         //do movement
@@ -314,25 +316,60 @@ public:
 
         const unsigned int nparticles = rModelPart.Nodes().size();
 
-        mSigmaPlus.resize(nparticles);
-        mSigmaMinus.resize(nparticles);
+        if(mSigmaPlus.size() != nparticles){
+            mSigmaPlus.resize(nparticles);
+            mSigmaMinus.resize(nparticles);
+        }
 
-        #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < nparticles; ++i_node){
+        auto& r_default_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        GlobalPointersVector< Node<3 > > gp_list;
+
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node){
             auto it_node = rModelPart.NodesBegin() + i_node;
-            const auto X_i = it_node->Coordinates();
-            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+                auto& global_pointer = global_pointer_list(j);
+                gp_list.push_back(global_pointer);
+            }
+        }
+
+        GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, gp_list);
+
+        auto coordinate_proxy = pointer_comm.Apply(
+            [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
+            {
+                return global_pointer->Coordinates();
+            }
+        );
+
+        auto distance_proxy = pointer_comm.Apply(
+            [&](GlobalPointer<Node<3> >& global_pointer) -> double
+            {
+                return global_pointer->FastGetSolutionStepValue(rVar);
+            }
+        );
+
+        IndexPartition<unsigned int>(nparticles).for_each(
+        [&](unsigned int i_node){
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            const auto& X_i = it_node->Coordinates();
+            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
 
             double S_plus = 0.0;
             double S_minus = 0.0;
 
-            for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
-                j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-                if (it_node->Id() == j_node->Id())
-                    continue;
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
 
-                const auto X_j = j_node->Coordinates();
+                /* if (it_node->Id() == j_node->Id())
+                    continue; */
+
+                auto& global_pointer = global_pointer_list(j);
+                auto X_j = coordinate_proxy.Get(global_pointer);
 
                 S_plus += std::max(0.0, inner_prod(grad_i, X_i-X_j));
                 S_minus += std::min(0.0, inner_prod(grad_i, X_i-X_j));
@@ -341,25 +378,29 @@ public:
             mSigmaPlus[i_node] = std::min(1.0, (std::abs(S_minus)+epsilon)/(S_plus+epsilon));
             mSigmaMinus[i_node] = std::min(1.0, (S_plus+epsilon)/(std::abs(S_minus)+epsilon));
         }
+        );
 
-        #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < nparticles; ++i_node){
+        IndexPartition<unsigned int>(nparticles).for_each(
+        [&](unsigned int i_node){
             auto it_node = rModelPart.NodesBegin() + i_node;
             const double distance_i = it_node->FastGetSolutionStepValue(rVar);
-            const auto X_i = it_node->Coordinates();
-            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            const auto& X_i = it_node->Coordinates();
+            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
 
             double numerator = 0.0;
             double denominator = 0.0;
 
-            for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
-                j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-                if (it_node->Id() == j_node->Id())
-                    continue;
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
 
-                const double distance_j = j_node->FastGetSolutionStepValue(rVar);
-                const auto X_j = j_node->Coordinates();
+                /* if (it_node->Id() == j_node->Id())
+                    continue; */
+
+                auto& global_pointer = global_pointer_list(j);
+                auto X_j = coordinate_proxy.Get(global_pointer);
+                const double distance_j = distance_proxy.Get(global_pointer);
 
                 double beta_ij = 1.0;
                 if (inner_prod(grad_i, X_i-X_j) > 0)
@@ -374,6 +415,7 @@ public:
             const double fraction = (std::abs(numerator)/* +epsilon */) / (denominator + epsilon);
             mLimiter[i_node] = 1.0 - std::pow(fraction, power);
         }
+        );
     }
 
 
@@ -432,7 +474,7 @@ public:
     }
 
 protected:
-    std::vector< double > mSigmaPlus, mSigmaMinus, mLimiter;
+    Kratos::Vector mSigmaPlus, mSigmaMinus, mLimiter;
 
 private:
     typename BinBasedFastPointLocator<TDim>::Pointer mpSearchStructure;

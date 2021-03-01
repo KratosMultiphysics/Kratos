@@ -22,7 +22,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "two_fluids_solver_from_defaults",
+            "solver_type": "two_fluids",
             "model_part_name": "",
             "domain_size": -1,
             "model_import_settings": {
@@ -71,21 +71,28 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             },
             "bfecc_convection" : false,
             "bfecc_number_substeps" : 10,
-            "eulerian_error_compensation" : false,
-            "levelset_splitting" : false,
-            "distance_reinitialization" : "variational",
-            "distance_smoothing" : false,
-            "distance_smoothing_coefficient" : 1.0
+            "levelset_convection_seetings": {
+                "eulerian_error_compensation": false,
+                "levelset_splitting": false,
+            },
+            "distance_reinitialization": "variational",
+            "distance_smoothing": false,
+            "distance_smoothing_coefficient": 1.0,
+            "distance_modification_settings": {
+                "model_part_name": "",
+                "distance_threshold": 1e-5,
+                "continuous_distance": true,
+                "check_at_each_time_step": true,
+                "avoid_almost_empty_elements": false,
+                "deactivate_full_negative_elements": false
+            }
         }""")
 
         default_settings.AddMissingParameters(super(NavierStokesTwoFluidsSolver, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
-
         # TODO: DO SOMETHING IN HERE TO REMOVE THE "time_order" FROM THE DEFAULT SETTINGS BUT KEEPING THE BACKWARDS COMPATIBILITY
-
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
@@ -98,10 +105,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self._bfecc_convection = self.settings["bfecc_convection"].GetBool()
 
         # this is used to perform one step BFECC for the eulerian LS convection
-        self._eulerian_error_compensation = self.settings["eulerian_error_compensation"].GetBool()
+        self._eulerian_error_compensation = self.settings["levelset_convection_seetings"]["eulerian_error_compensation"].GetBool()
 
         # this is used to identify the splitting of LS convection (Strang splitting idea)
-        self._levelset_splitting = self.settings["levelset_splitting"].GetBool()
+        self._levelset_splitting = self.settings["levelset_convection_seetings"]["levelset_splitting"].GetBool()
         dt_factor = 0.5 if self._levelset_splitting else 1.0
         self._levelset_dt_factor = dt_factor
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, dt_factor)
@@ -109,8 +116,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
-        surface_tension = self.settings["formulation"]["surface_tension"].GetBool()
-
+        surface_tension = False
+        if (self.settings["formulation"].Has("surface_tension")):
+            surface_tension = self.settings["formulation"]["surface_tension"].GetBool()
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SURFACE_TENSION, surface_tension)
 
         self._reinitialization_type = self.settings["distance_reinitialization"].GetString()
@@ -184,6 +192,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
+        # Initialize the distance correction process
+        self._GetDistanceModificationProcess().ExecuteInitialize()
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
@@ -206,27 +217,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
-
-            # Recompute the distance field according to the new level-set position
-            if (self._reinitialization_type == "variational"):
-                self._GetDistanceReinitializationProcess().Execute()
-            elif (self._reinitialization_type == "parallel"):
-                adjusting_parameter = 0.05
-                layers = int(adjusting_parameter*self.main_model_part.NumberOfElements()) # this parameter is essential
-                max_distance = 1.0 # use this parameter to define the redistancing range
-                # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
-                self._GetDistanceReinitializationProcess().CalculateDistances(
-                    self.main_model_part,
-                    KratosMultiphysics.DISTANCE,
-                    KratosMultiphysics.NODAL_AREA,
-                    layers,
-                    max_distance,
-                    self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
-
-            if (self._reinitialization_type != "none"):
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
-
             # filtering noises is necessary for curvature calculation
             if (self._distance_smoothing):
                 # distance gradient is used as a boundary condition for smoothing process
@@ -241,6 +231,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self._GetDistanceCurvatureProcess().Execute()
                 # it is needed to store level-set consistent nodal PRESSURE_GRADIENT for stabilization purpose
                 self._GetConsistentNodalPressureGradientProcess().Execute()
+
+            # TODO: Performing mass conservation check and correction process
+
+            # Perform distance correction to prevent ill-conditioned cuts
+            self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
@@ -269,7 +264,27 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
                 self._GetLevelSetConvectionProcess().Execute()
 
+        # Recompute the distance field according to the new level-set position
+        if (self._reinitialization_type == "variational"):
+            self._GetDistanceReinitializationProcess().Execute()
+        elif (self._reinitialization_type == "parallel"):
+            adjusting_parameter = 0.05
+            layers = int(adjusting_parameter*self.main_model_part.NumberOfElements()) # this parameter is essential
+            max_distance = 1.0 # use this parameter to define the redistancing range
+            # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
+            self._GetDistanceReinitializationProcess().CalculateDistances(
+                self.main_model_part,
+                KratosMultiphysics.DISTANCE,
+                KratosMultiphysics.NODAL_AREA,
+                layers,
+                max_distance,
+                self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+
+        if (self._reinitialization_type != "none"):
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
+
         if self._TimeBufferIsInitialized():
+            self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
             self._GetSolutionStrategy().FinalizeSolutionStep()
             self._GetAccelerationLimitationUtility().Execute()
 
@@ -388,6 +403,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if not hasattr(self, '_consistent_nodal_pressure_gradient_process'):
             self._consistent_nodal_pressure_gradient_process = self._CreateConsistentNodalPressureGradientProcess()
         return self._consistent_nodal_pressure_gradient_process
+
+    def _GetDistanceModificationProcess(self):
+        if not hasattr(self, '_distance_modification_process'):
+            self._distance_modification_process = self.__CreateDistanceModificationProcess()
+        return self._distance_modification_process
 
     def __CreateAccelerationLimitationUtility(self):
         maximum_multiple_of_g_acceleration_allowed = 5.0
@@ -526,3 +546,29 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self.main_model_part)
 
         return consistent_nodal_pressure_gradient_process
+
+    def __CreateDistanceModificationProcess(self):
+        # Set suitable distance correction settings for free-surface problems
+        # Note that the distance modification process is applied to the computing model part
+        distance_modification_settings = self.settings["distance_modification_settings"]
+        distance_modification_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["distance_modification_settings"])
+        distance_modification_settings["model_part_name"].SetString(self.GetComputingModelPart().FullName())
+
+        # Check user provided settings
+        if not distance_modification_settings["continuous_distance"].GetBool():
+            distance_modification_settings["continuous_distance"].SetBool(True)
+            KratosMultiphysics.Logger.PrintWarning("Provided distance correction \'continuous_distance\' is \'False\'. Setting to \'True\'.")
+        if not distance_modification_settings["check_at_each_time_step"].GetBool():
+            distance_modification_settings["check_at_each_time_step"].SetBool(True)
+            KratosMultiphysics.Logger.PrintWarning("Provided distance correction \'check_at_each_time_step\' is \'False\'. Setting to \'True\'.")
+        if distance_modification_settings["avoid_almost_empty_elements"].GetBool():
+            distance_modification_settings["avoid_almost_empty_elements"].SetBool(False)
+            KratosMultiphysics.Logger.PrintWarning("Provided distance correction \'avoid_almost_empty_elements\' is \'True\'. Setting to \'False\' to avoid modifying the distance sign.")
+        if distance_modification_settings["deactivate_full_negative_elements"].GetBool():
+            distance_modification_settings["deactivate_full_negative_elements"].SetBool(False)
+            KratosMultiphysics.Logger.PrintWarning("Provided distance correction \'deactivate_full_negative_elements\' is \'True\'. Setting to \'False\' to avoid deactivating the negative volume (e.g. water).")
+
+        # Create and return the distance correction process
+        return KratosCFD.DistanceModificationProcess(
+            self.model,
+            distance_modification_settings)

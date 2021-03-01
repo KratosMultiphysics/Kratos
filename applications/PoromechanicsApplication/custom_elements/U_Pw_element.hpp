@@ -36,7 +36,7 @@ class KRATOS_API(POROMECHANICS_APPLICATION) UPwElement : public Element
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwElement );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

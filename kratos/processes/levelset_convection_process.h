@@ -32,7 +32,10 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "utilities/variable_utils.h"
+#include "utilities/pointer_communicator.h"
+#include "utilities/pointer_map_communicator.h"
 #include "includes/global_pointer_variables.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -233,18 +236,19 @@ public:
         if (mPartialDt){
             dt_factor = rCurrentProcessInfo.GetValue(DELTA_TIME_FACTOR);
         }
-        KRATOS_ERROR_IF(dt_factor < 1.0e-12) << "ERROR: DELTA_TIME_FACTOR shoild be larger than zero." <<std::endl;
+        KRATOS_ERROR_IF(dt_factor < 1.0e-2) << "ERROR: DELTA_TIME_FACTOR should be larger than zero." <<std::endl;
         const double levelset_delta_time = dt_factor * previous_delta_time;
 
         // Save current level set value and current and previous step velocity values
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](unsigned int i_node){
             const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             mVelocity[i_node] = it_node->FastGetSolutionStepValue(mrConvectVar);
             mVelocityOld[i_node] = dt_factor*it_node->FastGetSolutionStepValue(mrConvectVar,1) +
                 (1.0 - dt_factor)*it_node->FastGetSolutionStepValue(mrConvectVar);
             mOldDistance[i_node] = it_node->FastGetSolutionStepValue(mrLevelSetVar,1);
-        }
+            }
+        );
 
         const double dt = levelset_delta_time / static_cast<double>(n_substep);
         rCurrentProcessInfo.SetValue(DELTA_TIME, dt);
@@ -265,8 +269,8 @@ public:
             const double Nnew_before = 1.0 - Nold_before;
 
             // Emulate clone time step by copying the new distance onto the old one
-            #pragma omp parallel for
-            for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+            IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+            [&](unsigned int i_node){
                 auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
                 const array_1d<double,3>& r_v = mVelocity[i_node];
@@ -276,6 +280,7 @@ public:
                 it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * r_v_old + Nnew_before * r_v;
                 it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
             }
+            );
 
             if (mIsBfecc){ // Storing the levelset variable for error calculation and Evaluating the limiter
                 EvaluateLimiter();
@@ -296,13 +301,14 @@ public:
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(r_previous_var);
 
         // Reset the velocities and levelset values to the one saved before the solution process
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](unsigned int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(mrConvectVar) = mVelocity[i_node];
             it_node->FastGetSolutionStepValue(mrConvectVar,1) = (mVelocityOld[i_node] - (1.0 - dt_factor)*mVelocity[i_node])/dt_factor;
             it_node->FastGetSolutionStepValue(mrLevelSetVar,1) = mOldDistance[i_node];
         }
+        );
 
         KRATOS_CATCH("")
     }
@@ -386,11 +392,11 @@ protected:
     const bool mIsBfecc;
     const bool mPartialDt;
 
-    std::vector< double > mOldDistance;
-    std::vector< double > mError;
+    Kratos::Vector mOldDistance;
+    Kratos::Vector mError;
     std::vector< array_1d<double,3> > mVelocity, mVelocityOld;
-    std::vector< double > mSigmaPlus, mSigmaMinus;
-    std::vector< double > mLimiter;
+    Kratos::Vector mSigmaPlus, mSigmaMinus;
+    Kratos::Vector mLimiter;
 
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
@@ -599,7 +605,7 @@ protected:
         return n_steps;
     }
 
-    virtual void EvaluateLimiter()
+    void EvaluateLimiter()
     {
         // ****************************************************************************************
         // ****************************************************************************************
@@ -610,25 +616,57 @@ protected:
 
         //mProjectedGradientProcess.Execute();
 
-        #pragma omp parallel for
+        auto& r_default_comm = mpDistanceModelPart->GetCommunicator().GetDataCommunicator();
+        GlobalPointersVector< Node<3 > > gp_list;
+
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+            auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+                auto& global_pointer = global_pointer_list(j);
+                gp_list.push_back(global_pointer);
+            }
+        }
+
+        GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, gp_list);
+
+        auto coordinate_proxy = pointer_comm.Apply(
+            [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
+            {
+                return global_pointer->Coordinates();
+            }
+        );
+
+        auto distance_proxy = pointer_comm.Apply(
+            [&](GlobalPointer<Node<3> >& global_pointer) -> double
+            {
+                return global_pointer->FastGetSolutionStepValue(mrLevelSetVar);
+            }
+        );
+
+        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](unsigned int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
             it_node->SetValue(mrLevelSetVar, it_node->FastGetSolutionStepValue(mrLevelSetVar)); //Store mrLevelSetVar
 
-            const auto X_i = it_node->Coordinates();
-            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            const auto& X_i = it_node->Coordinates();
+            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
 
             double S_plus = 0.0;
             double S_minus = 0.0;
 
-            for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
-                j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-                if (it_node->Id() == j_node->Id())
-                    continue;
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+                // if (it_node->Id() == j_node->Id())
+                //     continue;
 
-                const auto X_j = j_node->Coordinates();
+                auto& global_pointer = global_pointer_list(j);
+                auto X_j = coordinate_proxy.Get(global_pointer);
 
                 S_plus += std::max(0.0, inner_prod(grad_i, X_i-X_j));
                 S_minus += std::min(0.0, inner_prod(grad_i, X_i-X_j));
@@ -637,26 +675,29 @@ protected:
             mSigmaPlus[i_node] = std::min(1.0, (std::abs(S_minus)+epsilon)/(S_plus+epsilon));
             mSigmaMinus[i_node] = std::min(1.0, (S_plus+epsilon)/(std::abs(S_minus)+epsilon));
         }
+        );
 
         //Calculating beta_ij in a way that the linearity is preserved on non-symmetrical meshes
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](unsigned int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             const double distance_i = it_node->FastGetSolutionStepValue(mrLevelSetVar);
-            const auto X_i = it_node->Coordinates();
-            const auto grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            const auto& X_i = it_node->Coordinates();
+            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
 
             double numerator = 0.0;
             double denominator = 0.0;
 
-            for( GlobalPointersVector< Node<3> >::iterator j_node = it_node->GetValue(NEIGHBOUR_NODES).begin();
-                j_node != it_node->GetValue(NEIGHBOUR_NODES).end(); ++j_node){
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-                if (it_node->Id() == j_node->Id())
-                    continue;
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+                // if (it_node->Id() == j_node->Id())
+                //     continue;
 
-                const double distance_j = j_node->FastGetSolutionStepValue(mrLevelSetVar);
-                const auto X_j = j_node->Coordinates();
+                auto& global_pointer = global_pointer_list(j);
+                auto X_j = coordinate_proxy.Get(global_pointer);
+                const double distance_j = distance_proxy.Get(global_pointer);
 
                 double beta_ij = 1.0;
 
@@ -672,18 +713,20 @@ protected:
             const double fraction = (std::abs(numerator)/*  + epsilon */) / (denominator + epsilon);
             mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
         }
+        );
     }
 
     void ErrorCalculationAndCorrection()
     {
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](unsigned int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
             it_node->FastGetSolutionStepValue(mrConvectVar) = -1.0 * it_node->FastGetSolutionStepValue(mrConvectVar);
             it_node->FastGetSolutionStepValue(mrConvectVar, 1) = -1.0 * it_node->FastGetSolutionStepValue(mrConvectVar, 1);
             it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
         }
+        );
 
         mpSolvingStrategy->InitializeSolutionStep();
         mpSolvingStrategy->Predict();
@@ -691,15 +734,16 @@ protected:
         mpSolvingStrategy->FinalizeSolutionStep();
 
         // Calculating the raw error without a limiter, etc.
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i) {
-            auto it_node = mpDistanceModelPart->NodesBegin() + i;
-            mError[i] =
+        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](unsigned int i_node){
+            auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+            mError[i_node] =
                 0.5*(it_node->GetValue(mrLevelSetVar) - it_node->FastGetSolutionStepValue(mrLevelSetVar));
         }
+        );
 
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](unsigned int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
             it_node->FastGetSolutionStepValue(mrConvectVar) = -1.0 * it_node->FastGetSolutionStepValue(mrConvectVar);
@@ -708,6 +752,7 @@ protected:
             it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
             it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
         }
+        );
 
         mpSolvingStrategy->InitializeSolutionStep();
         mpSolvingStrategy->Predict();
