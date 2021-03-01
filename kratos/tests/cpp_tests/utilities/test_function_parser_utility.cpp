@@ -70,16 +70,20 @@ KRATOS_TEST_CASE_IN_SUITE(GenericFunctionUtility2, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(FunctionParser, KratosCoreFastSuite)
 {
-    auto function1 = FunctionParser::GenerateFunctionSpace("x**2+y**2");
+    auto parser_function1 = FunctionParser("x**2+y**2");
+    auto function1 = parser_function1.GetFunctionSpace();
     KRATOS_CHECK_DOUBLE_EQUAL(function1(4.0,3.0,0.0), 25);
 
-    auto function2 = FunctionParser::GenerateFunction("3*t");
+    auto parser_function2 = FunctionParser("3*t");
+    auto function2 = parser_function2.GetFunction();
     KRATOS_CHECK_DOUBLE_EQUAL(function2(0.0,0.0,0.0,5.0), 15);
 
-    auto function3 = FunctionParser::GenerateFunctionInitialCoordinates("X**2+Y**2");
+    auto parser_function3 = FunctionParser("X**2+Y**2");
+    auto function3 = parser_function3.GetFunctionInitialCoordinates();
     KRATOS_CHECK_DOUBLE_EQUAL(function3(0.0,0.0,0.0,0.0,4.0,3.0,0.0), 25);
 
-    auto function4 = FunctionParser::GenerateFunction("(cos(x*pi)+sin(y*pi))*t");
+    auto parser_function4 = FunctionParser("(cos(x*pi)+sin(y*pi))*t");
+    auto function4 = parser_function4.GetFunction();
     KRATOS_CHECK_DOUBLE_EQUAL(function4(0.25,0.15,0.0,1.5), 1.5*(std::cos(0.25*Globals::Pi) + std::sin(0.15*Globals::Pi)));
 }
     
