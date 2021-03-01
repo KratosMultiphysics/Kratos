@@ -260,7 +260,7 @@ protected:
         }
 
         // Compute RHS contribution
-        noalias(rRHS_Contribution) -= prod(element_matrix_derivative, phi_elemental);
+        noalias(rRHS_Contribution) = -prod(element_matrix_derivative, phi_elemental);
 
         KRATOS_CATCH("")
     }
