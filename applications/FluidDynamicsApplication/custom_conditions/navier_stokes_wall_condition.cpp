@@ -25,7 +25,7 @@ namespace Kratos
  */
 template <>
 void NavierStokesWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
-                                                      ProcessInfo& rCurrentProcessInfo)
+                                                      const ProcessInfo& rCurrentProcessInfo) const 
 {
     const unsigned int NumNodes = 2;
     const unsigned int LocalSize = 6;
@@ -48,7 +48,7 @@ void NavierStokesWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rRes
  */
 template <>
 void NavierStokesWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
-                                                      ProcessInfo& rCurrentProcessInfo)
+                                                      const ProcessInfo& rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -71,7 +71,7 @@ void NavierStokesWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rRes
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -141,7 +141,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                   ProcessInfo& rCurrentProcessInfo)
+                                   const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -160,7 +160,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLeftHandSide(MatrixType
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                    ProcessInfo& rCurrentProcessInfo)
+                                    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -225,7 +225,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
  * @param rCurrentProcessInfo reference to the ProcessInfo
  */
 template<unsigned int TDim, unsigned int TNumNodes>
-int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     int Check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
@@ -233,16 +233,6 @@ int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrent
         return Check;
     }
     else {
-        // Check that all required variables have been registered
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-        KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY)
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-        KRATOS_CHECK_VARIABLE_KEY(PRESSURE)
-        KRATOS_CHECK_VARIABLE_KEY(DENSITY)
-        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY)
-        KRATOS_CHECK_VARIABLE_KEY(EXTERNAL_PRESSURE)
-        KRATOS_CHECK_VARIABLE_KEY(SLIP_LENGTH)
-
         // Checks on nodes
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
@@ -277,7 +267,7 @@ int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrent
  */
 template <>
 void NavierStokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = 2;
     const SizeType LocalSize = 6;
@@ -299,7 +289,7 @@ void NavierStokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofLis
 
 template <>
 void NavierStokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo) const 
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -318,6 +308,55 @@ void NavierStokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofLis
     }
 }
 
+template<unsigned int TDim, unsigned int TNumNodes>
+void NavierStokesWallCondition<TDim, TNumNodes>::Calculate(
+    const Variable< array_1d<double,3> >& rVariable,
+    array_1d<double,3>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    rOutput = ZeroVector(3);
+
+    if (rVariable == DRAG_FORCE) {
+        const auto& r_geom = GetGeometry();
+        const auto& r_integration_points = r_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        unsigned int n_gauss = r_integration_points.size();
+        Vector det_J_vect = ZeroVector(n_gauss);
+        r_geom.DeterminantOfJacobian(det_J_vect, GeometryData::GI_GAUSS_2);
+        const auto N_container = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+        // Calculate normal
+        array_1d<double,3> normal;
+        CalculateNormal(normal);
+        normal /= norm_2(normal);
+
+        // Finding parent element to retrieve viscous stresses
+        // Note that we assume in here that the shear stress is constant inside the element
+        auto& r_neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
+        KRATOS_ERROR_IF(r_neighbours.size() > 1) << "A condition was assigned more than one parent element." << std::endl;
+        KRATOS_ERROR_IF(r_neighbours.size() == 0) << "A condition was NOT assigned a parent element. "
+        << "This leads to errors for the slip condition [BEHR2004] "
+        << "Please execute the check_and_prepare_model_process_fluid process." << std::endl;
+
+        auto& r_parent = r_neighbours[0];
+        Vector shear_stress;
+        r_parent.Calculate(FLUID_STRESS, shear_stress, rCurrentProcessInfo);
+        array_1d<double,3> shear_stress_n;
+        ProjectViscousStress(shear_stress, normal, shear_stress_n);
+
+        // Loop the Gauss pts
+        for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            const double w = det_J_vect[i_gauss] * r_integration_points[i_gauss].Weight();
+            double p = 0.0;
+            const auto& r_N = row(N_container, i_gauss);
+            for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                p += r_N[i_node] * r_geom[i_node].FastGetSolutionStepValue(PRESSURE);
+            }
+            rOutput += w * (p * normal - shear_stress_n);
+        }
+    } else {
+        Condition::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
+}
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
@@ -470,7 +509,27 @@ void NavierStokesWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
     An *= 0.5;
 }
 
+template<>
+void NavierStokesWallCondition<2,2>::ProjectViscousStress(
+    const Vector& rViscousStress,
+    const array_1d<double,3> rNormal,
+    array_1d<double,3> rProjectedViscousStress)
+{
+    rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[2] * rNormal[1];
+    rProjectedViscousStress[1] = rViscousStress[2] * rNormal[0] + rViscousStress[1] * rNormal[1];
+    rProjectedViscousStress[2] = 0.0;
+}
 
+template<>
+void NavierStokesWallCondition<3,3>::ProjectViscousStress(
+    const Vector& rViscousStress,
+    const array_1d<double,3> rNormal,
+    array_1d<double,3> rProjectedViscousStress)
+{
+    rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[3] * rNormal[1] + rViscousStress[5] * rNormal[2];
+    rProjectedViscousStress[1] = rViscousStress[3] * rNormal[0] + rViscousStress[1] * rNormal[1] + rViscousStress[4] * rNormal[2];
+    rProjectedViscousStress[2] = rViscousStress[5] * rNormal[0] + rViscousStress[4] * rNormal[1] + rViscousStress[2] * rNormal[2];
+}
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipLHSContribution(  BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,

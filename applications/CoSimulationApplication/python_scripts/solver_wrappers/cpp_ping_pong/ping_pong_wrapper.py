@@ -20,7 +20,9 @@ class PingPongWrapper(CoSimulationSolverWrapper):
         settings_defaults = KM.Parameters("""{
             "main_model_part_name" : "",
             "domain_size" : 2,
-            "executable_name"  : ""
+            "executable_name"  : "",
+            "export_data"      : [ ],
+            "import_data"      : [ ]
         }""")
 
         self.settings["solver_wrapper_settings"].ValidateAndAssignDefaults(settings_defaults)
@@ -43,13 +45,26 @@ class PingPongWrapper(CoSimulationSolverWrapper):
         return 1.0
 
     def SolveSolutionStep(self):
+        for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ExportData(data_config)
+
         super().SolveSolutionStep()
         self.__RunExecutable()
+
+        for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ImportData(data_config)
 
     def _GetIOType(self):
         return self.settings["io_settings"]["type"].GetString()
 
     def __RunExecutable(self):
         command_txt = self.settings["solver_wrapper_settings"]["executable_name"].GetString()
-        print("Running : ", command_txt)
         self.rv = subprocess.Popen(command_txt, stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True, start_new_session=True)

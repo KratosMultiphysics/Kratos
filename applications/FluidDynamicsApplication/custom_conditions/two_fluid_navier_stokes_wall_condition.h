@@ -228,7 +228,7 @@ public:
      * @param rCurrentProcessInfo Reference to the ProcessInfo container
      * @return int 0 if successful
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access

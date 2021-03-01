@@ -74,7 +74,7 @@ void Initialize(
 {
     TFluidData::Initialize(rElement, rProcessInfo);
     const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
-    this->FillFromNodalData(Distance, DISTANCE, r_geometry);
+    this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
 
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
@@ -86,7 +86,7 @@ void Initialize(
  * @brief Fills the boundary condition data fields
  * This method needs to be called in cut elements. It fills the data structure fields related to the boundary
  * condition imposition (slip length for the slip formulation and penalty coefficient for both formulations).
- * @param rProcessInfo 
+ * @param rProcessInfo
  */
 void InitializeBoundaryConditionData(const ProcessInfo &rProcessInfo)
 {
@@ -98,10 +98,6 @@ void InitializeBoundaryConditionData(const ProcessInfo &rProcessInfo)
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
-    KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
-    KRATOS_CHECK_VARIABLE_KEY(SLIP_LENGTH);
-    KRATOS_CHECK_VARIABLE_KEY(PENALTY_COEFFICIENT);
-
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
     for (unsigned int i = 0; i < TFluidData::NumNodes; i++) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,r_geometry[i]);

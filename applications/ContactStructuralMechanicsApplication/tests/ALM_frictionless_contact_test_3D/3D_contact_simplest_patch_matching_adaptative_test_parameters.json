@@ -29,7 +29,6 @@
         "time_stepping"                      : {
             "time_step" : 1.3
         },
-        "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : false,
         "reform_dofs_at_each_step"           : true,

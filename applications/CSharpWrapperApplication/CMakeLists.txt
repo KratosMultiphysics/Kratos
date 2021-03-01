@@ -5,8 +5,8 @@ message("**** Configuring CSharpWrapperApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories(${CMAKE_SOURCE_DIR}/kratos)
-include_directories(${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+include_directories(${KRATOS_SOURCE_DIR}/kratos)
+include_directories(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 
 set(KRATOS_WRAPPER_SOURCES_CORE
         ## MAIN FILES

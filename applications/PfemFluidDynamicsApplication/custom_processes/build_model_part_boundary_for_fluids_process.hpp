@@ -35,7 +35,6 @@
 
 ///VARIABLES used:
 //Data:     MASTER_ELEMENTS(set), MASTER_NODES(set), NEIGHBOUR_ELEMENTS
-//StepData: RIGID_WALL
 //Flags:    (checked) CONTACT
 //          (set)     BOUNDARY(set)
 //          (modified)

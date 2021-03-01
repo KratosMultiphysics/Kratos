@@ -99,9 +99,6 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
                 domain.Initialize()
                 #domain.Check()
 
-        print(self._class_prefix()+" Ready")
-
-
     def InitializeDomains(self):
 
         print(self._class_prefix()+" Initialize Domains")

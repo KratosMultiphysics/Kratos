@@ -110,6 +110,14 @@ void BuildMatrix(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo
 }
 
 template<>
+void InitializeSystemVector<SparseSpaceType, DenseSpaceType>(
+    Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpVector,
+    const std::size_t VectorSize)
+{
+    KRATOS_ERROR << "this function was not yet implemented in Trilinos!" << std::endl;
+}
+
+template<>
 void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
     Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMappingMatrix,
     Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpInterfaceVectorOrigin,

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -467,8 +467,7 @@ template <class B, template <class> class C, template <class> class R>
 std::ostream& operator<<(std::ostream &os, const amg<B, C, R> &a)
 {
     typedef typename amg<B, C, R>::level level;
-    std::ios_base::fmtflags ff(os.flags());
-    auto fp = os.precision();
+    ios_saver ss(os);
 
     size_t sum_dof = 0;
     size_t sum_nnz = 0;
@@ -501,8 +500,6 @@ std::ostream& operator<<(std::ostream &os, const amg<B, C, R> &a)
             << "%)" << std::endl;
     }
 
-    os.flags(ff);
-    os.precision(fp);
     return os;
 }
 

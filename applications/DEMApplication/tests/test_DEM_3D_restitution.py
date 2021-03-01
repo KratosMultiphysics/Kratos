@@ -8,29 +8,17 @@ import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+import auxiliary_functions_for_tests
+
 this_working_dir_backup = os.getcwd()
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def CreateAndRunStageInOneOpenMPThread(my_obj, model, parameters_file_name):
-    omp_utils = KratosMultiphysics.OpenMPUtils()
-    if "OMP_NUM_THREADS" in os.environ:
-        initial_number_of_threads = os.environ['OMP_NUM_THREADS']
-        omp_utils.SetNumThreads(1)
-
-    with open(parameters_file_name,'r') as parameter_file:
-        project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-    my_obj(model, project_parameters).Run()
-
-    if "OMP_NUM_THREADS" in os.environ:
-        omp_utils.SetNumThreads(int(initial_number_of_threads))
-
-class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     def Initialize(self):
-        super(DEM3D_RestitutionTestSolution, self).Initialize()
+        super().Initialize()
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
@@ -40,11 +28,6 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
-
-    @classmethod
-    def CheckRestitution(self, reference, restitution_coefficient, tolerance):
-        if not (reference < abs(restitution_coefficient*tolerance) and reference > abs(restitution_coefficient/tolerance)):
-            raise ValueError('Incorrect value for COEFFICIENT_OF_RESTITUTION: expected value was '+ str(reference) + ' but received ' + str(restitution_coefficient))
 
     def Finalize(self):
         tolerance = 1.0001
@@ -57,8 +40,8 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
             Logger.PrintInfo("ref:",self.coeff)
             Logger.PrintInfo("upper bound:",restitution_coefficient*tolerance)
             Logger.PrintInfo("lower bound:",restitution_coefficient/tolerance)
-            self.CheckRestitution(self.coeff, restitution_coefficient, tolerance)
-        super(DEM3D_RestitutionTestSolution, self).Finalize()
+            self.assertAlmostEqual(self.coeff, restitution_coefficient, delta=tolerance)
+        super().Finalize()
 
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
@@ -165,14 +148,14 @@ class TestDEM3DRestitution(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        CreateAndRunStageInOneOpenMPThread(DEM3D_RestitutionTestSolution, model, parameters_file_name)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_RestitutionTestSolution, model, parameters_file_name, 1)
 
     @classmethod
     def test_DEM3D_restitution_2(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        CreateAndRunStageInOneOpenMPThread(DEM3D_RestitutionTestSolution_2, model, parameters_file_name)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_RestitutionTestSolution_2, model, parameters_file_name, 1)
 
 
     def tearDown(self):

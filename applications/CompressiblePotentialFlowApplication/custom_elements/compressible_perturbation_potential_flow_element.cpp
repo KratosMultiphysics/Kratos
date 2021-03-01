@@ -161,7 +161,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSoluti
 // Inquiry
 
 template <int Dim, int NumNodes>
-int CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -745,7 +745,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignRightHan
 {
     if (rData.distances[rRow] > 0.0){
         rRightHandSideVector[rRow] = rUpper_rhs(rRow);
-        rRightHandSideVector[rRow + NumNodes] = rWake_rhs(rRow);
+        rRightHandSideVector[rRow + NumNodes] = -rWake_rhs(rRow);
     }
     else{
         rRightHandSideVector[rRow] = rWake_rhs(rRow);

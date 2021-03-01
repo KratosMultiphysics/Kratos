@@ -2,22 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //                   Nelson Lafontaine
-//                    
 //
-
+//
 
 #if !defined(KRATOS_ALL_VARIABLES_DATA_VALUE_CONTAINER_H_INCLUDED )
 #define KRATOS_ALL_VARIABLES_DATA_VALUE_CONTAINER_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -25,18 +22,12 @@
 #include <cstddef>
 #include <cstring>
 
-
-
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
 #include "includes/kratos_components.h"
-
 
 
 namespace Kratos
@@ -482,7 +473,7 @@ private:
     {
         rSerializer.load("Offsets", mOffsets);
 
-		int size = KratosComponents<VariableData>::GetComponents().size(); 
+		int size = KratosComponents<VariableData>::GetComponents().size();
 		mpData = (BlockType*)malloc(mOffsets[size] * sizeof(BlockType));
 
 		for(KratosComponents<VariableData>::ComponentsContainerType::const_iterator i_variable = KratosComponents<VariableData>::GetComponents().begin() ;
@@ -541,6 +532,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ALL_VARIABLES_DATA_VALUE_CONTAINER_H_INCLUDED  defined 
-
-
+#endif // KRATOS_ALL_VARIABLES_DATA_VALUE_CONTAINER_H_INCLUDED  defined

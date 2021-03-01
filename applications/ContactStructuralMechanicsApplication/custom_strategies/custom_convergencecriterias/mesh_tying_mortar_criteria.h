@@ -232,4 +232,3 @@ private:
 }  // namespace Kratos
 
 #endif /* KRATOS_MESH_TYING_MORTAR_CRITERIA_H  defined */
-

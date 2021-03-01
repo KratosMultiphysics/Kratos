@@ -161,7 +161,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(const
 // Inquiry
 
 template <int Dim, int NumNodes>
-int CompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int CompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

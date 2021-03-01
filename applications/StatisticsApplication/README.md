@@ -103,7 +103,7 @@ Following example illustrates different methods used in different containers wit
                         "write_time_stamp"       : false,
                         "output_file_settings"   : {
                             "file_name"  : "<model_part_name>_<container>_<norm_type>_<method_name>.dat",
-                            "folder_name": "spatial_statistics_process",
+                            "output_path": "spatial_statistics_process",
                             "write_buffer_size" : -1
                         }
                     }
@@ -644,7 +644,7 @@ This is a seperate process, which can be included in the json file as an auxilia
         "write_time_stamp"       : true,
         "output_file_settings"   : {
             "file_name"  : "<model_part_name>_<container>_<norm_type>_<method_name>.dat",
-            "folder_name": "spatial_statistics_output",
+            "output_path": "spatial_statistics_output",
             "write_buffer_size" : -1
         }
     }

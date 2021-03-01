@@ -67,7 +67,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of CompressiblePerturbationPotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(CompressiblePerturbationPotentialFlowElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressiblePerturbationPotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -186,7 +186,7 @@ public:
     ///@name Inquiry
     ///@{
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output

@@ -527,6 +527,12 @@ public:
         return this->size();
     }
 
+    /// Returns number of points per direction.
+    virtual SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const
+    {
+        KRATOS_ERROR << "Trying to access PointsNumberInDirection from geometry base class." << std::endl;
+    }
+
     virtual SizeType max_size() const
     {
         return mPoints.max_size();
@@ -603,12 +609,6 @@ public:
         return mData.Has(rThisVariable);
     }
 
-    template<class TAdaptorType> bool Has(
-        const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return mData.Has(rThisVariable);
-    }
-
     /**
      * Set Data with SetValue and the Variable to set:
      */
@@ -638,94 +638,94 @@ public:
     ///@name Dynamic access to internals
     ///@{
 
-    /* Set s a certain value to the geometry,
+    /* Assigns a value to the geometry,
      * according to a variable.
      * Allows dynamic interfaces with each respective geometry.
      */
 
-    /// Set with bool
-    virtual void Set(
+    /// Assign with bool
+    virtual void Assign(
         const Variable<bool>& rVariable,
         const bool Input) {}
 
-    /// Set with int
-    virtual void Set(
+    /// Assign with int
+    virtual void Assign(
         const Variable<int>& rVariable,
         const int Input) {}
 
-    /// Set with double
-    virtual void Set(
+    /// Assign with double
+    virtual void Assign(
         const Variable<double>& rVariable,
         const double Input) {}
 
-    /// Set with array_1d<double, 2>
-    virtual void Set(
+    /// Assign with array_1d<double, 2>
+    virtual void Assign(
         const Variable<array_1d<double, 2>>& rVariable,
         const array_1d<double, 2>& rInput) {}
 
-    /// Set with array_1d<double, 3>
-    virtual void Set(
+    /// Assign with array_1d<double, 3>
+    virtual void Assign(
         const Variable<array_1d<double, 3>>& rVariable,
         const array_1d<double, 3>& rInput) {}
 
-    /// Set with array_1d<double, 6>
-    virtual void Set(
+    /// Assign with array_1d<double, 6>
+    virtual void Assign(
         const Variable<array_1d<double, 6>>& rVariable,
         const array_1d<double, 6>& rInput) {}
 
-    /// Set with Vector
-    virtual void Set(
+    /// Assign with Vector
+    virtual void Assign(
         const Variable<Vector>& rVariable,
         const Vector& rInput) {}
 
-    /// Set with Matrix
-    virtual void Set(
+    /// Assign with Matrix
+    virtual void Assign(
         const Variable<Matrix>& rVariable,
         const Matrix& rInput) {}
 
-    /* Calculate either provides get or calculates a certain value,
+    /* Calculate either provides, gets or calculates a certain value,
      * according to a variable.
      */
 
     /// Calculate with bool
     virtual void Calculate(
         const Variable<bool>& rVariable,
-        bool& rOutput) {}
+        bool& rOutput) const {}
 
     /// Calculate with int
     virtual void Calculate(
         const Variable<int>& rVariable,
-        int& rOutput) {}
+        int& rOutput) const {}
 
     /// Calculate with double
     virtual void Calculate(
         const Variable<double>& rVariable,
-        double& rOutput) {}
+        double& rOutput) const {}
 
     /// Calculate with array_1d<double, 2>
     virtual void Calculate(
         const Variable<array_1d<double, 2>>& rVariable,
-        array_1d<double, 2>& rOutput) {}
+        array_1d<double, 2>& rOutput) const {}
 
     /// Calculate with array_1d<double, 3>
     virtual void Calculate(
         const Variable<array_1d<double, 3>>& rVariable,
-        array_1d<double, 3>& rOutput) {}
+        array_1d<double, 3>& rOutput) const {}
 
     /// Calculate with array_1d<double, 6>
     virtual void Calculate(
         const Variable<array_1d<double, 6>>& rVariable,
-        array_1d<double, 6>& rOutput) {}
+        array_1d<double, 6>& rOutput) const {}
 
     /// Calculate with Vector
     virtual void Calculate(
         const Variable<Vector>& rVariable,
-        Vector& rOutput) {}
+        Vector& rOutput) const {}
 
     /// Calculate with Matrix
     virtual void Calculate(
         const Variable<Matrix>& rVariable,
-        Matrix& rOutput) {}
+        Matrix& rOutput) const {}
 
     ///@}
     ///@name Inquiry
@@ -1136,6 +1136,20 @@ public:
     {
         return mpGeometryData->LocalSpaceDimension();
     }
+
+    ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the geometry in a certain direction
+    virtual SizeType PolynomialDegree(IndexType LocalDirectionIndex) const
+    {
+        KRATOS_ERROR << "Trying to access PolynomialDegree from geometry base class." << std::endl;
+    }
+
+    ///@}
+    ///@name Geometrical Informations
+    ///@{
 
     /** This method calculate and return Length or charactereistic
      * length of this geometry depending to it's dimension. For one

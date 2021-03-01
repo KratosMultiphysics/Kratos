@@ -207,12 +207,6 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
                 }
             }
 
-            // Reconstruct the animation on slave-dofs
-            if (mrModelPart.NumberOfMasterSlaveConstraints() > 0) {
-                ConstraintUtilities::ResetSlaveDofs(mrModelPart);
-                ConstraintUtilities::ApplyConstraints(mrModelPart);
-            }
-
             p_eigen_io_wrapper->PrintOutput(label, i, requested_double_results, requested_vector_results);
         }
     }
@@ -240,8 +234,6 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
                 << variable << std::endl;
 
             rRequestedVectorResults.push_back(variable);
-        } else if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) ) {
-            KRATOS_ERROR << "Vector Components cannot be querried, name: " << variable_name << std::endl;
         } else {
             KRATOS_ERROR << "Invalid Type of Variable, name: " << variable_name << std::endl;
         }

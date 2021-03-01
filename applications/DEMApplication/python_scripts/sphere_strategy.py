@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
@@ -6,7 +5,7 @@ import math
 import time
 import KratosMultiphysics.DEMApplication.cluster_file_reader as cluster_file_reader
 
-class ExplicitStrategy(object):
+class ExplicitStrategy():
 
     #def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):

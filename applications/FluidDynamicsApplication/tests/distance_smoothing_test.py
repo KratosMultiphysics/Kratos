@@ -25,6 +25,7 @@ class TestDistanceSmoothing(KratosUnittest.TestCase):
         model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
         model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
         model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.1)
+        model_part.ProcessInfo.SetValue(KratosCFD.SMOOTHING_COEFFICIENT, 1.0e2)
 
         model_part.SetBufferSize(2)
 
@@ -91,12 +92,12 @@ class TestDistanceSmoothing(KratosUnittest.TestCase):
         for _ in range(1): # Distance smoothing can be called multiple times
             smoothing_process.Execute()
 
-        node = (model_part.Nodes)[15]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.022431478320719324)
-        node = (model_part.Nodes)[35]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.010410288780750145)
-        node = (model_part.Nodes)[43]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.029283667174290724)
+        node = (model_part.Nodes)[25]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.006756047919670317)
+        node = (model_part.Nodes)[36]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.01628095541245749)
+        node = (model_part.Nodes)[42]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.026060868817688435)
 
         # gid_output = GiDOutputProcess(model_part,
         #                            "smoothing_test_2D",

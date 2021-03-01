@@ -174,7 +174,7 @@ void RigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::GetValuesVector(Vector& rValues, int Step)
+void RigidBodySegregatedVElement::GetValuesVector(Vector& rValues, int Step) const
 {
   KRATOS_TRY
 
@@ -202,7 +202,7 @@ void RigidBodySegregatedVElement::GetValuesVector(Vector& rValues, int Step)
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::GetFirstDerivativesVector(Vector& rValues, int Step)
+void RigidBodySegregatedVElement::GetFirstDerivativesVector(Vector& rValues, int Step) const 
 {
   KRATOS_TRY
 
@@ -230,7 +230,7 @@ void RigidBodySegregatedVElement::GetFirstDerivativesVector(Vector& rValues, int
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::GetSecondDerivativesVector(Vector& rValues, int Step)
+void RigidBodySegregatedVElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
   KRATOS_TRY
 
@@ -559,7 +559,7 @@ void RigidBodySegregatedVElement::GetTimeIntegrationParameters(double& rP0,doubl
 //************************************************************************************
 //************************************************************************************
 
-RigidBodySegregatedVElement::SizeType RigidBodySegregatedVElement::GetDofsSize()
+RigidBodySegregatedVElement::SizeType RigidBodySegregatedVElement::GetDofsSize() const
 {
   KRATOS_TRY
 

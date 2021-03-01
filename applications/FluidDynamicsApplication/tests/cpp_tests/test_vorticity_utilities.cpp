@@ -96,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DQValue, FluidDynamicsApplicationFa
     TriangleModelPartForVorticityTests(ModelPart);
 
     std::vector<double> QValues;
-    ModelPart.ElementsBegin()->GetValueOnIntegrationPoints(Q_VALUE,QValues,ModelPart.GetProcessInfo());
+    ModelPart.ElementsBegin()->CalculateOnIntegrationPoints(Q_VALUE,QValues,ModelPart.GetProcessInfo());
 
     KRATOS_CHECK_EQUAL(QValues.size(),3);
     for (unsigned int i = 0; i < QValues.size(); i++) {
@@ -110,7 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DVorticityMagnitude, FluidDynamicsA
     TriangleModelPartForVorticityTests(ModelPart);
 
     std::vector<double> VorticityMagnitudes;
-    ModelPart.ElementsBegin()->GetValueOnIntegrationPoints(VORTICITY_MAGNITUDE,VorticityMagnitudes,ModelPart.GetProcessInfo());
+    ModelPart.ElementsBegin()->CalculateOnIntegrationPoints(VORTICITY_MAGNITUDE,VorticityMagnitudes,ModelPart.GetProcessInfo());
 
     KRATOS_CHECK_EQUAL(VorticityMagnitudes.size(),3);
     for (unsigned int i = 0; i < VorticityMagnitudes.size(); i++) {
@@ -124,7 +124,7 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DVorticity, FluidDynamicsApplicatio
     TriangleModelPartForVorticityTests(ModelPart);
 
     std::vector< array_1d<double,3> > Vorticities;
-    ModelPart.ElementsBegin()->GetValueOnIntegrationPoints(VORTICITY,Vorticities,ModelPart.GetProcessInfo());
+    ModelPart.ElementsBegin()->CalculateOnIntegrationPoints(VORTICITY,Vorticities,ModelPart.GetProcessInfo());
 
     KRATOS_CHECK_EQUAL(Vorticities.size(),3);
     for (unsigned int i = 0; i < Vorticities.size(); i++) {
@@ -141,7 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities3DQValue, FluidDynamicsApplicationFa
     TetrahedraModelPartForVorticityTests(ModelPart);
 
     std::vector<double> QValues;
-    ModelPart.ElementsBegin()->GetValueOnIntegrationPoints(Q_VALUE,QValues,ModelPart.GetProcessInfo());
+    ModelPart.ElementsBegin()->CalculateOnIntegrationPoints(Q_VALUE,QValues,ModelPart.GetProcessInfo());
 
     KRATOS_CHECK_EQUAL(QValues.size(),4);
     for (unsigned int i = 0; i < QValues.size(); i++) {
@@ -155,7 +155,7 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities3DVorticityMagnitude, FluidDynamicsA
     TetrahedraModelPartForVorticityTests(ModelPart);
 
     std::vector<double> VorticityMagnitudes;
-    ModelPart.ElementsBegin()->GetValueOnIntegrationPoints(VORTICITY_MAGNITUDE,VorticityMagnitudes,ModelPart.GetProcessInfo());
+    ModelPart.ElementsBegin()->CalculateOnIntegrationPoints(VORTICITY_MAGNITUDE,VorticityMagnitudes,ModelPart.GetProcessInfo());
 
     KRATOS_CHECK_EQUAL(VorticityMagnitudes.size(),4);
     for (unsigned int i = 0; i < VorticityMagnitudes.size(); i++) {
@@ -169,7 +169,7 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities3DVorticity, FluidDynamicsApplicatio
     TetrahedraModelPartForVorticityTests(ModelPart);
 
     std::vector< array_1d<double,3> > Vorticities;
-    ModelPart.ElementsBegin()->GetValueOnIntegrationPoints(VORTICITY,Vorticities,ModelPart.GetProcessInfo());
+    ModelPart.ElementsBegin()->CalculateOnIntegrationPoints(VORTICITY,Vorticities,ModelPart.GetProcessInfo());
 
     KRATOS_CHECK_EQUAL(Vorticities.size(),4);
     for (unsigned int i = 0; i < Vorticities.size(); i++) {

@@ -480,6 +480,113 @@ Begin Conditions	SurfaceCondition3D3N
 	128	1	6	28	11
 End Conditions
 
+
+// ------------------------
+// ----- nodal values -----
+// ------------------------
+// Scalar variable
+Begin NodalData BULK_MODULUS
+1  1 1.0
+10 1 100.0
+55 1 3025
+81 1 6561
+End NodalData
+
+// Array3 variable
+Begin NodalData NODAL_VAUX
+1  0 [3] (2.5,  -22, 2)
+10 0 [3] (11.5, -13, 20)
+55 0 [3] (56.5, 32, 110)
+81 0 [3] (82.5, 58, 162)
+End NodalData
+
+// Vector variable
+Begin NodalData EXTERNAL_FORCES_VECTOR
+1  0 [3] (2,  -22, 2)
+10 0 [3] (11, -13, 20)
+55 0 [5] (56, 32, 110, 82.5, 3025)
+81 0 [6] (82, 58, 162, 121.5, 6561, 32.4)
+End NodalData
+
+// Matrix variable
+Begin NodalData LOCAL_AXES_MATRIX
+1 0  [2,3] ((1,2,3),(2,3,4))
+10 0 [2,3] ((10,11,12),(11,12,13))
+55 0 [2,3] ((55,56,57),(56,57,58))
+81 0 [2,3] ((81,82,83),(82,83,84))
+End NodalData
+
+// ----------------------------
+// ----- elemental values -----
+// ----------------------------
+// Scalar variable
+Begin ElementalData TEMPERATURE
+5  25
+64  4096
+33  1089
+214  45796
+End ElementalData
+
+// Array3 variable
+Begin ElementalData MESH_VELOCITY
+5 [3] (6.5, -18, 10)
+64 [3] (65.5, 41, 128)
+33 [3] (34.5, 10, 66)
+214 [3] (215.5, 191, 428)
+End ElementalData
+
+// Vector variable
+Begin ElementalData INITIAL_STRAIN
+5 [3] (6, -18, 10)
+64 [6] (65, 41, 128, 96.0, 4096, 25.6)
+33 [5] (34, 10, 66, 49.5, 1089)
+214 [6] (215, 191, 428, 321.0, 45796, 85.6)
+End ElementalData
+
+// Matrix variable
+Begin ElementalData LOCAL_INERTIA_TENSOR
+5 [2,3] ((5,6,7),(6,7,8))
+64 [2,3] ((64,65,66),(65,66,67))
+33 [2,3] ((33,34,35),(34,35,36))
+214 [2,3] ((214,215,216),(215,216,217))
+End ElementalData
+
+// ------------------------------
+// ----- conditional values -----
+// ------------------------------
+// Scalar variable
+Begin ConditionalData TEMPERATURE
+2  4
+13  169
+22  484
+121  14641
+End ConditionalData
+
+// Array3 variable
+Begin ConditionalData MESH_VELOCITY
+2 [3] (3.5, -21, 4)
+13 [3] (14.5, -10, 26)
+22 [3] (23.5, -1, 44)
+121 [3] (122.5, 98, 242)
+End ConditionalData
+
+// Vector variable
+Begin ConditionalData INITIAL_STRAIN
+2 [3] (3, -21, 4)
+13 [4] (14, -10, 26, 19.5)
+22 [4] (23, -1, 44, 33.0)
+121 [6] (122, 98, 242, 181.5, 14641, 48.4)
+End ConditionalData
+
+// Matrix variable
+Begin ConditionalData LOCAL_INERTIA_TENSOR
+2 [2,3] ((2,3,4),(3,4,5))
+13 [2,3] ((13,14,15),(14,15,16))
+22 [2,3] ((22,23,24),(23,24,25))
+121 [2,3] ((121,122,123),(122,123,124))
+End ConditionalData
+
+
 Begin SubModelPart	SkinModelPart
 	Begin SubModelPartData
 	End SubModelPartData

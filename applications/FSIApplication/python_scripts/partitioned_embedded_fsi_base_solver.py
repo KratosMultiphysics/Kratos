@@ -21,35 +21,15 @@ def CreateSolver(model, project_parameters):
 
 class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
-    def _ValidateSettings(self, project_parameters):
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "echo_level": 0,
-            "parallel_type": "OpenMP",
-            "solver_type": "partitioned_embedded",
-            "coupling_scheme": "dirichlet_neumann",
-            "structure_solver_settings": {
-            },
-            "fluid_solver_settings":{
-            },
-            "coupling_settings":{
-            }
-        }""")
-
-        project_parameters.ValidateAndAssignDefaults(default_settings)
-
+    def __init__(self, model, project_parameters):
+        # TODO: Remove this as soon as the MPCs are implemented in MPI
+        # This has to be done prior to the defaults check to avoid the structural solver to throw an error in MPI
         if not project_parameters["structure_solver_settings"].Has("multi_point_constraints_used"):
             project_parameters["structure_solver_settings"].AddEmptyValue("multi_point_constraints_used")
             project_parameters["structure_solver_settings"]["multi_point_constraints_used"].SetBool(False)
 
-        return project_parameters
-
-    def __init__(self, model, project_parameters):
-        # Validate settings
-        project_parameters = self._ValidateSettings(project_parameters)
-
         # Call the base Python solver constructor
-        super(PartitionedEmbeddedFSIBaseSolver,self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
         # Auxiliar variables
         self.parallel_type = self.settings["parallel_type"].GetString()
@@ -71,6 +51,45 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
         KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Fluid solver construction finished')
         KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Partitioned embedded FSI base solver construction finished')
+
+    @classmethod
+    def GetDefaultParameters(cls):
+
+        # Note that only the coupling settings are validated
+        # The subdomain solver settings will be validated while instantiating these
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+            "echo_level": 0,
+            "parallel_type": "OpenMP",
+            "solver_type": "partitioned_embedded",
+            "coupling_scheme": "dirichlet_neumann",
+            "structure_solver_settings": {
+            },
+            "fluid_solver_settings":{
+            },
+            "coupling_settings":{
+                "coupling_strategy_settings": {
+                    "abs_cut_off_tol": 1e-06,
+                    "solver_type": "MVQN",
+                    "w_0": 0.5
+                },
+                "nl_max_it": 30,
+                "nl_tol": 1e-07,
+                "structure_interfaces_list": []
+            }
+        }""")
+
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
+        return default_settings
+
+    def ValidateSettings(self):
+        default_settings = self.GetDefaultParameters()
+
+        ## Base class settings validation
+        super().ValidateSettings()
+
+        ## Validate coupling settings
+        self.settings["coupling_settings"].ValidateAndAssignDefaults(default_settings["coupling_settings"])
 
     def GetMinimumBufferSize(self):
         buffer_fluid = self.fluid_solver.GetMinimumBufferSize()

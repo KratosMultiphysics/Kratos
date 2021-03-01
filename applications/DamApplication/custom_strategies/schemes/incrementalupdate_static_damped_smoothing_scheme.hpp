@@ -221,25 +221,25 @@ public:
     // Note: this is in a parallel loop
 
     void CalculateSystemContributions(
-        Element::Pointer rCurrentElement,
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement) -> CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread], CurrentProcessInfo);
 
         this->AddDampingToLHS (LHS_Contribution, mDampingMatrix[thread], CurrentProcessInfo);
 
         this->AddDampingToRHS (rCurrentElement, RHS_Contribution, mDampingMatrix[thread], CurrentProcessInfo);
 
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -249,22 +249,22 @@ public:
 // Note: this is in a parallel loop
 
     void Calculate_RHS_Contribution(
-        Element::Pointer rCurrentElement,
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement) -> CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread], CurrentProcessInfo);
 
         this->AddDampingToRHS (rCurrentElement, RHS_Contribution, mDampingMatrix[thread], CurrentProcessInfo);
 
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -275,22 +275,22 @@ public:
 // Note: this is in a parallel loop
 
     void Calculate_LHS_Contribution(
-        Element::Pointer rCurrentElement,
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement) -> CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement) -> CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread], CurrentProcessInfo);
 
         this->AddDampingToLHS (LHS_Contribution, mDampingMatrix[thread], CurrentProcessInfo);
 
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -315,7 +315,7 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void AddDampingToLHS(LocalSystemMatrixType& LHS_Contribution,LocalSystemMatrixType& C,ProcessInfo& CurrentProcessInfo)
+    void AddDampingToLHS(LocalSystemMatrixType& LHS_Contribution, LocalSystemMatrixType& C, const ProcessInfo& CurrentProcessInfo)
     {
         // adding damping contribution
         if (C.size1() != 0)
@@ -326,14 +326,17 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void AddDampingToRHS(Element::Pointer rCurrentElement,LocalSystemVectorType& RHS_Contribution, LocalSystemMatrixType& C,ProcessInfo& CurrentProcessInfo)
+    void AddDampingToRHS(Element& rCurrentElement,
+                         LocalSystemVectorType& RHS_Contribution,
+                         LocalSystemMatrixType& C,
+                         const ProcessInfo& CurrentProcessInfo)
     {
         int thread = OpenMPUtils::ThisThread();
 
         //adding damping contribution
         if (C.size1() != 0)
         {
-            rCurrentElement->GetFirstDerivativesVector(mVelocityVector[thread], 0);
+            rCurrentElement.GetFirstDerivativesVector(mVelocityVector[thread], 0);
 
             noalias(RHS_Contribution) -= prod(C, mVelocityVector[thread]);
 

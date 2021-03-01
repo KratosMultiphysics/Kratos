@@ -92,26 +92,6 @@ void AddKratosComponent(std::string const& Name, Variable<std::string> const& Th
     KratosComponents<Variable<std::string> >::Add(Name, ThisComponent);
 }
 
-void AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > const& ThisComponent)
-{
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > const& ThisComponent)
-{
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > const& ThisComponent)
-{
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > const& ThisComponent)
-{
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >::Add(Name, ThisComponent);
-}
-
 void AddKratosComponent(std::string const& Name, Variable<Flags> const& ThisComponent)
 {
     KratosComponents<Variable<Flags> >::Add(Name, ThisComponent);
@@ -159,10 +139,6 @@ template class KratosComponents<Variable<Quaternion<double> > >;
 template class KratosComponents<Variable<Vector> >;
 template class KratosComponents<Variable<Matrix> >;
 template class KratosComponents<Variable<std::string> >;
-template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
-template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >;
-template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >;
-template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >;
 template class KratosComponents<Variable<Flags> >;
 template class KratosComponents<Flags>;
 template class KratosComponents<DataCommunicator>;

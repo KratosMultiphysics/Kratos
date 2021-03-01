@@ -26,6 +26,7 @@
 #include "linear_solvers/amgcl_solver.h"
 #include "linear_solvers/amgcl_ns_solver.h"
 #include "linear_solvers/scaling_solver.h"
+#include "linear_solvers/monotonicity_preserving_solver.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "spaces/ublas_space.h"
 
@@ -49,6 +50,7 @@ namespace Kratos
         typedef SkylineLUCustomScalarSolver<ComplexSpaceType, ComplexLocalSpaceType> SkylineLUComplexSolverType;
 
         typedef ScalingSolver<SpaceType,  LocalSpaceType> ScalingSolverType;
+        typedef MonotonicityPreservingSolver<SpaceType,  LocalSpaceType> MonotonicityPreservingSolverType;
 
         //NOTE: here we must create persisting objects for the linear solvers
         static auto CGSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,CGSolverType>();
@@ -59,6 +61,7 @@ namespace Kratos
         static auto AMGCLSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,AMGCLSolverType>();
         static auto AMGCL_NS_SolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,AMGCL_NS_SolverType>();
         static auto ScalingSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,ScalingSolverType>();
+        static auto MonotonicityPreservingSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,MonotonicityPreservingSolverType>();
         static auto SkylineLUComplexSolverFactory = StandardLinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, SkylineLUComplexSolverType>();
 
         //registration of linear solvers
@@ -71,6 +74,7 @@ namespace Kratos
         KRATOS_REGISTER_LINEAR_SOLVER("amgcl", AMGCLSolverFactory);
         KRATOS_REGISTER_LINEAR_SOLVER("amgcl_ns",AMGCL_NS_SolverFactory );
         KRATOS_REGISTER_LINEAR_SOLVER("scaling",ScalingSolverFactory );
+        KRATOS_REGISTER_LINEAR_SOLVER("monotonicity_preserving",MonotonicityPreservingSolverFactory );
         KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("skyline_lu_complex", SkylineLUComplexSolverFactory);
 
     };

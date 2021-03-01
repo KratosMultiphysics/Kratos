@@ -7,9 +7,9 @@ include(pybind11Tools)
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/CompressiblePotentialFlowApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/CompressiblePotentialFlowApplication )
 
 # generate variables with the sources
 file( GLOB_RECURSE KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE

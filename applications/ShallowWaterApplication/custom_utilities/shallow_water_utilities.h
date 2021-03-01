@@ -48,9 +48,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * @ingroup ShallowWaterApplication
+ * @class ShallowWaterUtilities
+ * @brief This class is a wrapper of useful utilities for shallow water computations
+ */
 class KRATOS_API(SHALLOW_WATER_APPLICATION) ShallowWaterUtilities
 {
 public:
@@ -59,6 +61,10 @@ public:
 
     /// Pointer definition of ShallowWaterUtilities
     KRATOS_CLASS_POINTER_DEFINITION(ShallowWaterUtilities);
+
+    typedef Node<3> NodeType;
+
+    typedef Geometry<NodeType> GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -81,11 +87,19 @@ public:
 
     void ComputeHeightFromFreeSurface(ModelPart& rModelPart);
 
-    void ComputeVelocity(ModelPart& rModelPart);
+    void ComputeVelocity(ModelPart& rModelPart, bool PerformProjection = false);
+
+    void ComputeSmoothVelocity(ModelPart& rModelPart);
 
     void ComputeMomentum(ModelPart& rModelPart);
 
+    void ComputeEnergy(ModelPart& rModelPart);
+
     void ComputeAccelerations(ModelPart& rModelPart);
+
+    double InverseHeight(const double Height, const double Epsilon);
+
+    double WetFraction(double Height, double Epsilon);
 
     void FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart);
 
@@ -96,24 +110,20 @@ public:
     void ResetDryDomain(ModelPart& rModelPart, double Thickness = 0.0);
 
     template<class TContainerType>
-    void DeactivateDryEntities(TContainerType& rContainer, Flags WetFlag)
+    void CopyFlag(Flags OriginFlag, Flags DestinationFlag, TContainerType& rContainer)
     {
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rContainer.size()); ++i)
         {
             auto it = rContainer.begin() + i;
-            it->Set(ACTIVE, it->Is(WetFlag));
+            it->Set(DestinationFlag, it->Is(OriginFlag));
         }
     }
-
-    void ComputeVisualizationWaterHeight(ModelPart& rModelPart, Flags WetFlag, double SeaWaterLevel = 0.0);
-
-    void ComputeVisualizationWaterSurface(ModelPart& rModelPart);
 
     void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
 
     template<class TVarType>
-    void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, TVarType& rVariable)
+    void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, const TVarType& rVariable)
     {
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
@@ -124,6 +134,16 @@ public:
     }
 
     void SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue);
+
+    /*
+     * @brief This method sets the z-coordinate of the mesh to zero
+     */
+    void SetMeshZCoordinateToZero(ModelPart& rModelPart);
+
+    /*
+     * @brief This method moves the z-coordinate of the mesh according to a variable
+     */
+    void SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable);
 
     ///@}
     ///@name Access
@@ -144,6 +164,13 @@ public:
     ///@name Friends
     ///@{
 
+
+    ///@}
+private:
+    ///@name Operations
+    ///@{
+
+    void CalculateMassMatrix(Matrix& rMassMatrix, const GeometryType& rGeometry);
 
     ///@}
 

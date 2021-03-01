@@ -9,12 +9,66 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
 # import utilities
-from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
+
+class StabilizedFormulation(object):
+    """Helper class to define stabilization-dependent parameters."""
+    def __init__(self, settings):
+        self.element_name = None
+        self.element_has_nodal_properties = False
+        self.process_data = {}
+
+        if settings.Has("element_type"):
+            element_type = settings["element_type"].GetString()
+            if element_type == "vms":
+                self._SetUpClassicVMS(settings)
+            elif element_type == "qsvms":
+                self._SetUpQSVMS(settings)
+            else:
+                raise RuntimeError("Unknown element_type. [ element_type = \"" + element_type + "\"")
+        else:
+            print(settings)
+            raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
+
+    def SetProcessInfo(self, model_part):
+        for variable,value in self.process_data.items():
+            model_part.ProcessInfo[variable] = value
+
+    def _SetUpClassicVMS(self, settings):
+        default_settings = Kratos.Parameters(r"""{
+            "element_type": "vms",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau": 0.01
+        }""")
+
+        self.element_name = 'VMS'
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        # set the nodal material properties flag
+        self.element_has_nodal_properties = True
+
+        self.process_data[Kratos.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
+        use_oss = settings["use_orthogonal_subscales"].GetBool()
+        self.process_data[Kratos.OSS_SWITCH] = int(use_oss)
+
+    def _SetUpQSVMS(self, settings):
+        default_settings = Kratos.Parameters(r"""{
+            "element_type": "qsvms",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau": 0.0,
+            "element_manages_time_integration": false
+        }""")
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "QSVMS"
+
+        self.process_data[Kratos.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
+        use_oss = settings["use_orthogonal_subscales"].GetBool()
+        self.process_data[Kratos.OSS_SWITCH] = int(use_oss)
 
 class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
@@ -51,8 +105,11 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             "move_mesh_flag": false,
             "velocity_relaxation":0.9,
             "pressure_relaxation":0.9,
-            "oss_switch": 0,
-            "dynamic_tau": 0.01
+            "flow_solver_formulation": {
+                "element_type": "vms",
+                "use_orthogonal_subscales": false,
+                "dynamic_tau": 0.01
+            }
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -60,9 +117,12 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         self.min_buffer_size = 2
         self.echo_level = settings["echo_level"].GetInt()
 
+        self.flow_solver_formulation = StabilizedFormulation(settings["flow_solver_formulation"])
+        self.flow_solver_formulation.SetProcessInfo(self.GetBaseModelPart())
+
         self.SetMaxCouplingIterations(1)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Construction of formulation finished.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Construction of formulation finished.")
 
     def AddVariables(self):
         base_model_part = self.GetBaseModelPart()
@@ -72,8 +132,6 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         base_model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
         base_model_part.AddNodalSolutionStepVariable(Kratos.IS_STRUCTURE)
         base_model_part.AddNodalSolutionStepVariable(Kratos.DISPLACEMENT)
-        base_model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
-        base_model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
         base_model_part.AddNodalSolutionStepVariable(Kratos.BODY_FORCE)
         base_model_part.AddNodalSolutionStepVariable(Kratos.NODAL_AREA)
         base_model_part.AddNodalSolutionStepVariable(Kratos.NODAL_H)
@@ -85,10 +143,13 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         base_model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
         base_model_part.AddNodalSolutionStepVariable(Kratos.Y_WALL)
         base_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
-        base_model_part.AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
         base_model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Added solution step variables.")
+        if (self.flow_solver_formulation.element_name == "VMS"):
+            base_model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+            base_model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step variables.")
 
     def AddDofs(self):
         base_model_part = self.GetBaseModelPart()
@@ -97,14 +158,16 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         Kratos.VariableUtils().AddDof(Kratos.VELOCITY_Z, Kratos.REACTION_Z, base_model_part)
         Kratos.VariableUtils().AddDof(Kratos.PRESSURE, Kratos.REACTION_WATER_PRESSURE, base_model_part)
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Added dofs.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Added dofs.")
 
     def PrepareModelPart(self):
         self.monolithic_model_part = CreateRansFormulationModelPart(
-            self,
-            "VMS",
+            self.GetComputingModelPart(),
+            self.__class__.__name__,
+            self.GetDomainSize(),
+            self.flow_solver_formulation.element_name,
             self.condition_name)
-        Kratos.Logger.PrintInfo(self.GetName(), "Created formulation model part.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Created formulation model part.")
 
     def Initialize(self):
         model_part = self.GetBaseModelPart()
@@ -116,7 +179,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         settings = self.GetParameters()
 
         if (self.IsPeriodic()):
-            if (self.domain_size == 2):
+            if (self.GetDomainSize() == 2):
                 periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE]
             else:
                 periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z, Kratos.PRESSURE]
@@ -124,30 +187,34 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                                          self.monolithic_model_part,
                                          periodic_variables_list)
 
-        conv_criteria = GetKratosObjectType("MixedGenericCriteria")(
+        conv_criteria_type = GetKratosObjectPrototype("MixedGenericCriteria")
+        conv_criteria = conv_criteria_type(
             [(Kratos.VELOCITY, settings["relative_velocity_tolerance"].GetDouble(), settings["absolute_velocity_tolerance"].GetDouble()),
              (Kratos.PRESSURE, settings["relative_pressure_tolerance"].GetDouble(), settings["absolute_pressure_tolerance"].GetDouble())])
 
         if self.is_steady_simulation:
-            scheme = GetKratosObjectType("ResidualBasedSimpleSteadyScheme")(
+            scheme_type = GetKratosObjectPrototype("ResidualBasedSimpleSteadyScheme")
+            scheme = scheme_type(
                 settings["velocity_relaxation"].GetDouble(),
                 settings["pressure_relaxation"].GetDouble(),
-                self.domain_size)
+                self.GetDomainSize())
         else:
-            scheme = GetKratosObjectType("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")(
+            scheme_type = GetKratosObjectPrototype("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")
+            scheme = scheme_type(
                 bossak_alpha,
                 settings["move_mesh_strategy"].GetInt(),
-                self.domain_size)
+                self.GetDomainSize())
 
-        linear_solver = GetKratosObjectType("LinearSolverFactory")(
-            settings["linear_solver_settings"])
+        linear_solver_factory = GetKratosObjectPrototype("LinearSolverFactory")
+        linear_solver = linear_solver_factory(settings["linear_solver_settings"])
 
         builder_and_solver = CreateBlockBuilderAndSolver(
             linear_solver,
             self.IsPeriodic(),
             self.GetCommunicator())
 
-        self.solver = GetKratosObjectType("ResidualBasedNewtonRaphsonStrategy")(
+        solver_type = GetKratosObjectPrototype("ResidualBasedNewtonRaphsonStrategy")
+        self.solver = solver_type(
             self.monolithic_model_part,
             scheme,
             conv_criteria,
@@ -160,29 +227,22 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         self.solver.SetEchoLevel(self.echo_level)
         conv_criteria.SetEchoLevel(self.echo_level)
 
-        process_info.SetValue(Kratos.DYNAMIC_TAU, settings["dynamic_tau"].GetDouble())
-        process_info.SetValue(Kratos.OSS_SWITCH, settings["oss_switch"].GetInt())
-
         super().Initialize()
-        self.solver.Initialize()
 
-        Kratos.Logger.PrintInfo(self.GetName(), "Solver initialization finished.")
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
-
-    def Finalize(self):
-        self.solver.Clear()
-        super().Finalize()
 
     def SolveCouplingStep(self):
         if (self.IsBufferInitialized()):
             max_iterations = self.GetMaxCouplingIterations()
             for iteration in range(max_iterations):
+                self.ExecuteBeforeCouplingSolveStep()
                 self.solver.Predict()
                 _ = self.solver.SolveSolutionStep()
                 self.ExecuteAfterCouplingSolveStep()
-                Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
                 return True
 
         return False
@@ -190,20 +250,10 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def InitializeSolutionStep(self):
         if (self.IsBufferInitialized()):
             super().InitializeSolutionStep()
-            self.solver.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         if (self.IsBufferInitialized()):
-            self.solver.FinalizeSolutionStep()
             super().FinalizeSolutionStep()
-
-    def Check(self):
-        super().Check()
-        self.solver.Check()
-
-    def Clear(self):
-        self.solver.Clear()
-        super().Clear()
 
     def SetTimeSchemeSettings(self, settings):
         if (settings.Has("scheme_type")):
@@ -226,21 +276,15 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{
             "von_karman": 0.41,
-            "beta"      : 5.2,
             "c_mu"      : 0.09
         }''')
         settings.ValidateAndAssignDefaults(defaults)
 
         # set constants
         von_karman = settings["von_karman"].GetDouble()
-        beta = settings["beta"].GetDouble()
-        y_plus_limit = RansCalculationUtilities.CalculateLogarithmicYPlusLimit(
-            von_karman, beta)
 
         process_info = self.GetBaseModelPart().ProcessInfo
-        process_info.SetValue(KratosRANS.WALL_VON_KARMAN, von_karman)
-        process_info.SetValue(KratosRANS.WALL_SMOOTHNESS_BETA, beta)
-        process_info.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, y_plus_limit)
+        process_info.SetValue(KratosRANS.VON_KARMAN, von_karman)
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
 
     def SetWallFunctionSettings(self, settings):
@@ -259,5 +303,6 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def GetStrategy(self):
         return self.solver
 
-    def GetModelPart(self):
-        return self.monolithic_model_part
+    def ElementHasNodalProperties(self):
+        return self.flow_solver_formulation.element_has_nodal_properties
+

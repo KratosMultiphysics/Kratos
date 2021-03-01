@@ -198,16 +198,16 @@ namespace Kratos
 		/// Destructor.
 		virtual ~NodalTwoStepVPStrategyForFSI() {}
 
-		double Solve() override
+		bool SolveSolutionStep() override
 		{
 			// Initialize BDF2 coefficients
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			this->SetTimeCoefficients(rModelPart.GetProcessInfo());
-			double NormDp = 0.0;
 			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
 			double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 			bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
+			bool converged = false;
 
 			unsigned int maxNonLinearIterations = mMaxPressureIter;
 			std::cout << "\n                   Solve with nodally_integrated_two_step_vp strategy at t=" << currentTime << "s" << std::endl;
@@ -313,6 +313,7 @@ namespace Kratos
 				{
 					rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
 					rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
+					converged = true;
 					std::cout << "nodal V-P strategy converged in " << it + 1 << " iterations." << std::endl;
 					break;
 				}
@@ -330,13 +331,13 @@ namespace Kratos
 
 			/* std::cout << "solve_step_time : " << solve_step_time.elapsed() << std::endl; */
 
-			return NormDp;
+			return converged;
 		}
 
 		void UpdateElementalStressStrain()
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
 #pragma omp parallel
 			{
@@ -603,7 +604,7 @@ namespace Kratos
 		{
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
 			double deviatoricCoeff = 0;
@@ -1228,7 +1229,7 @@ namespace Kratos
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
 			double deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
@@ -1415,7 +1416,7 @@ namespace Kratos
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
 			const double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
@@ -1447,7 +1448,7 @@ namespace Kratos
 				auto &r_stain_tensor2D = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE);
 				r_stain_tensor2D[0] = SpatialVelocityGrad(0, 0);
 				r_stain_tensor2D[1] = SpatialVelocityGrad(1, 1);
-				r_stain_tensor2D[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1)); 
+				r_stain_tensor2D[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
 
 				const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 				if (yieldShear > 0)
@@ -1594,7 +1595,7 @@ namespace Kratos
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
 			const double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
@@ -1636,7 +1637,7 @@ namespace Kratos
 				auto &r_stain_tensor2D = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE);
 				r_stain_tensor2D[0] = SpatialVelocityGrad(0, 0);
 				r_stain_tensor2D[1] = SpatialVelocityGrad(1, 1);
-				r_stain_tensor2D[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1)); 
+				r_stain_tensor2D[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
 
 				const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 				if (yieldShear > 0)
@@ -2364,7 +2365,7 @@ namespace Kratos
 		void CalculateDisplacementsAndResetNodalVariables()
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			unsigned int sizeStrains = 3 * (dimension - 1);

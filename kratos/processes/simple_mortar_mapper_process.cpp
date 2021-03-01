@@ -20,6 +20,7 @@
 /* Custom utilities */
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
+#include "utilities/normal_calculation_utils.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -782,8 +783,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     KRATOS_TRY;
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart, mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED));
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart, mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED));
+    if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
+        NormalCalculationUtils().CalculateUnitNormals<Condition>(mOriginModelPart, true);
+    } else {
+        NormalCalculationUtils().CalculateUnitNormals<Element>(mOriginModelPart, true);
+    }
+    if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
+        NormalCalculationUtils().CalculateUnitNormals<Condition>(mDestinationModelPart, true);
+    } else {
+        NormalCalculationUtils().CalculateUnitNormals<Element>(mDestinationModelPart, true);
+    }
 
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
@@ -991,8 +1000,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     KRATOS_TRY;
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart, mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED));
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart, mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED));
+    if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
+        NormalCalculationUtils().CalculateUnitNormals<Condition>(mOriginModelPart, true);
+    } else {
+        NormalCalculationUtils().CalculateUnitNormals<Element>(mOriginModelPart, true);
+    }
+    if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
+        NormalCalculationUtils().CalculateUnitNormals<Condition>(mDestinationModelPart, true);
+    } else {
+        NormalCalculationUtils().CalculateUnitNormals<Element>(mDestinationModelPart, true);
+    }
 
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
