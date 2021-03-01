@@ -211,9 +211,14 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
     PlasticDamageFatigueParameters &rPDParameters
     )
 {
+    double uniaxial_plastic_strain = 0.0;
     GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
-        CalculateEquivalentStressThresholdHardeningCurveLinearSoftening(rPDParameters.TotalDissipation,
-        0.0, 0.0, rPDParameters.Threshold, rPDParameters.Slope, rValues);
+        CalculateEquivalentPlasticStrain(rPDParameters.StressVector,
+        rPDParameters.UniaxialStress, rPDParameters.PlasticStrain, 0.0, rValues, uniaxial_plastic_strain);
+    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
+        CalculateEquivalentStressThreshold(rPDParameters.TotalDissipation,
+        1.0, 0.0, rPDParameters.Threshold, rPDParameters.Slope, rValues, uniaxial_plastic_strain,
+        rPDParameters.CharacteristicLength);
 }
 
 /***********************************************************************************/
