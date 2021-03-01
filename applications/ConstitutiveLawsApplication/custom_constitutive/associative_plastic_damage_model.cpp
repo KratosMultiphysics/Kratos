@@ -78,14 +78,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
         r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         
         PlasticDamageFatigueParameters PlasticDamageParameters = PlasticDamageFatigueParameters();
-        PlasticDamageParameters.PlasticDissipation = mPlasticDissipation;
-        PlasticDamageParameters.DamageDissipation  = mDamageDissipation;
-        PlasticDamageParameters.TotalDissipation   = mPlasticDissipation + mDamageDissipation;
-        PlasticDamageParameters.Threshold     = mThreshold;
-        noalias(PlasticDamageParameters.PlasticStrain) = mPlasticStrain;
-        noalias(PlasticDamageParameters.ComplianceMatrix) = mComplianceMatrix;
-        noalias(PlasticDamageParameters.StrainVector) = r_strain_vector;
-        PlasticDamageParameters.CharacteristicLength  = characteristic_length;
+        InitializePlasticDamageParameters(r_strain_vector, rValues.GetMaterialProperties(),
+            characteristic_length, PlasticDamageParameters);
 
         CheckMinimumFractureEnergy(rValues, PlasticDamageParameters);
 
@@ -141,14 +135,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
     }
 
     PlasticDamageFatigueParameters PlasticDamageParameters = PlasticDamageFatigueParameters();
-    PlasticDamageParameters.PlasticDissipation = mPlasticDissipation;
-    PlasticDamageParameters.DamageDissipation  = mDamageDissipation;
-    PlasticDamageParameters.TotalDissipation   = mPlasticDissipation + mDamageDissipation;
-    PlasticDamageParameters.Threshold          = mThreshold;
-    noalias(PlasticDamageParameters.PlasticStrain) = mPlasticStrain;
-    noalias(PlasticDamageParameters.ComplianceMatrix) = mComplianceMatrix;
-    noalias(PlasticDamageParameters.StrainVector) = r_strain_vector;
-    PlasticDamageParameters.CharacteristicLength  = characteristic_length;
+    InitializePlasticDamageParameters(r_strain_vector, rValues.GetMaterialProperties(),
+        characteristic_length, PlasticDamageParameters);
 
     CheckMinimumFractureEnergy(rValues, PlasticDamageParameters);
 

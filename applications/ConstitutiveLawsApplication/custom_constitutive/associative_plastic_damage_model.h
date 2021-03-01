@@ -667,6 +667,23 @@ public:
         PlasticDamageFatigueParameters &rPDParameters
     );
 
+    void InitializePlasticDamageParameters(
+        const BoundedVectorType& rStrainVector,
+        const Properties& rMaterialProperties,
+        const double CharateristicLength,
+        PlasticDamageFatigueParameters &rPlasticDamageParameters
+        )
+    {
+        rPlasticDamageParameters.PlasticDissipation     = mPlasticDissipation;
+        rPlasticDamageParameters.DamageDissipation      = mDamageDissipation;
+        rPlasticDamageParameters.TotalDissipation       = mPlasticDissipation + mDamageDissipation;
+        rPlasticDamageParameters.Threshold              = mThreshold;
+        noalias(rPlasticDamageParameters.PlasticStrain) = mPlasticStrain;
+        noalias(rPlasticDamageParameters.ComplianceMatrix) = mComplianceMatrix;
+        noalias(rPlasticDamageParameters.StrainVector) = rStrainVector;
+        rPlasticDamageParameters.CharacteristicLength  = CharateristicLength;
+        rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
+    }
 
 protected:
 
