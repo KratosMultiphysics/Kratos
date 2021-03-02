@@ -71,9 +71,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             },
             "bfecc_convection" : false,
             "bfecc_number_substeps" : 10,
-            "levelset_convection_seetings": {
-                "eulerian_error_compensation": false,
-                "levelset_splitting": false,
+            "levelset_convection_settings": {
+                "levelset_variable_name" : "",
+                "levelset_convection_variable_name" : "",
+                "levelset_gradient_variable_name" : "",
+                "max_CFL" : 1.0,
+                "max_substeps" : 0,
+                "levelset_splitting" : false,
+                "eulerian_error_compensation" : true,
+                "cross_wind_stabilization_factor" : 0.7
             },
             "distance_reinitialization": "variational",
             "distance_smoothing": false,
@@ -105,10 +111,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self._bfecc_convection = self.settings["bfecc_convection"].GetBool()
 
         # this is used to perform one step BFECC for the eulerian LS convection
-        self._eulerian_error_compensation = self.settings["levelset_convection_seetings"]["eulerian_error_compensation"].GetBool()
+        self._eulerian_error_compensation = self.settings["levelset_convection_settings"]["eulerian_error_compensation"].GetBool()
 
         # this is used to identify the splitting of LS convection (Strang splitting idea)
-        self._levelset_splitting = self.settings["levelset_convection_seetings"]["levelset_splitting"].GetBool()
+        self._levelset_splitting = self.settings["levelset_convection_settings"]["levelset_splitting"].GetBool()
         dt_factor = 0.5 if self._levelset_splitting else 1.0
         self._levelset_dt_factor = dt_factor
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, dt_factor)
@@ -436,32 +442,22 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         else:
             linear_solver = self._GetLinearSolver()
 
-            max_cfl = 1.0
-            cross_wind = 0.7
-            max_substeps = 0
+            levelset_convection_settings = self.settings["levelset_convection_settings"]
+
+            levelset_convection_settings["levelset_variable_name"].SetString("DISTANCE")
+            levelset_convection_settings["levelset_convection_variable_name"].SetString("VELOCITY")
+            levelset_convection_settings["levelset_gradient_variable_name"].SetString("DISTANCE_GRADIENT")
 
             if domain_size == 2:
                 level_set_convection_process = KratosMultiphysics.LevelSetConvectionProcess2D(
-                    KratosMultiphysics.DISTANCE,
-                    KratosMultiphysics.VELOCITY,
                     computing_model_part,
                     linear_solver,
-                    max_cfl,
-                    cross_wind,
-                    max_substeps,
-                    self._eulerian_error_compensation,
-                    self._levelset_splitting)
+                    levelset_convection_settings)
             else:
                 level_set_convection_process = KratosMultiphysics.LevelSetConvectionProcess3D(
-                    KratosMultiphysics.DISTANCE,
-                    KratosMultiphysics.VELOCITY,
                     computing_model_part,
                     linear_solver,
-                    max_cfl,
-                    cross_wind,
-                    max_substeps,
-                    self._eulerian_error_compensation,
-                    self._levelset_splitting)
+                    levelset_convection_settings)
 
         return level_set_convection_process
 

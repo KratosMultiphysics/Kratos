@@ -182,13 +182,13 @@ public:
     ///@{
 
     /**
-     * @brief Perform the level set convection
+     * @brief Perform the level-set convection
      * This solver provides a stabilized convection solver based on [Codina, R., 1993. Comput. Methods Appl. Mech. Engrg., 110(3-4), pp.325-342.]
      * It uses the sub-stepping approach to comply with the user defined maximum CFL number.
-     * It also allows the user to do the time-marching in a portion of the time-step set by DELTA_TIME_FACTOR in the ProcessInfo (needs "partial_convection": true).
+     * It also allows the user to do the time-marching in a portion of the time-step set by DELTA_TIME_FACTOR in the ProcessInfo (needs "levelset_splitting": true).
      * The error compensation is done according to the BFECC algorithm, which requires forward, backward, and the final forward solution steps (that triplicates the computational cost).
      * The error compensation severely disturbs the monotonicity of the results that is compensated for by implementing a limited BFECC algorithm.
-     * The limiter relies on the nodal gradient of LevelSetVar (non-historical variable LevelSetGradientVar). For more info see [Kuzmin et al., Comput. Methods Appl. Mech. Engrg., 322 (2017) 23–41]
+     * The limiter relies on the nodal gradient of LevelSetVar (non-historical variable LevelSetGradientVar). For more info see [Kuzmin et al., Comput. Methods Appl. Mech. Engrg., 322 (2017) 23–41].
      */
     void Execute() override
     {
@@ -322,7 +322,7 @@ public:
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
-            "partial_convection" : false,
+            "levelset_splitting" : false,
             "eulerian_error_compensation" : false,
             "cross_wind_stabilization_factor" : 0.7
         })");
@@ -394,7 +394,7 @@ protected:
     Vector mOldDistance;
 
     Vector mSigmaPlus;
-    
+
     Vector mSigmaMinus;
 
     Vector mLimiter;
@@ -787,7 +787,7 @@ private:
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mMaxSubsteps = ThisParameters["max_substeps"].GetInt();
         mIsBfecc = ThisParameters["eulerian_error_compensation"].GetBool();
-        mPartialConvection = ThisParameters["partial_convection"].GetBool();
+        mPartialConvection = ThisParameters["levelset_splitting"].GetBool();
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
@@ -853,10 +853,6 @@ private:
 
     ///@}
 }; // Class LevelSetConvectionProcess
-
-// Avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
-template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver > const Kratos::Flags LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::PERFORM_STEP1(Kratos::Flags::Create(0));
-template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver > const Kratos::Flags LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::DO_EXPENSIVE_CHECKS(Kratos::Flags::Create(1));
 
 ///@}
 ///@name Type Definitions

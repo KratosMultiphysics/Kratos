@@ -144,18 +144,25 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         linear_solver = self._GetLinearSolver()
         computing_model_part = self.GetComputingModelPart()
         epetra_communicator = self._GetEpetraCommunicator()
+
+        levelset_convection_settings = self.settings["levelset_convection_settings"]
+
+        levelset_convection_settings["levelset_variable_name"].SetString("DISTANCE")
+        levelset_convection_settings["levelset_convection_variable_name"].SetString("VELOCITY")
+        levelset_convection_settings["levelset_gradient_variable_name"].SetString("DISTANCE_GRADIENT")
+
         if domain_size == 2:
             level_set_convection_process = KratosTrilinos.TrilinosLevelSetConvectionProcess2D(
                 epetra_communicator,
-                KratosMultiphysics.DISTANCE,
                 computing_model_part,
-                linear_solver)
+                linear_solver,
+                levelset_convection_settings)
         else:
             level_set_convection_process = KratosTrilinos.TrilinosLevelSetConvectionProcess3D(
                 epetra_communicator,
-                KratosMultiphysics.DISTANCE,
                 computing_model_part,
-                linear_solver)
+                linear_solver,
+                levelset_convection_settings)
 
         return level_set_convection_process
 
