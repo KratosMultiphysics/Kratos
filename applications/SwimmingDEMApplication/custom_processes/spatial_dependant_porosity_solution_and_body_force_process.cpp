@@ -176,10 +176,8 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::ExecuteFinalizeSolutio
 
 void SpatialDependantPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
 {
-    const double time = mrModelPart.GetProcessInfo()[TIME];
     const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double delta_alpha = mDeltaAlpha;
-    const double omega = mOmega;
     const double L = mLength;
     const double rho = mDensity;
     const double nu = mViscosity;
@@ -191,7 +189,7 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetInitialBodyForceAnd
     const double R = (c_min * L/2) / n_safety;
     Matrix inv_permeability = ZeroMatrix(dim,dim);
 
-    const double c = (1 + squeeze_amplitude * std::sin(omega * time));
+    const double c = (1 + squeeze_amplitude);
 
     double du1dt, du2dt, du11, du12, du111, du112, du121, du122, du21, du22, du211, du212, du221, du222;
 
@@ -351,11 +349,9 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetInitialBodyForceAnd
 
 void SpatialDependantPorositySolutionAndBodyForceProcess::SetBodyForceAndPorosityField()
 {
-    // const double time = mrModelPart.GetProcessInfo()[TIME];
-    const double time = 1.0;
+
     const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double delta_alpha = mDeltaAlpha;
-    const double omega = mOmega;
     const double L = mLength;
     const double rho = mDensity;
     const double nu = mViscosity;
@@ -367,7 +363,7 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetBodyForceAndPorosit
     const double R = (c_min * L/2) / n_safety;
     Matrix inv_permeability = ZeroMatrix(dim,dim);
 
-    const double c = (1 + squeeze_amplitude * std::sin(omega * time));
+    const double c = (1 + squeeze_amplitude);
 
     double du1dt, du2dt, du11, du12, du111, du112, du121, du122, du21, du22, du211, du212, du221, du222;
 
