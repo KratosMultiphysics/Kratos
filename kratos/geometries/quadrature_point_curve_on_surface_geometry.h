@@ -160,7 +160,7 @@ public:
     /// Calculate with Vector
     void Calculate(
         const Variable<Vector>& rVariable,
-        Vector& rOutput) override
+        Vector& rOutput) const override
     {
         if (rVariable == DETERMINANTS_OF_JACOBIAN_PARENT)
         {
