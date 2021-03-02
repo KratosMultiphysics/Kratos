@@ -72,9 +72,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "bfecc_convection" : false,
             "bfecc_number_substeps" : 10,
             "levelset_convection_settings": {
-                "levelset_variable_name" : "",
-                "levelset_convection_variable_name" : "",
-                "levelset_gradient_variable_name" : "",
+                "levelset_variable_name" : "DISTANCE",
+                "levelset_convection_variable_name" : "VELOCITY",
+                "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
                 "max_CFL" : 1.0,
                 "max_substeps" : 0,
                 "levelset_splitting" : false,
