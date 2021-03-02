@@ -61,7 +61,7 @@ namespace Kratos
 
 /// Short class definition.
 /**takes a model part full of SIMPLICIAL ELEMENTS (triangles and tetras) and convects a level set distance
- * on the top of it
+* on the top of it
 */
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver >
 class LevelSetConvectionProcess
