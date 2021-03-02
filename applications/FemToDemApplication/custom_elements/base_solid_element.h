@@ -539,7 +539,7 @@ public:
      */
     void CalculateOnIntegrationPoints(
             const Variable<ConstitutiveLaw::Pointer>& rVariable,
-            const std::vector<ConstitutiveLaw::Pointer>& rValues,
+            std::vector<ConstitutiveLaw::Pointer>& rValues,
             const ProcessInfo& rCurrentProcessInfo
             ) override;
 

@@ -24,6 +24,7 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+#include "utilities/atomic_utilities.h"
 
 /* Custom includes */
 #include "includes/mortar_classes.h"
@@ -755,8 +756,7 @@ private:
                     } else {
                         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                             double& r_nodal_area = r_slave_geometry[i_node].GetValue(NODAL_AREA);
-                            #pragma omp atomic
-                            r_nodal_area += rThisMortarOperators.DOperator(i_node, i_node);
+                            AtomicAdd(r_nodal_area, rThisMortarOperators.DOperator(i_node, i_node));
                         }
                         // In case of discontinous interface we add contribution to near nodes
                         if (mOptions.Is(DISCONTINOUS_INTERFACE)) {
@@ -784,8 +784,7 @@ private:
                                             const double contribution_coeff = 1.0/std::pow((1.0 + distance/(discontinous_interface_factor * element_length)), 2);
 
                                             double& r_nodal_area = r_auxiliar_slave_geometry[j_node].GetValue(NODAL_AREA);
-                                            #pragma omp atomic
-                                            r_nodal_area += contribution_coeff * nodal_area_contribution;
+                                            AtomicAdd(r_nodal_area, contribution_coeff * nodal_area_contribution);
                                         }
                                     }
                                 }
