@@ -20,8 +20,10 @@
 
 // Project includes
 #include "containers/model.h"
-#include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 #include "processes/levelset_convection_process.h"
+
+// Application includes
+#include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 
 namespace Kratos
 {
@@ -62,7 +64,6 @@ public:
 
     typedef LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef typename TLinearSolver::Pointer LinearSolverPointerType;
-    typedef typename BaseType::SchemeType::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverPointerType;
 
     ///@}
@@ -76,8 +77,41 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /**
-     */
+    TrilinosLevelSetConvectionProcess(
+        Epetra_MpiComm& rEpetraCommunicator,
+        Model& rModel,
+        typename TLinearSolver::Pointer pLinearSolver,
+        Parameters ThisParameters)
+        : TrilinosLevelSetConvectionProcess(
+            rEpetraCommunicator,
+            rModel.GetModelPart(ThisParameters["model_part_name"].GetString()),
+            pLinearSolver,
+            ThisParameters)
+    {
+    }
+
+    TrilinosLevelSetConvectionProcess(
+        Epetra_MpiComm& rEpetraCommunicator,
+        ModelPart& rBaseModelPart,
+        typename TLinearSolver::Pointer pLinearSolver,
+        Parameters ThisParameters)
+        : BaseType(
+            rBaseModelPart,
+            ThisParameters)
+        , mrEpetraCommunicator(rEpetraCommunicator)
+    {
+        KRATOS_TRY
+
+        const int row_size_guess = (TDim == 2 ? 15 : 40);
+        auto p_builder_and_solver = Kratos::make_shared< TrilinosBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>>(
+            mrEpetraCommunicator,
+            row_size_guess,
+            pLinearSolver);
+        InitializeConvectionStrategy(p_builder_and_solver);
+
+        KRATOS_CATCH("")
+    }
+
     TrilinosLevelSetConvectionProcess(
         Epetra_MpiComm& rEpetraCommunicator,
         Variable<double>& rLevelSetVar,
@@ -86,90 +120,32 @@ public:
         const double MaxCFL = 1.0,
         const double CrossWindStabilizationFactor = 0.7,
         const unsigned int MaxSubSteps = 0)
-        : LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>(
+        : mrEpetraCommunicator(rEpetraCommunicator)
+        , BaseType(
             rLevelSetVar,
             VELOCITY,
             rBaseModelPart,
             MaxCFL,
-            MaxSubSteps),
-        mrEpetraCommunicator(rEpetraCommunicator)
+            MaxSubSteps)
     {
         KRATOS_TRY
 
-        // Check that there is at least one element and node in the model
-        int n_nodes = rBaseModelPart.NumberOfNodes();
-        int n_elems = rBaseModelPart.NumberOfElements();
+        KRATOS_WARNING("TrilinosLevelSetConvectionProcess") << "This constructor is deprecated. Use the Parameters-based one." << std::endl;
 
-        if (n_nodes > 0){
-            VariableUtils().CheckVariableExists< Variable< double > >(rLevelSetVar, rBaseModelPart.Nodes());
-            VariableUtils().CheckVariableExists< Variable< array_1d < double, 3 > > >(this->mrConvectVar, rBaseModelPart.Nodes());
-        }
-
-        n_nodes = rBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_nodes);
-        n_elems = rBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_elems);
-
-        // Check if the modelpart is globaly empty
-        KRATOS_ERROR_IF(n_nodes == 0) << "The model has no nodes." << std::endl;
-        KRATOS_ERROR_IF(n_elems == 0) << "The model has no elements." << std::endl;
-
-        // Check if any partition has incorrect elements
-        if(TDim == 2){
-            int has_incorrect_elems = rBaseModelPart.NumberOfElements() ? rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle : 0;
-            has_incorrect_elems = rBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(has_incorrect_elems);
-            KRATOS_ERROR_IF(has_incorrect_elems) << "In 2D the element type is expected to be a triangle" << std::endl;
-        } else if(TDim == 3) {
-            int has_incorrect_elems = rBaseModelPart.NumberOfElements() ? rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra : 0;
-            has_incorrect_elems = rBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(has_incorrect_elems);
-            KRATOS_ERROR_IF(has_incorrect_elems) << "In 3D the element type is expected to be a tetrahedra" << std::endl;
-        }
-
-        // Allocate if needed the variable DYNAMIC_TAU of the process info, and if it does not exist, set it to zero
-        if( rBaseModelPart.GetProcessInfo().Has(DYNAMIC_TAU) == false){
-            rBaseModelPart.GetProcessInfo().SetValue(DYNAMIC_TAU,0.0);
-        }
-
-        // Allocate if needed the variable CONVECTION_DIFFUSION_SETTINGS of the process info, and create it if it does not exist
-        if(rBaseModelPart.GetProcessInfo().Has(CONVECTION_DIFFUSION_SETTINGS) == false){
-            ConvectionDiffusionSettings::Pointer p_conv_diff_settings = Kratos::make_unique<ConvectionDiffusionSettings>();
-            rBaseModelPart.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
-            p_conv_diff_settings->SetUnknownVariable(rLevelSetVar);
-            p_conv_diff_settings->SetConvectionVariable(this->mrConvectVar);
-        }
-
-        // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
-        (this->mDistancePartIsInitialized) = false;
-        ReGenerateConvectionModelPart(rBaseModelPart);
-
-        // Generate a linear strategy
-        SchemePointerType p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
+        this->SetConvectionProblemSettings(CrossWindStabilizationFactor);
 
         const int row_size_guess = (TDim == 2 ? 15 : 40);
-        BuilderSolverPointerType p_builder_and_solver = Kratos::make_shared< TrilinosBlockBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver > >(
+        auto p_builder_and_solver = Kratos::make_shared< TrilinosBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>>(
             mrEpetraCommunicator,
             row_size_guess,
             pLinearSolver);
-
-        const bool calculate_reactions = false;
-        const bool reform_dof_at_each_iteration = false;
-        const bool calculate_norm_Dx_flag = false;
-
-        (this->mpSolvingStrategy) = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
-            *BaseType::mpDistanceModelPart,
-            p_scheme,
-            p_builder_and_solver,
-            calculate_reactions,
-            reform_dof_at_each_iteration,
-            calculate_norm_Dx_flag);
-
-        (this->mpSolvingStrategy)->SetEchoLevel(0);
-
-        rBaseModelPart.GetProcessInfo().SetValue(CROSS_WIND_STABILIZATION_FACTOR, CrossWindStabilizationFactor);
-
-        //TODO: check flag DO_EXPENSIVE_CHECKS
-        (this->mpSolvingStrategy)->Check();
+        InitializeConvectionStrategy(p_builder_and_solver);
 
         KRATOS_CATCH("")
     }
+
+    /// Copy constructor.
+    TrilinosLevelSetConvectionProcess(TrilinosLevelSetConvectionProcess const& rOther) = delete;
 
     /// Destructor.
     ~TrilinosLevelSetConvectionProcess() override {}
@@ -245,9 +221,7 @@ protected:
 
         BaseType::mpDistanceModelPart= &(rBaseModelPart.GetModel().CreateModelPart("DistanceConvectionPart"));
 
-
         // Generate
-
         BaseType::mpDistanceModelPart->Nodes().clear();
         BaseType::mpDistanceModelPart->Conditions().clear();
         BaseType::mpDistanceModelPart->Elements().clear();
@@ -261,7 +235,7 @@ protected:
         BaseType::mpDistanceModelPart->Nodes() = rBaseModelPart.Nodes();
 
         // Ensure that the nodes have distance as a DOF
-        VariableUtils().AddDof< Variable < double> >(this->mrLevelSetVar, rBaseModelPart);
+        VariableUtils().AddDof<Variable<double>>(*BaseType::mpLevelSetVar, rBaseModelPart);
 
         // Copy communicator data
         Communicator& r_base_comm = rBaseModelPart.GetCommunicator();
@@ -342,6 +316,65 @@ private:
     ///@name Private Operations
     ///@{
 
+    void InitializeConvectionStrategy(BuilderSolverPointerType pBuilderAndSolver)
+    {
+        KRATOS_TRY
+
+        // Get auxiliary member variables from base class
+        auto& r_base_model_part = BaseType::mrBaseModelPart;
+        const auto& r_level_set_var = *BaseType::mpLevelSetVar;
+        const auto& r_convect_var = *BaseType::mpConvectVar;
+
+        // Check the nodal database of the current partition
+        int n_nodes = r_base_model_part.NumberOfNodes();
+        int n_elems = r_base_model_part.NumberOfElements();
+
+        if (n_nodes > 0){
+            VariableUtils().CheckVariableExists<Variable<double>>(r_level_set_var, r_base_model_part.Nodes());
+            VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(r_convect_var, r_base_model_part.Nodes());
+        }
+
+        // Check if the modelpart is globally empty
+        n_nodes = r_base_model_part.GetCommunicator().GetDataCommunicator().SumAll(n_nodes);
+        n_elems = r_base_model_part.GetCommunicator().GetDataCommunicator().SumAll(n_elems);
+        KRATOS_ERROR_IF(n_nodes == 0) << "The model has no nodes." << std::endl;
+        KRATOS_ERROR_IF(n_elems == 0) << "The model has no elements." << std::endl;
+
+        // Check if any partition has incorrect elements
+        if(TDim == 2){
+            int has_incorrect_elems = r_base_model_part.NumberOfElements() ? r_base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle : 0;
+            has_incorrect_elems = r_base_model_part.GetCommunicator().GetDataCommunicator().SumAll(has_incorrect_elems);
+            KRATOS_ERROR_IF(has_incorrect_elems) << "In 2D the element type is expected to be a triangle" << std::endl;
+        } else if(TDim == 3) {
+            int has_incorrect_elems = r_base_model_part.NumberOfElements() ? r_base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra : 0;
+            has_incorrect_elems = r_base_model_part.GetCommunicator().GetDataCommunicator().SumAll(has_incorrect_elems);
+            KRATOS_ERROR_IF(has_incorrect_elems) << "In 3D the element type is expected to be a tetrahedra" << std::endl;
+        }
+
+        // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
+        ReGenerateConvectionModelPart(r_base_model_part);
+
+        // Generate a linear strategy
+        const bool calculate_reactions = false;
+        const bool reform_dof_at_each_iteration = false;
+        const bool calculate_norm_Dx_flag = false;
+        auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
+        (this->mpSolvingStrategy) = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
+            *BaseType::mpDistanceModelPart,
+            p_scheme,
+            pBuilderAndSolver,
+            calculate_reactions,
+            reform_dof_at_each_iteration,
+            calculate_norm_Dx_flag);
+
+        //TODO: check flag DO_EXPENSIVE_CHECKS
+        (this->mpSolvingStrategy)->SetEchoLevel(0);
+        (this->mpSolvingStrategy)->Check();
+        (this->mpSolvingStrategy)->Initialize();
+
+        KRATOS_CATCH("")
+    }
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -356,9 +389,6 @@ private:
 
     /// Assignment operator.
     TrilinosLevelSetConvectionProcess& operator=(TrilinosLevelSetConvectionProcess const& rOther);
-
-    /// Copy constructor.
-    //TrilinosLevelSetConvectionProcess(TrilinosLevelSetConvectionProcess const& rOther);
 
     ///@}
 }; // Class TrilinosLevelSetConvectionProcess

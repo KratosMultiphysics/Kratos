@@ -104,16 +104,20 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             KratosMultiphysics.DISTANCE_GRADIENT,
             KratosMultiphysics.NODAL_AREA).Execute()
 
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "levelset_variable_name" : "DISTANCE",
+            "levelset_convection_variable_name" : "VELOCITY",
+            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "partial_convection" : false,
+            "eulerian_error_compensation" : true,
+            "cross_wind_stabilization_factor" : 0.7
+        }""")
         KratosMultiphysics.LevelSetConvectionProcess2D(
-            KratosMultiphysics.DISTANCE,
-            KratosMultiphysics.VELOCITY,
             model_part,
             linear_solver,
-            1.0,                #max_cfl
-            0.7,                #cross_wind
-            0,                  #max_substeps
-            True,               #eulerian_error_compensation
-            False).Execute()    #levelset_splitting
+            levelset_convection_settings).Execute()
 
         max_distance = -1.0
         min_distance = +1.0
