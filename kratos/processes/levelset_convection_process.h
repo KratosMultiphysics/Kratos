@@ -183,9 +183,12 @@ public:
 
     /**
      * @brief Perform the level set convection
-     * BLA BLA, I'd explain briefly how is the convection performed. Also which are the options
-     * - partial convection
-     * - and bfecc with limiter
+     * This solver provides a stabilized convection solver based on [Codina, R., 1993. Comput. Methods Appl. Mech. Engrg., 110(3-4), pp.325-342.]
+     * It uses the sub-stepping approach to comply with the user defined maximum CFL number.
+     * It also allows the user to do the time-marching in a portion of the time-step set by DELTA_TIME_FACTOR in the ProcessInfo (needs "partial_convection": true).
+     * The error compensation is done according to the BFECC algorithm, which requires forward, backward, and the final forward solution steps (that triplicates the computational cost).
+     * The error compensation severely disturbs the monotonicity of the results that is compensated for by implementing a limited BFECC algorithm.
+     * The limiter relies on the nodal gradient of LevelSetVar (non-historical variable LevelSetGradientVar). For more info see [Kuzmin et al., Comput. Methods Appl. Mech. Engrg., 322 (2017) 23–41]
      */
     void Execute() override
     {
@@ -602,10 +605,6 @@ protected:
      */
     void EvaluateLimiter()
     {
-        // ****************************************************************************************
-        // ****************************************************************************************
-        // Calculating nodal limiter using \beta_ij = 1 (works fine on symmetric structural meshes)
-        // D. Kuzmin et al. / Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41
         const double epsilon = 1.0e-15;
         const double power_bfecc = 2.0;
 

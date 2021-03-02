@@ -293,24 +293,13 @@ public:
 
     }
 
+    // ************************************************************************************************************
+    // See [Kuzmin et al., Comput. Methods Appl. Mech. Engrg., 322 (2017) 23–41] for more info about this limiter
+    // Befor calling make sure that non-historical variable "DISTANCE_GRADIENT" contains the nodal gradient of rVar
     void CalculateLimiter(
         ModelPart& rModelPart,
         const Variable< double >& rVar)
     {
-        // ****************************************************************************************
-        // ****************************************************************************************
-        // Calculating nodal limiter using \beta_ij = 1 (works fine on symmetric structural meshes)
-        // D. Kuzmin et al. / Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41
-        /* auto ProjectedGradientProcess =
-            ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(
-            rModelPart,
-            rVar,
-            DISTANCE_GRADIENT,      // TODO: Should be set as an input
-            NODAL_AREA,             // TODO: Should be set as an input
-            false);
-
-        ProjectedGradientProcess.Execute(); */
-
         const double epsilon = 1.0e-15;
         const double power = 2.0;
 
