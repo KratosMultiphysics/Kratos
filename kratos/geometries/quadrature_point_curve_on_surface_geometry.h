@@ -20,8 +20,8 @@
 // External includes
 
 // Project includes
+#include "includes/variables.h"
 #include "geometries/quadrature_point_geometry.h"
-
 
 namespace Kratos
 {
