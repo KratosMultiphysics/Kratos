@@ -61,7 +61,7 @@ public:
     typedef UpdatedLagrangianElement::ElementDataType ElementDataType;
   
     /// Counted pointer of TotalUpdatedLagrangianElement
-    KRATOS_CLASS_POINTER_DEFINITION( TotalUpdatedLagrangianElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TotalUpdatedLagrangianElement );
     ///@}
     ///@name Life Cycle
     ///@{

@@ -69,7 +69,7 @@
         "outputBatchSize" : 1,
         "parameters": null,
         "printToFile": false,
-        "problemId": "caarc_wind_mpi",
+        "analysisStage": "applications.MultilevelMonteCarloApplication.tests.caarc_wind_mpi.simulation_definition.SimulationScenario",
         "projectParametersPath": "problem_settings/ProjectParametersCAARC_steadyInlet.json",
         "refinementParametersPath": "problem_settings/parameters_refinement.json",
         "refinementStrategy": "stochastic_adaptive_refinement",
