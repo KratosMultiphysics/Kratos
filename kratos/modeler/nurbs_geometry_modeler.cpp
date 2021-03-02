@@ -11,7 +11,7 @@
 //
 
 // Project includes
-#include "nurbs_volume_grid_modeler.h"
+#include "nurbs_geometry_modeler.h"
 #include "includes/define.h"
 
 namespace Kratos
@@ -19,27 +19,27 @@ namespace Kratos
     ///@name Stages
     ///@{
 
-    void NurbsVolumeGridModeler::SetupGeometryModel(){
+    void NurbsGeometryModeler::SetupGeometryModel(){
         KRATOS_ERROR_IF_NOT(mParameters.Has("lower_point"))
-            << "NurbsVolumeGridModeler: Missing \"lower_point\" section" << std::endl;
+            << "NurbsGeometryModeler: Missing \"lower_point\" section" << std::endl;
         double x =  mParameters["lower_point"].GetArrayItem(0).GetDouble();
         double y =  mParameters["lower_point"].GetArrayItem(1).GetDouble();
         double z =  mParameters["lower_point"].GetArrayItem(2).GetDouble();
         Point point_a(x,y,z);
         KRATOS_ERROR_IF_NOT(mParameters.Has("upper_point"))
-            << "NurbsVolumeGridModeler: Missing \"upper_point\" section" << std::endl;
+            << "NurbsGeometryModeler: Missing \"upper_point\" section" << std::endl;
         x =  mParameters["upper_point"].GetArrayItem(0).GetDouble();
         y =  mParameters["upper_point"].GetArrayItem(1).GetDouble();
         z =  mParameters["upper_point"].GetArrayItem(2).GetDouble();
         Point point_b(x,y,z);
         KRATOS_ERROR_IF_NOT(mParameters.Has("polynomial_order"))
-            << "NurbsVolumeGridModeler: Missing \"polynomial_order\" section" << std::endl;
+            << "NurbsGeometryModeler: Missing \"polynomial_order\" section" << std::endl;
         SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
         SizeType p_v =  mParameters["polynomial_order"].GetArrayItem(1).GetInt();
         SizeType p_w =  mParameters["polynomial_order"].GetArrayItem(2).GetInt();
 
         KRATOS_ERROR_IF_NOT(mParameters.Has("number_of_knot_spans"))
-            << "NurbsVolumeGridModeler: Missing \"number_of_knot_spans\" section" << std::endl;
+            << "NurbsGeometryModeler: Missing \"number_of_knot_spans\" section" << std::endl;
         SizeType num_knot_span_u =  mParameters["number_of_knot_spans"].GetArrayItem(0).GetInt();
         SizeType num_knot_span_v =  mParameters["number_of_knot_spans"].GetArrayItem(1).GetInt();
         SizeType num_knot_span_w =  mParameters["number_of_knot_spans"].GetArrayItem(2).GetInt();
@@ -48,7 +48,7 @@ namespace Kratos
 
         // Here add geometry and nodes to model part.
         KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
-            << "NurbsVolumeGridModeler: Missing \"model_part_name\" section" << std::endl;
+            << "NurbsGeometryModeler: Missing \"model_part_name\" section" << std::endl;
 
         ModelPart& model_part = mpModel->HasModelPart(mParameters["model_part_name"].GetString()) ?
             mpModel->GetModelPart(mParameters["model_part_name"].GetString()) :
@@ -67,10 +67,10 @@ namespace Kratos
     ///@name Private Operations
     ///@{
 
-    void NurbsVolumeGridModeler::CreateGrid( const Point A, const Point B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
+    void NurbsGeometryModeler::CreateGrid( const Point A, const Point B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW )
     {
-        KRATOS_ERROR_IF( B.X() <= A.X() || B.Y() <= A.Y() || B.Z() <= A.Z() ) << "NurbsVolumeGridModeler: "
+        KRATOS_ERROR_IF( B.X() <= A.X() || B.Y() <= A.Y() || B.Z() <= A.Z() ) << "NurbsGeometryModeler: "
             << "The two Points A and B must meet the following requirement: (B-A) > (0,0,0). However, (B-A)=" << B-A << std::endl;
 
         // Set up control points.

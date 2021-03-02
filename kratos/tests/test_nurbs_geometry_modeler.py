@@ -17,12 +17,12 @@ def run_modeler(current_model, modelers_list):
     for modeler in list_of_modelers:
         modeler.SetupModelPart()
 
-class TestNurbsVolumeGridModeler(KratosUnittest.TestCase):
+class TestNurbsGeometryModeler(KratosUnittest.TestCase):
     def test_grid_modeler_control_points(self):
         current_model = KratosMultiphysics.Model()
         modeler_settings = KratosMultiphysics.Parameters("""
         [{
-            "modeler_name": "NurbsVolumeGridModeler",
+            "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh",
                 "lower_point": [0.0,0.0,0.0],
@@ -72,12 +72,12 @@ class TestNurbsVolumeGridModeler(KratosUnittest.TestCase):
         self.assertEqual(degree_v, 1)
         degree_w = geometry.PolynomialDegreeW()
         self.assertEqual(degree_w, 1)
-    
+
     def test_grid_modeler_geometry_consistency(self):
         current_model = KratosMultiphysics.Model()
         modeler_settings = KratosMultiphysics.Parameters("""
         [{
-            "modeler_name": "NurbsVolumeGridModeler",
+            "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh_01",
                 "lower_point": [-1.0,-0.5,1.0],
@@ -85,7 +85,7 @@ class TestNurbsVolumeGridModeler(KratosUnittest.TestCase):
                 "polynomial_order" : [4, 5, 2],
                 "number_of_knot_spans" : [3,6,7]
             } }, {
-            "modeler_name": "NurbsVolumeGridModeler",
+            "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh_02",
                 "lower_point": [-1.0,-0.5,1.0],
@@ -95,7 +95,7 @@ class TestNurbsVolumeGridModeler(KratosUnittest.TestCase):
             }
         }]
         """)
-        
+
         run_modeler(current_model, modeler_settings)
         model_part_01 = current_model.GetModelPart("Mesh_01")
         model_part_02 = current_model.GetModelPart("Mesh_02")
@@ -106,10 +106,10 @@ class TestNurbsVolumeGridModeler(KratosUnittest.TestCase):
         ## Check knots
         # geometry 01
         knots_u_01 = geometry_01.KnotsU()
-        self.assertVectorAlmostEqual(knots_u_01, 
+        self.assertVectorAlmostEqual(knots_u_01,
             [0.0, 0.0, 0.0, 0.0, 1.0/3.0, 2.0/3.0, 1.0, 1.0, 1.0, 1.0])
         knots_v_01 = geometry_01.KnotsV()
-        self.assertVectorAlmostEqual(knots_v_01, 
+        self.assertVectorAlmostEqual(knots_v_01,
             [0.0, 0.0, 0.0, 0.0, 0.0, 1.0/6.0, 1.0/3.0, 1.0/2.0, 2.0/3.0, 5.0/6.0, 1.0, 1.0, 1.0, 1.0, 1.0])
         knots_w_01 = geometry_01.KnotsW()
         self.assertVectorAlmostEqual(knots_w_01,
@@ -124,12 +124,12 @@ class TestNurbsVolumeGridModeler(KratosUnittest.TestCase):
 
         ## Check Polynomial degree
         # Geometry 01
-        self.assertEqual(geometry_01.PolynomialDegreeU(), 4)        
-        self.assertEqual(geometry_01.PolynomialDegreeV(), 5)        
+        self.assertEqual(geometry_01.PolynomialDegreeU(), 4)
+        self.assertEqual(geometry_01.PolynomialDegreeV(), 5)
         self.assertEqual(geometry_01.PolynomialDegreeW(), 2)
         # Geometry 02
-        self.assertEqual(geometry_02.PolynomialDegreeU(), 1)        
-        self.assertEqual(geometry_02.PolynomialDegreeV(), 1)        
+        self.assertEqual(geometry_02.PolynomialDegreeU(), 1)
+        self.assertEqual(geometry_02.PolynomialDegreeV(), 1)
         self.assertEqual(geometry_02.PolynomialDegreeW(), 1)
 
         ## Check number of control points/nodes
@@ -138,7 +138,7 @@ class TestNurbsVolumeGridModeler(KratosUnittest.TestCase):
         self.assertEqual(model_part_01.NumberOfNodes(), 693)
         # Geomtry 02
         self.assertEqual(len(geometry_02),8)
-        self.assertEqual(model_part_02.NumberOfNodes(), 8)  
+        self.assertEqual(model_part_02.NumberOfNodes(), 8)
 
         # Check if geoemtry is similar.
         param = KratosMultiphysics.Vector(3)

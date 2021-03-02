@@ -10,8 +10,8 @@
 //  Main authors:    Manuel Messmer
 //
 
-#if !defined(KRATOS_NURBS_VOLUME_GRID_MODELER_H_INCLUDED )
-#define  KRATOS_NURBS_VOLUME_GRID_MODELER_H_INCLUDED
+#if !defined(KRATOS_NURBS_GEOMETRY_MODELER_H_INCLUDED )
+#define  KRATOS_NURBS_GEOMETRY_MODELER_H_INCLUDED
 
 // System includes
 
@@ -26,13 +26,13 @@
 
 namespace Kratos {
 
-class KRATOS_API(KRATOS_CORE) NurbsVolumeGridModeler
+class KRATOS_API(KRATOS_CORE) NurbsGeometryModeler
     : public Modeler
 {
 public:
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION( NurbsVolumeGridModeler );
+    KRATOS_CLASS_POINTER_DEFINITION( NurbsGeometryModeler );
 
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
@@ -46,11 +46,11 @@ public:
     ///@{
 
     /// Default constructor.
-    NurbsVolumeGridModeler()
+    NurbsGeometryModeler()
         : Modeler() {}
 
     /// Constructor.
-    NurbsVolumeGridModeler(
+    NurbsGeometryModeler(
         Model & rModel,
         const Parameters ModelerParameters = Parameters())
         : Modeler(rModel, ModelerParameters)
@@ -59,12 +59,12 @@ public:
     }
 
     /// Destructor.
-    virtual ~NurbsVolumeGridModeler() = default;
+    virtual ~NurbsGeometryModeler() = default;
 
     /// Creates the Modeler Pointer
     Modeler::Pointer Create(Model& rModel, const Parameters ModelParameters) const override
     {
-        return Kratos::make_shared<NurbsVolumeGridModeler>(rModel, ModelParameters);
+        return Kratos::make_shared<NurbsGeometryModeler>(rModel, ModelParameters);
     }
 
     ///@}
@@ -101,4 +101,4 @@ private:
 };
 
 } // End namesapce Kratos
-#endif // KRATOS_NURBS_VOLUME_GRID_MODELER_H_INCLUDED
+#endif // KRATOS_NURBS_GEOMETRY_MODELER_H_INCLUDED
