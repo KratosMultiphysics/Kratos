@@ -1,6 +1,4 @@
 import time as timer
-import os
-from importlib import import_module
 
 # Import kratos core and applications
 import KratosMultiphysics
@@ -64,10 +62,9 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
              self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Y, parameters["problem_data"]["gravity_vector"][1].GetDouble())
              self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, parameters["problem_data"]["gravity_vector"][2].GetDouble())
 
-        self.problem_path = os.getcwd()
         self.problem_name = parameters["problem_data"]["problem_name"].GetString()
 
-                        #print model_part and properties
+        #print model_part and properties
         if (self.echo_level>-1):
             for properties in self.main_model_part.Properties:
                 self.KratosPrintInfo(properties)
