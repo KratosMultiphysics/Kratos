@@ -18,9 +18,9 @@
 // External includes
 
 // Project includes
+#include "includes/variables.h"
 #include "geometries/geometry.h"
 #include "geometries/geometry_dimension.h"
-
 
 namespace Kratos
 {
