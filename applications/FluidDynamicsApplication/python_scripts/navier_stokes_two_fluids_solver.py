@@ -116,7 +116,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # this is used to identify the splitting of LS convection (Strang splitting idea)
         self._levelset_splitting = self.settings["levelset_convection_settings"]["levelset_splitting"].GetBool()
         self._levelset_dt_factor = 0.5 if self._levelset_splitting else 1.0
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, dt_factor)
+        if self._levelset_splitting:
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, self._levelset_dt_factor)
 
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
@@ -442,11 +443,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             linear_solver = self._GetLinearSolver()
 
             levelset_convection_settings = self.settings["levelset_convection_settings"]
-
-            levelset_convection_settings["levelset_variable_name"].SetString("DISTANCE")
-            levelset_convection_settings["levelset_convection_variable_name"].SetString("VELOCITY")
-            levelset_convection_settings["levelset_gradient_variable_name"].SetString("DISTANCE_GRADIENT")
-
             if domain_size == 2:
                 level_set_convection_process = KratosMultiphysics.LevelSetConvectionProcess2D(
                     computing_model_part,
