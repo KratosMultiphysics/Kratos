@@ -97,14 +97,14 @@ public:
         if (mActivateLimiter){
             CalculateLimiter(rModelPart, rVar);
         } else{
-            for (unsigned int i = 0; i < nparticles; i++){
+            for (int i = 0; i < nparticles; i++){
                 mLimiter[i] = 1.0;
             }
         }
 
         //FIRST LOOP: estimate rVar(n+1)
         #pragma omp parallel for firstprivate(results,N,N_valid)
-        for (unsigned int i = 0; i < nparticles; i++)
+        for (int i = 0; i < nparticles; i++)
         {
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
@@ -126,7 +126,7 @@ public:
 
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
                 double phi1 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar,1));
-                for (unsigned int k = 1; k < geom.size(); k++) {
+                for (int k = 1; k < geom.size(); k++) {
                     phi1 += N[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
                 }
 
@@ -140,7 +140,7 @@ public:
 
                 Geometry< Node < 3 > >& geom = pelement_valid->GetGeometry();
                 double phi1 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar,1));
-                for (unsigned int k = 1; k < geom.size(); k++) {
+                for (int k = 1; k < geom.size(); k++) {
                     phi1 += N_valid[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
                 }
 
@@ -150,7 +150,7 @@ public:
 
         //now obtain the value AT TIME STEP N by taking it from N+1
         #pragma omp parallel for firstprivate(results,N,N_valid)
-        for (unsigned int i = 0; i < nparticles; i++)
+        for (int i = 0; i < nparticles; i++)
         {
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
@@ -168,7 +168,7 @@ public:
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
                 double phi_old = N[0] * ( geom[0].FastGetSolutionStepValue(rVar));
 
-                for (unsigned int k = 1; k < geom.size(); k++) {
+                for (int k = 1; k < geom.size(); k++) {
                     phi_old  += N[k] * ( geom[k].FastGetSolutionStepValue(rVar) );
                 }
 
@@ -184,7 +184,7 @@ public:
         }
 
         #pragma omp parallel for
-        for (unsigned int i = 0; i < nparticles; i++)
+        for (int i = 0; i < nparticles; i++)
         {
             ModelPart::NodesContainerType::iterator it_particle = rModelPart.NodesBegin() + i;
             bool is_found = found[i];
@@ -192,7 +192,7 @@ public:
                 Vector N = Ns[i];
                 Geometry< Node < 3 > >& geom = elem_backward[i].GetGeometry();
                 double phi1 = N[0] * ( geom[0].GetValue(rVar));
-                for (unsigned int k = 1; k < geom.size(); k++) {
+                for (int k = 1; k < geom.size(); k++) {
                     phi1 += N[k] * ( geom[k].GetValue(rVar) );
                 }
 
@@ -242,7 +242,7 @@ public:
                     const double old_step_factor = (1.0 - new_step_factor);
 
                     noalias(veulerian) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[0].FastGetSolutionStepValue(conv_var,1));
-                    for (unsigned int k = 1; k < geom.size(); k++)
+                    for (int k = 1; k < geom.size(); k++)
                         noalias(veulerian) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[k].FastGetSolutionStepValue(conv_var,1) );
 
                     noalias(position) += small_dt*veulerian;
@@ -273,7 +273,7 @@ public:
                    const double new_step_factor = (1.0 - old_step_factor);
 
                     noalias(veulerian) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[0].FastGetSolutionStepValue(conv_var,1));
-                    for (unsigned int k = 1; k < geom.size(); k++)
+                    for (int k = 1; k < geom.size(); k++)
                         noalias(veulerian) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[k].FastGetSolutionStepValue(conv_var,1) );
 
                     noalias(position) -= small_dt*veulerian;
@@ -317,7 +317,7 @@ public:
             auto it_node = rModelPart.NodesBegin() + i_node;
             GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            for (int j = 0; j< global_pointer_list.size(); ++j)
             {
                 auto& global_pointer = global_pointer_list(j);
                 gp_list.push_back(global_pointer);
@@ -340,8 +340,8 @@ public:
             }
         );
 
-        IndexPartition<unsigned int>(nparticles).for_each(
-        [&](unsigned int i_node){
+        IndexPartition<int>(nparticles).for_each(
+        [&](int i_node){
             auto it_node = rModelPart.NodesBegin() + i_node;
             const auto& X_i = it_node->Coordinates();
             const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
@@ -351,7 +351,7 @@ public:
 
             GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            for (int j = 0; j< global_pointer_list.size(); ++j)
             {
 
                 /* if (it_node->Id() == j_node->Id())
@@ -369,8 +369,8 @@ public:
         }
         );
 
-        IndexPartition<unsigned int>(nparticles).for_each(
-        [&](unsigned int i_node){
+        IndexPartition<int>(nparticles).for_each(
+        [&](int i_node){
             auto it_node = rModelPart.NodesBegin() + i_node;
             const double distance_i = it_node->FastGetSolutionStepValue(rVar);
             const auto& X_i = it_node->Coordinates();
@@ -381,7 +381,7 @@ public:
 
             GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            for (int j = 0; j< global_pointer_list.size(); ++j)
             {
 
                 /* if (it_node->Id() == j_node->Id())
@@ -413,7 +413,7 @@ public:
             KRATOS_TRY
 
             ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
-            vector<unsigned int> node_partition;
+            vector<int> node_partition;
             #ifdef _OPENMP
                 int number_of_threads = omp_get_max_threads();
             #else
@@ -424,7 +424,7 @@ public:
             #pragma omp parallel for
             for(int kkk=0; kkk<number_of_threads; kkk++)
             {
-                for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+                for(int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
                 {
                         ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 
@@ -442,7 +442,7 @@ public:
     {
         KRATOS_TRY
         ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
-        vector<unsigned int> node_partition;
+        vector<int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -453,7 +453,7 @@ public:
         #pragma omp parallel for
         for(int kkk=0; kkk<number_of_threads; kkk++)
         {
-            for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+            for(int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
                 inode->GetSolutionStepValue(rVar,1) = inode->FastGetSolutionStepValue(rVar);

@@ -220,8 +220,8 @@ public:
         const double levelset_delta_time = dt_factor * previous_delta_time;
 
         // Save current level set value and current and previous step velocity values
-        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
-        [&](unsigned int i_node){
+        IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](int i_node){
             const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             mVelocity[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar);
             mVelocityOld[i_node] = dt_factor*it_node->FastGetSolutionStepValue(*mpConvectVar,1) +
@@ -246,8 +246,8 @@ public:
             const double Nnew_before = 1.0 - Nold_before;
 
             // Emulate clone time step by copying the new distance onto the old one
-            IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
-            [&](unsigned int i_node){
+            IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+            [&](int i_node){
                 auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
                 const array_1d<double,3>& r_v = mVelocity[i_node];
@@ -280,8 +280,8 @@ public:
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(r_previous_var);
 
         // Reset the velocities and levelset values to the one saved before the solution process
-        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
-        [&](unsigned int i_node){
+        IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(*mpConvectVar) = mVelocity[i_node];
             it_node->FastGetSolutionStepValue(*mpConvectVar,1) = (mVelocityOld[i_node] - (1.0 - dt_factor)*mVelocity[i_node])/dt_factor;
@@ -615,7 +615,7 @@ protected:
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            for (int j = 0; j< global_pointer_list.size(); ++j)
             {
                 auto& global_pointer = global_pointer_list(j);
                 gp_list.push_back(global_pointer);
@@ -638,8 +638,8 @@ protected:
             }
         );
 
-        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
-        [&](unsigned int i_node){
+        IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
             it_node->SetValue(*mpLevelSetVar, it_node->FastGetSolutionStepValue(*mpLevelSetVar)); //Store mpLevelSetVar
@@ -652,7 +652,7 @@ protected:
 
             GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            for (int j = 0; j< global_pointer_list.size(); ++j)
             {
                 // if (it_node->Id() == j_node->Id())
                 //     continue;
@@ -670,8 +670,8 @@ protected:
         );
 
         //Calculating beta_ij in a way that the linearity is preserved on non-symmetrical meshes
-        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
-        [&](unsigned int i_node){
+        IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             const double distance_i = it_node->FastGetSolutionStepValue(*mpLevelSetVar);
             const auto& X_i = it_node->Coordinates();
@@ -682,7 +682,7 @@ protected:
 
             GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            for (int j = 0; j< global_pointer_list.size(); ++j)
             {
                 auto& global_pointer = global_pointer_list(j);
                 auto X_j = coordinate_proxy.Get(global_pointer);
@@ -711,8 +711,8 @@ protected:
      */
     void ErrorCalculationAndCorrection()
     {
-        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
-        [&](unsigned int i_node){
+        IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
             it_node->FastGetSolutionStepValue(*mpConvectVar) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar);
@@ -727,16 +727,16 @@ protected:
         mpSolvingStrategy->FinalizeSolutionStep();
 
         // Calculating the raw error without a limiter, etc.
-        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
-        [&](unsigned int i_node){
+        IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             mError[i_node] =
                 0.5*(it_node->GetValue(*mpLevelSetVar) - it_node->FastGetSolutionStepValue(*mpLevelSetVar));
         }
         );
 
-        IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
-        [&](unsigned int i_node){
+        IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+        [&](int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
             it_node->FastGetSolutionStepValue(*mpConvectVar) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar);
