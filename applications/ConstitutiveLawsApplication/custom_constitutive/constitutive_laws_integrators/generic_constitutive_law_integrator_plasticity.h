@@ -591,7 +591,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         GetInitialUniaxialThreshold(rValues, initial_threshold);
 
         rEquivalentStressThreshold = initial_threshold;
-        rSlope = -0.5 * initial_threshold;
+        rSlope = 0.0;
     }
 
     /**
