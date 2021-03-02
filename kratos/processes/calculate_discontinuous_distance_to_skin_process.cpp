@@ -283,7 +283,7 @@ namespace Kratos
         // Initialize cut edges vectors and points arrays
         unsigned int n_cut_edges = 0;
         rIntersectionPointsArray.clear();
-        array_1d<unsigned int, mNumEdges> cut_edges_vector = ZeroVector(mNumEdges);
+        array_1d<unsigned int, mNumEdges> cut_edges_vector(mNumEdges, 0);
         rCutEdgesRatioVector = array_1d<double, mNumEdges>(mNumEdges, -1.0);
         rCutExtraEdgesRatioVector = array_1d<double, mNumEdges>(mNumEdges, -1.0);
 
