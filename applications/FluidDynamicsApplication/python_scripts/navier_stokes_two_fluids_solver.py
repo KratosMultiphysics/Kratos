@@ -255,7 +255,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     self.main_model_part,
                     self._levelset_variable)
 
-            self.__LevelSetConvection()
+            self.__PerformLevelSetConvection()
 
         # Recompute the distance field according to the new level-set position
         if (self._reinitialization_type == "variational"):
