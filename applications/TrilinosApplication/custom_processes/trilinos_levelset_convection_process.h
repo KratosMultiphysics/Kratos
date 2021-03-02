@@ -326,10 +326,8 @@ private:
         const auto& r_convect_var = *BaseType::mpConvectVar;
 
         // Check the nodal database of the current partition
-        if (r_base_model_part.NumberOfNodes() > 0){
-            VariableUtils().CheckVariableExists<Variable<double>>(r_level_set_var, r_base_model_part.Nodes());
-            VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(r_convect_var, r_base_model_part.Nodes());
-        }
+        VariableUtils().CheckVariableExists<Variable<double>>(r_level_set_var, r_base_model_part.Nodes());
+        VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(r_convect_var, r_base_model_part.Nodes());
 
         // Check if the modelpart is globally empty
         KRATOS_ERROR_IF(r_base_model_part.GetCommunicator().GlobalNumberOfNodes() == 0) << "The model has no nodes." << std::endl;
