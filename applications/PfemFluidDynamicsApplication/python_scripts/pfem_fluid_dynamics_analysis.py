@@ -147,12 +147,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         """
         self.clock_time = self.StartTimeMeasuring()
 
-        # processes to be executed at the begining of the solution step
-        for process in self._GetListOfProcesses():
-            process.ExecuteInitializeSolutionStep()
-
-        # solve time step
-        self._solver.InitializeSolutionStep()
+        super().InitializeSolutionStep()
 
         self.StopTimeMeasuring(self.clock_time,"Initialize Step" , self.report)
 
@@ -160,22 +155,17 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         """This function performs all the required operations that should be executed
         (for each step) AFTER solving the solution step.
         """
-        self.clock_time = self.StartTimeMeasuring();
-        self._GetSolver().FinalizeSolutionStep()
+        self.clock_time = self.StartTimeMeasuring()
 
-        # processes to be executed at the end of the solution step
-        for process in self._GetListOfProcesses():
-            process.ExecuteFinalizeSolutionStep()
+        super().FinalizeSolutionStep()
 
-        self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
+        self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report)
 
     def Finalize(self):
         """This function finalizes the AnalysisStage
         Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
         """
-        # Ending the problem (time integration finished)
-        for process in self._GetListOfProcesses():
-            process.ExecuteFinalize()
+        super().Finalize()
 
         self.KratosPrintInfo("::[KPFEM Simulation]:: Analysis -END- ")
         self.KratosPrintInfo(" ")
