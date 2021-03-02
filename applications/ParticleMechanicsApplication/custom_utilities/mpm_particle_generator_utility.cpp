@@ -383,17 +383,13 @@ namespace MPMParticleGeneratorUtility
 
 
                             ProcessInfo process_info = ProcessInfo();
+                            if (is_interface)
+                            {
+                                p_condition->Set(INTERFACE);
+                                p_condition->SetValuesOnIntegrationPoints(POINT_LOAD,  mpc_contact_force , process_info);
+                            }
 
-                            auto p_new_node = rBackgroundGridModelPart.CreateNewNode(rBackgroundGridModelPart.Nodes().size() + 1, mpc_xg[0][0], mpc_xg[0][1], mpc_xg[0][2]);
-                                    p_new_node->AddDof(DISPLACEMENT_X,REACTION_X);
-                                    p_new_node->AddDof(DISPLACEMENT_Y,REACTION_Y);
-                                    p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
-                                    p_new_node->AddDof(VELOCITY_X);
-                                    p_new_node->AddDof(VELOCITY_Y);
-                                    p_new_node->AddDof(VELOCITY_Z);
-
-                                    
-                            p_condition->SetValue(MPC_NODE, p_new_node);
+                            
 
                             // Setting particle condition's initial condition
                             p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
@@ -403,6 +399,7 @@ namespace MPMParticleGeneratorUtility
 
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+                            last_condition_id +=1;
 
                         }
                         // Loop over the conditions to create inner particle condition (except point load condition)
