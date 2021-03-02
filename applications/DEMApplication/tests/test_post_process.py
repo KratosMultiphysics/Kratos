@@ -26,6 +26,9 @@ class TestPostProcessClass1(KratosMultiphysics.DEMApplication.DEM_analysis_stage
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
 class TestPostProcess(KratosUnittest.TestCase):
 
