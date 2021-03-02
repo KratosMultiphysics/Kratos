@@ -345,24 +345,6 @@ protected:
             TSparseSpace::Mult(*mpJac_k1, *mpResidualVector_1, AuxVec);
             TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, AuxVec);
         }
-
-        // if (mConvergenceAcceleratorIteration == 0) {
-        //     if (mConvergenceAcceleratorFirstCorrectionPerformed == false) {
-        //         // The very first correction of the problem is done with a fixed point iteration
-        //         TSparseSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
-        //         mConvergenceAcceleratorFirstCorrectionPerformed = true;
-        //     } else {
-        //         // Fist step correction is done with the previous step Jacobian
-        //         VectorType AuxVec(mProblemSize);
-        //         TSparseSpace::Mult(*mpJac_n, *mpResidualVector_1, AuxVec);
-        //         TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, AuxVec);
-        //     }
-        // } else {
-        //     // Perform the correction
-        //     VectorType AuxVec(mProblemSize);
-        //     TSparseSpace::Mult(*mpJac_k1, *mpResidualVector_1, AuxVec);
-        //     TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, AuxVec);
-        // }
     }
 
     ///@}
