@@ -95,7 +95,7 @@ private:
      * @note The CP'S are defined as nodes and added to the rModelPart.
      * @todo How to deal with node Id's..
      **/
-    void CreateGrid( const Point A, const Point B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
+    void CreateGeometry3D( const Point A, const Point B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
 
 };

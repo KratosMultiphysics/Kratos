@@ -18,13 +18,14 @@ def run_modeler(current_model, modelers_list):
         modeler.SetupModelPart()
 
 class TestNurbsGeometryModeler(KratosUnittest.TestCase):
-    def test_grid_modeler_control_points(self):
+    def test_nurbs_geometry_3d_modeler_control_points(self):
         current_model = KratosMultiphysics.Model()
         modeler_settings = KratosMultiphysics.Parameters("""
         [{
             "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh",
+                "local_space_dimension" : 3,
                 "lower_point": [0.0,0.0,0.0],
                 "upper_point": [1.0,1.0,1.0],
                 "polynomial_order" : [4, 1, 1],
@@ -73,13 +74,14 @@ class TestNurbsGeometryModeler(KratosUnittest.TestCase):
         degree_w = geometry.PolynomialDegreeW()
         self.assertEqual(degree_w, 1)
 
-    def test_grid_modeler_geometry_consistency(self):
+    def test_nurbs_geometry_3d_modeler_consistency(self):
         current_model = KratosMultiphysics.Model()
         modeler_settings = KratosMultiphysics.Parameters("""
         [{
             "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh_01",
+                "local_space_dimension" : 3,
                 "lower_point": [-1.0,-0.5,1.0],
                 "upper_point": [1.0,0.5,3.0],
                 "polynomial_order" : [4, 5, 2],
@@ -88,6 +90,7 @@ class TestNurbsGeometryModeler(KratosUnittest.TestCase):
             "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh_02",
+                "local_space_dimension" : 3,
                 "lower_point": [-1.0,-0.5,1.0],
                 "upper_point": [1.0,0.5,3.0],
                 "polynomial_order" : [1, 1, 1],

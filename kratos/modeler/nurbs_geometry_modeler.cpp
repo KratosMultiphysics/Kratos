@@ -20,31 +20,53 @@ namespace Kratos
     ///@{
 
     void NurbsGeometryModeler::SetupGeometryModel(){
+        // Get local space dimension
+        KRATOS_ERROR_IF_NOT(mParameters.Has("local_space_dimension"))
+            << "NurbsGeometryModeler: Missing \"local_space_dimension\" section" << std::endl;
+        SizeType dimension = mParameters["local_space_dimension"].GetInt();
+
+        // Get bounding box
         KRATOS_ERROR_IF_NOT(mParameters.Has("lower_point"))
             << "NurbsGeometryModeler: Missing \"lower_point\" section" << std::endl;
-        double x =  mParameters["lower_point"].GetArrayItem(0).GetDouble();
-        double y =  mParameters["lower_point"].GetArrayItem(1).GetDouble();
-        double z =  mParameters["lower_point"].GetArrayItem(2).GetDouble();
-        Point point_a(x,y,z);
+        double x_a =  mParameters["lower_point"].GetArrayItem(0).GetDouble();
+        double y_a =  mParameters["lower_point"].GetArrayItem(1).GetDouble();
+        double z_a =  mParameters["lower_point"].GetArrayItem(2).GetDouble();
+        Point point_a(x_a,y_a,z_a);
+
         KRATOS_ERROR_IF_NOT(mParameters.Has("upper_point"))
             << "NurbsGeometryModeler: Missing \"upper_point\" section" << std::endl;
-        x =  mParameters["upper_point"].GetArrayItem(0).GetDouble();
-        y =  mParameters["upper_point"].GetArrayItem(1).GetDouble();
-        z =  mParameters["upper_point"].GetArrayItem(2).GetDouble();
-        Point point_b(x,y,z);
+        double x_b =  mParameters["upper_point"].GetArrayItem(0).GetDouble();
+        double y_b =  mParameters["upper_point"].GetArrayItem(1).GetDouble();
+        double z_b =  mParameters["upper_point"].GetArrayItem(2).GetDouble();
+        Point point_b(x_b,y_b,z_b);
+
+        // Get polynomial order and number of knotspans
         KRATOS_ERROR_IF_NOT(mParameters.Has("polynomial_order"))
             << "NurbsGeometryModeler: Missing \"polynomial_order\" section" << std::endl;
-        SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
-        SizeType p_v =  mParameters["polynomial_order"].GetArrayItem(1).GetInt();
-        SizeType p_w =  mParameters["polynomial_order"].GetArrayItem(2).GetInt();
 
         KRATOS_ERROR_IF_NOT(mParameters.Has("number_of_knot_spans"))
             << "NurbsGeometryModeler: Missing \"number_of_knot_spans\" section" << std::endl;
-        SizeType num_knot_span_u =  mParameters["number_of_knot_spans"].GetArrayItem(0).GetInt();
-        SizeType num_knot_span_v =  mParameters["number_of_knot_spans"].GetArrayItem(1).GetInt();
-        SizeType num_knot_span_w =  mParameters["number_of_knot_spans"].GetArrayItem(2).GetInt();
 
-        CreateGrid(point_a, point_b, p_u, p_v, p_w, num_knot_span_u, num_knot_span_v, num_knot_span_w);
+        SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
+        SizeType p_v = 0;
+        SizeType p_w = 0;
+        SizeType num_knot_span_u =  mParameters["number_of_knot_spans"].GetArrayItem(0).GetInt();
+        SizeType num_knot_span_v = 0;
+        SizeType num_knot_span_w = 0;
+
+        if( dimension == 2) {
+            p_v =  mParameters["polynomial_order"].GetArrayItem(1).GetInt();
+            num_knot_span_v =  mParameters["number_of_knot_spans"].GetArrayItem(1).GetInt();
+            // CreateGeometry2D(..)
+        }
+        if( dimension == 3) {
+            p_v =  mParameters["polynomial_order"].GetArrayItem(1).GetInt();
+            p_w =  mParameters["polynomial_order"].GetArrayItem(2).GetInt();
+            num_knot_span_w =  mParameters["number_of_knot_spans"].GetArrayItem(2).GetInt();
+            num_knot_span_v =  mParameters["number_of_knot_spans"].GetArrayItem(1).GetInt();
+
+            CreateGeometry3D(point_a, point_b, p_u, p_v, p_w, num_knot_span_u, num_knot_span_v, num_knot_span_w);
+        }
 
         // Here add geometry and nodes to model part.
         KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
@@ -57,7 +79,8 @@ namespace Kratos
         const SizeType number_of_geometries = model_part.NumberOfGeometries();
         mpGeometry->SetId(number_of_geometries+1);
         model_part.AddGeometry(mpGeometry);
-        for( int i = 0; i < mpGeometry->size(); ++i){
+
+        for( IndexType i = 0; i < mpGeometry->size(); ++i){
             mpGeometry->pGetPoint(i)->SetSolutionStepVariablesList(model_part.pGetNodalSolutionStepVariablesList());
             model_part.AddNode(mpGeometry->pGetPoint(i),0);
         }
@@ -67,7 +90,7 @@ namespace Kratos
     ///@name Private Operations
     ///@{
 
-    void NurbsGeometryModeler::CreateGrid( const Point A, const Point B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
+    void NurbsGeometryModeler::CreateGeometry3D( const Point A, const Point B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW )
     {
         KRATOS_ERROR_IF( B.X() <= A.X() || B.Y() <= A.Y() || B.Z() <= A.Z() ) << "NurbsGeometryModeler: "
