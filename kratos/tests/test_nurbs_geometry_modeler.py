@@ -148,8 +148,8 @@ class TestNurbsGeometryModeler(KratosUnittest.TestCase):
         param[0] = 0.0
         param[1] = 1.0
         param[2] = 0.0
-        for i in range(11):
-            for j in range(11):
+        for _ in range(11):
+            for _ in range(11):
                 coord_01 = geometry_01.GlobalCoordinates(param)
                 coord_02 = geometry_02.GlobalCoordinates(param)
                 param[2] += 0.1
