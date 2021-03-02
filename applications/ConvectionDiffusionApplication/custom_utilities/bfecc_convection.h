@@ -126,7 +126,7 @@ public:
 
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
                 double phi1 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar,1));
-                for (int k = 1; k < geom.size(); k++) {
+                for (unsigned int k = 1; k < geom.size(); k++) {
                     phi1 += N[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
                 }
 
@@ -140,7 +140,7 @@ public:
 
                 Geometry< Node < 3 > >& geom = pelement_valid->GetGeometry();
                 double phi1 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar,1));
-                for (int k = 1; k < geom.size(); k++) {
+                for (unsigned int k = 1; k < geom.size(); k++) {
                     phi1 += N_valid[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
                 }
 
@@ -168,7 +168,7 @@ public:
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
                 double phi_old = N[0] * ( geom[0].FastGetSolutionStepValue(rVar));
 
-                for (int k = 1; k < geom.size(); k++) {
+                for (unsigned int k = 1; k < geom.size(); k++) {
                     phi_old  += N[k] * ( geom[k].FastGetSolutionStepValue(rVar) );
                 }
 
@@ -192,7 +192,7 @@ public:
                 Vector N = Ns[i];
                 Geometry< Node < 3 > >& geom = elem_backward[i].GetGeometry();
                 double phi1 = N[0] * ( geom[0].GetValue(rVar));
-                for (int k = 1; k < geom.size(); k++) {
+                for (unsigned int k = 1; k < geom.size(); k++) {
                     phi1 += N[k] * ( geom[k].GetValue(rVar) );
                 }
 
@@ -242,7 +242,7 @@ public:
                     const double old_step_factor = (1.0 - new_step_factor);
 
                     noalias(veulerian) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[0].FastGetSolutionStepValue(conv_var,1));
-                    for (int k = 1; k < geom.size(); k++)
+                    for (unsigned int k = 1; k < geom.size(); k++)
                         noalias(veulerian) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[k].FastGetSolutionStepValue(conv_var,1) );
 
                     noalias(position) += small_dt*veulerian;
@@ -273,7 +273,7 @@ public:
                    const double new_step_factor = (1.0 - old_step_factor);
 
                     noalias(veulerian) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[0].FastGetSolutionStepValue(conv_var,1));
-                    for (int k = 1; k < geom.size(); k++)
+                    for (unsigned int k = 1; k < geom.size(); k++)
                         noalias(veulerian) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[k].FastGetSolutionStepValue(conv_var,1) );
 
                     noalias(position) -= small_dt*veulerian;
