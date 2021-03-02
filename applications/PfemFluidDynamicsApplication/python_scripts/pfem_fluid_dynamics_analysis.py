@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import time as timer
 import os
 from importlib import import_module
@@ -53,7 +51,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.KratosPrintInfo("::[KPFEM Simulation]:: [Time Step:" + str(parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()) + " echo:" +  str(self.echo_level) + "]")
 
         #### Model_part settings start ####
-        super(PfemFluidDynamicsAnalysis,self).__init__(model,parameters)
+        super().__init__(model,parameters)
         # Defining the model_part
         self.main_model_part = self.model.GetModelPart(parameters["solver_settings"]["model_part_name"].GetString())
 
