@@ -89,6 +89,13 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /**
+     * @brief Construct a new Level Set Convection Process object
+     * Level set convection proces model constructor
+     * @param rModel Model container
+     * @param pLinearSolver Linear solver to be used in the level set convection problem
+     * @param ThisParameters Json settings encapsulating the process configuration (see also GetDefaultParameters)
+     */
     LevelSetConvectionProcess(
         Model& rModel,
         typename TLinearSolver::Pointer pLinearSolver,
@@ -100,6 +107,13 @@ public:
     {
     }
 
+    /**
+     * @brief Construct a new Level Set Convection Process object
+     * Level set convection proces model part constructor
+     * @param rBaseModelPart Origin model part
+     * @param pLinearSolver Linear solver to be used in the level set convection problem
+     * @param ThisParameters Json settings encapsulating the process configuration (see also GetDefaultParameters)
+     */
     LevelSetConvectionProcess(
         ModelPart& rBaseModelPart,
         typename TLinearSolver::Pointer pLinearSolver,
@@ -167,6 +181,12 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Perform the level set convection
+     * BLA BLA, I'd explain briefly how is the convection performed. Also which are the options
+     * - partial convection
+     * - and bfecc with limiter
+     */
     void Execute() override
     {
         KRATOS_TRY;
@@ -209,13 +229,10 @@ public:
 
         const double dt = levelset_delta_time / static_cast<double>(n_substep);
         rCurrentProcessInfo.SetValue(DELTA_TIME, dt);
-        rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpLevelSetVar); //TODO: ISN'T THIS ALREADY DONE?
-
-        const int rank = mrBaseModelPart.GetCommunicator().MyPID();
+        rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpLevelSetVar);
 
         for(unsigned int step = 1; step <= n_substep; ++step){
-
-            KRATOS_INFO_IF("LevelSetConvectionProcess", mpSolvingStrategy->GetEchoLevel() > 0 && rank == 0) <<
+            KRATOS_INFO_IF("LevelSetConvectionProcess", mpSolvingStrategy->GetEchoLevel() > 0) <<
                 "Doing step "<< step << " of " << n_substep << std::endl;
 
             // Compute shape functions of old and new step
@@ -579,6 +596,10 @@ protected:
         return n_steps;
     }
 
+    /**
+     * @brief Convection limiter evaluation
+     * BLA BLA
+     */
     void EvaluateLimiter()
     {
         // ****************************************************************************************
@@ -685,6 +706,10 @@ protected:
         );
     }
 
+    /**
+     * @brief Eulerian error calculation and correction
+     * BLA BLA
+     */
     void ErrorCalculationAndCorrection()
     {
         IndexPartition<unsigned int>(mpDistanceModelPart->NumberOfNodes()).for_each(
