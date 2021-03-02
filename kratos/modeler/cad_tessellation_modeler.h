@@ -200,7 +200,7 @@ private:
      * @param rTriangleOutput reference of the Triangle output
      * @return a vector of Gauss points maped onto the exact surface
      */
-    std::vector<Matrix> CadTessellationModeler::InsertGaussPointsExactSurface(
+    std::vector<Matrix> InsertGaussPointsExactSurface(
         const BrepSurfaceType& rSurfaceGeometry,
         const struct triangulateio& rTriangleOutput
     );
@@ -215,7 +215,7 @@ private:
      * @param rTriangleOutput reference of the Triangle output
      * @return a vector of Gauss points maped onto the triangulation of the surface
      */
-    std::vector<Matrix> CadTessellationModeler::InsertGaussPointsApproxSurface(
+    std::vector<Matrix> InsertGaussPointsApproxSurface(
         const BrepSurfaceType& rSurfaceGeometry,
         const struct triangulateio& rTriangleOutput
     );

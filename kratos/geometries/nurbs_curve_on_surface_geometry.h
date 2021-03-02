@@ -49,7 +49,7 @@ public:
 
     typedef NurbsSurfaceGeometry<3, TSurfaceContainerPointType> NurbsSurfaceType;
     typedef NurbsCurveGeometry<2, TCurveContainerPointType> NurbsCurveType;
-    typename typedef NurbsCurveType::Pointer NurbsCurvePointerType;
+    typedef typename NurbsCurveType::Pointer NurbsCurvePointerType;
 
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::PointsArrayType PointsArrayType;
