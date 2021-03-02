@@ -213,17 +213,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
             # Perform the level-set convection according to the previous step velocity
-            if self._bfecc_convection:
-                self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
-                self._GetLevelSetConvectionProcess().BFECCconvect(
-                    self.main_model_part,
-                    self._levelset_variable,
-                    self._levelset_convection_variable,
-                    self.settings["bfecc_number_substeps"].GetInt())
-            else:
-                if (self._eulerian_error_compensation):
-                    self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
-                self._GetLevelSetConvectionProcess().Execute()
+            self.__LevelSet_Convection()
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
@@ -257,22 +247,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
 
         if (self._levelset_splitting):
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, (1.0 - self._levelset_dt_factor))
             # Perform the level-set convection to complete the solution step
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, (1.0 - self._levelset_dt_factor))
+
             if self._bfecc_convection:
                 self._GetLevelSetConvectionProcess().CopyScalarVarToPreviousTimeStep(
                     self.main_model_part,
                     self._levelset_variable)
-                self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
-                self._GetLevelSetConvectionProcess().BFECCconvect(
-                    self.main_model_part,
-                    self._levelset_variable,
-                    self._levelset_convection_variable,
-                    self.settings["bfecc_number_substeps"].GetInt())
-            else:
-                if (self._eulerian_error_compensation):
-                    self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
-                self._GetLevelSetConvectionProcess().Execute()
+
+            self.__LevelSet_Convection()
 
         # Recompute the distance field according to the new level-set position
         if (self._reinitialization_type == "variational"):
@@ -297,6 +280,19 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
             self._GetSolutionStrategy().FinalizeSolutionStep()
             self._GetAccelerationLimitationUtility().Execute()
+
+    def __LevelSet_Convection(self):
+        if self._bfecc_convection:
+            self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
+            self._GetLevelSetConvectionProcess().BFECCconvect(
+                self.main_model_part,
+                self._levelset_variable,
+                self._levelset_convection_variable,
+                self.settings["bfecc_number_substeps"].GetInt())
+        else:
+            if (self._eulerian_error_compensation):
+                self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
+            self._GetLevelSetConvectionProcess().Execute()
 
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):
