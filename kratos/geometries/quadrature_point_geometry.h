@@ -27,7 +27,7 @@ namespace Kratos
 /**
  * @class QuadraturePointGeometry
  * @ingroup KratosCore
- * @brief A sinlge quadrature point, that can be used for geometries without
+ * @brief A single quadrature point, that can be used for geometries without
  *        a predefined integration scheme, i.e. they can handle material point elements,
  *        isogeometric analysis elements or standard finite elements which are defined
  *        at a single quadrature point.
