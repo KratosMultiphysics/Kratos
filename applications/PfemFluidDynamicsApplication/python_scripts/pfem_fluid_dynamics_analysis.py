@@ -20,7 +20,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         model -- The Model to be used
         parameters -- The ProjectParameters used
         """
-        self.model = model
+        super().__init__(model,parameters)
+
         #### TIME MONITORING START ####
         # Time control starts
         self.KratosPrintInfo(timer.ctime())
@@ -31,8 +32,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         #### TIME MONITORING END ####
 
         #### PARSING THE PARAMETERS ####
-        #set echo level
-        self.echo_level = parameters["problem_data"]["echo_level"].GetInt()
 
         # Print solving time
         self.report = False
@@ -51,7 +50,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.KratosPrintInfo("::[KPFEM Simulation]:: [Time Step:" + str(parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()) + " echo:" +  str(self.echo_level) + "]")
 
         #### Model_part settings start ####
-        super().__init__(model,parameters)
         # Defining the model_part
         self.main_model_part = self.model.GetModelPart(parameters["solver_settings"]["model_part_name"].GetString())
 
