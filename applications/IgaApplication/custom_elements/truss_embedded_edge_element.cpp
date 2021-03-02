@@ -380,7 +380,7 @@ namespace Kratos
         const double A = GetProperties()[CROSS_AREA];
         const double prestress = GetProperties()[PRESTRESS_CAUCHY];
 
-        if (rVariable == CABLE_FORCE)
+        if (rVariable==FORCE_PK2_1D || rVariable==FORCE_CAUCHY_1D)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
             {
@@ -397,11 +397,26 @@ namespace Kratos
                 // green-lagrange strain
                 const double e11_membrane = 0.5 * (actual_aa - reference_aa);
 
-                // normal forcereference_aa
-                double principal_stress = prestress * A + e11_membrane * A * E / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]); 
+                // normal force reference_aa
+                double normal_force = prestress * A + e11_membrane * A * E / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]); 
 
-                rValues[point_number] = principal_stress;
+                if (rVariable==FORCE_PK2_1D)
+                {
+                    rValues[point_number] = normal_force;
+                }
+
+                if (rVariable==FORCE_CAUCHY_1D)
+                {
+                    rValues[point_number] = normal_force * actual_a / reference_a;
+                }
             }   
+        }
+        else
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
+            { 
+                rValues[point_number] = 0.0;
+            }
         }
     }
 
