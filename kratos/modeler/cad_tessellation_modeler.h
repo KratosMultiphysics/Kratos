@@ -12,22 +12,24 @@
 #if !defined(KRATOS_CAD_TESSELLATION_MODELER_INCLUDED)
 #define KRATOS_CAD_TESSELLATION_MODELER_INCLUDED
 
-extern "C"
-{
-    #ifdef SINGLE
-        #define REAL float
-    #else /* not SINGLE */
-        #define REAL double
-    #endif /* not SINGLE */
-    void triangulate(char *, struct triangulateio *, struct triangulateio *,struct triangulateio *);
-}
+//TODO: This is supposed to be done in the delaunator_utilities.cpp
+// extern "C"
+// {
+//     #ifdef SINGLE
+//         #define REAL float
+//     #else /* not SINGLE */
+//         #define REAL double
+//     #endif /* not SINGLE */
+//     void triangulate(char *, struct triangulateio *, struct triangulateio *,struct triangulateio *);
+// }
 
 // System includes
 
 // External includes
-//this is not ideal...
-#include "../../external_libraries/triangle/triangle.h"
-// #include "triangle.h"
+//TODO: Remove this (should be included in the delaunator_utils.h)
+// //this is not ideal...
+// #include "../../external_libraries/triangle/triangle.h"
+// // #include "triangle.h"
 
 // Project includes
 #include "modeler.h"
@@ -153,7 +155,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    Model* mpModel = nullptr;
+    Model* mpModel = nullptr; //FIXME: Why saving a pointer. Better save a reference.
 
     ///@}
     ///@name Serializer
@@ -191,7 +193,6 @@ private:
         const std::vector<array_1d<double, 2>>& rBoundaryLoop
     );
 
-
     /**
      * @brief This method inserts Gauss points into the surface in the parametric space
      * and projects these points onto the exact input surface. Hence, these points lie within
@@ -204,7 +205,6 @@ private:
         const BrepSurfaceType& rSurfaceGeometry,
         const struct triangulateio& rTriangleOutput
     );
-
 
     /**
      * @brief This method insert maps the triangulation from the parametric into the physical space.
@@ -220,7 +220,6 @@ private:
         const struct triangulateio& rTriangleOutput
     );
 
-
     /**
      * @brief This method computes the discretization error of the surface, measured at the Gauss points.
      * This is done by measuring the distance between distinctive points (Gauss points) between the exact
@@ -235,22 +234,6 @@ private:
         const std::vector<Matrix>& rDataExact,
         const std::vector<Matrix>& rDataApprox
     );
-
-
-    /**
-     * @brief This method initializes the necessary data structure for triangle
-     * @param tr This is a struct used to pass data into and out of the triangulate() procedure
-     */
-    void InitTriangulationDataStructure(triangulateio& tr);
-
-
-    /**
-     * @brief This method clears the data structure for triangle
-     * @param tr This is a struct used to pass data into and out of the triangulate() procedure
-     */
-    void CleanTriangulationDataStructure(triangulateio& tr);
-
-
 
 }; // Class CadTessellationModeler
 

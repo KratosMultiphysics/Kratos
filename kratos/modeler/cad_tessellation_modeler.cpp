@@ -9,6 +9,8 @@
 //
 
 // Project includes
+#include "utilities/delaunator_utilities.h"
+#include "utilities/parallel_utilities.h"
 #include "cad_tessellation_modeler.h"
 
 namespace Kratos
@@ -38,7 +40,7 @@ void CadTessellationModeler::SetupModelPart()
     const std::string skin_model_part_name = mParameters["skin_model_part_name"].GetString();
     ModelPart& skin_model_part = mpModel->HasModelPart(skin_model_part_name)
         ? mpModel->GetModelPart(skin_model_part_name)
-        :mpModel->CreateModelPart(skin_model_part_name);
+        :mpModel->CreateModelPart(skin_model_part_name); //TODO: If the skin model part is already there, I'd check that it is empty.
 
     IndexType node_id = 0;
     IndexType element_id = 0;
@@ -164,6 +166,16 @@ std::vector<Matrix> CadTessellationModeler::ComputeSurfaceTriangulation(
         << "Missing \"max_triangulation_iteration\" in CadTessellationModeler Parameters" << std::endl;
     const auto max_iteration = mParameters["max_triangulation_iteration"].GetInt();
 
+    //TODO: THIS IS WHAT WE SHOULD PASS TO THE DELAUNATOR
+    // // Set up the points coordinates list
+    // n_boundary_points = rBoundaryLoop.size();
+    // std::vector<double> boundary_points_coords(2 * n_boundary_points);
+    // IndexPartition(n_boundary_points).for_each([&](std::size_t i_point){
+    //     auto& r_coords = rBoundaryLoop[i_point];
+    //     boundary_points_coords[2 * i_point] = r_coords[0];
+    //     boundary_points_coords[2 * i_point + 1] = r_coords[1];
+    // });
+
     // initiliazing the i/o containers
     struct triangulateio in_data;
     struct triangulateio out_data;
@@ -226,10 +238,15 @@ std::vector<Matrix> CadTessellationModeler::ComputeSurfaceTriangulation(
         InitTriangulationDataStructure(out_data);
         InitTriangulationDataStructure(vor_out_data);
 
+        //TODO: WE SHOULD BE CAPABLE OF CUSTOMIZING THESE SETTINGS --> Parse with local Kratos flags
         std::string str = "Qqpza" + std::to_string(aux_area);
         char *meshing_options = new char[str.length() + 1];
         strcpy(meshing_options, str.c_str());
         triangulate(meshing_options, &in_data, &out_data, &vor_out_data);
+
+        // //TODO: THIS IS THE CALL WE SHOULD USE
+        // // Call the triangle within the DelaunatorUtilities to calculate the current patch tessellation
+        // auto surface_connectivities = DelaunatorUtilities::ComputeTrianglesConnectivity(boundary_points_coords);
 
         auto gauss_points_exact_xyz = this->InsertGaussPointsExactSurface(
             rSurfaceGeometry,
@@ -386,109 +403,6 @@ Vector CadTessellationModeler::ComputeDiscretizationError(
         discretization_error[tri_i] = ele_error;
     }
     return discretization_error;
-}
-
-
-void CadTessellationModeler::InitTriangulationDataStructure(triangulateio& tr)
-{
-    tr.pointlist                  = (REAL*) NULL;
-    tr.pointattributelist         = (REAL*) NULL;
-    tr.pointmarkerlist            = (int*) NULL;
-    tr.numberofpoints             = 0;
-    tr.numberofpointattributes    = 0;
-    tr.trianglelist               = (int*) NULL;
-    tr.triangleattributelist      = (REAL*) NULL;
-    tr.trianglearealist           = (REAL*) NULL;
-    tr.neighborlist               = (int*) NULL;
-    tr.numberoftriangles          = 0;
-    tr.numberofcorners            = 3;
-    tr.numberoftriangleattributes = 0;
-    tr.segmentlist                = (int*) NULL;
-    tr.segmentmarkerlist          = (int*) NULL;
-    tr.numberofsegments           = 0;
-    tr.holelist                   = (REAL*) NULL;
-    tr.numberofholes              = 0;
-    tr.regionlist                 = (REAL*) NULL;
-    tr.numberofregions            = 0;
-    tr.edgelist                   = (int*) NULL;
-    tr.edgemarkerlist             = (int*) NULL;
-    tr.normlist                   = (REAL*) NULL;
-    tr.numberofedges              = 0;
-};
-
-
-void CadTessellationModeler::CleanTriangulationDataStructure(triangulateio& tr)
-{
-    if(tr.pointlist != NULL)
-    {
-        free(tr.pointlist);
-        tr.pointlist = nullptr;
-    }
-    if(tr.pointattributelist != NULL)
-    {
-        free(tr.pointattributelist);
-        tr.pointattributelist = nullptr;
-    }
-    if(tr.pointmarkerlist != NULL)
-    {
-        free(tr.pointmarkerlist);
-        tr.pointmarkerlist = nullptr;
-    }
-    if(tr.trianglelist != NULL)
-    {
-        free(tr.trianglelist);
-        tr.trianglelist = nullptr;
-    }
-    if(tr.triangleattributelist != NULL)
-    {
-        free(tr.triangleattributelist);
-        tr.triangleattributelist = nullptr;
-    }
-    if(tr.trianglearealist != NULL)
-    {
-        free(tr.trianglearealist);
-        tr.trianglearealist = nullptr;
-    }
-    if(tr.neighborlist != NULL)
-    {
-        free(tr.neighborlist);
-        tr.neighborlist = nullptr;
-    }
-    if(tr.segmentlist != NULL)
-    {
-        free(tr.segmentlist);
-        tr.segmentlist = nullptr;
-    }
-    if(tr.segmentmarkerlist != NULL)
-    {
-        free(tr.segmentmarkerlist);
-        tr.segmentmarkerlist = nullptr;
-    }
-    if(tr.holelist != NULL)
-    {
-        free(tr.holelist);
-        tr.holelist = nullptr;
-    }
-    if(tr.regionlist != NULL)
-    {
-        free(tr.regionlist);
-        tr.regionlist = nullptr;
-    }
-    if(tr.edgelist != NULL)
-    {
-        free(tr.edgelist);
-        tr.edgelist = nullptr;
-    }
-    if(tr.edgemarkerlist != NULL)
-    {
-        free(tr.edgemarkerlist);
-        tr.edgemarkerlist = nullptr;
-    }
-    if(tr.normlist != NULL)
-    {
-        free(tr.normlist);
-        tr.normlist = nullptr;
-    }
 }
 
 ///@}
