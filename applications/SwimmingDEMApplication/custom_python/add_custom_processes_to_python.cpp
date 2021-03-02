@@ -21,7 +21,8 @@
 
 #include "custom_processes/apply_rigid_rotation_process.hpp"
 #include "custom_processes/transient_spatial_dependant_porosity_solution_body_force_process.h"
-#include "custom_processes/spatial_dependant_porosity_solution_body_force_process.h"
+#include "custom_processes/spatial_dependant_porosity_solution_and_body_force_process.h"
+#include "custom_processes/spatial_dependant_porosity_solution_transient_body_force_process.h"
 
 namespace Kratos
 {
@@ -43,8 +44,14 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init< ModelPart&, Parameters& >())
     ;
 
-    py::class_<SpatialDependantPorositySolutionBodyForceProcess, SpatialDependantPorositySolutionBodyForceProcess::Pointer, Process>
-    (m, "SpatialDependantPorositySolutionBodyForceProcess")
+    py::class_<SpatialDependantPorositySolutionAndBodyForceProcess, SpatialDependantPorositySolutionAndBodyForceProcess::Pointer, Process>
+    (m, "SpatialDependantPorositySolutionAndBodyForceProcess")
+    .def(py::init< ModelPart&>())
+    .def(py::init< ModelPart&, Parameters& >())
+    ;
+
+    py::class_<SpatialDependantPorositySolutionTransientBodyForceProcess, SpatialDependantPorositySolutionTransientBodyForceProcess::Pointer, Process>
+    (m, "SpatialDependantPorositySolutionTransientBodyForceProcess")
     .def(py::init< ModelPart&, const double, const double, const double, const double, const double, const double>())
     .def(py::init< ModelPart&, Parameters& >())
     ;
