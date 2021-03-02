@@ -88,6 +88,8 @@ public:
         ) : mrModelPart(rModelPart),
             mParameters(ThisParameters)
     {
+        const Parameters default_parameters = GetDefaultParameters();
+        mParameters.ValidateAndAssignDefaults(default_parameters);
     }
 
     virtual ~NormalCheckProcess()= default;
