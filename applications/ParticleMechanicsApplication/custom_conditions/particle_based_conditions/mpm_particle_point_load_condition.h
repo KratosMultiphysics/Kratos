@@ -179,11 +179,9 @@ protected:
     double GetPointLoadIntegrationWeight() override;
 
     /**
-     * Called at the beginning of each solution step
-     * @param rCurrentProcessInfo: the current process info instance
+     * this is called for non-linear analysis at the end of the iteration process
      */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of eahc solution step
@@ -223,8 +221,9 @@ private:
     ///@{
 
     array_1d<double, 3> m_point_load;
+    array_1d<double, 3> m_velocity;
+    array_1d<double, 3> m_delta_xg;
 
-    Node<3>* pNodePointLoad;
 
     ///@}
     ///@name Private Operators

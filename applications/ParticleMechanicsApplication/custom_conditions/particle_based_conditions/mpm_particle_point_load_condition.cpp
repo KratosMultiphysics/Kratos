@@ -62,15 +62,48 @@ namespace Kratos
     MPMParticlePointLoadCondition::~MPMParticlePointLoadCondition()
     {
     }
-    void MPMParticlePointLoadCondition::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
-    {
-        auto pNodePointLoad = GetValue(MPC_NODE);
-        
-        array_1d<double,3> displacement = ZeroVector(3);
-        displacement = pNodePointLoad->Coordinates() - pNodePointLoad->GetInitialPosition();
-        pNodePointLoad->FastGetSolutionStepValue(DISPLACEMENT)  = displacement;
+    
+    void MPMParticlePointLoadCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
 
-    }
+
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+        GeneralVariables Variables;
+
+        Variables.CurrentDisp = CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
+
+        array_1d<double,3> delta_xg = ZeroVector(3);
+        array_1d<double, 3 > MPC_velocity = ZeroVector(3);
+
+        MPMShapeFunctionPointValues(Variables.N);
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
+            {
+                auto r_geometry = GetGeometry();
+                array_1d<double, 3 > nodal_velocity = ZeroVector(3);
+                if (r_geometry[i].SolutionStepsDataHas(VELOCITY))
+                    nodal_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
+                for ( unsigned int j = 0; j < dimension; j++ )
+                {
+                    delta_xg[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
+                    MPC_velocity[j] += Variables.N[i] * nodal_velocity[j];
+                }
+            }
+        }
+        
+    
+        // Update the Material Point Condition Position
+        m_delta_xg = delta_xg;
+        m_velocity = MPC_velocity;
+
+    KRATOS_CATCH( "" )
+}
+
 
     //*************************COMPUTE FORCE AT EACH NODE*******************************
     //************************************************************************************
@@ -190,20 +223,10 @@ namespace Kratos
             }
         }
         
-  
+    
         // Update the Material Point Condition Position
         m_xg += delta_xg ;
-
-        // For Coupling Condition transfer information to node representing the condition
-        auto pNodePointLoad = GetValue(MPC_NODE);
-        pNodePointLoad->Coordinates()= m_xg;
-        
-        pNodePointLoad->FastGetSolutionStepValue(VELOCITY) = MPC_velocity;
-
-        array_1d<double,3> displacement = ZeroVector(3);
-        displacement = pNodePointLoad->Coordinates() - pNodePointLoad->GetInitialPosition();
-        pNodePointLoad->FastGetSolutionStepValue(DISPLACEMENT)  = displacement;
-        
+        m_velocity = MPC_velocity;
     }
 
     void MPMParticlePointLoadCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
@@ -215,6 +238,12 @@ namespace Kratos
 
         if (rVariable == POINT_LOAD) {
             rValues[0] = m_point_load;
+        }
+        else if (rVariable == MPC_VELOCITY) {
+            rValues[0] = m_velocity;
+        }
+        else if (rVariable == MPC_DISPLACEMENT) {
+            rValues[0] = m_delta_xg;
         }
         else {
             MPMParticleBaseLoadCondition::CalculateOnIntegrationPoints(
@@ -232,6 +261,12 @@ namespace Kratos
 
         if (rVariable == POINT_LOAD) {
             m_point_load = rValues[0];
+        }
+        else if (rVariable == MPC_VELOCITY) {
+            m_velocity = rValues[0];
+        }
+        else if (rVariable == MPC_DISPLACEMENT) {
+            m_delta_xg = rValues[0];
         }
         else {
             MPMParticleBaseLoadCondition::SetValuesOnIntegrationPoints(
