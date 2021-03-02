@@ -64,39 +64,41 @@ namespace Kratos
             pnode = pnode->Clone();
         });
 
-        block_for_each(mrModelPart.Elements(), [&](Element& rElem){
+        IndexPartition<std::size_t>(mrModelPart.Elements().size()).for_each([&](std::size_t Index){
+            Element::Pointer& pelem = *(mrModelPart.Elements().ptr_begin() + Index);
             Geometry<Node<3>>::PointsArrayType tmp;
-            const auto& geom = rElem.GetGeometry();
+            const auto& geom = pelem->GetGeometry();
             tmp.reserve(geom.size());
             for(unsigned int k=0; k<geom.size(); ++k)
                 tmp.push_back( mrModelPart.Nodes()(geom[k].Id()) );
 
-            auto paux = rElem.Create(rElem.Id(), tmp, rElem.pGetProperties());
+            auto paux = pelem->Create(pelem->Id(), tmp, pelem->pGetProperties());
 
-            paux->Data() = rElem.Data();
+            paux->Data() = pelem->Data();
 
-            rElem = (*paux);
+            pelem = paux;
         });
 
-        block_for_each(mrModelPart.Conditions(), [&](Condition& rCond){
+        IndexPartition<std::size_t>(mrModelPart.Conditions().size()).for_each([&](std::size_t Index){
+            Condition::Pointer& pcond = *(mrModelPart.Conditions().ptr_begin() + Index);
             Geometry<Node<3>>::PointsArrayType tmp;
-            const auto& geom = rCond.GetGeometry();
+            const auto& geom = pcond->GetGeometry();
             tmp.reserve(geom.size());
             for(unsigned int k=0; k<geom.size(); ++k)
                 tmp.push_back( mrModelPart.Nodes()(geom[k].Id()));
 
-            auto paux = rCond.Create(rCond.Id(), tmp, rCond.pGetProperties());
+            auto paux = pcond->Create(pcond->Id(), tmp, pcond->pGetProperties());
 
-            paux->Data() = rCond.Data();
+            paux->Data() = pcond->Data();
 
-            rCond = (*paux);
+            pcond = paux;
         });
 
-            //actualize pointers within submodelparts
-            for(auto& subpart : mrModelPart.SubModelParts())
-            {
-                ActualizeSubModelPart(subpart);
-            }
+        //actualize pointers within submodelparts
+        for(auto& subpart : mrModelPart.SubModelParts())
+        {
+            ActualizeSubModelPart(subpart);
+        }
 
             //here i do a check
 //             for(auto& subpart : mrModelPart.SubModelParts())
