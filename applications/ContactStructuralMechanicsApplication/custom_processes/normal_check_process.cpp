@@ -169,7 +169,7 @@ void NormalCheckProcess::Execute()
     MortarUtilities::InvertNormalForFlag<PointerVectorSet<Element, IndexedObject>>(r_elements_array, MARKER);
 
     // Auxiliar boolean
-    bool inverted_condition = true;
+    bool inverted_condition = false;
 
     #pragma omp parallel for firstprivate(inverted_condition)
     for(int i = 0; i < number_of_conditions; ++i) {
@@ -177,8 +177,8 @@ void NormalCheckProcess::Execute()
         const auto& r_geometry = it_cond->GetGeometry();
 
         for (auto& r_node : r_geometry) {
-            if (r_node.IsNot(MARKER)) {
-                inverted_condition = false;
+            if (r_node.Is(MARKER)) {
+                inverted_condition = true;
                 break;
             }
         }
@@ -186,7 +186,7 @@ void NormalCheckProcess::Execute()
             it_cond->Set(MARKER);
         }
 
-        inverted_condition = true;
+        inverted_condition = false;
     }
 
     // Invert conditions
