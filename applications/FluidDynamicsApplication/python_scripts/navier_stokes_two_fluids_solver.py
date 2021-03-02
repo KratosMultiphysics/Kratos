@@ -281,7 +281,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._GetSolutionStrategy().FinalizeSolutionStep()
             self._GetAccelerationLimitationUtility().Execute()
 
-    def __LevelSetConvection(self):
+    def __PerformLevelSetConvection(self):
         if self._bfecc_convection:
             self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
             self._GetLevelSetConvectionProcess().BFECCconvect(
