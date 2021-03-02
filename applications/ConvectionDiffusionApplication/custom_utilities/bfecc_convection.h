@@ -79,7 +79,7 @@ public:
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
-        const unsigned int nparticles = rModelPart.Nodes().size();
+        const int nparticles = rModelPart.Nodes().size();
 
         PointerVector< Element > elem_backward( rModelPart.Nodes().size());
         std::vector< Vector > Ns( rModelPart.Nodes().size());
@@ -303,7 +303,7 @@ public:
         const double epsilon = 1.0e-15;
         const double power = 2.0;
 
-        const unsigned int nparticles = rModelPart.Nodes().size();
+        const int nparticles = rModelPart.Nodes().size();
 
         if(mSigmaPlus.size() != nparticles){
             mSigmaPlus.resize(nparticles);
