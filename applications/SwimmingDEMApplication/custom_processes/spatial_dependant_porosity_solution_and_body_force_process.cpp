@@ -189,12 +189,11 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetInitialBodyForceAnd
     const double x20 = mX2Origin;
     const double c_min = (1 - squeeze_amplitude);
     const double R = (c_min * L/2) / n_safety;
-    double u_char = mUchar;
     Matrix inv_permeability = ZeroMatrix(dim,dim);
 
     const double c = (1 + squeeze_amplitude * std::sin(omega * time));
 
-    double du1dt, du2dt, du11, du12, du111, du112, du121, du122, du21, du22, du211, du212, du221, du222, dp1, dp2;
+    double du1dt, du2dt, du11, du12, du111, du112, du121, du122, du21, du22, du211, du212, du221, du222;
 
     // Computation of the BodyForce and Porosity fields
     for (auto it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); it_node++){
@@ -264,10 +263,6 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetInitialBodyForceAnd
 
             r_pressure = std::sin(Globals::Pi*x1)*std::cos(Globals::Pi*x2) + (-1.0 + std::cos(1.0))*std::sin(1.0);
 
-            dp1 = Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2);
-
-            dp2 = -Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2);
-
             for (unsigned int d = 0; d < dim; ++d){
                 permeability(d,d) = mPermeability;
             }
@@ -322,10 +317,6 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetInitialBodyForceAnd
 
             r_pressure = std::sin(Globals::Pi*x1)*std::cos(Globals::Pi*x2) + (-1 + std::cos(1.0))*std::sin(1.0);
 
-            dp1 = Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2);
-
-            dp2 = -Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2);
-
         }
 
         double det_permeability = MathUtils<double>::Det(permeability);
@@ -342,8 +333,8 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetInitialBodyForceAnd
         const double grad_of_div1 = du111 + du221;
         const double grad_of_div2 = du112 + du222;
 
-        const double press_grad1 = 200.0 * x1;
-        const double press_grad2 = 0.0;
+        const double press_grad1 = Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2);;
+        const double press_grad2 = -Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2);
 
         r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + sigma(0,0) * r_u1 + sigma(1,0) * r_u1;
 
@@ -374,12 +365,11 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetBodyForceAndPorosit
     const double x20 = mX2Origin;
     const double c_min = (1 - squeeze_amplitude);
     const double R = (c_min * L/2) / n_safety;
-    const double u_char = mUchar;
     Matrix inv_permeability = ZeroMatrix(dim,dim);
 
     const double c = (1 + squeeze_amplitude * std::sin(omega * time));
 
-    double du1dt, du2dt, du11, du12, du111, du112, du121, du122, du21, du22, du211, du212, du221, du222, dp1, dp2;
+    double du1dt, du2dt, du11, du12, du111, du112, du121, du122, du21, du22, du211, du212, du221, du222;
 
     // Computation of the BodyForce and Porosity fields
     for (auto it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); it_node++){
@@ -449,10 +439,6 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetBodyForceAndPorosit
 
             r_pressure = std::sin(Globals::Pi*x1)*std::cos(Globals::Pi*x2) + (-1.0 + std::cos(1.0))*std::sin(1.0);
 
-            dp1 = Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2);
-
-            dp2 = -Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2);
-
             for (unsigned int d = 0; d < dim; ++d){
                 permeability(d,d) = mPermeability;
             }
@@ -507,10 +493,6 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetBodyForceAndPorosit
 
             r_pressure = std::sin(Globals::Pi*x1)*std::cos(Globals::Pi*x2) + (-1 + std::cos(1.0))*std::sin(1.0);
 
-            dp1 = Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2);
-
-            dp2 = -Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2);
-
         }
 
         double det_permeability = MathUtils<double>::Det(permeability);
@@ -527,8 +509,8 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetBodyForceAndPorosit
         const double grad_of_div1 = du111 + du221;
         const double grad_of_div2 = du112 + du222;
 
-        const double press_grad1 = 200.0 * x1;
-        const double press_grad2 = 0.0;
+        const double press_grad1 = Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2);;
+        const double press_grad2 = -Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2);
 
         r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1;
 
