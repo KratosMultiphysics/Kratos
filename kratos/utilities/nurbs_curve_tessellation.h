@@ -100,6 +100,8 @@ public:
     * @param DomainInterval The curve interval which is to be tessellated
     * @param KnotSpanIntervals The knot span intervals laying in the DomainInterval
     * @param Tolerance Tolerance for the choral error
+    * @param ToSurfaceParameter defines if the tesselation is computed in
+    *        global coordinates or in local coordinates of the underlying surface.
     * @return std::vector<std::pair<double, Vector>> tessellation
     * @see ANurbs library (https://github.com/oberbichler/ANurbs)
     */
