@@ -101,7 +101,10 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKEpsilonVMSKBasedEpsilonUBasedWallAdjoint2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-      mRansKEpsilonVMSKBasedEpsilonUBasedWallAdjoint3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
+      mRansKEpsilonVMSKBasedEpsilonUBasedWallAdjoint3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // k-omega adjoint conditions
+      mRansKOmegaVMSKBasedOmegaKBasedWallAdjoint2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKOmegaVMSKBasedOmegaKBasedWallAdjoint3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
 {
 }
 
@@ -299,5 +302,9 @@ void KratosRANSApplication::Register()
 
     KRATOS_REGISTER_CONDITION("RansKEpsilonVMSKBasedEpsilonUBasedWallAdjoint2D2N", mRansKEpsilonVMSKBasedEpsilonUBasedWallAdjoint2D2N);
     KRATOS_REGISTER_CONDITION("RansKEpsilonVMSKBasedEpsilonUBasedWallAdjoint3D3N", mRansKEpsilonVMSKBasedEpsilonUBasedWallAdjoint3D3N);
+
+    // registering k-omega adjoint conditions
+    KRATOS_REGISTER_CONDITION("RansKOmegaVMSKBasedOmegaKBasedWallAdjoint2D2N", mRansKOmegaVMSKBasedOmegaKBasedWallAdjoint2D2N);
+    KRATOS_REGISTER_CONDITION("RansKOmegaVMSKBasedOmegaKBasedWallAdjoint3D3N", mRansKOmegaVMSKBasedOmegaKBasedWallAdjoint3D3N);
 }
 } // namespace Kratos.
