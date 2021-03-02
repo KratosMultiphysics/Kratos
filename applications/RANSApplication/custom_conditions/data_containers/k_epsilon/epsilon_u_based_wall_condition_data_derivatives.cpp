@@ -51,12 +51,8 @@ void EpsilonUBasedWallConditionDataDerivatives<TDim>::Data::Check(
     const auto& r_condition_properties = rCondition.GetProperties();
     const int number_of_nodes = r_geometry.PointsNumber();
 
-    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
-        << "TURBULENCE_RANS_C_MU is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA))
         << "TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA is not found in process info.\n";
-    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(VON_KARMAN))
-        << "VON_KARMAN is not found in process info.\n";
 
     KRATOS_ERROR_IF_NOT(r_condition_properties.Has(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT))
         << "RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT is not found in condition properties [ Condition.Id() = "
@@ -106,7 +102,6 @@ EpsilonUBasedWallConditionDataDerivatives<TDim>::Data::Data(
 
     const auto& r_properties = this->GetConditionProperties();
     mYPlusLimit = r_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
-    mBeta = r_properties[WALL_SMOOTHNESS_BETA];
 
     noalias(mUnitNormal) = rGeometry.GetValue(NORMAL);
     mUnitNormal /= norm_2(mUnitNormal);

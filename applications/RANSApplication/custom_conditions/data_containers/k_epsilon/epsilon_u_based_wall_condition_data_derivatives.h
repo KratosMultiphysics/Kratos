@@ -25,7 +25,7 @@
 #include "includes/ublas_interface.h"
 
 // Application includes
-#include "custom_conditions/data_containers/k_epsilon/epsilon_k_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_epsilon/epsilon_u_based_wall_condition_data.h"
 #include "custom_conditions/scalar_wall_flux_condition_data.h"
 
 namespace Kratos
@@ -241,13 +241,13 @@ public:
 
 
 
-    class Data : public EpsilonKBasedWallConditionData
+    class Data : public EpsilonUBasedWallConditionData
     {
     public:
         ///@name Type Definitions
         ///@{
 
-        using BaseType = EpsilonKBasedWallConditionData;
+        using BaseType = EpsilonUBasedWallConditionData;
 
         ///@}
         ///@name Life Cycle
@@ -271,7 +271,7 @@ public:
             const Condition& rCondition,
             const ProcessInfo& rCurrentProcessInfo);
 
-        static const std::string GetName() { return "KEpsilonEpsilonKBasedWallConditionAdjointData"; }
+        static const std::string GetName() { return "KEpsilonEpsilonUBasedWallConditionAdjointData"; }
 
         static void InitializeCondition(
             Condition& rCondition,
@@ -298,14 +298,13 @@ public:
         const ScalarWallFluxConditionData::Parameters& mrParameters;
 
         using  BaseType::mEpsilonSigma;
-        using  BaseType::mCmu25;
+        using  BaseType::mBeta;
 
         double mUTau;
         double mTurbulentKineticEnergy;
         double mWallVelocityMagnitude;
         double mWallHeight;
         double mNormalMagnitude;
-        double mBeta;
         double mYPlusLimit;
         double mWallFlux;
 
