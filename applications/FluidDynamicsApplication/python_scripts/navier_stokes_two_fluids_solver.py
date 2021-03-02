@@ -213,7 +213,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
             # Perform the level-set convection according to the previous step velocity
-            self.__LevelSet_Convection()
+            self.__LevelSetConvection()
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
@@ -255,7 +255,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     self.main_model_part,
                     self._levelset_variable)
 
-            self.__LevelSet_Convection()
+            self.__LevelSetConvection()
 
         # Recompute the distance field according to the new level-set position
         if (self._reinitialization_type == "variational"):
@@ -281,7 +281,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._GetSolutionStrategy().FinalizeSolutionStep()
             self._GetAccelerationLimitationUtility().Execute()
 
-    def __LevelSet_Convection(self):
+    def __LevelSetConvection(self):
         if self._bfecc_convection:
             self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
             self._GetLevelSetConvectionProcess().BFECCconvect(
