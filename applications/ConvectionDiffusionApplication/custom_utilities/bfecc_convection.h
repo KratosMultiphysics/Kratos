@@ -305,7 +305,7 @@ public:
 
         const int nparticles = rModelPart.Nodes().size();
 
-        if(mSigmaPlus.size() != nparticles){
+        if(static_cast<int>(mSigmaPlus.size()) != nparticles){
             mSigmaPlus.resize(nparticles);
             mSigmaMinus.resize(nparticles);
         }
