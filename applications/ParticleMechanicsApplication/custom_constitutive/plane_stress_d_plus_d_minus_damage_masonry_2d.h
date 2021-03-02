@@ -93,8 +93,9 @@ public:
 		// Compression Damage Properties
 		double DamageOnsetStressCompression;				double YieldStressCompression;
 		double ResidualStressCompression;					double YieldStrainCompression;
-		double BezierControllerC1;							double BezierControllerC2;
-		double BezierControllerC3;							double FractureEnergyCompression;
+		double BezierControllerS1;							double BezierControllerEP1;
+		double BezierControllerEP2;							double BezierControllerEP3;
+		double BezierControllerEP4;							double FractureEnergyCompression;
 		double BiaxialCompressionMultiplier;				double ShearCompressionReductor;
 
 		// Effective Stress Data

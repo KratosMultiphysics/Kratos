@@ -547,9 +547,11 @@ void MPMDamageDPlusDMinusMasonry2DLaw::InitializeCalculationData(
 	data.YieldStressCompression 		= props[YIELD_STRESS_COMPRESSION]* dif_compression;
 	data.ResidualStressCompression 		= props[RESIDUAL_STRESS_COMPRESSION];
 	data.YieldStrainCompression  		= props[YIELD_STRAIN_COMPRESSION];
-	data.BezierControllerC1  			= props.Has(BEZIER_CONTROLLER_C1) ? props[BEZIER_CONTROLLER_C1] : 0.80; // Updated for concrete
-	data.BezierControllerC2  			= props.Has(BEZIER_CONTROLLER_C2) ? props[BEZIER_CONTROLLER_C2] : 0.30; // Updated for concrete
-	data.BezierControllerC3  			= props.Has(BEZIER_CONTROLLER_C3) ? props[BEZIER_CONTROLLER_C3] : 1.50;
+	data.BezierControllerS1  			= props.Has(BEZIER_CONTROLLER_S1) ? props[BEZIER_CONTROLLER_S1] : 0.75; // Updated for concrete
+	data.BezierControllerEP1  			= props.Has(BEZIER_CONTROLLER_EP1) ? props[BEZIER_CONTROLLER_EP1] : 1.1; // Updated for concrete
+	data.BezierControllerEP2  			= props.Has(BEZIER_CONTROLLER_EP2) ? props[BEZIER_CONTROLLER_EP2] : 1.1; // Updated for concrete
+	data.BezierControllerEP3  			= props.Has(BEZIER_CONTROLLER_EP3) ? props[BEZIER_CONTROLLER_EP3] : 1.25; // Updated for concrete
+	data.BezierControllerEP4  			= props.Has(BEZIER_CONTROLLER_EP4) ? props[BEZIER_CONTROLLER_EP4] : 1.25; // Updated for concrete
 	data.FractureEnergyCompression  	= props[FRACTURE_ENERGY_COMPRESSION]* dif_compression;
 	data.BiaxialCompressionMultiplier  	= props[BIAXIAL_COMPRESSION_MULTIPLIER];
 	data.ShearCompressionReductor  		= props.Has(SHEAR_COMPRESSION_REDUCTOR) ? props[SHEAR_COMPRESSION_REDUCTOR] : 1.0; // Changed default to 1.0 to match Lubliner
@@ -790,10 +792,6 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 							(1.0 - internal_variable / initial_internal_variable));
 
 		if (rDamage > 0.99) rDamage = 1.0;
-		//const double internal_variable_min = 1.0e-3 * yield_tension;
-		//if((1.0 - rDamage) * internal_variable < internal_variable_min){
-		//	rDamage = 1.0- internal_variable_min / internal_variable;
-		//}
 		if (rDamage < DamageParameterTensionOutput) rDamage = DamageParameterTensionOutput;
 		else DamageParameterTensionOutput = rDamage;
 	}
@@ -817,27 +815,25 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 		const double s_p = data.YieldStressCompression;
 		const double s_r = data.ResidualStressCompression;
 		const double e_p = std::max(data.YieldStrainCompression, s_p / young_modulus);
-		//const double c1 			= data.BezierControllerC1;
-		//const double c2 			= data.BezierControllerC2;
-		//const double c3 			= data.BezierControllerC3;
-		const double c1 = 0.65;
-		const double c2 = 0.3;
-		const double c3 = 1.1;
+
+		const double c_s1 			= data.BezierControllerS1;
+		const double c_ep1 			= data.BezierControllerEP1;
+		const double c_ep2 			= data.BezierControllerEP2;
+		const double c_ep3 			= data.BezierControllerEP3;
+		const double c_ep4 			= data.BezierControllerEP4;
+
 		const double specific_fracture_energy = data.FractureEnergyCompression /
 			data.CharacteristicLength;
 
 		// Auto-computation of remaining constitutive law parameters
-		const double s_k = s_r + (s_p - s_r) * c1;
+		const double s_k = s_r + (s_p - s_r) * c_s1;
 		const double e_0 = s_0 / young_modulus;
 		const double e_i = s_p / young_modulus;
-		const double alpha = std::max(0.0, 2.0 * (e_p - s_p / young_modulus));
-		//double e_j    		= e_p + alpha * c2;
-		//double e_k   		= e_j + alpha * (1.0 - c2);
-		//double e_r    		= (e_k - e_j) / (s_p - s_k) * (s_p - s_r) + e_j;
-		double e_j = 1.05 * e_p;
-		double e_k = 1.1 * e_p;
-		double e_r = 1.2 * e_p;
-		double e_u = e_r * c3;
+
+		double e_j = c_ep1 * e_p;
+		double e_k = c_ep2 * e_j;
+		double e_r = c_ep3 * e_k;
+		double e_u = e_r * c_ep4;
 
 		// current abscissa
 		const double strain_like_counterpart = eq_compression_stress / young_modulus;
