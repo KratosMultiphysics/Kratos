@@ -33,8 +33,13 @@
 #include "rans_application_variables.h"
 
 // Derivative data type includes
+// k-epsilon
 #include "custom_elements/data_containers/k_epsilon/k_element_data_derivatives.h"
 #include "custom_elements/data_containers/k_epsilon/epsilon_element_data_derivatives.h"
+
+// k-omega
+#include "custom_elements/data_containers/k_omega/k_element_data_derivatives.h"
+#include "custom_elements/data_containers/k_omega/omega_element_data_derivatives.h"
 
 // Include base h
 #include "convection_diffusion_reaction_residual_based_flux_corrected_derivatives.h"
@@ -588,5 +593,31 @@ template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<
 template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<3, 4, KEpsilonElementData::EpsilonElementDataDerivatives<3, 4>::Data>::VariableDerivatives<KEpsilonElementData::EpsilonElementDataDerivatives<3, 4>::KDerivative>;
 template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<3, 4, KEpsilonElementData::EpsilonElementDataDerivatives<3, 4>::Data>::VariableDerivatives<KEpsilonElementData::EpsilonElementDataDerivatives<3, 4>::EpsilonDerivative>;
 template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<3, 4, KEpsilonElementData::EpsilonElementDataDerivatives<3, 4>::Data>::VariableDerivatives<KEpsilonElementData::EpsilonElementDataDerivatives<3, 4>::ShapeDerivative>;
+
+// k-omega k element derivatives
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, KOmegaElementData::KElementDataDerivatives<2, 3>::Data>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, KOmegaElementData::KElementDataDerivatives<2, 3>::Data>::VariableDerivatives<KOmegaElementData::KElementDataDerivatives<2, 3>::UDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, KOmegaElementData::KElementDataDerivatives<2, 3>::Data>::VariableDerivatives<KOmegaElementData::KElementDataDerivatives<2, 3>::KDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, KOmegaElementData::KElementDataDerivatives<2, 3>::Data>::VariableDerivatives<KOmegaElementData::KElementDataDerivatives<2, 3>::OmegaDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, KOmegaElementData::KElementDataDerivatives<2, 3>::Data>::VariableDerivatives<KOmegaElementData::KElementDataDerivatives<2, 3>::ShapeDerivative>;
+
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<3, 4, KOmegaElementData::KElementDataDerivatives<3, 4>::Data>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<3, 4, KOmegaElementData::KElementDataDerivatives<3, 4>::Data>::VariableDerivatives<KOmegaElementData::KElementDataDerivatives<3, 4>::UDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<3, 4, KOmegaElementData::KElementDataDerivatives<3, 4>::Data>::VariableDerivatives<KOmegaElementData::KElementDataDerivatives<3, 4>::KDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<3, 4, KOmegaElementData::KElementDataDerivatives<3, 4>::Data>::VariableDerivatives<KOmegaElementData::KElementDataDerivatives<3, 4>::OmegaDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<3, 4, KOmegaElementData::KElementDataDerivatives<3, 4>::Data>::VariableDerivatives<KOmegaElementData::KElementDataDerivatives<3, 4>::ShapeDerivative>;
+
+// k-omega omega element derivatives
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, KOmegaElementData::OmegaElementDataDerivatives<2, 3>::Data>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, KOmegaElementData::OmegaElementDataDerivatives<2, 3>::Data>::VariableDerivatives<KOmegaElementData::OmegaElementDataDerivatives<2, 3>::UDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, KOmegaElementData::OmegaElementDataDerivatives<2, 3>::Data>::VariableDerivatives<KOmegaElementData::OmegaElementDataDerivatives<2, 3>::KDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, KOmegaElementData::OmegaElementDataDerivatives<2, 3>::Data>::VariableDerivatives<KOmegaElementData::OmegaElementDataDerivatives<2, 3>::OmegaDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, KOmegaElementData::OmegaElementDataDerivatives<2, 3>::Data>::VariableDerivatives<KOmegaElementData::OmegaElementDataDerivatives<2, 3>::ShapeDerivative>;
+
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<3, 4, KOmegaElementData::OmegaElementDataDerivatives<3, 4>::Data>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<3, 4, KOmegaElementData::OmegaElementDataDerivatives<3, 4>::Data>::VariableDerivatives<KOmegaElementData::OmegaElementDataDerivatives<3, 4>::UDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<3, 4, KOmegaElementData::OmegaElementDataDerivatives<3, 4>::Data>::VariableDerivatives<KOmegaElementData::OmegaElementDataDerivatives<3, 4>::KDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<3, 4, KOmegaElementData::OmegaElementDataDerivatives<3, 4>::Data>::VariableDerivatives<KOmegaElementData::OmegaElementDataDerivatives<3, 4>::OmegaDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<3, 4, KOmegaElementData::OmegaElementDataDerivatives<3, 4>::Data>::VariableDerivatives<KOmegaElementData::OmegaElementDataDerivatives<3, 4>::ShapeDerivative>;
 
 } // namespace Kratos

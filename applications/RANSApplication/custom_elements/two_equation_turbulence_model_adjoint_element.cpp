@@ -29,6 +29,7 @@
 
 // data containers
 #include "custom_elements/data_containers/k_epsilon/qsvms_rfc_adjoint_element_data.h"
+#include "custom_elements/data_containers/k_omega/qsvms_rfc_adjoint_element_data.h"
 
 // Include base h
 #include "two_equation_turbulence_model_adjoint_element.h"
@@ -1056,7 +1057,12 @@ void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementDa
 }
 
 // template instantiations
+// k-epsilon
 template class TwoEquationTurbulenceModelAdjointElement<2, 3, KEpsilonElementData::QSVMSRFCAdjointElementData<2, 3>>;
 template class TwoEquationTurbulenceModelAdjointElement<3, 4, KEpsilonElementData::QSVMSRFCAdjointElementData<3, 4>>;
+
+// k-omega
+template class TwoEquationTurbulenceModelAdjointElement<2, 3, KOmegaElementData::QSVMSRFCAdjointElementData<2, 3>>;
+template class TwoEquationTurbulenceModelAdjointElement<3, 4, KOmegaElementData::QSVMSRFCAdjointElementData<3, 4>>;
 
 } // namespace Kratos
