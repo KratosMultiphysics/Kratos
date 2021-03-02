@@ -371,31 +371,47 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
 
     // Initialize values
     block_for_each(r_nodes_array, [&](Node<3>& rNode){
-
-        // We initialize the doubles values
-        for ( const auto p_var : mDoubleVariable) {
-            if (mExtrapolateNonHistorical) rNode.SetValue(*p_var, 0.0);
-            else rNode.FastGetSolutionStepValue(*p_var) = 0.0;
+        if (mExtrapolateNonHistorical)
+        {
+            // We initialize the doubles values
+            for ( const auto p_var : mDoubleVariable) {
+                rNode.SetValue(*p_var, 0.0);
+            }
+            // We initialize the arrays values
+            for ( const auto p_var : mArrayVariable) {
+                rNode.SetValue(*p_var, zero_array);
+            }
+            // We initialize the vectors values
+            for ( const auto p_var : mVectorVariable) {
+                const Vector zero_vector = ZeroVector(mSizeVectors[p_var]);
+                rNode.SetValue(*p_var, zero_vector);
+            }
+            // We initialize the matrix values
+            for ( const auto p_var : mMatrixVariable) {
+                const Matrix zero_matrix = ZeroMatrix(mSizeMatrixes[p_var].first, mSizeMatrixes[p_var].second);
+                rNode.SetValue(*p_var, zero_matrix);
+            }
         }
-
-        // We initialize the arrays values
-        for ( const auto p_var : mArrayVariable) {
-            if (mExtrapolateNonHistorical) rNode.SetValue(*p_var, zero_array);
-            else rNode.FastGetSolutionStepValue(*p_var) = zero_array;
-        }
-
-        // We initialize the vectors values
-        for ( const auto p_var : mVectorVariable) {
-            const Vector zero_vector = ZeroVector(mSizeVectors[p_var]);
-            if (mExtrapolateNonHistorical) rNode.SetValue(*p_var, zero_vector);
-            else rNode.FastGetSolutionStepValue(*p_var) = zero_vector;
-        }
-
-        // We initialize the matrix values
-        for ( const auto p_var : mMatrixVariable) {
-            const Matrix zero_matrix = ZeroMatrix(mSizeMatrixes[p_var].first, mSizeMatrixes[p_var].second);
-            if (mExtrapolateNonHistorical) rNode.SetValue(*p_var, zero_matrix);
-            else rNode.FastGetSolutionStepValue(*p_var) = zero_matrix;
+        else
+        {
+            // We initialize the doubles values
+            for ( const auto p_var : mDoubleVariable) {
+                rNode.FastGetSolutionStepValue(*p_var) = 0.0;
+            }
+            // We initialize the arrays values
+            for ( const auto p_var : mArrayVariable) {
+                rNode.FastGetSolutionStepValue(*p_var) = zero_array;
+            }
+            // We initialize the vectors values
+            for ( const auto p_var : mVectorVariable) {
+                const Vector zero_vector = ZeroVector(mSizeVectors[p_var]);
+                rNode.FastGetSolutionStepValue(*p_var) = zero_vector;
+            }
+            // We initialize the matrix values
+            for ( const auto p_var : mMatrixVariable) {
+                const Matrix zero_matrix = ZeroMatrix(mSizeMatrixes[p_var].first, mSizeMatrixes[p_var].second);
+                rNode.FastGetSolutionStepValue(*p_var) = zero_matrix;
+            }
         }
     });
 }
