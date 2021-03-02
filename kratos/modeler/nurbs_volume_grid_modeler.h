@@ -73,8 +73,6 @@ public:
 
     void SetupGeometryModel() override;
 
-    void SetupModelPart() override;
-
     ///@}
 
 private:
@@ -87,7 +85,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
      * @brief Creates a cartesian grid composed out of trivariant B-spline cubes.
      * @param PointA Lower point of bounding box.

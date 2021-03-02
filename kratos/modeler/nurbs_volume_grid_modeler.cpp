@@ -45,31 +45,28 @@ namespace Kratos
         SizeType num_knot_span_w =  mParameters["number_of_knot_spans"].GetArrayItem(2).GetInt();
 
         CreateGrid(point_a, point_b, p_u, p_v, p_w, num_knot_span_u, num_knot_span_v, num_knot_span_w);
-    }
 
-    void NurbsVolumeGridModeler::SetupModelPart(){
         // Here add geometry and nodes to model part.
         KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
             << "NurbsVolumeGridModeler: Missing \"model_part_name\" section" << std::endl;
-        
+
         ModelPart& model_part = mpModel->HasModelPart(mParameters["model_part_name"].GetString()) ?
             mpModel->GetModelPart(mParameters["model_part_name"].GetString()) :
-            mpModel->CreateModelPart(mParameters["model_part_name"].GetString()); 
+            mpModel->CreateModelPart(mParameters["model_part_name"].GetString());
 
         const SizeType number_of_geometries = model_part.NumberOfGeometries();
-        mpGeometry->SetId(number_of_geometries+1);    
+        mpGeometry->SetId(number_of_geometries+1);
         model_part.AddGeometry(mpGeometry);
         for( int i = 0; i < mpGeometry->size(); ++i){
             mpGeometry->pGetPoint(i)->SetSolutionStepVariablesList(model_part.pGetNodalSolutionStepVariablesList());
             model_part.AddNode(mpGeometry->pGetPoint(i),0);
         }
-
     }
 
     ///@}
     ///@name Private Operations
     ///@{
-        
+
     void NurbsVolumeGridModeler::CreateGrid( const Point A, const Point B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW )
     {
