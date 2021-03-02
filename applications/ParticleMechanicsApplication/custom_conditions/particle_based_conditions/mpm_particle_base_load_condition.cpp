@@ -44,11 +44,16 @@ namespace Kratos
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
         double denominator = 1.0;
+        const double small_cut_instability_tolerance = 0.01;
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
                 denominator -= rResult[i];
                 rResult[i] = 0;
+            }
+            if (rResult[i] < small_cut_instability_tolerance){
+                denominator += (small_cut_instability_tolerance - rResult[i]);
+                rResult[i] = small_cut_instability_tolerance;
             }
         }
 
@@ -56,7 +61,5 @@ namespace Kratos
 
         KRATOS_CATCH( "" )
     }
-
-
 
 } // Namespace Kratos
