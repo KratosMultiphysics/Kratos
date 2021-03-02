@@ -615,7 +615,7 @@ protected:
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-            for (int j = 0; j< global_pointer_list.size(); ++j)
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
                 auto& global_pointer = global_pointer_list(j);
                 gp_list.push_back(global_pointer);
@@ -652,7 +652,7 @@ protected:
 
             GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-            for (int j = 0; j< global_pointer_list.size(); ++j)
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
                 // if (it_node->Id() == j_node->Id())
                 //     continue;
@@ -682,7 +682,7 @@ protected:
 
             GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
-            for (int j = 0; j< global_pointer_list.size(); ++j)
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
                 auto& global_pointer = global_pointer_list(j);
                 auto X_j = coordinate_proxy.Get(global_pointer);
