@@ -126,13 +126,13 @@ public:
         : mrBaseModelPart(rBaseModelPart)
         , mrModel(rBaseModelPart.GetModel())
         , mpLevelSetVar(&rLevelSetVar)
-        , mMaxAllowedCFL(MaxCFL)
-        , mMaxSubsteps(MaxSubsteps)
-        , mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
         , mpConvectVar(&VELOCITY)
         , mpLevelSetGradientVar(nullptr)
+        , mMaxAllowedCFL(MaxCFL)
+        , mMaxSubsteps(MaxSubsteps)
         , mIsBfecc(false)
         , mPartialConvection(false)
+        , mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
         KRATOS_TRY
 
@@ -363,18 +363,27 @@ protected:
 
     double mMaxAllowedCFL;
 
-    bool mDistancePartIsInitialized = false;
-
 	unsigned int mMaxSubsteps;
 
     bool mIsBfecc;
+
     bool mPartialConvection;
 
-    Kratos::Vector mOldDistance;
-    Kratos::Vector mError;
-    std::vector< array_1d<double,3> > mVelocity, mVelocityOld;
-    Kratos::Vector mSigmaPlus, mSigmaMinus;
-    Kratos::Vector mLimiter;
+    Vector mError;
+
+    Vector mOldDistance;
+
+    Vector mSigmaPlus;
+    
+    Vector mSigmaMinus;
+
+    Vector mLimiter;
+
+    std::vector<array_1d<double,3>> mVelocity;
+
+    std::vector<array_1d<double,3>> mVelocityOld;
+
+    bool mDistancePartIsInitialized = false;
 
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
@@ -523,27 +532,14 @@ protected:
 
 
     unsigned int EvaluateNumberOfSubsteps(){
-        // First of all compute the cfl number
-        const auto n_elem = mpDistanceModelPart->NumberOfElements();
+        // First of all compute the maximum local CFL number
         const double dt = mpDistanceModelPart->GetProcessInfo()[DELTA_TIME];
-
-		// Vector where each thread will store its maximum (VS does not support OpenMP reduce max)
-		int NumThreads = ParallelUtilities::GetNumThreads();
-		std::vector<double> list_of_max_local_cfl(NumThreads, 0.0);
-
-        //TODO: Update this loop to avoid using thread id
-        #pragma omp parallel shared(list_of_max_local_cfl)
-        for(int i_elem = 0; i_elem < static_cast<int>(n_elem); i_elem++){
-            const auto it_elem = mpDistanceModelPart->ElementsBegin() + i_elem;
-            Geometry< Node<3> >& r_geom = it_elem->GetGeometry();
-
+        double max_cfl_found = block_for_each<MaxReduction<double>>(mpDistanceModelPart->Elements(), [&](Element& rElement){
             double vol;
             array_1d<double, TDim+1 > N;
             BoundedMatrix<double, TDim+1, TDim > DN_DX;
+            auto& r_geom = rElement.GetGeometry();
             GeometryUtils::CalculateGeometryData(r_geom, DN_DX, N, vol);
-
-			int k = OpenMPUtils::ThisThread();
-			double& max_cfl = list_of_max_local_cfl[k];
 
             // Compute h
             double h=0.0;
@@ -563,18 +559,8 @@ protected:
             }
 
             double cfl_local = norm_2(vgauss) / h;
-            if(cfl_local > max_cfl){
-                max_cfl = cfl_local;
-            }
-        }
-
-		// Now we get the maximum at each thread level
-        double max_cfl_found = 0.0;
-		for (int k=0; k < NumThreads;k++){
-		    if (max_cfl_found < list_of_max_local_cfl[k]){
-                max_cfl_found = list_of_max_local_cfl[k];
-            }
-        }
+            return cfl_local;
+        });
         max_cfl_found *= dt;
 
         // Synchronize maximum CFL between processes
@@ -779,10 +765,10 @@ private:
         mIsBfecc = ThisParameters["eulerian_error_compensation"].GetBool();
         mPartialConvection = ThisParameters["partial_convection"].GetBool();
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
-        mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
         mpLevelSetGradientVar = mIsBfecc ? &(KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_gradient_variable_name"].GetString())) : nullptr;
+        mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
     }
 
     void InitializeConvectionStrategy(BuilderAndSolverPointerType pBuilderAndSolver)

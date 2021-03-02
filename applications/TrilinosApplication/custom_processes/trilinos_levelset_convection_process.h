@@ -120,13 +120,13 @@ public:
         const double MaxCFL = 1.0,
         const double CrossWindStabilizationFactor = 0.7,
         const unsigned int MaxSubSteps = 0)
-        : mrEpetraCommunicator(rEpetraCommunicator)
-        , BaseType(
+        : BaseType(
             rLevelSetVar,
             VELOCITY,
             rBaseModelPart,
             MaxCFL,
             MaxSubSteps)
+        , mrEpetraCommunicator(rEpetraCommunicator)
     {
         KRATOS_TRY
 
@@ -326,28 +326,21 @@ private:
         const auto& r_convect_var = *BaseType::mpConvectVar;
 
         // Check the nodal database of the current partition
-        int n_nodes = r_base_model_part.NumberOfNodes();
-        int n_elems = r_base_model_part.NumberOfElements();
-
-        if (n_nodes > 0){
+        if (r_base_model_part.NumberOfNodes() > 0){
             VariableUtils().CheckVariableExists<Variable<double>>(r_level_set_var, r_base_model_part.Nodes());
             VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(r_convect_var, r_base_model_part.Nodes());
         }
 
         // Check if the modelpart is globally empty
-        n_nodes = r_base_model_part.GetCommunicator().GetDataCommunicator().SumAll(n_nodes);
-        n_elems = r_base_model_part.GetCommunicator().GetDataCommunicator().SumAll(n_elems);
-        KRATOS_ERROR_IF(n_nodes == 0) << "The model has no nodes." << std::endl;
-        KRATOS_ERROR_IF(n_elems == 0) << "The model has no elements." << std::endl;
+        KRATOS_ERROR_IF(r_base_model_part.GetCommunicator().GlobalNumberOfNodes() == 0) << "The model has no nodes." << std::endl;
+        KRATOS_ERROR_IF(r_base_model_part.GetCommunicator().GlobalNumberOfElements() == 0) << "The model has no elements." << std::endl;
 
         // Check if any partition has incorrect elements
         if(TDim == 2){
-            int has_incorrect_elems = r_base_model_part.NumberOfElements() ? r_base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle : 0;
-            has_incorrect_elems = r_base_model_part.GetCommunicator().GetDataCommunicator().SumAll(has_incorrect_elems);
+            bool has_incorrect_elems = r_base_model_part.NumberOfElements() ? r_base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle : false;
             KRATOS_ERROR_IF(has_incorrect_elems) << "In 2D the element type is expected to be a triangle" << std::endl;
         } else if(TDim == 3) {
-            int has_incorrect_elems = r_base_model_part.NumberOfElements() ? r_base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra : 0;
-            has_incorrect_elems = r_base_model_part.GetCommunicator().GetDataCommunicator().SumAll(has_incorrect_elems);
+            bool has_incorrect_elems = r_base_model_part.NumberOfElements() ? r_base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra : false;
             KRATOS_ERROR_IF(has_incorrect_elems) << "In 3D the element type is expected to be a tetrahedra" << std::endl;
         }
 
@@ -368,9 +361,9 @@ private:
             calculate_norm_Dx_flag);
 
         //TODO: check flag DO_EXPENSIVE_CHECKS
-        (this->mpSolvingStrategy)->SetEchoLevel(0);
-        (this->mpSolvingStrategy)->Check();
-        (this->mpSolvingStrategy)->Initialize();
+        this->mpSolvingStrategy->SetEchoLevel(0);
+        this->mpSolvingStrategy->Check();
+        this->mpSolvingStrategy->Initialize();
 
         KRATOS_CATCH("")
     }
