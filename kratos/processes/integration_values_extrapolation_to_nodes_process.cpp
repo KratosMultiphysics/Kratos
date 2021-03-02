@@ -156,7 +156,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                         array_1d<double, 3>& aux_value = (mExtrapolateNonHistorical) ? r_this_geometry[i_node].GetValue(*p_var) : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
                         const array_1d<double, 3>& aux_sol = node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
-                        AtomicAddVector(aux_value, aux_sol);
+                        AtomicAdd(aux_value, aux_sol);
                     }
                 }
             }
