@@ -23,7 +23,7 @@
             "iga_model_part": "Edge1",
             "parameters": {
                 "type": "element",
-                "name": "IgaEdgeCableElement",
+                "name": "TrussEmbeddedEdgeElement",
                 "shape_function_derivatives_order": 2
             }
         }, {
@@ -32,7 +32,7 @@
             "iga_model_part": "Edge2",
             "parameters": {
                 "type": "element",
-                "name": "IgaEdgeCableElement",
+                "name": "TrussEmbeddedEdgeElement",
                 "shape_function_derivatives_order": 2
             }
         }, {

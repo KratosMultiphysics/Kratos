@@ -21,7 +21,7 @@
 // Project includes
 
 // Application includes
-#include "custom_elements/iga_edge_cable_element.h"
+#include "custom_elements/truss_embedded_edge_element.h"
 
 
 
@@ -30,14 +30,14 @@ namespace Kratos
     ///@name Initialize Functions
     ///@{
 
-    void IgaEdgeCableElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+    void TrussEmbeddedEdgeElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
         KRATOS_CATCH("")
     }
 
-    array_1d<double, 3> IgaEdgeCableElement::GetActualBaseVector(const Matrix& r_DN_De, const ConfigurationType& rConfiguration) 
+    array_1d<double, 3> TrussEmbeddedEdgeElement::GetActualBaseVector(const Matrix& r_DN_De, const ConfigurationType& rConfiguration) 
     {
         const GeometryType& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
@@ -73,7 +73,7 @@ namespace Kratos
     ///@name Assembly
     ///@{
 
-    void IgaEdgeCableElement::CalculateAll(
+    void TrussEmbeddedEdgeElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -163,7 +163,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void IgaEdgeCableElement::CalculateInitialStiffnessMatrix(
+    void TrussEmbeddedEdgeElement::CalculateInitialStiffnessMatrix(
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo
     )
@@ -243,7 +243,7 @@ namespace Kratos
     ///@name Implicit
     ///@{
 
-    void IgaEdgeCableElement::CalculateDampingMatrix(
+    void TrussEmbeddedEdgeElement::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
         const ProcessInfo& rCurrentProcessInfo
     )
@@ -311,7 +311,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void IgaEdgeCableElement::CalculateMassMatrix(
+    void TrussEmbeddedEdgeElement::CalculateMassMatrix(
         MatrixType& rMassMatrix,
         const ProcessInfo& rCurrentProcessInfo
     )
@@ -361,7 +361,7 @@ namespace Kratos
     ///@name Postprocessing
     ///@{
 
-    void IgaEdgeCableElement::CalculateOnIntegrationPoints(
+    void TrussEmbeddedEdgeElement::CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -409,7 +409,7 @@ namespace Kratos
     ///@name Dynamic Functions
     ///@{
 
-    void IgaEdgeCableElement::GetValuesVector(
+    void TrussEmbeddedEdgeElement::GetValuesVector(
         Vector& rValues,
         int Step) const
     {
@@ -430,7 +430,7 @@ namespace Kratos
         }
     }
 
-    void IgaEdgeCableElement::GetFirstDerivativesVector(
+    void TrussEmbeddedEdgeElement::GetFirstDerivativesVector(
         Vector& rValues,
         int Step) const
     {
@@ -450,7 +450,7 @@ namespace Kratos
         }
     }
 
-    void IgaEdgeCableElement::GetSecondDerivativesVector(
+    void TrussEmbeddedEdgeElement::GetSecondDerivativesVector(
         Vector& rValues,
         int Step) const
     {
@@ -470,7 +470,7 @@ namespace Kratos
         }
     }
 
-    void IgaEdgeCableElement::EquationIdVector(
+    void TrussEmbeddedEdgeElement::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -494,7 +494,7 @@ namespace Kratos
         KRATOS_CATCH("")
     };
 
-    void IgaEdgeCableElement::GetDofList(
+    void TrussEmbeddedEdgeElement::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -519,7 +519,7 @@ namespace Kratos
     ///@name Check
     ///@{
 
-    int IgaEdgeCableElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int TrussEmbeddedEdgeElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         // Verify that the constitutive law exists
         if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)

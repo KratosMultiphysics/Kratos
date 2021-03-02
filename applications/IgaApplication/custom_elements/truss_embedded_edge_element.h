@@ -1,5 +1,5 @@
-#if !defined(KRATOS_IGA_EDGE_CABLE_ELEMENT_H_INCLUDED )
-#define  KRATOS_IGA_EDGE_CABLE_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_TRUSS_EMBEDDED_EDGE_ELEMENT_H_INCLUDED )
+#define  KRATOS_TRUSS_EMBEDDED_EDGE_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -21,7 +21,7 @@ namespace Kratos
 /// Short class definition.
 /** Cable Elements. 
 */
-class KRATOS_API(IGA_APPLICATION) IgaEdgeCableElement
+class KRATOS_API(IGA_APPLICATION) TrussEmbeddedEdgeElement
     : public Element
 {
 protected:
@@ -35,8 +35,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of IgaEdgeCableElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IgaEdgeCableElement);
+    /// Counted pointer of TrussEmbeddedEdgeElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TrussEmbeddedEdgeElement);
 
     /// Size types
     typedef std::size_t SizeType;
@@ -50,14 +50,14 @@ public:
     ///@{
 
     /// Constructor using an array of nodes
-    IgaEdgeCableElement(
+    TrussEmbeddedEdgeElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {};
 
     /// Constructor using an array of nodes with properties
-    IgaEdgeCableElement(
+    TrussEmbeddedEdgeElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -65,12 +65,12 @@ public:
     {};
 
     /// Default constructor necessary for serialization
-    IgaEdgeCableElement()
+    TrussEmbeddedEdgeElement()
         : Element()
     {};
 
     /// Destructor.
-    virtual ~IgaEdgeCableElement() = default;
+    virtual ~TrussEmbeddedEdgeElement() = default;
 
     ///@}
     ///@name Life Cycle
@@ -83,7 +83,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<IgaEdgeCableElement>(
+        return Kratos::make_intrusive<TrussEmbeddedEdgeElement>(
             NewId, pGeom, pProperties);
     };
 
@@ -94,7 +94,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive< IgaEdgeCableElement >(
+        return Kratos::make_intrusive< TrussEmbeddedEdgeElement >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -267,14 +267,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "IgaEdgeCableElement #" << Id();
+        buffer << "TrussEmbeddedEdgeElement #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "IgaEdgeCableElement #" << Id();
+        rOStream << "TrussEmbeddedEdgeElement #" << Id();
     }
 
     /// Print object's data.
@@ -330,9 +330,9 @@ private:
 
     ///@}
 
-};     // Class IgaEdgeCableElement
+};     // Class TrussEmbeddedEdgeElement
 ///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_IGA_EDGE_CABLE_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_TRUSS_EMBEDDED_EDGE_ELEMENT_H_INCLUDED  defined
