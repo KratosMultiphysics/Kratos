@@ -78,6 +78,7 @@
 
 // adjoint element data containers
 #include "custom_elements/data_containers/k_epsilon/qsvms_rfc_adjoint_element_data.h"
+#include "custom_elements/data_containers/k_omega/qsvms_rfc_adjoint_element_data.h"
 
 // adjoint conditions
 #include "custom_conditions/two_equation_turbulence_model_adjoint_condition.h"
@@ -275,6 +276,10 @@ private:
     // k-epsilon turbulence model adjoint elements
     const TwoEquationTurbulenceModelAdjointElement<2, 3, KEpsilonElementData::QSVMSRFCAdjointElementData<2, 3>> mRansKEpsilonQSVMSRFCAdjoint2D3N;
     const TwoEquationTurbulenceModelAdjointElement<3, 4, KEpsilonElementData::QSVMSRFCAdjointElementData<3, 4>> mRansKEpsilonQSVMSRFCAdjoint3D4N;
+
+    // k-omega turbulence model adjoint elements
+    const TwoEquationTurbulenceModelAdjointElement<2, 3, KOmegaElementData::QSVMSRFCAdjointElementData<2, 3>> mRansKOmegaQSVMSRFCAdjoint2D3N;
+    const TwoEquationTurbulenceModelAdjointElement<3, 4, KOmegaElementData::QSVMSRFCAdjointElementData<3, 4>> mRansKOmegaQSVMSRFCAdjoint3D4N;
 
     // k-epsilon turbulence model adjoint conditions
     const TwoEquationTurbulenceModelAdjointCondition<2, 2, KEpsilonWallConditionData::VMSMonolithicKBasedEpsilonKBasedWallConditionData<2, 2>> mRansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint2D2N;
