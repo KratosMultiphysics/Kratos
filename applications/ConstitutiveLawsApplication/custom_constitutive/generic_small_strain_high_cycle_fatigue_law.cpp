@@ -340,9 +340,8 @@ bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const V
 template <class TConstLawIntegratorType>
 bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
 {
-    if (rThisVariable == DAMAGE || rThisVariable == THRESHOLD) {
-        return BaseType::Has(rThisVariable);
-    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+
+    if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
         return true;
     } else if (rThisVariable == WOHLER_STRESS) {
         return true;
@@ -407,9 +406,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    if (rThisVariable == DAMAGE || rThisVariable == UNIAXIAL_STRESS || rThisVariable == THRESHOLD) {
-        BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+
+    if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
         mFatigueReductionFactor = rValue;
     } else if (rThisVariable == WOHLER_STRESS) {
         mWohlerStress = rValue;
@@ -473,9 +471,8 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
     double& rValue
     )
 {
-    if (rThisVariable == DAMAGE || rThisVariable == UNIAXIAL_STRESS || rThisVariable == THRESHOLD) {
-        return BaseType::GetValue(rThisVariable, rValue);
-    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+
+    if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
         rValue = mFatigueReductionFactor;
     } else if (rThisVariable == WOHLER_STRESS) {
         rValue = mWohlerStress;
