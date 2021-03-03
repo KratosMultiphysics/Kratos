@@ -1,3 +1,39 @@
+
+Skip to content
+Pull requests
+Issues
+Marketplace
+Explore
+@uxuech
+Learn Git and GitHub without any code!
+
+Using the Hello World guide, you’ll start a branch, write comments, and open a pull request.
+KratosMultiphysics /
+Kratos
+
+51
+551
+
+    132
+
+Code
+Issues 206
+Pull requests 170
+Discussions
+Actions
+Projects 28
+Wiki
+Security
+
+    Insights
+
+Kratos/applications/FluidDynamicsApplication/custom_processes/energy_splitelements_process.h
+@uxuech
+uxuech energy_check_process
+Latest commit bacdd0e 2 days ago
+History
+1 contributor
+764 lines (614 sloc) 31.3 KB
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -16,7 +52,6 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <fstream>
 
 // External includes
 
@@ -32,7 +67,6 @@
 #include "utilities/divide_tetrahedra_3d_4.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
-
 
 namespace Kratos
 {
@@ -175,10 +209,9 @@ public:
                                 energy_solu[0] =( (std::pow(v_solu[0],2) * Water_Density) / 2) + p_solu;
                                 energy_solu[1] = ((std::pow(v_solu[1], 2) * Water_Density) / 2) + p_solu;
                                 energy_solu[2] = ((std::pow(v_solu[2] , 2) * Water_Density) / 2) + p_solu;
-                                const double energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2] , 2 ) , 0.5);
+                                const double Total_energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2] , 2 ) , 0.5);
 
-                                Total_energy_water_splitted += w_gauss_neg_side[i_gauss] * energy_water;
-                                Total_energy_water += w_gauss_neg_side[i_gauss] * energy_water;
+                                Total_energy_water_splitted += w_gauss_neg_side[i_gauss] * Total_energy_water;
                                 cut_area_negative += w_gauss_neg_side[i_gauss];
                                 total_area_negative += w_gauss_neg_side[i_gauss];
                             }
@@ -286,7 +319,7 @@ public:
                         }
                     }
                 }
-            }
+        }
         }
         else if(mDomainSize == 3)
         {
@@ -344,14 +377,13 @@ public:
                                 v_solu[2] = r_vel_0[2] * N_neg_side(i_gauss, 0) + r_vel_1[2] * N_neg_side(i_gauss, 1) + r_vel_2[2] * N_neg_side(i_gauss, 2) + r_vel_3[2] * N_neg_side(i_gauss, 3);
 
                                 const double Water_Density = 1e+3;
-                                
+
                                 energy_solu[0] = ((std::pow(v_solu[0], 2) * Water_Density) / 2) + p_solu;
                                 energy_solu[1] = ((std::pow(v_solu[1], 2) * Water_Density) / 2) + p_solu;
                                 energy_solu[2] = ((std::pow(v_solu[2], 2) * Water_Density) / 2) + p_solu;
-                                const double energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
+                                const double Total_energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
 
-                                Total_energy_water_splitted += w_gauss_neg_side[i_gauss] * energy_water;
-                                Total_energy_water += w_gauss_neg_side[i_gauss] * energy_water;
+                                Total_energy_water_splitted += w_gauss_neg_side[i_gauss] * Total_energy_water;
                                 cut_area_negative += w_gauss_neg_side[i_gauss];
                                 total_area_negative += w_gauss_neg_side[i_gauss];
                             }
@@ -420,12 +452,11 @@ public:
                             energy_solu[0] = ((std::pow(v_solu[0], 2) * Air_Density) / 2) + p_solu;
                             energy_solu[1] = ((std::pow(v_solu[1], 2) * Air_Density) / 2) + p_solu;
                             energy_solu[2] = ((std::pow(v_solu[2], 2) * Air_Density) / 2) + p_solu;
-                            const double Air_energy = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
-
-                            Total_energy_air += Air_energy * (jac_vect[i_gauss] / 6.0);
+                            const double energy_air = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
+                            Total_energy_air += energy_air * (jac_vect[i_gauss] / 6.0);
                             // Add the local Gauss contribution to the areas
                             total_area_positive += (jac_vect[i_gauss] / 6.0);
-                        }
+                            }
                     }
                 
 
@@ -434,7 +465,6 @@ public:
                         // Get geometry data
                         Vector jac_vect;
                         jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::GI_GAUSS_2);
-                        
                         auto N = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
 
                         // Obtained solution
@@ -445,16 +475,13 @@ public:
                             v_solu[0] = r_vel_0[0] * N(i_gauss, 0) + r_vel_1[0] * N(i_gauss, 1) + r_vel_2[0] * N(i_gauss, 2) + r_vel_3[0] * N(i_gauss, 3);
                             v_solu[1] = r_vel_0[1] * N(i_gauss, 0) + r_vel_1[1] * N(i_gauss, 1) + r_vel_2[1] * N(i_gauss, 2) + r_vel_3[1] * N(i_gauss, 3);
                             v_solu[2] = r_vel_0[2] * N(i_gauss, 0) + r_vel_1[2] * N(i_gauss, 1) + r_vel_2[2] * N(i_gauss, 2) + r_vel_3[2] * N(i_gauss, 3);
-                            
+
                             const double Water_Density = 1e03;
                             energy_solu[0] = ((std::pow(v_solu[0], 2) * Water_Density) / 2) + p_solu;
                             energy_solu[1] = ((std::pow(v_solu[1], 2) * Water_Density) / 2) + p_solu;
                             energy_solu[2] = ((std::pow(v_solu[2], 2) * Water_Density) / 2) + p_solu;
-                            
                             const double energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
-                            
                             Total_energy_water += energy_water * (jac_vect[i_gauss] / 6.0);
-                            
                             // Add the local Gauss contribution to the areas
                             total_area_negative += (jac_vect[i_gauss] / 6.0);
                         }
@@ -463,7 +490,7 @@ public:
         }
         }
         }
-        const double total_energy_system= Total_energy_air+Total_energy_water;
+     
         // Print the obtained values
         std::cout << std::endl;
         std::cout << "Water_area_splited:" << cut_area_negative << std::endl;
@@ -474,50 +501,29 @@ public:
         std::cout << "Total_energy_water_splitted:" << Total_energy_water_splitted << std::endl;
         std::cout << "Total_energy_air:" << Total_energy_air << std::endl;
         std::cout << "Total_energy_water:" << Total_energy_water << std::endl;
-        std::cout << "total_energy_system:" << total_energy_system  << std::endl;
         std::cout << std::endl;
-        
-
-        WritingFile(total_energy_system);
 
         KRATOS_CATCH("");
     }
 
-    void WritingFile(const double& total_energy_system)
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
     {
-        KRATOS_WATCH("I am writting into file energy check")
-        const double current_time = mrModelPart.GetProcessInfo()[TIME];
-        std::ofstream MyFile("energy.txt", std::ios::app);
-        if (MyFile.is_open())
-        {
-            std::cout<< "success" << std::endl;
-        }
-        else{
-            std::cout << "no funciona" << std::endl;
-        }
-        //std::string output_line = "total_energy_system\t\tSTEP \n";
-        std::string output_line = std::to_string(current_time) + "\t";
-        output_line += std::to_string(total_energy_system) + "\n";
-        MyFile << output_line ;
-        MyFile.close();
-    }
-
- ///@}
- ///@name Access
- ///@{
-
- ///@}
- ///@name Inquiry
- ///@{
-
- ///@}
- ///@name Input and output
- ///@{
-
- /// Turn back information as a string.
- std::string Info() const override
- {
-     return "GaussPointErrorProcessAnalytical";
+        return "GaussPointErrorProcessAnalytical";
     }
 
     /// Print information about this object.
@@ -599,7 +605,7 @@ protected:
 
         for (unsigned int i_node = 0; i_node < 3; ++i_node)
         {
-            if (rElementalDistances[i_node]<  0.0)
+            if (rElementalDistances[i_node] > 0.0)
             {
                 n_neg++;
             }
@@ -670,7 +676,7 @@ protected:
 
         for (unsigned int i_node = 0; i_node < 4; ++i_node)
         {
-            if (rElementalDistances[i_node] < 0.0)
+            if (rElementalDistances[i_node] > 0.0)
             {
                 n_neg++;
             }
@@ -773,22 +779,37 @@ private:
 
 
 /// input stream function
-// inline std::istream &operator>>(std::istream &rIStream,
-//                                 EnergyCheckProcess&rThis);
+inline std::istream &operator>>(std::istream &rIStream,
+                                EnergyCheckProcess&rThis);
 
-// /// output stream function
-// inline std::ostream &operator<<(std::ostream &rOStream,
-//                                 const EnergyCheckProcess&rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
+/// output stream function
+inline std::ostream &operator<<(std::ostream &rOStream,
+                                const EnergyCheckProcess&rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-//     return rOStream;
-// }
+    return rOStream;
+}
 ///@}
 
 
 }  // namespace Kratos.
 
 #endif // KRATOS_GAUSS_POINT_ERROR_PROCESS_H_INCLUDED  defined
+
+    © 2021 GitHub, Inc.
+    Terms
+    Privacy
+    Security
+    Status
+    Docs
+
+    Contact GitHub
+    Pricing
+    API
+    Training
+    Blog
+    About
+

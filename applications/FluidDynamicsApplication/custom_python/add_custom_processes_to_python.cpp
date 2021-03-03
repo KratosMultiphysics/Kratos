@@ -164,7 +164,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<EnergyCheckProcess, EnergyCheckProcess::Pointer, Process>(m, "EnergyCheckProcess")
-    .def(py::init<ModelPart&, unsigned int>())
+    .def(py::init<ModelPart &, unsigned int>())
+    .def("WritingFile",&EnergyCheckProcess::WritingFile)
     ;
 }
 
