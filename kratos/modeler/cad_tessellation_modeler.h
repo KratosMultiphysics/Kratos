@@ -188,52 +188,66 @@ private:
      * @param rBoundaryLoop tessellated closed polygon of the outer boundaries
      * @return a vector of the triangles
      */
-    std::vector<Matrix> ComputeSurfaceTriangulation(
+    std::vector<BoundedMatrix<double,3,3>> ComputeSurfaceTriangulation(
         const BrepSurfaceType& rSurfaceGeometry,
         const std::vector<array_1d<double, 2>>& rBoundaryLoop
     );
 
-    /**
-     * @brief This method inserts Gauss points into the surface in the parametric space
-     * and projects these points onto the exact input surface. Hence, these points lie within
-     * the exact surface.
-     * @param rSurfaceGeometry reference of the surface on which the points are supposed to be maped
-     * @param rTriangleOutput reference of the Triangle output
-     * @return a vector of Gauss points maped onto the exact surface
-     */
-    std::vector<Matrix> InsertGaussPointsExactSurface(
-        const BrepSurfaceType& rSurfaceGeometry,
-        const struct triangulateio& rTriangleOutput
-    );
+    // /**
+    //  * @brief This method inserts Gauss points into the surface in the parametric space
+    //  * and projects these points onto the exact input surface. Hence, these points lie within
+    //  * the exact surface.
+    //  * @param rSurfaceGeometry reference of the surface on which the points are supposed to be maped
+    //  * @param rTriangleOutput reference of the Triangle output
+    //  * @return a vector of Gauss points maped onto the exact surface
+    //  */
+    // std::vector<Matrix> InsertGaussPointsExactSurface(
+    //     const BrepSurfaceType& rSurfaceGeometry,
+    //     const struct triangulateio& rTriangleOutput
+    // );
 
-    /**
-     * @brief This method insert maps the triangulation from the parametric into the physical space.
-     * Subsequently, Gauss points are inserted into the approximative surface. Hence, the Gauss points
-     * lie within the discretization of the surface and not the exact surface
-     * @see InsertGaussPointsExactSurface
-     * @param rSurfaceGeometry reference of the surface
-     * @param rTriangleOutput reference of the Triangle output
-     * @return a vector of Gauss points maped onto the triangulation of the surface
-     */
-    std::vector<Matrix> InsertGaussPointsApproxSurface(
+    std::vector<BoundedMatrix<double,3,3>> InsertGaussPointsExactSurface(
         const BrepSurfaceType& rSurfaceGeometry,
-        const struct triangulateio& rTriangleOutput
-    );
+        const std::vector<double>& rPointsCoordinates,
+        const std::vector<IndexType>& rTriangleConnectivities);
 
-    /**
-     * @brief This method computes the discretization error of the surface, measured at the Gauss points.
-     * This is done by measuring the distance between distinctive points (Gauss points) between the exact
-     * surface and the approaximative surface.
-     * @see InsertGaussPointsExactSurface
-     * @see InsertGaussPointsApproxSurface
-     * @param rDataExact reference of distincitive points in the exact surface
-     * @param rDataApprox reference of distincitive points in the discretization
-     * @return a vector of the elemental error
-     */
-    Vector ComputeDiscretizationError(
-        const std::vector<Matrix>& rDataExact,
-        const std::vector<Matrix>& rDataApprox
-    );
+    // /**
+    //  * @brief This method insert maps the triangulation from the parametric into the physical space.
+    //  * Subsequently, Gauss points are inserted into the approximative surface. Hence, the Gauss points
+    //  * lie within the discretization of the surface and not the exact surface
+    //  * @see InsertGaussPointsExactSurface
+    //  * @param rSurfaceGeometry reference of the surface
+    //  * @param rTriangleOutput reference of the Triangle output
+    //  * @return a vector of Gauss points maped onto the triangulation of the surface
+    //  */
+    // std::vector<Matrix> InsertGaussPointsApproxSurface(
+    //     const BrepSurfaceType& rSurfaceGeometry,
+    //     const struct triangulateio& rTriangleOutput
+    // );
+
+    std::vector<BoundedMatrix<double,3,3>> InsertGaussPointsApproxSurface(
+        const BrepSurfaceType& rSurfaceGeometry,
+        const std::vector<double>& rPointsCoordinates,
+        const std::vector<IndexType>& rTriangleConnectivities);
+
+    // /**
+    //  * @brief This method computes the discretization error of the surface, measured at the Gauss points.
+    //  * This is done by measuring the distance between distinctive points (Gauss points) between the exact
+    //  * surface and the approaximative surface.
+    //  * @see InsertGaussPointsExactSurface
+    //  * @see InsertGaussPointsApproxSurface
+    //  * @param rDataExact reference of distincitive points in the exact surface
+    //  * @param rDataApprox reference of distincitive points in the discretization
+    //  * @return a vector of the elemental error
+    //  */
+    // Vector ComputeDiscretizationError(
+    //     const std::vector<Matrix>& rDataExact,
+    //     const std::vector<Matrix>& rDataApprox
+    // );
+
+    double ComputeDiscretizationError(
+        const std::vector<BoundedMatrix<double,3,3>>& rGaussPointsExact,
+        const std::vector<BoundedMatrix<double,3,3>>& rGaussPointsApprox);
 
 }; // Class CadTessellationModeler
 
