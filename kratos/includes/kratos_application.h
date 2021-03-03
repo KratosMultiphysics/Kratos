@@ -64,7 +64,6 @@
 // Modelers
 #include "modeler/modeler.h"
 #include "modeler/cad_io_modeler.h"
-#include "modeler/nurbs_geometry_modeler.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -461,7 +460,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // Modeler
     const Modeler mModeler;
     const CadIoModeler mCadIoModeler;
-    const NurbsGeometryModeler mNurbsGeometryModeler;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
