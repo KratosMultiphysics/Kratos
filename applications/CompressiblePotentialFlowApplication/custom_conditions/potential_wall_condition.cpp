@@ -204,6 +204,8 @@ void PotentialWallCondition<TDim, TNumNodes>::FinalizeNonLinearIteration(const P
     std::vector<double> local_speed_of_sound;
     pElem->CalculateOnIntegrationPoints(SOUND_VELOCITY, local_speed_of_sound, rCurrentProcessInfo);
     this->SetValue(SOUND_VELOCITY, local_speed_of_sound[0]);
+
+    this->SetValue(PRINTED_STEP, pElem->Id());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
