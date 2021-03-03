@@ -119,11 +119,26 @@ array_1d<double, Dim> ComputeVelocity(const Element& rElement)
 
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputePerturbedVelocity(
-    const Element& rElement, 
+    const Element& rElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     array_1d<double, Dim> velocity = ComputeVelocity<Dim,NumNodes>(rElement);
+    for (unsigned int i = 0; i < Dim; i++)
+    {
+        velocity[i] += free_stream_velocity[i];
+    }
+
+    return velocity;
+}
+
+template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputePerturbedVelocityLowerElement(
+    const Element& rElement,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
     for (unsigned int i = 0; i < Dim; i++)
     {
         velocity[i] += free_stream_velocity[i];
@@ -547,7 +562,7 @@ double ComputePerturbationLocalMachNumber(const Element& rElement, const Process
 
 template <int Dim, int NumNodes>
 double ComputeUpwindFactor(
-        double localMachNumberSquared, 
+        double localMachNumberSquared,
         const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -569,8 +584,8 @@ double ComputeUpwindFactor(
 
 template <int Dim, int NumNodes>
 double SelectMaxUpwindFactor(
-        const array_1d<double, Dim>& rCurrentVelocity, 
-        const array_1d<double, Dim>& rUpwindVelocity, 
+        const array_1d<double, Dim>& rCurrentVelocity,
+        const array_1d<double, Dim>& rUpwindVelocity,
         const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -602,7 +617,7 @@ size_t ComputeUpwindFactorCase(array_1d<double, 3>& rUpwindFactorOptions)
         rUpwindFactorOptions[2] = 0.0;
     }
     const auto max_upwind_factor_opt = std::max_element(rUpwindFactorOptions.begin(), rUpwindFactorOptions.end());
-    
+
     // Case 0: Subsonic flow
     // Case 1: Supersonic and accelerating flow (M^2 > M^2_up)
     // Case 2: Supersonic and decelerating flow (M^2 < M^2_up)
@@ -647,7 +662,7 @@ double ComputeUpwindFactorDerivativeWRTVelocitySquared(
 
 template <int Dim, int NumNodes>
 double ComputeDensity(
-    const double localMachNumberSquared, 
+    const double localMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Implemented according to Equation 8.9 of Drela, M. (2014) Flight Vehicle
@@ -673,8 +688,8 @@ double ComputeDensity(
 
 template <int Dim, int NumNodes>
 double ComputeUpwindedDensity(
-    const array_1d<double, Dim>& rCurrentVelocity, 
-    const array_1d<double, Dim>& rUpwindVelocity, 
+    const array_1d<double, Dim>& rCurrentVelocity,
+    const array_1d<double, Dim>& rUpwindVelocity,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -694,7 +709,7 @@ double ComputeUpwindedDensity(
 
 template <int Dim, int NumNodes>
 double ComputeDensityDerivativeWRTVelocitySquared(
-    const double localMachNumberSquared, 
+    const double localMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -726,9 +741,9 @@ double ComputeDensityDerivativeWRTVelocitySquared(
 
 template <int Dim, int NumNodes>
 double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating(
-    const array_1d<double, Dim>& rCurrentVelocity, 
+    const array_1d<double, Dim>& rCurrentVelocity,
     const double currentMachNumberSquared,
-    const double upwindMachNumberSquared, 
+    const double upwindMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -754,7 +769,7 @@ double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeacceleratin
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
     //           and the Integral Boundary Layer Equations in Three Dimensions
-    //           by Brian Nishida (1996), Section A.2.6    
+    //           by Brian Nishida (1996), Section A.2.6
     // const double current_mach_sq = ComputeLocalMachNumberSquared<Dim, NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
     const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(currentMachNumberSquared, rCurrentProcessInfo);
 
@@ -767,7 +782,7 @@ double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeacceleratin
 template <int Dim, int NumNodes>
 double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating(
     const double currentMachNumberSquared,
-    const double upwindMachNumberSquared, 
+    const double upwindMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -784,7 +799,7 @@ template <int Dim, int NumNodes>
 double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating(
     const array_1d<double, Dim>& rUpwindVelocity,
     const double currentMachNumberSquared,
-    const double upwindMachNumberSquared, 
+    const double upwindMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -922,6 +937,7 @@ template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element
 template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputePerturbedVelocity<2,3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template array_1d<double, 2> ComputePerturbedVelocityLowerElement<2,3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeMaximumVelocitySquared<2, 3>(const ProcessInfo& rCurrentProcessInfo);
 template double ComputeClampedVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeVelocityMagnitude<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
@@ -968,6 +984,7 @@ template array_1d<double, 3> ComputeVelocityUpperWakeElement<3, 4>(const Element
 template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputePerturbedVelocity<3,4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template array_1d<double, 3> ComputePerturbedVelocityLowerElement<3,4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeMaximumVelocitySquared<3, 4>(const ProcessInfo& rCurrentProcessInfo);
 template double ComputeClampedVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeVelocityMagnitude<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
