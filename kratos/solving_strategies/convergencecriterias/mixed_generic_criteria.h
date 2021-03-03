@@ -360,15 +360,15 @@ protected:
         if (this->GetEchoLevel() > 0) {
             std::ostringstream stringbuf;
             stringbuf << "CONVERGENCE CHECK:\n";
-            int max_length_DOF = 0;
+
+            std::vector<int>length_array;
+            length_array.resize(mVariableSize);
 
             for(int i=0; i< mVariableSize; i++){
                 const auto r_var_data = mVariableDataVector[i];
-                const int length = (r_var_data->Name()).length();
-                if(length > max_length_DOF){
-                    max_length_DOF = length;
-                }
+                length_array[i] = (r_var_data->Name()).length();
             }
+            auto max_length_DOF = length_array[std::distance(length_array.begin(), std::max_element(length_array.begin(), length_array.end()))];
 
             for(int i = 0; i < mVariableSize; i++) {
                 const auto r_var_data = mVariableDataVector[i];
