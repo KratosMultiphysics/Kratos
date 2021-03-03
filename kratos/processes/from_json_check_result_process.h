@@ -278,15 +278,15 @@ protected:
             const auto& r_var_database = r_node_database.GetVariableData(*p_var_double);
 
             check_counter = IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_double, &r_var_database, &time, this] (std::size_t Index){
-                IndexType r_check_counter = 0;
+                IndexType counter = 0;
                 auto it_node = it_node_begin + Index;
                 const double result = this->GetValue<THistorical>(it_node, p_var_double);
                 const double reference = r_var_database.GetValue(Index, time);
                 if (!CheckValues(result, reference)) {
                     FailMessage(it_node->Id(), "Node", result, reference, p_var_double->Name());
-                    r_check_counter += 1;
+                    counter += 1;
                 }
-                return r_check_counter;
+                return counter;
             });
         }
 
@@ -294,7 +294,7 @@ protected:
             const auto& r_var_database = r_node_database.GetVariableData(*p_var_array);
 
             check_counter = IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_array, &r_var_database, &time, this] (std::size_t Index){
-                IndexType r_check_counter = 0;
+                IndexType counter = 0;
                 auto it_node = it_node_begin + Index;
                 const auto& r_entity_database = r_var_database.GetEntityData(Index);
                 const array_1d<double, 3>& r_result = this->GetValue<THistorical>(it_node, p_var_array);
@@ -302,10 +302,10 @@ protected:
                     const double reference = r_entity_database.GetValue(time, i_comp);
                     if (!CheckValues(r_result[i_comp], reference)) {
                         FailMessage(it_node->Id(), "Node", r_result[i_comp], reference, p_var_array->Name());
-                        r_check_counter += 1;
+                        counter += 1;
                     }
                 }
-                return r_check_counter;
+                return counter;
             });
         }
 
@@ -313,7 +313,7 @@ protected:
             const auto& r_var_database = r_node_database.GetVariableData(*p_var_vector);
 
             check_counter = IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_vector, &r_var_database, &time, this] (std::size_t Index){
-                IndexType r_check_counter = 0;
+                IndexType counter = 0;
                 auto it_node = it_node_begin + Index;
                 const auto& r_entity_database = r_var_database.GetEntityData(Index);
                 const Vector& r_result = this->GetValue<THistorical>(it_node, p_var_vector);
@@ -321,10 +321,10 @@ protected:
                     const double reference = r_entity_database.GetValue(time, i_comp);
                     if (!CheckValues(r_result[i_comp], reference)) {
                         FailMessage(it_node->Id(), "Node", r_result[i_comp], reference, p_var_vector->Name());
-                        r_check_counter += 1;
+                        counter += 1;
                     }
                 }
-                return r_check_counter;
+                return counter;
             });
         }
 
