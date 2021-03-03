@@ -368,7 +368,7 @@ protected:
             for(int i = 0; i < mVariableSize; i++) {
                 const auto r_var_data = mVariableDataVector[i];
                 const int key_map = mLocalKeyMap[r_var_data->Key()];
-                const std::string space_str(max_length_var_name, ' ');
+                const std::string space_str(max_length_var_name-r_var_data->Name().length(), ' ');
                 stringbuf << " " << r_var_data->Name() << space_str <<" : ratio = " << var_ratio[key_map] << "; exp.ratio = " << mRatioToleranceVector[key_map] << " abs = " << var_abs[key_map] << " exp.abs = " << mAbsToleranceVector[key_map] << "\n";
             }
             KRATOS_INFO("") << stringbuf.str();
