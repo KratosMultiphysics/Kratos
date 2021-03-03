@@ -42,11 +42,6 @@ namespace Kratos
 {
 namespace Testing
 {
-array_1d<double, 3> GetArray3DVector(
-    const std::vector<double>& rInput)
-{
-    return array_1d<double, 3>{rInput[0], rInput[1], rInput[2]};
-}
 
 void SetModelPartOldValues(
     ModelPart& rModelPart)
@@ -56,12 +51,12 @@ void SetModelPartOldValues(
     const double p_2 = 3.5;
     const double p_3 = 6.2;
 
-    const array_1d<double, 3>& v_1 = GetArray3DVector({2.3, 4.2, 3.6});
-    const array_1d<double, 3>& v_2 = GetArray3DVector({3.1, 2.4, 6.7});
-    const array_1d<double, 3>& v_3 = GetArray3DVector({2.5, 1.8, 6.3});
-    const array_1d<double, 3>& a_1 = GetArray3DVector({4.9, 3.5, 7.9});
-    const array_1d<double, 3>& a_2 = GetArray3DVector({1.7, 3.0, 3.6});
-    const array_1d<double, 3>& a_3 = GetArray3DVector({2.4, 2.0, 4.7});
+    const array_1d<double, 3> v_1{2.3, 4.2, 3.6};
+    const array_1d<double, 3> v_2{3.1, 2.4, 6.7};
+    const array_1d<double, 3> v_3{2.5, 1.8, 6.3};
+    const array_1d<double, 3> a_1{4.9, 3.5, 7.9};
+    const array_1d<double, 3> a_2{1.7, 3.0, 3.6};
+    const array_1d<double, 3> a_3{2.4, 2.0, 4.7};
 
     rModelPart.GetNode(1).FastGetSolutionStepValue(VELOCITY) = v_1;
     rModelPart.GetNode(1).FastGetSolutionStepValue(PRESSURE) = p_1;
@@ -83,12 +78,12 @@ void SetModelPartCurrentValues(
     const double p_2 = 2.7;
     const double p_3 = 1.9;
 
-    const array_1d<double, 3>& v_1 = GetArray3DVector({1.2, 3.1, 2.4});
-    const array_1d<double, 3>& v_2 = GetArray3DVector({2.2, 3.5, 3.8});
-    const array_1d<double, 3>& v_3 = GetArray3DVector({1.8, 2.3, 2.5});
-    const array_1d<double, 3>& a_1 = GetArray3DVector({3.2, 5.7, 8.4});
-    const array_1d<double, 3>& a_2 = GetArray3DVector({2.4, 3.9, 7.8});
-    const array_1d<double, 3>& a_3 = GetArray3DVector({3.9, 2.6, 9.5});
+    const array_1d<double, 3> v_1{1.2, 3.1, 2.4};
+    const array_1d<double, 3> v_2{2.2, 3.5, 3.8};
+    const array_1d<double, 3> v_3{1.8, 2.3, 2.5};
+    const array_1d<double, 3> a_1{3.2, 5.7, 8.4};
+    const array_1d<double, 3> a_2{2.4, 3.9, 7.8};
+    const array_1d<double, 3> a_3{3.9, 2.6, 9.5};
 
     rModelPart.GetNode(1).FastGetSolutionStepValue(VELOCITY) = v_1;
     rModelPart.GetNode(1).FastGetSolutionStepValue(PRESSURE) = p_1;
@@ -111,12 +106,12 @@ void SetModelPartNextalues(
     const double p_2 = 9.7;
     const double p_3 = 2.9;
 
-    const array_1d<double, 3>& v_1 = GetArray3DVector({3.4, 7.1, 2.4});
-    const array_1d<double, 3>& v_2 = GetArray3DVector({2.7, 4.7, 4.8});
-    const array_1d<double, 3>& v_3 = GetArray3DVector({2.4, 6.3, 3.5});
-    const array_1d<double, 3>& a_1 = GetArray3DVector({3.9, 7.9, 4.8});
-    const array_1d<double, 3>& a_2 = GetArray3DVector({6.3, 4.5, 5.7});
-    const array_1d<double, 3>& a_3 = GetArray3DVector({4.6, 3.5, 3.2});
+    const array_1d<double, 3> v_1{3.4, 7.1, 2.4};
+    const array_1d<double, 3> v_2{2.7, 4.7, 4.8};
+    const array_1d<double, 3> v_3{2.4, 6.3, 3.5};
+    const array_1d<double, 3> a_1{3.9, 7.9, 4.8};
+    const array_1d<double, 3> a_2{6.3, 4.5, 5.7};
+    const array_1d<double, 3> a_3{4.6, 3.5, 3.2};
 
     rModelPart.GetNode(1).FastGetSolutionStepValue(VELOCITY) = v_1;
     rModelPart.GetNode(1).FastGetSolutionStepValue(PRESSURE) = p_1;
@@ -129,15 +124,15 @@ void SetModelPartNextalues(
     rModelPart.GetNode(3).FastGetSolutionStepValue(ACCELERATION) = a_3;
 
     // set adjoint solution values
-    const array_1d<double, 3>& a_v_1_1 = GetArray3DVector({3.2, 1.1, 4.4});
-    const array_1d<double, 3>& a_v_2_1 = GetArray3DVector({4.8, 8.3, 5.1});
-    const array_1d<double, 3>& a_v_3_1 = GetArray3DVector({2.7, 7.5, 6.2});
-    const array_1d<double, 3>& a_v_1_2 = GetArray3DVector({1.3, 2.1, 4.4});
-    const array_1d<double, 3>& a_v_2_2 = GetArray3DVector({4.2, 5.3, 4.1});
-    const array_1d<double, 3>& a_v_3_2 = GetArray3DVector({6.2, 7.7, 3.2});
-    const array_1d<double, 3>& a_v_1_3 = GetArray3DVector({3.9, 2.9, 1.5});
-    const array_1d<double, 3>& a_v_2_3 = GetArray3DVector({4.8, 4.5, 3.3});
-    const array_1d<double, 3>& a_v_3_3 = GetArray3DVector({2.4, 3.1, 2.2});
+    const array_1d<double, 3> a_v_1_1{3.2, 1.1, 4.4};
+    const array_1d<double, 3> a_v_2_1{4.8, 8.3, 5.1};
+    const array_1d<double, 3> a_v_3_1{2.7, 7.5, 6.2};
+    const array_1d<double, 3> a_v_1_2{1.3, 2.1, 4.4};
+    const array_1d<double, 3> a_v_2_2{4.2, 5.3, 4.1};
+    const array_1d<double, 3> a_v_3_2{6.2, 7.7, 3.2};
+    const array_1d<double, 3> a_v_1_3{3.9, 2.9, 1.5};
+    const array_1d<double, 3> a_v_2_3{4.8, 4.5, 3.3};
+    const array_1d<double, 3> a_v_3_3{2.4, 3.1, 2.2};
 
     rModelPart.GetNode(1).FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1) = a_v_1_1;
     rModelPart.GetNode(1).FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2) = a_v_2_1;
@@ -282,6 +277,9 @@ void GenerateTestModelPart(
 
     p_node_1->Set(SLIP, true);
     p_node_2->Set(SLIP, true);
+
+    p_node_1->SetValue(Y_WALL, 2.0);
+    p_node_2->SetValue(Y_WALL, 3.0);
 
     rModelPart.CreateNewElement(rElementName, 1, elem_nodes, p_elem_prop);
     auto p_cond = rModelPart.CreateNewCondition(rConditionName, 1, cond_nodes, p_elem_prop);
