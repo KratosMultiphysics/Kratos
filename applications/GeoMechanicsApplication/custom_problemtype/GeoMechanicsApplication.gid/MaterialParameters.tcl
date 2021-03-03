@@ -56,11 +56,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"K0_MAIN_DIRECTION\"        :  $PutStrings,"
                 puts $FileVar "              \"K0_VALUE_XX\"              :  [lindex [lindex $Groups $i] 29],"
                 puts $FileVar "              \"K0_VALUE_YY\"              :  [lindex [lindex $Groups $i] 30],"
-                puts $FileVar "              \"K0_VALUE_ZZ\"              :  [lindex [lindex $Groups $i] 31]"
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"K0_VALUE_ZZ\"              :  [lindex [lindex $Groups $i] 31],"
             } else {
                 # 2D soil elements
                 incr PropertyId
@@ -98,11 +94,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"K0_MAIN_DIRECTION\"        :  $PutStrings,"
                 puts $FileVar "              \"K0_VALUE_XX\"              :  [lindex [lindex $Groups $i] 29],"
                 puts $FileVar "              \"K0_VALUE_YY\"              :  [lindex [lindex $Groups $i] 30],"
-                puts $FileVar "              \"K0_VALUE_ZZ\"              :  [lindex [lindex $Groups $i] 31]"
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"K0_VALUE_ZZ\"              :  [lindex [lindex $Groups $i] 31],"
             }
         } else {
             if {[lindex [lindex $Groups $i] 3] eq "SmallStrainIsotropicPlasticity3D"} {
@@ -141,10 +133,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"YIELD_STRESS_COMPRESSION\" :  [lindex [lindex $Groups $i] 24],"
                 puts $FileVar "              \"YIELD_STRESS_TENSION\"     :  [lindex [lindex $Groups $i] 25],"
                 puts $FileVar "              \"MAXIMUM_STRESS_POSITION\"  :  [lindex [lindex $Groups $i] 26],"
-                puts $FileVar "              \"MAXIMUM_STRESS\"           :  [lindex [lindex $Groups $i] 27]"
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"MAXIMUM_STRESS\"           :  [lindex [lindex $Groups $i] 27],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "LinearElastic3DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -171,11 +160,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"PERMEABILITY_XY\"          :  [lindex [lindex $Groups $i] 16],"
                 puts $FileVar "              \"PERMEABILITY_YZ\"          :  [lindex [lindex $Groups $i] 17],"
                 puts $FileVar "              \"PERMEABILITY_ZX\"          :  [lindex [lindex $Groups $i] 18],"
-                puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 19]"
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
-
+                puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 19],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "GeoLinearElasticPlaneStrain2DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -200,10 +185,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"PERMEABILITY_YY\"          :  [lindex [lindex $Groups $i] 14],"
                 puts $FileVar "              \"PERMEABILITY_XY\"          :  [lindex [lindex $Groups $i] 16],"
                 puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 19],"
-                puts $FileVar "              \"THICKNESS\"                :  1.0"
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"THICKNESS\"                :  1.0,"
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUDSM3DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -287,12 +269,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
                 puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
                 puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88]"
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
-            
+                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUDSM2DPlaneStrainLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -373,11 +350,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
                 puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
                 puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88]"
-                        
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT3DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -519,12 +492,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"STATE_VARIABLE_47\"         :  [lindex [lindex $Groups $i] 136],"
                 puts $FileVar "              \"STATE_VARIABLE_48\"         :  [lindex [lindex $Groups $i] 137],"
                 puts $FileVar "              \"STATE_VARIABLE_49\"         :  [lindex [lindex $Groups $i] 138],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 139]"
-
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
-            
+                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 139],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT2DPlaneStrainLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -663,14 +631,20 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"STATE_VARIABLE_47\"         :  [lindex [lindex $Groups $i] 136],"
                 puts $FileVar "              \"STATE_VARIABLE_48\"         :  [lindex [lindex $Groups $i] 137],"
                 puts $FileVar "              \"STATE_VARIABLE_49\"         :  [lindex [lindex $Groups $i] 138],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 139]"
-
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 139],"
             }
         }
+        puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 140]\","
+        puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 141],"
+        puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 142],"
+        puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 143],"
+        puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 144],"
+        puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 145],"
+        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 146]"
+
+        puts $FileVar "         \},"
+        puts $FileVar "         \"Tables\": \{\}"
+        puts $FileVar "      \}"
     }
 
     # Soil_drained part
@@ -715,11 +689,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"K0_MAIN_DIRECTION\"        :  $PutStrings,"
                 puts $FileVar "              \"K0_VALUE_XX\"              :  [lindex [lindex $Groups $i] 29],"
                 puts $FileVar "              \"K0_VALUE_YY\"              :  [lindex [lindex $Groups $i] 30],"
-                puts $FileVar "              \"K0_VALUE_ZZ\"              :  [lindex [lindex $Groups $i] 31]"
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"K0_VALUE_ZZ\"              :  [lindex [lindex $Groups $i] 31],"
 
             } else {
                 # 2D elements
@@ -758,11 +728,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"K0_MAIN_DIRECTION\"        :  $PutStrings,"
                 puts $FileVar "              \"K0_VALUE_XX\"              :  [lindex [lindex $Groups $i] 29],"
                 puts $FileVar "              \"K0_VALUE_YY\"              :  [lindex [lindex $Groups $i] 30],"
-                puts $FileVar "              \"K0_VALUE_ZZ\"              :  [lindex [lindex $Groups $i] 31]"
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"K0_VALUE_ZZ\"              :  [lindex [lindex $Groups $i] 31],"
             }
         } else {
             if {[lindex [lindex $Groups $i] 3] eq "SmallStrainIsotropicPlasticity3D"} {
@@ -802,10 +768,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"YIELD_STRESS_COMPRESSION\" :  [lindex [lindex $Groups $i] 24],"
                 puts $FileVar "              \"YIELD_STRESS_TENSION\"     :  [lindex [lindex $Groups $i] 25],"
                 puts $FileVar "              \"MAXIMUM_STRESS_POSITION\"  :  [lindex [lindex $Groups $i] 26],"
-                puts $FileVar "              \"MAXIMUM_STRESS\"           :  [lindex [lindex $Groups $i] 27]"
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"MAXIMUM_STRESS\"           :  [lindex [lindex $Groups $i] 27],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "LinearElastic3DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -833,11 +796,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"PERMEABILITY_XY\"          :  [lindex [lindex $Groups $i] 16],"
                 puts $FileVar "              \"PERMEABILITY_YZ\"          :  [lindex [lindex $Groups $i] 17],"
                 puts $FileVar "              \"PERMEABILITY_ZX\"          :  [lindex [lindex $Groups $i] 18],"
-                puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 19]"
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
-
+                puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 19],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "GeoLinearElasticPlaneStrain2DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -863,10 +822,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"PERMEABILITY_YY\"          :  [lindex [lindex $Groups $i] 14],"
                 puts $FileVar "              \"PERMEABILITY_XY\"          :  [lindex [lindex $Groups $i] 16],"
                 puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 19],"
-                puts $FileVar "              \"THICKNESS\"                :  1.0"
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"THICKNESS\"                :  1.0,"
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUDSM3DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -951,12 +907,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
                 puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
                 puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88]"
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
-            
+                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUDSM2DPlaneStrainLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1038,11 +989,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
                 puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
                 puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88]"
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT3DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1185,13 +1132,8 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"STATE_VARIABLE_47\"        :  [lindex [lindex $Groups $i] 136],"
                 puts $FileVar "              \"STATE_VARIABLE_48\"        :  [lindex [lindex $Groups $i] 137],"
                 puts $FileVar "              \"STATE_VARIABLE_49\"        :  [lindex [lindex $Groups $i] 138],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"        :  [lindex [lindex $Groups $i] 139]"
+                puts $FileVar "              \"STATE_VARIABLE_50\"        :  [lindex [lindex $Groups $i] 139],"
 
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
-            
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT2DPlaneStrainLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1331,13 +1273,21 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"STATE_VARIABLE_47\"        :  [lindex [lindex $Groups $i] 136],"
                 puts $FileVar "              \"STATE_VARIABLE_48\"        :  [lindex [lindex $Groups $i] 137],"
                 puts $FileVar "              \"STATE_VARIABLE_49\"        :  [lindex [lindex $Groups $i] 138],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"        :  [lindex [lindex $Groups $i] 139]"
-
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"STATE_VARIABLE_50\"        :  [lindex [lindex $Groups $i] 139],"
             }
+
         }
+        puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 140]\","
+        puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 141],"
+        puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 142],"
+        puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 143],"
+        puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 144],"
+        puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 145],"
+        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 146]"
+
+        puts $FileVar "         \},"
+        puts $FileVar "         \"Tables\": \{\}"
+        puts $FileVar "      \}"
     }
 
     # Soil_undrained part
@@ -1381,11 +1331,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"K0_MAIN_DIRECTION\"        :  $PutStrings,"
                 puts $FileVar "              \"K0_VALUE_XX\"              :  [lindex [lindex $Groups $i] 29],"
                 puts $FileVar "              \"K0_VALUE_YY\"              :  [lindex [lindex $Groups $i] 30],"
-                puts $FileVar "              \"K0_VALUE_ZZ\"              :  [lindex [lindex $Groups $i] 31]"
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"K0_VALUE_ZZ\"              :  [lindex [lindex $Groups $i] 31],"
             } else {
                 #2D elements
                 incr PropertyId
@@ -1422,11 +1368,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"K0_MAIN_DIRECTION\"        :  $PutStrings,"
                 puts $FileVar "              \"K0_VALUE_XX\"              :  [lindex [lindex $Groups $i] 29],"
                 puts $FileVar "              \"K0_VALUE_YY\"              :  [lindex [lindex $Groups $i] 30],"
-                puts $FileVar "              \"K0_VALUE_ZZ\"              :  [lindex [lindex $Groups $i] 31]"
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"K0_VALUE_ZZ\"              :  [lindex [lindex $Groups $i] 31],"
             }
         } else {    
             if {[lindex [lindex $Groups $i] 3] eq "SmallStrainIsotropicPlasticity3D"} {
@@ -1465,10 +1407,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"YIELD_STRESS_COMPRESSION\" :  [lindex [lindex $Groups $i] 24],"
                 puts $FileVar "              \"YIELD_STRESS_TENSION\"     :  [lindex [lindex $Groups $i] 25],"
                 puts $FileVar "              \"MAXIMUM_STRESS_POSITION\"  :  [lindex [lindex $Groups $i] 26],"
-                puts $FileVar "              \"MAXIMUM_STRESS\"           :  [lindex [lindex $Groups $i] 27]"
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"MAXIMUM_STRESS\"           :  [lindex [lindex $Groups $i] 27],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "LinearElastic3DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1495,11 +1434,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"PERMEABILITY_XY\"          :  [lindex [lindex $Groups $i] 16],"
                 puts $FileVar "              \"PERMEABILITY_YZ\"          :  [lindex [lindex $Groups $i] 17],"
                 puts $FileVar "              \"PERMEABILITY_ZX\"          :  [lindex [lindex $Groups $i] 18],"
-                puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 19]"
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
-
+                puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 19],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "GeoLinearElasticPlaneStrain2DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1524,10 +1459,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"PERMEABILITY_YY\"          :  [lindex [lindex $Groups $i] 14],"
                 puts $FileVar "              \"PERMEABILITY_XY\"          :  [lindex [lindex $Groups $i] 16],"
                 puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 19],"
-                puts $FileVar "              \"THICKNESS\"                :  1.0"
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"THICKNESS\"                :  1.0,"
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUDSM3DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1611,12 +1543,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
                 puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
                 puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88]"
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
-            
+                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUDSM2DPlaneStrainLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1697,11 +1624,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
                 puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
                 puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88]"
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT3DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1843,13 +1766,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"STATE_VARIABLE_47\"         :  [lindex [lindex $Groups $i] 136],"
                 puts $FileVar "              \"STATE_VARIABLE_48\"         :  [lindex [lindex $Groups $i] 137],"
                 puts $FileVar "              \"STATE_VARIABLE_49\"         :  [lindex [lindex $Groups $i] 138],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 139]"
-
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
-            
+                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 139],"
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT2DPlaneStrainLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1988,15 +1905,20 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"STATE_VARIABLE_47\"         :  [lindex [lindex $Groups $i] 136],"
                 puts $FileVar "              \"STATE_VARIABLE_48\"         :  [lindex [lindex $Groups $i] 137],"
                 puts $FileVar "              \"STATE_VARIABLE_49\"         :  [lindex [lindex $Groups $i] 138],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 139]"
-
-                
-                
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
+                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 139],"
             }
         }
+        puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 140]\","
+        puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 141],"
+        puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 142],"
+        puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 143],"
+        puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 144],"
+        puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 145],"
+        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 146]"
+
+        puts $FileVar "         \},"
+        puts $FileVar "         \"Tables\": \{\}"
+        puts $FileVar "      \}"
     }
 
     # Non_porous part

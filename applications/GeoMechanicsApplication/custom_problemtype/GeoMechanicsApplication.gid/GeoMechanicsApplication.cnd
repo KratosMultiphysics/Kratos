@@ -20,45 +20,45 @@ QUESTION: Plastic_Potential#CB#(ModifiedMohrCoulomb,DruckerPrager,Tresca,VonMise
 VALUE: ModifiedMohrCoulomb
 
 QUESTION: Young_Modulus
-VALUE: 3.0e7
-HELP: Units in IS: N/m2
+VALUE: 10000
+HELP: Units in kPa
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2650
-HELP: Units in IS: Kg/m3
+VALUE: 2.65
+HELP: Units in Ton/m3
 QUESTION: Fluid_Density
-VALUE: 1000
-HELP: Units in IS: Kg/m3
+VALUE: 1.0
+HELP: Units in Ton/m3
 QUESTION: Porosity
 VALUE: 0.3
 QUESTION: Solid_Bulk_Modulus
-VALUE: 1.0e12
-HELP: Units in IS: N/m2
+VALUE: 1.0e9
+HELP: Units in kPa
 QUESTION: Fluid_Bulk_Modulus
-VALUE: 2.0e9
-HELP: Units in IS: N/m2
+VALUE: 2.0e6
+HELP: Units in kPa
 QUESTION: Intrinsic_Permeability_XX
 VALUE: 4.5e-13
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_YY
 VALUE: 4.5e-13
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_ZZ
 VALUE: 4.5e-13
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_XY
 VALUE: 0.0
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_YZ
 VALUE: 0.0
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_ZX
 VALUE: 0.0
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Dynamic_Viscosity
-VALUE: 1.0e-3
-HELP: Units in IS: N/m2·s
+VALUE: 8.90e-7
+HELP: Units in kN/m2·s
 QUESTION: Friction_angle
 VAlUE: 30.0
 HELP: Friction angle
@@ -541,6 +541,30 @@ QUESTION: STATE_VARIABLE_49
 VALUE: 0.0
 QUESTION: STATE_VARIABLE_50
 VALUE: 0.0
+
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw)
+VALUE: SaturatedLaw
+HELP: Retention model for flow
+DEPENDENCIES: (SaturatedLaw,    RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
+QUESTION: Saturated_Saturation
+VALUE: 1.0
+HELP: Maximum degree of saturation.
+QUESTION: Residual_Saturation
+VALUE: 0.06203
+HELP: Minimum degree of saturation.
+QUESTION: Air_Entry_Pressure
+VALUE: 2.561
+HELP: Air entry pressure in kPa.
+QUESTION: Gn
+VALUE: 1.377
+HELP: Gn power in Van Genuchten model.
+QUESTION: Gl
+VALUE: 1.25
+HELP: Gl power in Van Genuchten model to calcualte relative permeability.
+QUESTION: Minimum_Relative_Permeability
+VALUE: 0.0001
+HELP: Mimimum allowed relative permeability to prevent singular matrix. 
 
 END CONDITION
 
@@ -567,45 +591,45 @@ VALUE: ModifiedMohrCoulomb
 QUESTION: Plastic_Potential#CB#(ModifiedMohrCoulomb,DruckerPrager,Tresca,VonMises)
 VALUE: ModifiedMohrCoulomb
 QUESTION: Young_Modulus
-VALUE: 3.0e7
-HELP: Units in IS: N/m2
+VALUE: 10000
+HELP: Units in kPa
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2650
-HELP: Units in IS: Kg/m3
+VALUE: 2.65
+HELP: Units in Ton/m3
 QUESTION: Fluid_Density
-VALUE: 1000
-HELP: Units in IS: Kg/m3
+VALUE: 1.0
+HELP: Units in Ton/m3
 QUESTION: Porosity
 VALUE: 0.3
 QUESTION: Solid_Bulk_Modulus
-VALUE: 1.0e12
-HELP: Units in IS: N/m2
+VALUE: 1.0e9
+HELP: Units in kPa
 QUESTION: Fluid_Bulk_Modulus
 VALUE: 2.0e-30
-HELP: Units in IS: N/m2
+HELP: Units in kPa
 QUESTION: Intrinsic_Permeability_XX
 VALUE: 4.5e-30
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_YY
 VALUE: 4.5e-30
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_ZZ
 VALUE: 4.5e-30
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_XY
 VALUE: 0.0
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_YZ
 VALUE: 0.0
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_ZX
 VALUE: 0.0
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Dynamic_Viscosity
-VALUE: 1.0e-3
-HELP: Units in IS: N/m2·s
+VALUE: 8.90e-7
+HELP: Units in kN/m2·s
 QUESTION: Friction_angle
 VAlUE: 30.0
 HELP: Friction angle
@@ -1086,6 +1110,30 @@ QUESTION: STATE_VARIABLE_49
 VALUE: 0.0
 QUESTION: STATE_VARIABLE_50
 VALUE: 0.0
+
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw)
+VALUE: SaturatedLaw
+HELP: Retention model for flow
+DEPENDENCIES: (SaturatedLaw,    RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
+QUESTION: Saturated_Saturation
+VALUE: 1.0
+HELP: Maximum degree of saturation.
+QUESTION: Residual_Saturation
+VALUE: 0.06203
+HELP: Minimum degree of saturation.
+QUESTION: Air_Entry_Pressure
+VALUE: 2.561
+HELP: Air entry pressure in kPa.
+QUESTION: Gn
+VALUE: 1.377
+HELP: Gn power in Van Genuchten model.
+QUESTION: Gl
+VALUE: 1.25
+HELP: Gl power in Van Genuchten model to calcualte relative permeability.
+QUESTION: Minimum_Relative_Permeability
+VALUE: 0.0001
+HELP: Mimimum allowed relative permeability to prevent singular matrix. 
 
 END CONDITION
 
@@ -1110,45 +1158,45 @@ VALUE: ModifiedMohrCoulomb
 QUESTION: Plastic_Potential#CB#(ModifiedMohrCoulomb,DruckerPrager,Tresca,VonMises)
 VALUE: ModifiedMohrCoulomb
 QUESTION: Young_Modulus
-VALUE: 3.0e7
-HELP: Units in IS: N/m2
+VALUE: 10000
+HELP: Units in kPa
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2650
-HELP: Units in IS: Kg/m3
+VALUE: 2.65
+HELP: Units in Ton/m3
 QUESTION: Fluid_Density
-VALUE: 1000
-HELP: Units in IS: Kg/m3
+VALUE: 1.0
+HELP: Units in Ton/m3
 QUESTION: Porosity
 VALUE: 0.3
 QUESTION: Solid_Bulk_Modulus
-VALUE: 1.0e12
-HELP: Units in IS: N/m2
+VALUE: 1.0e9
+HELP: Units in kPa
 QUESTION: Fluid_Bulk_Modulus
-VALUE: 2.0e9
-HELP: Units in IS: N/m2
+VALUE: 2.0e6
+HELP: Units in kPa
 QUESTION: Intrinsic_Permeability_XX
 VALUE: 4.5e-30
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_YY
 VALUE: 4.5e-30
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_ZZ
 VALUE: 4.5e-30
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_XY
 VALUE: 0.0
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_YZ
 VALUE: 0.0
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Intrinsic_Permeability_ZX
 VALUE: 0.0
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Dynamic_Viscosity
-VALUE: 1.0e-3
-HELP: Units in IS: N/m2·s
+VALUE: 8.90e-7
+HELP: Units in kN/m2·s
 QUESTION: Friction_angle
 VAlUE: 30.0
 HELP: Friction angle
@@ -1629,6 +1677,30 @@ QUESTION: STATE_VARIABLE_49
 VALUE: 0.0
 QUESTION: STATE_VARIABLE_50
 VALUE: 0.0
+
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw)
+VALUE: SaturatedLaw
+HELP: Retention model for flow
+DEPENDENCIES: (SaturatedLaw,    RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
+QUESTION: Saturated_Saturation
+VALUE: 1.0
+HELP: Maximum degree of saturation.
+QUESTION: Residual_Saturation
+VALUE: 0.06203
+HELP: Minimum degree of saturation.
+QUESTION: Air_Entry_Pressure
+VALUE: 2.561
+HELP: Air entry pressure in kPa.
+QUESTION: Gn
+VALUE: 1.377
+HELP: Gn power in Van Genuchten model.
+QUESTION: Gl
+VALUE: 1.25
+HELP: Gl power in Van Genuchten model to calcualte relative permeability.
+QUESTION: Minimum_Relative_Permeability
+VALUE: 0.0001
+HELP: Mimimum allowed relative permeability to prevent singular matrix. 
 
 END CONDITION
 
@@ -1654,13 +1726,13 @@ VALUE: ModifiedMohrCoulomb
 QUESTION: Plastic_Potential#CB#(ModifiedMohrCoulomb,DruckerPrager,Tresca,VonMises)
 VALUE: ModifiedMohrCoulomb
 QUESTION: Young_Modulus
-VALUE: 3.0e7
-HELP: Units in IS: N/m2
+VALUE: 10000
+HELP: Units in kPa
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2650
-HELP: Units in IS: Kg/m3
+VALUE: 2.65
+HELP: Units in Ton/m3
 QUESTION: Porosity
 VALUE: 0.0
 QUESTION: Friction_angle
@@ -2161,25 +2233,25 @@ HELP: 2D or 3D beam elements
 DEPENDENCIES: (2D,HIDE,   I22,#CURRENT#,HIDE,   Torsional_Inertial,#CURRENT#)
 DEPENDENCIES: (3D,RESTORE,I22,#CURRENT#,RESTORE,Torsional_Inertial,#CURRENT#)
 QUESTION: Young_Modulus
-VALUE: 2069.0e8
-HELP: Units in IS: N/m2
+VALUE: 206.90e6
+HELP: Units in kPa
 QUESTION: Poisson_Ratio
 VALUE: 0.29
 QUESTION: Density
-VALUE: 7850.0
-HELP: Units in IS: Kg/m3
+VALUE: 7.850
+HELP: Units in Ton/m3
 QUESTION: Cross_Area
 VALUE: 1.0
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: I22
 VALUE: 1.0
-HELP: Units in IS: m4
+HELP: Units in m4
 QUESTION: I33
 VALUE: 1.0
-HELP: Units in IS: m4
+HELP: Units in m4
 QUESTION: Torsional_Inertial
 VALUE: 1.0
-HELP: Units in IS: m4
+HELP: Units in m4
 END CONDITION
 
 CONDITION: Shell_thin_corotational
@@ -2189,16 +2261,16 @@ GROUPALLOW: surfaces
 QUESTION: Constitutive_Law#CB#(ShellConstitutiveLaw)
 VALUE: ShellConstitutiveLaw
 QUESTION: Young_Modulus
-VALUE: 2069.0e8
-HELP: Units in IS: N/m2
+VALUE: 206.90e6
+HELP: Units in kPa
 QUESTION: Poisson_Ratio
 VALUE: 0.29
 QUESTION: Density
-VALUE: 7850.0
-HELP: Units in IS: Kg/m3
+VALUE: 7.850
+HELP: Units in Ton/m3
 QUESTION: Thickness
 VALUE: 1.0
-HELP: Units in IS: m2
+HELP: Units in m2
 END CONDITION
 
 CONDITION: Shell_thick_corotational
@@ -2208,16 +2280,16 @@ GROUPALLOW: surfaces
 QUESTION: Constitutive_Law#CB#(ShellConstitutiveLaw)
 VALUE: ShellConstitutiveLaw
 QUESTION: Young_Modulus
-VALUE: 2069.0e8
-HELP: Units in IS: N/m2
+VALUE: 206.90e6
+HELP: Units in kPa
 QUESTION: Poisson_Ratio
 VALUE: 0.29
 QUESTION: Density
-VALUE: 7850.0
-HELP: Units in IS: Kg/m3
+VALUE: 7.850
+HELP: Units in Ton/m3
 QUESTION: Thickness
 VALUE: 1.0
-HELP: Units in IS: m2
+HELP: Units in m2
 END CONDITION
 
 CONDITION: Truss
@@ -2227,19 +2299,19 @@ GROUPALLOW: lines
 QUESTION: Constitutive_Law#CB#(TrussConstitutiveLaw)
 VALUE: TrussConstitutiveLaw
 QUESTION: Young_Modulus
-VALUE: 2069.0e8
-HELP: Units in IS: N/m2
+VALUE: 206.90e6
+HELP: Units in kPa
 QUESTION: Poisson_Ratio
 VALUE: 0.29
 QUESTION: Density
-VALUE: 7850.0
-HELP: Units in IS: Kg/m3
+VALUE: 7.850
+HELP: Units in Ton/m3
 QUESTION: Cross_Area
 VALUE: 1.0
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Truss_Prestress_PK2
 VALUE: 0.0
-HELP: Units in IS: N/m2
+HELP: Units in kPa
 END CONDITION
 
 CONDITION: Cable
@@ -2249,19 +2321,19 @@ GROUPALLOW: lines
 QUESTION: Constitutive_Law#CB#(TrussConstitutiveLaw)
 VALUE: TrussConstitutiveLaw
 QUESTION: Young_Modulus
-VALUE: 2069.0e8
-HELP: Units in IS: N/m2
+VALUE: 206.90e6
+HELP: Units in kPa
 QUESTION: Poisson_Ratio
 VALUE: 0.29
 QUESTION: Density
-VALUE: 7850.0
-HELP: Units in IS: Kg/m3
+VALUE: 7.850
+HELP: Units in Ton/m3
 QUESTION: Cross_Area
 VALUE: 1.0
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Cable_Prestress_PK2
 VALUE: 0.0
-HELP: Units in IS: N/m2
+HELP: Units in kPa
 END CONDITION
 
 CONDITION: Interface_two_phase
@@ -2281,45 +2353,45 @@ DEPENDENCIES: (SmallStrainUMAT2DInterfaceLaw,    HIDE,Young_Modulus,#CURRENT#, H
 DEPENDENCIES: (SmallStrainUMAT3DInterfaceLaw,    HIDE,Young_Modulus,#CURRENT#, HIDE,Poisson_Ratio,#CURRENT#, RESTORE,Solid_Density,#CURRENT#, RESTORE,Fluid_Density,#CURRENT#, RESTORE,Porosity,#CURRENT#, RESTORE,Solid_Bulk_Modulus,#CURRENT#, RESTORE,Fluid_Bulk_Modulus,#CURRENT#, RESTORE,Transversal_Permeability,#CURRENT#, RESTORE,Dynamic_Viscosity,#CURRENT#, HIDE,Damage_Threshold,#CURRENT#, HIDE,Thickness,#CURRENT#, RESTORE,Minimum_Joint_Width,#CURRENT#, HIDE,Critical_Displacement,#CURRENT#, HIDE,Yield_Stress,#CURRENT#, HIDE,Friction_Coefficient,#CURRENT#, RESTORE,UDSM_Name,#CURRENT#, RESTORE,UDSM_Number,#CURRENT#, RESTORE,Is_Fortran_UDSM,true, HIDE,UMAT_Name,#CURRENT#, HIDE,UMAT_Number,#CURRENT#, HIDE,Is_Fortran_UMAT,#CURRENT#, RESTORE,Number_Of_Parameters,#CURRENT#, RESTORE,Parameter_01,#CURRENT#, HIDE,Parameter_02,#CURRENT#, HIDE,Parameter_03,#CURRENT#, HIDE,Parameter_04,#CURRENT#, HIDE,Parameter_05,#CURRENT#, HIDE,Parameter_06,#CURRENT#, HIDE,Parameter_07,#CURRENT#, HIDE,Parameter_08,#CURRENT#, HIDE,Parameter_09,#CURRENT#, HIDE,Parameter_10,#CURRENT#, HIDE,Parameter_11,#CURRENT#, HIDE,Parameter_12,#CURRENT#, HIDE,Parameter_13,#CURRENT#, HIDE,Parameter_14,#CURRENT#, HIDE,Parameter_15,#CURRENT#, HIDE,Parameter_16,#CURRENT#, HIDE,Parameter_17,#CURRENT#, HIDE,Parameter_18,#CURRENT#, HIDE,Parameter_19,#CURRENT#, HIDE,Parameter_20,#CURRENT#, HIDE,Parameter_21,#CURRENT#, HIDE,Parameter_22,#CURRENT#, HIDE,Parameter_23,#CURRENT#, HIDE,Parameter_24,#CURRENT#, HIDE,Parameter_25,#CURRENT#, HIDE,Parameter_26,#CURRENT#, HIDE,Parameter_27,#CURRENT#, HIDE,Parameter_28,#CURRENT#, HIDE,Parameter_29,#CURRENT#, HIDE,Parameter_30,#CURRENT#, HIDE,Parameter_31,#CURRENT#, HIDE,Parameter_32,#CURRENT#, HIDE,Parameter_33,#CURRENT#, HIDE,Parameter_34,#CURRENT#, HIDE,Parameter_35,#CURRENT#, HIDE,Parameter_36,#CURRENT#, HIDE,Parameter_37,#CURRENT#, HIDE,Parameter_38,#CURRENT#, HIDE,Parameter_39,#CURRENT#, HIDE,Parameter_40,#CURRENT#, HIDE,Parameter_41,#CURRENT#, HIDE,Parameter_42,#CURRENT#, HIDE,Parameter_43,#CURRENT#, HIDE,Parameter_44,#CURRENT#, HIDE,Parameter_45,#CURRENT#, HIDE,Parameter_46,#CURRENT#, HIDE,Parameter_47,#CURRENT#, HIDE,Parameter_48,#CURRENT#, HIDE,Parameter_49,#CURRENT#, HIDE,Parameter_50,#CURRENT#, RESTORE,Number_Of_STATE_VARIABLEs, #CURRENT#,RESTORE,STATE_VARIABLE_01,#CURRENT#, HIDE,STATE_VARIABLE_02,#CURRENT#, HIDE,STATE_VARIABLE_03,#CURRENT#, HIDE,STATE_VARIABLE_04,#CURRENT#, HIDE,STATE_VARIABLE_05,#CURRENT#, HIDE,STATE_VARIABLE_06,#CURRENT#, HIDE,STATE_VARIABLE_07,#CURRENT#, HIDE,STATE_VARIABLE_08,#CURRENT#, HIDE,STATE_VARIABLE_09,#CURRENT#, HIDE,STATE_VARIABLE_10,#CURRENT#, HIDE,STATE_VARIABLE_11,#CURRENT#, HIDE,STATE_VARIABLE_12,#CURRENT#, HIDE,STATE_VARIABLE_13,#CURRENT#, HIDE,STATE_VARIABLE_14,#CURRENT#, HIDE,STATE_VARIABLE_15,#CURRENT#, HIDE,STATE_VARIABLE_16,#CURRENT#, HIDE,STATE_VARIABLE_17,#CURRENT#, HIDE,STATE_VARIABLE_18,#CURRENT#, HIDE,STATE_VARIABLE_19,#CURRENT#, HIDE,STATE_VARIABLE_20,#CURRENT#, HIDE,STATE_VARIABLE_21,#CURRENT#, HIDE,STATE_VARIABLE_22,#CURRENT#, HIDE,STATE_VARIABLE_23,#CURRENT#, HIDE,STATE_VARIABLE_24,#CURRENT#, HIDE,STATE_VARIABLE_25,#CURRENT#, HIDE,STATE_VARIABLE_26,#CURRENT#, HIDE,STATE_VARIABLE_27,#CURRENT#, HIDE,STATE_VARIABLE_28,#CURRENT#, HIDE,STATE_VARIABLE_29,#CURRENT#, HIDE,STATE_VARIABLE_30,#CURRENT#, HIDE,STATE_VARIABLE_31,#CURRENT#, HIDE,STATE_VARIABLE_32,#CURRENT#, HIDE,STATE_VARIABLE_33,#CURRENT#, HIDE,STATE_VARIABLE_34,#CURRENT#, HIDE,STATE_VARIABLE_35,#CURRENT#, HIDE,STATE_VARIABLE_36,#CURRENT#, HIDE,STATE_VARIABLE_37,#CURRENT#, HIDE,STATE_VARIABLE_38,#CURRENT#, HIDE,STATE_VARIABLE_39,#CURRENT#, HIDE,STATE_VARIABLE_40,#CURRENT#, HIDE,STATE_VARIABLE_41,#CURRENT#, HIDE,STATE_VARIABLE_42,#CURRENT#, HIDE,STATE_VARIABLE_43,#CURRENT#, HIDE,STATE_VARIABLE_44,#CURRENT#, HIDE,STATE_VARIABLE_45,#CURRENT#, HIDE,STATE_VARIABLE_46,#CURRENT#, HIDE,STATE_VARIABLE_47,#CURRENT#, HIDE,STATE_VARIABLE_48,#CURRENT#, HIDE,STATE_VARIABLE_49,#CURRENT#, HIDE,STATE_VARIABLE_50,#CURRENT#)
 
 QUESTION: Young_Modulus
-VALUE: 3.0e7
-HELP: It defines the normal stiffness in contact cases. Units in IS: N/m2
+VALUE: 10000
+HELP: It defines the normal stiffness in contact cases. Units in kPa
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2650
-HELP: Units in IS: Kg/m3
+VALUE: 2.65
+HELP: Units in Ton/m3
 QUESTION: Fluid_Density
-VALUE: 1000
-HELP: Units in IS: Kg/m3
+VALUE: 1.0
+HELP: Units in Ton/m3
 QUESTION: Porosity
 VALUE: 0.3
 QUESTION: Solid_Bulk_Modulus
-VALUE: 1.0e12
-HELP: Units in IS: N/m2
+VALUE: 1.0e9
+HELP: Units in kPa
 QUESTION: Fluid_Bulk_Modulus
-VALUE: 2.0e9
-HELP: Units in IS: N/m2
+VALUE: 2.0e6
+HELP: Units in kPa
 QUESTION: Transversal_Permeability
 VALUE: 1.0e-13
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Dynamic_Viscosity
-VALUE: 1.0e-3
-HELP: Units in IS: N/m2·s
+VALUE: 8.90e-7
+HELP: Units in kN/m2·s
 QUESTION: Thickness
 VALUE: 1.0
-HELP: Units in IS: m
+HELP: Units in m
 QUESTION: Damage_Threshold
 VALUE: 1.0e-4
 HELP: Strain value after which damage starts growing.
 QUESTION: Minimum_Joint_Width
 VALUE: 1.0e-3
-HELP: Small number for avoiding division by zero in zero-thickness cases. Units in IS: m
+HELP: Small number for avoiding division by zero in zero-thickness cases. Units in m
 QUESTION: Critical_Displacement
 VALUE: 0.05
-HELP: Relative displacement after which cohesive stresses vanish. Units in IS: m
+HELP: Relative displacement after which cohesive stresses vanish. Units in m
 QUESTION: Yield_Stress
-VALUE: 3.5e6
-HELP: Cohesive strength of the joint. Units in IS: N/m2
+VALUE: 3.5e3
+HELP: Cohesive strength of the joint. Units in kPa
 QUESTION: Friction_Coefficient
 VALUE: 0.4
 HELP: Mohr-Coulomb's friction coefficient in contact cases.
@@ -2767,6 +2839,30 @@ QUESTION: STATE_VARIABLE_49
 VALUE: 0.0
 QUESTION: STATE_VARIABLE_50
 VALUE: 0.0
+
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw)
+VALUE: SaturatedLaw
+HELP: Retention model for flow
+DEPENDENCIES: (SaturatedLaw,    RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
+QUESTION: Saturated_Saturation
+VALUE: 1.0
+HELP: Maximum degree of saturation.
+QUESTION: Residual_Saturation
+VALUE: 0.06203
+HELP: Minimum degree of saturation.
+QUESTION: Air_Entry_Pressure
+VALUE: 2.561
+HELP: Air entry pressure in kPa.
+QUESTION: Gn
+VALUE: 1.377
+HELP: Gn power in Van Genuchten model.
+QUESTION: Gl
+VALUE: 1.25
+HELP: Gl power in Van Genuchten model to calcualte relative permeability.
+QUESTION: Minimum_Relative_Permeability
+VALUE: 0.0001
+HELP: Mimimum allowed relative permeability to prevent singular matrix. 
 
 END CONDITION
 
@@ -2787,45 +2883,45 @@ DEPENDENCIES: (SmallStrainUMAT2DInterfaceLaw,    HIDE,Young_Modulus,#CURRENT#, H
 DEPENDENCIES: (SmallStrainUMAT3DInterfaceLaw,    HIDE,Young_Modulus,#CURRENT#, HIDE,Poisson_Ratio,#CURRENT#, RESTORE,Solid_Density,#CURRENT#, RESTORE,Fluid_Density,#CURRENT#, RESTORE,Porosity,#CURRENT#, RESTORE,Solid_Bulk_Modulus,#CURRENT#, RESTORE,Fluid_Bulk_Modulus,#CURRENT#, RESTORE,Transversal_Permeability,#CURRENT#, RESTORE,Dynamic_Viscosity,#CURRENT#, HIDE,Damage_Threshold,#CURRENT#, HIDE,Thickness,#CURRENT#, RESTORE,Minimum_Joint_Width,#CURRENT#, HIDE,Critical_Displacement,#CURRENT#, HIDE,Yield_Stress,#CURRENT#, HIDE,Friction_Coefficient,#CURRENT#, RESTORE,UDSM_Name,#CURRENT#, RESTORE,UDSM_Number,#CURRENT#, RESTORE,Is_Fortran_UDSM,true, HIDE,UMAT_Name,#CURRENT#, HIDE,UMAT_Number,#CURRENT#, HIDE,Is_Fortran_UMAT,#CURRENT#, RESTORE,Number_Of_Parameters,#CURRENT#, RESTORE,Parameter_01,#CURRENT#, HIDE,Parameter_02,#CURRENT#, HIDE,Parameter_03,#CURRENT#, HIDE,Parameter_04,#CURRENT#, HIDE,Parameter_05,#CURRENT#, HIDE,Parameter_06,#CURRENT#, HIDE,Parameter_07,#CURRENT#, HIDE,Parameter_08,#CURRENT#, HIDE,Parameter_09,#CURRENT#, HIDE,Parameter_10,#CURRENT#, HIDE,Parameter_11,#CURRENT#, HIDE,Parameter_12,#CURRENT#, HIDE,Parameter_13,#CURRENT#, HIDE,Parameter_14,#CURRENT#, HIDE,Parameter_15,#CURRENT#, HIDE,Parameter_16,#CURRENT#, HIDE,Parameter_17,#CURRENT#, HIDE,Parameter_18,#CURRENT#, HIDE,Parameter_19,#CURRENT#, HIDE,Parameter_20,#CURRENT#, HIDE,Parameter_21,#CURRENT#, HIDE,Parameter_22,#CURRENT#, HIDE,Parameter_23,#CURRENT#, HIDE,Parameter_24,#CURRENT#, HIDE,Parameter_25,#CURRENT#, HIDE,Parameter_26,#CURRENT#, HIDE,Parameter_27,#CURRENT#, HIDE,Parameter_28,#CURRENT#, HIDE,Parameter_29,#CURRENT#, HIDE,Parameter_30,#CURRENT#, HIDE,Parameter_31,#CURRENT#, HIDE,Parameter_32,#CURRENT#, HIDE,Parameter_33,#CURRENT#, HIDE,Parameter_34,#CURRENT#, HIDE,Parameter_35,#CURRENT#, HIDE,Parameter_36,#CURRENT#, HIDE,Parameter_37,#CURRENT#, HIDE,Parameter_38,#CURRENT#, HIDE,Parameter_39,#CURRENT#, HIDE,Parameter_40,#CURRENT#, HIDE,Parameter_41,#CURRENT#, HIDE,Parameter_42,#CURRENT#, HIDE,Parameter_43,#CURRENT#, HIDE,Parameter_44,#CURRENT#, HIDE,Parameter_45,#CURRENT#, HIDE,Parameter_46,#CURRENT#, HIDE,Parameter_47,#CURRENT#, HIDE,Parameter_48,#CURRENT#, HIDE,Parameter_49,#CURRENT#, HIDE,Parameter_50,#CURRENT#, RESTORE,Number_Of_STATE_VARIABLEs, #CURRENT#,RESTORE,STATE_VARIABLE_01,#CURRENT#, HIDE,STATE_VARIABLE_02,#CURRENT#, HIDE,STATE_VARIABLE_03,#CURRENT#, HIDE,STATE_VARIABLE_04,#CURRENT#, HIDE,STATE_VARIABLE_05,#CURRENT#, HIDE,STATE_VARIABLE_06,#CURRENT#, HIDE,STATE_VARIABLE_07,#CURRENT#, HIDE,STATE_VARIABLE_08,#CURRENT#, HIDE,STATE_VARIABLE_09,#CURRENT#, HIDE,STATE_VARIABLE_10,#CURRENT#, HIDE,STATE_VARIABLE_11,#CURRENT#, HIDE,STATE_VARIABLE_12,#CURRENT#, HIDE,STATE_VARIABLE_13,#CURRENT#, HIDE,STATE_VARIABLE_14,#CURRENT#, HIDE,STATE_VARIABLE_15,#CURRENT#, HIDE,STATE_VARIABLE_16,#CURRENT#, HIDE,STATE_VARIABLE_17,#CURRENT#, HIDE,STATE_VARIABLE_18,#CURRENT#, HIDE,STATE_VARIABLE_19,#CURRENT#, HIDE,STATE_VARIABLE_20,#CURRENT#, HIDE,STATE_VARIABLE_21,#CURRENT#, HIDE,STATE_VARIABLE_22,#CURRENT#, HIDE,STATE_VARIABLE_23,#CURRENT#, HIDE,STATE_VARIABLE_24,#CURRENT#, HIDE,STATE_VARIABLE_25,#CURRENT#, HIDE,STATE_VARIABLE_26,#CURRENT#, HIDE,STATE_VARIABLE_27,#CURRENT#, HIDE,STATE_VARIABLE_28,#CURRENT#, HIDE,STATE_VARIABLE_29,#CURRENT#, HIDE,STATE_VARIABLE_30,#CURRENT#, HIDE,STATE_VARIABLE_31,#CURRENT#, HIDE,STATE_VARIABLE_32,#CURRENT#, HIDE,STATE_VARIABLE_33,#CURRENT#, HIDE,STATE_VARIABLE_34,#CURRENT#, HIDE,STATE_VARIABLE_35,#CURRENT#, HIDE,STATE_VARIABLE_36,#CURRENT#, HIDE,STATE_VARIABLE_37,#CURRENT#, HIDE,STATE_VARIABLE_38,#CURRENT#, HIDE,STATE_VARIABLE_39,#CURRENT#, HIDE,STATE_VARIABLE_40,#CURRENT#, HIDE,STATE_VARIABLE_41,#CURRENT#, HIDE,STATE_VARIABLE_42,#CURRENT#, HIDE,STATE_VARIABLE_43,#CURRENT#, HIDE,STATE_VARIABLE_44,#CURRENT#, HIDE,STATE_VARIABLE_45,#CURRENT#, HIDE,STATE_VARIABLE_46,#CURRENT#, HIDE,STATE_VARIABLE_47,#CURRENT#, HIDE,STATE_VARIABLE_48,#CURRENT#, HIDE,STATE_VARIABLE_49,#CURRENT#, HIDE,STATE_VARIABLE_50,#CURRENT#)
 
 QUESTION: Young_Modulus
-VALUE: 3.0e7
-HELP: It defines the normal stiffness in contact cases. Units in IS: N/m2
+VALUE: 10000
+HELP: It defines the normal stiffness in contact cases. Units in kPa
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2650
-HELP: Units in IS: Kg/m3
+VALUE: 2.65
+HELP: Units in Ton/m3
 QUESTION: Fluid_Density
-VALUE: 1000
-HELP: Units in IS: Kg/m3
+VALUE: 1.0
+HELP: Units in Ton/m3
 QUESTION: Porosity
 VALUE: 0.3
 QUESTION: Solid_Bulk_Modulus
-VALUE: 1.0e12
-HELP: Units in IS: N/m2
+VALUE: 1.0e9
+HELP: Units in kPa
 QUESTION: Fluid_Bulk_Modulus
 VALUE: 1.0e-30
-HELP: Units in IS: N/m2
+HELP: Units in kPa
 QUESTION: Transversal_Permeability
 VALUE: 1.0e-30
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Dynamic_Viscosity
-VALUE: 1.0e-3
-HELP: Units in IS: N/m2·s
+VALUE: 8.90e-7
+HELP: Units in kN/m2·s
 QUESTION: Thickness
 VALUE: 1.0
-HELP: Units in IS: m
+HELP: Units in m
 QUESTION: Damage_Threshold
 VALUE: 1.0e-4
 HELP: Strain value after which damage starts growing.
 QUESTION: Minimum_Joint_Width
 VALUE: 1.0e-3
-HELP: Small number for avoiding division by zero in zero-thickness cases. Units in IS: m
+HELP: Small number for avoiding division by zero in zero-thickness cases. Units in m
 QUESTION: Critical_Displacement
 VALUE: 0.05
-HELP: Relative displacement after which cohesive stresses vanish. Units in IS: m
+HELP: Relative displacement after which cohesive stresses vanish. Units in m
 QUESTION: Yield_Stress
-VALUE: 3.5e6
-HELP: Cohesive strength of the joint. Units in IS: N/m2
+VALUE: 3.5e3
+HELP: Cohesive strength of the joint. Units in kPa
 QUESTION: Friction_Coefficient
 VALUE: 0.4
 HELP: Mohr-Coulomb's friction coefficient in contact cases.
@@ -3273,6 +3369,30 @@ QUESTION: STATE_VARIABLE_49
 VALUE: 0.0
 QUESTION: STATE_VARIABLE_50
 VALUE: 0.0
+
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw)
+VALUE: SaturatedLaw
+HELP: Retention model for flow
+DEPENDENCIES: (SaturatedLaw,    RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
+QUESTION: Saturated_Saturation
+VALUE: 1.0
+HELP: Maximum degree of saturation.
+QUESTION: Residual_Saturation
+VALUE: 0.06203
+HELP: Minimum degree of saturation.
+QUESTION: Air_Entry_Pressure
+VALUE: 2.561
+HELP: Air entry pressure in kPa.
+QUESTION: Gn
+VALUE: 1.377
+HELP: Gn power in Van Genuchten model.
+QUESTION: Gl
+VALUE: 1.25
+HELP: Gl power in Van Genuchten model to calcualte relative permeability.
+QUESTION: Minimum_Relative_Permeability
+VALUE: 0.0001
+HELP: Mimimum allowed relative permeability to prevent singular matrix. 
 
 END CONDITION
 
@@ -3293,45 +3413,45 @@ DEPENDENCIES: (SmallStrainUMAT2DInterfaceLaw,    HIDE,Young_Modulus,#CURRENT#, H
 DEPENDENCIES: (SmallStrainUMAT3DInterfaceLaw,    HIDE,Young_Modulus,#CURRENT#, HIDE,Poisson_Ratio,#CURRENT#, RESTORE,Solid_Density,#CURRENT#, RESTORE,Fluid_Density,#CURRENT#, RESTORE,Porosity,#CURRENT#, RESTORE,Solid_Bulk_Modulus,#CURRENT#, RESTORE,Fluid_Bulk_Modulus,#CURRENT#, RESTORE,Transversal_Permeability,#CURRENT#, RESTORE,Dynamic_Viscosity,#CURRENT#, HIDE,Damage_Threshold,#CURRENT#, HIDE,Thickness,#CURRENT#, RESTORE,Minimum_Joint_Width,#CURRENT#, HIDE,Critical_Displacement,#CURRENT#, HIDE,Yield_Stress,#CURRENT#, HIDE,Friction_Coefficient,#CURRENT#, RESTORE,UDSM_Name,#CURRENT#, RESTORE,UDSM_Number,#CURRENT#, RESTORE,Is_Fortran_UDSM,true, HIDE,UMAT_Name,#CURRENT#, HIDE,UMAT_Number,#CURRENT#, HIDE,Is_Fortran_UMAT,#CURRENT#, RESTORE,Number_Of_Parameters,#CURRENT#, RESTORE,Parameter_01,#CURRENT#, HIDE,Parameter_02,#CURRENT#, HIDE,Parameter_03,#CURRENT#, HIDE,Parameter_04,#CURRENT#, HIDE,Parameter_05,#CURRENT#, HIDE,Parameter_06,#CURRENT#, HIDE,Parameter_07,#CURRENT#, HIDE,Parameter_08,#CURRENT#, HIDE,Parameter_09,#CURRENT#, HIDE,Parameter_10,#CURRENT#, HIDE,Parameter_11,#CURRENT#, HIDE,Parameter_12,#CURRENT#, HIDE,Parameter_13,#CURRENT#, HIDE,Parameter_14,#CURRENT#, HIDE,Parameter_15,#CURRENT#, HIDE,Parameter_16,#CURRENT#, HIDE,Parameter_17,#CURRENT#, HIDE,Parameter_18,#CURRENT#, HIDE,Parameter_19,#CURRENT#, HIDE,Parameter_20,#CURRENT#, HIDE,Parameter_21,#CURRENT#, HIDE,Parameter_22,#CURRENT#, HIDE,Parameter_23,#CURRENT#, HIDE,Parameter_24,#CURRENT#, HIDE,Parameter_25,#CURRENT#, HIDE,Parameter_26,#CURRENT#, HIDE,Parameter_27,#CURRENT#, HIDE,Parameter_28,#CURRENT#, HIDE,Parameter_29,#CURRENT#, HIDE,Parameter_30,#CURRENT#, HIDE,Parameter_31,#CURRENT#, HIDE,Parameter_32,#CURRENT#, HIDE,Parameter_33,#CURRENT#, HIDE,Parameter_34,#CURRENT#, HIDE,Parameter_35,#CURRENT#, HIDE,Parameter_36,#CURRENT#, HIDE,Parameter_37,#CURRENT#, HIDE,Parameter_38,#CURRENT#, HIDE,Parameter_39,#CURRENT#, HIDE,Parameter_40,#CURRENT#, HIDE,Parameter_41,#CURRENT#, HIDE,Parameter_42,#CURRENT#, HIDE,Parameter_43,#CURRENT#, HIDE,Parameter_44,#CURRENT#, HIDE,Parameter_45,#CURRENT#, HIDE,Parameter_46,#CURRENT#, HIDE,Parameter_47,#CURRENT#, HIDE,Parameter_48,#CURRENT#, HIDE,Parameter_49,#CURRENT#, HIDE,Parameter_50,#CURRENT#, RESTORE,Number_Of_STATE_VARIABLEs, #CURRENT#,RESTORE,STATE_VARIABLE_01,#CURRENT#, HIDE,STATE_VARIABLE_02,#CURRENT#, HIDE,STATE_VARIABLE_03,#CURRENT#, HIDE,STATE_VARIABLE_04,#CURRENT#, HIDE,STATE_VARIABLE_05,#CURRENT#, HIDE,STATE_VARIABLE_06,#CURRENT#, HIDE,STATE_VARIABLE_07,#CURRENT#, HIDE,STATE_VARIABLE_08,#CURRENT#, HIDE,STATE_VARIABLE_09,#CURRENT#, HIDE,STATE_VARIABLE_10,#CURRENT#, HIDE,STATE_VARIABLE_11,#CURRENT#, HIDE,STATE_VARIABLE_12,#CURRENT#, HIDE,STATE_VARIABLE_13,#CURRENT#, HIDE,STATE_VARIABLE_14,#CURRENT#, HIDE,STATE_VARIABLE_15,#CURRENT#, HIDE,STATE_VARIABLE_16,#CURRENT#, HIDE,STATE_VARIABLE_17,#CURRENT#, HIDE,STATE_VARIABLE_18,#CURRENT#, HIDE,STATE_VARIABLE_19,#CURRENT#, HIDE,STATE_VARIABLE_20,#CURRENT#, HIDE,STATE_VARIABLE_21,#CURRENT#, HIDE,STATE_VARIABLE_22,#CURRENT#, HIDE,STATE_VARIABLE_23,#CURRENT#, HIDE,STATE_VARIABLE_24,#CURRENT#, HIDE,STATE_VARIABLE_25,#CURRENT#, HIDE,STATE_VARIABLE_26,#CURRENT#, HIDE,STATE_VARIABLE_27,#CURRENT#, HIDE,STATE_VARIABLE_28,#CURRENT#, HIDE,STATE_VARIABLE_29,#CURRENT#, HIDE,STATE_VARIABLE_30,#CURRENT#, HIDE,STATE_VARIABLE_31,#CURRENT#, HIDE,STATE_VARIABLE_32,#CURRENT#, HIDE,STATE_VARIABLE_33,#CURRENT#, HIDE,STATE_VARIABLE_34,#CURRENT#, HIDE,STATE_VARIABLE_35,#CURRENT#, HIDE,STATE_VARIABLE_36,#CURRENT#, HIDE,STATE_VARIABLE_37,#CURRENT#, HIDE,STATE_VARIABLE_38,#CURRENT#, HIDE,STATE_VARIABLE_39,#CURRENT#, HIDE,STATE_VARIABLE_40,#CURRENT#, HIDE,STATE_VARIABLE_41,#CURRENT#, HIDE,STATE_VARIABLE_42,#CURRENT#, HIDE,STATE_VARIABLE_43,#CURRENT#, HIDE,STATE_VARIABLE_44,#CURRENT#, HIDE,STATE_VARIABLE_45,#CURRENT#, HIDE,STATE_VARIABLE_46,#CURRENT#, HIDE,STATE_VARIABLE_47,#CURRENT#, HIDE,STATE_VARIABLE_48,#CURRENT#, HIDE,STATE_VARIABLE_49,#CURRENT#, HIDE,STATE_VARIABLE_50,#CURRENT#)
 
 QUESTION: Young_Modulus
-VALUE: 3.0e7
-HELP: It defines the normal stiffness in contact cases. Units in IS: N/m2
+VALUE: 10000
+HELP: It defines the normal stiffness in contact cases. Units in kPa
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
-VALUE: 2650
-HELP: Units in IS: Kg/m3
+VALUE: 2.65
+HELP: Units in Ton/m3
 QUESTION: Fluid_Density
-VALUE: 1000
-HELP: Units in IS: Kg/m3
+VALUE: 1.0
+HELP: Units in Ton/m3
 QUESTION: Porosity
 VALUE: 0.3
 QUESTION: Solid_Bulk_Modulus
-VALUE: 1.0e12
-HELP: Units in IS: N/m2
+VALUE: 1.0e9
+HELP: Units in kPa
 QUESTION: Fluid_Bulk_Modulus
-VALUE: 2.0e9
-HELP: Units in IS: N/m2
+VALUE: 2.0e6
+HELP: Units in kPa
 QUESTION: Transversal_Permeability
 VALUE: 1.0e-30
-HELP: Units in IS: m2
+HELP: Units in m2
 QUESTION: Dynamic_Viscosity
-VALUE: 1.0e-3
-HELP: Units in IS: N/m2·s
+VALUE: 8.90e-7
+HELP: Units in kN/m2·s
 QUESTION: Thickness
 VALUE: 1.0
-HELP: Units in IS: m
+HELP: Units in m
 QUESTION: Damage_Threshold
 VALUE: 1.0e-4
 HELP: Strain value after which damage starts growing.
 QUESTION: Minimum_Joint_Width
 VALUE: 1.0e-3
-HELP: Small number for avoiding division by zero in zero-thickness cases. Units in IS: m
+HELP: Small number for avoiding division by zero in zero-thickness cases. Units in m
 QUESTION: Critical_Displacement
 VALUE: 0.05
-HELP: Relative displacement after which cohesive stresses vanish. Units in IS: m
+HELP: Relative displacement after which cohesive stresses vanish. Units in m
 QUESTION: Yield_Stress
-VALUE: 3.5e6
-HELP: Cohesive strength of the joint. Units in IS: N/m2
+VALUE: 3.5e3
+HELP: Cohesive strength of the joint. Units in kPa
 QUESTION: Friction_Coefficient
 VALUE: 0.4
 HELP: Mohr-Coulomb's friction coefficient in contact cases.
@@ -3780,6 +3900,30 @@ VALUE: 0.0
 QUESTION: STATE_VARIABLE_50
 VALUE: 0.0
 
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw)
+VALUE: SaturatedLaw
+HELP: Retention model for flow
+DEPENDENCIES: (SaturatedLaw,    RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
+QUESTION: Saturated_Saturation
+VALUE: 1.0
+HELP: Maximum degree of saturation.
+QUESTION: Residual_Saturation
+VALUE: 0.06203
+HELP: Minimum degree of saturation.
+QUESTION: Air_Entry_Pressure
+VALUE: 2.561
+HELP: Air entry pressure in kPa.
+QUESTION: Gn
+VALUE: 1.377
+HELP: Gn power in Van Genuchten model.
+QUESTION: Gl
+VALUE: 1.25
+HELP: Gl power in Van Genuchten model to calcualte relative permeability.
+QUESTION: Minimum_Relative_Permeability
+VALUE: 0.0001
+HELP: Mimimum allowed relative permeability to prevent singular matrix. 
+
 END CONDITION
 
 
@@ -3795,7 +3939,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Fix_X,false)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,#CURRENT#)
 QUESTION: X_Value
 VALUE: 0.0
-HELP: Units in IS: m
+HELP: Units in m
 QUESTION: Fix_X#CB#(true,false)
 VALUE: true
 HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
@@ -3810,7 +3954,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Fix_Y,false)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Fix_Y,#CURRENT#)
 QUESTION: Y_Value
 VALUE: 0.0
-HELP: Units in IS: m
+HELP: Units in m
 QUESTION: Fix_Y#CB#(true,false)
 VALUE: true
 HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
@@ -3825,7 +3969,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Fix_Z,false)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Fix_Z,#CURRENT#)
 QUESTION: Z_Value
 VALUE: 0.0
-HELP: Units in IS: m
+HELP: Units in m
 QUESTION: Fix_Z#CB#(true,false)
 VALUE: true
 HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
@@ -3846,7 +3990,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Fix_X,false)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,#CURRENT#)
 QUESTION: X_Value
 VALUE: 0.0
-HELP: Units in IS: radian
+HELP: Units in radian
 QUESTION: Fix_X#CB#(true,false)
 VALUE: true
 HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
@@ -3861,7 +4005,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Fix_Y,false)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Fix_Y,#CURRENT#)
 QUESTION: Y_Value
 VALUE: 0.0
-HELP: Units in IS: radian
+HELP: Units in radian
 QUESTION: Fix_Y#CB#(true,false)
 VALUE: true
 HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
@@ -3876,7 +4020,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Fix_Z,false)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Fix_Z,#CURRENT#)
 QUESTION: Z_Value
 VALUE: 0.0
-HELP: Units in IS: radian
+HELP: Units in radian
 QUESTION: Fix_Z#CB#(true,false)
 VALUE: true
 HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
@@ -3902,19 +4046,19 @@ DEPENDENCIES: (Interpolate_Line,HIDE,   Pressure_Value,#CURRENT#, RESTORE,Gravit
 
 QUESTION: Pressure_Value
 VALUE: 0.0
-HELP: Units in IS: N/m2
+HELP: Units in kPa
 QUESTION: Gravity_Direction#CB#(X,Y,Z)
 VALUE: Y
 QUESTION: Reference_Coordinate
 VALUE: 0.0
 HELP: Coordinate of the chosen direction at which pressure is 0.0
 QUESTION: Specific_Weight
-VALUE: 10000.0
-HELP: Units in IS: N/m3
+VALUE: 9.81
+HELP: Units in kN/m3
 
 QUESTION: Pressure_Tension_Cut_off
 VALUE: 0.0
-HELP: Units in IS: N/m3. This is the maximum pressure (suction) allowed.
+HELP: Units in kN/m3. This is the maximum pressure (suction) allowed.
 
 QUESTION: Out_Of_Plane_Direction#CB#(X,Y,Z)
 VALUE: Z
@@ -3926,13 +4070,13 @@ HELP: Coordinate of the first reference point on the zero pressure line (phreati
 DEPENDENCIES: (false,HIDE,X_1,0.0,HIDE,Y_1,0.0,HIDE,Z_1,0.0)(true,RESTORE,X_1,#CURRENT#,RESTORE,Y_1,#CURRENT#,RESTORE,Z_1,#CURRENT#)
 QUESTION: X_1
 VALUE: 0.0
-HELP: Units in IS: m
+HELP: Units in m
 QUESTION: Y_1
 VALUE: 0.0
-HELP: Units in IS: m
+HELP: Units in m
 QUESTION: Z_1
 VALUE: 0.0
-HELP: Units in IS: m
+HELP: Units in m
 
 QUESTION: Second_Reference_Coordinate#CB#(true)
 VALUE: true
@@ -3940,26 +4084,26 @@ HELP: Coordinate of the second reference point on the zero pressure line (phreat
 DEPENDENCIES: (false,HIDE,X_2,0.0,HIDE,Y_2,0.0,HIDE,Z_2,0.0)(true,RESTORE,X_2,#CURRENT#,RESTORE,Y_2,#CURRENT#,RESTORE,Z_2,#CURRENT#)
 QUESTION: X_2
 VALUE: 0.0
-HELP: Units in IS: m
+HELP: Units in m
 QUESTION: Y_2
 VALUE: 0.0
-HELP: Units in IS: m
+HELP: Units in m
 QUESTION: Z_2
 VALUE: 0.0
-HELP: Units in IS: m
+HELP: Units in m
 QUESTION: Third_Reference_Coordinate#CB#(true)
 VALUE: true
 HELP: 3D only: Coordinate of the third reference point on the zero pressure surface (phreatic surface)
 DEPENDENCIES: (false,HIDE,X_3,0.0,HIDE,Y_3,0.0,HIDE,Z_3,0.0)(true,RESTORE,X_3,#CURRENT#,RESTORE,Y_3,#CURRENT#,RESTORE,Z_3,#CURRENT#)
 QUESTION: X_3
 VALUE: 0.0
-HELP: Units in IS: m
+HELP: Units in m
 QUESTION: Y_3
 VALUE: 0.0
-HELP: Units in IS: m
+HELP: Units in m
 QUESTION: Z_3
 VALUE: 0.0
-HELP: Units in IS: m
+HELP: Units in m
 
 QUESTION: Fixed#CB#(true,false)
 VALUE: false
@@ -4058,7 +4202,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Imposed_Line_Load_X,Constant)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Imposed_Line_Load_X,#CURRENT#)
 QUESTION: X_Value
 VALUE: 0.0
-HELP: Units in IS: N/m.
+HELP: Units in kN/m.
 QUESTION: Imposed_Line_Load_X#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Line_Load_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Line_Load_X_Table,#CURRENT#)
@@ -4069,7 +4213,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Imposed_Line_Load_Y,Constant)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Imposed_Line_Load_Y,#CURRENT#)
 QUESTION: Y_Value
 VALUE: 0.0
-HELP: Units in IS: N/m.
+HELP: Units in kN/m.
 QUESTION: Imposed_Line_Load_Y#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Line_Load_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Line_Load_Y_Table,#CURRENT#)
@@ -4080,7 +4224,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Imposed_Line_Load_Z,Constant)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Imposed_Line_Load_Z,#CURRENT#)
 QUESTION: Z_Value
 VALUE: 0.0
-HELP: Units in IS: N/m.
+HELP: Units in kN/m.
 QUESTION: Imposed_Line_Load_Z#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Line_Load_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Line_Load_Z_Table,#CURRENT#)
@@ -4098,7 +4242,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Imposed_Surface_Load_X,Constant)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Imposed_Surface_Load_X,#CURRENT#)
 QUESTION: X_Value
 VALUE: 0.0
-HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
+HELP: Units in IS for 2D cases: kN/m. Units in IS for 3D cases: kPa.
 QUESTION: Imposed_Surface_Load_X#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Surface_Load_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Surface_Load_X_Table,#CURRENT#)
@@ -4109,7 +4253,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Imposed_Surface_Load_Y,Constant)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Imposed_Surface_Load_Y,#CURRENT#)
 QUESTION: Y_Value
 VALUE: 0.0
-HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
+HELP: Units in IS for 2D cases: kN/m. Units in IS for 3D cases: kPa.
 QUESTION: Imposed_Surface_Load_Y#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Surface_Load_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Surface_Load_Y_Table,#CURRENT#)
@@ -4120,7 +4264,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Imposed_Surface_Load_Z,Constant)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Imposed_Surface_Load_Z,#CURRENT#)
 QUESTION: Z_Value
 VALUE: 0.0
-HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
+HELP: Units in IS for 2D cases: kN/m. Units in IS for 3D cases: kPa.
 QUESTION: Imposed_Surface_Load_Z#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Surface_Load_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Surface_Load_Z_Table,#CURRENT#)
@@ -4140,15 +4284,15 @@ VALUE: Uniform
 DEPENDENCIES: (Uniform,RESTORE,Normal_Pressure_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Reference_Coordinate,#CURRENT#,HIDE,Specific_Weight,#CURRENT#)(Hydrostatic,HIDE,Normal_Pressure_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Reference_Coordinate,#CURRENT#,RESTORE,Specific_Weight,#CURRENT#)
 QUESTION: Normal_Pressure_Value
 VALUE: 0.0
-HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2. A positive value corresponds to a compressive load.
+HELP: Units in IS for 2D cases: kN/m. Units in IS for 3D cases: kPa. A positive value corresponds to a compressive load.
 QUESTION: Gravity_Direction#CB#(X,Y,Z)
 VALUE: Y
 QUESTION: Reference_Coordinate
 VALUE: 0.0
 HELP: Coordinate of the chosen direction at which the load is 0.0
 QUESTION: Specific_Weight
-VALUE: 10000.0
-HELP: Units in IS: N/m3. A positive value leads to a compressive load.
+VALUE: 9.81
+HELP: Units in kN/m3. A positive value leads to a compressive load.
 QUESTION: Imposed_Normal_Load#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Normal_Load_Table,#CURRENT#)(Table_Interpolation,RESTORE,Normal_Load_Table,#CURRENT#)
@@ -4160,7 +4304,7 @@ VALUE: false
 DEPENDENCIES: (false,HIDE,Tangential_Pressure_Value,0.0,HIDE,Imposed_Tangential_Load,Constant)(true,RESTORE,Tangential_Pressure_Value,#CURRENT#,RESTORE,Imposed_Tangential_Load,#CURRENT#)
 QUESTION: Tangential_Pressure_Value
 VALUE: 0.0
-HELP: Only for 2D cases. Units in IS: N/m.
+HELP: Only for 2D cases. Units in kN/m.
 QUESTION: Imposed_Tangential_Load#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Tangential_Load_Table,#CURRENT#)(Table_Interpolation,RESTORE,Tangential_Load_Table,#CURRENT#)
@@ -4191,7 +4335,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Imposed_Face_Load_X,Constant)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Imposed_Face_Load_X,#CURRENT#)
 QUESTION: X_Value
 VALUE: 0.0
-HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
+HELP: Units in IS for 2D cases: kN/m. Units in IS for 3D cases: kPa.
 QUESTION: Imposed_Face_Load_X#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Face_Load_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Load_X_Table,#CURRENT#)
@@ -4202,7 +4346,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Imposed_Face_Load_Y,Constant)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Imposed_Face_Load_Y,#CURRENT#)
 QUESTION: Y_Value
 VALUE: 0.0
-HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
+HELP: Units in IS for 2D cases: kN/m. Units in IS for 3D cases: kPa.
 QUESTION: Imposed_Face_Load_Y#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Face_Load_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Load_Y_Table,#CURRENT#)
@@ -4213,7 +4357,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Imposed_Face_Load_Z,Constant)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Imposed_Face_Load_Z,#CURRENT#)
 QUESTION: Z_Value
 VALUE: 0.0
-HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
+HELP: Units in IS for 2D cases: kN/m. Units in IS for 3D cases: kPa.
 QUESTION: Imposed_Face_Load_Z#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Face_Load_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Load_Z_Table,#CURRENT#)
@@ -4244,7 +4388,7 @@ VALUE: false
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Imposed_Body_Acceleration_X,Constant)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Imposed_Body_Acceleration_X,#CURRENT#)
 QUESTION: X_Value
 VALUE: 0.0
-HELP: Units in IS: m/s2
+HELP: Units in m/s2
 QUESTION: Imposed_Body_Acceleration_X#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Body_Acceleration_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Body_Acceleration_X_Table,#CURRENT#)
@@ -4255,7 +4399,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Imposed_Body_Acceleration_Y,Constant)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Imposed_Body_Acceleration_Y,#CURRENT#)
 QUESTION: Y_Value
 VALUE: -9.81
-HELP: Units in IS: m/s2
+HELP: Units in m/s2
 QUESTION: Imposed_Body_Acceleration_Y#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Body_Acceleration_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Body_Acceleration_Y_Table,#CURRENT#)
@@ -4266,7 +4410,7 @@ VALUE: false
 DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Imposed_Body_Acceleration_Z,Constant)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Imposed_Body_Acceleration_Z,#CURRENT#)
 QUESTION: Z_Value
 VALUE: 0.0
-HELP: Units in IS: m/s2
+HELP: Units in m/s2
 QUESTION: Imposed_Body_Acceleration_Z#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Body_Acceleration_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Body_Acceleration_Z_Table,#CURRENT#)
