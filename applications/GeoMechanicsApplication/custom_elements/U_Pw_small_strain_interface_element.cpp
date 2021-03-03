@@ -546,7 +546,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             GPValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, GPValues[i] );
 
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetGeometry().GetDefaultIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -577,7 +577,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         }
 
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetGeometry().GetDefaultIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -591,7 +591,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     {
         //Defining necessary variables
         const GeometryType& Geom = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetGeometry().GetDefaultIntegrationMethod() );
 
         ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, this->GetProperties(),rCurrentProcessInfo);
 
@@ -619,7 +619,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     else
     {
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
+        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetGeometry().GetDefaultIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -651,41 +651,36 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
+
+        const unsigned int nLobottoGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+        std::vector<array_1d<double,3>> GPValues(nLobottoGPoints);
+        this->CalculateOnLobattoIntegrationPoints(rVariable, GPValues, rCurrentProcessInfo);
+
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+        const unsigned int nOutputGPoints = Geom.IntegrationPointsNumber( this->GetGeometry().GetDefaultIntegrationMethod() );
+        if ( rValues.size() != nOutputGPoints )
+            rValues.resize( nOutputGPoints );
 
-        if ( rValues.size() != OutputGPoints )
-            rValues.resize( OutputGPoints );
-
-        // VG: We can simply call with rValues
-        // std::vector<array_1d<double,3>> GPValues(OutputGPoints);
-        // this->CalculateOnLobattoIntegrationPoints(rVariable, GPValues, rCurrentProcessInfo);
-        this->CalculateOnLobattoIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-
-        // VG: This function wirtes out of bound and therefore it is deactivated
-        // this->InterpolateOutputValues< array_1d<double,3> >(rValues,GPValues);
+        this->InterpolateOutputValues< array_1d<double,3> >(rValues,GPValues);
     }
     else
     {
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
-        if ( rValues.size() != OutputGPoints )
-            rValues.resize( OutputGPoints );
+        const unsigned int nOutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetGeometry().GetDefaultIntegrationMethod() );
+        if ( rValues.size() != nOutputGPoints )
+            rValues.resize( nOutputGPoints );
 
-        for (unsigned int i=0; i < OutputGPoints; i++)
+        for (unsigned int i=0; i < nOutputGPoints; i++)
         {
             noalias(rValues[i]) = ZeroVector(3);
         }
     }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateOnIntegrationPoints<double,3>()") << std::endl;
-
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
@@ -705,7 +700,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         this->CalculateOnLobattoIntegrationPoints(rVariable, GPValues, rCurrentProcessInfo);
 
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetGeometry().GetDefaultIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -717,7 +712,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     else
     {
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
+        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetGeometry().GetDefaultIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -2522,29 +2517,59 @@ void UPwSmallStrainInterfaceElement<3,8>::
 
 //----------------------------------------------------------------------------------------------------
 template void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients< BoundedMatrix<double,4,2> >
-                                                    ( BoundedMatrix<double,4,2>& rGradNpT, SFGradAuxVariables& rAuxVariables,
-                                                    const Matrix& Jacobian,const BoundedMatrix<double,2,2>& RotationMatrix,
-                                                    const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
+                                                    ( BoundedMatrix<double,4,2>& rGradNpT,
+                                                      SFGradAuxVariables& rAuxVariables,
+                                                      const Matrix& Jacobian,
+                                                      const BoundedMatrix<double,2,2>& RotationMatrix,
+                                                      const Matrix& DN_De,
+                                                      const Matrix& Ncontainer,
+                                                      const double& JointWidth,
+                                                      const unsigned int& GPoint );
 template void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients< Matrix >
-                                                    ( Matrix& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian,
-                                                    const BoundedMatrix<double,2,2>& RotationMatrix,
-                                                    const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
+                                                    ( Matrix& rGradNpT,
+                                                      SFGradAuxVariables& rAuxVariables,
+                                                      const Matrix& Jacobian,
+                                                      const BoundedMatrix<double,2,2>& RotationMatrix,
+                                                      const Matrix& DN_De,
+                                                      const Matrix& Ncontainer,
+                                                      const double& JointWidth,
+                                                      const unsigned int& GPoint );
 template void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients< BoundedMatrix<double,6,3> >
-                                                    ( BoundedMatrix<double,6,3>& rGradNpT, SFGradAuxVariables& rAuxVariables,
-                                                    const Matrix& Jacobian,const BoundedMatrix<double,3,3>& RotationMatrix,
-                                                    const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
+                                                    ( BoundedMatrix<double,6,3>& rGradNpT,
+                                                      SFGradAuxVariables& rAuxVariables,
+                                                      const Matrix& Jacobian,
+                                                      const BoundedMatrix<double,3,3>& RotationMatrix,
+                                                      const Matrix& DN_De,
+                                                      const Matrix& Ncontainer,
+                                                      const double& JointWidth,
+                                                      const unsigned int& GPoint );
 template void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients< Matrix >
-                                                    ( Matrix& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian,
-                                                    const BoundedMatrix<double,3,3>& RotationMatrix,
-                                                    const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
+                                                    ( Matrix& rGradNpT,
+                                                      SFGradAuxVariables& rAuxVariables,
+                                                      const Matrix& Jacobian,
+                                                      const BoundedMatrix<double,3,3>& RotationMatrix,
+                                                      const Matrix& DN_De,
+                                                      const Matrix& Ncontainer,
+                                                      const double& JointWidth,
+                                                      const unsigned int& GPoint );
 template void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients< BoundedMatrix<double,8,3> >
-                                                    ( BoundedMatrix<double,8,3>& rGradNpT, SFGradAuxVariables& rAuxVariables,
-                                                    const Matrix& Jacobian,const BoundedMatrix<double,3,3>& RotationMatrix,
-                                                    const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
+                                                    ( BoundedMatrix<double,8,3>& rGradNpT,
+                                                      SFGradAuxVariables& rAuxVariables,
+                                                      const Matrix& Jacobian,
+                                                      const BoundedMatrix<double,3,3>& RotationMatrix,
+                                                      const Matrix& DN_De,
+                                                      const Matrix& Ncontainer,
+                                                      const double& JointWidth,
+                                                      const unsigned int& GPoint );
 template void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients< Matrix >
-                                                    ( Matrix& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian,
-                                                    const BoundedMatrix<double,3,3>& RotationMatrix,
-                                                    const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
+                                                    ( Matrix& rGradNpT,
+                                                      SFGradAuxVariables& rAuxVariables,
+                                                      const Matrix& Jacobian,
+                                                      const BoundedMatrix<double,3,3>& RotationMatrix,
+                                                      const Matrix& DN_De,
+                                                      const Matrix& Ncontainer,
+                                                      const double& JointWidth,
+                                                      const unsigned int& GPoint );
 
 //----------------------------------------------------------------------------------------------------
 
