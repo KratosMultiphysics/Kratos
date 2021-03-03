@@ -751,6 +751,8 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressCompression(Calc
 		const double beta = (yield_compression / yield_tension) * (1.0 - alpha) - (1.0 + alpha);
 		const double smax = std::max(std::max(data.PrincipalStressVector(0), data.PrincipalStressVector(1)),0.0);
 
+		KRATOS_ERROR_IF_NOT(data.ShearCompressionReductor == 1.0) << "data.ShearCompressionReductor DOES NOT EQUAL ONE!\n";
+
 		UniaxialStressCompression = 1.0 / (1.0-alpha) * (alpha * I1 + std::sqrt(3.0 * J2) +
 															data.ShearCompressionReductor * beta * smax);
 	}
