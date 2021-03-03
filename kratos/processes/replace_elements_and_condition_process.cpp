@@ -19,6 +19,7 @@
 
 // Project includes
 #include "processes/replace_elements_and_condition_process.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 namespace {
