@@ -1,6 +1,8 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 
+import math
+
 def _DotProduct(A,B):
     return sum(i[0]*i[1] for i in zip(A, B))
 
@@ -87,8 +89,12 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             surface_normal = cond.GetGeometry().Normal()
             pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
 
-            # Computing forces
-            force_coefficient += surface_normal*pressure_coefficient
+            if math.isnan(pressure_coefficient):
+                element_id = cond.GetValue(KratosMultiphysics.PRINTED_STEP)
+                print('ELEMENT WITH NAN PRESSURE: ', element_id)
+            else:
+                # Computing forces
+                force_coefficient += surface_normal*pressure_coefficient
 
         force_coefficient /= self.reference_area
 
