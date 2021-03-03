@@ -360,11 +360,20 @@ protected:
         if (this->GetEchoLevel() > 0) {
             std::ostringstream stringbuf;
             stringbuf << "CONVERGENCE CHECK:\n";
+            int max_length_DOF = 0;
+
+            for(int i=0; i< mVariableSize; i++){
+                const auto r_var_data = mVariableDataVector[i];
+                const int length = (r_var_data->Name()).length();
+                if(length > max_length_DOF){
+                    max_length_DOF = length;
+                }
+            }
+
             for(int i = 0; i < mVariableSize; i++) {
                 const auto r_var_data = mVariableDataVector[i];
                 const int key_map = mLocalKeyMap[r_var_data->Key()];
 
-                const int max_length_DOF = 12; //Coonsidered DISPLACEMENT = 12 as a maximum length DOF
                 const int num_spaces = max_length_DOF - (r_var_data->Name()).length();
                 std::string space_str;
                 for(int i=0; i<= num_spaces; i++)
