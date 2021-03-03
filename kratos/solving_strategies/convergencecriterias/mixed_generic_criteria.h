@@ -361,7 +361,7 @@ protected:
             std::ostringstream stringbuf;
             stringbuf << "CONVERGENCE CHECK:\n";
 
-            int max_length_var_name = std::max_element(mVariableDataVector.begin(), mVariableDataVector.end(), [](const VariableData* p_var_data_1 const VariableData* p_var_data_2){
+            int max_length_var_name = std::max_element(mVariableDataVector.begin(), mVariableDataVector.end(), [](const VariableData* p_var_data_1, const VariableData* p_var_data_2){
                 return p_var_data_1->Name().length() < p_var_data_2->Name().length();
             })->Name().length();
 
