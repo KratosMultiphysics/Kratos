@@ -2,17 +2,16 @@
     "problem_data" : {
         "problem_name"    : "one_element",
         "start_time"      : 0.0,
-        "end_time"        : 3.0,
-        "nsteps"          : 3,
+        "end_time"        : 1.0,
+        "nsteps"          : 1,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP"
     },
-    "output_processes" : {},
     "solver_settings" : {
         "solver_type"                   : "Monolithic",
-        "maximum_iterations"            : 10,
+        "maximum_iterations"            : 1000,
         "domain_size"                   : 2,
-        "echo_level"                    : 0,
+        "echo_level"                    : 1,
         "consider_periodic_conditions"  : false,
         "compute_reactions"             : false,
         "reform_dofs_at_each_step"      : false,
@@ -24,16 +23,17 @@
         "volume_model_part_name"        : "Parts_Fluid",
         "skin_parts"                    : ["Inlet", "Outlet", "Boundary", "Structure"],
         "no_skin_parts"                 : [],
+        "time_scheme":"steady",
         "linear_solver_settings" : {
-            "solver_type"         : "amgcl",
+            "solver_type"         : "LinearSolversApplication.sparse_lu",
             "verbosity"           : 0
         },
         "model_import_settings" : {
             "input_type"     : "mdpa",
-            "input_filename" : "AdjointVMSSensitivity2DTest/one_element_test"
+            "input_filename" : "AdjointVMSSensitivity2DTest/two_elements_test"
         },
         "material_import_settings": {
-            "materials_filename": "AdjointVMSSensitivity2DTest/one_element_test_materials.json"
+            "materials_filename": "AdjointVMSSensitivity2DTest/two_elements_test_materials.json"
         },
         "time_stepping"                : {
             "automatic_time_step" : false,
@@ -67,9 +67,8 @@
                 "value"           : 0
             }
         },{
-            "python_module" : "apply_noslip_process",
+            "python_module" : "apply_slip_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-            "process_name"  : "ApplyNoSlipProcess",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Boundary"
             }

@@ -32,11 +32,28 @@ class AdjointFluidTest(UnitTest.TestCase):
                 AdjointFluidTest._AddJsonCheckProcess(primal_parameters, "./AdjointVMSSensitivity2DTest/cylinder_test_primal_results.json", 1e-9)
             else:
                 AdjointFluidTest._AddJsonOutputProcess(primal_parameters, "./AdjointVMSSensitivity2DTest/cylinder_test_primal_results.json")
+            AdjointFluidTest._AddHDF5PrimalOutputProcess(primal_parameters)
             SolvePrimalProblem(primal_parameters)
 
             adjoint_parameters = AdjointFluidTest._ReadParameters(
                 './AdjointVMSSensitivity2DTest/cylinder_test_adjoint_parameters.json')
-            AdjointFluidTest._AddAdjointProcesses(adjoint_parameters)
+            AdjointFluidTest._AddAdjointProcesses(adjoint_parameters, "cylinder_test_adjoint")
+            SolveAdjointProblem(adjoint_parameters)
+
+    def testSlipCylinder(self):
+        with UnitTest.WorkFolderScope('.', __file__):
+            primal_parameters = AdjointFluidTest._ReadParameters(
+                './AdjointVMSSensitivity2DTest/cylinder_slip_test_parameters.json')
+            if (not self.write_json_output):
+                AdjointFluidTest._AddJsonCheckProcess(primal_parameters, "./AdjointVMSSensitivity2DTest/cylinder_slip_test_primal_results.json", 1e-9)
+            else:
+                AdjointFluidTest._AddJsonOutputProcess(primal_parameters, "./AdjointVMSSensitivity2DTest/cylinder_slip_test_primal_results.json")
+            AdjointFluidTest._AddHDF5PrimalSlipOutputProcess(primal_parameters)
+            SolvePrimalProblem(primal_parameters)
+
+            adjoint_parameters = AdjointFluidTest._ReadParameters(
+                './AdjointVMSSensitivity2DTest/cylinder_slip_test_adjoint_parameters.json')
+            AdjointFluidTest._AddAdjointProcesses(adjoint_parameters, "cylinder_slip_test_adjoint")
             SolveAdjointProblem(adjoint_parameters)
 
     @staticmethod
@@ -96,41 +113,41 @@ class AdjointFluidTest(UnitTest.TestCase):
             process_settings)
 
     @staticmethod
-    def _AddAdjointProcesses(kratos_parameters):
+    def _AddAdjointProcesses(kratos_parameters, adjoint_prefix):
         AdjointFluidTest._AddPointOutputProcesses(
             kratos_parameters,
             [0.020957, 0.0055272, 0.0],
-            "cylinder_test_adjoint_probe1.dat",
+            adjoint_prefix + "_probe1.dat",
             ["ADJOINT_FLUID_VECTOR_1_X", "ADJOINT_FLUID_VECTOR_1_Y"])
 
         AdjointFluidTest._AddPointOutputProcesses(
             kratos_parameters,
             [0.014931,-0.0034173, 0.0],
-            "cylinder_test_adjoint_probe2.dat",
+            adjoint_prefix + "_probe2.dat",
             ["ADJOINT_FLUID_SCALAR_1"])
 
         AdjointFluidTest._AddPointOutputProcesses(
             kratos_parameters,
             [0.023303,-0.0037623, 0.0],
-            "cylinder_test_adjoint_probe3.dat",
+            adjoint_prefix + "_probe3.dat",
             ["SHAPE_SENSITIVITY_X", "SHAPE_SENSITIVITY_Y"])
 
         AdjointFluidTest._AddCompareTwoFilesCheckProcess(
             kratos_parameters,
-            './AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe1.dat',
-            './AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe1_ref.dat',
+            './AdjointVMSSensitivity2DTest/{:s}_probe1.dat'.format(adjoint_prefix),
+            './AdjointVMSSensitivity2DTest/{:s}_probe1_ref.dat'.format(adjoint_prefix),
             1e-5)
 
         AdjointFluidTest._AddCompareTwoFilesCheckProcess(
             kratos_parameters,
-            './AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe2.dat',
-            './AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe2_ref.dat',
+            './AdjointVMSSensitivity2DTest/{:s}_probe2.dat'.format(adjoint_prefix),
+            './AdjointVMSSensitivity2DTest/{:s}_probe2_ref.dat'.format(adjoint_prefix),
             1e-2)
 
         AdjointFluidTest._AddCompareTwoFilesCheckProcess(
             kratos_parameters,
-            './AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe3.dat',
-            './AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe3_ref.dat',
+            './AdjointVMSSensitivity2DTest/{:s}_probe3.dat'.format(adjoint_prefix),
+            './AdjointVMSSensitivity2DTest/{:s}_probe3_ref.dat'.format(adjoint_prefix),
             1e-10)
 
     @staticmethod
@@ -192,6 +209,71 @@ class AdjointFluidTest(UnitTest.TestCase):
         check_process["Parameters"]["tolerance"].SetDouble(tolerance)
         kratos_parameters["processes"]["auxiliar_process_list"].Append(
             check_process)
+
+    @staticmethod
+    def _AddHDF5PrimalOutputProcess(parameters):
+        process_parameters = Kratos.Parameters(R'''
+        {
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_primal_output_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {
+                    "file_access_mode" : "truncate"
+                },
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["VELOCITY", "PRESSURE", "ACCELERATION"]
+                }
+            }
+        }
+        ''')
+
+        parameters["processes"]["auxiliar_process_list"].Append(process_parameters)
+
+    @staticmethod
+    def _AddHDF5PrimalSlipOutputProcess(parameters):
+        process_parameters = Kratos.Parameters(R'''
+        {
+            "kratos_module": "KratosMultiphysics.HDF5Application",
+            "python_module": "single_mesh_primal_output_process",
+            "help": "",
+            "process_name": "",
+            "Parameters": {
+                "model_part_name": "MainModelPart",
+                "file_settings": {
+                    "file_access_mode": "truncate"
+                },
+                "nodal_solution_step_data_settings": {
+                    "list_of_variables": [
+                        "VELOCITY",
+                        "PRESSURE",
+                        "NORMAL",
+                        "BODY_FORCE",
+                        "ACCELERATION"
+                    ]
+                },
+                "nodal_data_value_settings": {
+                    "list_of_variables": [
+                        "Y_WALL"
+                    ]
+                },
+                "nodal_flag_value_settings": {
+                    "list_of_variables": [
+                        "SLIP"
+                    ]
+                },
+                "condition_flag_value_settings": {
+                    "list_of_variables": [
+                        "SLIP"
+                    ]
+                }
+            }
+        }
+        ''')
+
+        parameters["processes"]["auxiliar_process_list"].Append(process_parameters)
 
     @classmethod
     def tearDownClass(_):
