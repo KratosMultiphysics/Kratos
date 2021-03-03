@@ -411,7 +411,15 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         if not self.fluid_model_part.HasSubModelPart("wake_elements_model_part"):
             raise Exception("Fluid model part does not have a wake_elements_model_part")
-        else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_elements_model_part")
+        else:
+            self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_elements_model_part")
+
+        elements = self.wake_sub_model_part.NumberOfElements()
+        nodes = self.wake_sub_model_part.NumberOfNodes()
+
+        print('Number of wake elements = ', elements)
+        print('Number of wake nodes = ', nodes)
+        print('ratio = ', elements / nodes)
 
         CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 2)
         CPFApp.PotentialFlowUtilities.CheckIfPressureEqualityWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 2)
