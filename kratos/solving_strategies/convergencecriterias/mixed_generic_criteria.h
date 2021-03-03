@@ -361,25 +361,16 @@ protected:
             std::ostringstream stringbuf;
             stringbuf << "CONVERGENCE CHECK:\n";
 
-            std::vector<int>length_array;
-            length_array.resize(mVariableSize);
-
-            for(int i=0; i< mVariableSize; i++){
-                const auto r_var_data = mVariableDataVector[i];
-                length_array[i] = (r_var_data->Name()).length();
-            }
-            auto max_length_DOF = length_array[std::distance(length_array.begin(), std::max_element(length_array.begin(), length_array.end()))];
+            int max_length_var_name = std::max_element(mVariableDataVector.begin(), mVariableDataVector.end(), [](const VariableData* p_var_data_1 const VariableData* p_var_data_2){
+                return p_var_data_1->Name().length() < p_var_data_2->Name().length();
+            })->Name().length();
 
             for(int i = 0; i < mVariableSize; i++) {
                 const auto r_var_data = mVariableDataVector[i];
                 const int key_map = mLocalKeyMap[r_var_data->Key()];
 
-                const int num_spaces = max_length_DOF - (r_var_data->Name()).length();
-                std::string space_str;
-                for(int i=0; i<= num_spaces; i++)
-                {
-                    space_str += " ";
-                }
+                const int num_spaces = max_length_var_name - r_var_data->Name().length();
+                std::string space_str = " " * num_spaces;
 
                 stringbuf << " " << r_var_data->Name() << space_str <<" : ratio = " << var_ratio[key_map] << "; exp.ratio = " << mRatioToleranceVector[key_map] << " abs = " << var_abs[key_map] << " exp.abs = " << mAbsToleranceVector[key_map] << "\n";
             }
