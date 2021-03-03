@@ -18,7 +18,7 @@ namespace Kratos {
         return type_of_law;
     }
 
-    void DEMContinuumConstitutiveLaw::Initialize(SphericContinuumParticle* owner_sphere) {
+    void DEMContinuumConstitutiveLaw::Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
     }
 
     void DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {

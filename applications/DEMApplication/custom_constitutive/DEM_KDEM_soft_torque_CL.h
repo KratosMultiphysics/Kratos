@@ -5,7 +5,6 @@
 /* Project includes */
 #include "DEM_KDEM_CL.h"
 
-
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM_soft_torque : public DEM_KDEM {

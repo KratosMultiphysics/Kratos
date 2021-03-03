@@ -6,7 +6,7 @@ namespace Kratos {
 
     DEMBeamConstitutiveLaw::DEMBeamConstitutiveLaw() {} // Class DEMBeamConstitutiveLaw
 
-    void DEMBeamConstitutiveLaw::Initialize(SphericContinuumParticle* owner_sphere) {}
+    void DEMBeamConstitutiveLaw::Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2) {}
 
     void DEMBeamConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEMBeamConstitutiveLaw to Properties " << pProp->Id() << std::endl;

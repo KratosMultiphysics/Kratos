@@ -28,7 +28,7 @@ namespace Kratos {
         double mHistoryShearFlag;
 
 
-        virtual void Initialize(SphericContinuumParticle* owner_sphere) override;
+        virtual void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 

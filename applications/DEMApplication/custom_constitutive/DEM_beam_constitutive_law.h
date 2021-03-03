@@ -29,7 +29,7 @@ namespace Kratos {
 
         DEMBeamConstitutiveLaw();
 
-        virtual void Initialize(SphericContinuumParticle* owner_sphere);
+        virtual void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2);
 
         virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true);
 
