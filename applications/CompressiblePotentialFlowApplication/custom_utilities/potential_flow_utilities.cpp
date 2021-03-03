@@ -179,10 +179,10 @@ double ComputeClampedVelocitySquared(
     // check if local velocity should be changed
     if (local_velocity_squared > max_velocity_squared)
     {
-        KRATOS_WARNING("Clamped local velocity") <<
-        "SQUARE OF LOCAL VELOCITY ABOVE ALLOWED SQUARE OF VELOCITY"
-        << " local_velocity_squared  = " << local_velocity_squared
-        << " max_velocity_squared  = " << max_velocity_squared << std::endl;
+        // KRATOS_WARNING("Clamped local velocity") <<
+        // "SQUARE OF LOCAL VELOCITY ABOVE ALLOWED SQUARE OF VELOCITY"
+        // << " local_velocity_squared  = " << local_velocity_squared
+        // << " max_velocity_squared  = " << max_velocity_squared << std::endl;
 
         local_velocity_squared = max_velocity_squared;
     }
@@ -338,15 +338,12 @@ double ComputePerturbationCompressiblePressureCoefficient(const Element& rElemen
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
 
     // Computing local velocity
-    array_1d<double, Dim> velocity = ComputeVelocity<Dim,NumNodes>(rElement);
-    for (unsigned int i = 0; i < Dim; i++){
-        velocity[i] += free_stream_velocity[i];
-    }
+    const array_1d<double, Dim> velocity = ComputePerturbedVelocity<Dim,NumNodes>(rElement, rCurrentProcessInfo);
 
     // Computing squares
     const double v_inf_2 = inner_prod(free_stream_velocity, free_stream_velocity);
     const double M_inf_2 = M_inf * M_inf;
-    double v_2 = inner_prod(velocity, velocity);
+    double v_2 = ComputeClampedVelocitySquared<Dim, NumNodes>(velocity, rCurrentProcessInfo);
 
     KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
         << "Error on element -> " << rElement.Id() << "\n"
