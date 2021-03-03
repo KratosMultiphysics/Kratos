@@ -486,6 +486,25 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX)) +
         data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
 
+    array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
+
+    for (unsigned int i = 0; i < Dim; i++){
+        lower_velocity[i] += free_stream_velocity[i];
+    }
+    const double local_mach_number_squared_lower = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(lower_velocity, rCurrentProcessInfo);
+
+    const double density_lower = PotentialFlowUtilities::ComputeDensity<Dim, NumNodes>(local_mach_number_squared_lower, rCurrentProcessInfo);
+    const double DrhoDu2_lower = ComputeDensityDerivative(density_lower, rCurrentProcessInfo);
+
+    const BoundedVector<double, NumNodes> DNV_lower = prod(data.DN_DX, lower_velocity);
+
+    const BoundedMatrix<double, NumNodes, NumNodes> lhs_total_lower =
+        data.vol * density_lower * prod(data.DN_DX, trans(data.DN_DX)) +
+        data.vol * 2 * DrhoDu2_lower * outer_prod(DNV_lower, trans(DNV_lower));
+
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    const BoundedMatrix<double, NumNodes, NumNodes> lhs_wake_condition = data.vol * free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
+
     if (this->Is(STRUCTURE)){
         Matrix lhs_positive = ZeroMatrix(NumNodes, NumNodes);
         Matrix lhs_negative = ZeroMatrix(NumNodes, NumNodes);
@@ -495,7 +514,27 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
                                             lhs_negative, lhs_total, data);
     }
     else{
-        AssignLeftHandSideWakeElement(rLeftHandSideMatrix, lhs_total, data);
+        for (unsigned int row = 0; row < NumNodes; ++row){
+            // Applying wake condition on the AUXILIARY_VELOCITY_POTENTIAL dofs
+            if (data.distances[row] < 0.0){
+                for (unsigned int column = 0; column < NumNodes; ++column){
+                    // Conservation of mass
+                    rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total_lower(row, column);
+                    // Wake condition
+                    rLeftHandSideMatrix(row, column) = lhs_wake_condition(row, column); // Diagonal
+                    rLeftHandSideMatrix(row, column + NumNodes) = -lhs_wake_condition(row, column); // Off diagonal
+                }
+            }
+            else{ // else if (data.distances[row] > 0.0)
+                for (unsigned int column = 0; column < NumNodes; ++column){
+                    // Conservation of mass
+                    rLeftHandSideMatrix(row, column) = lhs_total(row, column);
+                    // Wake condition
+                    rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_wake_condition(row, column); // Diagonal
+                    rLeftHandSideMatrix(row + NumNodes, column) = -lhs_wake_condition(row, column); // Off diagonal
+                }
+            }
+        }
     }
 }
 
@@ -525,11 +564,16 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
         upper_velocity[i] += free_stream_velocity[i];
         lower_velocity[i] += free_stream_velocity[i];
     }
+    const double local_mach_number_squared_lower = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(lower_velocity, rCurrentProcessInfo);
+
+    const double density_lower = PotentialFlowUtilities::ComputeDensity<Dim, NumNodes>(local_mach_number_squared_lower, rCurrentProcessInfo);
     const array_1d<double, Dim> diff_velocity = upper_velocity - lower_velocity;
 
     const BoundedVector<double, NumNodes> upper_rhs = - data.vol * density * prod(data.DN_DX, upper_velocity);
-    const BoundedVector<double, NumNodes> lower_rhs = - data.vol * density * prod(data.DN_DX, lower_velocity);
-    const BoundedVector<double, NumNodes> wake_rhs = - data.vol * density * prod(data.DN_DX, diff_velocity);
+    const BoundedVector<double, NumNodes> lower_rhs = - data.vol * density_lower * prod(data.DN_DX, lower_velocity);
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    const BoundedVector<double, NumNodes> wake_rhs = - data.vol * free_stream_density * prod(data.DN_DX, diff_velocity);
+    // const BoundedVector<double, NumNodes> wake_rhs_lower = data.vol * density_lower * prod(data.DN_DX, diff_velocity);
 
     if (this->Is(STRUCTURE)){
         double upper_vol = 0.0;
@@ -547,8 +591,15 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
         }
     }
     else{
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            AssignRightHandSideWakeNode(rRightHandSideVector, upper_rhs, lower_rhs, wake_rhs, data, i);
+        for (unsigned int rRow = 0; rRow < NumNodes; ++rRow){
+            if (data.distances[rRow] > 0.0){
+                rRightHandSideVector[rRow] = upper_rhs(rRow);
+                rRightHandSideVector[rRow + NumNodes] = -wake_rhs(rRow);
+            }
+            else{
+                rRightHandSideVector[rRow] = wake_rhs(rRow);
+                rRightHandSideVector[rRow + NumNodes] = lower_rhs(rRow);
+            }
         }
     }
 }
