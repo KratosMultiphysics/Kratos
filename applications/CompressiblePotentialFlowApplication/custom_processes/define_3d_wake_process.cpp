@@ -207,6 +207,7 @@ void Define3DWakeProcess::MarkWakeElements()
     KRATOS_INFO("MarkWakeElements") << "...Selecting wake elements..." << std::endl;
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     std::vector<std::size_t> wake_elements_ordered_ids;
+    std::vector<std::size_t> wake_nodes_ordered_ids;
 
     CalculateDistanceToSkinProcess<3> distance_calculator(root_model_part, mrStlWakeModelPart);
     distance_calculator.Execute();
@@ -242,12 +243,19 @@ void Define3DWakeProcess::MarkWakeElements()
                 r_geometry[j].SetLock();
                 r_geometry[j].SetValue(WAKE_DISTANCE, wake_elemental_distances[j]);
                 r_geometry[j].UnSetLock();
+                #pragma omp critical
+                {
+                    wake_nodes_ordered_ids.push_back(r_geometry[j].Id());
+                }
             }
             it_elem->SetValue(WAKE_ELEMENTAL_DISTANCES, wake_elemental_distances);
         }
     }
     // Add the trailing edge elements to the trailing_edge_sub_model_part
     AddTrailingEdgeAndWakeElements(wake_elements_ordered_ids);
+    std::sort(wake_nodes_ordered_ids.begin(),
+              wake_nodes_ordered_ids.end());
+    root_model_part.GetSubModelPart("wake_elements_model_part").AddNodes(wake_nodes_ordered_ids);
     KRATOS_INFO("MarkWakeElements") << "...Selecting wake elements finished..." << std::endl;
     KRATOS_CATCH("");
 }
