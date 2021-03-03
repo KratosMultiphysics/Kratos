@@ -61,7 +61,7 @@ double VanGenuchtenLaw::
         const double &gn     = rMaterialProperties[VAN_GENUCHTEN_GN];
         const double gc      = (1.0 - gn) / gn;
 
-        double sat = satMin + (satMax - satMin) * (1.0 + pow(pow(p/pb, gn), gc));
+        double sat = satMin + (satMax - satMin) * pow(1.0 + pow(p/pb, gn), gc);
         return sat;
     }
     else
