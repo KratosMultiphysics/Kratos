@@ -27,6 +27,7 @@
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
+#include "custom_modelers/nurbs_geometry_modeler.h"
 
 namespace Kratos {
 
@@ -109,6 +110,7 @@ private:
 
     // Modelers
     const IgaModeler mIgaModeler;
+    const NurbsGeometryModeler mNurbsGeometryModeler;
 
     ///@}
     ///@name Private methods
