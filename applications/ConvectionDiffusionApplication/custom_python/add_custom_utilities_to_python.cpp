@@ -93,13 +93,19 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("ClearSystem",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ClearSystem)
     ;
 
-    py::class_<BFECCConvection<2> > (m,"BFECCConvection2D").def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
+    py::class_<BFECCConvection<2> > (m,"BFECCConvection2D")
+    .def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
+    .def(py::init< BinBasedFastPointLocator < 2 >::Pointer, const bool >())
+    .def(py::init< BinBasedFastPointLocator < 2 >::Pointer, const bool, const bool >())
     .def("BFECCconvect", &BFECCConvection<2>::BFECCconvect)
     .def("ResetBoundaryConditions", &BFECCConvection<2>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<2>::CopyScalarVarToPreviousTimeStep)
     ;
 
-    py::class_<BFECCConvection<3> > (m,"BFECCConvection3D").def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
+    py::class_<BFECCConvection<3> > (m,"BFECCConvection3D")
+    .def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
+    .def(py::init< BinBasedFastPointLocator < 3 >::Pointer, const bool >())
+    .def(py::init< BinBasedFastPointLocator < 3 >::Pointer, const bool, const bool >())
     .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect)
     .def("ResetBoundaryConditions", &BFECCConvection<3>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<3>::CopyScalarVarToPreviousTimeStep)

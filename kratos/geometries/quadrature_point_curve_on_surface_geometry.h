@@ -20,8 +20,8 @@
 // External includes
 
 // Project includes
+#include "includes/variables.h"
 #include "geometries/quadrature_point_geometry.h"
-
 
 namespace Kratos
 {
@@ -129,6 +129,46 @@ public:
     }
 
     ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Assign with array_1d<double, 3>
+    void Assign(
+        const Variable<array_1d<double, 3>>& rVariable,
+        const array_1d<double, 3>& rInput) override
+    {
+        if (rVariable == LOCAL_TANGENT)
+        {
+            mLocalTangentsU = rInput[0];
+            mLocalTangentsV = rInput[1];
+        }
+    }
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == LOCAL_TANGENT)
+        {
+            rOutput[0] = mLocalTangentsU;
+            rOutput[1] = mLocalTangentsV;
+            rOutput[2] = 0.0;
+        }
+    }
+
+    /// Calculate with Vector
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput) const override
+    {
+        if (rVariable == DETERMINANTS_OF_JACOBIAN_PARENT)
+        {
+            DeterminantOfJacobianParent(rOutput);
+        }
+    }
+
+    ///@}
     ///@name Normal
     ///@{
 
@@ -195,6 +235,26 @@ public:
             rResult.resize(1, false);
 
         rResult[0] = this->DeterminantOfJacobian(0, ThisMethod);
+
+        return rResult;
+    }
+
+    /* @brief returns the respective segment length of this
+     *        quadrature point, computed on the parent of this geometry.
+     *        Required for reduced quadrature point geometries (Not all
+     *        nodes are part of this geometry - used for mapping).
+     * @param rResult vector of results of this quadrature point.
+     */
+    Vector& DeterminantOfJacobianParent(
+        Vector& rResult) const
+    {
+        if (rResult.size() != 1)
+            rResult.resize(1, false);
+
+        Matrix J;
+        this->GetGeometryParent(0).Jacobian(J, this->IntegrationPoints()[0]);
+
+        rResult[0] = norm_2(column(J, 0) * mLocalTangentsU + column(J, 1) * mLocalTangentsV);
 
         return rResult;
     }
