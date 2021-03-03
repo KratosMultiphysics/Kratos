@@ -204,11 +204,6 @@ public:
     ///@}
 protected:
 
-    double ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputeDensityDerivative(const double density,
-                                    const ProcessInfo& rCurrentProcessInfo) const;
-
 private:
     ///@name Private Operators
     ///@{
@@ -239,20 +234,20 @@ private:
     void CalculateRightHandSideWakeElement(VectorType& rRightHandSideVector,
                                          const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLeftHandSideSubdividedElement(Matrix& lhs_positive,
-                                               Matrix& lhs_negative,
+    void CalculateLeftHandSideSubdividedElement(BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
+                                               BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
                                                const ProcessInfo& rCurrentProcessInfo);
     void CalculateVolumesSubdividedElement(double& rUpper_vol,
                                            double& rLower_vol,
                                            const ProcessInfo& rCurrentProcessInfo);
 
     void ComputeLHSGaussPointContribution(const double weight,
-                                          Matrix& lhs,
+                                          BoundedMatrix<double, NumNodes, NumNodes>& lhs,
                                           const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLeftHandSideSubdividedElement(Matrix& rLeftHandSideMatrix,
-                                             Matrix& lhs_positive,
-                                             Matrix& lhs_negative,
+                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
+                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
                                              const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
                                              const ElementalData<NumNodes, Dim>& data) const;
 
