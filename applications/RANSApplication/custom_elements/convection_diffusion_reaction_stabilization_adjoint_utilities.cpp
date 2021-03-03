@@ -68,7 +68,7 @@ double AdjointUtilities<TDim, TNumNodes>::CalculateStabilizationTauDerivative(
 {
     double value = 0.0;
 
-    value += 4.0 * EffectiveVelocityMagnitude * EffectiveVelocityMagnitudeDerivative *  std::pow(ElementLength, 2);
+    value += 4.0 * EffectiveVelocityMagnitude * EffectiveVelocityMagnitudeDerivative /  std::pow(ElementLength, 2);
     value -= 4.0 * std::pow(EffectiveVelocityMagnitude, 2) * ElementLengthDerivative / std::pow(ElementLength, 3);
 
     value += 144.0 * EffectiveKinematicViscosity * EffectiveKinematicViscosityDerivative / std::pow(ElementLength, 4);
