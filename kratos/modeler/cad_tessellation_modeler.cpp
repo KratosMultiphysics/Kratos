@@ -124,9 +124,7 @@ void CadTessellationModeler::SetupModelPart()
 ///@name Private Operations
 ///@{
 
-std::vector<array_1d<double, 2>> CadTessellationModeler::ComputeBoundaryTessellation(
-    const BrepCurveOnSurfaceType& rBoundarySegment
-)
+std::vector<array_1d<double, 2>> CadTessellationModeler::ComputeBoundaryTessellation(const BrepCurveOnSurfaceType& rBoundarySegment)
 {
     KRATOS_ERROR_IF_NOT(mParameters.Has("absolute_chordal_error"))
         << "Missing \"absolute_chordal_error\" in CadTessellationModeler Parameters" << std::endl;
@@ -157,8 +155,7 @@ std::vector<array_1d<double, 2>> CadTessellationModeler::ComputeBoundaryTessella
 
 std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTriangulation(
     const BrepSurfaceType& rSurfaceGeometry,
-    const std::vector<array_1d<double, 2>>& rBoundaryLoop
-)
+    const std::vector<array_1d<double, 2>>& rBoundaryLoop)
 {
     KRATOS_ERROR_IF_NOT(mParameters.Has("absolute_triangulation_error"))
         << "Missing \"absolute_triangulation_error\" in CadTessellationModeler Parameters" << std::endl;
@@ -179,65 +176,6 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTri
         boundary_points_coords[2 * iPoint + 1] = r_coords[1];
     });
 
-    // // initiliazing the i/o containers
-    // struct triangulateio in_data;
-    // struct triangulateio out_data;
-    // struct triangulateio vor_out_data;
-
-    // InitTriangulationDataStructure(in_data);
-
-    // Initialize the pointlist (1d list) with the number of points and the coordinates
-    // of the points (outer and inner polygons)
-    // in_data.numberofpoints = rBoundaryLoop.size();
-    // in_data.pointlist = (REAL*) malloc(in_data.numberofpoints * 2 * sizeof(REAL));
-    // in_data.pointmarkerlist = (int*) malloc(in_data.numberofpoints * sizeof(int));
-
-    // IndexType point_id = 0;
-    // IndexType point_marker_id = 0;
-    // IndexType point_marker = 0;
-
-    // for (IndexType node_i = 0; node_i < rBoundaryLoop.size(); ++node_i)
-    // {
-    //     for (IndexType coords_i = 0; coords_i < 2; ++coords_i)
-    //     {
-    //         in_data.pointlist[point_id++] = rBoundaryLoop[node_i][coords_i];
-    //     }
-    //     in_data.pointmarkerlist[point_marker_id++] = point_marker;
-    // }
-
-    //NOTE:@RUBEN POINT MARKER LIST IS DEFAULTED TO ZERO BY THE LIBRARY
-
-
-    // // THIS IS WHAT WE LACK IN THE DELAUNATOR UTILS....
-    // // Initilize the segment list with the number of boundary edges and the start and end node id
-    // // For closed polygons the number of segments is equal to the number of points
-    // in_data.numberofsegments = rBoundaryLoop.size();
-    // in_data.segmentlist = (int*) malloc(in_data.numberofsegments * 2 * sizeof(int));
-    // in_data.segmentmarkerlist = (int*) malloc(in_data.numberofsegments * sizeof(int));
-    // IndexType node_id = 0;
-    // IndexType seg_marker = 0;
-    // IndexType start_node_id = 0;
-    // IndexType end_node_id = rBoundaryLoop.size();
-
-    // for (IndexType seg_i = start_node_id * 2 ; seg_i < end_node_id * 2; ++seg_i)
-    // {
-
-    //     in_data.segmentlist[seg_i] = node_id;
-
-    //     if (node_id == end_node_id)
-    //     {
-    //         in_data.segmentlist[seg_i] = start_node_id;
-    //     }
-
-
-    //     if (seg_i % 2 == 0)
-    //     {
-    //         in_data.segmentmarkerlist[seg_i/2] = seg_marker; //@Ruben: This is set to zero by default by the triangle. Not needed.
-    //         node_id++;
-    //     }
-    // }
-
-
     // Initilize the segment list with the number of boundary edges and the start and end node id
     // For closed polygons the number of segments is equal to the number of points
     const IndexType n_segments = rBoundaryLoop.size();
@@ -251,15 +189,6 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTri
     std::pair<std::vector<IndexType>, std::vector<double>> delaunator_output;
     for (IndexType i = 1; i < max_iteration + 1; ++i)
     {
-        // InitTriangulationDataStructure(out_data);
-        // InitTriangulationDataStructure(vor_out_data);
-
-        //TODO: WE SHOULD BE CAPABLE OF CUSTOMIZING THESE SETTINGS --> Parse with local Kratos flags
-        // std::string str = "Qqpza" + std::to_string(aux_area);
-        // char *meshing_options = new char[str.length() + 1];
-        // strcpy(meshing_options, str.c_str());
-        // triangulate(meshing_options, &in_data, &out_data, &vor_out_data);
-
         // Call the triangle within the DelaunatorUtilities to calculate the current patch tessellation
         delaunator_output = DelaunatorUtilities::ComputeTrianglesConnectivity(
             boundary_points_coords,
@@ -268,17 +197,6 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTri
 
         const auto& r_output_connectivites = std::get<0>(delaunator_output);
         const auto& r_output_coordinates_list = std::get<1>(delaunator_output);
-
-        // auto gauss_points_exact_xyz = this->InsertGaussPointsExactSurface(
-        //     rSurfaceGeometry,
-        //     out_data);
-
-        // auto gauss_points_approx_xyz = this->InsertGaussPointsApproxSurface(
-        //     rSurfaceGeometry,
-        //     out_data);
-
-        // auto max_error = *std::max_element(
-        //     std::begin(discretization_error), std::end(discretization_error));
 
         auto gauss_points_exact_xyz = this->InsertGaussPointsExactSurface(
             rSurfaceGeometry,
@@ -297,32 +215,6 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTri
         KRATOS_INFO_IF("CadTessellationModeler", mEchoLevel >= 1) << "Iteration " << i << std::endl;
         KRATOS_INFO_IF("CadTessellationModeler", mEchoLevel >= 1) << "Area: " << aux_area << " - error: " << it_error << " - tolerance: " << absolute_triangulation_error << std::endl;
 
-        // triangulation_uv.resize(out_data.numberoftriangles, ZeroMatrix(3, 2));
-        // IndexType tri_id = 0;
-        // for (IndexType i = 0; i < out_data.numberoftriangles; ++i)
-        // {
-        //     for (IndexType j = 0; j < 3; ++j)
-        //     {
-        //         triangulation_uv[i](j,0) = out_data.pointlist[out_data.trianglelist[tri_id + j] * 2];
-        //         triangulation_uv[i](j,1) = out_data.pointlist[out_data.trianglelist[tri_id + j] * 2 + 1];
-        //     }
-        //     tri_id += 3;
-        // }
-
-        // // Triangle copies the pointer for the holelist from the in_data to the out_data
-        // // In order to avoid the freeing of memory twice, which leads to an error the points will
-        // // be deleted from the out_data and in_data cleans the memory fully.
-        // out_data.holelist = nullptr;
-
-        // CleanTriangulationDataStructure(out_data);
-        // CleanTriangulationDataStructure(vor_out_data);
-
-        // // Check if triangulation error is reached and break out of the loop
-        // if (triangulation_error > max_error)
-        // {
-        //     break;
-        // }
-
         // Check if triangulation error is reached and break out of the loop
         if (absolute_triangulation_error > it_error) {
             break;
@@ -331,8 +223,6 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTri
         // If error is above a certain value -> remesh again with the area halved
         aux_area /= 2;
     }
-
-    // CleanTriangulationDataStructure(in_data);
 
     const auto& r_output_connectivites = std::get<0>(delaunator_output);
     const auto& r_output_coordinates_list = std::get<1>(delaunator_output);
@@ -358,32 +248,32 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::InsertGaussPoints
 {
     const auto gp_canonical_tri = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3>>::GenerateIntegrationPoints();
 
-    array_1d<double,3> result = ZeroVector(3);
-    array_1d<double,3> local_coordinate = ZeroVector(3);
-
-    //TODO: THIS CAN BE PARALLEL
     const IndexType n_triangles = rTriangleConnectivities.size() % 3 == 0 ? rTriangleConnectivities.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
     std::vector<BoundedMatrix<double,3,3>> gp_xyz(n_triangles);
-    for (IndexType i_triangle = 0; i_triangle < n_triangles; ++i_triangle) {
-        IndexType aux = 3 * i_triangle;
+    typedef std::pair<array_1d<double,3>, array_1d<double,3>> TLSType;
+    IndexPartition<IndexType>(n_triangles).for_each(TLSType(), [&](IndexType iTriangle, TLSType& rTLSContainer){
+        auto& r_point_xyz = std::get<0>(rTLSContainer);
+        auto& r_local_coordinate = std::get<1>(rTLSContainer);
+        r_local_coordinate[2] = 0.0; // Note that we work in the 2D plane only
+        IndexType aux = 3 * iTriangle;
+        auto& r_gp_xyz_iTriangle = gp_xyz[iTriangle];
         for (IndexType gp_i = 0; gp_i < 3; ++gp_i) {
+            // Calculate current Gauss point local coordinates
             const auto aux_gp = gp_canonical_tri[gp_i];
-            local_coordinate[0] = rPointsCoordinates[rTriangleConnectivities[aux + 0] * 2] * (1 - aux_gp[0] - aux_gp[1]) +
+            r_local_coordinate[0] = rPointsCoordinates[rTriangleConnectivities[aux + 0] * 2] * (1 - aux_gp[0] - aux_gp[1]) +
                                   rPointsCoordinates[rTriangleConnectivities[aux + 1] * 2] * aux_gp[0] +
                                   rPointsCoordinates[rTriangleConnectivities[aux + 2] * 2] * aux_gp[1];
-
-            local_coordinate[1] = rPointsCoordinates[rTriangleConnectivities[aux + 0] * 2 + 1] * (1 - aux_gp[0] - aux_gp[1]) +
+            r_local_coordinate[1] = rPointsCoordinates[rTriangleConnectivities[aux + 0] * 2 + 1] * (1 - aux_gp[0] - aux_gp[1]) +
                                   rPointsCoordinates[rTriangleConnectivities[aux + 1] * 2 + 1] * aux_gp[0] +
                                   rPointsCoordinates[rTriangleConnectivities[aux + 2] * 2 + 1] * aux_gp[1];
 
-
-            auto point_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate);
-
-            gp_xyz[i_triangle](gp_i, 0) = point_xyz[0];
-            gp_xyz[i_triangle](gp_i, 1) = point_xyz[1];
-            gp_xyz[i_triangle](gp_i, 2) = point_xyz[2];
+            // Calculate current Gauss point global coordinates on exact surface
+            rSurfaceGeometry.GlobalCoordinates(r_point_xyz, r_local_coordinate);
+            r_gp_xyz_iTriangle(gp_i, 0) = r_point_xyz[0];
+            r_gp_xyz_iTriangle(gp_i, 1) = r_point_xyz[1];
+            r_gp_xyz_iTriangle(gp_i, 2) = r_point_xyz[2];
         }
-    }
+    });
 
     return gp_xyz;
 }
@@ -395,116 +285,44 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::InsertGaussPoints
 {
     const auto gp_canonical_tri = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3>>::GenerateIntegrationPoints();
 
-    array_1d<double, 3> result = ZeroVector(3);
-    array_1d<double, 3> local_coordinate = ZeroVector(3);
-
-    //TODO: THIS CAN BE PARALLEL
     const IndexType n_triangles = rTriangleConnectivities.size() % 3 == 0 ? rTriangleConnectivities.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
-    std::vector<BoundedMatrix<double,3,3>> gp_xyz(n_triangles);
-    for (IndexType i_triangle = 0; i_triangle < n_triangles; ++i_triangle) {
-        IndexType aux = 3 * i_triangle;
+    std::vector<BoundedMatrix<double,3,3>> gp_xyz(n_triangles);    
+    typedef std::tuple<array_1d<double,3>, array_1d<double,3>, array_1d<double,3>, array_1d<double,3>> TLSType;
+    IndexPartition<IndexType>(n_triangles).for_each(TLSType(), [&](IndexType iTriangle, TLSType& rTLSContainer){
+        IndexType aux = 3 * iTriangle;
+        auto& r_point_0 = std::get<0>(rTLSContainer);
+        auto& r_point_1 = std::get<1>(rTLSContainer);
+        auto& r_point_2 = std::get<2>(rTLSContainer);
+        auto& r_local_coordinate = std::get<3>(rTLSContainer);
+        r_local_coordinate[2] = 0.0; // Note that we work in the 2D plane only
+
+        // Calculate triangle point 0 global coordinates over the BREP surface
+        r_local_coordinate[0] = rPointsCoordinates[rTriangleConnectivities[aux + 0] * 2];
+        r_local_coordinate[1] = rPointsCoordinates[rTriangleConnectivities[aux + 0] * 2 + 1];
+        rSurfaceGeometry.GlobalCoordinates(r_point_0, r_local_coordinate);
+
+        // Calculate triangle point 1 global coordinates over the BREP surface
+        r_local_coordinate[0] = rPointsCoordinates[rTriangleConnectivities[aux + 1] * 2];
+        r_local_coordinate[1] = rPointsCoordinates[rTriangleConnectivities[aux + 1] * 2 + 1];
+        rSurfaceGeometry.GlobalCoordinates(r_point_1, r_local_coordinate);
+
+        // Calculate triangle point 2 global coordinates over the BREP surface
+        r_local_coordinate[0] = rPointsCoordinates[rTriangleConnectivities[aux + 2] * 2];
+        r_local_coordinate[1] = rPointsCoordinates[rTriangleConnectivities[aux + 2] * 2 + 1];
+        rSurfaceGeometry.GlobalCoordinates(r_point_2, r_local_coordinate);
+
+        // Save the approximate surface Gauss points coordinates
+        auto& r_gp_xyz_iTriangle = gp_xyz[iTriangle];
         for (IndexType gp_i = 0; gp_i < 3; ++gp_i) {
-            local_coordinate[0] = rPointsCoordinates[rTriangleConnectivities[aux + 0] * 2];
-            local_coordinate[1] = rPointsCoordinates[rTriangleConnectivities[aux + 0] * 2 + 1];
-            auto point_0 = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate);
-
-            local_coordinate[0] = rPointsCoordinates[rTriangleConnectivities[aux + 1] * 2];
-            local_coordinate[1] = rPointsCoordinates[rTriangleConnectivities[aux + 1] * 2 + 1];
-            auto point_1 = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate);
-
-            local_coordinate[0] = rPointsCoordinates[rTriangleConnectivities[aux + 2] * 2];
-            local_coordinate[1] = rPointsCoordinates[rTriangleConnectivities[aux + 2] * 2 + 1];
-            auto point_2 = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate);
-
             const auto aux_gp = gp_canonical_tri[gp_i];
             for (IndexType j = 0; j < 3; ++j) {
-                gp_xyz[i_triangle](gp_i, j) = point_0[j] * (1 - aux_gp[0] - aux_gp[1]) + point_1[j] * aux_gp[0] + point_2[j] * aux_gp[1];
+                r_gp_xyz_iTriangle(gp_i, j) = r_point_0[j] * (1 - aux_gp[0] - aux_gp[1]) + r_point_1[j] * aux_gp[0] + r_point_2[j] * aux_gp[1];
             }
         }
-    }
+    });
 
     return gp_xyz;
 }
-
-// std::vector<Matrix> CadTessellationModeler::InsertGaussPointsExactSurface(
-//     const BrepSurface<Kratos::Element::NodesArrayType, Kratos::PointerVector<Kratos::Point>>& rSurfaceGeometry,
-//     const struct triangulateio& rTriangleOutput
-// )
-// {
-//     const auto gp_canonical_tri =
-//         Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-
-//     array_1d<double,3> result = ZeroVector(3);
-//     array_1d<double,3> local_coordinate = ZeroVector(3);
-
-//     std::vector<Matrix> gp_xyz;
-//     gp_xyz.resize(rTriangleOutput.numberoftriangles, ZeroMatrix(3, 3));
-
-//     IndexType tri_id = 0;
-//     for (IndexType i = 0; i < rTriangleOutput.numberoftriangles; ++i)
-//     {
-//         for (IndexType gp_i = 0; gp_i < 3; ++gp_i)
-//         {
-//             local_coordinate[0] = rTriangleOutput.pointlist[rTriangleOutput.trianglelist[tri_id + 0] * 2] * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
-//                                   rTriangleOutput.pointlist[rTriangleOutput.trianglelist[tri_id + 1] * 2] * gp_canonical_tri[gp_i][0] +
-//                                   rTriangleOutput.pointlist[rTriangleOutput.trianglelist[tri_id + 2] * 2] * gp_canonical_tri[gp_i][1];
-
-//             local_coordinate[1] = rTriangleOutput.pointlist[rTriangleOutput.trianglelist[tri_id + 0] * 2 + 1] * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
-//                                   rTriangleOutput.pointlist[rTriangleOutput.trianglelist[tri_id + 1] * 2 + 1] * gp_canonical_tri[gp_i][0] +
-//                                   rTriangleOutput.pointlist[rTriangleOutput.trianglelist[tri_id + 2] * 2 + 1] * gp_canonical_tri[gp_i][1];
-
-//             auto point_xyz = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate);
-
-//             gp_xyz[i](gp_i, 0) = point_xyz[0];
-//             gp_xyz[i](gp_i, 1) = point_xyz[1];
-//             gp_xyz[i](gp_i, 2) = point_xyz[2];
-
-//         }
-//         tri_id += 3;
-//     }
-//     return gp_xyz;
-// }
-
-// std::vector<Matrix> CadTessellationModeler::InsertGaussPointsApproxSurface(
-//     const BrepSurfaceType& rSurfaceGeometry,
-//     const struct triangulateio& rTriangleOutput
-// )
-// {
-//     const auto gp_canonical_tri =
-//         Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-
-//     array_1d<double, 3> result = ZeroVector(3);
-//     array_1d<double, 3> local_coordinate = ZeroVector(3);
-//     std::vector<Matrix> gp_xyz;
-//     gp_xyz.resize(rTriangleOutput.numberoftriangles, ZeroMatrix(3, 3));
-
-//     IndexType tri_id = 0;
-//     for (IndexType i = 0; i < rTriangleOutput.numberoftriangles; ++i) {
-//         for (IndexType gp_i = 0; gp_i < 3; ++gp_i) {
-
-//             local_coordinate[0] = rTriangleOutput.pointlist[rTriangleOutput.trianglelist[tri_id + 0] * 2];
-//             local_coordinate[1] = rTriangleOutput.pointlist[rTriangleOutput.trianglelist[tri_id + 0] * 2 + 1];
-//             auto point_0 = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate);
-
-//             local_coordinate[0] = rTriangleOutput.pointlist[rTriangleOutput.trianglelist[tri_id + 1] * 2];
-//             local_coordinate[1] = rTriangleOutput.pointlist[rTriangleOutput.trianglelist[tri_id + 1] * 2 + 1];
-//             auto point_1 = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate);
-
-//             local_coordinate[0] = rTriangleOutput.pointlist[rTriangleOutput.trianglelist[tri_id + 2] * 2];
-//             local_coordinate[1] = rTriangleOutput.pointlist[rTriangleOutput.trianglelist[tri_id + 2] * 2 + 1];
-//             auto point_2 = rSurfaceGeometry.GlobalCoordinates(result, local_coordinate);
-
-//             for (IndexType j = 0; j < 3; ++j) {
-//                 gp_xyz[i](gp_i, j) = point_0[j] * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) +
-//                                      point_1[j] * gp_canonical_tri[gp_i][0] +
-//                                      point_2[j] * gp_canonical_tri[gp_i][1];
-//             }
-//         }
-//         tri_id += 3;
-//     }
-//     return gp_xyz;
-// }
-
 
 double CadTessellationModeler::ComputeDiscretizationError(
     const std::vector<BoundedMatrix<double,3,3>>& rGaussPointsExact,
@@ -530,30 +348,5 @@ double CadTessellationModeler::ComputeDiscretizationError(
 
     return discretization_error;
 }
-
-// Vector CadTessellationModeler::ComputeDiscretizationError(
-//     const std::vector<Matrix>& rGaussPointsExact,
-//     const std::vector<Matrix>& rGaussPointsApprox
-// )
-// {
-//     Vector discretization_error = ZeroVector(rGaussPointsExact.size());
-
-//     double ele_error;
-
-//     for (IndexType tri_i = 0; tri_i < rGaussPointsExact.size(); ++tri_i)
-//     {
-//         ele_error = 0;
-//         for (IndexType point_i = 0; point_i < 3; ++point_i)
-//         {
-//             ele_error += sqrt(pow((rGaussPointsExact[tri_i](point_i, 0) - rGaussPointsApprox[tri_i](point_i, 0)), 2) +
-//                               pow((rGaussPointsExact[tri_i](point_i, 1) - rGaussPointsApprox[tri_i](point_i, 1)), 2) +
-//                               pow((rGaussPointsExact[tri_i](point_i, 2) - rGaussPointsApprox[tri_i](point_i, 2)), 2));
-//         }
-//         discretization_error[tri_i] = ele_error;
-//     }
-//     return discretization_error;
-// }
-
-///@}
 
 } // namespace Kratos

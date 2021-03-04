@@ -14,24 +14,9 @@
 #if !defined(KRATOS_CAD_TESSELLATION_MODELER_INCLUDED)
 #define KRATOS_CAD_TESSELLATION_MODELER_INCLUDED
 
-//TODO: This is supposed to be done in the delaunator_utilities.cpp
-// extern "C"
-// {
-//     #ifdef SINGLE
-//         #define REAL float
-//     #else /* not SINGLE */
-//         #define REAL double
-//     #endif /* not SINGLE */
-//     void triangulate(char *, struct triangulateio *, struct triangulateio *,struct triangulateio *);
-// }
-
 // System includes
 
 // External includes
-//TODO: Remove this (should be included in the delaunator_utils.h)
-// //this is not ideal...
-// #include "../../external_libraries/triangle/triangle.h"
-// // #include "triangle.h"
 
 // Project includes
 #include "modeler.h"
@@ -86,10 +71,11 @@ public:
      * @param rModel Reference of the Model
      * @param ModelerParameters Parameters of the discretization
      */
-    CadTessellationModeler(Model& rModel,
+    CadTessellationModeler(
+        Model& rModel,
         Parameters ModelerParameters = Parameters())
-        : Modeler(rModel, ModelerParameters),
-        mpModel(&rModel)
+        : Modeler(rModel, ModelerParameters)
+        , mpModel(&rModel)
     {
     }
 
@@ -112,7 +98,8 @@ public:
      * @param ModelerParameters Parameters of the discretization
      * @return a Pointer to the new Modeler
      */
-    Modeler::Pointer Create(Model& rModel,
+    Modeler::Pointer Create(
+        Model& rModel,
         const Parameters ModelParameters) const override;
 
     ///@}
@@ -157,7 +144,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    Model* mpModel = nullptr; //FIXME: Why saving a pointer. Better save a reference.
+    Model* mpModel = nullptr;
 
     ///@}
     ///@name Serializer
@@ -180,9 +167,7 @@ private:
      * @param rBoundarySegment Segment of the boundary, which is supposed to be tessellated
      * @return tesselled segment in the parametric space of the surface
      */
-    std::vector<array_1d<double, 2>> ComputeBoundaryTessellation(
-        const BrepCurveOnSurfaceType& rBoundarySegment
-    );
+    std::vector<array_1d<double, 2>> ComputeBoundaryTessellation(const BrepCurveOnSurfaceType& rBoundarySegment);
 
     /**
      * @brief This method computes the triangulation of the surface in its parametric space
@@ -192,61 +177,47 @@ private:
      */
     std::vector<BoundedMatrix<double,3,3>> ComputeSurfaceTriangulation(
         const BrepSurfaceType& rSurfaceGeometry,
-        const std::vector<array_1d<double, 2>>& rBoundaryLoop
-    );
+        const std::vector<array_1d<double, 2>>& rBoundaryLoop);
 
-    // /**
-    //  * @brief This method inserts Gauss points into the surface in the parametric space
-    //  * and projects these points onto the exact input surface. Hence, these points lie within
-    //  * the exact surface.
-    //  * @param rSurfaceGeometry reference of the surface on which the points are supposed to be maped
-    //  * @param rTriangleOutput reference of the Triangle output
-    //  * @return a vector of Gauss points maped onto the exact surface
-    //  */
-    // std::vector<Matrix> InsertGaussPointsExactSurface(
-    //     const BrepSurfaceType& rSurfaceGeometry,
-    //     const struct triangulateio& rTriangleOutput
-    // );
-
+    /**
+     * @brief This method inserts Gauss points into the surface in the parametric space
+     * and projects these points onto the exact input surface. Hence, these points lie within
+     * the exact surface.
+     * @param rSurfaceGeometry reference of the surface on which the points are supposed to be maped
+     * @param rPointsCoordinates reference of the list of points coordinates from the triangularization
+     * @param rTriangleConnectivities reference of the list of triangles connectivities from the triangularization 
+     * @return a vector containing each triangle Gauss points mapped onto the exact surface 
+     */
     std::vector<BoundedMatrix<double,3,3>> InsertGaussPointsExactSurface(
         const BrepSurfaceType& rSurfaceGeometry,
         const std::vector<double>& rPointsCoordinates,
         const std::vector<IndexType>& rTriangleConnectivities);
 
-    // /**
-    //  * @brief This method insert maps the triangulation from the parametric into the physical space.
-    //  * Subsequently, Gauss points are inserted into the approximative surface. Hence, the Gauss points
-    //  * lie within the discretization of the surface and not the exact surface
-    //  * @see InsertGaussPointsExactSurface
-    //  * @param rSurfaceGeometry reference of the surface
-    //  * @param rTriangleOutput reference of the Triangle output
-    //  * @return a vector of Gauss points maped onto the triangulation of the surface
-    //  */
-    // std::vector<Matrix> InsertGaussPointsApproxSurface(
-    //     const BrepSurfaceType& rSurfaceGeometry,
-    //     const struct triangulateio& rTriangleOutput
-    // );
-
+    /**
+     * @brief This method insert maps the triangulation from the parametric into the physical space.
+     * Subsequently, Gauss points are inserted into the approximative surface. Hence, the Gauss points
+     * lie within the discretization of the surface and not the exact surface
+     * @see InsertGaussPointsExactSurface
+     * @param rSurfaceGeometry reference of the surface
+     * @param rPointsCoordinates reference of the list of points coordinates from the triangularization
+     * @param rTriangleConnectivities reference of the list of triangles connectivities from the triangularization 
+     * @return a vector of each triangle Gauss points maped onto the triangulation of the surface
+     */
     std::vector<BoundedMatrix<double,3,3>> InsertGaussPointsApproxSurface(
         const BrepSurfaceType& rSurfaceGeometry,
         const std::vector<double>& rPointsCoordinates,
         const std::vector<IndexType>& rTriangleConnectivities);
 
-    // /**
-    //  * @brief This method computes the discretization error of the surface, measured at the Gauss points.
-    //  * This is done by measuring the distance between distinctive points (Gauss points) between the exact
-    //  * surface and the approaximative surface.
-    //  * @see InsertGaussPointsExactSurface
-    //  * @see InsertGaussPointsApproxSurface
-    //  * @param rDataExact reference of distincitive points in the exact surface
-    //  * @param rDataApprox reference of distincitive points in the discretization
-    //  * @return a vector of the elemental error
-    //  */
-    // Vector ComputeDiscretizationError(
-    //     const std::vector<Matrix>& rDataExact,
-    //     const std::vector<Matrix>& rDataApprox
-    // );
-
+    /**
+     * @brief This method computes the discretization error of the surface, measured at the Gauss points.
+     * This is done by measuring the distance between distinctive points (Gauss points) between the exact
+     * surface and the approaximative surface.
+     * @see InsertGaussPointsExactSurface
+     * @see InsertGaussPointsApproxSurface
+     * @param rGaussPointsExact reference of distincitive points in the exact surface
+     * @param rGaussPointsApprox reference of distincitive points in the discretization
+     * @return the maximum Gauss point error
+     */
     double ComputeDiscretizationError(
         const std::vector<BoundedMatrix<double,3,3>>& rGaussPointsExact,
         const std::vector<BoundedMatrix<double,3,3>>& rGaussPointsApprox);
