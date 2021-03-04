@@ -32,11 +32,11 @@ except ImportError:
 import time as timer
 
 class IterationScope:
-    def __init__(self, output_folder_name, response_id, iteration_number, is_evaluated_in_folder):
+    def __init__(self, response_id, iteration_number, is_evaluated_in_folder):
         self.is_evaluated_in_folder = is_evaluated_in_folder
         if (self.is_evaluated_in_folder):
             self.currentPath = pathlib.Path.cwd()
-            output_path = pathlib.Path(output_folder_name)
+            output_path = pathlib.Path("OptimizationIterations")
             response_text = "{:}/{:d}".format(response_id, iteration_number)
             self.scope = output_path / response_text
 
@@ -78,7 +78,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             optimization_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, 0)
 
             # now we scope in to the directory where response operations are done
-            with IterationScope(self.model_part_controller.GetIterationDirectory(), identifier, optimizationIteration, response.IsEvaluatedInFolder()):
+            with IterationScope(identifier, optimizationIteration, response.IsEvaluatedInFolder()):
                 response.SetEvaluationModelPart(optimization_model_part)
 
                 response.InitializeSolutionStep()

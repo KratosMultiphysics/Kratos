@@ -42,8 +42,7 @@ class ModelPartController:
             },
             "mesh_motion" : {
                 "apply_mesh_solver" : false
-            },
-            "iteration_directory": "optimization_iterations"
+            }
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
@@ -66,8 +65,6 @@ class ModelPartController:
         self.design_surface = None
         self.damping_regions = {}
         self.damping_utility = None
-
-        self.iteration_directory = self.model_settings["iteration_directory"].GetString()
 
     # --------------------------------------------------------------------------
     def Initialize(self):
@@ -124,10 +121,6 @@ class ModelPartController:
     # --------------------------------------------------------------------------
     def GetDesignSurface(self):
         return self.design_surface
-
-    # --------------------------------------------------------------------------
-    def GetIterationDirectory(self):
-        return self.iteration_directory
 
     # --------------------------------------------------------------------------
     def DampNodalVariableIfSpecified(self, variable):
