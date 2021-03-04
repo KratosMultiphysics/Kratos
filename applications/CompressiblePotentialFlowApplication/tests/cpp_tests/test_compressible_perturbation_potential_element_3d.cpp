@@ -66,6 +66,179 @@ void AssignPerturbationPotentialsToNormalCompressibleElement3D(Element& rElement
     }
 }
 
+BoundedVector<double,4> AssignDistancesToPerturbationCompressibleElement3D()
+{
+    BoundedVector<double,4> distances;
+    distances(0) = -1.0;
+    distances(1) = -1.0;
+    distances(2) = -1.0;
+    distances(3) = 1.0;
+    return distances;
+}
+
+void AssignPotentialsToWakeCompressiblePerturbationElement3D(Element::Pointer pElement, const array_1d<double, 4>& rDistances,  const std::array<double, 8> rPotential)
+{
+    for (unsigned int i = 0; i < 4; i++){
+        if (rDistances(i) > 0.0)
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
+        else
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i];
+    }
+    for (unsigned int i = 0; i < 4; i++){
+        if (rDistances(i) < 0.0)
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+4];
+        else
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+4];
+    }
+}
+
+void ComputeElementalSensitivitiesMatrixRow(ModelPart& rModelPart, double delta, unsigned int row, Matrix& rLHS_original, Vector& rRHS_original, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical){
+    Element::Pointer pElement = rModelPart.pGetElement(1);
+    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+
+    // Compute pinged LHS and RHS
+    Vector RHS_pinged = ZeroVector(number_of_nodes);
+    Matrix LHS_pinged = ZeroMatrix(number_of_nodes, number_of_nodes);
+    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+    pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
+
+    for(unsigned int k = 0; k < rLHS_original.size2(); k++){
+        // Compute the finite difference estimate of the sensitivity
+        rLHS_finite_diference( k, row) = -(RHS_pinged(k)-rRHS_original(k)) / delta;
+        // Compute the average of the original and pinged analytic sensitivities
+        rLHS_analytical( k, row) = 0.5 * (rLHS_original(k,row) + LHS_pinged(k,row));
+    }
+
+}
+
+void ComputeElementalSensitivities(ModelPart& rModelPart, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical, const std::array<double, 4> rPotential){
+    Element::Pointer pElement = rModelPart.pGetElement(1);
+    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+
+    AssignPerturbationPotentialsToNormalCompressibleElement3D(*pElement, rPotential);
+
+    // Compute original RHS and LHS
+    Vector RHS_original = ZeroVector(number_of_nodes);
+    Matrix LHS_original = ZeroMatrix(number_of_nodes, number_of_nodes);
+    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+    pElement->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
+
+    double delta = 1e-3;
+    for(unsigned int i = 0; i < number_of_nodes; i++){
+        // Pinging
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+
+        ComputeElementalSensitivitiesMatrixRow(rModelPart, delta, i, LHS_original, RHS_original, rLHS_finite_diference, rLHS_analytical);
+
+        // Unpinging
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+    }
+}
+
+void ComputeWakeElementalSensitivities(ModelPart& rModelPart, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical, const std::array<double, 8> rPotential){
+    Element::Pointer pElement = rModelPart.pGetElement(1);
+    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+
+    BoundedVector<double,4> distances = AssignDistancesToPerturbationCompressibleElement3D();
+    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    pElement->GetValue(WAKE) = true;
+
+    AssignPotentialsToWakeCompressiblePerturbationElement3D(pElement, distances, rPotential);
+
+    // Compute original RHS and LHS
+    Vector RHS_original = ZeroVector(2*number_of_nodes);
+    Matrix LHS_original = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
+    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+    pElement->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
+
+    double delta = 1e-3;
+    for(unsigned int i = 0; i < 2*number_of_nodes; i++){
+        if(i < number_of_nodes){
+            // Pinging
+            if (distances(i) > 0.0)
+                pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+            else
+                pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += delta;
+
+            ComputeElementalSensitivitiesMatrixRow(rModelPart, delta, i, LHS_original, RHS_original, rLHS_finite_diference, rLHS_analytical);
+
+            // Unpinging
+            if (distances(i) > 0.0)
+                pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+            else
+                pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= delta;
+        }
+        else{
+            // Pinging
+            if (distances(i-4) > 0.0)
+                pElement->GetGeometry()[i-4].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += delta;
+            else
+                pElement->GetGeometry()[i-4].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+
+            ComputeElementalSensitivitiesMatrixRow(rModelPart, delta, i, LHS_original, RHS_original, rLHS_finite_diference, rLHS_analytical);
+
+            // Unpinging
+            if (distances(i-4) > 0.0)
+                pElement->GetGeometry()[i-4].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= delta;
+            else
+                pElement->GetGeometry()[i-4].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+        }
+    }
+}
+
+void PrintTestWakeMatrixPretty(Matrix& rMatrix){
+    std::cout.precision(5);
+    std::cout << std::scientific;
+    std::cout << std::showpos;
+    std::cout << std::endl;
+    for(unsigned int row = 0; row < rMatrix.size1(); ++row){
+        for(unsigned int column = 0; column < rMatrix.size2(); column++){
+            if(column == 3 || column == 7){
+                std::cout << " " << rMatrix(row, column) << " |";
+            }
+            else{
+                std::cout << " " << rMatrix(row, column) << " ";
+            }
+        }
+
+        std::cout << std::endl;
+
+        if(row ==3|| row == 7){
+            for(unsigned int j = 0; j < 14*rMatrix.size1(); j++){
+            std::cout << "_" ;
+            }
+            std::cout << " " << std::endl;
+        }
+        else{
+            for(unsigned int i = 0; i < 3; i++){
+                for(unsigned int j = 0; j < 14*4; j++){
+                    std::cout << " " ;
+                }
+                if(i != 2){
+                    std::cout << "|" ;
+                }
+            }
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+void PrintTestElementInfo(ModelPart& rModelPart){
+    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+    Element::Pointer pElement = rModelPart.pGetElement(1);
+    array_1d<double, 3> perturbed_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<3,4>(*pElement, r_current_process_info);
+    const double local_velocity_squared = inner_prod(perturbed_velocity, perturbed_velocity);
+    const double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<3, 4>(perturbed_velocity, r_current_process_info);
+    const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<3, 4>(r_current_process_info);
+
+    std::cout.precision(16);
+    KRATOS_WATCH(perturbed_velocity)
+    KRATOS_WATCH(std::sqrt(max_velocity_squared))
+    KRATOS_WATCH(std::sqrt(local_velocity_squared))
+    KRATOS_WATCH(local_mach_squared)
+}
+
 // /** Checks the CompressiblePerturbationPotentialFlowElement.
 //  * Checks the RHS computation.
 //  */
@@ -137,52 +310,11 @@ KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHS3D,
     const unsigned int number_of_nodes = pElement->GetGeometry().size();
 
     std::array<double, 4> potential{1.39572, 110.69275, 221.1549827, 304.284736};
-    AssignPerturbationPotentialsToNormalCompressibleElement3D(*pElement, potential);
 
-    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    // array_1d<double, 3> perturbed_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<3,4>(*pElement, r_current_process_info);
-    // const double local_velocity_squared = inner_prod(perturbed_velocity, perturbed_velocity);
-    // const double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<3, 4>(perturbed_velocity, r_current_process_info);
-    // const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<3, 4>(r_current_process_info);
-
-    Vector RHS_original = ZeroVector(number_of_nodes);
-    Matrix LHS_original = ZeroMatrix(number_of_nodes, number_of_nodes);
     Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
     Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
 
-    // Compute original RHS and LHS
-    //const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
-
-    double delta = 1e-3;
-    for(unsigned int i = 0; i < number_of_nodes; i++){
-        // Pinging
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
-
-        Vector RHS_pinged = ZeroVector(number_of_nodes);
-        Matrix LHS_pinged = ZeroMatrix(number_of_nodes, number_of_nodes);
-        // Compute pinged LHS and RHS
-        pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
-
-        for(unsigned int k = 0; k < number_of_nodes; k++){
-            // Compute the finite difference estimate of the sensitivity
-            LHS_finite_diference( k, i) = -(RHS_pinged(k)-RHS_original(k)) / delta;
-            // Compute the average of the original and pinged analytic sensitivities
-            LHS_analytical( k, i) = 0.5 * (LHS_original(k,i) + LHS_pinged(k,i));
-        }
-
-        // Unpinging
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
-    }
-
-    // std::cout.precision(16);
-
-    // KRATOS_WATCH(perturbed_velocity)
-    // KRATOS_WATCH(std::sqrt(max_velocity_squared))
-    // KRATOS_WATCH(std::sqrt(local_velocity_squared))
-    // KRATOS_WATCH(local_mach_squared)
-    // KRATOS_WATCH(LHS_analytical)
-    // KRATOS_WATCH(LHS_finite_diference)
+    ComputeElementalSensitivities(model_part, LHS_finite_diference, LHS_analytical, potential);
 
     for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
         for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
@@ -200,70 +332,16 @@ KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHS3DC
     const unsigned int number_of_nodes = pElement->GetGeometry().size();
 
     std::array<double, 4> potential{1.39572, 117.69275, 221.1549827, 304.284736};
-    AssignPerturbationPotentialsToNormalCompressibleElement3D(*pElement, potential);
 
-    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-
-    Vector RHS_original = ZeroVector(number_of_nodes);
-    Matrix LHS_original = ZeroMatrix(number_of_nodes, number_of_nodes);
     Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
     Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
 
-    // Compute original RHS and LHS
-    //const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
-
-    double delta = 1e-3;
-    for(unsigned int i = 0; i < number_of_nodes; i++){
-        // Pinging
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
-
-        Vector RHS_pinged = ZeroVector(number_of_nodes);
-        Matrix LHS_pinged = ZeroMatrix(number_of_nodes, number_of_nodes);
-        // Compute pinged LHS and RHS
-        pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
-
-        for(unsigned int k = 0; k < number_of_nodes; k++){
-            // Compute the finite difference estimate of the sensitivity
-            LHS_finite_diference( k, i) = -(RHS_pinged(k)-RHS_original(k)) / delta;
-            // Compute the average of the original and pinged analytic sensitivities
-            LHS_analytical( k, i) = 0.5 * (LHS_original(k,i) + LHS_pinged(k,i));
-        }
-
-        // Unpinging
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
-    }
+    ComputeElementalSensitivities(model_part, LHS_finite_diference, LHS_analytical, potential);
 
     for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
         for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
             KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
         }
-    }
-}
-
-BoundedVector<double,4> AssignDistancesToPerturbationCompressibleElement3D()
-{
-    BoundedVector<double,4> distances;
-    distances(0) = -1.0;
-    distances(1) = -1.0;
-    distances(2) = -1.0;
-    distances(3) = 1.0;
-    return distances;
-}
-
-void AssignPotentialsToWakeCompressiblePerturbationElement3D(Element::Pointer pElement, const array_1d<double, 4>& rDistances,  const std::array<double, 8> rPotential)
-{
-    for (unsigned int i = 0; i < 4; i++){
-        if (rDistances(i) > 0.0)
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
-        else
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i];
-    }
-    for (unsigned int i = 0; i < 4; i++){
-        if (rDistances(i) < 0.0)
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+4];
-        else
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+4];
     }
 }
 
@@ -295,129 +373,6 @@ void AssignPotentialsToWakeCompressiblePerturbationElement3D(Element::Pointer pE
 
 //     KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
 // }
-
-void ComputeElementalSensitivitiesMatrixEntry(ModelPart& rModelPart, double delta, unsigned int row, Matrix& rLHS_original, Vector& rRHS_original, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical){
-    Element::Pointer pElement = rModelPart.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
-
-    // Compute pinged LHS and RHS
-    Vector RHS_pinged = ZeroVector(number_of_nodes);
-    Matrix LHS_pinged = ZeroMatrix(number_of_nodes, number_of_nodes);
-    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
-
-    for(unsigned int k = 0; k < rLHS_original.size2(); k++){
-        // Compute the finite difference estimate of the sensitivity
-        rLHS_finite_diference( k, row) = -(RHS_pinged(k)-rRHS_original(k)) / delta;
-        // Compute the average of the original and pinged analytic sensitivities
-        rLHS_analytical( k, row) = 0.5 * (rLHS_original(k,row) + LHS_pinged(k,row));
-    }
-
-}
-
-void ComputeWakeElementalSensitivities(ModelPart& rModelPart, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical, const std::array<double, 8> rPotential){
-    Element::Pointer pElement = rModelPart.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
-
-    BoundedVector<double,4> distances = AssignDistancesToPerturbationCompressibleElement3D();
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
-
-    AssignPotentialsToWakeCompressiblePerturbationElement3D(pElement, distances, rPotential);
-
-    // Compute original RHS and LHS
-    Vector RHS_original = ZeroVector(2*number_of_nodes);
-    Matrix LHS_original = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
-    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    pElement->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
-
-    double delta = 1e-3;
-    for(unsigned int i = 0; i < 2*number_of_nodes; i++){
-        if(i < number_of_nodes){
-            // Pinging
-            if (distances(i) > 0.0)
-                pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
-            else
-                pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += delta;
-
-            ComputeElementalSensitivitiesMatrixEntry(rModelPart, delta, i, LHS_original, RHS_original, rLHS_finite_diference, rLHS_analytical);
-
-            // Unpinging
-            if (distances(i) > 0.0)
-                pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
-            else
-                pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= delta;
-        }
-        else{
-            // Pinging
-            if (distances(i-4) > 0.0)
-                pElement->GetGeometry()[i-4].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += delta;
-            else
-                pElement->GetGeometry()[i-4].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
-
-            ComputeElementalSensitivitiesMatrixEntry(rModelPart, delta, i, LHS_original, RHS_original, rLHS_finite_diference, rLHS_analytical);
-
-            // Unpinging
-            if (distances(i-4) > 0.0)
-                pElement->GetGeometry()[i-4].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= delta;
-            else
-                pElement->GetGeometry()[i-4].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
-        }
-    }
-}
-
-void PrintTestWakeMatrixPretty(Matrix& rMatrix){
-    std::cout.precision(5);
-    std::cout << std::scientific;
-    std::cout << std::showpos;
-    std::cout << std::endl;
-    for(unsigned int row = 0; row < rMatrix.size1(); ++row){
-        for(unsigned int column = 0; column < rMatrix.size2(); column++){
-            if(column == 3 || column == 7){
-                std::cout << " " << rMatrix(row, column) << " |";
-            }
-            else{
-                std::cout << " " << rMatrix(row, column) << " ";
-            }
-        }
-
-        std::cout << std::endl;
-
-        if(row ==3|| row == 7){
-            for(unsigned int j = 0; j < 14*rMatrix.size1(); j++){
-            std::cout << "_" ;
-            }
-            std::cout << " " << std::endl;
-        }
-        else{
-            for(unsigned int i = 0; i < 3; i++){
-                for(unsigned int j = 0; j < 14*4; j++){
-                    std::cout << " " ;
-                }
-                if(i != 2){
-                    std::cout << "|" ;
-                }
-            }
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
-}
-
-void PrintTestElementInfo(ModelPart& rModelPart){
-    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    Element::Pointer pElement = rModelPart.pGetElement(1);
-    array_1d<double, 3> perturbed_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<3,4>(*pElement, r_current_process_info);
-    const double local_velocity_squared = inner_prod(perturbed_velocity, perturbed_velocity);
-    const double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<3, 4>(perturbed_velocity, r_current_process_info);
-    const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<3, 4>(r_current_process_info);
-
-    std::cout.precision(16);
-    KRATOS_WATCH(perturbed_velocity)
-    KRATOS_WATCH(std::sqrt(max_velocity_squared))
-    KRATOS_WATCH(std::sqrt(local_velocity_squared))
-    KRATOS_WATCH(local_mach_squared)
-}
 
 KRATOS_TEST_CASE_IN_SUITE(PingWakeCompressiblePerturbationPotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
