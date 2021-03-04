@@ -291,9 +291,6 @@ protected:
     {
         KRATOS_TRY
 
-        // Initialize is necessary for updating the section properties of shell elements
-        rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
-
         // Get DOF list
         TElementDofPointersVectorType r_element_dof_list;
         rElement.GetDofList(r_element_dof_list, rCurrentProcessInfo);
@@ -323,8 +320,10 @@ protected:
             }
         }
 
-        // Finalize is necessary for updating the section properties of shell elements
+        // Finalize and initialize is necessary to update corotational element internals. 
+        // The element is in the new configuration only after initialize
         rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+        rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
