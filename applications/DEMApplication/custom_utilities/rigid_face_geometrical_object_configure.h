@@ -208,6 +208,16 @@ public:
         return  intersect;
     }
 
+    static inline bool FastIntersection1D(const GeometryType& DE_Geom, const GeometryType& FE_Geom,  const double& Radius)
+    {
+      double dummy_local_coordSystem[3][3] ={{0.0}, {0.0}, {0.0}};
+      double dummy_dist_particle_to_vertex = 0;
+
+      return GeometryFunctions::VertexCheck( FE_Geom[0].Coordinates(),
+          DE_Geom[0].Coordinates(), Radius, dummy_local_coordSystem,
+          dummy_dist_particle_to_vertex);
+    }//FastIntersection1D
+
     static inline bool FastIntersection2D(const GeometryType& DE_Geom, const GeometryType& FE_Geom,  const double& Radius)
     {
       //rObj_1 is particle,  and rObj_2 is condition
@@ -267,8 +277,10 @@ public:
         const double Radius = p_particle->GetSearchRadius();
 
         int facet_size = FE_Geom.WorkingSpaceDimension();
+        const int fe_size = FE_Geom.size();
 
-        if (facet_size==2) {
+        if (fe_size==1) return FastIntersection1D(DE_Geom, FE_Geom, Radius);
+        else if (facet_size==2) {
            return FastIntersection2D(DE_Geom, FE_Geom, Radius);//, NewContactType);
         }
         else {
@@ -282,8 +294,10 @@ public:
       const GeometryType& FE_Geom = rObj_2->GetGeometry();
 
       int facet_size = FE_Geom.WorkingSpaceDimension();
+      const int fe_size = FE_Geom.size();
 
-      if (facet_size==2) {
+        if (fe_size==1) return FastIntersection1D(DE_Geom, FE_Geom, Radius);
+        else if (facet_size==2) {
          return FastIntersection2D(DE_Geom, FE_Geom, Radius);//, NewContactType);
       }
       else {
