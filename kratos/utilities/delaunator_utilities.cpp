@@ -234,6 +234,9 @@ std::vector<std::size_t> ComputeTrianglesConnectivity(const std::vector<Point>& 
     return connectivities;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnectivity(
     const std::vector<double>& rCoordinates,
     const std::vector<std::array<double,2>>& rSegments,
