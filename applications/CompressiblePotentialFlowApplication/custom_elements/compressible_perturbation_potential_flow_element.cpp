@@ -200,7 +200,11 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnInt
     }
     else if (rVariable == DENSITY)
     {
-        rValues[0] = ComputeDensity(rCurrentProcessInfo);
+        const array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
+
+        const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(velocity, rCurrentProcessInfo);
+
+        rValues[0] = PotentialFlowUtilities::ComputeDensity<Dim, NumNodes>(local_mach_number_squared, rCurrentProcessInfo);
     }
     else if (rVariable == MACH)
     {
@@ -851,58 +855,6 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputePotenti
             GetGeometry()[i].SetValue(POTENTIAL_JUMP, 2.0 / vinfinity_norm * (potential_jump));
         }
     }
-}
-
-template <int Dim, int NumNodes>
-double CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const
-{
-    // Reading free stream conditions
-    const double rho_inf = rCurrentProcessInfo[FREE_STREAM_DENSITY];
-    const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
-    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
-    const double mach_number_limit = rCurrentProcessInfo[MACH_LIMIT];
-
-    // Computing local mach number
-    double local_mach_number = PotentialFlowUtilities::ComputePerturbationLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
-
-    if (local_mach_number > mach_number_limit)
-    { // Clamping the mach number to mach_number_limit
-        KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << mach_number_limit << std::endl;
-        local_mach_number = mach_number_limit;
-    }
-
-    // Computing squares
-    const double M_inf_2 = M_inf * M_inf;
-    const double M_2 = local_mach_number * local_mach_number;
-
-    // Computing density according to Equation 8.9 of Drela, M. (2014) Flight Vehicle
-    // Aerodynamics, The MIT Press, London
-    const double numerator = 1 + (heat_capacity_ratio - 1) * M_inf_2 / 2;
-    const double denominator = 1 + (heat_capacity_ratio - 1) * M_2 / 2;
-    const double base = numerator / denominator;
-
-    if (base > 0.0)
-    {
-        return rho_inf * pow(base, 1 / (heat_capacity_ratio - 1));
-    }
-    else
-    {
-        KRATOS_WARNING("ComputeDensity") << "Using density correction" << std::endl;
-        return rho_inf * 0.00001;
-    }
-}
-
-template <int Dim, int NumNodes>
-double CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputeDensityDerivative(
-    const double rho, const ProcessInfo& rCurrentProcessInfo) const
-{
-    // Reading free stream conditions
-    const double rho_inf = rCurrentProcessInfo[FREE_STREAM_DENSITY];
-    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
-    const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
-
-    return -pow(rho_inf, heat_capacity_ratio - 1) *
-           pow(rho, 2 - heat_capacity_ratio) / (2 * a_inf * a_inf);
 }
 
 // serializer
