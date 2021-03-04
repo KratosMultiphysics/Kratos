@@ -439,10 +439,24 @@ protected:
 	double CurrentThresholdTension = 0.0;     		double CurrentThresholdCompression = 0.0;		    // at time step n:
 	double ThresholdTension        = 0.0;			double ThresholdCompression        = 0.0;			// at time step n + 1:
 
-	// Damage Parameters & Uniaxial Stresses
-	double DamageParameterTension = 0.0;			double DamageParameterCompression = 0.0;
-	double DamageParameterTensionOutput = 0.0;		double DamageParameterCompressionOutput = 0.0;
-	double UniaxialStressTension  = 0.0;			double UniaxialStressCompression  = 0.0;
+	// Uniaxial Stresses
+	double UniaxialStressTension  = 0.0;
+	double UniaxialStressCompression  = 0.0;
+
+	// Compression damage parameters
+	double DamageParameterCompression = 0.0;
+	double DamageParameterCompressionHardening = 0.0;
+	double DamageParameterCompressionSoftening = 0.0;
+	double CompressionMaxHistoricalStrain = 0.0;
+	double uniaxial_compression_strain = 0.0;
+	double uniaxial_compression_damaged_stress = 0.0;
+
+	// Tension damage parameters
+	double DamageParameterTension = 0.0;
+	double DamageParameterTensionSoftening = 0.0;
+	double TensionMaxHistoricalStrain = 0.0;
+	double uniaxial_tension_strain = 0.0;
+	double uniaxial_tension_damaged_stress = 0.0;
 
 	// Misc
 	double InitialCharacteristicLength = 0.0;
@@ -525,7 +539,7 @@ protected:
 	*/
 	void CalculateDamageTension(
 		CalculationData& data,
-		double internal_variable,
+		double eq_tensile_stress,
 		double& rDamageTension);
 
 	/**
@@ -577,7 +591,6 @@ protected:
 	*/
 	void CalculateDamageCompression(
 		CalculationData& data,
-		double internal_variable,
 		double eq_compression_stress,
 		double& rDamage);
 

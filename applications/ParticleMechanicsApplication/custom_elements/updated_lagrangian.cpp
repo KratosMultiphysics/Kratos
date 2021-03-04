@@ -1554,7 +1554,11 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
         rVariable == MP_EQUIVALENT_PLASTIC_STRAIN || rVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE ||
         rVariable == MP_TEMPERATURE || rVariable == MP_DAMAGE || rVariable == EQ_STRAIN_RATE ||
         rVariable == DAMAGE_COMPRESSION || rVariable == EQ_STRAIN_RATE ||
-        rVariable == DAMAGE_TENSION) {
+        rVariable == DAMAGE_TENSION || rVariable == UNIAXIAL_DAMAGED_STRESS_COMPRESSION
+        || rVariable == UNIAXIAL_STRAIN_COMPRESSION
+        || rVariable == UNIAXIAL_DAMAGED_STRESS_TENSION
+        || rVariable == UNIAXIAL_STRAIN_TENSION
+        ) {
         if (mConstitutiveLawVector->Has(rVariable))
             rValues[0] = mConstitutiveLawVector->GetValue(rVariable, rValues[0]);
         else rValues[0] = 0.0;

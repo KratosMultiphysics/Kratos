@@ -51,13 +51,23 @@ bool MPMDamageDPlusDMinusMasonry2DLaw::Has(
 		return true;
 	if(rThisVariable == UNIAXIAL_STRESS_TENSION)
 		return true;
+	if(rThisVariable == UNIAXIAL_STRAIN_TENSION)
+		return true;
+	if(rThisVariable == UNIAXIAL_DAMAGED_STRESS_TENSION)
+		return true;
 	if(rThisVariable == THRESHOLD_TENSION)
 		return true;
 	if(rThisVariable == DAMAGE_COMPRESSION)
 		return true;
 	if(rThisVariable == UNIAXIAL_STRESS_COMPRESSION)
 		return true;
+	if(rThisVariable == UNIAXIAL_STRAIN_COMPRESSION)
+		return true;
+	if(rThisVariable == UNIAXIAL_DAMAGED_STRESS_COMPRESSION)
+		return true;
 	if(rThisVariable == THRESHOLD_COMPRESSION)
+		return true;
+	if(rThisVariable == MP_HARDENING_RATIO)
 		return true;
 	return false;
 }
@@ -100,19 +110,25 @@ double& MPMDamageDPlusDMinusMasonry2DLaw::GetValue(
 {
 	rValue = 0.0;
 	if(rThisVariable == DAMAGE_TENSION)
-		rValue = DamageParameterTensionOutput;
+		rValue = DamageParameterTensionSoftening; // output 'true' softening damage 0 <= d <= 1
 	else if(rThisVariable == DAMAGE_COMPRESSION)
-		rValue = DamageParameterCompressionOutput;
+		rValue = DamageParameterCompressionSoftening; // output 'true' softening damage 0 <= d <= 1
 	else if(rThisVariable == UNIAXIAL_STRESS_TENSION)
 		rValue = UniaxialStressTension;
 	else if(rThisVariable == UNIAXIAL_STRESS_COMPRESSION)
 		rValue = UniaxialStressCompression;
+	else if(rThisVariable == UNIAXIAL_STRAIN_COMPRESSION)
+		rValue = uniaxial_compression_strain;
+	else if(rThisVariable == UNIAXIAL_DAMAGED_STRESS_COMPRESSION)
+		rValue = uniaxial_compression_damaged_stress;
 	else if(rThisVariable == THRESHOLD_TENSION)
 		rValue = ThresholdTension;
 	else if(rThisVariable == THRESHOLD_COMPRESSION)
 		rValue = ThresholdCompression;
 	else if(rThisVariable == EQ_STRAIN_RATE)
 		rValue = mStrainRate;
+	else if(rThisVariable == MP_HARDENING_RATIO)
+		rValue = DamageParameterCompressionHardening;
 	return rValue;
 }
 /***********************************************************************************/
@@ -417,9 +433,11 @@ void MPMDamageDPlusDMinusMasonry2DLaw::ResetMaterial(
 	ThresholdCompression 		= 0.0;
 	CurrentThresholdCompression = 0.0;
 	DamageParameterTension 		= 0.0;
-	DamageParameterTensionOutput = 0.0;
+	DamageParameterTensionSoftening = 0.0;
 	DamageParameterCompression 	= 0.0;
-	DamageParameterCompressionOutput 	= 0.0;
+	DamageParameterCompressionHardening 	= 0.0;
+	DamageParameterCompressionSoftening 	= 0.0;
+	CompressionMaxHistoricalStrain = 0.0;
 	InitialCharacteristicLength = 0.0;
 	InitializeDamageLaw 		= false;
 }
@@ -761,68 +779,96 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressCompression(Calc
 /***********************************************************************************/
 void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	CalculationData& data,
-	double internal_variable,
+	double eq_tensile_stress,
 	double& rDamage)
 {
-	if (internal_variable <= data.YieldStressTension) {
-		rDamage = DamageParameterTensionOutput;
-	}
-	else if (DamageParameterTensionOutput > 0.99) rDamage = DamageParameterTensionOutput;
-	else {
-		const double characteristic_length 		= 	data.CharacteristicLength;
-		const double young_modulus   			= 	data.YoungModulus;
-		const double yield_tension  			= 	data.YieldStressTension;
-		const double fracture_energy_tension  	=  	data.FractureEnergyTension;
-		const double initial_internal_variable  =  	yield_tension;
-		const double material_length  			=  	2.0 * young_modulus * fracture_energy_tension /
-													(yield_tension * yield_tension);
+	// Get material properties
+	const double young_modulus = data.YoungModulus;
+	const double yield_tension = data.YieldStressTension;
 
-		if(characteristic_length >= material_length){
+
+
+	// Calc eq strain
+	const double eq_strain = eq_tensile_stress/ data.YoungModulus;
+	if (eq_strain > TensionMaxHistoricalStrain)
+	{
+		TensionMaxHistoricalStrain = eq_strain;
+
+		// Model properties
+		const double characteristic_length = data.CharacteristicLength;
+		const double fracture_energy_tension = data.FractureEnergyTension;
+		const double material_length = 2.0 * young_modulus * fracture_energy_tension /
+			(yield_tension * yield_tension);
+
+		// Calc damage props
+		if (characteristic_length >= material_length) {
 			std::stringstream ss;
 			ss << "FRACTURE_ENERGY_TENSION is too low:  2*E*Gt/(ft*ft) = " << material_length
 				<< ",   Characteristic Length = " << characteristic_length
-				<< ",   FRACTURE_ENERGY_TENSION should be at least = " << (characteristic_length * yield_tension * yield_tension) / (2.0 * young_modulus) <<std::endl;
+				<< ",   FRACTURE_ENERGY_TENSION should be at least = " << (characteristic_length * yield_tension * yield_tension) / (2.0 * young_modulus) << std::endl;
 			std::cout << ss.str();
 			exit(-1);
 		}
+		const double damage_parameter = 2.0 * characteristic_length /
+			(material_length - characteristic_length);
 
-		const double damage_parameter  = 2.0 * characteristic_length /
-											(material_length - characteristic_length);
+		// Compute softening
+		if (eq_strain > yield_tension / data.YoungModulus)
+		{
+			// We are in the softening zone
+			const double trial_softening_stress = yield_tension * std::exp(damage_parameter * (1.0 - eq_tensile_stress / yield_tension));
+			const double current_limit_softening_stress = (1.0 - DamageParameterTensionSoftening) * yield_tension;
+			if (trial_softening_stress < current_limit_softening_stress)
+			{
+				// We are softening more
+				const double new_damage_softening = 1.0 - trial_softening_stress / yield_tension;
+				if (new_damage_softening > DamageParameterTensionSoftening) DamageParameterTensionSoftening = new_damage_softening;
+				else KRATOS_ERROR << "Tension softening damage tried to decrease\n";
+				if (DamageParameterTensionSoftening > 0.99) DamageParameterTensionSoftening = 1.0;
+			}
+		}
+	}
 
-		rDamage = 	1.0 - initial_internal_variable / internal_variable *
-							std::exp(damage_parameter *
-							(1.0 - internal_variable / initial_internal_variable));
 
-		if (rDamage > 0.99) rDamage = 1.0;
-		if (rDamage < DamageParameterTensionOutput) rDamage = DamageParameterTensionOutput;
-		else DamageParameterTensionOutput = rDamage;
+
+	// Compute the damaged stress
+	if (DamageParameterTensionSoftening < 1e-6 || eq_tensile_stress < 1e-6)
+	{
+		rDamage = 0.0;
+	}
+	else
+	{
+		const double current_limit_softening_stress = (1.0 - DamageParameterTensionSoftening) * yield_tension;
+		const double damaged_stress = eq_strain / TensionMaxHistoricalStrain * current_limit_softening_stress;
+		rDamage = 1.0 - damaged_stress / eq_tensile_stress;
 	}
 }
 /***********************************************************************************/
 /***********************************************************************************/
 void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 	CalculationData& data,
-	double threshold_compression,
 	double eq_compression_stress,
 	double& rDamage)
 {
+	// extract material parameters
+	const double young_modulus = data.YoungModulus;
+	const double s_0 = data.DamageOnsetStressCompression;
+	const double s_p = data.YieldStressCompression;
+	const double s_r = data.ResidualStressCompression;
+	const double e_p = std::max(data.YieldStrainCompression, s_p / young_modulus);
 
-	if (threshold_compression <= data.DamageOnsetStressCompression) rDamage = 0.0;
-	else if (eq_compression_stress <= data.ResidualStressCompression) rDamage = 0.0; // dont apply damage if we are below the residual stress
-	else if (DamageParameterCompressionOutput > 0.99) rDamage = 1.0 - data.ResidualStressCompression / eq_compression_stress; // set eq stress to residual stress if we are fully damaged
-	else {
-		// extract material parameters
-		const double young_modulus = data.YoungModulus;
-		const double s_0 = data.DamageOnsetStressCompression;
-		const double s_p = data.YieldStressCompression;
-		const double s_r = data.ResidualStressCompression;
-		const double e_p = std::max(data.YieldStrainCompression, s_p / young_modulus);
+	// Current equivalent compressive strain and update max historical strain
+	const double eq_strain = eq_compression_stress / data.YoungModulus;
+	if (eq_strain > CompressionMaxHistoricalStrain)
+	{
+		CompressionMaxHistoricalStrain = eq_strain;
 
-		const double c_s1 			= data.BezierControllerS1;
-		const double c_ep1 			= data.BezierControllerEP1;
-		const double c_ep2 			= data.BezierControllerEP2;
-		const double c_ep3 			= data.BezierControllerEP3;
-		const double c_ep4 			= data.BezierControllerEP4;
+		// Get bezier controllers
+		const double c_s1 = data.BezierControllerS1;
+		const double c_ep1 = data.BezierControllerEP1;
+		const double c_ep2 = data.BezierControllerEP2;
+		const double c_ep3 = data.BezierControllerEP3;
+		const double c_ep4 = data.BezierControllerEP4;
 
 		const double specific_fracture_energy = data.FractureEnergyCompression /
 			data.CharacteristicLength;
@@ -831,25 +877,37 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 		const double s_k = s_r + (s_p - s_r) * c_s1;
 		const double e_0 = s_0 / young_modulus;
 		const double e_i = s_p / young_modulus;
-
 		double e_j = c_ep1 * e_p;
 		double e_k = c_ep2 * e_j;
 		double e_r = c_ep3 * e_k;
-		double e_u = e_r * c_ep4;
+		double e_u = c_ep4 * e_r;
 
-		// current abscissa
-		const double strain_like_counterpart = eq_compression_stress / young_modulus;
-
-		if (strain_like_counterpart > e_p)
+		if (eq_strain <= e_p)
 		{
+			// We are in the hardening zone
+			// Check if we have hardened more
+			double trial_hardened_stress = eq_compression_stress;
+			this->EvaluateBezierCurve(trial_hardened_stress, eq_strain, e_0, e_i, e_p, s_0, s_p, s_p);
+			const double current_limit_hardened_stress = s_0 + DamageParameterCompressionHardening * (s_p - s_0);
+			if (trial_hardened_stress > current_limit_hardened_stress)
+			{
+				// We are hardening more
+				const double new_damage_hardening = (trial_hardened_stress - s_0) / (s_p - s_0);
+				if (new_damage_hardening > DamageParameterCompressionHardening) DamageParameterCompressionHardening = new_damage_hardening;
+				else KRATOS_ERROR << "Compression hardening damage tried to decrease\n";
+			}
+		}
+		else
+		{
+			// We are in the softening zone
+			DamageParameterCompressionHardening = 1.0; // fully hardened
+
 			// regularization - only if we are past the peak!
 			double bezier_fracture_energy, bezier_energy_1;
 			this->ComputeBezierEnergy(bezier_fracture_energy, bezier_energy_1,
 				s_p, s_k, s_r, e_p, e_j, e_k, e_r, e_u);
-
 			const double stretcher = (specific_fracture_energy - bezier_energy_1) /
 				(bezier_fracture_energy - bezier_energy_1) - 1.0;
-
 			if (stretcher <= -1.0) {
 				std::stringstream ss;
 				ss << "FRACTURE_ENERGY_COMPRESSION is too low" << std::endl;
@@ -861,44 +919,54 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 				std::cout << ss.str();
 				exit(-1);
 			}
-
 			this->ApplyBezierStretcherToStrains(stretcher, e_p, e_j, e_k, e_r, e_u);
+
+			// Compute softened stress
+			double trial_softened_stress = eq_compression_stress;
+			if (eq_strain <= e_k) {
+				this->EvaluateBezierCurve(trial_softened_stress, eq_strain, e_p, e_j, e_k, s_p, s_p, s_k);
+			}
+			else if (eq_strain <= e_u) {
+				this->EvaluateBezierCurve(trial_softened_stress, eq_strain, e_k, e_r, e_u, s_k, s_r, s_r);
+			}
+			else {
+				trial_softened_stress = s_r;
+			}
+			const double current_limit_softened_stress = (1.0 - DamageParameterCompressionSoftening) * (s_p - s_r) + s_r;
+			if (trial_softened_stress < current_limit_softened_stress)
+			{
+				// We are softening more
+				const double new_damage_softening = 1.0 - (trial_softened_stress - s_r) / (s_p - s_r);
+				if (new_damage_softening > DamageParameterCompressionSoftening) DamageParameterCompressionSoftening = new_damage_softening;
+				else KRATOS_ERROR << "Compression softening damage tried to decrease\n";
+			}
 		}
+	}
 
 
-		// Compute damage
-		double damage_stress;
-		if(strain_like_counterpart <= e_p){
-			// Hardening pseudo-damage (reduction of stresses but not actual damage)
-			this->EvaluateBezierCurve(damage_stress, strain_like_counterpart, e_0, e_i, e_p, s_0, s_p, s_p);
-			rDamage = 1.0 - damage_stress / data.YieldStressCompression;
+	// Finally compute the total pseudo-damage
+	if (DamageParameterCompressionHardening < 1e-6 || eq_compression_stress < 1e-6)
+		rDamage = 0.0;
+	else
+	{
+		double eq_limit_stress; // Stress limit corresponding to the current hardening and softening damage
+		if (DamageParameterCompressionSoftening < 1e-9)
+		{
+			// Hardening only
+			eq_limit_stress = s_0 + DamageParameterCompressionHardening*(s_p - s_0);
 		}
 		else
 		{
-			// Actual damage
-			if (strain_like_counterpart <= e_k) {
-				this->EvaluateBezierCurve(damage_stress, strain_like_counterpart, e_p, e_j, e_k, s_p, s_p, s_k);
-			}
-			else if (strain_like_counterpart <= e_u) {
-				this->EvaluateBezierCurve(damage_stress, strain_like_counterpart, e_k, e_r, e_u, s_k, s_r, s_r);
-			}
-			else {
-				damage_stress = s_r;
-			}
-			const double current_true_damage = 1.0 - (damage_stress - s_r) / (data.YieldStressCompression - s_r); // from 0-1
-			if (current_true_damage > DamageParameterCompressionOutput) DamageParameterCompressionOutput = current_true_damage; // update if current damage increases
-
-			const double predicted_damaged_stress = s_r + (1.0 - DamageParameterCompressionOutput) * (data.YieldStressCompression - s_r);
-
-			rDamage = 1.0 - predicted_damaged_stress/ eq_compression_stress;
-			rDamage = std::max(0.0, rDamage);
-			rDamage = std::min(1.0, rDamage);
+			// Softening
+			eq_limit_stress = s_r + (1.0 - DamageParameterCompressionSoftening) * (s_p - s_r);
 		}
-	}
-	if (rDamage <0.0 || rDamage > 1.0)
-	{
-		KRATOS_WATCH("DAMAGE OUT OF BOUNDS!")
-		KRATOS_ERROR << "DAMAGE OUT OF BOUNDS!";
+		const double final_damaged_stress = eq_strain / CompressionMaxHistoricalStrain * eq_limit_stress;
+		rDamage = 1.0 - final_damaged_stress / eq_compression_stress;
+		rDamage = std::max(0.0, rDamage);
+		rDamage = std::min(1.0, rDamage);
+
+		uniaxial_compression_strain = eq_strain;
+		uniaxial_compression_damaged_stress = final_damaged_stress;
 	}
 }
 /***********************************************************************************/
@@ -1028,18 +1096,18 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 		TemporaryImplicitThresholdTCompression 	= implicit_threshold_compression;
 
 		// new damage variables (explicit)
-		this->CalculateDamageTension(data, ThresholdTension, DamageParameterTension);
-		this->CalculateDamageCompression(data, ThresholdCompression, UniaxialStressCompression,DamageParameterCompression);
+		//this->CalculateDamageTension(data, ThresholdTension, DamageParameterTension);
+		//this->CalculateDamageCompression(data, ThresholdCompression, UniaxialStressCompression,DamageParameterCompression);
 	}
 	else { // IMPLICIT Integration
 
 		if(UniaxialStressTension > ThresholdTension)
 			ThresholdTension = UniaxialStressTension;
-		this->CalculateDamageTension(data, ThresholdTension, DamageParameterTension);
+		this->CalculateDamageTension(data, UniaxialStressTension, DamageParameterTension);
 
 		if(UniaxialStressCompression > ThresholdCompression)
 			ThresholdCompression = UniaxialStressCompression;
-		this->CalculateDamageCompression(data, ThresholdCompression, UniaxialStressCompression, DamageParameterCompression);
+		this->CalculateDamageCompression(data, UniaxialStressCompression, DamageParameterCompression);
 
 		TemporaryImplicitThresholdTension = ThresholdTension;
 		TemporaryImplicitThresholdTCompression = ThresholdCompression;
