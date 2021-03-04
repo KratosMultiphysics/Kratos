@@ -7,6 +7,9 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Dagmawi Bekel
+//                   Ruben Zorrilla
+//
 
 // Project includes
 #include "includes/define.h"

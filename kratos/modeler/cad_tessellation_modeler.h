@@ -7,6 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Dagmawi Bekel
+//                   Ruben Zorrilla
 //
 
 #if !defined(KRATOS_CAD_TESSELLATION_MODELER_INCLUDED)
