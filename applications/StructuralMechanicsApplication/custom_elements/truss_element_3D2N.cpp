@@ -296,7 +296,7 @@ void TrussElement3D2N::CalculateRightHandSide(
     rRightHandSideVector = ZeroVector(msLocalSize);
 
     BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
-    UpdateInternalForces(internal_forces, const ProcessInfo& rCurrentProcessInfo);
+    UpdateInternalForces(internal_forces, rCurrentProcessInfo);
 
     noalias(rRightHandSideVector) -= internal_forces;
 
@@ -517,7 +517,8 @@ double TrussElement3D2N::CalculateGreenLagrangeStrain() const
 }
 
 void TrussElement3D2N::UpdateInternalForces(
-    BoundedVector<double, TrussElement3D2N::msLocalSize>& rInternalForces)
+    BoundedVector<double, TrussElement3D2N::msLocalSize>& rInternalForces,
+    const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY

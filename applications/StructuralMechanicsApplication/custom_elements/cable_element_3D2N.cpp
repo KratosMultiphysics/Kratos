@@ -100,7 +100,8 @@ void CableElement3D2N::CalculateRightHandSide(
 }
 
 void CableElement3D2N::UpdateInternalForces(
-    BoundedVector<double, TrussElement3D2N::msLocalSize>& rInternalForces, const ProcessInfo& rCurrentProcessInfo)
+    BoundedVector<double, TrussElement3D2N::msLocalSize>& rInternalForces,
+    const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY;
