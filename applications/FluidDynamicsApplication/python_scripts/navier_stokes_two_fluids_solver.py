@@ -250,7 +250,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         if self._TimeBufferIsInitialized():
             # If convection splitting, perform the level-set convection to complete the solution step
-            if (self._levelset_splitting):
+            if self._levelset_splitting:
                 self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, (1.0 - self._levelset_dt_factor))
 
                 if self._bfecc_convection:
