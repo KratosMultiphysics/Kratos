@@ -240,8 +240,8 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTri
     const IndexType n_segments = rBoundaryLoop.size();
     std::vector<std::array<double,2>> segments(n_segments);
     IndexPartition<IndexType>(n_segments).for_each(std::array<double,2>(), [&](IndexType iSegment, std::array<double,2>& rSegmentTLS){
-        rSegmentTLS[0] = 2 * iSegment;
-        rSegmentTLS[1] = iSegment == n_segments ? 2 * iSegment + 1 : 0;
+        rSegmentTLS[0] = iSegment;
+        rSegmentTLS[1] = iSegment + 1 != n_segments ? iSegment + 1 : 0;
         segments[iSegment] = rSegmentTLS;
     });
 
@@ -333,7 +333,7 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTri
 
     const auto& r_output_connectivites = std::get<0>(delaunator_output);
     const auto& r_output_coordinates_list = std::get<1>(delaunator_output);
-    const IndexType n_triangles = r_output_connectivites.size() % 3 != 0 ? r_output_connectivites.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
+    const IndexType n_triangles = r_output_connectivites.size() % 3 == 0 ? r_output_connectivites.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
     std::vector<BoundedMatrix<double,3,3>> triangulation_uv(n_triangles);
     for (IndexType i_triangle = 0; i_triangle < n_triangles; ++i_triangle) {
         auto& r_triangle_uv_coords = triangulation_uv[i_triangle];
@@ -359,7 +359,7 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::InsertGaussPoints
     array_1d<double,3> local_coordinate = ZeroVector(3);
 
     //TODO: THIS CAN BE PARALLEL
-    const IndexType n_triangles = rTriangleConnectivities.size() % 3 != 0 ? rTriangleConnectivities.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
+    const IndexType n_triangles = rTriangleConnectivities.size() % 3 == 0 ? rTriangleConnectivities.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
     std::vector<BoundedMatrix<double,3,3>> gp_xyz(n_triangles);
     for (IndexType i_triangle = 0; i_triangle < n_triangles; ++i_triangle) {
         IndexType aux = 3 * i_triangle;
@@ -396,7 +396,7 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::InsertGaussPoints
     array_1d<double, 3> local_coordinate = ZeroVector(3);
 
     //TODO: THIS CAN BE PARALLEL
-    const IndexType n_triangles = rTriangleConnectivities.size() % 3 != 0 ? rTriangleConnectivities.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
+    const IndexType n_triangles = rTriangleConnectivities.size() % 3 == 0 ? rTriangleConnectivities.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
     std::vector<BoundedMatrix<double,3,3>> gp_xyz(n_triangles);
     for (IndexType i_triangle = 0; i_triangle < n_triangles; ++i_triangle) {
         IndexType aux = 3 * i_triangle;
