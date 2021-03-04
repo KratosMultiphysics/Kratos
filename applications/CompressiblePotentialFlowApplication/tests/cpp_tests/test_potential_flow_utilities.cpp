@@ -286,6 +286,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationCompressiblePressureCoefficient, Co
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTestingElement(model_part);
+    AssignFreeStreamValues(model_part);
     Element::Pointer pElement = model_part.pGetElement(1);
 
     AssignPerturbationPotentialsToElement(*pElement);

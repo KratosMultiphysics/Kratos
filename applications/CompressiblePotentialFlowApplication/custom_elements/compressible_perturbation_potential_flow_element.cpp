@@ -420,7 +420,14 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
     noalias(rLeftHandSideMatrix) += data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
-    noalias(rLeftHandSideMatrix) += data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+
+    const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
+
+    const double local_velocity_squared = inner_prod(velocity, velocity);
+
+    if (local_velocity_squared < max_velocity_squared){
+        noalias(rLeftHandSideMatrix) += data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+    }
 }
 
 template <int Dim, int NumNodes>
@@ -441,11 +448,15 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
 
     const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
 
-    const double local_velocity_squared = inner_prod(velocity, velocity);
-
-    if (local_velocity_squared > max_velocity_squared){
-        velocity *= std::sqrt(max_velocity_squared / local_velocity_squared);
+    if (this->Id()==4){
+        KRATOS_WATCH(std::sqrt(max_velocity_squared))
     }
+
+    // const double local_velocity_squared = inner_prod(velocity, velocity);
+
+    // if (local_velocity_squared > max_velocity_squared){
+    //     velocity *= std::sqrt(max_velocity_squared / local_velocity_squared);
+    // }
 
     const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(velocity, rCurrentProcessInfo);
     const double density = PotentialFlowUtilities::ComputeDensity<Dim, NumNodes>(local_mach_number_squared, rCurrentProcessInfo);
@@ -479,9 +490,36 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
 
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
-    const BoundedMatrix<double, NumNodes, NumNodes> lhs_total =
-        data.vol * density * prod(data.DN_DX, trans(data.DN_DX)) +
-        data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+    const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
+
+    const double local_velocity_squared = inner_prod(velocity, velocity);
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_total = data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
+
+    if (local_velocity_squared < max_velocity_squared){
+        lhs_total += data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+    }
+
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
+
+    for (unsigned int i = 0; i < Dim; i++){
+        lower_velocity[i] += free_stream_velocity[i];
+    }
+
+    const double local_mach_number_squared_lower = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(lower_velocity, rCurrentProcessInfo);
+    const double density_lower = PotentialFlowUtilities::ComputeDensity<Dim, NumNodes>(local_mach_number_squared_lower, rCurrentProcessInfo);
+    const double DrhoDu2_lower = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(local_mach_number_squared_lower, rCurrentProcessInfo);
+
+    const BoundedVector<double, NumNodes> DNV_lower = prod(data.DN_DX, lower_velocity);
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_total_lower = data.vol * density_lower * prod(data.DN_DX, trans(data.DN_DX));
+
+    const double local_velocity_squared_lower = inner_prod(lower_velocity, lower_velocity);
+
+    if (local_velocity_squared_lower < max_velocity_squared){
+        lhs_total_lower += data.vol * 2 * DrhoDu2_lower * outer_prod(DNV_lower, trans(DNV_lower));
+    }
 
     // Wake condition matrix
     BoundedMatrix<double, Dim, Dim> condition_matrix = IdentityMatrix(Dim,Dim);
@@ -527,7 +565,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
                 if (data.distances[row] < 0.0){
                     for (unsigned int column = 0; column < NumNodes; ++column){
                         // Conservation of mass
-                        rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
+                        rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total_lower(row, column);
                         // Wake condition
                         rLeftHandSideMatrix(row, column) = lhs_wake_condition(row, column); // Diagonal
                         rLeftHandSideMatrix(row, column + NumNodes) = -lhs_wake_condition(row, column); // Off diagonal
@@ -555,7 +593,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
             if (data.distances[row] < 0.0){
                 for (unsigned int column = 0; column < NumNodes; ++column){
                     // Conservation of mass
-                    rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
+                    rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total_lower(row, column);
                     // Wake condition
                     rLeftHandSideMatrix(row, column) = lhs_wake_condition(row, column); // Diagonal
                     rLeftHandSideMatrix(row, column + NumNodes) = -lhs_wake_condition(row, column); // Off diagonal
@@ -603,23 +641,26 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
         lower_velocity[i] += free_stream_velocity[i];
     }
 
-    const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
+    // const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
 
-    const double upper_local_velocity_squared = inner_prod(upper_velocity, upper_velocity);
-    const double lower_local_velocity_squared = inner_prod(lower_velocity, lower_velocity);
+    // const double upper_local_velocity_squared = inner_prod(upper_velocity, upper_velocity);
+    // const double lower_local_velocity_squared = inner_prod(lower_velocity, lower_velocity);
 
-    if (upper_local_velocity_squared > max_velocity_squared || lower_local_velocity_squared > max_velocity_squared){
-        upper_velocity *= std::sqrt(max_velocity_squared / upper_local_velocity_squared);
-        lower_velocity *= std::sqrt(max_velocity_squared / lower_local_velocity_squared);
-    }
+    // if (upper_local_velocity_squared > max_velocity_squared || lower_local_velocity_squared > max_velocity_squared){
+    //     upper_velocity *= std::sqrt(max_velocity_squared / upper_local_velocity_squared);
+    //     lower_velocity *= std::sqrt(max_velocity_squared / lower_local_velocity_squared);
+    // }
 
-    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(upper_velocity, rCurrentProcessInfo);
-    const double density = PotentialFlowUtilities::ComputeDensity<Dim, NumNodes>(local_mach_number_squared, rCurrentProcessInfo);
+    const double local_mach_number_squared_upper = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(upper_velocity, rCurrentProcessInfo);
+    const double density_upper = PotentialFlowUtilities::ComputeDensity<Dim, NumNodes>(local_mach_number_squared_upper, rCurrentProcessInfo);
+
+    const double local_mach_number_squared_lower = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(lower_velocity, rCurrentProcessInfo);
+    const double density_lower = PotentialFlowUtilities::ComputeDensity<Dim, NumNodes>(local_mach_number_squared_lower, rCurrentProcessInfo);
 
     const array_1d<double, Dim> diff_velocity = upper_velocity - lower_velocity;
 
-    const BoundedVector<double, NumNodes> upper_rhs = - data.vol * density * prod(data.DN_DX, upper_velocity);
-    const BoundedVector<double, NumNodes> lower_rhs = - data.vol * density * prod(data.DN_DX, lower_velocity);
+    const BoundedVector<double, NumNodes> upper_rhs = - data.vol * density_upper * prod(data.DN_DX, upper_velocity);
+    const BoundedVector<double, NumNodes> lower_rhs = - data.vol * density_lower * prod(data.DN_DX, lower_velocity);
 
     // Wake condition matrix
     BoundedMatrix<double, Dim, Dim> condition_matrix = IdentityMatrix(Dim,Dim);
@@ -690,7 +731,12 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
         Points, data.DN_DX, data.distances, Volumes, GPShapeFunctionValues,
         PartitionsSign, GradientsValue, NEnriched);
 
+    // Upper part
     const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
+
+    const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
+
+    const double local_velocity_squared = inner_prod(velocity, velocity);
 
     const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(velocity, rCurrentProcessInfo);
 
@@ -700,22 +746,38 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
 
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
+    // Lower part
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
+
+    for (unsigned int i = 0; i < Dim; i++){
+        lower_velocity[i] += free_stream_velocity[i];
+    }
+
+    const double local_mach_number_squared_lower = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(lower_velocity, rCurrentProcessInfo);
+    const double density_lower = PotentialFlowUtilities::ComputeDensity<Dim, NumNodes>(local_mach_number_squared_lower, rCurrentProcessInfo);
+    const double DrhoDu2_lower = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(local_mach_number_squared_lower, rCurrentProcessInfo);
+
+    const BoundedVector<double, NumNodes> DNV_lower = prod(data.DN_DX, lower_velocity);
+
+    const double local_velocity_squared_lower = inner_prod(lower_velocity, lower_velocity);
+
     // Compute the lhs and rhs that would correspond to it being divided
     for (unsigned int i = 0; i < nsubdivisions; ++i)
     {
         if (PartitionsSign[i] > 0)
         {
-            noalias(lhs_positive) +=
-                Volumes[i] * density * prod(data.DN_DX, trans(data.DN_DX));
-            noalias(lhs_positive) +=
-                Volumes[i] * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+            noalias(lhs_positive) += Volumes[i] * density * prod(data.DN_DX, trans(data.DN_DX));
+            if(local_velocity_squared < max_velocity_squared){
+                noalias(lhs_positive) += Volumes[i] * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+            }
         }
         else
         {
-            noalias(lhs_negative) +=
-                Volumes[i] * density * prod(data.DN_DX, trans(data.DN_DX));
-            noalias(lhs_negative) +=
-                Volumes[i] * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+            noalias(lhs_negative) += Volumes[i] * density_lower * prod(data.DN_DX, trans(data.DN_DX));
+            if(local_velocity_squared_lower < max_velocity_squared){
+                noalias(lhs_negative) += Volumes[i] * 2 * DrhoDu2_lower * outer_prod(DNV_lower, trans(DNV_lower));
+            }
         }
     }
 }
