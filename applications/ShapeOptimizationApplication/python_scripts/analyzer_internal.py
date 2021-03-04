@@ -79,7 +79,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
 
             # now we scope in to the directory where response operations are done
             with IterationScope(identifier, optimizationIteration, response.IsEvaluatedInFolder()):
-                response.SetEvaluationModelPart(optimization_model_part)
+                response.UpdateDesign(optimization_model_part, KM.SHAPE_SENSITIVITY)
 
                 response.InitializeSolutionStep()
 
