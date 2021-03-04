@@ -121,7 +121,6 @@ void CableElement3D2N::UpdateInternalForces(
     }
 
     Vector temp_internal_stresses = ZeroVector(msLocalSize);
-    // ProcessInfo temp_process_information; this mus be passed to the function!
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
