@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
-//
+//                   Vahid Galavi
 
 // System includes
 
@@ -20,9 +20,8 @@
 #include "utilities/math_utils.h"
 
 namespace Kratos {
-namespace GeoStructuralMechanicsElementUtilities {
 
-bool ComputeLumpedMassMatrix(
+bool GeoStructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(
     const Properties& rProperites,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -44,7 +43,7 @@ bool ComputeLumpedMassMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool HasRayleighDamping(
+bool GeoStructuralMechanicsElementUtilities::HasRayleighDamping(
     const Properties& rProperites,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -55,7 +54,7 @@ bool HasRayleighDamping(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double GetRayleighAlpha(
+double GeoStructuralMechanicsElementUtilities::GetRayleighAlpha(
     const Properties& rProperites,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -73,7 +72,7 @@ double GetRayleighAlpha(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double GetRayleighBeta(
+double GeoStructuralMechanicsElementUtilities::GetRayleighBeta(
     const Properties& rProperites,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -91,7 +90,7 @@ double GetRayleighBeta(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double GetDensityForMassMatrixComputation(const Element& rElement)
+double GeoStructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(const Element& rElement)
 {
     // Getting the properties of the element
     const auto& r_prop = rElement.GetProperties();
@@ -112,7 +111,7 @@ double GetDensityForMassMatrixComputation(const Element& rElement)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CalculateRayleighDampingMatrix(
+void GeoStructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
     Element& rElement,
     Element::MatrixType& rDampingMatrix,
     const ProcessInfo& rCurrentProcessInfo,
@@ -149,7 +148,7 @@ void CalculateRayleighDampingMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double CalculateReferenceLength2D2N(const Element& rElement)
+double GeoStructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(const Element& rElement)
 {
     KRATOS_TRY;
 
@@ -166,7 +165,7 @@ double CalculateReferenceLength2D2N(const Element& rElement)
 /***********************************************************************************/
 /***********************************************************************************/
 
-double CalculateCurrentLength2D2N(const Element& rElement)
+double GeoStructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(const Element& rElement)
 {
     KRATOS_TRY;
 
@@ -190,7 +189,7 @@ double CalculateCurrentLength2D2N(const Element& rElement)
 /***********************************************************************************/
 /***********************************************************************************/
 
-double CalculateReferenceLength3D2N(const Element& rElement)
+double GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(const Element& rElement)
 {
     KRATOS_TRY;
 
@@ -206,7 +205,7 @@ double CalculateReferenceLength3D2N(const Element& rElement)
 /***********************************************************************************/
 /***********************************************************************************/
 
-double CalculateCurrentLength3D2N(const Element& rElement)
+double GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(const Element& rElement)
 {
     KRATOS_TRY;
 
@@ -226,7 +225,6 @@ double CalculateCurrentLength3D2N(const Element& rElement)
     KRATOS_CATCH("")
 }
 
-} // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
 
 

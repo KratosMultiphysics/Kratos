@@ -104,8 +104,7 @@ public:
         return StressNorm;
 
         KRATOS_CATCH( "" )
-
-    };
+    }
 
     //**************************************************************************
     //**************************************************************************
@@ -137,63 +136,10 @@ public:
 
         SigmaEquivalent = sqrt(SigmaEquivalent);
 
-        //in principal stresses:
-
-        // double tolerance  = 1e-10;
-        // double zero       = 1e-10;
-        // double NormStress = 0.00;
-
-        // CheckZeroDiagonalComponents (StressTensor);
-
-        // Vector PrincipalStress(3);
-        // noalias(PrincipalStress) = ZeroVector(3);
-
-        // NormStress =StructuralMechanicsMathUtilities<double>::NormTensor(StressTensor);
-
-        // Vector MainStresses(3);
-        // noalias(MainStresses) = ZeroVector(3);	
-
-        // bool main_tensor = CheckPrincipalStresses( StressTensor );
-
-        // if(!main_tensor)
-        // {
-
-        //     if(NormStress>1e-6)
-        //     {
-        //         MainStresses = StructuralMechanicsMathUtilities<double>::EigenValues(StressTensor,tolerance,zero);
-        //     }
-        //     else
-        //     {
-        //         noalias(MainStresses) = ZeroVector(3);
-        //     }
-
-        // }
-        // else
-        // {
-        //     noalias(MainStresses) = ZeroVector(3);
-        //     for(unsigned int i=0; i<StressTensor.size1(); i++)
-        //         MainStresses[i]=StressTensor(i,i);
-        // }
-
-
-        // for(unsigned int i=0; i<MainStresses.size(); i++)
-        //     PrincipalStress[i]=MainStresses[i];
-	
-
-        // double SigmaEquivalent =  (0.5)*((PrincipalStress[0]-PrincipalStress[1])*(PrincipalStress[0]-PrincipalStress[1]) +
-        //                                  (PrincipalStress[1]-PrincipalStress[2])*(PrincipalStress[1]-PrincipalStress[2]) +
-        //                                  (PrincipalStress[2]-PrincipalStress[0])*(PrincipalStress[2]-PrincipalStress[0]));
-
-
-        // SigmaEquivalent = sqrt(SigmaEquivalent);
-
-        //std::cout<<" SigmaEquivalent "<<SigmaEquivalent<<" StressVector "<<StressVector<<std::endl;
-
         return SigmaEquivalent;
 
         KRATOS_CATCH( "" )
-
-    };
+    }
 
 
 
