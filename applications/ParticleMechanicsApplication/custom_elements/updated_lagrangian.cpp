@@ -1262,15 +1262,7 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, cons
 
     noalias( rDampingMatrix ) = ZeroMatrix(matrix_size, matrix_size);
 
-    //1.-Calculate StiffnessMatrix:
-    MatrixType StiffnessMatrix  = Matrix();
-    this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
-
-    //2.-Calculate MassMatrix:
-    MatrixType MassMatrix  = Matrix();
-    this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
-
-    //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    //1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) )
     {
@@ -1289,6 +1281,18 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, cons
     else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
     {
         beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+    }
+
+    //2.-Calculate StiffnessMatrix:
+    MatrixType StiffnessMatrix  = Matrix();
+    if (beta!=0.0){
+        this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
+    }
+
+    //3.-Calculate MassMatrix:
+    MatrixType MassMatrix  = Matrix();
+    if (alpha!=0.0){
+        this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
     }
 
     //4.-Compose the Damping Matrix:
