@@ -519,22 +519,12 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
 
         r_mass_source = r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22);
 
-
         if (mInitialConditions == true){
-            if (mrModelPart.GetProcessInfo()[STEP] == 1 || mrModelPart.GetProcessInfo()[STEP] == 2)
+            if (mrModelPart.GetProcessInfo()[STEP] == 0)
             {
                 it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
                 it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
                 it_node->FastGetSolutionStepValue(PRESSURE) = r_pressure;
-                it_node->Fix(VELOCITY_X);
-                it_node->Fix(VELOCITY_Y);
-                it_node->Fix(PRESSURE);
-            }
-            else if (mrModelPart.GetProcessInfo()[STEP] == 3)
-            {
-                it_node->Free(VELOCITY_X);
-                it_node->Free(VELOCITY_Y);
-                it_node->Free(PRESSURE);
             }
         }
         else if(mInitialConditions == false && mrModelPart.GetProcessInfo()[STEP] == 1){
@@ -546,9 +536,19 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
 
 void TransientSpatialDependantPorositySolutionBodyForceProcess::SetFluidProperties()
 {
-    (mrModelPart.pGetProperties(0))->SetValue(DENSITY, mDensity);
-    (mrModelPart.pGetProperties(0))->SetValue(DYNAMIC_VISCOSITY, mViscosity * mDensity);
-    (mrModelPart.pGetProperties(0))->SetValue(VISCOSITY, mViscosity);
+    (mrModelPart.pGetProperties(1))->SetValue(DENSITY, mDensity);
+    (mrModelPart.pGetProperties(1))->SetValue(DYNAMIC_VISCOSITY, mViscosity * mDensity);
+    (mrModelPart.pGetProperties(1))->SetValue(VISCOSITY, mViscosity);
+
+    block_for_each(mrModelPart.Elements(), [&](Element& rElement){
+        rElement.SetProperties(mrModelPart.pGetProperties(1));
+    });
+
+    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+        rNode.FastGetSolutionStepValue(VISCOSITY) = mViscosity;
+        rNode.FastGetSolutionStepValue(DENSITY) = mDensity;
+        rNode.FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = mViscosity * mDensity;
+    });
 }
 
 bool TransientSpatialDependantPorositySolutionBodyForceProcess::IsInsideEllipticalSupport(

@@ -216,7 +216,7 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetInitialBodyForceAnd
 
         Matrix& permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
 
-        double& r_pressure = it_node->FastGetSolutionStepValue(PRESSURE);
+        double& r_pressure = it_node->FastGetSolutionStepValue(EXACT_PRESSURE);
 
         if (this->IsInsideEllipticalSupport(x1, x2, c, R)){
 
@@ -516,22 +516,12 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetBodyForceAndPorosit
 
         r_mass_source = r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22);
 
-
         if (mInitialConditions == true){
-            if (mrModelPart.GetProcessInfo()[STEP] == 1 || mrModelPart.GetProcessInfo()[STEP] == 2)
+            if (mrModelPart.GetProcessInfo()[STEP] == 0)
             {
                 it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
                 it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
                 it_node->FastGetSolutionStepValue(PRESSURE) = r_pressure;
-                it_node->Fix(VELOCITY_X);
-                it_node->Fix(VELOCITY_Y);
-                it_node->Fix(PRESSURE);
-            }
-            else if (mrModelPart.GetProcessInfo()[STEP] == 3)
-            {
-                it_node->Free(VELOCITY_X);
-                it_node->Free(VELOCITY_Y);
-                it_node->Free(PRESSURE);
             }
         }
         else if(mInitialConditions == false && mrModelPart.GetProcessInfo()[STEP] == 1){
