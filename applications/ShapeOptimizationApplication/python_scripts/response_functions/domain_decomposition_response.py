@@ -94,7 +94,9 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
         if self.response_settings["cad_model_io_settings"]["type"].GetString() == "json":
             file_name = self.response_settings["cad_model_io_settings"]["input_filename"].GetString()
             self.cad_geom = cad_util.GetNurbsGeometry(file_name)
+            #self.cad_geom.delta = 0.005
             self.trimming_curve = cad_util.GetTrimmingCurve(self.cad_geom, self.response_settings["trimming_curve_index"].GetInt())
+            #self.trimming_curve.delta = 0.005
         else:
             RuntimeError("Cad Geometry can only be imported from JSON file. https://github.com/orbingol/rw3dm can be helpful.")
 
@@ -117,10 +119,24 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
             self.primal_analysis._GetSolver().Predict()
             self.primal_analysis._GetSolver().SolveSolutionStep()
             Logger.PrintInfo("DomainDecompositionResponse", "Time needed for solving the primal analysis",round(timer.time() - startTime,2),"s")
+            ## Extrapolate Stress to the nodes
+            extrapolation_param = KM.Parameters("""{
+                "model_part_name"            : "",
+                "echo_level"                 : 1,
+                "area_average"               : true,
+                "average_variable"           : "NODAL_AREA",
+                "list_of_variables"          : ["VON_MISES_STRESS","SHELL_FORCE"],
+                "extrapolate_non_historical" : true
+            }""")
+            KM.IntegrationValuesExtrapolationToNodesProcess(self.primal_analysis._GetSolver().GetComputingModelPart(), extrapolation_param).Execute()
             self.primal_analysis_done = True
 
+            self.primal_analysis.FinalizeSolutionStep()
+            self.primal_analysis.OutputSolutionStep()
+            self.primal_analysis.Finalize()
+
         startTime = timer.time()
-        rho = self.response_settings["averaging_parameter"].GetDouble()
+        self.rho = self.response_settings["averaging_parameter"].GetDouble()
         ## Calculate the value here using Kreisselmeier–Steinhauser (KS) Function
         ## value = (1/rho) * log(sigma(exp(rho*f(x))))
         ## f(x) here is the stress value at the control points of the trimming curve.
@@ -128,7 +144,7 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
         [physical_coordinates, derivatives] = cad_util.GetPointCoordinatesAndDerivatives(self.cad_geom, ctrlpts, 1)
         self.ks_util = ShapeOptimizationApplication.KreisselmeierSteinhauserAggregationUtility(self.primal_analysis._GetSolver().GetComputingModelPart())
 
-        self.value = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.VON_MISES_STRESS, 0.1)
+        self.value = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.SHELL_FORCE, self.rho)
 
         Logger.PrintInfo("> Time needed for calculating the response value = ", round(timer.time() - startTime,2), "s")
 
@@ -141,9 +157,6 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
 
         self.gradient = self.__GetGradients(original_ctrlpts.copy())
         self.trimming_curve.ctrlpts = original_ctrlpts
-
-        # for i, ctrlpt in enumerate(original_ctrlpts):
-        #     self.gradient[i] = [0.01,0.01]
 
         Logger.PrintInfo("> Time needed for calculating gradients = ", round(timer.time() - startTime,2), "s")
 
@@ -178,12 +191,9 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
         self.trimming_curve.ctrlpts = ctrlpts
 
     def Finalize(self):
-        if self.primal_analysis_done:
-            self.primal_analysis.FinalizeSolutionStep()
-            self.primal_analysis.OutputSolutionStep()
-            self.primal_analysis.Finalize()
         cad_util.OutputCadToJson(self.cad_geom, self.response_settings["cad_model_io_settings"]["output_filename"].GetString())
         cad_util.VisualizeSurface(self.cad_geom)
+        cad_util.VisualizeCurve(self.trimming_curve)
 
     def __CreateModelPart(self, mp_name="dd_evaluation_model_part"):
         if self.model.HasModelPart(mp_name):
@@ -193,33 +203,58 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
             self.evaluation_model_part = self.model.CreateModelPart(mp_name, 2)
 
     def __GetGradients(self, points):
-        delta = 1e-2
-        grad = {}
+        points_backup = points.copy()
+        delta_u = 1e-3
+        delta_v = 1e-3
+        gradients = {}
+        max_norm = 0.0
         for i, point in enumerate(points):
             self.__CreateModelPart()
-            u, v = points[i]
-            cad_util.MakeModelPart(self.cad_geom, self.trimming_curve.evalpts, self.evaluation_model_part)
-            u_val1 = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.VON_MISES_STRESS, 0.1)
-            if not u == 1.0:
-                points[i][0] = u+delta
+            u, v = points[i].copy()
+            points[i][0] = u-delta_u
+            if points[i][0] < 0.0:
+                points[i][0] = 0.0
             self.trimming_curve.ctrlpts = points
             cad_util.MakeModelPart(self.cad_geom, self.trimming_curve.evalpts, self.evaluation_model_part)
-            u_val2 = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.VON_MISES_STRESS, 0.1)
-            grad_u = -1*(u_val1-u_val2)/delta
-
-            points[i][0] = u ## Reset u and now change v
-            cad_util.MakeModelPart(self.cad_geom, self.trimming_curve.evalpts, self.evaluation_model_part)
-            v_val1 = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.VON_MISES_STRESS, 0.1)
-            if not v == 1.0:
-                points[i][1] = v+delta
+            u_val1 = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.VON_MISES_STRESS, self.rho)
+            points = points_backup ## Reset U
+            points[i][0] = u+delta_u
+            if points[i][0] > 1.0:
+                points[i][0] = 1.0
             self.trimming_curve.ctrlpts = points
+            self.__CreateModelPart()
             cad_util.MakeModelPart(self.cad_geom, self.trimming_curve.evalpts, self.evaluation_model_part)
-            v_val2 = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.VON_MISES_STRESS, 0.1)
-            grad_v = -1*(v_val1-v_val2)/delta
+            u_val2 = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.VON_MISES_STRESS, self.rho)
+            grad_u = -1*(u_val1-u_val2)/(2*delta_u)
 
-            points[i][1] = v ## Reset v
+            points = points_backup ## Reset u and now change v
+
+
+            points[i][1] = v-delta_v
+            if points[i][1] < 0.0:
+                points[i][1] = 0.0
+            self.trimming_curve.ctrlpts = points
+            self.__CreateModelPart()
+            cad_util.MakeModelPart(self.cad_geom, self.trimming_curve.evalpts, self.evaluation_model_part)
+            v_val1 = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.VON_MISES_STRESS, self.rho)
+            points = points_backup ## Reset V
+            points[i][1] = v+delta_v
+            if points[i][1] > 1.0:
+                points[i][1] = 1.0
+            self.trimming_curve.ctrlpts = points
+            self.__CreateModelPart()
+            cad_util.MakeModelPart(self.cad_geom, self.trimming_curve.evalpts, self.evaluation_model_part)
+            v_val2 = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.VON_MISES_STRESS, self.rho)
+            grad_v = -1*(v_val1-v_val2)/(2*delta_v)
+
+            points = points_backup ## Reset v
             norm = math.sqrt(grad_u*grad_u + grad_v*grad_v)
-            grad[i] = [ grad_u/norm, grad_v/norm ]
+            gradients[i] = [ grad_u, grad_v ]
+            max_norm = max([max_norm, norm])
 
-        return grad
+        if(max_norm == 0.0): max_norm = 1.0
+        for i, grad in gradients.items() :
+            gradients[i] = [grad[0]/max_norm, grad[1]/max_norm]
+
+        return gradients
 
