@@ -173,13 +173,17 @@ public:
     {
         KRATOS_TRY
 
-        if (rCurrentProcessInfo[BUILD_LEVEL] == 1 ) // Mass matrix
+        switch(rCurrentProcessInfo[BUILD_LEVEL])
+        {
+        case 1: // Mass matrix
             rElement.CalculateMassMatrix(rLHS_Contribution, rCurrentProcessInfo);
-        else if (rCurrentProcessInfo[BUILD_LEVEL] == 2) // Stiffness matrix
+            break;
+        case 2: // Stiffness matrix
             rElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
-        else 
-            KRATOS_ERROR <<"Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
-        
+        default:
+            KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
+        }
+
         rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
