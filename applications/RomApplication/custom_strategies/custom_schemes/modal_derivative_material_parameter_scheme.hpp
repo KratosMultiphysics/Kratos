@@ -266,14 +266,18 @@ protected:
     {
         KRATOS_TRY
 
-        switch (BaseType::mFiniteDifferenceType)
+        // Compute element LHS derivative
+        if ( rElement.GetProperties().Has(rDerivativeParameter) )
         {
-        case BaseType::FiniteDifferenceType::Forward:
-            this->ForwardDifferencingWithMaterialParameter_LHS(rElement, rDerivativeParameter, rElementLHSDerivative, rCurrentProcessInfo);
-            break;
-        case BaseType::FiniteDifferenceType::Central:
-            this->CentralDifferencingWithMaterialParameter_LHS(rElement, rDerivativeParameter, rElementLHSDerivative, rCurrentProcessInfo);
-            break;
+            switch (BaseType::mFiniteDifferenceType)
+            {
+            case BaseType::FiniteDifferenceType::Forward:
+                this->ForwardDifferencingWithMaterialParameter_LHS(rElement, rDerivativeParameter, rElementLHSDerivative, rCurrentProcessInfo);
+                break;
+            case BaseType::FiniteDifferenceType::Central:
+                this->CentralDifferencingWithMaterialParameter_LHS(rElement, rDerivativeParameter, rElementLHSDerivative, rCurrentProcessInfo);
+                break;
+            }        
         }
 
         KRATOS_CATCH("")
@@ -295,32 +299,29 @@ protected:
 
         KRATOS_TRY
 
-        if ( rElement.GetProperties().Has(rDerivativeParameter) )
-        {
-            // Neutral state
-            LocalSystemMatrixType element_LHS_initial;
-            rElement.CalculateLeftHandSide(element_LHS_initial, rCurrentProcessInfo);
-            
-            // Save property pointer
-            Properties::Pointer p_global_properties = rElement.pGetProperties();
-            const double initial_property_value = p_global_properties->GetValue(rDerivativeParameter);
-            const double property_value_step_size = initial_property_value*BaseType::mFiniteDifferenceStepSize;
+        // Neutral state
+        LocalSystemMatrixType element_LHS_initial;
+        rElement.CalculateLeftHandSide(element_LHS_initial, rCurrentProcessInfo);
 
-            // Create new property and assign it to the element
-            Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
-            rElement.SetProperties(p_local_property);
-            
-            // Positive perturbation
-            LocalSystemMatrixType element_LHS_p_perturbed;
-            p_local_property->SetValue(rDerivativeParameter, (initial_property_value + property_value_step_size));
-            rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
-            
-            // Reset perturbationby giving original properties back
-            rElement.SetProperties(p_global_properties);
+        // Save property pointer
+        Properties::Pointer p_global_properties = rElement.pGetProperties();
+        const double initial_property_value = p_global_properties->GetValue(rDerivativeParameter);
+        const double property_value_step_size = initial_property_value * BaseType::mFiniteDifferenceStepSize;
 
-            // Compute element matrix derivative
-            noalias(rElementLHSDerivative) = (element_LHS_p_perturbed - element_LHS_initial) / property_value_step_size;
-        }
+        // Create new property and assign it to the element
+        Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+        rElement.SetProperties(p_local_property);
+
+        // Positive perturbation
+        LocalSystemMatrixType element_LHS_p_perturbed;
+        p_local_property->SetValue(rDerivativeParameter, (initial_property_value + property_value_step_size));
+        rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
+
+        // Reset perturbationby giving original properties back
+        rElement.SetProperties(p_global_properties);
+
+        // Compute element matrix derivative
+        noalias(rElementLHSDerivative) = (element_LHS_p_perturbed - element_LHS_initial) / property_value_step_size;
 
         KRATOS_CATCH("")
     }
@@ -340,33 +341,30 @@ protected:
     {
         KRATOS_TRY
 
-        if ( rElement.GetProperties().Has(rDerivativeParameter) )
-        {
-            // Save property pointer
-            Properties::Pointer p_global_properties = rElement.pGetProperties();
-            const double initial_property_value = p_global_properties->GetValue(rDerivativeParameter);
-            const double property_value_step_size = initial_property_value*BaseType::mFiniteDifferenceStepSize;
+        // Save property pointer
+        Properties::Pointer p_global_properties = rElement.pGetProperties();
+        const double initial_property_value = p_global_properties->GetValue(rDerivativeParameter);
+        const double property_value_step_size = initial_property_value * BaseType::mFiniteDifferenceStepSize;
 
-            // Create new property and assign it to the element
-            Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
-            rElement.SetProperties(p_local_property);
-            
-            // Positive perturbation
-            LocalSystemMatrixType element_LHS_p_perturbed;
-            p_local_property->SetValue(rDerivativeParameter, (initial_property_value + property_value_step_size));
-            rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
+        // Create new property and assign it to the element
+        Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+        rElement.SetProperties(p_local_property);
 
-            // Negative perturbation
-            LocalSystemMatrixType element_LHS_n_perturbed;
-            p_local_property->SetValue(rDerivativeParameter, (initial_property_value - property_value_step_size));
-            rElement.CalculateLeftHandSide(element_LHS_n_perturbed, rCurrentProcessInfo);
+        // Positive perturbation
+        LocalSystemMatrixType element_LHS_p_perturbed;
+        p_local_property->SetValue(rDerivativeParameter, (initial_property_value + property_value_step_size));
+        rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
 
-            // Reset perturbationby giving original properties back
-            rElement.SetProperties(p_global_properties);
+        // Negative perturbation
+        LocalSystemMatrixType element_LHS_n_perturbed;
+        p_local_property->SetValue(rDerivativeParameter, (initial_property_value - property_value_step_size));
+        rElement.CalculateLeftHandSide(element_LHS_n_perturbed, rCurrentProcessInfo);
 
-            // Compute element matrix derivative
-            noalias(rElementLHSDerivative) = (element_LHS_p_perturbed - element_LHS_n_perturbed) / (2.0*property_value_step_size);
-        }
+        // Reset perturbationby giving original properties back
+        rElement.SetProperties(p_global_properties);
+
+        // Compute element matrix derivative
+        noalias(rElementLHSDerivative) = (element_LHS_p_perturbed - element_LHS_n_perturbed) / (2.0 * property_value_step_size);
 
         KRATOS_CATCH("")
     }
