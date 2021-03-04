@@ -118,6 +118,12 @@ inline double CalculateValueKSAggregationWithModelpart(
 {
     return utils.CalculateValue(rModelPart, rVariable, rho);
 }
+inline double CalculateValueKSAggregationWithModelpartMatrixVariable(
+    KreisselmeierSteinhauserAggregationUtility& utils,
+    const ModelPart& rModelPart, const Variable<Matrix>& rVariable, const double rho)
+{
+    return utils.CalculateValue(rModelPart, rVariable, rho);
+}
 
 // ==============================================================================
 void  AddCustomUtilitiesToPython(pybind11::module& m)
@@ -246,6 +252,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&>())
         .def("CalculateValue", &CalculateValueKSAggregationDefault)
         .def("CalculateValue", &CalculateValueKSAggregationWithModelpart)
+        .def("CalculateValue", &CalculateValueKSAggregationWithModelpartMatrixVariable)
         ;
 
 }
