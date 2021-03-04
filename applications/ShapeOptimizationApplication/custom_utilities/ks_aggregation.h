@@ -32,6 +32,7 @@
 #include "includes/model_part.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "input_output/vtk_output.h"
+#include "processes/integration_values_extrapolation_to_nodes_process.h"
 
 
 namespace Kratos
@@ -108,6 +109,12 @@ public:
     {
         return InternalCalculateAggregationValue(rModelPart, rVariable, rho);
     }
+
+    double CalculateValue(const ModelPart& rModelPart, const Variable<Matrix>& rVariable, const double rho) const
+    {
+        return InternalCalculateAggregationValue(rModelPart, rVariable, rho);
+    }
+
     // --------------------------------------------------------------------------
 
     ///@}
@@ -209,17 +216,16 @@ private:
     ///@{
     double InternalCalculateAggregationValue(const ModelPart& rModelPart, const Variable<double>& rVariable, const double rho) const
     {
-        double value = 0.0;
-        const auto& r_process_info = rModelPart.GetProcessInfo();
-        double max_mean = 0.0;
-        std::vector<double> mean_stresses_vector;
+        double aggregate_value = 0.0;
+        double max_value = 0.0;
+        std::vector<double> stresses_vector;
         const int max_results = 10000;
         Vector weights;
         typename BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
         typename BinBasedFastPointLocator<3>::ResultIteratorType result_begin =
             results.begin();
 
-        mean_stresses_vector.reserve((rModelPart.NumberOfElements()));
+        stresses_vector.reserve((rModelPart.NumberOfNodes()));
         for (auto& r_node : rModelPart.Nodes())
         {
             Element::Pointer r_host_element;
@@ -229,24 +235,67 @@ private:
             if(is_found){
                 const int num_gps = r_host_element->GetGeometry().IntegrationPoints(r_host_element->GetIntegrationMethod()).size();
                 std::vector<double> stress_vector(num_gps);
-                r_host_element->CalculateOnIntegrationPoints(rVariable, stress_vector, r_process_info);
-                double mean = 0.0;
-                for(const auto stress : stress_vector){
-                    mean+=stress;
+                double value = 0.0;
+                const auto& r_geom = r_host_element->GetGeometry();
+                for(unsigned int i = 0; i< r_geom.size(); ++i )
+                {
+                    value += r_geom[i].GetValue(rVariable) * weights[i];
                 }
-                mean = mean/stress_vector.size();
-                if(mean > max_mean)
-                    max_mean = mean;
-                mean_stresses_vector.push_back(mean);
+                if(std::abs(value) > max_value)
+                    max_value = value;
+                stresses_vector.push_back(value);
             }
             else {
                 KRATOS_WARNING("KreisselmeierSteinhauserAggregationUtility")<<"Node "<< r_node <<" not found !"<<std::endl;
             }
         }
-        for (const auto mean : mean_stresses_vector)
-            value += std::exp(rho * (mean/max_mean));
-        value /= rho;
-        return value;
+        for (const auto stress : stresses_vector)
+            aggregate_value += std::exp(rho * ((stress)/max_value));
+
+        aggregate_value = (1/rho) * std::log(aggregate_value);
+        return aggregate_value;
+    }
+
+    double InternalCalculateAggregationValue(const ModelPart& rModelPart, const Variable<Matrix>& rVariable, const double rho) const
+    {
+        double aggregate_value = 0.0;
+        double max_value = 0.0;
+        std::vector<double> stresses_vector;
+        const int max_results = 10000;
+        Vector weights;
+        typename BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
+        typename BinBasedFastPointLocator<3>::ResultIteratorType result_begin =
+            results.begin();
+
+        stresses_vector.reserve((rModelPart.NumberOfNodes()));
+        for (auto& r_node : rModelPart.Nodes())
+        {
+            Element::Pointer r_host_element;
+            bool is_found = false;
+            is_found = mpPointLocator->FindPointOnMesh(r_node.Coordinates(), weights,
+                                                r_host_element, result_begin, max_results, 1e-1);
+            if(is_found){
+                const int num_gps = r_host_element->GetGeometry().IntegrationPoints(r_host_element->GetIntegrationMethod()).size();
+                std::vector<double> stress_vector(num_gps);
+                double value = 0.0;
+                const auto& r_geom = r_host_element->GetGeometry();
+                for(unsigned int i = 0; i< r_geom.size(); ++i )
+                {
+                    value += r_geom[i].GetValue(rVariable)(0,0) * weights[i];
+                }
+                if(std::abs(value) > max_value)
+                    max_value = value;
+                stresses_vector.push_back(value);
+            }
+            else {
+                KRATOS_WARNING("KreisselmeierSteinhauserAggregationUtility")<<"Node "<< r_node <<" not found !"<<std::endl;
+            }
+        }
+        for (const auto stress : stresses_vector)
+            aggregate_value += std::exp(rho * ((stress)/max_value));
+
+        aggregate_value = (1/rho) * std::log(aggregate_value);
+        return aggregate_value;
     }
 
     ///@}
