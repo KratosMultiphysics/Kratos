@@ -34,7 +34,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwFaceLoadInterfaceCondition : publ
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwFaceLoadInterfaceCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwFaceLoadInterfaceCondition );
     
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;

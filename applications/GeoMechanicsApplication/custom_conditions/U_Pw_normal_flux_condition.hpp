@@ -35,7 +35,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwNormalFluxCondition : public UPwF
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwNormalFluxCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwNormalFluxCondition );
     
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;

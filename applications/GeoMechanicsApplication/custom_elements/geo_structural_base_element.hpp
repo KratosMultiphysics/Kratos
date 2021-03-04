@@ -38,7 +38,7 @@ public:
     /// The definition of the sizetype
     typedef std::size_t SizeType;
 
-    KRATOS_CLASS_POINTER_DEFINITION( GeoStructuralBaseElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( GeoStructuralBaseElement );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

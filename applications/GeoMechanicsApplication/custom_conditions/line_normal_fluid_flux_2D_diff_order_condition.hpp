@@ -30,7 +30,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) LineNormalFluidFlux2DDiffOrderCondit
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( LineNormalFluidFlux2DDiffOrderCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineNormalFluidFlux2DDiffOrderCondition );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

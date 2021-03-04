@@ -35,7 +35,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeneralUPwDiffOrderCondition : publi
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( GeneralUPwDiffOrderCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( GeneralUPwDiffOrderCondition );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

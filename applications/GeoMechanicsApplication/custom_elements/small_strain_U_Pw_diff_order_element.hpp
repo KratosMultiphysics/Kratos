@@ -37,7 +37,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderElement : pub
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( SmallStrainUPwDiffOrderElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallStrainUPwDiffOrderElement );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // Default constructor

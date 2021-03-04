@@ -30,7 +30,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) LineNormalLoad2DDiffOrderCondition :
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( LineNormalLoad2DDiffOrderCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineNormalLoad2DDiffOrderCondition );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

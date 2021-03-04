@@ -30,7 +30,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SurfaceLoad3DDiffOrderCondition : pu
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoad3DDiffOrderCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SurfaceLoad3DDiffOrderCondition );
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

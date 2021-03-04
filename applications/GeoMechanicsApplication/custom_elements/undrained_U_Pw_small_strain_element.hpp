@@ -32,7 +32,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UndrainedUPwSmallStrainElement
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UndrainedUPwSmallStrainElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UndrainedUPwSmallStrainElement );
 
     typedef std::size_t IndexType;
     typedef Properties PropertiesType;

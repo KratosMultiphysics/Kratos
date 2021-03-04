@@ -30,7 +30,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SurfaceNormalFluidFlux3DDiffOrderCon
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( SurfaceNormalFluidFlux3DDiffOrderCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SurfaceNormalFluidFlux3DDiffOrderCondition );
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

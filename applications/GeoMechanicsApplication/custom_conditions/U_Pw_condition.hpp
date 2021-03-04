@@ -38,7 +38,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwCondition : public Condition
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwCondition );
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
