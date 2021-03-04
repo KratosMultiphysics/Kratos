@@ -409,24 +409,25 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
-    const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
+    const array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
 
-    // Computing local velocity
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
-    for (unsigned int i = 0; i < Dim; i++){
-        velocity[i] += free_stream_velocity[i];
-    }
+    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(velocity, rCurrentProcessInfo);
+
+    const double density = PotentialFlowUtilities::ComputeDensity<Dim, NumNodes>(local_mach_number_squared, rCurrentProcessInfo);
+
+    const double DrhoDu2 = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
-    noalias(rLeftHandSideMatrix) +=
-        data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
-    noalias(rLeftHandSideMatrix) += data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+    noalias(rLeftHandSideMatrix) += data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
 
-    const BoundedMatrix<double, NumNodes, NumNodes> rLaplacianMatrix =
-        data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
+    const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
+
+    const double local_velocity_squared = inner_prod(velocity, velocity);
+
+    if (local_velocity_squared < max_velocity_squared){
+        noalias(rLeftHandSideMatrix) += data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+    }
 }
 
 template <int Dim, int NumNodes>
@@ -442,14 +443,14 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
+    const CompressiblePerturbationPotentialFlowElement& r_this = *this;
 
-    // Computing local velocity
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
-    for (unsigned int i = 0; i < Dim; i++){
-        velocity[i] += free_stream_velocity[i];
-    }
+    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(r_this, rCurrentProcessInfo);
+
+    // Compute density
+    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(velocity, rCurrentProcessInfo);
+
+    const double density = PotentialFlowUtilities::ComputeDensity<Dim, NumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
     noalias(rRightHandSideVector) = - data.vol * density * prod(data.DN_DX, velocity);
 }
