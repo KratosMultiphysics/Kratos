@@ -343,6 +343,7 @@ protected:
 
         // Compute element matrix derivative
         LocalSystemMatrixType element_matrix_derivative(element_dofs_size, element_dofs_size);
+        element_matrix_derivative.clear();
         switch (mDerivativeParameter)
         {
         case DerivativeParameter::Density:

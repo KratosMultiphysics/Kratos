@@ -152,7 +152,8 @@ public:
         // Lock element nodes for OMP parallelism
         this->LockElementNodes(rElement);
         
-        Matrix element_matrix_derivative(num_element_dofs, num_element_dofs);
+        LocalSystemMatrixType element_matrix_derivative(num_element_dofs, num_element_dofs);
+        element_matrix_derivative.clear();
         // Perform FD
         switch (BaseType::mFiniteDifferenceType)
         {
