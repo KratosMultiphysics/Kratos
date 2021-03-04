@@ -35,11 +35,11 @@ def GetPointCoordinatesAndDerivatives(nurbs_surface, points_on_surface, order):
 def MakeModelPart(nurbs_surface, points_on_surface, model_part):
     id = model_part.NumberOfNodes()
     for [u,v] in points_on_surface:
-        if(u>1.0): u = 1.0
-        if(u<0.0): u = 0.0
+        # if(u>1.0): u = 1.0
+        # if(u<0.0): u = 0.0
 
-        if(v>1.0): v = 1.0
-        if(v<0.0): v = 0.0
+        # if(v>1.0): v = 1.0
+        # if(v<0.0): v = 0.0
         #print("############ u : ", u, " v : ", v)
         result = nurbs_surface.derivatives(u,v, 0)
         point_coordinates = result[0][0]
