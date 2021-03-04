@@ -140,6 +140,46 @@ public:
     ///@{
 
     /**
+     * @brief This function is designed to calculate just the LHS contribution
+     * @param rElement The element to compute
+     * @param LHS_Contribution The RHS vector contribution
+     * @param rEquationIdVector The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateLHSContribution(
+        Element& rElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        KRATOS_TRY
+
+        switch(rCurrentProcessInfo[BUILD_LEVEL])
+        {
+        case 1: // Mass matrix
+            rElement.CalculateMassMatrix(rLHS_Contribution, rCurrentProcessInfo);
+            break;
+        case 2: // Stiffness matrix
+            rElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
+            break;
+        case 3: // Adjoint LHS matrix
+        {    
+            LocalSystemMatrixType tmp_rLHS_Contribution;
+            rElement.CalculateLeftHandSide(tmp_rLHS_Contribution, rCurrentProcessInfo);
+            rLHS_Contribution = trans(tmp_rLHS_Contribution);
+            break;
+        }
+        default:
+            KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
+        }
+
+        rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief This function is designed to calculate just the RHS contribution
      * @param rElement The element to compute
      * @param RHS_Contribution The RHS vector contribution
@@ -167,15 +207,15 @@ public:
 
         switch(rCurrentProcessInfo[BUILD_LEVEL])
         {
-        case 3:
+        case 4:
             // Adjoint eigenvalue derivative RHS
             CalculateAdjointRHSContribution(rElement, rRHS_Contribution, rCurrentProcessInfo);
             break;
-        case 4:
+        case 5:
             // Basis derivative RHS
             CalculateModalDerivativeRHSContribution(rElement, rRHS_Contribution, rCurrentProcessInfo);
             break;
-        case 5:
+        case 6:
             // Adjoint sensitivity contribution
             CalculateAdjointSensitivityContribution(rElement, rRHS_Contribution, rCurrentProcessInfo);
             break;

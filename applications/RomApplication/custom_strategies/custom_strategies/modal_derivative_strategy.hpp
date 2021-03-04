@@ -840,15 +840,21 @@ public:
         TSystemVectorType adj_Dx(system_size);
         TSystemVectorType adj_b(system_size);
         TSystemMatrixType adj_A(rStiffnessMatrix);
+        TSparseSpace::SetToZero(adj_A);
+        r_current_process_info[BUILD_LEVEL] = 3;
+        p_builder_and_solver->BuildLHS(p_scheme,r_model_part,adj_A);
+        KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time Adjoint LHS: " << time_adjoint_LHS.ElapsedSeconds() << std::endl;
         
         // Apply master-slave constraints and dirichlet conditions to adjoint LHS
+        // Dynamic derivative LHS varies for each eigenvalue. Apply constraints and conditions each time
+        BuiltinTimer time_adjoint_constraints_and_conditions;
         if (master_slave_constraints_defined)
         {
             p_builder_and_solver->ApplyConstraints(p_scheme, r_model_part, adj_A, adj_b);
         }
         p_builder_and_solver->ApplyDirichletConditions_LHS(p_scheme, r_model_part, adj_A, adj_Dx);
-        KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time Adjoint LHS: " << time_adjoint_LHS.ElapsedSeconds() << std::endl;
-
+        KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Apply Adjoint LHS constraints and conditions: " << time_adjoint_constraints_and_conditions.ElapsedSeconds() << std::endl;
+        
         // Get eigenvalues vector
         auto& r_eigenvalues = r_current_process_info[EIGENVALUE_VECTOR];
 
@@ -878,14 +884,14 @@ public:
             this->AddDynamicDerivativeConstraint(basis);
             p_builder_and_solver->ApplyDirichletConditions_LHS(p_scheme, r_model_part, rA, rDx);
             this->RemoveDynamicDerivativeConstraint();
-            KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Apply LHS constraints and conditions: " << time_system_matrix.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Apply LHS constraints and conditions: " << time_constraints_and_conditions.ElapsedSeconds() << std::endl;
 
             // Solve for adjoint variables if necessary
             if (mDerivativeParameterType == DerivativeParameterType::Stiffness)
             {
                 // Build adjoint RHS
                 BuiltinTimer time_adjoint_RHS;
-                r_current_process_info[BUILD_LEVEL] = 3;
+                r_current_process_info[BUILD_LEVEL] = 4;
                 TSparseSpace::SetToZero(adj_b);
                 p_builder_and_solver->BuildRHS(p_scheme, r_model_part, adj_b);
 
@@ -921,7 +927,7 @@ public:
                 BuiltinTimer time_build_rhs;
                 
                 // Build RHS partially : -(-lambda * dM/dp + dK/dp) . basis
-                r_current_process_info[BUILD_LEVEL] = 4;
+                r_current_process_info[BUILD_LEVEL] = 5;
                 p_builder_and_solver->BuildRHS(p_scheme, r_sub_model_part, rb);
 
                 // Compute the derivative of the eigenvalue : basis^T . (-lambda * dM/dp + dK/dp) . basis
@@ -932,7 +938,7 @@ public:
                 {
                     // Build adjoint sensitivity contribution
                     BuiltinTimer time_adjoint_sensitivity;
-                    r_current_process_info[BUILD_LEVEL] = 5;
+                    r_current_process_info[BUILD_LEVEL] = 6;
                     TSparseSpace::SetToZero(adj_b);
                     p_builder_and_solver->BuildRHS(p_scheme, r_sub_model_part, adj_b);
                     
