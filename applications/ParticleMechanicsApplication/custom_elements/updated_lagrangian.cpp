@@ -1287,18 +1287,19 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, cons
     MatrixType StiffnessMatrix  = Matrix();
     if (beta!=0.0){
         this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
+        //4.1.-Compose the Damping Matrix:
+        //Rayleigh Damping Matrix: alpha*M + beta*K
+        rDampingMatrix += beta  * StiffnessMatrix;
     }
 
     //3.-Calculate MassMatrix:
     MatrixType MassMatrix  = Matrix();
     if (alpha!=0.0){
         this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+        //4.2.-Compose the Damping Matrix:
+        //Rayleigh Damping Matrix: alpha*M + beta*K
+        rDampingMatrix  += alpha * MassMatrix;
     }
-
-    //4.-Compose the Damping Matrix:
-    //Rayleigh Damping Matrix: alpha*M + beta*K
-    rDampingMatrix  = alpha * MassMatrix;
-    rDampingMatrix += beta  * StiffnessMatrix;
 
     KRATOS_CATCH( "" )
 }
