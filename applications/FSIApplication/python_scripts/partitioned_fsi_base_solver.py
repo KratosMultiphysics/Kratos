@@ -47,7 +47,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self.interfaces_dict['structure'] = coupling_settings["structure_interfaces_list"][0].GetString()
         if mappers_settings.size() == 1:
             self.double_faced_structure = False
-            self.interfaces_dict['fluid_positive'] = mappers_settings[0]["fluid_interface_submodelpart_name"].GetString() 
+            self.interfaces_dict['fluid_positive'] = mappers_settings[0]["fluid_interface_submodelpart_name"].GetString()
             self.interfaces_dict['fluid_negative'] = None
         elif mappers_settings.size() == 2:
             self.double_faced_structure = True
@@ -398,7 +398,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
             # Compute the residual vector
             dis_residual_norm = self.__GetFSICouplingInterfaceStructure().ComputeResidualVector()
-            
+
             # Check and update iterator counter
             if nl_it == self.max_nl_it:
                 KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'FSI non-linear converged not achieved in {0} iterations'.format(self.max_nl_it))
@@ -882,9 +882,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
         # Note that this would be required in order to set the first observation matrices
         if self._GetConvergenceAccelerator().IsBlockNewton():
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
-                KratosStructural.SURFACE_LOAD,
+                KratosStructural.SURFACE_LOAD,  #TODO: CHECK WHY ARE NOT USING LINE LOAD IN 2D?
                 KratosMultiphysics.RELAXED_TRACTION,
-                self._GetStructureInterfaceSubmodelPart(),
+                self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 0)
 

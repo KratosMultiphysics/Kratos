@@ -298,7 +298,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             self.__CalculateFluidInterfaceTraction()
 
             # Transfer the fluid load to the structure FSI coupling interface
-            self.__MapFluidInterfaceTraction()     
+            self.__MapFluidInterfaceTraction()
 
             # Compute the current iteration traction
             if not self._GetConvergenceAccelerator().IsBlockNewton():
@@ -320,7 +320,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
             # Compute the residual vector
             dis_residual_norm = self.__GetFSICouplingInterfaceStructure().ComputeResidualVector()
-            
+
             # Check and update iterator counter
             if nl_it == self.max_nl_it:
                 KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'FSI non-linear converged not achieved in {0} iterations'.format(self.max_nl_it))
@@ -354,7 +354,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
     #         #     KratosMultiphysics.DISPLACEMENT,
     #         #     self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart().Nodes)
     #         # self.__GetFSICouplingInterfaceStructure().UpdatePosition()
-    #         self.__GetFSICouplingInterfaceStructure().UpdatePosition(RELAXED_DISPLACEMENT) 
+    #         self.__GetFSICouplingInterfaceStructure().UpdatePosition(RELAXED_DISPLACEMENT)
 
     #         # Map the RELAXED_DISP from the structure FSI coupling interface to fluid FSI coupling interface
     #         # Note that we take advance of the fact that the coupling interfaces coincide in the embedded case
@@ -399,7 +399,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
     #                 raise Exception(err_msg)
 
     #         # Transfer the fluid load to the structure FSI coupling interface
-    #         self.__MapFluidInterfaceTraction()                
+    #         self.__MapFluidInterfaceTraction()
 
     #         # Solve the structure problem
     #         self.__SolveStructure()
@@ -418,7 +418,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
     #             self._GetConvergenceAccelerator().InitializeNonLinearIteration() #TODO: This call must be done within the fsi_coupling_interface
     #             self.__GetFSICouplingInterfaceStructure().Update()
     #             self._GetConvergenceAccelerator().FinalizeNonLinearIteration() #TODO: This call must be done within the fsi_coupling_interface
-                
+
     #             # Update iterator counter
     #             nl_it += 1
 
@@ -839,12 +839,12 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
                 self.__GetTractionVariable(),
                 KratosMultiphysics.RELAXED_TRACTION,
-                self.__GetStructureInterfaceSubmodelPart(),
+                self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 0)
 
         # Directly send the map load from the structure FSI coupling interface to the parent one
-        self.__GetFSICouplingInterfaceStructure().TransferValuesToFatherModelPart(self.__GetTractionVariable())                    
+        self.__GetFSICouplingInterfaceStructure().TransferValuesToFatherModelPart(self.__GetTractionVariable())
 
         # Solve the structure problem
         self.__SolveStructure()
@@ -874,4 +874,3 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             return KratosStructural.SURFACE_LOAD
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self.__GetDomainSize()))
-        

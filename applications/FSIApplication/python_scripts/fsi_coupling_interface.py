@@ -171,7 +171,6 @@ class FSICouplingInterface():
             output_variable,
             iteration_value_u_vector)
 
-
         # Set and fill the traction value vector with the current non-linear iteration values (f^{k+1})
         # Note that these are the values that were employed to obtain the current displacements
         iteration_value_f_vector = KratosMultiphysics.Vector(self._residual_size)
