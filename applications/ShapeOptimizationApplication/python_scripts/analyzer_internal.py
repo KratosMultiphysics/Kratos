@@ -36,7 +36,7 @@ class IterationScope:
         self.is_evaluated_in_folder = is_evaluated_in_folder
         if (self.is_evaluated_in_folder):
             self.currentPath = pathlib.Path.cwd()
-            output_path = pathlib.Path("OptimizationIterations")
+            output_path = pathlib.Path("Design_Iterations")
             response_text = "{:}/{:d}".format(response_id, iteration_number)
             self.scope = output_path / response_text
 
