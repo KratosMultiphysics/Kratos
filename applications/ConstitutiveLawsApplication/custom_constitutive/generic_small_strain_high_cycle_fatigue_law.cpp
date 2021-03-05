@@ -78,8 +78,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
-        double max_stress = mMaxStress;
-        double min_stress = mMinStress;
+        const double max_stress = mMaxStress;
+        const double min_stress = mMinStress;
         unsigned int global_number_of_cycles = mNumberOfCyclesGlobal;
         unsigned int local_number_of_cycles = mNumberOfCyclesLocal;
         bool max_indicator = mMaxDetected;
@@ -100,8 +100,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
 
             if (max_indicator && min_indicator) {
-                double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
-                double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
+                const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
+                const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
                 double alphat;
                 HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
                     max_stress,
@@ -145,7 +145,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
             }
 
             if (adnvance_strategy_applied) {
-                double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
+                const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
                 double alphat;
                 HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
                     max_stress,
