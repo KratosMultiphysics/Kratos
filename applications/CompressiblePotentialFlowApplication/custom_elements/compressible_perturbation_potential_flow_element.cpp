@@ -419,7 +419,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
 
     CalculateLeftHandSideContribution(lhs, rCurrentProcessInfo, velocity, data);
 
-    noalias(rLeftHandSideMatrix) += lhs;
+    noalias(rLeftHandSideMatrix) = lhs;
 }
 
 template <int Dim, int NumNodes>
