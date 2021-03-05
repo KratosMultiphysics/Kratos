@@ -70,10 +70,6 @@ public:
     // Base type definition
     typedef ModalDerivativeScheme<TSparseSpace,TDenseSpace> BaseType;
 
-    /// Matrix type definition
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-    /// Vector type definition
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
     /// Local system matrix type definition
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
     /// Local system vector type definition
@@ -83,9 +79,6 @@ public:
     typedef typename BaseType::TDofType TDofType;
     /// Dof pointers vector type
     typedef typename BaseType::TElementDofPointersVectorType TElementDofPointersVectorType;
-
-    /// Node pointers vector type
-    typedef typename BaseType::TNodePointerVectorType TNodePointerVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -100,9 +93,6 @@ public:
     : 
     ModalDerivativeScheme<TSparseSpace,TDenseSpace>(InputParameters)
     {
-        KRATOS_TRY
-
-        KRATOS_CATCH("")
     }
 
     /// Destructor.

@@ -69,10 +69,6 @@ public:
     // Base type definition
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
 
-    /// Matrix type definition
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-    /// Vector type definition
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
     /// Local system matrix type definition
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
     /// Local system vector type definition
@@ -82,13 +78,6 @@ public:
     typedef Dof<double> TDofType;
     /// Dof pointers vector type
     typedef std::vector<TDofType::Pointer> TElementDofPointersVectorType;
-
-    /// Node type definition
-    typedef Node<3>::NodeType TNodeType;
-    /// Node pointer type definition
-    typedef TNodeType::Pointer TNodePointerType;
-    /// Node pointers vector type
-    typedef std::vector<TNodePointerType> TNodePointerVectorType;
 
     ///@}
     ///@name Life Cycle

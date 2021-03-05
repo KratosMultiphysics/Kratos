@@ -70,22 +70,13 @@ public:
     // Base type definition
     typedef ModalDerivativeScheme<TSparseSpace,TDenseSpace> BaseType;
 
-    /// Matrix type definition
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-    /// Vector type definition
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
     /// Local system matrix type definition
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
     /// Local system vector type definition
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
-    /// DoF type definition
-    typedef typename BaseType::TDofType TDofType;
     /// Dof pointers vector type
     typedef typename BaseType::TElementDofPointersVectorType TElementDofPointersVectorType;
-
-    /// Node pointers vector type
-    typedef typename BaseType::TNodePointerVectorType TNodePointerVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -105,23 +96,21 @@ public:
         std::string derivative_parameter = InputParameters["derivative_parameter"].GetString();
         if ( derivative_parameter == "density" )
         {
-            mDerivativeParameter = DerivativeParameter::Density;
-            mDerivativeMatrix = DerivativeMatrix::Mass;
+            mpDerivativeParameter = &DENSITY;
+            mDerivativeMatrixType = DerivativeMatrixType::Mass;
         } 
         else if ( derivative_parameter == "poisson_ratio" )
         {
-            mDerivativeParameter = DerivativeParameter::Poisson_Ratio;
-            mDerivativeMatrix = DerivativeMatrix::Stiffness;
+            mpDerivativeParameter = &POISSON_RATIO;
+            mDerivativeMatrixType = DerivativeMatrixType::Stiffness;
         }
         else if ( derivative_parameter == "young_modulus")
         {
-            mDerivativeParameter = DerivativeParameter::Young_Modulus;
-            mDerivativeMatrix = DerivativeMatrix::Stiffness;
+            mpDerivativeParameter = &YOUNG_MODULUS;
+            mDerivativeMatrixType = DerivativeMatrixType::Stiffness;
         }
         else
-        {
             KRATOS_ERROR << "Unknown derivative parameter : " << derivative_parameter << std::endl;
-        }        
         
         KRATOS_CATCH("")
     }
@@ -198,6 +187,12 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+    
+    Variable<double>* mpDerivativeParameter = nullptr;
+
+    enum DerivativeMatrixType {Mass, Stiffness};
+
+    DerivativeMatrixType mDerivativeMatrixType;
 
     ///@}
     ///@name Protected Operators
@@ -230,20 +225,19 @@ protected:
         // Compute element matrix derivative
         LocalSystemMatrixType element_matrix_derivative(num_element_dofs, num_element_dofs);
         element_matrix_derivative.clear();
-        switch (mDerivativeParameter)
+
+        if (*mpDerivativeParameter == DENSITY)
         {
-        case DerivativeParameter::Density:
             // Linear dependency
             rElement.CalculateMassMatrix(element_matrix_derivative, rCurrentProcessInfo);
             element_matrix_derivative *= (-rCurrentProcessInfo[EIGENVALUE_VECTOR][basis_i] / rElement.GetProperties()(DENSITY));
-            break;
-        case DerivativeParameter::Poisson_Ratio:
-            this->FiniteDifferencingWithMaterialParameter_LHS(rElement, POISSON_RATIO, element_matrix_derivative, rCurrentProcessInfo);
-            break;
-        case DerivativeParameter::Young_Modulus:
-            this->FiniteDifferencingWithMaterialParameter_LHS(rElement, YOUNG_MODULUS, element_matrix_derivative, rCurrentProcessInfo);
-            break;
         }
+        else if (*mpDerivativeParameter == YOUNG_MODULUS  || *mpDerivativeParameter == POISSON_RATIO)
+        {
+            this->FiniteDifferencingWithMaterialParameter_LHS(rElement, element_matrix_derivative, rCurrentProcessInfo);
+        }
+        else
+            KRATOS_ERROR << "Unknown derivative parameter : " << *mpDerivativeParameter << std::endl;
 
         // Compute RHS contribution
         noalias(rRHS_Contribution) = -prod(element_matrix_derivative, phi_elemental);
@@ -260,22 +254,21 @@ protected:
      */
     void FiniteDifferencingWithMaterialParameter_LHS(
         Element& rElement, 
-        const Variable<double>& rDerivativeParameter, 
         LocalSystemMatrixType& rElementLHSDerivative, 
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
         // Compute element LHS derivative
-        if ( rElement.GetProperties().Has(rDerivativeParameter) )
+        if ( rElement.GetProperties().Has(*mpDerivativeParameter) )
         {
             switch (BaseType::mFiniteDifferenceType)
             {
             case BaseType::FiniteDifferenceType::Forward:
-                this->ForwardDifferencingWithMaterialParameter_LHS(rElement, rDerivativeParameter, rElementLHSDerivative, rCurrentProcessInfo);
+                this->ForwardDifferencingWithMaterialParameter_LHS(rElement, rElementLHSDerivative, rCurrentProcessInfo);
                 break;
             case BaseType::FiniteDifferenceType::Central:
-                this->CentralDifferencingWithMaterialParameter_LHS(rElement, rDerivativeParameter, rElementLHSDerivative, rCurrentProcessInfo);
+                this->CentralDifferencingWithMaterialParameter_LHS(rElement, rElementLHSDerivative, rCurrentProcessInfo);
                 break;
             }        
         }
@@ -286,13 +279,11 @@ protected:
     /**
      * @brief This function performs forward differencing on the element LHS wrt material parameter
      * @param rElement The element to compute
-     * @param rDerivativeParameter The derivative parameter
      * @param rElementLHSDerivative The element LHS derivative
      * @param rCurrentProcessInfo The current process info instance
      */
     void ForwardDifferencingWithMaterialParameter_LHS(
         Element& rElement, 
-        const Variable<double>& rDerivativeParameter, 
         LocalSystemMatrixType& rElementLHSDerivative, 
         const ProcessInfo& rCurrentProcessInfo)
     {
@@ -305,7 +296,7 @@ protected:
 
         // Save property pointer
         Properties::Pointer p_global_properties = rElement.pGetProperties();
-        const double initial_property_value = p_global_properties->GetValue(rDerivativeParameter);
+        const double initial_property_value = p_global_properties->GetValue(*mpDerivativeParameter);
         const double property_value_step_size = initial_property_value * BaseType::mFiniteDifferenceStepSize;
 
         // Create new property and assign it to the element
@@ -314,7 +305,7 @@ protected:
 
         // Positive perturbation
         LocalSystemMatrixType element_LHS_p_perturbed;
-        p_local_property->SetValue(rDerivativeParameter, (initial_property_value + property_value_step_size));
+        p_local_property->SetValue(*mpDerivativeParameter, (initial_property_value + property_value_step_size));
         rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
 
         // Reset perturbationby giving original properties back
@@ -329,13 +320,11 @@ protected:
     /**
      * @brief This function performs central differencing on the element LHS wrt material parameter
      * @param rElement The element to compute
-     * @param rDerivativeParameter The derivative parameter
      * @param rElementLHSDerivative The element LHS derivative
      * @param rCurrentProcessInfo The current process info instance
      */
     void CentralDifferencingWithMaterialParameter_LHS(
         Element& rElement, 
-        const Variable<double>& rDerivativeParameter, 
         LocalSystemMatrixType& rElementLHSDerivative, 
         const ProcessInfo& rCurrentProcessInfo)
     {
@@ -343,7 +332,7 @@ protected:
 
         // Save property pointer
         Properties::Pointer p_global_properties = rElement.pGetProperties();
-        const double initial_property_value = p_global_properties->GetValue(rDerivativeParameter);
+        const double initial_property_value = p_global_properties->GetValue(*mpDerivativeParameter);
         const double property_value_step_size = initial_property_value * BaseType::mFiniteDifferenceStepSize;
 
         // Create new property and assign it to the element
@@ -352,12 +341,12 @@ protected:
 
         // Positive perturbation
         LocalSystemMatrixType element_LHS_p_perturbed;
-        p_local_property->SetValue(rDerivativeParameter, (initial_property_value + property_value_step_size));
+        p_local_property->SetValue(*mpDerivativeParameter, (initial_property_value + property_value_step_size));
         rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
 
         // Negative perturbation
         LocalSystemMatrixType element_LHS_n_perturbed;
-        p_local_property->SetValue(rDerivativeParameter, (initial_property_value - property_value_step_size));
+        p_local_property->SetValue(*mpDerivativeParameter, (initial_property_value - property_value_step_size));
         rElement.CalculateLeftHandSide(element_LHS_n_perturbed, rCurrentProcessInfo);
 
         // Reset perturbationby giving original properties back
@@ -394,14 +383,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    enum DerivativeParameter {Density, Poisson_Ratio, Young_Modulus};
-
-    DerivativeParameter mDerivativeParameter;
-
-    enum DerivativeMatrix {Mass, Stiffness};
-
-    DerivativeMatrix mDerivativeMatrix;
 
     ///@}
     ///@name Private Operators
