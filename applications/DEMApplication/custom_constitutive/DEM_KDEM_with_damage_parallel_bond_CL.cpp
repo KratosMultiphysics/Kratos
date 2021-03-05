@@ -290,6 +290,13 @@ namespace Kratos {
 
         LocalElasticContactForce[2] = BondedLocalElasticContactForce2 + mUnbondedLocalElasticContactForce2;
 
+        double LocalElasticContactTension = LocalElasticContactForce[2] / calculation_area;
+        double limit_tension = limit_force / calculation_area;
+        double returned_by_mapping_tension = returned_by_mapping_force / calculation_area;
+        double current_normal_tension_module = current_normal_force_module / calculation_area;
+        double BondedLocalElasticContactTension2 = BondedLocalElasticContactForce2 / calculation_area;
+        double initial_limit_tension = initial_limit_force / calculation_area;
+
         if (mDebugPrintingOption) {
             unsigned int sphere_id = 1;
             unsigned int neigh_sphere_id = 2;
@@ -302,7 +309,10 @@ namespace Kratos {
                                    << current_normal_force_module/*10*/ << " " << mDamageTangential/*11*/ << " "
                                    << BondedLocalElasticContactForce2/*12*/ << " " << mUnbondedLocalElasticContactForce2/*13*/ << " "
                                    << kn_el/*14*/ << " " << mDamageEnergyCoeff/*15*/ << " "
-                                   << initial_limit_force/*16*/ << " " << mUnbondedNormalElasticConstant/*17*/ << '\n';
+                                   << initial_limit_force/*16*/ << " " << mUnbondedNormalElasticConstant/*17*/ << " "
+                                   << LocalElasticContactTension/*18*/ << " " << limit_tension/*19*/ << " "
+                                   << returned_by_mapping_tension/*20*/ << " " << current_normal_tension_module/*21*/ << " "
+                                   << BondedLocalElasticContactTension2/*22*/ << " " << initial_limit_tension/*23*/ << '\n';
                 normal_forces_file.flush();
             }
         }
@@ -583,7 +593,9 @@ namespace Kratos {
 
         const double Ntstr_el = tension_limit * calculation_area;
         double u1 = Ntstr_el / kn_el;
-        if (u1 > 2*radius_sum) {u1 = 2*radius_sum;} // avoid error in special cases with too high tensile
+        if (u1 > 2.0 * radius_sum) {
+            u1 = 2.0 * radius_sum;
+        } // avoid error in special cases with too high tensile
         return u1;
     }
 
