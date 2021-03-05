@@ -220,7 +220,7 @@ double ComputeClampedVelocitySquared(
     // check if local velocity should be changed
     if (local_velocity_squared > max_velocity_squared)
     {
-        KRATOS_WARNING("Clamped local velocity") <<
+        KRATOS_WARNING_IF("Clamped local velocity", rCurrentProcessInfo[ECHO_LEVEL] > 0) <<
         "SQUARE OF LOCAL VELOCITY ABOVE ALLOWED SQUARE OF VELOCITY"
         << " local_velocity_squared  = " << local_velocity_squared
         << " max_velocity_squared  = " << max_velocity_squared << std::endl;
@@ -606,7 +606,8 @@ double ComputeUpwindFactor(
 
     if(localMachNumberSquared < 1e-3){
         localMachNumberSquared = 1e-3;
-        KRATOS_WARNING("ComputeUpwindFactor") << "localMachNumberSquared is smaller than 1-3 and is being clamped to 1e-3"  <<  std::endl;
+        KRATOS_WARNING_IF("ComputeUpwindFactor", rCurrentProcessInfo[ECHO_LEVEL] > 0)
+        << "localMachNumberSquared is smaller than 1-3 and is being clamped to 1e-3"  <<  std::endl;
     }
 
     return upwind_factor_constant * (1.0 - std::pow(critical_mach, 2.0) / localMachNumberSquared);
