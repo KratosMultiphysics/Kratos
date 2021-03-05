@@ -207,17 +207,17 @@ namespace Kratos {
             mDamageEnergyCoeff = 0.0;
         }
         
-        KRATOS_ERROR_IF((mDamageEnergyCoeff > 30.0) || (mDamageEnergyCoeff < 0.0)) << "Damage energy is too big or too low!" << std::endl;
+        KRATOS_ERROR_IF(mDamageEnergyCoeff > 30.0) << "Damage energy is too big!" << std::endl;
 
         if (mDamageEnergyCoeff < 0.0) {
             mDamageEnergyCoeff = 0.0;
         }
 
-        double k_unload = 0.0;
+        double k_softening = 0.0;
         double limit_force = 0.0;
  
         if (mDamageEnergyCoeff) {
-            k_unload = kn_el / mDamageEnergyCoeff;
+            k_softening = kn_el / mDamageEnergyCoeff;
         }
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
@@ -241,28 +241,23 @@ namespace Kratos {
         } else { //tension
 
             if (!failure_type) {
-                //
                 if (mDamageEnergyCoeff) {
-                    limit_force = initial_limit_force * (1.0 + k_unload / kn_el) * kn_updated / (kn_updated + k_unload);
+                    limit_force = initial_limit_force * (1.0 + k_softening / kn_el) * kn_updated / (kn_updated + k_softening);
                 } else {
                     limit_force = initial_limit_force;
                 }
-                //
                 
                 BondedLocalElasticContactForce2 = kn_updated * indentation;
 
                 if (current_normal_force_module > limit_force) {
 
-                    if (!mDamageEnergyCoeff) { // there is no damage energy left
-                        failure_type = 4; // failure by traction
-                        BondedLocalElasticContactForce2 = 0.0;
-                        mDamageNormal = 1.0;
-                    } else { // the material can sustain further damage, not failure yet
+                    if (mDamageEnergyCoeff) { // the material can sustain further damage, not failure yet
+
                         const double delta_at_undamaged_peak = initial_limit_force / kn_el;
 
                         delta_accumulated = current_normal_force_module / kn_updated;
 
-                        returned_by_mapping_force = initial_limit_force - k_unload * (delta_accumulated - delta_at_undamaged_peak);
+                        returned_by_mapping_force = initial_limit_force - k_softening * (delta_accumulated - delta_at_undamaged_peak);
 
                         if (returned_by_mapping_force < 0.0) {
                             returned_by_mapping_force = 0.0;
@@ -277,6 +272,11 @@ namespace Kratos {
                             BondedLocalElasticContactForce2 = 0.0;
                             mDamageNormal = 1.0;
                         }
+                    } else { // Fully fragile behaviour
+
+                        failure_type = 4; // failure by traction
+                        BondedLocalElasticContactForce2 = 0.0;
+                        mDamageNormal = 1.0;
                     }
                 }
             } else {
@@ -342,7 +342,7 @@ namespace Kratos {
 
         const double tau_zero = 0.5 * (GetTauZero(element1) + GetTauZero(element2));
         const double internal_friction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
-        double k_unload = 0.0;
+        double k_softening = 0.0;
         double tau_strength = 0.0;
         double force_strength = 0.0;
 
@@ -351,7 +351,7 @@ namespace Kratos {
         OldBondedLocalElasticContactForce[1] = mBondedScalingFactor * OldLocalElasticContactForce[1];
 
         if (mDamageEnergyCoeff) {
-            k_unload = kt_el / mDamageEnergyCoeff;
+            k_softening = kt_el / mDamageEnergyCoeff;
         }
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
@@ -393,23 +393,19 @@ namespace Kratos {
             if (contact_sigma >= 0) {
                 updated_max_tau_strength += internal_friction * contact_sigma;
             }
-            tau_strength = updated_max_tau_strength * (1.0 + k_unload / kt_el) * kt_updated / (kt_updated + k_unload);
+            tau_strength = updated_max_tau_strength * (1.0 + k_softening / kt_el) * kt_updated / (kt_updated + k_softening);
             
             force_strength = tau_strength * calculation_area;
 
             if (contact_tau > tau_strength) { // damage
 
-                if (!mDamageEnergyCoeff) { // there is no damage energy left
-                    failure_type = 2; // failure by shear
-                    BondedLocalElasticContactForce[0] = 0.0;
-                    BondedLocalElasticContactForce[1] = 0.0;
-                    mDamageTangential = 1.0;
-                } else { // the material can sustain further damage, not failure yet
+                if (mDamageEnergyCoeff) { // the material can sustain further damage, not failure yet
+
                     const double delta_at_undamaged_peak = updated_max_tau_strength * calculation_area / kt_el;
 
                     delta_accumulated = current_tangential_force_module / kt_updated;
 
-                    returned_by_mapping_force = updated_max_tau_strength * calculation_area - k_unload * (delta_accumulated - delta_at_undamaged_peak);
+                    returned_by_mapping_force = updated_max_tau_strength * calculation_area - k_softening * (delta_accumulated - delta_at_undamaged_peak);
 
                     if (returned_by_mapping_force < 0.0) {
                         returned_by_mapping_force = 0.0;
@@ -428,6 +424,12 @@ namespace Kratos {
                         BondedLocalElasticContactForce[1] = 0.0;
                         mDamageTangential = 1.0;
                     }
+                } else { // Fully fragile behaviour
+                    
+                    failure_type = 2; // failure by shear
+                    BondedLocalElasticContactForce[0] = 0.0;
+                    BondedLocalElasticContactForce[1] = 0.0;
+                    mDamageTangential = 1.0;
                 }
             }
         }
