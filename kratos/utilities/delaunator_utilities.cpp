@@ -261,7 +261,7 @@ std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnect
     in_mid.numberofsegments = rSegments.size();
     in_mid.segmentlist = (int*) malloc(in_mid.numberofsegments * 2 * sizeof(int));
     in_mid.segmentmarkerlist = (int*) malloc(in_mid.numberofsegments * sizeof(int));
-    for (std::size_t i = 0; i < in_mid.numberofsegments; ++i) {
+    for (std::size_t i = 0; i < rSegments.size(); ++i) {
         const auto& r_segment = rSegments[i];
         in_mid.segmentlist[2*i] = r_segment[0];
         in_mid.segmentlist[2*i + 1] = r_segment[1];
