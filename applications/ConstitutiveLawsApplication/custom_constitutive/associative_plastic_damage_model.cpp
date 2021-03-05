@@ -77,28 +77,28 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
     if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
         r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         
-        PlasticDamageFatigueParameters plastic_damage_parameters = PlasticDamageFatigueParameters();
+        PlasticDamageFatigueParameters PlasticDamageParameters = PlasticDamageFatigueParameters();
         InitializePlasticDamageParameters(r_strain_vector, rValues.GetMaterialProperties(),
-            characteristic_length, plastic_damage_parameters);
+            characteristic_length, PlasticDamageParameters);
 
-        CheckMinimumFractureEnergy(rValues, plastic_damage_parameters);
+        CheckMinimumFractureEnergy(rValues, PlasticDamageParameters);
 
-        CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
-        noalias(rValues.GetConstitutiveMatrix()) = plastic_damage_parameters.ConstitutiveMatrix;
+        CalculateConstitutiveMatrix(rValues, PlasticDamageParameters);
+        noalias(rValues.GetConstitutiveMatrix()) = PlasticDamageParameters.ConstitutiveMatrix;
 
-        noalias(plastic_damage_parameters.StressVector) = prod(plastic_damage_parameters.ConstitutiveMatrix,
-            r_strain_vector - plastic_damage_parameters.PlasticStrain);
+        noalias(PlasticDamageParameters.StressVector) = prod(PlasticDamageParameters.ConstitutiveMatrix,
+            r_strain_vector - PlasticDamageParameters.PlasticStrain);
 
-        TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector, 
-            plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
+        TYieldSurfaceType::CalculateEquivalentStress(PlasticDamageParameters.StressVector, 
+            PlasticDamageParameters.StrainVector, PlasticDamageParameters.UniaxialStress, rValues);
 
-        plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - mThreshold;
+        PlasticDamageParameters.NonLinearIndicator = PlasticDamageParameters.UniaxialStress - mThreshold;
 
-        if (plastic_damage_parameters.NonLinearIndicator <= std::abs(1.0e-4 * mThreshold)) {
-            noalias(r_integrated_stress_vector) = plastic_damage_parameters.StressVector;
+        if (PlasticDamageParameters.NonLinearIndicator <= std::abs(1.0e-4 * mThreshold)) {
+            noalias(r_integrated_stress_vector) = PlasticDamageParameters.StressVector;
         } else {
-            IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
-            noalias(r_integrated_stress_vector) = plastic_damage_parameters.StressVector;
+            IntegrateStressPlasticDamageMechanics(rValues, PlasticDamageParameters);
+            noalias(r_integrated_stress_vector) = PlasticDamageParameters.StressVector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
@@ -134,24 +134,24 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
         BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
     }
 
-    PlasticDamageFatigueParameters plastic_damage_parameters = PlasticDamageFatigueParameters();
+    PlasticDamageFatigueParameters PlasticDamageParameters = PlasticDamageFatigueParameters();
     InitializePlasticDamageParameters(r_strain_vector, rValues.GetMaterialProperties(),
-        characteristic_length, plastic_damage_parameters);
+        characteristic_length, PlasticDamageParameters);
 
-    CheckMinimumFractureEnergy(rValues, plastic_damage_parameters);
+    CheckMinimumFractureEnergy(rValues, PlasticDamageParameters);
 
-    CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
-    noalias(plastic_damage_parameters.StressVector) = prod(plastic_damage_parameters.ConstitutiveMatrix,
-        r_strain_vector - plastic_damage_parameters.PlasticStrain);
+    CalculateConstitutiveMatrix(rValues, PlasticDamageParameters);
+    noalias(PlasticDamageParameters.StressVector) = prod(PlasticDamageParameters.ConstitutiveMatrix,
+        r_strain_vector - PlasticDamageParameters.PlasticStrain);
 
-    TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector, 
-        plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
+    TYieldSurfaceType::CalculateEquivalentStress(PlasticDamageParameters.StressVector, 
+        PlasticDamageParameters.StrainVector, PlasticDamageParameters.UniaxialStress, rValues);
 
-    plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - mThreshold;
+    PlasticDamageParameters.NonLinearIndicator = PlasticDamageParameters.UniaxialStress - mThreshold;
 
-    if (plastic_damage_parameters.NonLinearIndicator > std::abs(1.0e-4 * mThreshold)) {
-        IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
-        UpdateInternalVariables(plastic_damage_parameters);
+    if (PlasticDamageParameters.NonLinearIndicator > std::abs(1.0e-4 * mThreshold)) {
+        IntegrateStressPlasticDamageMechanics(rValues, PlasticDamageParameters);
+        UpdateInternalVariables(PlasticDamageParameters);
     }
 
 }
