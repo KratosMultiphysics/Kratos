@@ -48,7 +48,7 @@ class FaceWatcherAnalyzer:
             os.rename(new_path, old_path)
 
         import h5py
-        h5py.File(new_path)
+        h5py.File(new_path, 'w')
 
     @staticmethod
     def RemoveOldFile():
@@ -147,7 +147,7 @@ class FaceWatcherAnalyzer:
         import h5py
         if self.OldFileExists():
 
-            with h5py.File(self.file_path) as f, h5py.File(self.old_file_path, 'r') as f_old:
+            with h5py.File(self.file_path, 'a') as f, h5py.File(self.old_file_path, 'r') as f_old:
                 shape_old = f_old['/' + self.face_watcher_name + '/time'].shape
                 current_shape = (shape_old[0] + shape[0], )
                 time_db, n_particles_db, mass_db, avg_vel_nr_db = CreateDataSets(f, current_shape)
@@ -162,7 +162,7 @@ class FaceWatcherAnalyzer:
                 avg_vel_nr_db[shape_old[0]:] = avg_vel_nr[:]
 
         else:
-            with h5py.File(self.file_path) as f:
+            with h5py.File(self.file_path, 'a') as f:
                 time_db, n_particles_db, mass_db, avg_vel_nr_db = CreateDataSets(f, shape)
                 time_db[:] = time[:]
                 n_particles_db[:] = n_particles[:]

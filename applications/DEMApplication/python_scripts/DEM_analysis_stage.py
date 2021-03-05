@@ -451,9 +451,9 @@ class DEMAnalysisStage(AnalysisStage):
         self.all_model_parts.ComputeMaxIds()
 
     def RunAnalytics(self, time, is_time_to_print=True):
-        for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-            self.MakeAnalyticsMeasurements()
-            if is_time_to_print:
+        self.MakeAnalyticsMeasurements()
+        if is_time_to_print:
+            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
                 self.FaceAnalyzerClass.CreateNewFile()
                 for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
                     self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
