@@ -2,7 +2,9 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+
 #include <stdio.h>
+#include <unistd.h>
 
 #include "containers/array_1d.h"
 #include "containers/model.h"
@@ -64,9 +66,17 @@ class MemoryMdpa {
         typedef std::vector<MemoryMdpa::NodeType>                       NodeContainerType;      // [ NodeType ]
 
         // Elements / conditions
-        typedef std::tuple<int, int, std::vector<ModelPart::IndexType>> ConnectType;            // ( Id, Porp_Id, [ Node1_Id, ... , NodeN_Id ] )
-        typedef std::vector<MemoryMdpa::ConnectType>                    ConnectVectorType;      // [ Connectivity ]
-        typedef std::unordered_map<std::string, ConnectVectorType>      EntityContainerType;    // ( Entity Name, Connectivity Vector )
+        typedef std::tuple<int, int>                                    EntityMetadataType;     // ( Id, Prop ) 
+        typedef std::vector<ModelPart::IndexType>                       EnityCoordTyp;          // [ Coords ]
+        typedef std::tuple<
+            std::vector<EntityMetadataType>,
+            std::vector<EnityCoordTyp>
+        >                                                               ConnectType;            // ( [ EntityMetadataType ], [ EnityCoordTyp ] )
+        typedef std::unordered_map<std::string, ConnectType>            EntityContainerType;    // ( Entity Name, ConnectType )
+
+        // typedef std::tuple<int, int, std::vector<ModelPart::IndexType>> ConnectType;            // ( Id, Porp_Id, [ Node1_Id, ... , NodeN_Id ] )
+        // typedef std::vector<MemoryMdpa::ConnectType>                    ConnectVectorType;      // [ Connectivity ]
+        // typedef std::unordered_map<std::string, ConnectVectorType>      EntityContainerType;    // ( Entity Name, ConnectVectorType )
 
         // SubModelparts
         typedef std::vector<SubMdpa::Pointer>                           SubMdpaContainerType;   // [ SubMdpaPtr ]
@@ -287,10 +297,11 @@ public:
                 }
             }
 
-            elems.push_back(MemoryMdpa::ConnectType(id, prop, mElemData));
+            std::get<0>(elems).push_back(MemoryMdpa::EntityMetadataType(id, prop));
+            std::get<1>(elems).push_back(mElemData);
         }
 
-        rMdpa.mNumElems += elems.size();
+        rMdpa.mNumElems += std::get<0>(elems).size();
 
         std::cout << "[DEBUG] Finished Element Block" << std::endl;
     }
@@ -324,10 +335,11 @@ public:
                 }
             }
 
-            conds.push_back(MemoryMdpa::ConnectType(id, prop, mCondData));
+            std::get<0>(conds).push_back(MemoryMdpa::EntityMetadataType(id, prop));
+            std::get<1>(conds).push_back(mCondData);
         }
 
-        rMdpa.mNumConds += conds.size();
+        rMdpa.mNumConds += std::get<0>(conds).size();
 
         std::cout << "[DEBUG] Finished Condition Block" << std::endl;
     }
@@ -457,8 +469,20 @@ public:
         }
 
         PrintMdpaStats(mdpa);
+
+        std::vector<ModelPart::IndexType> row_index, col_index;
+
+        // usleep(2 * 1e6);
+
+        GenerateCSR(mdpa, row_index, col_index);
+
+        // usleep(2 * 1e6);
+
         // GenerateModelPart(mdpa);
-        GenerateCSR(mdpa);
+
+        DynamicallyGenerateModelPart(mdpa);
+
+        // usleep(2 * 1e6);
     }
 
     void GenerateModelPart(const MemoryMdpa& rMdpa) {
@@ -497,14 +521,32 @@ public:
             Geometry< Node < 3 > >::PointsArrayType pElemNodes(geom_size);
             auto& pElemNodesContainer = pElemNodes.GetContainer();
 
-            for(auto & elem: elem_list) {
-                auto& r_elem = std::get<2>(elem);
-                for (unsigned int i = 0; i < geom_size; i++) {
-                    pElemNodesContainer[i] = nodeMap[r_elem[i]];
+            if(std::get<0>(elem_list).size() != std::get<1>(elem_list).size()) {
+                KRATOS_ERROR << "Inconsistent element list size: " << std::get<0>(elem_list).size() << " indices found but " << std::get<0>(elem_list).size() << " coords found." << std::endl; 
+            }
+
+            auto meta_itr = std::get<0>(elem_list).begin();
+            auto coords_itr = std::get<1>(elem_list).begin();
+        
+            for(unsigned int i = 0; i < std::get<0>(elem_list).size(); i++)  {
+                for (unsigned int j = 0; j < geom_size; j++) {
+                    pElemNodesContainer[j] = nodeMap[(*coords_itr)[j]];
                 }
 
-                aux_elems.push_back(r_base_elem.Create(std::get<0>(elem), pElemNodes, p_prop));
+                aux_elems.push_back(r_base_elem.Create(std::get<0>(*meta_itr), pElemNodes, p_prop));
+
+                meta_itr++;
+                coords_itr++;
             }
+
+            // for(auto & elem: elem_list) {
+            //     auto& r_elem = std::get<2>(elem);
+            //     for (unsigned int i = 0; i < geom_size; i++) {
+            //         pElemNodesContainer[i] = nodeMap[r_elem[i]];
+            //     }
+
+            //     aux_elems.push_back(r_base_elem.Create(std::get<0>(elem), pElemNodes, p_prop));
+            // }
         }
 
 
@@ -520,48 +562,178 @@ public:
 
             ModelPart::ConditionType const& r_base_cond = KratosComponents<ModelPart::ConditionType>::Get(cond_name);
             Properties::Pointer p_prop = Kratos::make_shared<Properties>(0);
+
+            std::size_t geom_size = r_base_cond.GetGeometry().size();
             
             Geometry< Node < 3 > >::PointsArrayType pCondNodes(r_base_cond.GetGeometry().size());
             auto& pCondNodesContainer = pCondNodes.GetContainer();
 
-            for(auto & cond: cond_list) {
-                auto& r_cond = std::get<2>(cond);
-                for (unsigned int i = 0; i < r_base_cond.GetGeometry().size(); i++) {
-                    pCondNodesContainer[i] = nodeMap[r_cond[i]];
-                }
-
-                aux_conds.push_back(r_base_cond.Create(std::get<0>(cond), pCondNodes, p_prop));
+            if(std::get<0>(cond_list).size() != std::get<1>(cond_list).size()) {
+                KRATOS_ERROR << "Inconsistent condition list size: " << std::get<0>(cond_list).size() << " indices found but " << std::get<0>(cond_list).size() << " coords found." << std::endl; 
             }
 
-            std::cout << "[DEBUG]: readed " << cond_list.size() << " conditions" << std::endl;
+            auto meta_itr = std::get<0>(cond_list).begin();
+            auto coords_itr = std::get<1>(cond_list).begin();
+        
+            for(unsigned int i = 0; i < std::get<0>(cond_list).size(); i++)  {
+                for (unsigned int j = 0; j < geom_size; j++) {
+                    pCondNodesContainer[j] = nodeMap[(*coords_itr)[j]];
+                }
+
+                aux_conds.push_back(r_base_cond.Create(std::get<0>(*meta_itr), pCondNodes, p_prop));
+
+                meta_itr++;
+                coords_itr++;
+            }
+
+            // for(auto & cond: cond_list) {
+            //     auto& r_cond = std::get<2>(cond);
+            //     for (unsigned int i = 0; i < r_base_cond.GetGeometry().size(); i++) {
+            //         pCondNodesContainer[i] = nodeMap[r_cond[i]];
+            //     }
+
+            //     aux_conds.push_back(r_base_cond.Create(std::get<0>(cond), pCondNodes, p_prop));
+            // }
+
+            std::cout << "[DEBUG]: readed " << std::get<0>(cond_list).size() << " conditions" << std::endl;
         }
 
         aux_conds.Unique();
         model_part.AddConditions(aux_conds.begin(), aux_conds.end());
     }
 
-    void GenerateCSR(const MemoryMdpa &rMdpa) {
-        std::vector<std::vector<ModelPart::IndexType>> connectivities;
-        std::vector<ModelPart::IndexType> row_index, col_index;
+    void DynamicallyGenerateModelPart(MemoryMdpa& rMdpa) {
 
-        // for(auto & entity: rMdpa.mElems) {
-        //     auto elem_name = entity.first;
-        //     auto elem_list = entity.second;
-        //     for(auto & elem: elem_list) {
-        //         auto& r_elem = std::get<2>(elem);
-        //         connectivities.push_back(r_elem);
-        //     }
-        // }
+        Model model;
+        ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
 
-        // SparseGraph<> Agraph;
-        // for(const auto& c : connectivities)
-        //     Agraph.AddEntries(c);
-        // Agraph.Finalize();
+        // model_part.AddNodalSolutionStepVariable(PRESSURE);
+        // model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+        // model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
-        // auto nrows = Agraph.ExportCSRArrays(row_index, col_index);
+        std::map<int, ModelPart::NodeType::Pointer> nodeMap;
 
-        // std::cout << row_index << std::endl;
-        // std::cout << col_index << std::endl;
+        for(auto & node: rMdpa.mNodes) {
+            auto new_node = model_part.CreateNewNode(
+                std::get<0>(node),
+                std::get<1>(node)[0],
+                std::get<1>(node)[1],
+                std::get<1>(node)[2]
+            );
+            nodeMap[std::get<0>(node)] = new_node;
+        }
+
+        MemoryMdpa::NodeContainerType().swap(rMdpa.mNodes);
+
+        // TODO: OpenMP
+        ModelPart::ElementsContainerType aux_elems;
+
+        for(auto & entity: rMdpa.mElems) {
+            auto elem_name = entity.first;
+            auto elem_list = entity.second;
+
+            ModelPart::ElementType const& r_base_elem = KratosComponents<ModelPart::ElementType>::Get(elem_name);
+            Properties::Pointer p_prop = Kratos::make_shared<Properties>(0);
+
+            std::size_t geom_size = r_base_elem.GetGeometry().size();
+
+            Geometry< Node < 3 > >::PointsArrayType pElemNodes(geom_size);
+            auto& pElemNodesContainer = pElemNodes.GetContainer();
+
+            if(std::get<0>(elem_list).size() != std::get<1>(elem_list).size()) {
+                KRATOS_ERROR << "Inconsistent element list size: " << std::get<0>(elem_list).size() << " indices found but " << std::get<0>(elem_list).size() << " coords found." << std::endl; 
+            }
+
+            int icount = 0;
+            int free_chunk = std::get<0>(elem_list).size();
+
+            while(!std::get<0>(elem_list).empty()) {
+                auto elem_m = std::get<0>(elem_list).back();
+                auto elem_c = std::get<1>(elem_list).back();
+
+                for (unsigned int i = 0; i < geom_size; i++) {
+                    pElemNodesContainer[i] = nodeMap[elem_c[i]];
+                }
+
+                aux_elems.push_back(r_base_elem.Create(std::get<0>(elem_m), pElemNodes, p_prop));
+
+                std::get<0>(elem_list).pop_back();
+                std::get<1>(elem_list).pop_back();
+            }
+
+            std::get<0>(elem_list).resize(0);
+            std::get<1>(elem_list).resize(0);
+        }
+
+        MemoryMdpa::EntityContainerType().swap(rMdpa.mElems);
+
+        /////////////////////////////
+
+        aux_elems.Unique();
+        model_part.AddElements(aux_elems.begin(), aux_elems.end());
+        ModelPart::ElementsContainerType().swap(aux_elems);
+
+        ModelPart::ConditionsContainerType aux_conds;
+
+        for(auto & entity: rMdpa.mConds) {  
+            auto cond_name = entity.first;
+            auto cond_list = entity.second;
+
+            ModelPart::ConditionType const& r_base_cond = KratosComponents<ModelPart::ConditionType>::Get(cond_name);
+            Properties::Pointer p_prop = Kratos::make_shared<Properties>(0);
+
+            std::size_t geom_size = r_base_cond.GetGeometry().size();
+            
+            Geometry< Node < 3 > >::PointsArrayType pCondNodes(r_base_cond.GetGeometry().size());
+            auto& pCondNodesContainer = pCondNodes.GetContainer();
+
+            if(std::get<0>(cond_list).size() != std::get<1>(cond_list).size()) {
+                KRATOS_ERROR << "Inconsistent condition list size: " << std::get<0>(cond_list).size() << " indices found but " << std::get<0>(cond_list).size() << " coords found." << std::endl; 
+            }
+        
+            int icount = 0;
+            int free_chunk = std::get<0>(cond_list).size();
+
+            while(!std::get<0>(cond_list).empty()) {
+                auto cond_m = std::get<0>(cond_list).back();
+                auto cond_c = std::get<1>(cond_list).back();
+
+                for (unsigned int i = 0; i < geom_size; i++) {
+                    pCondNodesContainer[i] = nodeMap[cond_c[i]];
+                }
+
+                aux_conds.push_back(r_base_cond.Create(std::get<0>(cond_m), pCondNodes, p_prop));
+
+                std::get<0>(cond_list).pop_back();
+                std::get<1>(cond_list).pop_back();
+            }
+
+            std::cout << "[DEBUG]: readed " << std::get<0>(cond_list).size() << " conditions" << std::endl;
+
+            std::get<0>(cond_list).resize(0);
+            std::get<1>(cond_list).resize(0);
+        }
+
+        MemoryMdpa::EntityContainerType().swap(rMdpa.mConds);
+
+        aux_conds.Unique();
+        model_part.AddConditions(aux_conds.begin(), aux_conds.end());
+        ModelPart::ConditionsContainerType().swap(aux_conds);
+    }
+
+    void GenerateCSR(const MemoryMdpa &rMdpa, std::vector<ModelPart::IndexType> &rRowIndex, std::vector<ModelPart::IndexType> &rColIndex) {
+        SparseGraph<> Agraph;
+        for(auto & entity: rMdpa.mElems) {
+            for(const auto& c : std::get<1>(entity.second)) {
+                Agraph.AddEntries(c);
+            }
+        }
+        Agraph.Finalize();
+
+        auto nrows = Agraph.ExportCSRArrays(rRowIndex, rColIndex);
+
+        std::cout << "CSR Rows: " << rRowIndex.size() << std::endl;
+        std::cout << "CSR Cols: " << rColIndex.size() << std::endl;
     }
 
     void PrintSubMdpa(SubMdpa::Pointer pSubMdpa, std::string printPadding, int to_print) {
@@ -613,27 +785,29 @@ public:
 
         std::cout << "-- Elements: " << std::endl;
         for(auto iter = rMdpa.mElems.begin(); iter != rMdpa.mElems.end(); ++iter) {
-            std::cout << "--- "  << iter->first << ": " << iter->second.size() << std::endl;
-            for(std::size_t i = 0; i < std::fmin(to_print,  iter->second.size()); i++) {
-                std::cout << "\t" << std::get<0>(iter->second[i]) << " " << std::get<2>(iter->second[i]) << std::endl;
+            std::cout << "--- "  << iter->first << ": " << std::get<0>(iter->second).size() << std::endl;
+            auto meta_itr = std::get<0>(iter->second).begin();
+            auto coords_itr = std::get<1>(iter->second).begin();
+            for(std::size_t i = 0; i < std::fmin(to_print,  std::get<0>(iter->second).size()); i++) {
+                std::cout << "\t" << std::get<0>(*(meta_itr+i)) << " " << *(coords_itr+i) << std::endl;
             }
             std::cout << "\t..." << std::endl;
-            for(std::size_t i = std::fmax(0, iter->second.size() - to_print); i < iter->second.size(); i++) {
-                std::cout << "\t" << std::get<0>(iter->second[i]) << " " << std::get<2>(iter->second[i]) << std::endl;
+            for(std::size_t i = std::fmax(0, std::get<0>(iter->second).size() - to_print); i < std::get<0>(iter->second).size(); i++) {
+                std::cout << "\t" << std::get<0>(*(meta_itr+i)) << " " << *(coords_itr+i) << std::endl;
             }
         }
 
-        std::cout << "-- Conditions: " << std::endl;
-        for(auto iter = rMdpa.mConds.begin(); iter != rMdpa.mConds.end(); ++iter) {
-            std::cout << "--- "  << iter->first << ": " << iter->second.size() << std::endl;
-            for(std::size_t i = 0; i < std::fmin(to_print,  iter->second.size()); i++) {
-                std::cout << "\t" << std::get<0>(iter->second[i]) << " " << std::get<2>(iter->second[i]) << std::endl;
-            }
-            std::cout << "\t..." << std::endl;
-            for(std::size_t i = std::fmax(0, iter->second.size() - to_print); i < iter->second.size(); i++) {
-                std::cout << "\t" << std::get<0>(iter->second[i]) << " " << std::get<2>(iter->second[i]) << std::endl;
-            }
-        }
+        // std::cout << "-- Conditions: " << std::endl;
+        // for(auto iter = rMdpa.mConds.begin(); iter != rMdpa.mConds.end(); ++iter) {
+        //     std::cout << "--- "  << iter->first << ": " << iter->second.size() << std::endl;
+        //     for(std::size_t i = 0; i < std::fmin(to_print,  iter->second.size()); i++) {
+        //         std::cout << "\t" << std::get<0>(iter->second[i]) << " " << std::get<2>(iter->second[i]) << std::endl;
+        //     }
+        //     std::cout << "\t..." << std::endl;
+        //     for(std::size_t i = std::fmax(0, iter->second.size() - to_print); i < iter->second.size(); i++) {
+        //         std::cout << "\t" << std::get<0>(iter->second[i]) << " " << std::get<2>(iter->second[i]) << std::endl;
+        //     }
+        // }
 
         std::cout << "-- SubModelParts" << std::endl;
         for(auto iter = rMdpa.mSubMdpa.begin(); iter != rMdpa.mSubMdpa.end(); ++iter) {
