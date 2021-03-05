@@ -49,14 +49,14 @@ namespace Kratos
 typedef void(*pF_GetParamCount)   (int *, int *);
 typedef void(*pF_GetStateVarCount)(int *, int *);
 typedef void(*pF_UserMod) (int    *, int     *, int    *,
-                          int    *, int     *, int    *, int *,
-                          double *, double  *, double *,
-                          double *, double  *,
-                          double *, double  *, double *, double *,
-                          double *, double **, double *,
-                          double *, double  *, double *, int *,
-                          int    *, int     *, int    *, int *, int *,
-                          int    *, int     *, int    *);
+                           int    *, int     *, int    *, int *,
+                           double *, double  *, double *,
+                           double *, double  *,
+                           const double *, double  *, double *, double *,
+                           double *, double **, double *,
+                           double *, double  *, double *, int *,
+                           int    *, int     *, int    *, int *, int *,
+                           int    *, int     *, int    *);
 
    ///@addtogroup ConstitutiveModelsApplication
    ///@{
@@ -458,6 +458,7 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
 
       bool mIsModelInitialized;
       bool mIsUDSMLoaded;
+      bool mHasUMATParameters;
 
       //AttributesUDSM mAttributes;
       array_1d<int, 4> mAttributes;
@@ -519,9 +520,10 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
          rSerializer.save("InitializedModel",           mIsModelInitialized);
          rSerializer.save("Attributes",                 mAttributes);
          rSerializer.save("StressVectorFinalized",      mStressVectorFinalized);
-         rSerializer.save("mStrainVectorFinalized",     mStrainVectorFinalized);
+         rSerializer.save("StrainVectorFinalized",      mStrainVectorFinalized);
          rSerializer.save("StateVariablesFinalized",    mStateVariablesFinalized);
          rSerializer.save("MaterialParameters",         mMaterialParameters);
+         rSerializer.save("HasUMATParameters",          mHasUMATParameters);
       }
 
       virtual void load(Serializer& rSerializer) override
@@ -530,9 +532,10 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
          rSerializer.load("InitializedModel",           mIsModelInitialized);
          rSerializer.load("Attributes",                 mAttributes);
          rSerializer.load("StressVectorFinalized",      mStressVectorFinalized);
-         rSerializer.load("mStrainVectorFinalized",     mStrainVectorFinalized);
+         rSerializer.load("StrainVectorFinalized",      mStrainVectorFinalized);
          rSerializer.load("StateVariablesFinalized",    mStateVariablesFinalized);
          rSerializer.load("MaterialParameters",         mMaterialParameters);
+         rSerializer.load("HasUMATParameters",          mHasUMATParameters);
       }
 
       ///@}

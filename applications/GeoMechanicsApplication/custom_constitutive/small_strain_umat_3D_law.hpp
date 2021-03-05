@@ -46,7 +46,7 @@ namespace Kratos
 typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, double* SSE, double* SPD, double* SCD,
                           double* rpl, double* ddsddt, double* drplde, double* drpldt, double* stran, double* dstran,
                           double* time, double* dtime, double* temp, double* dtemp, double* predef, double* dpred,
-                          char* materl, int* ndi, int* nshr, int* ntens, int* nstatv, double* props, int* nprops,
+                          char* materl, int* ndi, int* nshr, int* ntens, int* nstatv, const double* props, int* nprops,
                           double* coords, double** drot, double* pnewdt, double* celent, double** dfgrd0,
                           double** dfgrd1, int* noel, int* npt, double* kslay, double* kspt, int* kstep,
                           int* kinc);
@@ -421,6 +421,8 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
 
       bool mIsModelInitialized;
       bool mIsUMATLoaded;
+      bool mHasUMATParameters;
+
 
       std::vector<int> mProjectDirectory;
 
@@ -474,9 +476,10 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
          rSerializer.save("InitializedModel",           mIsModelInitialized);
          rSerializer.save("StressVectorFinalized",      mStressVectorFinalized);
-         rSerializer.save("mStrainVectorFinalized",     mStrainVectorFinalized);
+         rSerializer.save("StrainVectorFinalized",      mStrainVectorFinalized);
          rSerializer.save("StateVariablesFinalized",    mStateVariablesFinalized);
          rSerializer.save("MaterialParameters",         mMaterialParameters);
+         rSerializer.save("HasUMATParameters",          mHasUMATParameters);
       }
 
       virtual void load(Serializer& rSerializer) override
@@ -484,9 +487,10 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
          KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
          rSerializer.load("InitializedModel",           mIsModelInitialized);
          rSerializer.load("StressVectorFinalized",      mStressVectorFinalized);
-         rSerializer.load("mStrainVectorFinalized",     mStrainVectorFinalized);
+         rSerializer.load("StrainVectorFinalized",      mStrainVectorFinalized);
          rSerializer.load("StateVariablesFinalized",    mStateVariablesFinalized);
          rSerializer.load("MaterialParameters",         mMaterialParameters);
+         rSerializer.load("HasUMATParameters",          mHasUMATParameters);
       }
 
       ///@}

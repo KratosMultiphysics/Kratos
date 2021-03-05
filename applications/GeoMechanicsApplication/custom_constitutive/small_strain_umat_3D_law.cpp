@@ -32,7 +32,7 @@ namespace Kratos
 typedef void(__stdcall *f_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, double* SSE, double* SPD, double* SCD,
                                     double* RPL, double* DDSDDT, double* DRPLDE, double* DRPLDT, double* STRAN, double* DSTRAN,
                                     double* TIME, double* DTIME, double* TEMP, double* DTEMP, double* PREDEF, double* DPRED,
-                                    char* MATERL, int* NDI, int* NSHR, int* NTENS, int* NSTATV, double* PROPS, int* NPROPS,
+                                    char* MATERL, int* NDI, int* NSHR, int* NTENS, int* NSTATV, const double* PROPS, int* NPROPS,
                                     double* COORDS, double** DROT, double* PNEWDT, double* CELENT, double** DFGRD0,
                                     double** DFGRD1, int* NOEL, int* NPT, double* KSLAY, double* KSPT, int* KSTEP,
                                     int* KINC);
@@ -42,7 +42,7 @@ typedef void(__stdcall *f_UMATMod) (double* STRESS, double* STATEV, double** DDS
 typedef void(*f_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, double* SSE, double* SPD, double* SCD,
                           double* rpl, double* ddsddt, double* drplde, double* drpldt, double* stran, double* dstran,
                           double* time, double* dtime, double* temp, double* dtemp, double* predef, double* dpred,
-                          char* materl, int* ndi, int* nshr, int* ntens, int* nstatv, double* props, int* nprops,
+                          char* materl, int* ndi, int* nshr, int* ntens, int* nstatv, const double* props, int* nprops,
                           double* coords, double** drot, double* pnewdt, double* celent, double** dfgrd0,
                           double** dfgrd1, int* noel, int* npt, double* kslay, double* kspt, int* kstep,
                           int* kinc);
@@ -54,7 +54,8 @@ typedef void(*f_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doubl
 SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw()
    : ConstitutiveLaw(),
      mIsModelInitialized(false),
-     mIsUMATLoaded(false)
+     mIsUMATLoaded(false),
+     mHasUMATParameters(false)
    {
     KRATOS_TRY;
 
@@ -72,6 +73,7 @@ SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw &rOther)
      mStrainVectorFinalized(rOther.mStrainVectorFinalized),
      mIsModelInitialized(rOther.mIsModelInitialized),
      mIsUMATLoaded(rOther.mIsUMATLoaded),
+     mHasUMATParameters(rOther.mHasUMATParameters),
      mMaterialParameters(rOther.mMaterialParameters),
      mStateVariables(rOther.mStateVariables),
      mStateVariablesFinalized(rOther.mStateVariablesFinalized)
@@ -107,6 +109,7 @@ SmallStrainUMAT3DLaw &SmallStrainUMAT3DLaw::operator=(SmallStrainUMAT3DLaw const
    ConstitutiveLaw::operator=(rOther);
    this->mIsModelInitialized      = rOther.mIsModelInitialized;
    this->mIsUMATLoaded            = rOther.mIsUMATLoaded;
+   this->mHasUMATParameters       = rOther.mHasUMATParameters;
    this->mStateVariables          = rOther.mStateVariables;
    this->mStateVariablesFinalized = rOther.mStateVariablesFinalized;
    this->mMaterialParameters      = rOther.mMaterialParameters;
@@ -256,21 +259,29 @@ void SmallStrainUMAT3DLaw::SetMaterialParameters(const Properties &rMaterialProp
 {
    KRATOS_TRY;
 
-   mMaterialParameters.resize(GetNumberOfMaterialParametersFromUMAT(rMaterialProperties));
-
-   for (unsigned int i=0; i < mMaterialParameters.size(); ++i)
+   if (rMaterialProperties.Has(UMAT_PARAMETERS))
    {
-      std::string parameterName = "PARAMETER_" + std::to_string(i+1);
+      mHasUMATParameters = true;
+   }
+   else
+   {
+      mHasUMATParameters = false;
+      mMaterialParameters.resize(GetNumberOfMaterialParametersFromUMAT(rMaterialProperties));
 
-      const Variable<double> &var = KratosComponents< Variable<double> >::Get(parameterName);
-
-      if (rMaterialProperties.Has(var) == false)
+      for (unsigned int i=0; i < mMaterialParameters.size(); ++i)
       {
-         KRATOS_THROW_ERROR(std::invalid_argument, parameterName + 
-                            " is not defined or has an invalid value for property", rMaterialProperties.Id())
-      }
+         std::string parameterName = "PARAMETER_" + std::to_string(i+1);
 
-      mMaterialParameters[i] = rMaterialProperties[var];
+         const Variable<double> &var = KratosComponents< Variable<double> >::Get(parameterName);
+
+         if (rMaterialProperties.Has(var) == false)
+         {
+            KRATOS_THROW_ERROR(std::invalid_argument, parameterName + 
+                              " is not defined or has an invalid value for property", rMaterialProperties.Id())
+         }
+
+         mMaterialParameters[i] = rMaterialProperties[var];
+      }
    }
 
    KRATOS_CATCH(" ");
@@ -589,21 +600,35 @@ void SmallStrainUMAT3DLaw::CallUMAT( ConstitutiveLaw::Parameters &rValues)
    int nshr = 3;
    int ntens = VOIGT_SIZE_3D; // ??@@
 
-   int nProperties = mMaterialParameters.size();
 
    // stresses and state variables in the beginning of the steps needs to be given:
    mStressVector  = mStressVectorFinalized;
    mStateVariables = mStateVariablesFinalized;
 
    // variable to check if an error happend in the model:
-
-   pUserMod(mStressVector.data(), mStateVariables.data(), (double **)mMatrixD,  &SSE,   &SPD,                          &SCD,
-            NULL,                 NULL,                   NULL,                 NULL,   mStrainVectorFinalized.data(), mDeltaStrainVector.data(),
-            &time,                &deltaTime,             NULL,                 NULL,   NULL,                          NULL,
-            &materialName,        &ndi,                   &nshr,                &ntens, &nStateVariables,              mMaterialParameters.data(),
-            &nProperties,         NULL,                   NULL,                 NULL,   NULL,                          NULL,
-            NULL,                 &iElement,              &integrationNumber,   NULL,   NULL,                          &iStep,
-            &iteration);
+   if (mHasUMATParameters)
+   {
+      const auto &MaterialParameters = rValues.GetMaterialProperties()[UMAT_PARAMETERS];
+      int nProperties = MaterialParameters.size();
+      pUserMod(mStressVector.data(), mStateVariables.data(), (double **)mMatrixD,  &SSE,   &SPD,                          &SCD,
+               NULL,                 NULL,                   NULL,                 NULL,   mStrainVectorFinalized.data(), mDeltaStrainVector.data(),
+               &time,                &deltaTime,             NULL,                 NULL,   NULL,                          NULL,
+               &materialName,        &ndi,                   &nshr,                &ntens, &nStateVariables,              &(MaterialParameters.data()[0]),
+               &nProperties,         NULL,                   NULL,                 NULL,   NULL,                          NULL,
+               NULL,                 &iElement,              &integrationNumber,   NULL,   NULL,                          &iStep,
+               &iteration);
+   }
+   else
+   {
+      int nProperties = mMaterialParameters.size();
+      pUserMod(mStressVector.data(), mStateVariables.data(), (double **)mMatrixD,  &SSE,   &SPD,                          &SCD,
+               NULL,                 NULL,                   NULL,                 NULL,   mStrainVectorFinalized.data(), mDeltaStrainVector.data(),
+               &time,                &deltaTime,             NULL,                 NULL,   NULL,                          NULL,
+               &materialName,        &ndi,                   &nshr,                &ntens, &nStateVariables,              mMaterialParameters.data(),
+               &nProperties,         NULL,                   NULL,                 NULL,   NULL,                          NULL,
+               NULL,                 &iElement,              &integrationNumber,   NULL,   NULL,                          &iStep,
+               &iteration);
+   }
 
    KRATOS_CATCH("");
 
