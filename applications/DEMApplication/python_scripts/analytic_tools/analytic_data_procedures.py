@@ -1,4 +1,5 @@
 import os
+import KratosMultiphysics.DEMApplication as DEM
 
 class ParticleWatcherAnalyzer:
     def __init__(self, analytic_particle_watcher, path, do_clear_data = True):
@@ -30,7 +31,7 @@ class FaceWatcherAnalyzer:
         self.old_file_path = self.file_path.replace('_new.hdf5', '.hdf5')
 
         FaceWatcherAnalyzer.file_path = self.file_path
-        FaceWatcherAnalyzer.file_path_old =self.old_file_path
+        FaceWatcherAnalyzer.file_path_old = self.old_file_path
         FaceWatcherAnalyzer.RemoveFiles()
 
     @staticmethod
@@ -39,16 +40,6 @@ class FaceWatcherAnalyzer:
         old_path = FaceWatcherAnalyzer.file_path_old
         for path in (p for p in [new_path, old_path] if os.path.exists(p)):
             os.remove(path)
-
-    @staticmethod
-    def CreateNewFile():
-        new_path = FaceWatcherAnalyzer.file_path
-        old_path = FaceWatcherAnalyzer.file_path_old
-        if os.path.exists(new_path):
-            os.rename(new_path, old_path)
-
-        import h5py
-        h5py.File(new_path, 'w')
 
     @staticmethod
     def RemoveOldFile():
@@ -128,7 +119,6 @@ class FaceWatcherAnalyzer:
         # how to create subgrouped datasets with variable name:
         # group2 = f.create_group('group2/subfolder')
         # group2.create_dataset('data',data=d)
-
         def CreateDataSets(f, current_shape):
             surface_data = f.require_group(self.face_watcher_name)
             surface_data.attrs['Surface Identifier'] = self.face_watcher_name
@@ -209,3 +199,35 @@ class FaceWatcherAnalyzer:
 
     def SetInlet(self, inlet):
         self.inlet = inlet
+
+class FaceAnalyzerClass:
+    def __init__(self, model_part):
+        self.model_part = model_part
+        self.face_watcher_dict = dict()
+        self.face_watcher_analysers = dict()
+        for sub_part in self.model_part:
+            if sub_part[DEM.IS_GHOST] == True:
+                self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
+                self.face_watcher_analysers[sub_part.Name] = FaceWatcherAnalyzer(name=sub_part.Name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name], path=self.main_path)
+
+    def MakeAnalyticsMeasurements(self):
+        for face_watcher in self.face_watcher_dict.values():
+            face_watcher.MakeMeasurements()
+
+    def CreateNewFile(self):
+        new_path = self.main_path + '/flux_data_new.hdf5'
+        self.old_path = new_path.replace('_new.hdf5', '.hdf5')
+        if os.path.exists(new_path):
+            os.rename(new_path, self.old_path)
+
+        import h5py
+        h5py.File(new_path, 'w')
+
+    def RemoveOldFile(self):
+        if os.path.exists(self.old_path):
+            os.remove(self.old_path)
+
+    def UpdateDataBases(self):
+        for sub_part in self.model_part.sub_part:
+            if sub_part[DEM.IS_GHOST]:
+                self.face_watcher_analysers[sub_part.Name].UpdateDataFiles(time)
