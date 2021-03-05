@@ -88,13 +88,14 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         for cond in self.body_model_part.Conditions:
             surface_normal = cond.GetGeometry().Normal()
             pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
+            force_coefficient += surface_normal*pressure_coefficient
 
-            if math.isnan(pressure_coefficient):
-                element_id = cond.GetValue(KratosMultiphysics.PRINTED_STEP)
-                print('ELEMENT WITH NAN PRESSURE: ', element_id)
-            else:
-                # Computing forces
-                force_coefficient += surface_normal*pressure_coefficient
+            # if math.isnan(pressure_coefficient):
+            #     element_id = cond.GetValue(KratosMultiphysics.PRINTED_STEP)
+            #     print('ELEMENT WITH NAN PRESSURE: ', element_id)
+            # else:
+            #     # Computing forces
+            #     force_coefficient += surface_normal*pressure_coefficient
 
         force_coefficient /= self.reference_area
 

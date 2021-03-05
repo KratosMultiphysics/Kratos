@@ -84,6 +84,12 @@ void AssignPerturbationPotentialsToElement(Element& rElement) {
             potential[i];
 }
 
+void AssignCustomPerturbationPotentialsToElement(Element& rElement, const std::array<double, 3> rPotential)
+{
+    for (unsigned int i = 0; i < 3; i++)
+        rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ComputePerturbedVelocity, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -286,7 +292,6 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationCompressiblePressureCoefficient, Co
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTestingElement(model_part);
-    AssignFreeStreamValues(model_part);
     Element::Pointer pElement = model_part.pGetElement(1);
 
     AssignPerturbationPotentialsToElement(*pElement);
@@ -296,6 +301,30 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationCompressiblePressureCoefficient, Co
             *pElement, r_current_process_info);
 
     KRATOS_CHECK_NEAR(pressure_coefficient, -1.128385779511008, 1e-15);
+}
+
+// Checks the function ComputePerturbationCompressiblePressureCoefficient from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationCompressiblePressureCoefficientClamped, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+
+    std::array<double, 3> potential{1.0, 733.13764, 929.1948};
+    AssignCustomPerturbationPotentialsToElement(*pElement, potential);
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    const double pressure_coefficient =
+        PotentialFlowUtilities::ComputePerturbationCompressiblePressureCoefficient<2, 3>(
+            *pElement, r_current_process_info);
+
+    const double reference_pressure_coefficient = -3.968253968253968;
+    const double tolerance = 1e-15;
+
+    KRATOS_ERROR_IF(!(std::abs(pressure_coefficient - reference_pressure_coefficient) < tolerance))
+        << "Check failed because pressure_coefficient  = " << pressure_coefficient <<
+        " is not near to reference_pressure_coefficient = " << reference_pressure_coefficient <<
+        " within the tolerance " << tolerance << std::endl;
 }
 
 // Checks the function ComputePerturbationLocalSpeedOfSound from the utilities
