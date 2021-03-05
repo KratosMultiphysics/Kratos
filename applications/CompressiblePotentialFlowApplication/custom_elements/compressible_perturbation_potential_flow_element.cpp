@@ -480,19 +480,19 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
     GetWakeDistances(data.distances);
 
-    const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
+    const array_1d<double, TDim> upper_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
 
-    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(velocity, rCurrentProcessInfo);
+    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(upper_velocity, rCurrentProcessInfo);
 
     const double density = PotentialFlowUtilities::ComputeDensity<Dim, NumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
     const double DrhoDu2 = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
-    const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
+    const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, upper_velocity);
 
     const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
 
-    const double local_velocity_squared = inner_prod(velocity, velocity);
+    const double local_velocity_squared = inner_prod(upper_velocity, upper_velocity);
 
     BoundedMatrix<double, NumNodes, NumNodes> lhs_total = data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
 
@@ -540,6 +540,44 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
         }
     }
 
+    const double velocity_upper_2 = inner_prod(upper_velocity, upper_velocity);
+    const double velocity_lower_2 = inner_prod(lower_velocity, lower_velocity);
+    const double diff_upper = velocity_upper_2 - velocity_lower_2;
+    const double diff_lower = velocity_lower_2 - velocity_upper_2;
+
+    const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const double free_stream_speed_of_sound = rCurrentProcessInfo[SOUND_VELOCITY];
+    const double u_inf = free_stream_mach * free_stream_speed_of_sound;
+    const double stabilization_upper = 0.5 * std::pow(data.vol, 1.0/3.0) * inner_prod(free_stream_velocity, upper_velocity) / u_inf;
+    const double stabilization_lower = 0.5 * std::pow(data.vol, 1.0/3.0) * inner_prod(free_stream_velocity, lower_velocity) / u_inf;
+
+    BoundedVector<double, NumNodes> dU2dPhi_upper = 2*data.vol*prod(data.DN_DX, upper_velocity);
+    BoundedVector<double, NumNodes> dU2dPhi_lower = 2*data.vol*prod(data.DN_DX, lower_velocity);
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_pressure_upper_up = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_pressure_upper_low = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_pressure_lower_low = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_pressure_lower_up = ZeroMatrix(NumNodes, NumNodes);
+
+    const BoundedVector<double, NumNodes> lhs_stabilization_upper =  0.5 * std::pow(data.vol, 1.0/3.0) * diff_upper * prod(data.DN_DX, free_stream_velocity) / u_inf * data.vol;
+    const BoundedVector<double, NumNodes> lhs_stabilization_lower =  0.5 * std::pow(data.vol, 1.0/3.0) * diff_lower * prod(data.DN_DX, free_stream_velocity) / u_inf * data.vol;
+
+    for(unsigned int row = 0; row < NumNodes; ++row){
+        for(unsigned int column = 0; column < NumNodes; ++column){
+            lhs_pressure_upper_up(row, column) += lhs_stabilization_upper[column];
+            lhs_pressure_upper_up(row, column) += (data.N[row] + stabilization_upper) * dU2dPhi_upper[column];
+
+            // lhs_pressure_upper_low(row, column) += lhs_stabilization_upper[column];
+            lhs_pressure_upper_low(row, column) += (data.N[row] + stabilization_upper) * dU2dPhi_lower[column];
+
+            lhs_pressure_lower_low(row, column) += lhs_stabilization_lower[column];
+            lhs_pressure_lower_low(row, column) += (data.N[row] + stabilization_lower) * dU2dPhi_lower[column];
+
+            // lhs_pressure_lower_up(row, column) += lhs_stabilization_lower[column];
+            lhs_pressure_lower_up(row, column) += (data.N[row] + stabilization_lower) * dU2dPhi_upper[column];
+        }
+    }
+
     if (this->Is(STRUCTURE)){
         BoundedMatrix<double, NumNodes, NumNodes> lhs_positive = ZeroMatrix(NumNodes, NumNodes);
         BoundedMatrix<double, NumNodes, NumNodes> lhs_negative = ZeroMatrix(NumNodes, NumNodes);
@@ -569,8 +607,8 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
                         // Wake condition
                         rLeftHandSideMatrix(row, column) = lhs_wake_condition(row, column); // Diagonal
                         rLeftHandSideMatrix(row, column + NumNodes) = -lhs_wake_condition(row, column); // Off diagonal
-                        // rLeftHandSideMatrix(row, column) = lhs_pressure_upper(row, column); // Diagonal
-                        // rLeftHandSideMatrix(row, column + NumNodes) = -lhs_pressure_lower(row, column); // Off diagonal
+                        // rLeftHandSideMatrix(row, column) = lhs_pressure_upper_up(row, column); // Diagonal
+                        // rLeftHandSideMatrix(row, column + NumNodes) = -lhs_pressure_upper_low(row, column); // Off diagonal
                     }
                 }
                 else{ // else if (data.distances[row] > 0.0)
@@ -580,8 +618,8 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
                         // Wake condition
                         rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_wake_condition(row, column); // Diagonal
                         rLeftHandSideMatrix(row + NumNodes, column) = -lhs_wake_condition(row, column); // Off diagonal
-                        // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_pressure_lower(row, column); // Diagonal
-                        // rLeftHandSideMatrix(row + NumNodes, column) = -lhs_pressure_upper(row, column); // Off diagonal
+                        // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_pressure_lower_low(row, column); // Diagonal
+                        // rLeftHandSideMatrix(row + NumNodes, column) = -lhs_pressure_lower_up(row, column); // Off diagonal
                     }
                 }
             }
@@ -597,8 +635,8 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
                     // Wake condition
                     rLeftHandSideMatrix(row, column) = lhs_wake_condition(row, column); // Diagonal
                     rLeftHandSideMatrix(row, column + NumNodes) = -lhs_wake_condition(row, column); // Off diagonal
-                    // rLeftHandSideMatrix(row, column) = lhs_pressure_upper(row, column); // Diagonal
-                    // rLeftHandSideMatrix(row, column + NumNodes) = -lhs_pressure_lower(row, column); // Off diagonal
+                    // rLeftHandSideMatrix(row, column) = lhs_pressure_upper_up(row, column); // Diagonal
+                    // rLeftHandSideMatrix(row, column + NumNodes) = -lhs_pressure_upper_low(row, column); // Off diagonal
                 }
             }
             else{ // else if (data.distances[row] > 0.0)
@@ -608,8 +646,8 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
                     // Wake condition
                     rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_wake_condition(row, column); // Diagonal
                     rLeftHandSideMatrix(row + NumNodes, column) = -lhs_wake_condition(row, column); // Off diagonal
-                    // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_pressure_lower(row, column); // Diagonal
-                    // rLeftHandSideMatrix(row + NumNodes, column) = -lhs_pressure_upper(row, column); // Off diagonal
+                    //  rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_pressure_lower_low(row, column); // Diagonal
+                    // rLeftHandSideMatrix(row + NumNodes, column) = -lhs_pressure_lower_up(row, column); // Off diagonal
                 }
             }
         }
@@ -671,26 +709,58 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
     const auto xzfilter = prod(data.DN_DX, condition_matrix);
 
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
-    const BoundedVector<double, NumNodes> wake_rhs = - data.vol * free_stream_density * prod(xzfilter, diff_velocity);
+    const BoundedVector<double, NumNodes> wake_rhs_upper = - data.vol * free_stream_density * prod(xzfilter, diff_velocity);
+    const BoundedVector<double, NumNodes> wake_rhs_lower = data.vol * free_stream_density * prod(xzfilter, diff_velocity);
+
+    // const double velocity_upper_2 = inner_prod(upper_velocity, upper_velocity);
+    // const double velocity_lower_2 = inner_prod(lower_velocity, lower_velocity);
+
+
+    // const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
+    // const double free_stream_speed_of_sound = rCurrentProcessInfo[SOUND_VELOCITY];
+    // const double u_inf = free_stream_mach * free_stream_speed_of_sound;
+    // const double stabilization_upper = 0.5 * std::pow(data.vol, 1.0/3.0) * inner_prod(free_stream_velocity, upper_velocity) / u_inf;
+    // const double stabilization_lower = 0.5 * std::pow(data.vol, 1.0/3.0) * inner_prod(free_stream_velocity, lower_velocity) / u_inf;
+
+    // BoundedVector<double, NumNodes> wake_rhs_upper = ZeroVector(NumNodes);
+    // BoundedVector<double, NumNodes> wake_rhs_lower = ZeroVector(NumNodes);
+    // for(unsigned int row = 0; row < NumNodes; ++row){
+    //     wake_rhs_upper(row) = - (data.N[row] + stabilization_upper) * (velocity_upper_2 - velocity_lower_2) * data.vol;
+    //     wake_rhs_lower(row) = - (data.N[row] + stabilization_lower) * (velocity_lower_2 - velocity_upper_2) * data.vol;
+    // }
 
     if (this->Is(STRUCTURE)){
         double upper_vol = 0.0;
         double lower_vol = 0.0;
 
         CalculateVolumesSubdividedElement(upper_vol, lower_vol, rCurrentProcessInfo);
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            if (r_geometry[i].GetValue(TRAILING_EDGE)){
-                rRightHandSideVector[i] = upper_rhs(i)*upper_vol/data.vol;
-                rRightHandSideVector[i + NumNodes] = lower_rhs(i)*lower_vol/data.vol;
+        for (unsigned int rRow = 0; rRow < NumNodes; ++rRow){
+            if (r_geometry[rRow].GetValue(TRAILING_EDGE)){
+                rRightHandSideVector[rRow] = upper_rhs(rRow)*upper_vol/data.vol;
+                rRightHandSideVector[rRow + NumNodes] = lower_rhs(rRow)*lower_vol/data.vol;
             }
             else{
-                AssignRightHandSideWakeNode(rRightHandSideVector, upper_rhs, lower_rhs, wake_rhs, data, i);
+                if (data.distances[rRow] > 0.0){
+                    rRightHandSideVector[rRow] = upper_rhs(rRow);
+                    rRightHandSideVector[rRow + TNumNodes] = wake_rhs_lower(rRow);
+                }
+                else{
+                    rRightHandSideVector[rRow] = wake_rhs_upper(rRow);
+                    rRightHandSideVector[rRow + NumNodes] = lower_rhs(rRow);
+                }
             }
         }
     }
     else{
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            AssignRightHandSideWakeNode(rRightHandSideVector, upper_rhs, lower_rhs, wake_rhs, data, i);
+        for (unsigned int rRow = 0; rRow < NumNodes; ++rRow){
+            if (data.distances[rRow] > 0.0){
+                rRightHandSideVector[rRow] = upper_rhs(rRow);
+                rRightHandSideVector[rRow + TNumNodes] = wake_rhs_lower(rRow);
+            }
+            else{
+                rRightHandSideVector[rRow] = wake_rhs_upper(rRow);
+                rRightHandSideVector[rRow + NumNodes] = lower_rhs(rRow);
+            }
         }
     }
 }
@@ -923,21 +993,24 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputePotenti
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
 
+    auto r_geometry = GetGeometry();
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        double aux_potential =
-            GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-        double potential = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+        double aux_potential = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+        double potential = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         double potential_jump = aux_potential - potential;
 
         if (distances[i] > 0)
         {
-            GetGeometry()[i].SetValue(POTENTIAL_JUMP,
-                                      -2.0 / vinfinity_norm * (potential_jump));
+            r_geometry[i].SetLock();
+            r_geometry[i].SetValue(POTENTIAL_JUMP, -2.0 / vinfinity_norm * (potential_jump));
+            r_geometry[i].UnSetLock();
         }
         else
         {
-            GetGeometry()[i].SetValue(POTENTIAL_JUMP, 2.0 / vinfinity_norm * (potential_jump));
+            r_geometry[i].SetLock();
+            r_geometry[i].SetValue(POTENTIAL_JUMP, 2.0 / vinfinity_norm * (potential_jump));
+            r_geometry[i].UnSetLock();
         }
     }
 }
