@@ -85,6 +85,8 @@ array_1d<double, Dim> ComputePerturbedVelocityLowerElement(const Element& rEleme
 template <int Dim, int NumNodes>
 double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
 
+double ComputeVacuumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
+
 template <int Dim, int NumNodes>
 double ComputeClampedVelocitySquared(const array_1d<double, Dim>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 
