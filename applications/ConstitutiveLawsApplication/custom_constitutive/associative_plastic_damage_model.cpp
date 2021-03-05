@@ -254,7 +254,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateComplianceMatrix
 
     const double denominator = inner_prod(plastic_flow, rPDParameters.StressVector);
 
-    if (denominator > machine_tolerance)
+    if (std::abs(denominator) > machine_tolerance)
         noalias(rPDParameters.ComplianceMatrixIncrement) = (rPDParameters.PlasticDamageProportion) *
             rPDParameters.PlasticConsistencyIncrement * outer_prod(plastic_flow,plastic_flow) /
             denominator;
@@ -344,7 +344,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
         }
     }
     if (iteration > max_iter) {
-        KRATOS_WARNING_FIRST_N("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        KRATOS_WARNING("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
 }
 
