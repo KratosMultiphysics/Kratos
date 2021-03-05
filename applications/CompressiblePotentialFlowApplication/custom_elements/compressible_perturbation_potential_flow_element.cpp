@@ -462,14 +462,8 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
     GetWakeDistances(data.distances);
 
     // Compute upper and lower velocities
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
-    array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
-
-    for (unsigned int i = 0; i < Dim; i++){
-        upper_velocity[i] += free_stream_velocity[i];
-        lower_velocity[i] += free_stream_velocity[i];
-    }
+    const array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
+    const array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputePerturbedVelocityLowerElement<Dim,NumNodes>(*this, rCurrentProcessInfo);
 
     BoundedMatrix<double, NumNodes, NumNodes> upper_lhs_total = ZeroMatrix(NumNodes,NumNodes);
     BoundedMatrix<double, NumNodes, NumNodes> lower_lhs_total = ZeroMatrix(NumNodes,NumNodes);
@@ -511,14 +505,8 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
     GetWakeDistances(data.distances);
 
     // Compute upper and lower velocities
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
-    array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
-
-    for (unsigned int i = 0; i < Dim; i++){
-        upper_velocity[i] += free_stream_velocity[i];
-        lower_velocity[i] += free_stream_velocity[i];
-    }
+    const array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
+    const array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputePerturbedVelocityLowerElement<Dim,NumNodes>(*this, rCurrentProcessInfo);
 
     // Compute upper and lower rhs
     BoundedVector<double, NumNodes> upper_rhs = ZeroVector(NumNodes);
@@ -632,14 +620,8 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
         PartitionsSign, GradientsValue, NEnriched);
 
     // Compute upper and lower velocities
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
-    array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
-
-    for (unsigned int i = 0; i < Dim; i++){
-        upper_velocity[i] += free_stream_velocity[i];
-        lower_velocity[i] += free_stream_velocity[i];
-    }
+    const array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
+    const array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputePerturbedVelocityLowerElement<Dim,NumNodes>(*this, rCurrentProcessInfo);
 
     // Compute upper and lower densities
     const double upper_local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(upper_velocity, rCurrentProcessInfo);
