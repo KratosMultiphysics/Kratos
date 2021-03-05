@@ -832,7 +832,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputePotenti
         else
         {
             r_geometry[i].SetLock();
-            GetGeometry()[i].SetValue(POTENTIAL_JUMP, 2.0 / vinfinity_norm * (potential_jump));
+            r_geometry[i].SetValue(POTENTIAL_JUMP, 2.0 / vinfinity_norm * (potential_jump));
             r_geometry[i].UnSetLock();
         }
     }
