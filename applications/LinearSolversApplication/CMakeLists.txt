@@ -16,7 +16,7 @@ message( "**** configuring KratosLinearSolversApplication ****" )
 ################### PYBIND11
 include(pybind11Tools)
 
-add_definitions( -DEIGEN_MPL2_ONLY)
+# TODO add_definitions( -DEIGEN_MPL2_ONLY)
 
 include_directories(
     ${KRATOS_SOURCE_DIR}/kratos
@@ -63,6 +63,16 @@ if( USE_EIGEN_FEAST MATCHES ON )
     set(FEAST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0 )
     include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0/include )
     add_definitions(-DUSE_EIGEN_FEAST)
+endif()
+
+if( USE_EIGEN_SPECTRA MATCHES ON )
+    if( USE_EIGEN_MKL MATCHES OFF OR NOT DEFINED USE_EIGEN_MKL )
+        message( FATAL_ERROR "Spectra can only be used with MKL" )
+    endif()
+    include_directories(
+        SYSTEM external_libraries/spectra1/include # Including as System to suppress compile-warnings from it
+    )
+    add_definitions(-DUSE_EIGEN_SPECTRA)
 endif()
 
 ## generate variables with the sources
