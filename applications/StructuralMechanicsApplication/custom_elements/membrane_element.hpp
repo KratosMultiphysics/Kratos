@@ -126,6 +126,9 @@ namespace Kratos
     void CalculateMassMatrix(MatrixType& rMassMatrix,
       const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
+      const ProcessInfo& rCurrentProcessInfo) const;
+
     void CalculateLumpedMassVector(
       VectorType& rMassVector,
       const ProcessInfo& rCurrentProcessInfo) const override;
@@ -156,7 +159,7 @@ namespace Kratos
      * @param Configuration Reference/Current
      */
     void CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration);
+     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration) const;
 
       /**
      * @brief Calculates the covariant metric
@@ -208,7 +211,7 @@ namespace Kratos
      * @param rDetJacobi The determinant of the Jacobian
      * @param rReferenceBaseVectors Reference base vectors
      */
-    void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors);
+    void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors) const;
 
 
       /**
@@ -374,10 +377,12 @@ namespace Kratos
        const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase);
 
 
-    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector);
+    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo) const;
+
+    void ReferenceLumpingFactors(Vector& rResult) const;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-    double mReferenceArea = 0.0;
+    double CalculateReferenceArea() const;
 
     ///@}
     ///@name Serialization

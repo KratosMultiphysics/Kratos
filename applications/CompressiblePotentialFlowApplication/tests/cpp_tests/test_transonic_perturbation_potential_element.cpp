@@ -565,21 +565,19 @@ BoundedVector<double,3> AssignDistancesToPerturbationTransonicElement()
     return distances;
 }
 
-void AssignPotentialsToWakeTransonicPerturbationElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances)
+void AssignPotentialsToWakeTransonicPerturbationElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances, const std::array<double, 6>& rPotential)
 {
-    const std::array<double, 3> potential{1.0, 100.0, 150.0};
-
     for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) > 0.0)
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
         else
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i];
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i];
     }
     for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) < 0.0)
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i]+5;
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+3];
         else
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i]+5;
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+3];
     }
 }
 
@@ -595,7 +593,8 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementRHS, Comp
     pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
     pElement->GetValue(WAKE) = true;
 
-    AssignPotentialsToWakeTransonicPerturbationElement(pElement, distances);
+    const std::array<double, 6> potential{1.0, 101.0, 150.0, 6.0, 105.0, 155.0};
+    AssignPotentialsToWakeTransonicPerturbationElement(pElement, distances, potential);
 
     // Compute RHS and LHS
     Vector RHS = ZeroVector(6);
@@ -603,7 +602,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementRHS, Comp
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     pElement->CalculateRightHandSide(RHS, r_current_process_info);
 
-    std::vector<double> reference{146.2643261263345,-0,-0,-0,-122.1426284341492,-24.12169769218525};
+    std::vector<double> reference{146.392649744264,-0.9625396130203431,0.4812698065101715,-0.4812698065101715,-121.8478896122452,-24.06349032550858};
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
 }
@@ -620,7 +619,8 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS, Comp
     pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
     pElement->GetValue(WAKE) = true;
 
-    AssignPotentialsToWakeTransonicPerturbationElement(pElement, distances);
+    const std::array<double, 6> potential{1.0, 100.0, 150.0, 6.0, 105.0, 155.0};
+    AssignPotentialsToWakeTransonicPerturbationElement(pElement, distances, potential);
 
     // Compute LHS
     Matrix LHS = ZeroMatrix(6, 6);
