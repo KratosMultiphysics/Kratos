@@ -816,7 +816,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputePotenti
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
 
-    auto r_geometry = GetGeometry();
+    auto& r_geometry = GetGeometry();
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         double aux_potential = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
