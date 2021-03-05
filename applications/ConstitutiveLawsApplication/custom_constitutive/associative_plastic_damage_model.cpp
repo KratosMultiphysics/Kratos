@@ -281,7 +281,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticConsisten
     const double denominator = (inner_prod(plastic_flow, prod(constitutive_matrix, plastic_flow)) + 
         rPDParameters.Slope*inner_prod(rPDParameters.StressVector / g, plastic_flow));
     
-    if (denominator > machine_tolerance)
+    if (std::abs(denominator) > machine_tolerance)
         rPDParameters.PlasticConsistencyIncrement = rPDParameters.NonLinearIndicator / denominator;
     else
         rPDParameters.PlasticConsistencyIncrement = 0.0;
