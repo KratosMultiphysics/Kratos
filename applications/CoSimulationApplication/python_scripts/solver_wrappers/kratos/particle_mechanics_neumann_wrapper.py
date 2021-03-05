@@ -34,7 +34,7 @@ class ParticleMechanicsNeumannWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
             ## IMPOSED Point load
             point_load = coupling_node.GetSolutionStepValue(KM.CONTACT_FORCE)
-            point_load*=-1
+            # point_load*=-1
             model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KPM.POINT_LOAD, [point_load], model_part.ProcessInfo)
 
         super().SolveSolutionStep()
