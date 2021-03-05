@@ -95,7 +95,7 @@ public:
     /// Pointer definition of AssociativePlasticDamageModel
     KRATOS_CLASS_POINTER_DEFINITION(AssociativePlasticDamageModel);
 
-    struct PlasticDamageFatigueParameters {
+    struct PlasticDamageParameters {
         BoundedMatrixType ComplianceMatrixIncrement = ZeroMatrix(VoigtSize,VoigtSize);
         BoundedMatrixType ComplianceMatrix       = ZeroMatrix(VoigtSize,VoigtSize);
         BoundedMatrixType ConstitutiveMatrix     = ZeroMatrix(VoigtSize,VoigtSize);
@@ -592,7 +592,7 @@ public:
      */
     void CalculatePlasticDissipationIncrement(
         const Properties &rMaterialProperties,
-        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+        PlasticDamageParameters &rPlasticDamageParameters);
 
     /**
      * @brief This method computes the normalized
@@ -600,7 +600,7 @@ public:
      */
     void CalculateDamageDissipationIncrement(
         const Properties &rMaterialProperties,
-        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+        PlasticDamageParameters &rPlasticDamageParameters);
 
     /**
      * @brief This method computes the threshold
@@ -608,55 +608,55 @@ public:
      */
     void CalculateThresholdAndSlope(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+        PlasticDamageParameters &rPlasticDamageParameters);
 
     /**
      * @brief This method computes the plastic flow (dF/dS)
      */
     void CalculateFlowVector(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+        PlasticDamageParameters &rPlasticDamageParameters);
 
     /**
      * @brief This method computes the Plastic Strain increment
      */
     void CalculatePlasticStrainIncrement(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+        PlasticDamageParameters &rPlasticDamageParameters);
 
     /**
      * @brief This method computes the Compliance matrix increment
      */
     void CalculateComplianceMatrixIncrement(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+        PlasticDamageParameters &rPlasticDamageParameters);
 
     /**
      * @brief This method computes the plastic consistency increment
      */
     void CalculatePlasticConsistencyIncrement(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+        PlasticDamageParameters &rPlasticDamageParameters);
 
     /**
      * @brief This method integrates the stress
      */
     void IntegrateStressPlasticDamageMechanics(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+        PlasticDamageParameters &rPlasticDamageParameters);
 
     /**
      * @brief This method computes the constitutive matrix
      */
     void CalculateConstitutiveMatrix(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageFatigueParameters &rPlasticDamageParameters);
+        PlasticDamageParameters &rPlasticDamageParameters);
 
     /**
      * @brief This method updates all the internal variables
      */
     void UpdateInternalVariables(
-        PlasticDamageFatigueParameters &rPlasticDamageParameters
+        PlasticDamageParameters &rPlasticDamageParameters
     );
 
     /**
@@ -664,14 +664,14 @@ public:
      */
     void CheckMinimumFractureEnergy(
         ConstitutiveLaw::Parameters& rValues,
-        PlasticDamageFatigueParameters &rPDParameters
+        PlasticDamageParameters &rPDParameters
     );
 
     void InitializePlasticDamageParameters(
         const BoundedVectorType& rStrainVector,
         const Properties& rMaterialProperties,
         const double CharateristicLength,
-        PlasticDamageFatigueParameters &rPlasticDamageParameters
+        PlasticDamageParameters &rPlasticDamageParameters
         )
     {
         rPlasticDamageParameters.PlasticDissipation     = mPlasticDissipation;
