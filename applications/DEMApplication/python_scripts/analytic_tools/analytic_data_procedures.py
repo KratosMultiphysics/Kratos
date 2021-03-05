@@ -1,5 +1,6 @@
 import os
-import KratosMultiphysics.DEMApplication as DEM
+from KratosMultiphysics import *
+from KratosMultiphysics.DEMApplication import *
 
 class ParticleWatcherAnalyzer:
     def __init__(self, analytic_particle_watcher, path, do_clear_data = True):
@@ -201,12 +202,13 @@ class FaceWatcherAnalyzer:
         self.inlet = inlet
 
 class FaceAnalyzerClass:
-    def __init__(self, model_part):
+    def __init__(self, model_part, main_path):
         self.model_part = model_part
+        self.main_path = main_path
         self.face_watcher_dict = dict()
         self.face_watcher_analysers = dict()
         for sub_part in self.model_part:
-            if sub_part[DEM.IS_GHOST] == True:
+            if sub_part[IS_GHOST] == True:
                 self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
                 self.face_watcher_analysers[sub_part.Name] = FaceWatcherAnalyzer(name=sub_part.Name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name], path=self.main_path)
 
@@ -227,7 +229,7 @@ class FaceAnalyzerClass:
         if os.path.exists(self.old_path):
             os.remove(self.old_path)
 
-    def UpdateDataBases(self):
-        for sub_part in self.model_part.sub_part:
-            if sub_part[DEM.IS_GHOST]:
+    def UpdateDataBases(self, time):
+        for sub_part in self.model_part:
+            if sub_part[IS_GHOST]:
                 self.face_watcher_analysers[sub_part.Name].UpdateDataFiles(time)

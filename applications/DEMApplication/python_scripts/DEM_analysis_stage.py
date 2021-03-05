@@ -148,7 +148,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher=self.particle_watcher, path=self.main_path)
 
     def SetAnalyticFaceWatcher(self):
-        self.FaceAnalyzerClass = analytic_data_procedures.FaceAnalyzerClass(self.rigid_face_model_part.SubModelParts)
+        self.FaceAnalyzerClass = analytic_data_procedures.FaceAnalyzerClass(self.rigid_face_model_part.SubModelParts, self.main_path)
 
     def MakeAnalyticsMeasurements(self):
         self.FaceAnalyzerClass.MakeAnalyticsMeasurements()
@@ -456,7 +456,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.MakeAnalyticsMeasurements()
         if is_time_to_print:
             self.FaceAnalyzerClass.CreateNewFile()
-            self.FaceAnalyzerClass.UpdateDataBases()
+            self.FaceAnalyzerClass.UpdateDataBases(time)
             self.FaceAnalyzerClass.RemoveOldFile()
 
     def IsTimeToPrintPostProcess(self):
