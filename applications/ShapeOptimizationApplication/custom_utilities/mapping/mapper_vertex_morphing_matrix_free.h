@@ -115,11 +115,11 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting initialization of matrix-free mapper..." << std::endl;
 
-        CreateListOfNodesInOriginModelPart();
         CreateFilterFunction();
+
+        CreateListOfNodesInOriginModelPart();
         InitializeMappingVariables();
         AssignMappingIds();
-
         CreateSearchTreeWithAllNodesInOriginModelPart();
 
         mIsMappingInitialized = true;
@@ -401,6 +401,9 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting to update mapper..." << std::endl;
 
+        CreateListOfNodesInOriginModelPart();
+        InitializeMappingVariables();
+        AssignMappingIds();
         CreateSearchTreeWithAllNodesInOriginModelPart();
 
         KRATOS_INFO("ShapeOpt") << "Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
