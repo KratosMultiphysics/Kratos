@@ -816,21 +816,24 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputePotenti
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
 
+    auto r_geometry = GetGeometry();
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        double aux_potential =
-            GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-        double potential = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+        double aux_potential = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+        double potential = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         double potential_jump = aux_potential - potential;
 
         if (distances[i] > 0)
         {
-            GetGeometry()[i].SetValue(POTENTIAL_JUMP,
-                                      -2.0 / vinfinity_norm * (potential_jump));
+            r_geometry[i].SetLock();
+            r_geometry[i].SetValue(POTENTIAL_JUMP, -2.0 / vinfinity_norm * (potential_jump));
+            r_geometry[i].UnSetLock();
         }
         else
         {
+            r_geometry[i].SetLock();
             GetGeometry()[i].SetValue(POTENTIAL_JUMP, 2.0 / vinfinity_norm * (potential_jump));
+            r_geometry[i].UnSetLock();
         }
     }
 }
