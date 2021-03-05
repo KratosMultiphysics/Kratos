@@ -23,7 +23,7 @@ namespace Kratos {
 
         void Check(Properties::Pointer pProp) const override;
 
-        void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
+        void Initialize(SphericContinuumParticle* element) override;
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
@@ -109,7 +109,6 @@ namespace Kratos {
         double mUnbondedScalingFactor = 0.0;
         bool mDebugPrintingOption;
         double mDamageEnergyCoeff;
-        double mBondedAreaRatio;
 
     private:
 

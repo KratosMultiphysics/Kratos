@@ -24,7 +24,7 @@ namespace Kratos {
         double mGamma3;
         double mMaxDef;
 
-        void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
+        void Initialize(SphericContinuumParticle* owner_sphere) override;
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 

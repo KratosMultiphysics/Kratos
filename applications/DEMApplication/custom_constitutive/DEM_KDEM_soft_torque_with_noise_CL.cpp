@@ -21,18 +21,18 @@ namespace Kratos {
         this->Check(pProp);
     }
 
-    void DEM_KDEM_soft_torque_with_noise::Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
+    void DEM_KDEM_soft_torque_with_noise::Initialize(SphericContinuumParticle* owner_sphere) {
         #pragma omp critical
         {
-            if (!element1->Has(PERTURBED_TAU_ZERO)) {
-                srand(element1->GetId());
-                const double perturbed_tau_zero = rand_normal(DEM_KDEM::GetTauZero(element1), element1->GetProperties()[KDEM_STANDARD_DEVIATION_TAU_ZERO]);
-                element1->SetValue(PERTURBED_TAU_ZERO, perturbed_tau_zero);
+            if (!owner_sphere->Has(PERTURBED_TAU_ZERO)) {
+                srand(owner_sphere->GetId());
+                const double perturbed_tau_zero = rand_normal(DEM_KDEM::GetTauZero(owner_sphere), owner_sphere->GetProperties()[KDEM_STANDARD_DEVIATION_TAU_ZERO]);
+                owner_sphere->SetValue(PERTURBED_TAU_ZERO, perturbed_tau_zero);
             }
-            if (!element1->Has(PERTURBED_INTERNAL_FRICTION)) {
-                srand(element1->GetId());
-                const double perturbed_internal_fricc = rand_normal(DEM_KDEM::GetInternalFricc(element1), element1->GetProperties()[KDEM_STANDARD_DEVIATION_FRICTION]);
-                element1->SetValue(PERTURBED_INTERNAL_FRICTION, perturbed_internal_fricc);
+            if (!owner_sphere->Has(PERTURBED_INTERNAL_FRICTION)) {
+                srand(owner_sphere->GetId());
+                const double perturbed_internal_fricc = rand_normal(DEM_KDEM::GetInternalFricc(owner_sphere), owner_sphere->GetProperties()[KDEM_STANDARD_DEVIATION_FRICTION]);
+                owner_sphere->SetValue(PERTURBED_INTERNAL_FRICTION, perturbed_internal_fricc);
             }
         }
     }

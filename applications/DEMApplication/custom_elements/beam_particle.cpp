@@ -50,8 +50,7 @@ namespace Kratos {
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
             DEMBeamConstitutiveLaw::Pointer NewBeamConstitutiveLaw = GetProperties()[DEM_BEAM_CONSTITUTIVE_LAW_POINTER]-> Clone();
             mBeamConstitutiveLawArray[i] = NewBeamConstitutiveLaw;
-            SphericContinuumParticle* p_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
-            mBeamConstitutiveLawArray[i]->Initialize(this, p_neighbour);
+            mBeamConstitutiveLawArray[i]->Initialize(this);
         }
     }
 
