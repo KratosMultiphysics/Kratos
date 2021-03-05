@@ -1284,7 +1284,7 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, cons
     }
 
     //2.-Calculate StiffnessMatrix:
-    if (beta!=0.0){
+    if (std::abs(beta) > 1e-12){
         MatrixType StiffnessMatrix  = Matrix();
         this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
         //4.1.-Compose the Damping Matrix:
@@ -1293,7 +1293,7 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, cons
     }
 
     //3.-Calculate MassMatrix:
-    if (alpha!=0.0){
+    if (std::abs(alpha) > 1e-12){
         MatrixType MassMatrix  = Matrix();
         this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
         //4.2.-Compose the Damping Matrix:
