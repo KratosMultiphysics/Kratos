@@ -231,13 +231,18 @@ private:
     void CalculateLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
                                          const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateTotalLeftHandSideWakeElement(BoundedMatrix<double, NumNodes, NumNodes>& rLhs_total,
+    void CalculateRightHandSideWakeElement(VectorType& rRightHandSideVector,
+                                         const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateLeftHandSideContribution(BoundedMatrix<double, NumNodes, NumNodes>& rLhs_total,
                                          const ProcessInfo& rCurrentProcessInfo,
                                          const array_1d<double, Dim>& rVelocity,
                                          const ElementalData<NumNodes, Dim>& rData);
 
-    void CalculateRightHandSideWakeElement(VectorType& rRightHandSideVector,
-                                         const ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSideContribution(BoundedVector<double, NumNodes>& rRhs_total,
+                                         const ProcessInfo& rCurrentProcessInfo,
+                                         const array_1d<double, Dim>& rVelocity,
+                                         const ElementalData<NumNodes, Dim>& rData);
 
     void CalculateLeftHandSideSubdividedElement(Matrix& lhs_positive,
                                                Matrix& lhs_negative,
