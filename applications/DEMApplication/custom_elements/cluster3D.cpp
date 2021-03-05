@@ -321,6 +321,7 @@ namespace Kratos {
             center_torque[1] += additional_torque[1];
             center_torque[2] += additional_torque[2];
         }
+        central_node.FastGetSolutionStepValue(CONTACT_FORCES) = center_forces;
     }
 
     void Cluster3D::SetContinuumGroupToBreakableClusterSpheres(const int Id) {
